@@ -464,22 +464,22 @@ services:
       retries: 99
       start_period: 10s
   
-  plugin-service:
+  agentscope:
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
     restart: always
-    image: ${WANWU_PLUGIN_SERVICE_IMAGE}
-    container_name: plugin-service
+    image: ${WANWU_AGENTSCOPE_IMAGE}
+    container_name: agentscope-wanwu
     networks:
       - ${WANWU_DOCKER_NETWORK}
     ports:
       - 6672:6672
     volumes:
-      - ./configs/microservice/plugin-service/configs/config.yaml:/agentscope/src/agentscope/aibigmodel_workflow/config.yaml
-      - ${WANWU_PROJECT_DIR}/plugin-service/logs:/agentscope/logs
+      - ./configs/microservice/agentscope/configs/config.yaml:/agentscope/src/agentscope/aibigmodel_workflow/config.yaml
+      - ${WANWU_PROJECT_DIR}/agentscope/logs:/agentscope/logs
     environment:
       DB_NAME: ${WANWU_DB_NAME}
       DATABASE_HOST: ${WANWU_MYSQL_HOST}

@@ -91,6 +91,6 @@ knowledge:
   host: knowledge-service:8889
 
 workflow:
-  host: http://plugin-service:6672
+  host: http://agentscope-wanwu:6672
   workflow_list_uri: "/workflow/list"
   delete_workflow_uri: "/workflow/delete"
