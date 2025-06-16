@@ -488,6 +488,12 @@ services:
       REDIS_HOST: ${WANWU_REDIS_HOST}
       REDIS_PORT: ${WANWU_REDIS_PORT}
       REDIS_PASSWORD: ${WANWU_REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s = socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.settimeout(5); result = s.connect_ex(('localhost', 6672)); s.close(); exit(0 if result == 0 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 99
+      start_period: 10s
 
   # ------ nginx & frontend ------
   
