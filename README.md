@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/86af1a7a-2a62-4271-a2b3-d6fad37215a6" style="width:40%; height:auto;" />
+  <img src="https://github.com/user-attachments/assets/8b5f10d8-293c-44a5-941f-7c7b7e32b4fd" style="width:45%; height:auto;" />
 </div><br>
 
-&emsp;&emsp;**联通元景万悟Lite**是一款面向**企业级**场景的**一站式**、**商用license友好**的**智能体开发平台**，致力于为企业提供安全、高效、合规的一站式AI解决方案。我们以"技术开放、生态共建"为核心理念，通过整合大语言模型、业务流程自动化等前沿技术，构建了覆盖模型全生命周期管理、MCP、联网检索、智能体快速开发、企业知识库建设、复杂工作流编排等完整功能体系的AI工程化平台。平台采用模块化架构设计，支持灵活的功能扩展和二次开发，在确保企业数据安全和隐私保护的同时，大幅降低了AI技术的应用门槛。无论是中小型企业快速构建智能化应用，还是大型企业实现复杂业务场景的智能化改造，联通元景万悟Lite都能提供强有力的技术支撑，助力企业加速数字化转型进程，实现降本增效和业务创新。
+&emsp;&emsp;**元景MaaS智能体平台**是一款面向**企业级**场景的**一站式**、**商用license友好**的**智能体开发平台**，致力于为企业提供安全、高效、合规的一站式AI解决方案。我们以"技术开放、生态共建"为核心理念，通过整合大语言模型、业务流程自动化等前沿技术，构建了覆盖模型全生命周期管理、MCP、联网检索、智能体快速开发、企业知识库建设、复杂工作流编排等完整功能体系的AI工程化平台。平台采用模块化架构设计，支持灵活的功能扩展和二次开发，在确保企业数据安全和隐私保护的同时，大幅降低了AI技术的应用门槛。无论是中小型企业快速构建智能化应用，还是大型企业实现复杂业务场景的智能化改造，元景MaaS智能体平台都能提供强有力的技术支撑，助力企业加速数字化转型进程，实现降本增效和业务创新。
 
 ### &#x1F525; 平台核心优势
 
@@ -68,14 +68,15 @@
 
 ### &#x1F4E2; 功能比较
 
-|    功能     |  联通元景万悟Lite  |       Dify.AI        |       Fastgpt        |      Ragflow       |
+|    功能     |  元景MaaS智能体平台  |       Dify.AI        |       Fastgpt        |      Ragflow       |
 | :---------: | :----------------: | :------------------: | :------------------: | :----------------: |
 |  编程方法   | API + 应用程序导向 |  API + 应用程序导向  |  API + 应用程序导向  | API + 应用程序导向 |
 |   易用性    |  高（学习成本低）  | 中高（需一定学习量） | 中高（需一定学习量） |    中（偏技术）    |
 |  资源消耗   |         低         |          低          |          低          |         高         |
 | 支持的LLMs  |         ✅          |          ✅           |          ✅           |         ✅          |
 |   RAG引擎   |         ✅          |          ✅           |          ✅           |         ✅          |
-|  搜索增强   |         ✅          |          ✅           |          ✅           |         ✅          |
+|    MCP     |         ✅          |  ✅（需安装工具使用）   |  ✅（需安装工具使用）   |         ✅          |
+|  搜索增强   |         ✅          |  ✅（需安装工具使用）   |  ✅✅（需安装工具使用） |         ✅          |
 |    Agent    |         ✅          |          ✅           |          ✅           |         ✅          |
 |   工作流    |         ✅          |          ✅           |          ✅           |         ✅          |
 |  可观测性   |         ✅          |          ✅           |          ✅           |         ✅          |
@@ -97,7 +98,7 @@
 
 ### 🚀 快速开始
 
-&emsp;&emsp;联通元景万悟Lite的工作流模块使用的是[wanwu-agentscope](https://github.com/UnicomAI/wanwu-agentscope.git)项目，可到其仓库查看详细。
+&emsp;&emsp;元景MaaS智能体平台的工作流模块使用的是[wanwu-agentscope](https://github.com/UnicomAI/wanwu-agentscope.git)项目，可到其仓库查看详细。
 
 - **Docker安装（推荐）**
 
@@ -169,22 +170,19 @@
 
 ### &#x1F517; 使用的其他开源项目
 
-- https://github.com/modelscope/agentscope  作为联通元景万悟Lite中工作流模块的开发框架；
-- https://github.com/langchain-ai/langchain.git  作为联通元景万悟Lite中智能体的各类基础组件开发；
-- https://github.com/QwenLM/Qwen-Agent.git  作为联通元景万悟Lite中react智能体的构建；
+- https://github.com/modelscope/agentscope  作为元景MaaS智能体平台中工作流模块的开发框架；
+- https://github.com/langchain-ai/langchain.git  作为元景MaaS智能体平台中智能体的各类基础组件开发；
+- https://github.com/QwenLM/Qwen-Agent.git  作为元景MaaS智能体平台中react智能体的构建；
 
 ------
 
 
 
 ### ⚖️ 许可证
-联通元景万悟Lite根据Apache License 2.0发布。
+元景MaaS智能体平台根据Apache License 2.0发布。
 
 ------
 
 ### &#x1F4E9; 联系我们
 
-| QQ群 |
-| ---  |
-| ![image](https://github.com/user-attachments/assets/a31f1f6d-4db5-47cc-bb85-2ea9310a74b9) |
-
+<img src="https://github.com/user-attachments/assets/1f0973f1-1a9c-4f09-a315-e21aaa9996fd" style="width:30%; height:auto;" />
