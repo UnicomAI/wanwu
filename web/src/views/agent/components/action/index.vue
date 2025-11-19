@@ -8,7 +8,7 @@
                 </div>
                 <div class="action-form">
                     <div class="block prompt-box">
-                        <p class="block-title required-label rl">API身份认证</p>
+                        <p class="block-title required-label rl">API Authentication</p>
                         <div class="rl" @click="preAuthorize">
                             <!--<el-input class="name-input" v-model="basicForm.apiKey" @blur="listenerUpdate" @focus="apiKeyOnFocus" maxlength="10" placeholder="" ></el-input>-->
                             <div class="api-key">{{basicForm.apiKey}}</div>
@@ -20,18 +20,18 @@
                         <p class="block-title required-label rl">Schema</p>
                         <div class="rl">
                             <div class="flex" style="margin-bottom: 10px">
-                                <el-select v-model="basicForm.example" placeholder="选择样例" style="width:100%;" @change="exampleChange">
-                                    <!--<el-option label="模板样例Import" value="json"></el-option>-->
-                                    <el-option label="JSON样例Import" value="json"></el-option>
-                                    <el-option label="YAML样例Import" value="yaml"></el-option>
+                                <el-select v-model="basicForm.example" placeholder="Select Example" style="width:100%;" @change="exampleChange">
+                                    <!--<el-option label="Import Template Example" value="json"></el-option>-->
+                                    <el-option label="Import JSON Example" value="json"></el-option>
+                                    <el-option label="Import YAML Example" value="yaml"></el-option>
                                 </el-select>
                             </div>
-                            <el-input class="schema-textarea" v-model="basicForm.schema" @blur="listenerUpdate"  placeholder="Please enter对应API of openapi3.0结构，可以选择示例了解Details。" type="textarea" ></el-input>
+                            <el-input class="schema-textarea" v-model="basicForm.schema" @blur="listenerUpdate"  placeholder="Please enter the OpenAPI 3.0 structure for the corresponding API. You can select an example to learn more details." type="textarea" ></el-input>
                         </div>
                     </div>
 
                     <div class="block prompt-box">
-                        <p class="block-title required-label rl">可用API</p>
+                        <p class="block-title required-label rl">AvailableAPI</p>
                         <div class="api-list">
                             <el-table
                                     :data="apiList"
@@ -56,17 +56,17 @@
                         </div>
                     </div>
                     <div class="block prompt-box">
-                        <p class="block-title  rl">隐私政策</p>
-                        <el-input class="name-input" v-model="basicForm.privacy" placeholder="填写API对应 of 隐私政策urlLink" ></el-input>
+                        <p class="block-title  rl">Privacy Policy</p>
+                        <el-input class="name-input" v-model="basicForm.privacy" placeholder="Enter API privacy policy URL link" ></el-input>
                     </div>
                 </div>
             </el-col>
 
         </el-row>
 
-        <!--认证弹窗-->
+        <!--Authentication Dialog-->
         <el-dialog
-            title="认证"
+            title="Authentication"
             :visible.sync="dialogVisible"
             width="600px"
             append-to-body
@@ -75,7 +75,7 @@
             >
             <div class="action-form">
                 <el-form :rules="rules" ref="form" :inline="false" :model="authForm">
-                    <el-form-item label="认证Type">
+                    <el-form-item label="AuthenticationType">
                         <el-radio-group v-model="authForm.type">
                             <el-radio label="none">None</el-radio>
                             <el-radio label="apiKey">API Key</el-radio>
@@ -103,8 +103,8 @@
             </div>
 
             <span slot="footer" class="dialog-footer">
-                <el-button @click="beforeAuthFormClose">取 消</el-button>
-                <el-button type="primary" @click="listenerApiKey">确 定</el-button>
+                <el-button @click="beforeAuthFormClose">Cancel</el-button>
+                <el-button type="primary" @click="listenerApiKey">Confirm</el-button>
             </span>
         </el-dialog>
 
@@ -370,7 +370,7 @@
         position: relative;
     }
 }
-/*通用*/
+/* General */
 .action{
     position: relative;
     height:100%;

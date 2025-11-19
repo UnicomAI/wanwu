@@ -3,7 +3,7 @@
     <el-container class="outer-container">
       <div class="left-nav" v-if="isShowNav">
         <div class="left-nav-container">
-          <!--不Show平台 of 图标-->
+          <!-- Platform logo -->
           <div style="padding: 0 15px">
             <div style="padding: 10px 0 14px; border-bottom: 1px solid #D9D9D9;" v-if="homeLogoPath">
               <img
@@ -33,7 +33,7 @@
               </div>
             </div>
           </div>
-          <!--Cancel整体 of 新建Show-->
+          <!-- Cancel overall new display -->
           <!--<div style="padding: 0 15px">
             <div style="padding: 14px 0 10px; border-top: 1px solid #D9D9D9">
               <img class="total-create" src="@/assets/imgs/totalCreate.png" alt="" @click="showCreateTotalDialog">
@@ -41,7 +41,7 @@
             </div>
           </div>-->
           <div class="nav-bottom">
-            <!--隐藏DocumentDownload菜单-->
+            <!-- Hide document download menu -->
             <!--<div>
               <img class="left-menu-width" src="@/assets/imgs/doc.png" alt="" @click="showDocDownloadDialog" />
               <DocDownloadDialog ref="docDownloadDialog" />
@@ -103,9 +103,9 @@
         </div>
       </div>
       <div class="left-page-container" v-if="isShowNav"></div>
-      <!-- 容器 -->
+      <!-- container -->
       <el-container :class="['inner-container']">
-        <!--Cancel整体 of 菜单Show isShowMenu 一直为 false-->
+        <!-- Cancel overall menu display, isShowMenu is always false -->
         <el-aside v-if="isShowMenu && menuList && menuList.length" class="full-menu-aside">
           <el-menu
             :default-openeds="defaultOpeneds"
@@ -113,7 +113,7 @@
             :key="menuKey"
             :class="[{'el-menu-hasOrg': currentNavMenu.key === 'workspace'}]"
           >
-            <!--组织切换-->
+            <!-- Organization switcher -->
             <div class="header__org_container" v-if="currentNavMenu.key === 'workspace'">
               <div class="header__org_wrapper">
                 <img class="head-icon" src="@/assets/imgs/head.png" alt="" />
@@ -136,9 +136,9 @@
                 </el-select>
               </div>
             </div>
-            <!--菜单渲染-->
+            <!-- Menu rendering -->
             <div v-for="(n,i) in menuList" :key="`${i}ml`">
-              <!--有下一级-->
+              <!-- Has next level -->
               <el-submenu
                 v-if="n.children && checkPerm(n.perm)"
                 :index="n.index"
@@ -193,7 +193,7 @@
                   </el-menu-item>
                 </div >
               </el-submenu>
-              <!--No下一级-->
+              <!-- No next level -->
               <el-menu-item
                 :index="n.index"
                 v-if="!n.children && checkPerm(n.perm)"
@@ -206,7 +206,7 @@
             </div>
           </el-menu>
         </el-aside>
-        <!-- 右侧Content -->
+        <!-- Right side content -->
         <el-main>
           <div class="page-container">
             <div class="right-page-content">
@@ -273,7 +273,7 @@ export default {
             window.open('https://github.com/UnicomAI/wanwu')
           }},
           {name: this.$t('menu.about'), img: require('@/assets/imgs/about_icon.svg'), version: 'version', redirect: () => {
-            // 不ShowAboutDialog
+            // Don't show about dialog
             // this.showAboutDialog()
           }}
         ],
@@ -293,7 +293,7 @@ export default {
         this.getMenuList(val.path)
         this.redirectUserInfo()
       },
-      // 深度ObserveListen
+      // Deep watch listener
       deep: true
     },
     orgInfo: {
@@ -315,7 +315,7 @@ export default {
     },
     permission: {
       handler(val) {
-        // If没Modify Password，重新向到ModifyPassword
+        // If password not modified, redirect to modify password
         this.redirectUserInfo()
       },
       deep: true
@@ -325,27 +325,27 @@ export default {
     ...mapGetters('user', ['orgInfo', 'userInfo', 'commonInfo', 'permission']),
   },
   async created() {
-    // 判断YesNoShow左侧Menu
+    // Check whether to show left menu
     this.justifyIsShowNav(this.$route.path)
     // this.justifyIsShowMenu(this.$route.path)
 
-    // Setting语言
+    // Set language
     // await this.setLanguage()
 
-    // GetMenu
+    // Get menu
     this.getCurrentMenu()
 
-    // 只Has登陆Status下才QueryInterface，NoThen会一直Refresh
+    // Only query interface when logged in, otherwise will keep refreshing
     if (localStorage.getItem('access_cert')) this.getPermissionInfo()
 
-    // SettingOrganizationListAnd当前 of Organization
+    // Set organization list and current organization
     this.orgList = this.orgInfo.orgs || []
     this.org.orgId = this.userInfo.orgId
 
-    // Get平台NameAnd logo EtcInformation
+    // Get platform name and logo information
     this.getCommonInfo()
   },
-  /* 保证容器 DIV 在 qiankun start  when 一定存在 */
+  /* Ensure container DIV exists when qiankun starts */
   mounted() {
     /* start() */
   },
@@ -411,7 +411,7 @@ export default {
       this.menuList = menus
 
       if (menus && menus.length) {
-        // 切换 nav Menu跳转HasPermission of 第一个
+        // Switch nav menu and jump to first with permission
         const {path} = fetchPermFirPath(menus)
         this.$router.push({path})
         this.changeMenuIndex(fetchCurrentPathIndex(path, menus))
@@ -421,7 +421,7 @@ export default {
     },
     async setLanguage() {
       const langCode = localStorage.getItem('locale')
-      // 主要解决本地And线上两个 localStorage 语言不同问题，UseUser本地Cache of 语言
+      // Mainly to solve local and online localStorage language difference, use user local cached language
       if (langCode) await changeLang({language: langCode})
     },
     menuClick(item){
@@ -433,11 +433,11 @@ export default {
     },
     getCurrentMenu() {
       const { path } = this.$route || {}
-      // Get当前Menu
+      // Get current menu
       this.getMenuList(path)
     },
     getCurrentNav(path) {
-      // Get一级Route, IfYes appSpace Get两级
+      // Get first level route, if appSpace get second level
       const pathArray = path.split('/') || []
       const firstLevelPath = pathArray[1] === 'appSpace'
         ? `/${pathArray[1] || ''}/${pathArray[2] || ''}`
@@ -449,14 +449,14 @@ export default {
     getMenuList(path) {
       const currentNavMenu = this.getCurrentNav(path)
       this.currentNavMenu = currentNavMenu
-      // Get当前MenuList
+      // Get current menu list
       const menus = currentNavMenu.children || []
       if (!menus.length) return
 
       this.menuList = menus
       this.defaultOpeneds = menus.map(item => item.index)
 
-      // 给当前 activeIndex 赋Value
+      // Assign value to current activeIndex
       this.changeMenuIndex(fetchCurrentPathIndex(path, menus))
     },
     changeMenuIndex(index) {
@@ -464,21 +464,21 @@ export default {
     },
     async changeOrg(orgId) {
       this.$store.state.user.userInfo.orgId = orgId
-      // 切换OrganizationUpdatePermission，跳转HasPermission of Page；IfYes用Model跳转用Model，Other跳转ModelDev平台
+      // Switch organization and update permission, jump to page with permission; if model jump to model, otherwise jump to model dev platform
       await this.getPermissionInfo()
 
-      // Update storage UserInformation中Organization id
+      // Update stored user information organization id
       const info = JSON.parse(localStorage.getItem("access_cert"))
       info.user.userInfo.orgId = orgId
       localStorage.setItem('access_cert', JSON.stringify(info))
 
       const {path} = fetchPermFirPath()
-      // If当前Page path With第一个HasPermission of  path 相同，NeedRefreshPage以确保Data为新切换Organization of 
+      // If current page path is same as first permitted path, need to refresh page to ensure data is from new organization
       if (path === this.$route.path) {
         location.reload()
         return
       }
-      // 切换Organization, 根据当前PathHasPermission of 第一个Path找到对应 of  menu
+      // Switch organization, get corresponding menu based on current path and first permitted path
       this.getMenuList(path)
       this.menuClick({path})
     }

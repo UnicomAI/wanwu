@@ -12,19 +12,19 @@
         <div class="title-content">
           <i class="el-icon-s-custom title-icon"></i>
           <span class="title-text">{{ dialogTitle }}</span>
-          <span class="title-tip" v-if="currentView === 'transfer'">[ 转移后您 of 权限将变为'可Edit' ]</span>
+          <span class="title-tip" v-if="currentView === 'transfer'">[ 转移after您 of Permission将变is'Edit' ]</span>
         </div>
         <div class="title-subtitle" v-if="knowledgeName">
           <span class="knowledge-name">[ {{ knowledgeName }} ]</span>
         </div>
       </div>
         <div class="list-header" v-if="currentView === 'list'">
-         <el-input placeholder="Enter成员NameSearch" v-model="userName" style="width:200px;margin-right:10px;"></el-input>
+         <el-input placeholder="EnterMemberNameSearch" v-model="userName" style="width:200px;margin-right:10px;"></el-input>
            <el-button
             type="primary"
             size="small"
             @click="confirmSearch"
-          >确定</el-button>
+          >Confirm</el-button>
           <el-button
             type="primary"
             size="small"
@@ -48,16 +48,16 @@
           v-if="currentView === 'create'"
           type="primary"
           @click="handleConfirm"
-        >确定</el-button>
+        >Confirm</el-button>
         <el-button
           v-if="currentView === 'transfer'"
           type="primary"
           @click="handleTransferConfirm"
-        >确定转让</el-button>
+        >ConfirmTransfer</el-button>
         <el-button
           v-if="currentView === 'list'"
           @click="handleDialogClose"
-        >关闭</el-button>
+        >Close</el-button>
       </div>
     </el-dialog>
   </div>
@@ -88,13 +88,13 @@ export default {
   computed: {
     dialogTitle() {
       if (this.currentView === "list") {
-        return "权限管理";
+        return "Permission管理";
       } else if (this.currentView === "create") {
-        return "Add权限";
+        return "AddPermission";
       } else if (this.currentView === "transfer") {
-        return "转让权限";
+        return "TransferPermission";
       }
-      return "权限管理";
+      return "Permission管理";
     },
   },
   mounted() {
@@ -141,7 +141,7 @@ export default {
           }
         }).catch(() => {})
       }else{
-        this.$message.error("Please select用户");
+        this.$message.error("Please selectuser");
       }
     },
     handleData(createData){
@@ -164,7 +164,7 @@ export default {
       this.dialogVisible = false;
     },
 
-    // Confirm转让Permission
+    // ConfirmTransferPermission
     handleTransferConfirm() {
       const data = this.$refs.powerTransfer.getTransferData();
       const params = {
@@ -174,7 +174,7 @@ export default {
       if (data.knowledgeUser && !Array.isArray(data.knowledgeUser)) {
         transferUserPower(params).then(res => {
           if(res.code === 0){
-            this.$message.success("转让Success");
+            this.$message.success("TransferSuccess");
             this.showList();
             this.dialogVisible = false;
              if (this.reloadKnowledgeData) {
@@ -183,7 +183,7 @@ export default {
           }
         }).catch(() => {})
       }else{
-        this.$message.error("Please select用户");
+        this.$message.error("Please selectuser");
       }
     },
     refreshList() {

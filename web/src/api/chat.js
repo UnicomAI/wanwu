@@ -66,7 +66,7 @@ export const fileUpload = (data,config)=>{
         config
     })
 };
-//知识增强FileUpload
+// Knowledge enhancement file upload
 export const knowledgeFileUpload = (data,config)=>{
     return request({
         url: `${MODEL_API}/assistant/knowledge/file/upload`,
@@ -75,7 +75,7 @@ export const knowledgeFileUpload = (data,config)=>{
         config
     })
 };
-//Query已UploadFileList
+//QueryalreadyUploadFileList
 export const getKnowledgeFileList = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/knowledge/file/list`,
@@ -90,7 +90,7 @@ export const deleteKnowledgeFile = (data)=>{
         data
     })
 };
-//常用App
+// Frequently used apps
 export const getRecentApp = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/common/list`,
@@ -98,7 +98,7 @@ export const getRecentApp = (data)=>{
         params: data
     })
 };
-//Delete常用App
+// Delete frequently used apps
 export const deleteRecentApp = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/common/delete`,
@@ -107,7 +107,7 @@ export const deleteRecentApp = (data)=>{
     })
 };
 
-//对话List
+//conversationList
 export const getConversationList = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/conversation/list`,
@@ -115,7 +115,7 @@ export const getConversationList = (data)=>{
         params: data
     })
 };
-//Create对话
+//Createconversation
 export const createConversation = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/conversation/create`,
@@ -123,7 +123,7 @@ export const createConversation = (data)=>{
         data
     })
 };
-//Delete对话
+//Delete Conversation
 export const deleteConversation = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/conversation/delete`,
@@ -131,7 +131,7 @@ export const deleteConversation = (data)=>{
         data
     })
 };
-//对话Details
+//conversationDetails
 export const getConversationDetail = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/conversation/detail`,
@@ -139,8 +139,8 @@ export const getConversationDetail = (data)=>{
         params: data
     })
 };
-/*----元景------*/
-//对话List
+/*---- Yuanjing ------*/
+//conversationList
 export const getConversationListCUBM = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/list`,
@@ -148,7 +148,7 @@ export const getConversationListCUBM = (data)=>{
         params: data
     })
 };
-//Create对话
+//Createconversation
 export const createConversationCUBM = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/create`,
@@ -156,7 +156,7 @@ export const createConversationCUBM = (data)=>{
         data
     })
 };
-//Delete对话
+//Delete Conversation
 export const deleteConversationCUBM = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/delete`,
@@ -164,7 +164,7 @@ export const deleteConversationCUBM = (data)=>{
         data
     })
 };
-//对话Details
+//conversationDetails
 export const getConversationDetailCUBM = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/detail`,
@@ -181,7 +181,7 @@ export const batchUpload = (data,config)=>{
         config
     })
 };
-// app接入
+// App integration
 export const linkAPP = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/app/publish`,
@@ -190,7 +190,7 @@ export const linkAPP = (data)=>{
     })
 };
 
-//推荐AgentList
+// Recommended agent list
 export const recommendList = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/recommend/list`,
@@ -198,7 +198,7 @@ export const recommendList = (data)=>{
         params:data
     })
 };
-//标记推荐Agent
+// Mark recommended agent
 export const recommendMark = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/recommend/update`,

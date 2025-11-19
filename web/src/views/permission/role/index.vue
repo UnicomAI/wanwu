@@ -225,7 +225,7 @@ export default {
             this.$message.success(this.$t('common.message.success'))
             this.dialogVisible = false
 
-            // If当前UserHas这个Role，ThenUpdatePermission
+            // IfcurrentUserHas这Role，ThenUpdatePermission
             const permission = this.$store.state.user.permission || {}
             const roles = permission.roles ? permission.roles.map(item => item.id) : []
             if (roles.includes(this.row.roleId)) {

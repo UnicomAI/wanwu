@@ -1,13 +1,13 @@
-/*根据finish为1OR2 when ，判断YesNo打印结束*/
+/*根据finishis1OR2 when ，CheckYesNoprintend*/
 import workerTimer from './worker'
 import {parseSub, isSub} from "@/utils/util.js"
 
 const Print = function (opt) {
-    this.sentenceArr = []//存储待打印 of 句子 of Array
+    this.sentenceArr = []//存储待print of 句子 of Array
     this.sIndexMap={} 
-    this.timer = opt.timer || 10; //打印速度
+    this.timer = opt.timer || 10; //print速度
     this.t = null;
-    this.sIndex = 0 //Record已打印句子 of Index（避免重复打印）
+    this.sIndex = 0 //Recordalreadyprint句子 of Index（avoidduplicateprint）
     this.printStatus = 0
     this.fullWord = ''
     this.searchList = []
@@ -31,7 +31,7 @@ Print.prototype = {
     },
     loop(printingCB, endCB) {
 
-        //If正在打印OR者打印结束
+        //Ifin progressprintOR者printend
         if (this.printStatus === 1 || this.sIndex >= this.sentenceArr.length) {
             return;
         }
@@ -68,17 +68,17 @@ Print.prototype = {
 const Looper = function (sIndex, sentence, timer, printCB, endCB,sIndexMap) {
     this.sIndex = sIndex
     this.sIndexMap=sIndexMap
-    this.sentence = sentence ? sentence.response : "" //当前要打印 of 句子
+    this.sentence = sentence ? sentence.response : "" //currenttoprint of 句子
     this.timer = timer
     this.t = null
-    this.index = 0 //当前打印到 of 字符位置
-    this.printCB = printCB //每打印一个字符 of Callback
-    this.endCB = endCB //句子打印结束 of Callback
-    this.isCodeBlock = false // Add：标记YesNo为代码块
+    this.index = 0 //currentprintto of 字符位置
+    this.printCB = printCB //eachprint一字符 of Callback
+    this.endCB = endCB //句子printend of Callback
+    this.isCodeBlock = false // Add：markYesNois代码块
     this.codeBlockContent = '' // Add：存储代码块Content
     this.animationFrame = null
-    this.lastTimestamp = performance.now(); // Add：每次LooperInit when Reset
-    // 在Init when 检测YesNo为代码块
+    this.lastTimestamp = performance.now(); // Add：each次LooperInit when Reset
+    // 在Init when 检测YesNois代码块
     this.detectCodeBlock()
     this.start()
 }
@@ -97,9 +97,9 @@ Looper.prototype = {
         const match = this.sentence.match(codeBlockRegex);
         if (match) {
             this.isCodeBlock = true;
-            this.codeBlockContent = match[0]; // 整个代码块Content
+            this.codeBlockContent = match[0]; // 整代码块Content
             this.sentence = match[0]; // 代码块内部Content（去掉```）
-            this.index = this.sentence.length; // Add：代码块Directly打印完毕
+            this.index = this.sentence.length; // Add：代码块Directlyprint完毕
         }
     },
     start() {
@@ -110,7 +110,7 @@ Looper.prototype = {
             return
         }
 
-        this.lastTimestamp = performance.now(); // Add：每次start都Reset
+        this.lastTimestamp = performance.now(); // Add：each次start都Reset
 
         if (this.isCodeBlock) {
             this.printCB(this.sentence);
@@ -129,7 +129,7 @@ Looper.prototype = {
         // this.printFn();
 
         
-        // const batchSize = 10; // 推荐每次Output30个字符
+        // const batchSize = 10; // 推荐each次Output30字符
         // const interval = 15; // 减少Output间隔 when 间
         // this.index = 0;
         // this.t = workerTimer.setInterval(() => {
@@ -142,7 +142,7 @@ Looper.prototype = {
         //     this.printCB(chunk);
         //     this.index = endIdx;
         // }, interval,this)
-        // 普通TextUse优化后 of 逐字打印
+        // 普通TextUse优化after of 逐字print
         this.printNormalText();
     },
     printNormalText(){
@@ -160,23 +160,23 @@ Looper.prototype = {
                 return;
             }
 
-            // 动态计算应打印 of 字符数
+            // 动态计算应print of 字符数
             const elapsed = timestamp - this.lastTimestamp;
             const progress = this.index / this.sentence.length;
             const currentSpeed = baseSpeed + (maxSpeed - baseSpeed) * Math.min(progress / 0.3, 1);
             const targetChars = Math.ceil(elapsed * currentSpeed / 1000);
 
-            // 计算本次要打印 of 字符
+            // 计算本次toprint of 字符
             const endIdx = Math.min(this.index + targetChars, this.sentence.length);
             const currentChunk = this.sentence.slice(this.index, endIdx);
             
             this.index = endIdx;
 
-            // 传递当前这次要打印 of Text片段
+            // 传递current这次toprint of TextSegment
             this.printCB(currentChunk);
             this.lastTimestamp = timestamp;
 
-            // 继续下一帧OR结束
+            // Continue下一帧ORend
             if (this.index < this.sentence.length) {
                 this.animationFrame = requestAnimationFrame(printNextChunk);
             } else {

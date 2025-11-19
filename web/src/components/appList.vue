@@ -76,8 +76,8 @@
           </div>
         </div>
         <div v-if="isShowPublished && n.publishType && type !== 'workflow'" class="publishType">
-            <span v-if="n.publishType === 'private'" class="publishType-tag"><span class="el-icon-lock"></span> 私密</span>
-            <span v-else class="publishType-tag"><span class="el-icon-unlock"></span> 公开</span>
+            <span v-if="n.publishType === 'private'" class="publishType-tag"><span class="el-icon-lock"></span> Private</span>
+            <span v-else class="publishType-tag"><span class="el-icon-unlock"></span> Public</span>
         </div>
         <div
           class="editor"
@@ -245,7 +245,7 @@ export default {
     isCanClick(n) {
       return this.isShowTool ? ((n.appType === 'workflow' && !n.publishType && n.appId !== 'example') || n.appType !== 'workflow') : true
     },
-    // 公用DeleteMethod
+    // Shared delete method
     async handleDelete() {
       const params = {
         appId: this.row.appId,
@@ -279,7 +279,7 @@ export default {
         workflow_id: row.appId,
       }
 
-      const isExample = false // row.appId === 'example' 新版WorkflowNoTemplatecopyInterface，暂定统一走WorkflowcopyInterface
+      const isExample = false // For now always call the workflow copy interface even though templates are not supported yet
       const exampleParams = {
         configName: row.name + '_' + this.$t('common.copy.copyText'),
         configENName: "",
@@ -324,9 +324,9 @@ export default {
         appType: row.appType
       };
       
-      //WorkflowCancelPublish，需DialogTip
+      // Workflow unpublish requires a confirmation dialog
       if(row.appType === 'workflow'){
-        confirmed = await this.showDeleteConfirm('CancelPublish后，历史引用了本Workflow of Agent将自动Cancel引用，AND此Operation不可撤回');
+        confirmed = await this.showDeleteConfirm('After unpublishing, agents that historically referenced this workflow will automatically cancel the reference, and this operation cannot be undone');
       }
       
       if(confirmed){

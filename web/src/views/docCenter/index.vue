@@ -60,7 +60,7 @@
             class="el-menu-vertical-demo"
           >
             <div v-for="(n,i) in menuList" :key="`${i}ml`">
-              <!--有下一级-->
+              <!--have下一级-->
               <el-submenu v-if="n.children && checkPerm(n.perm)" :index="n.index">
                 <template slot="title">
                   <i :class="n.icon || 'el-icon-menu'"></i>
@@ -180,7 +180,7 @@ export default {
       if (item.redirect) {
         item.redirect()
       } else {
-        // Document中心Back不带Page path 前缀，跳转加上 path 前缀，避免点击PathDirectly拼到当前Link后面Etc问题
+        // Documentin心Back不带Page path 前缀，jump加上 path 前缀，avoidclickPathDirectly拼tocurrentLinkafter面Etc问题
         this.$router.push({path: `/docCenter/pages/${item.path}`})
       }
     },
@@ -199,19 +199,19 @@ export default {
       const { params, path } = this.$route || {}
       const { id } = params || {}
       let val = path
-      // Get当前MenuList
+      // GetcurrentMenuList
       const menus = this.docMenuList
       this.menuList = menus
       this.defaultOpeneds = menus.map(item => item.index)
 
-      // 跳转到Document中心第一个Menu栏
+      // jumptoDocumentin心firstMenu栏
       if (id === DOC_FIRST_KEY) {
         const { path } = fetchPermFirPath(menus)
         val = path
         this.$router.push({path})
       }
 
-      // 给当前 activeIndex 赋Value
+      // 给current activeIndex 赋Value
       this.changeMenuIndex(fetchCurrentPathIndex(val, menus))
     },
     changeMenuIndex(index) {
@@ -371,7 +371,7 @@ export default {
           padding: 3px 10px;
           color: #666;
           font-weight: bold;
-          white-space: normal; /* 保留Null白符序列，但Yes正常换行 */
+          white-space: normal; /* 保留Null白符序column，butYes正常换row */
           word-break: break-all;
           span {
             color: $color;

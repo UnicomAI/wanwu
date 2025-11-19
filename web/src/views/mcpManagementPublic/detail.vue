@@ -60,16 +60,16 @@
             &lt;!&ndash;copy from https://mcpmarket.cn/&ndash;&gt;
             <div class="login-required-message" style="text-align: center;background-color: #a7535305; padding: 40px 20px; border-radius: 8px; margin: 20px 0;">
                 <i class="fas fa-lock el-icon-lock" style="font-size: 48px; color: #D33A3A; margin-bottom: 20px; display: block;"></i>
-                <h3 style="margin-bottom: 15px; color: #333;font-size: 20px;">需要登录</h3>
+                <h3 style="margin-bottom: 15px; color: #333;font-size: 20px;">需to登录</h3>
                 <p style="margin-bottom: 25px; color: #666; line-height: 40px;">
-                    要GetSSE URLAndConfigurationMCP服务器，PleaseFirst登录您 of 账号。如果No账号，您可以快速注册一个。
+                    toGetSSE URLAndConfigurationMCP服务器，PleaseFirst登录您 of 账号。ifNo账号，您可以快速注册一。
                 </p>
                 <div style="display: flex; justify-content: center; gap: 15px;">
                     <a href="https://mcpmarket.cn/auth/login?next=%2Fserver%2F67ff4974764487b6b9e11c21" style="display: inline-block; padding: 10px 20px; background-color: #D33A3A; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">
                         登录
                     </a>
                     <a href="https://mcpmarket.cn/auth/login?next=%2Fserver%2F67ff4974764487b6b9e11c21" style="display: inline-block; padding: 10px 20px; background-color: white; color: #D33A3A; text-decoration: none; border-radius: 6px; border: 1px solid #D33A3A; font-weight: 500;">
-                        使用社交账号登录
+                        use社交账号登录
                     </a>
                 </div>
             </div>
@@ -201,7 +201,7 @@ export default {
       this.tabActive = 0
       this.getDetailData()
 
-      //滚动到顶部
+      //scrolltotop
       const main = document.querySelector(".el-main > .page-container")
       if (main) main.scrollTop = 0
     },
@@ -243,7 +243,7 @@ export default {
     handleClick(val){
       this.$router.push(`/mcp/detail/square?mcpSquareId=${val.mcpSquareId}`)
     },
-    // ParseText，遇到.换行Etc
+    // ParseText，遇to.换rowEtc
     parseTxt(txt){
       if (!txt) return ''
       const text = txt.replaceAll('\n\t','<br/>&nbsp;').replaceAll('\n','<br/>').replaceAll('\t', '   &nbsp;')

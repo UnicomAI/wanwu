@@ -23,7 +23,7 @@ export default {
             sseParams: {},
             sseResponse:{},
             echo: true,
-            conversationId: '', //会话id
+            conversationId: '', //sessionid
             chatList: [],
             reminderList: [],
             queryFilePath: '',
@@ -131,7 +131,7 @@ export default {
         queryCopy(text){
             this.setPrompt(text)
         },
-        /* 滤掉markdown中Custom of 行号*/
+        /* 滤掉markdowninCustom of row号*/
         getContentInBraces(shtml) {
             let temp = document.createElement('div')
             temp.setAttribute('id','temp')
@@ -147,7 +147,7 @@ export default {
                     let innerText = e.target.parentNode.nextElementSibling.innerText
                     this.$copy(innerText)
                     e.target.innerText ='Copy successful'
-                    //document.getElementById('temp') && document.getElementById('temp').remove() //Copy完成把临 when Generate of 元素Delete
+                    //document.getElementById('temp') && document.getElementById('temp').remove() //CopyComplete把临 when Generate of elementDelete
                     setTimeout(()=>{
                         e.target.innerText ='Copy'
                     },1500)
@@ -229,7 +229,7 @@ export default {
                 },
                 signal: this.ctrlAbort.signal,
                 body: JSON.stringify({...this.sseParams,'history':history}),
-                openWhenHidden: true, //Page退to后台保持Join
+                openWhenHidden: true, //Page退toafter台keepJoin
                 onopen: async(e) => {
                     //console.log("SSE connection established~",new Date().getTime());
                     if (e.status !== 200) {
@@ -261,7 +261,7 @@ export default {
                             data = JSON.parse(e.data);
                             console.log('===>',new Date().getTime(), data);
                         } catch (error) {
-                            return; // IfParseFailed，DirectlyBack，不Process这条Message
+                            return; // IfParse Failed，DirectlyBack，不Process这itemMessage
                         }
                         
                         this.sseResponse = data;
@@ -282,7 +282,7 @@ export default {
                             "citations":[]
                         }
                         if(data.code === 0 || data.code === 1){
-                            //finish 0：进行中  1：Close   2:Sensitive WordClose
+                            //finish 0：进rowin  1：Close   2:Sensitive WordClose
                             let _sentence = data.data.output;
                                 this._print.print(
                                     {
@@ -326,7 +326,7 @@ export default {
                 },
                 onclose: () => {
                     console.log('===> eventSource onClose')
-                    this.setStoreSessionStatus(-1)//Close后改变Status
+                    this.setStoreSessionStatus(-1)//Closeafter改变Status
                     this.sseOnCloseCallBack()
                 },
                 onerror: (e) => {
@@ -337,7 +337,7 @@ export default {
                         console.log("Error occured", e);
                     }
                     this.stopEventSource()//前端主动CloseJoin
-                    this.setStoreSessionStatus(-1)//Close后改变Status
+                    this.setStoreSessionStatus(-1)//Closeafter改变Status
                 }
             });
                       
@@ -357,7 +357,7 @@ export default {
             }
 
             this.sseResponse = {}
-            //Send问题后不允许继续提问
+            //Send问题after不允许Continue提问
             this.setStoreSessionStatus(0)
 
             this.clearInput()
@@ -381,7 +381,7 @@ export default {
 
             let data = null;
             let headers = null;
-            //判断YesYesIs Notopenurl对话
+            //CheckYesYesIs Notopenurlconversation
             if(this.type === 'agentChat'){
                 this.sseApi = `${USER_API}/assistant/stream`;
                 const trial = this.isTestChat ? true : false
@@ -413,7 +413,7 @@ export default {
                 headers,
                 signal: this.ctrlAbort.signal,
                 body: JSON.stringify(data),
-                openWhenHidden: true, //Page退to后台保持Join
+                openWhenHidden: true, //Page退toafter台keepJoin
                 ...(this.type === 'webChat' && { isOpenUrl: true }),
                 onopen: async(e) => {
                     console.log("SSE connection established~",new Date().getTime());
@@ -463,7 +463,7 @@ export default {
                         }
 
                         if(data.code === 0){
-                            //finish 0：进行中  1：Close   2:Sensitive WordClose
+                            //finish 0：进rowin  1：Close   2:Sensitive WordClose
                             let _sentence = data.response
                                 this._print.print(
                                     {
@@ -520,7 +520,7 @@ export default {
                 },
                 onclose: () => {
                     console.log('===> eventSource onClose')
-                    this.setStoreSessionStatus(-1)//Close后改变Status
+                    this.setStoreSessionStatus(-1)//Closeafter改变Status
                     this.sseOnCloseCallBack()
                 },
                 onerror: (e) => {
@@ -531,12 +531,12 @@ export default {
                         console.log("Error occured", e);
                     }
                     this.stopEventSource()//前端主动CloseJoin
-                    this.setStoreSessionStatus(-1)//Close后改变Status
+                    this.setStoreSessionStatus(-1)//Closeafter改变Status
                 }
             });
         },
         preStop() {
-            //Get已经拿到 of 全部回答,一次性回显出来
+            //Getalready经拿to of all回答,一次性回显出来
             this.sseOnCloseCallBack(true)
         },
         sseOnCloseCallBack(isStoped){
@@ -549,7 +549,7 @@ export default {
             if(isStoped) {
                 this.stopAndEcho()
             }else{
-                //收到onclose,ANDUse of Yes文生代码
+                //收toonclose,ANDUse of Yes文生代码
                 if(this.sseResponse.qa_type === 4){
                     this.stopAndEcho()
                 }else{
@@ -561,7 +561,7 @@ export default {
                     endStr = convertLatexSyntax(endStr)
                     // ReplaceTag
                     endStr = parseSub(endStr)
-                    // IfBackHasResult，Then在结束 when 不Show“本次回答已终止”
+                    // IfBackHasResult，Then在end when 不Show“本次回答already终止”
                     this.runResponse = md.render(endStr)
                     this.runDisabled = false
                     this.setStoreSessionStatus(-1)
@@ -569,7 +569,7 @@ export default {
             }
         },
         stopAndEcho(){
-            //暂存已经收到 of 所Hasresponse
+            //暂存already经收to of 所Hasresponse
             let endResponse = this._print.getAllworld()
 
             this._print && this._print.stop()

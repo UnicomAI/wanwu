@@ -27,7 +27,7 @@ export default {
       const prevent = (e) => { e.preventDefault(); e.stopPropagation(); wrap.classList.add('is-dropping'); }
       const leave = () => { wrap.classList.remove('is-dropping'); }
       
-      // 判断FileYesNo为ImageType
+      // CheckFileYesNoisImageType
       const isImageFile = (f) => {
         if (!f || !f.name) return false
         var ext = (f.name.split('.').pop() || '').toLowerCase()
@@ -43,13 +43,13 @@ export default {
           const rawFiles = Array.prototype.slice.call(fileList)
           if (!rawFiles.length) return
 
-          // 安全限制：Count/大小/Type白Name单
+          // securitylimit：Count/size/Type白Name单
           const maxImageFiles = Number(opt.maxImageFiles || opt.maxFiles || 3) // ImageTypeFile of MaxCount
-          const maxSizeMB = Number(opt.maxSizeMB || 50) // 单个FileDefault 50MB
+          const maxSizeMB = Number(opt.maxSizeMB || 50) // singleFileDefault 50MB
           const maxSize = maxSizeMB * 1024 * 1024
           const allowExt = (opt.acceptExt || ['jpg','jpeg','png','gif','webp','bmp','svg','mp3','wav','ogg','txt','pdf','doc','docx','xlsx','xls','pptx','csv','html']).map(function(s){return String(s).toLowerCase()})
 
-          // First找出第一个Has效File，判断FileType
+          // First找出firstHas效File，CheckFileType
           var firstValidFile = null
           for (var j = 0; j < rawFiles.length; j++) {
             var tempFile = rawFiles[j]
@@ -71,9 +71,9 @@ export default {
             return
           }
           
-          // 判断第一个Has效FileYesNo为ImageType
+          // CheckfirstHas效FileYesNoisImageType
           var isImageType = isImageFile(firstValidFile)
-          // ImageType：Use maxImageFiles 限制；NonImageType：限制为1个File（覆盖之前）
+          // ImageType：Use maxImageFiles limit；NonImageType：limitis1File（overrideprevious）
           var maxFiles = isImageType ? maxImageFiles : 1
           
           //  滤Illegal/ 大File
@@ -88,7 +88,7 @@ export default {
               continue
             }
             
-            // CheckFile大小YesNo存在ANDHas效（MustYesNumberAND >= 0）
+            // CheckFilesizeYesNoexistANDHas效（MustYesNumberAND >= 0）
             if (typeof f.size !== 'number' || f.size < 0 || isNaN(f.size)) {
               rejected.push(f)
               continue
@@ -97,27 +97,27 @@ export default {
             var ext = (f.name && f.name.split('.').pop() || '').toLowerCase()
             var okType = allowExt.indexOf(ext) > -1 || (f.type && (f.type.indexOf('image/') === 0 || f.type.indexOf('audio/') === 0))
             
-            // CheckFileTypeAnd大小（此 when  f.size 已确保YesHas效Number）
+            // CheckFileTypeAndsize（此 when  f.size alreadyensureYesHas效Number）
             if (!okType || f.size > maxSize) {
               rejected.push(f)
               continue
             }
             
-            // Check当前FileYesNo为ImageType，确保FileType一致
+            // CheckcurrentFileYesNoisImageType，ensureFileTypeconsistent
             var currentFileIsImage = isImageFile(f)
             if (!isImageType && currentFileIsImage) {
-              // If第一个FileIs NotImage，但当前FileYesImage，拒绝（保持Type一致）
+              // IffirstFileIs NotImage，butcurrentFileYesImage，reject（keepTypeconsistent）
               rejected.push(f)
               continue
             }
             if (isImageType && !currentFileIsImage) {
-              // If第一个FileYesImage，但当前FileIs NotImage，拒绝（保持Type一致）
+              // IffirstFileYesImage，butcurrentFileIs NotImage，reject（keepTypeconsistent）
               rejected.push(f)
               continue
             }
             
-            // CheckCount限制
-            // NonImageType：只能Upload1个File（覆盖之前）；ImageType：Use maxImageFiles 限制
+            // CheckCountlimit
+            // NonImageType：can onlyUpload1File（overrideprevious）；ImageType：Use maxImageFiles limit
             if (safeFiles.length >= maxFiles) {
               rejected.push(f)
               continue
@@ -126,7 +126,7 @@ export default {
             safeFiles.push(f)
           }
 
-          // Tip被拒File
+          // Tiprejected拒File
           if (rejected.length && this && this.$message && this.$message.warning) {
             if (!isImageType && rawFiles.length > 1) {
               this.$message.warning(i18n.t('agent.fileTypeNotSupportedTips'))
@@ -139,7 +139,7 @@ export default {
 
           if (!safeFiles.length) return
 
-          // 覆盖前释放旧 of  ObjectURL，避免Memory泄漏
+          // override前releaseold of  ObjectURL，avoidMemoryleak
           try {
             var currentList = this && this.fileList
             if (currentList && currentList.forEach) {
@@ -178,9 +178,9 @@ export default {
     },
     /**
      * Format date
-     * @param {Date|string|number} date - 日期
-     * @param {string} format - 格式String
-     * @returns {string} - 格式化后 of 日期String
+     * @param {Date|string|number} date - date
+     * @param {string} format - formatString
+     * @returns {string} - formatafter of dateString
      */
     $formatDate(date, format = 'YYYY-MM-DD HH:mm:ss') {
       if (!date) return ''
@@ -204,9 +204,9 @@ export default {
     },
 
     /**
-     * 深拷贝对象
-     * @param {any} obj - 要拷贝 of 对象
-     * @returns {any} - 拷贝后 of 对象
+     * deep copyobject
+     * @param {any} obj - tocopy of object
+     * @returns {any} - copyafter of object
      */
     $deepClone(obj) {
       if (obj === null || typeof obj !== 'object') return obj
@@ -224,10 +224,10 @@ export default {
     },
 
     /**
-     * 防抖函数
-     * @param {Function} func - 要防抖 of 函数
-     * @param {number} delay - 延迟 when 间（毫秒）
-     * @returns {Function} - 防抖后 of 函数
+     * debouncefunction
+     * @param {Function} func - todebounce of function
+     * @param {number} delay - delay when 间（milliseconds）
+     * @returns {Function} - debounceafter of function
      */
     $debounce(func, delay = 300) {
       let timeoutId
@@ -238,10 +238,10 @@ export default {
     },
 
     /**
-     * 节流函数
-     * @param {Function} func - 要节流 of 函数
-     * @param {number} delay - 延迟 when 间（毫秒）
-     * @returns {Function} - 节流后 of 函数
+     * throttlefunction
+     * @param {Function} func - tothrottle of function
+     * @param {number} delay - delay when 间（milliseconds）
+     * @returns {Function} - throttleafter of function
      */
     $throttle(func, delay = 300) {
       let lastCall = 0
@@ -254,9 +254,9 @@ export default {
       }
     },
     /**
-     * GetFile大小格式化String
-     * @param {number} bytes - 字节数
-     * @returns {string} - 格式化后 of File大小
+     * GetFilesizeformatString
+     * @param {number} bytes - bytes
+     * @returns {string} - formatafter of Filesize
      */
     $formatFileSize(bytes) {
       if (bytes === 0) return '0 B'
@@ -267,9 +267,9 @@ export default {
     },
 
     /**
-     * 验证邮箱格式
-     * @param {string} email - 邮箱地址
-     * @returns {boolean} - YesNo有效
+     * validateemailformat
+     * @param {string} email - emailaddress
+     * @returns {boolean} - YesNovalid
      */
     $isValidEmail(email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -277,9 +277,9 @@ export default {
     },
 
     /**
-     * 验证手机号格式
-     * @param {string} phone - 手机号
-     * @returns {boolean} - YesNo有效
+     * validatephoneformat
+     * @param {string} phone - phone
+     * @returns {boolean} - YesNovalid
      */
     $isValidPhone(phone) {
       const phoneRegex = /^1[3-9]\d{9}$/
@@ -287,7 +287,7 @@ export default {
     },
 
     /**
-     * 滚动到页面顶部
+     * scrolltopagetop
      */
     $scrollToTop() {
       window.scrollTo({
@@ -297,9 +297,9 @@ export default {
     },
 
     /**
-     * Copy文本到剪贴板
-     * @param {string} text - 要Copy of 文本
-     * @returns {Promise} - Copy结果
+     * Copytexttoclipboard
+     * @param {string} text - toCopy of text
+     * @returns {Promise} - Copyresult
      */
     async $copyToClipboard(text) {
       try {
@@ -307,7 +307,7 @@ export default {
           await navigator.clipboard.writeText(text)
           this.$success('Copy successful')
         } else {
-          // 兼容旧浏览器
+          // compatibleoldbrowser
           const textArea = document.createElement('textarea')
           textArea.value = text
           document.body.appendChild(textArea)
@@ -323,15 +323,15 @@ export default {
     },
 
     /**
-     * Process引用点击事件
-     * @param {Event} e - 点击事件
-     * @param {Object} options - Configuration选项
-     * @param {number} options.sessionStatus - 会话Status
-     * @param {Object} options.sessionData - 会话Data
-     * @param {string} options.citationSelector - 引用元素选择器，默认为 '.citation'
-     * @param {string} options.subTagSelector - 子标签选择器，默认为 '.subTag'
-     * @param {string} options.scrollElementId - 滚动容器ID，默认为 'timeScroll'
-     * @param {Function} options.onToggleCollapse - 切换折叠Status of 回调函数
+     * Processcitationclickevent
+     * @param {Event} e - clickevent
+     * @param {Object} options - Configurationoptions
+     * @param {number} options.sessionStatus - sessionStatus
+     * @param {Object} options.sessionData - sessionData
+     * @param {string} options.citationSelector - citationelementselector，defaultis '.citation'
+     * @param {string} options.subTagSelector - 子Tagselector，defaultis '.subTag'
+     * @param {string} options.scrollElementId - scrollcontainerID，defaultis 'timeScroll'
+     * @param {Function} options.onToggleCollapse - togglecollapseStatus of callbackfunction
      */
     $handleCitationClick(e, options = {}) {
       const {
@@ -341,10 +341,10 @@ export default {
         scrollElementId = 'timeScroll',
         onToggleCollapse = null
       } = options
-      // Check会话Status
+      // ChecksessionStatus
       if (sessionStatus === 0) return
 
-      // Find最近 of Reference元素
+      // Findnearest of Referenceelement
       const citationElement = e.target.closest(citationSelector)
       if (!citationElement) return
 
@@ -352,13 +352,13 @@ export default {
       const tagIndex = parseInt(citationElement.textContent, 10)
       if (isNaN(tagIndex) || tagIndex <= 0) return
 
-      // Get父级IndexAnd折叠Status
+      // GetparentIndexAndcollapseStatus
       const parentsIndexAttr = citationElement.getAttribute('data-parents-index')
       const parentsIndex = parentsIndexAttr ? parseInt(parentsIndexAttr, 10) : null
       // Check parentsIndex YesNoHas效
       if (isNaN(parentsIndex)) return
       
-      // Check会话Data结构
+      // ChecksessionDatastructure
       if (!sessionData || 
           !sessionData.history || 
           !sessionData.history[parentsIndex] || 
@@ -367,7 +367,7 @@ export default {
         ) {
         return
       }
-      // 切换折叠Status - 严格按照Component中 of collapseClickMethod逻辑
+      // togglecollapseStatus - strictlyaccording toComponentin of collapseClickMethodlogic
       const searchItem = sessionData.history[parentsIndex].searchList[tagIndex - 1]
       const currentCollapse = searchItem.collapse
       const newCollapse = !currentCollapse
@@ -382,21 +382,21 @@ export default {
         }
       }
 
-      // 滚动到Bottom
+      // scrolltoBottom
       const timeScrollElement = document.getElementById(scrollElementId)
       if (timeScrollElement) {
         timeScrollElement.scrollTop = timeScrollElement.scrollHeight
       }
 
-      // 阻止Event冒泡
+      // preventEventbubbling
       e.stopPropagation()
     }
   },
 
   computed: {
     /**
-     * YesNoIs Empty对象
-     * @returns {Function} - 判断函数
+     * YesNoIs Emptyobject
+     * @returns {Function} - Checkfunction
      */
     $isEmpty() {
       return (obj) => {

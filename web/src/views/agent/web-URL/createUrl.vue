@@ -28,7 +28,7 @@
                 </el-table-column>
                 <el-table-column
                   prop="expiredAt"
-                  label=" 期 when 间"
+                  label="Expiry Time"
                   width="180"
                 >
                 </el-table-column>
@@ -82,12 +82,12 @@
             >
               <el-input v-model="form.description" placeholder="Please enterAppDescription" type="textarea" :rows="2"></el-input>
             </el-form-item>
-            <el-form-item label=" 期 when 间" prop="expiredAt">
+            <el-form-item label="Expiry Time" prop="expiredAt">
                <el-date-picker
                 v-model="form.expiredAt"
                 type="datetime"
                 value-format="yyyy-MM-dd HH:mm:ss"
-                placeholder="url生效 when 间">
+                placeholder="URL effective time">
               </el-date-picker>
             </el-form-item>
             <!-- <el-form-item label="Knowledge Base出处Details">
@@ -105,12 +105,12 @@
             <div class="online-item">
               <el-form-item  prop="copyright">
                 <template #label>
-                  <span>版权</span>
-                  <el-tooltip class="item" effect="dark" content="YesNo在界面中Show版权Information" placement="top-start">
+                  <span>Copyright</span>
+                  <el-tooltip class="item" effect="dark" content="YesNo在界面inShowCopyrightInformation" placement="top-start">
                     <span class="el-icon-question tips"></span>
                   </el-tooltip>
                 </template>
-                <el-input v-model="form.copyright" placeholder="Please enter版权Information"></el-input>
+                <el-input v-model="form.copyright" placeholder="Please enterCopyrightInformation"></el-input>
               </el-form-item>
               <el-form-item prop="copyrightEnable">
                 <el-switch
@@ -123,12 +123,12 @@
             <div class="online-item">
               <el-form-item prop="privacyPolicy">
                 <template #label>
-                  <span>隐私协议</span>
-                  <el-tooltip class="item" effect="dark" content="YesNo在界面中Show隐私协议Information" placement="top-start">
+                  <span>Privacy Policy</span>
+                  <el-tooltip class="item" effect="dark" content="YesNo在界面inShowPrivacy PolicyInformation" placement="top-start">
                     <span class="el-icon-question tips"></span>
                   </el-tooltip>
                 </template>
-                <el-input v-model="form.privacyPolicy" placeholder="Please enter隐私政策Link" @blur="urlBlur"></el-input>
+                <el-input v-model="form.privacyPolicy" placeholder="Please enter privacy policy link" @blur="urlBlur"></el-input>
               </el-form-item>
               <el-form-item prop="privacyPolicyEnable">
                 <el-switch
@@ -141,12 +141,12 @@
             <div class="online-item">
               <el-form-item prop="disclaimer">
                 <template #label>
-                  <span>免责声明</span>
-                  <el-tooltip class="item" effect="dark" content="YesNo在界面中Show免责声明" placement="top-start">
+                  <span>Disclaimer</span>
+                  <el-tooltip class="item" effect="dark" content="YesNo在界面inShowDisclaimer" placement="top-start">
                     <span class="el-icon-question tips"></span>
                   </el-tooltip>
                 </template>
-                <el-input v-model="form.disclaimer" type="textarea" :rows="2" placeholder="Please enter免责声明"></el-input>
+                <el-input v-model="form.disclaimer" type="textarea" :rows="2" placeholder="Please enterDisclaimer"></el-input>
               </el-form-item>
               <el-form-item prop="disclaimerEnable">
                 <el-switch
@@ -158,8 +158,8 @@
             </div>
           </el-form>
           <span slot="footer" class="dialog-footer">
-            <el-button @click="handleClose">取 消</el-button>
-            <el-button type="primary" @click="submit('form')">确 定</el-button>
+            <el-button @click="handleClose">Cancel</el-button>
+            <el-button type="primary" @click="submit('form')">Confirm</el-button>
           </span>
         </el-dialog>
     </div>
@@ -198,7 +198,7 @@ export default {
         urlBlur(){
           const text = this.form.privacyPolicy;
           if(!this.isValidUrl(text)){
-            this.$message.warning('Link效验不合格')
+            this.$message.warning('Link validation failed')
             this.form.privacyPolicy = '';
           }
         },
@@ -218,7 +218,7 @@ export default {
           return res;
         },
         copycb() {
-          this.$message.success("Content已Copy到粘贴板");
+          this.$message.success("Content copied to clipboard");
         },
        getList(){
           getOpenurl({appId:this.appId,appType:this.appType}).then(res =>{
@@ -312,10 +312,10 @@ export default {
       },
       handleDel(row){
           this.$confirm(
-          "确定要Delete当前AccessURL吗？",
+          "Confirm deletion of current access URL?",
           this.$t("knowledgeManage.tip"),
           {
-            confirmButtonText: "确定",
+            confirmButtonText: "Confirm",
             cancelButtonText: "Cancel",
             type: "warning",
           }

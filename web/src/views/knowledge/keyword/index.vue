@@ -143,7 +143,7 @@ export default {
       this.getTableData(this.docQuery)
     },
     handleDel(data){
-       this.$confirm('确定要Delete当前Data吗？',this.$t('knowledgeManage.tip'),
+       this.$confirm('ConfirmtoDeletecurrentData吗？',this.$t('knowledgeManage.tip'),
         {
           confirmButtonText:  this.$t('common.button.confirm'),
           cancelButtonText: this.$t('common.button.cancel'),
@@ -352,9 +352,9 @@ export default {
 </style>
 <style lang="scss">
 .custom-tooltip.is-light {
-  border-color: #eee; /* Setting边框颜色 */
-  background-color: #fff; /* Setting背景颜色 */
-  color: #666; /* Setting文字颜色 */
+  border-color: #eee; /* Set border color */
+  background-color: #fff; /* Set background color */
+  color: #666; /* Set text color */
 }
 .custom-tooltip.el-tooltip__popper[x-placement^="top"] .popper__arrow::after {
   border-top-color: #fff !important;

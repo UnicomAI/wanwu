@@ -19,7 +19,7 @@
             <el-tooltip
               class="item"
               effect="dark"
-              content="只能Contains小写字母、数字And下划线，并AND必须以小写字母开头"
+              content="Can only contain lowercase letters, numbers and underscores, and must start with a lowercase letter"
               placement="top-start"
             >
               <span class="el-icon-question question" v-if="type === 'create'"></span>
@@ -191,7 +191,7 @@ export default {
         },
         {
           value: "regExp",
-          label: "正Then表达式",
+          label: "Regular Expression",
         },
       ],
       keyOptions:[]
@@ -232,7 +232,7 @@ export default {
     createMetaData() {
       if(this.type === 'create' && this.docMetaData.length > 0  ){
         if (this.docMetaData.some(item => item.metaKey === '' || item.metaValueType === '')) {
-            this.$message.error("元Data管理存在未填写 of Required字段");
+            this.$message.error("Metadata management has unfilled required fields");
             return;
         }
       }else{
@@ -265,7 +265,7 @@ export default {
         return isMetaKeyEmpty || isMetaRuleEmpty;
       });
       if (hasEmptyField) {
-        this.$message.error("元Data管理存在未填写 of Required字段");
+        this.$message.error("Metadata management has unfilled required fields");
         return false;
       }
       return true;
@@ -296,7 +296,7 @@ export default {
       }
       updateDocMeta(data).then(res =>{
         if(res.code === 0){
-            this.$message.success('OperationSuccess')
+            this.$message.success('Operation successful')
             this.getList();
         }
       })
@@ -308,17 +308,17 @@ export default {
     metakeyBlur(item,index) {
       const regex = /^[a-z][a-z0-9_]*$/;
       if (!item.metaKey || typeof item.metaKey !== 'string' || item.metaKey.trim() === '') {
-        this.$message.warning('Please enterkeyValue')
+        this.$message.warning('Please enter key value')
         return
       }
       if (!regex.test(item.metaKey)) {
-        this.$message.warning("Please enter符合标准 of keyValue");
+        this.$message.warning("Please enter a valid key value");
         item.metaKey = '';
         return;
       }
 
       if(this.isFound()){
-        this.$message.warning("存在相同keyValue");
+        this.$message.warning("Key value already exists");
         item.metaKey = ''
         return;
       }
@@ -338,11 +338,11 @@ export default {
     },
     metaRuleBlur(item) {
       if (!item.metaRule) {
-        this.showWarning("Please enter正ThenValue",item);
+        this.showWarning("Please enter regular expression value",item);
         return;
       }
       if (!this.isValidRegex(item.metaRule)) {
-        this.showWarning("Please enter合法正ThenValue",item);
+        this.showWarning("Please enter a valid regular expression",item);
         item.metaRule = "";
         return;
       }

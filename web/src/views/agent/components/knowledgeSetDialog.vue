@@ -1,7 +1,7 @@
 <template>
     <div>
         <el-dialog
-        title="召回ParameterConfiguration"
+        title="Recall Parameter Configuration"
         :visible.sync="dialogVisible"
         width="50%"
         :before-close="handleClose">
@@ -9,8 +9,8 @@
            <searchConfig ref='searchConfig' @sendConfigInfo="sendConfigInfo" :setType="'agent'" :config="knowledgeConfig"/>
         </span>
         <span slot="footer" class="dialog-footer">
-            <el-button @click="dialogVisible = false">取 消</el-button>
-            <el-button type="primary" @click="submit">确 定</el-button>
+            <el-button @click="dialogVisible = false">Cancel</el-button>
+            <el-button type="primary" @click="submit">Confirm</el-button>
         </span>
         </el-dialog>
     </div>
@@ -39,7 +39,7 @@ export default {
             this.dialogVisible = false;
         },
         submit(){
-            // VerifyModel选择
+            // VerifyModel Selection
             const { matchType, priorityMatch, rerankModelId } = this.knowledgeConfig;
             const needRerankModel = matchType === 'vector' || 
                                    matchType === 'text' || 

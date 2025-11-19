@@ -85,7 +85,7 @@
         @click="preRun"
         :disabled="runDisabled"
       >
-        <i class="el-icon-caret-right"></i>&nbsp;&nbsp;运行
+        <i class="el-icon-caret-right"></i>&nbsp;&nbsp;运row
       </el-button>
       <el-button
         v-if="isStream && sessionStatus !== -1"
@@ -98,7 +98,7 @@
     </div>
 
     <div class="result answer-content" v-if="isStream">
-      <p class="result-title" v-show="runResponse">运行结果:</p>
+      <p class="result-title" v-show="runResponse">Run Result:</p>
       <div
         v-if="showDSBtn(runResponse)"
         class="deepseek"
@@ -166,18 +166,18 @@ export default {
     // Upload功能Add代码
     handleUploadSuccess(obj) {
       /** obj
-       * obj.index 下标 第几个Parameter
+       * obj.index 下标 第几Parameter
        * obj.url Back of  downloadUrl
        * obj.fileId Back of  fileId
-       * obj.file 选中 of FileInformation */
+       * obj.file 选in of FileInformation */
       this.startNode.data.outputs[obj.index].value.content = obj.fileId;
     },
-    // Upload中TriggerEvent,Back目前YesNo在UploadFile
+    // UploadinTriggerEvent,Back目前YesNo在UploadFile
     handleDisabled(val) {
-      // val: true 代Table正在Upload
+      // val: true 代Tablein progressUpload
       this.runDisabled = val;
     },
-    // 储存目前正在Upload of InterfaceInformation
+    // 储存目前in progressUpload of InterfaceInformation
     handleCancel(obj) {
       this.source.push(obj.source);
     },
@@ -256,11 +256,11 @@ export default {
       let a = new RegExp("<think>");
       let b = new RegExp("</think>");
       if (b.test(data)) {
-        this.thinkText = "已深度思考";
+        this.thinkText = "already深度思考";
       } else {
         if (this.sessionStatus === -1) {
           if (a.test(data) && !b.test(data)) {
-            this.thinkText = "思考已停止";
+            this.thinkText = "思考alreadyStop";
           }
         } else {
           this.thinkText = "Thinking...";

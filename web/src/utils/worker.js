@@ -7,7 +7,7 @@ const blobURL = URL.createObjectURL(
             function() {
                 const intervalIds = {};
 
-                // Listenmessage 开始Execute定 when 器OR者Destroy
+                // Listenmessage startExecute定 when 器OR者Destroy
                 self.onmessage = function onMsgFunc(e) {
                     switch (e.data.command) {
                         case 'interval:start': // 开启定 when 器
@@ -86,7 +86,7 @@ const workerTimer = {
         return id;
     },
 
-    // Listenworker 里面 of 定 when 器Send of message 然后ExecuteCallbackFunction
+    // Listenworker 里面 of 定 when 器Send of message 然afterExecuteCallbackFunction
     onMessage: function(e) {
         switch (e.data.message) {
             case 'interval:tick':

@@ -1,6 +1,6 @@
 import service from "@/utils/request"
 import {USER_API} from "@/utils/requestConstants"
-//GetCustompropmptDetails
+// Get custom prompt details
 export const getPromptTemplateDetail = (data)=>{
     return service({
         url: `${USER_API}/prompt/custom`,
@@ -8,7 +8,7 @@ export const getPromptTemplateDetail = (data)=>{
         params: data
     })
 }
-//GetCustompromptList
+// Get custom prompt list
 export const getPromptTemplateList= (data)=>{
     return service({
         url: `${USER_API}/prompt/custom/list`,
@@ -17,7 +17,7 @@ export const getPromptTemplateList= (data)=>{
     })
 }
 
-//Get内置promptList
+// Get built-in prompt list
 export const getPromptBuiltInList= (data)=>{
     return service({
         url: `${USER_API}/prompt/template/list`,
@@ -25,7 +25,7 @@ export const getPromptBuiltInList= (data)=>{
         params: data
     })
 }
-//Get内置promptDetails
+// Get built-in prompt details
 export const getPromptBuiltInDetail= (data)=>{
     return service({
         url: `${USER_API}/prompt/template/detail`,

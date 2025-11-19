@@ -46,7 +46,7 @@ export const changeOAuthStatus = (data) => {
     })
 }
 
-// Authorize码Authenticate
+// Authorization code authentication
 export const codeOAuth = (data) => {
     return service({
         url: `${USER_API}/oauth/code/authorize`,

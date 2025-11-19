@@ -7,7 +7,7 @@
         style="margin-right: 10px; font-size: 20px; cursor: pointer"
       >
       </i>
-      安全护栏
+      Safety Guardrail
       <LinkIcon type="safety" />
     </div>
     <div class="block table-wrap list-common wrap-fullheight">
@@ -123,7 +123,7 @@ export default {
       this.getTableData(this.docQuery)
     },
     handleDel(data){
-       this.$confirm(`确定DeleteSensitive Word-${data.word}`,this.$t('knowledgeManage.tip'),
+       this.$confirm(`ConfirmDeleteSensitive Word-${data.word}`,this.$t('knowledgeManage.tip'),
         {
           confirmButtonText:  this.$t('common.button.confirm'),
           cancelButtonText: this.$t('common.button.cancel'),
@@ -151,7 +151,7 @@ export default {
     },
     async download(url,name){
       const res = await downDoc(url)
-      const blobUrl = window.URL.createObjectURL(res) // 将blobObject转为一个URL
+      const blobUrl = window.URL.createObjectURL(res) // 将blobObject转is一URL
       const link = document.createElement('a')
       link.href = blobUrl
       link.download = name
@@ -373,9 +373,9 @@ export default {
 </style>
 <style lang="scss">
 .custom-tooltip.is-light {
-  border-color: #eee; /* Setting边框颜色 */
-  background-color: #fff; /* Setting背景颜色 */
-  color: #666; /* Setting文字颜色 */
+  border-color: #eee; /* Set border color */
+  background-color: #fff; /* Set background color */
+  color: #666; /* Set text color */
 }
 .custom-tooltip.el-tooltip__popper[x-placement^="top"] .popper__arrow::after {
   border-top-color: #fff !important;

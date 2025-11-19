@@ -18,7 +18,7 @@ const testSheets = [
 const initPreviewer = () => {
   
   myExcelPreviewer.value = jsPreviewExcel.init(document.getElementById('comac-preview-excel'));
-  const highlightRowNum = page.value.rownum ? page.value.rownum - 1 : null;//高亮行
+  const highlightRowNum = page.value.rownum ? page.value.rownum - 1 : null;// Highlighted row index
   let dataIndex = -1;
   myExcelPreviewer.value.setOptions({
     transformData: (workbookData) => {
@@ -31,7 +31,7 @@ const initPreviewer = () => {
           const row = workbookData[dataIndex].rows[highlightRowNum];
           const cells = row.cells
           if(row.cells){
-            for(let key in cells){//高亮RowNum
+            for(let key in cells){// Highlight the specified row
               workbookData[dataIndex].styles[cells[key].style].bgcolor = '#ff0000';
               workbookData[dataIndex].styles[cells[key].style].color = '#fff';
             }

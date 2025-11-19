@@ -123,7 +123,7 @@ export default {
       this.type = type || WORKFLOW
       this.getDetailData()
 
-      // 滚动到顶部
+      // scrolltotop
       const main = document.querySelector(".el-main > .page-container")
       if (main) main.scrollTop = 0
     },
@@ -158,7 +158,7 @@ export default {
     handleClick(val) {
       this.$router.push(`${this.getPath()}/detail?templateSquareId=${val.templateId}`)
     },
-    // ParseText，遇到.换行Etc
+    // ParseText，遇to.换rowEtc
     parseTxt(txt) {
       if (!txt) return ''
       const text = txt.replaceAll('\n\t','<br/>&nbsp;').replaceAll('\n','<br/>').replaceAll('\t', '   &nbsp;')

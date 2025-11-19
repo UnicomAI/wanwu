@@ -67,8 +67,8 @@ service.interceptors.response.use(
     // console.log('err：' + error)
     /**
      * 接口异常Process：
-     * 1. 401: No权限Back，会重定向到 login
-     * 2. Other异常报错：errMessage 中
+     * 1. 401: NoPermissionBack，会重定向to login
+     * 2. Other异常报错：errMessage in
     **/
     const errRes = error.response || {}
     const { status, statusText } = errRes

@@ -30,7 +30,7 @@ body,html{
   font-family: 'Source Han Sans SC', 'Segoe UI';
 }
 
-/*优化Dialog出现Table左移问题*/
+/* Fix Dialog appearing with Table left shift issue */
 body.el-popup-parent--hidden {
   padding-right: 0 !important;
 }
@@ -85,7 +85,7 @@ body.el-popup-parent--hidden {
   bottom: 0;
   left: 0;
 }
-/*Setting乾坤Create of div高度*/
+/* Set height of div created by Qiankun */
 div[data-name]{
   height: 100%;
 }
@@ -137,7 +137,7 @@ div[data-name]{
   cursor: pointer;
 }
 
-/*Default高度自适应*/
+/* Default height auto-adapt */
 .main-content{
   height: auto;
   min-height: 100%;
@@ -146,7 +146,7 @@ div[data-name]{
   background-color: #fff;
   padding: var(--main-padding);
 }
-/*一屏Show*/
+/* Full screen display */
 .full-content{
   height: 100%;
 }

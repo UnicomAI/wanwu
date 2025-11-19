@@ -26,8 +26,8 @@
             :rows="4"
             maxlength="100"
             show-word-limit
-            placeholder="不超 100字"></el-input>
-            <p class="tips">If不Setting,默认Reply：您当前RequestOR者历史Information中Contains敏感Content，根据相关安全要Request，该轮对话终止，Please清除历史InformationOR者重新开启新 of 对话。</p>
+            placeholder="No more than 100 characters"></el-input>
+            <p class="tips">If not set, default reply: Your current request or history information contains sensitive content. According to relevant security requirements, this conversation is terminated. Please clear history information or restart a new conversation.</p>
             </el-form-item>
         </el-form>
         <span

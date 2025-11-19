@@ -22,10 +22,10 @@
         <!-- Index Area -->
         <el-table-column v-if="index" type="index" :index="indexMethod" width="62" label="No."></el-table-column>
 
-        <!-- 头部 -->
+        <!-- Header -->
         <slot name="haed"></slot>
 
-        <!-- 表头Area -->
+        <!-- Table Header Area -->
         <el-table-column
           v-for="(column, index) in table.column"
           :key="index"
@@ -48,7 +48,7 @@
       </el-table>
     </div>
     <!--</el-scrollbar>-->
-    <!-- 分页Area -->
+    <!-- Pagination Area -->
     <el-pagination
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
@@ -68,32 +68,32 @@ export default {
   props: ["noCreate","table","index","select",'pageSize','noborder'],
   data() {
     return {
-      // Table分页Parameter
+      // Table pagination parameters
       page: {
         pageNo: 1,
         pageSize: 5
       },
-      // Table多选集合
+      // Table multi-select collection
       selection: []
     };
   },
   created: function() {
-    // InitLoad
+    // Initialize table load
     this.page.pageSize=this.pageSize||5
     if(!this.noCreate){
       this.handlePagination();
     }
   },
   methods: {
-    // No.Index算法
+    // Index calculation for serial numbers
     indexMethod(index) {
       return (this.page.pageNo - 1) * this.page.pageSize + index + 1;
     },
-    // 把每一行 of Index放进row
+    // Assign the calculated index back to each row
     tableRowClassName({ row, rowIndex }) {
       row.rowIndex = rowIndex;
     },
-    // Execute分页逻辑
+    // Execute pagination logic
     handlePagination() {
       this.selection = [];
       this.$emit("handlePagination", this.page);

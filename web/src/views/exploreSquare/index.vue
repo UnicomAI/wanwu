@@ -38,13 +38,13 @@ export default {
   data() {
     return {
       placeholder:'EnterAppNameSearch',
-      asideTitle:'历史App',
+      asideTitle:'historyApp',
       activeName:'agent',
       searchValue:'',
       active:'all',
       tagList:[
         {
-          name:'全部',
+          name:'all',
           value:'all',
           activeImg:require('@/assets/imgs/all_active.svg'),
           unactiveImg:require('@/assets/imgs/all_unactive.svg')
@@ -56,13 +56,13 @@ export default {
           unactiveImg:require('@/assets/imgs/mine_unactive.svg')
         },
         {
-          name:'私密Publish of ',
+          name:'PrivatePublish of ',
           value:'private',
           activeImg:require('@/assets/imgs/start_active.svg'),
           unactiveImg:require('@/assets/imgs/start_unactive.svg')
         },
         {
-          name:'历史App',
+          name:'historyApp',
           value:'history',
           activeImg:require('@/assets/imgs/history_active.svg'),
           unactiveImg:require('@/assets/imgs/history_unactive.svg')

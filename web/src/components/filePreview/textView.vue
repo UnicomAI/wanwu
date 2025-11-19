@@ -72,10 +72,10 @@ export default {
       })
     },
     renderedHandler() {
-      console.log('渲染完成')
+      console.log('Rendering complete')
     },
     errorHandler() {
-      console.log('渲染Failed')
+      console.log('Rendering failed')
     }
   }
 }

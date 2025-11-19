@@ -41,21 +41,21 @@ export default {
   components: {},
   name: "ec-table",
   props: {
-    listApi: "",//tableInterface
-    resKey:{ type:String,default:''},//判断YesNoYes正常ListBack
-    data: { type: Array, default: () => [] },//DefaultData
-    height: { type: [String,Number], default: "100%" },//Table高度
-    rowKey: { type: String, default: "" },//行Data of key，唯一标识符
-    border: { type: Boolean, default: false },//YesNo带Has纵向边框
-    stripe: { type: Boolean, default: false },//YesNoShow斑马纹
-    size: { type: String, default: "default" },//table尺寸Setting
-    remoteSummary: { type: Boolean, default: false },//YesNoShowCustom合计计算Method
-    summaryMethod: { type: Function, default: null },//Custom合计计算Method
-    spanMethod:{type:Function,default:null},//Custom合并单元格
-    hidePagination: { type: Boolean, default: false },//隐藏分页
+    listApi: "",// Table data API
+    resKey:{ type:String,default:''},// Optional key for custom list responses
+    data: { type: Array, default: () => [] },// Default data
+    height: { type: [String,Number], default: "100%" },// Table height
+    rowKey: { type: String, default: "" },// Unique identifier on each row
+    border: { type: Boolean, default: false },// Toggle vertical borders
+    stripe: { type: Boolean, default: false },// Toggle zebra stripes
+    size: { type: String, default: "default" },// Table size setting
+    remoteSummary: { type: Boolean, default: false },// Enable custom summary calculation
+    summaryMethod: { type: Function, default: null },// Custom summary calculation method
+    spanMethod:{type:Function,default:null},// Custom cell merge method
+    hidePagination: { type: Boolean, default: false },// Hide pagination
     pageSize:{ type: Number, default: 10 },
-    searchInfo:{type:Object,default(){return {}}},//QueryInformation
-    isHandelpage:{type:Boolean,default:false},//YesNo前端手动分页
+    searchInfo:{type:Object,default(){return {}}},// Query parameters
+    isHandelpage:{type:Boolean,default:false},// Whether pagination is handled on the client
   },
   data() {
     return {
@@ -73,7 +73,7 @@ export default {
 				return Number(this.height)?Number(this.height)+'px':this.height
 			},
     _maxHeight(){
-      //计算table自动撑开 of Max高度
+      // Calculate the maximum auto height for the table
       this.$nextTick(() =>{
         const c_height =  document.getElementById('table-container').clientHeight;
         if(this.hidePagination){
@@ -87,7 +87,7 @@ export default {
   watch:{
     data(){
       this.total = this.data.length;
-      if(this.isHandelpage === true){//前端手动分页
+      if(this.isHandelpage === true){// Client-side pagination
         const start = (this.pageNo - 1) * this.page_size;
         const end = start + this.page_size;
         this.tableData = this.data.slice(start,end);
@@ -128,12 +128,12 @@ export default {
             pageSize:this.page_size,
             ...this.search_info
         }
-        //YesNoHas分页
+        // Remove pagination params when pagination is hidden
         if(this.hidePagination){
           delete reqData['pageNo']
           delete reqData['pageSize']
         }
-        //RequestInterface
+        // Request data from API
         try {
           var table = await this.listApi(reqData);
         }catch(error){
@@ -168,7 +168,7 @@ export default {
         this.total = total
       }
     },
-    mergeComon(id, rowIndex) { // 合并单元格
+    mergeComon(id, rowIndex) { // Merge table cells
       const idName = this.tableData[rowIndex][id]
       if (rowIndex > 0) {
         if (this.tableData[rowIndex][id] != this.tableData[rowIndex - 1][id]) {
@@ -224,51 +224,51 @@ export default {
       })
       return sums
     },
-    reload(params, page=1){//RefreshList
+    reload(params, page=1){// Refresh list
       this.pageNo = page;
       this.search_info = params || {}
       this.$refs.ecTable.clearSelection();
       this.getTableData(this.searchInfo)
     },
-    //Insert行 unshiftRow
+    // Insert row at beginning
 		unshiftRow(row){
 				this.tableData.unshift(row)
 		},
-    //Insert行 pushRow
+    // Insert row at end
     pushRow(row){
       this.tableData.push(row)
     },
-    //根据key覆盖Data
+    // Update row by key
     updateKey(row, rowKey=this.rowKey){
       this.tableData.filter(item => item[rowKey]===row[rowKey] ).forEach(item => {
         Object.assign(item, row)
       })
     },
-    //根据index覆盖Data
+    // Update row by index
     updateIndex(row, index){
       Object.assign(this.tableData[index], row)
     },
-    //根据indexDelete
+    // Delete row by index
     removeIndex(index){
       this.tableData.splice(index, 1)
     },
-    //根据indexBatch Delete
+    // Delete multiple rows by index
     removeIndexes(indexes=[]){
       indexes.forEach(index => {
         this.tableData.splice(index, 1)
       })
     },
-    //根据keyDelete
+    // Delete row by key
     removeKey(key, rowKey=this.rowKey){
       this.tableData.splice(this.tableData.findIndex(item => item[rowKey]===key), 1)
     },
-    //根据keysBatch Delete
+    // Delete multiple rows by key list
     removeKeys(keys=[], rowKey=this.rowKey){
       keys.forEach(key => {
         this.tableData.splice(this.tableData.findIndex(item => item[rowKey]===key), 1)
       })
     },
-    //Clear勾选
+    // Clear selected rows
     clearSelection(){
       this.$refs.ecTable.clearSelection()
     },
@@ -278,15 +278,15 @@ export default {
     toggleAllSelection(){
       this.$refs.ecTable.toggleAllSelection()
     },
-    setCurrentRow(row){//高亮选中某一行
+    setCurrentRow(row){// Highlight a specific row
       this.$refs.scTable.setCurrentRow(row)
     },
-    doLayout(){//对table进行重新Layout
+    doLayout(){// Recalculate table layout
       this.$refs.scTable.doLayout()
     },
-    handleSizeChange(val) {//分页DataModify点击
+    handleSizeChange(val) {// Handle page size change
       this.page_size = val;
-      if(this.isHandelpage=== true){//前端手动分页，Modify分页页数
+      if(this.isHandelpage=== true){// Client-side pagination updates visible rows
         const start = (this.pageNo - 1) * this.page_size;
         const end = start + this.page_size;
         this.tableData = this.data.slice(start,end);
@@ -294,9 +294,9 @@ export default {
         this.getTableData(this.searchInfo);
       }
     },
-    handleCurrentChange(val) {//分页点击
+    handleCurrentChange(val) {// Handle page change
       this.pageNo = val;
-      if(this.isHandelpage=== true){//前端手动分页
+      if(this.isHandelpage=== true){// Client-side pagination
         const start = (this.pageNo - 1) * this.page_size;
         const end = start + this.page_size;
         this.tableData = this.data.slice(start,end);
@@ -311,7 +311,7 @@ export default {
 <style lang="scss" scoped>
 /deep/{
   .el-loading-spinner .path { stroke: #e60001 !important;}
-  /* 隐藏Scrollbar但保留滚动功能 */
+  /* Hide scrollbar but keep scroll functionality */
   .el-table--scrollable-y .el-table__body-wrapper::-webkit-scrollbar {
     display: none !important;
   }

@@ -14,10 +14,10 @@
         <div class="echo-img">
           <img :src="form.avatar || defaultAvatar" alt=""/>
           <p class="echo-img-tip" v-if="isLoading">
-            图片Upload中
+            Image uploading
             <span class="el-icon-loading"></span>
           </p>
-          <p class="echo-img-tip" v-else>点击Upload图片</p>
+          <p class="echo-img-tip" v-else>Click to upload image</p>
         </div>
       </el-upload>
       <div class="row">

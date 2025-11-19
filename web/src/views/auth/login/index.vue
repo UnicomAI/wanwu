@@ -102,7 +102,7 @@ export default {
     }
   },
   created() {
-    // If已Login，重定向到HasPermission of Page
+    // IfalreadyLogin，重定向toHasPermission of Page
     // if (this.$store.state.user.token && localStorage.getItem("access_cert") && !this.$store.state.user.is2FA) redirectUrl()
 
     this.getImgCode()

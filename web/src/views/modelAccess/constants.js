@@ -11,7 +11,7 @@ export const MODEL_TYPE_OBJ = {
     [EMBEDDING]: 'Embedding',
     [OCR]: 'OCR',
     [GUI]: 'GUI',
-    [PDF_PARSER]: 'DocumentParse服务'
+    [PDF_PARSER]: 'Document Parsing Service'
 }
 
 export const MODEL_TYPE = Object.keys(MODEL_TYPE_OBJ).map(key => ({key, name: MODEL_TYPE_OBJ[key]}))
@@ -24,11 +24,11 @@ export const HUOSHAN = 'Huoshan'
 export const INFINI = 'Infini'
 export const PROVIDER_OBJ = {
     [OPENAI_API]: 'OpenAI-API-compatible',
-    [YUAN_JING]: '联通元景',
+    [YUAN_JING]: 'China Unicom Yuanjing',
     [OLLAMA]: 'Ollama',
-    [QWEN]: '通义千问',
-    [HUOSHAN]: '火山引擎',
-    [INFINI]: '无问芯穹'
+    [QWEN]: 'Tongyi Qianwen',
+    [HUOSHAN]: 'Volcano Engine',
+    [INFINI]: 'Infini'
 }
 
 export const PROVIDER_IMG_OBJ = {
@@ -63,7 +63,7 @@ export const FUNC_CALLING = [
 export const DEFAULT_SUPPORT = 'noSupport'
 export const SUPPORT_LIST = [
     {key: 'noSupport', name: 'Not Supported'},
-    {key: 'support', name: '支持'},
+    {key: 'support', name: 'Supported'},
 ]
 
 export const TYPE_OBJ = {

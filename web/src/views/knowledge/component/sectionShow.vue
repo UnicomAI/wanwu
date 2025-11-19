@@ -1,30 +1,30 @@
 <template>
   <el-dialog
     :visible.sync="dialogVisible"
-    title="命中分段Details"
+    title="Hit Segment Details"
     width="70%"
     @close="handleClose"
     class="section-dialog"
   >
     <div class="section-show-container">
-      <!-- 父分段Area域 -->
+      <!-- Parent segment area -->
       <div class="parent-segment" v-if="parentSegment">
         <div class="segment-header">
-          <span class="parent-badge" v-if="['graph','community_report'].includes(parentSegment.contentType)">{{parentSegment.contentType === 'graph' ? '知识图谱' : '社Area报告'}}</span>
-          <span class="parent-badge" v-else>{{segmentList.length > 0 ? '父分段' :'通用分段'}}</span>
+          <span class="parent-badge" v-if="['graph','community_report'].includes(parentSegment.contentType)">{{parentSegment.contentType === 'graph' ? 'Knowledge Graph' : 'Community Report'}}</span>
+          <span class="parent-badge" v-else>{{segmentList.length > 0 ? 'Parent Segment' :'General Segment'}}</span>
           <div class="parent-score">
-            <span class="score-label">命中得分:</span>
+            <span class="score-label">Hit Score:</span>
             <span class="score-value">{{ formatScore(parentSegment.score) }}</span>
           </div>
         </div>
-        <div class="parent-content" v-html="parentSegment.content ? md.render(parentSegment.content) : 'NoContent'">
+        <div class="parent-content" v-html="parentSegment.content ? md.render(parentSegment.content) : 'No Content'">
         </div>
       </div>
 
-      <!-- 子分段Area域 -->
+      <!-- Child segment area -->
         <div class="sub-segments" v-if="segmentList.length > 0">
         <div class="segment-header">
-          <span class="sub-badge">命中{{ segmentList.length }}个子分段</span>
+          <span class="sub-badge">Hit {{ segmentList.length }} child segments</span>
         </div>
       </div>
       <div class="collapse-wrapper" v-if="segmentList.length > 0">
@@ -42,11 +42,11 @@
           <template slot="title">
             <span class="segment-badge">C-{{ index + 1 }}</span>
             <span class="segment-score">
-              <span class="score-label">命中得分:</span>
+              <span class="score-label">Hit Score:</span>
               <span class="score-value">{{ formatScore(childscore[index]) }}</span>
             </span>
           </template>
-          <div class="segment-content" v-html="segment.content ? md.render(segment.content) : 'NoContent'"></div> 
+          <div class="segment-content" v-html="segment.content ? md.render(segment.content) : 'No Content'"></div> 
         </el-collapse-item>
         </el-collapse>
       </div>
@@ -71,19 +71,19 @@ export default {
   },
   methods: {
     formatScore,
-    // Show弹框
+    // Show dialog
     showDiaglog(data) {
       if (data) {
-        // Update父分段Data
+        // Update parent segment data
         if (data.searchList) {
           this.parentSegment = {
             score: parseFloat(data.score) || 0,
-            content: data.searchList.snippet||'NoContent',
+            content: data.searchList.snippet||'No Content',
             contentType: data.searchList.contentType
           };
         }
         
-        // Update子分段Data
+        // Update child segment data
         if (data.searchList && Array.isArray(data.searchList.childContentList)) {
           this.childscore = data.searchList.childScore;
           this.segmentList = data.searchList.childContentList.map(segment => ({
@@ -91,7 +91,7 @@ export default {
             autoSave: Boolean(segment.autoSave),
             score: parseFloat(segment.score) || 0
           }));
-          // Setting所Has折叠项为展开Status
+          // Set all collapse items to expanded state
           this.activeNames = this.segmentList.map((_, index) => index);
         }
         

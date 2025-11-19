@@ -39,31 +39,31 @@ export default {
       try{
         const response  = await axios({
           method: 'get',
-          responseType: 'blob', // SettingResponseFileFormat
+          responseType: 'blob', // Set response file format
           url: this.fileUrl
         })
 
         const blob = response.data;
         const arrayBuffer = await blob.arrayBuffer();
-        // Use mammoth 将 .docx 转为 HTML
-        const { value: html } = await mammoth.convertToHtml({ arrayBuffer });
-        // Render到Page
+        // Use mammoth to convert .docx into HTML
+        // Render to page
+        // RendertoPage
         this.$nextTick(() => {
           this.$refs.wordRef.innerHTML = html; 
           this.loading = false;
         });
       }catch(error){
          this.$nextTick(() => {
-            this.$refs.wordRef.innerHTML = `<p style="color: red;">预览Failed: ${error.message}</p>`;
+            this.$refs.wordRef.innerHTML = `<p style="color: red;">Preview failed: ${error.message}</p>`;
             this.loading = false;
         });
       }
     },
     renderedHandler() {
-      console.log('渲染完成')
+      console.log('Rendering complete')
     },
     errorHandler() {
-      console.log('渲染Failed')
+      console.log('Rendering failed')
     }
   }
 }

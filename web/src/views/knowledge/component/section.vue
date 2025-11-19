@@ -34,7 +34,7 @@
         <el-descriptions-item :label="$t('knowledgeManage.markSplit')">{{
           String(res.splitter).replace(/\n/g, '\\n')
         }}</el-descriptions-item>
-        <el-descriptions-item label="元Data">
+        <el-descriptions-item label="Metadata">
           <template v-if="metaDataList && metaDataList.length > 0">
             <span
                 v-for="(item, index) in metaDataList.slice(0, 3)"
@@ -47,10 +47,10 @@
               <span class="metaItem">...</span>
             </el-tooltip>
           </template>
-          <span v-else>无Data</span>
+          <span v-else>No data</span>
           <span class="el-icon-edit-outline editIcon" @click="showDatabase(metaDataList || [])" v-if="metaDataList && [10,20,30].includes(permissionType)"></span>
         </el-descriptions-item>
-        <el-descriptions-item label="元Data规Then">
+        <el-descriptions-item label="Metadata Rules">
           <template v-if="metaRuleList && metaRuleList.length > 0">
             <span v-for="(item, index) in metaRuleList.slice(0, 3)" :key="index" class="metaItem">
               {{ item.metaKey }}: {{ item.metaRule }}<span v-if="index < metaRuleList.slice(0, 3).length - 1"> </span>
@@ -59,9 +59,9 @@
               <span class="metaItem">...</span>
             </el-tooltip>
           </template>
-          <span v-else>无Data</span>
+          <span v-else>No data</span>
         </el-descriptions-item>
-        <el-descriptions-item label="BatchAdd分段Status">
+        <el-descriptions-item label="Batch Add Segment Status">
           <span>{{res.segmentImportStatus}}</span>
         </el-descriptions-item>
       </el-descriptions>
@@ -73,7 +73,7 @@
           size="mini"
           :loading="loading.start"
           v-if="[10,20,30].includes(permissionType)"
-          >Add分段</el-button
+          >Add Segment</el-button
         >
         <el-button
           type="primary"
@@ -105,9 +105,9 @@
               <div slot="header" class="clearfix">
                 <span>
                   {{ $t('knowledgeManage.split')+":" + item.contentNum }}
-                  <span class="segment-type">#{{ item.isParent?"父子分段":"通用分段" }}</span>
+                  <span class="segment-type">#{{ item.isParent?"Parent-child Segment":"General Segment" }}</span>
                   <span class="segment-length" v-if="!item.isParent">#{{ item.content.length }}{{$t('knowledgeManage.character')}}</span>
-                  <span class="segment-child" v-if="item.childNum">#{{ item.childNum || 0 }}个子分段</span>
+                  <span class="segment-child" v-if="item.childNum">#{{ item.childNum || 0 }} child segments</span>
                 </span>
                 <div>
                   <el-switch
@@ -137,7 +137,7 @@
               <div class="tagList" v-if="[10,20,30].includes(permissionType)">
                 <span :class="['smartDate','tagList']" @click.stop="addTag(item.labels,item.contentId)" v-if="item.labels.length === 0">
                   <span class="el-icon-price-tag icon-tag"></span>
-                  Create关键词
+                  CreateKeyword
                 </span>
                 <span class="tagList-item" @click.stop="addTag(item.labels,item.contentId)" v-else>{{formattedTagNames(item.labels) }}</span>
               </div>
@@ -207,7 +207,7 @@
                 >
               </el-input>
               <div  v-if="cardObj[0]['isParent'] && [10,20,30].includes(permissionType)" style="display: flex;justify-content: flex-end;padding: 10px 0;">
-                <el-button type="primary" @click="handleSubmit"  :loading="submitLoading">Save并重新Parse子分段</el-button>
+                <el-button type="primary" @click="handleSubmit"  :loading="submitLoading">Save and reparse child segments</el-button>
               </div>
               <div class="segment-list" v-if="scope.row.childContent.length > 0">
                 <el-collapse 
@@ -260,8 +260,8 @@
       </div>
 
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="handleSubmit" :loading="submitLoading" v-if="!cardObj[0]['isParent']">确定</el-button>
-        <el-button type="primary" @click="createChunk(true)" v-if="cardObj[0]['isParent'] && [10,20,30].includes(permissionType)"" :disabled="submitLoading">Add子分段</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitLoading" v-if="!cardObj[0]['isParent']">Confirm</el-button>
+        <el-button type="primary" @click="createChunk(true)" v-if="cardObj[0]['isParent'] && [10,20,30].includes(permissionType)"" :disabled="submitLoading">Add Child Segment</el-button>
         <el-button type="primary" @click="handleClose" :disabled="submitLoading">{{$t('knowledgeManage.close')}}</el-button>
       </span>
     </el-dialog>
@@ -282,7 +282,7 @@ export default {
     return {
       submitLoading:false,
       oldContent:'',
-      title:'Create关键词',
+      title:'CreateKeyword',
       dialogVisible: false,
       editingSegments: {},
       editingContent: {},
@@ -414,8 +414,8 @@ export default {
       }).catch(() =>{})
     },
     deleteSegment(row, index) {
-      this.$confirm('确定要Delete这个子分段吗？', 'Tip', {
-        confirmButtonText: '确定',
+      this.$confirm('ConfirmtoDelete这 child segments吗？', 'Tip', {
+        confirmButtonText: 'Confirm',
         cancelButtonText: 'Cancel',
         type: 'warning'
       }).then(() => {
@@ -454,7 +454,7 @@ export default {
       const hasChanges = this.oldContent !== this.cardObj[0]['content'];
       
       if(!hasChanges){
-        this.$message.warning('无Modify')
+        this.$message.warning('No changes')
         return false;
       }
       

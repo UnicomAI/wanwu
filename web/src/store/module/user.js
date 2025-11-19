@@ -30,14 +30,14 @@ const processLogin = (res, commit, params) => {
         commit('setIs2FA', false)
 
         if (params.client_id) {
-            // 重定向到OAuthPage
+            // 重定向toOAuthPage
             jumpOAuth(params)
             return
         }
 
         // UpdatePermissionRoute
         replaceRouter(permission.orgPermission)
-        // 重定向到HasPermission of Page
+        // 重定向toHasPermission of Page
         redirectUrl()
     }
 }

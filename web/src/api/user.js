@@ -12,8 +12,8 @@ export const login = (data) => {
     });
 };
 
-// 2FALogin
-// 第一级Verify：Password
+// 2FA login
+// First-level verification: password
 export const login2FA1 = (data) => {
     return service({
         url: `${USER_API}/base/login/email`,
@@ -21,8 +21,8 @@ export const login2FA1 = (data) => {
         data
     });
 };
-// 第二级Verify：Verification Code
-// EmailVerification Code
+// Second-level verification: verification code
+// Email verification code
 export const login2FA2Code = (data) => {
     return service({
         url: `${USER_API}/user/login/email/code`,
@@ -30,7 +30,7 @@ export const login2FA2Code = (data) => {
         data,
     });
 };
-// 首次Login
+// First-time login
 export const login2FA2new = (data) => {
     return service({
         url: `${USER_API}/user/login`,
@@ -38,7 +38,7 @@ export const login2FA2new = (data) => {
         data
     });
 }
-// Non首次Login
+// Returning login
 export const login2FA2exist = (data) => {
     return service({
         url: `${USER_API}/user/login`,
@@ -47,7 +47,7 @@ export const login2FA2exist = (data) => {
     });
 }
 
-// Get图形Verification Code
+// Get graphical verification code
 export const getImgVerCode = () => {
     return service({
         url: `${USER_API}/base/captcha`,
@@ -56,7 +56,7 @@ export const getImgVerCode = () => {
     });
 };
 
-// EmailRegisterVerification CodeSend
+// Send email registration verification code
 export const registerCode = (data) => {
     return service({
         url: `${USER_API}/base/register/email/code`,
@@ -65,7 +65,7 @@ export const registerCode = (data) => {
     });
 };
 
-// UserEmailRegister
+// User email registration
 export const register = (data) => {
     return service({
         url: `${USER_API}/base/register/email`,
@@ -74,7 +74,7 @@ export const register = (data) => {
     });
 };
 
-// ResetPasswordEmailVerification CodeSend
+// Send email verification code for password reset
 export const resetCode = (data) => {
     return service({
         url: `${USER_API}/base/password/email/code`,
@@ -155,7 +155,7 @@ export const docDownload = () => {
     });
 };
 
-// 公用Upload avatar
+// Shared avatar upload
 export const uploadAvatar = (data, config) => {
     return service({
         url: `${USER_API}/avatar`,
@@ -165,7 +165,7 @@ export const uploadAvatar = (data, config) => {
     })
 }
 
-// 平台Information
+// Platform information
 export const getCommonInfo= () => {
     return service({
         url: `${USER_API}/base/custom`,

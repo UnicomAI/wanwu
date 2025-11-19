@@ -1,7 +1,7 @@
 import request from "@/utils/request";
 import {USER_API} from "@/utils/requestConstants"
 
-// Generateapikey
+// Generate API key
 export const createApiKey = (data)=>{
     return request({
         url: `${USER_API}/appspace/app/key`,
@@ -9,7 +9,7 @@ export const createApiKey = (data)=>{
         data
     })
 };
-// Deleteapikey
+// Delete API key
 export const delApiKey = (data)=>{
     return request({
         url: `${USER_API}/appspace/app/key`,
@@ -17,7 +17,7 @@ export const delApiKey = (data)=>{
         data
     })
 };
-// GetapikeyList
+// Get API key list
 export const getApiKeyList = (params)=>{
     return request({
         url: `${USER_API}/appspace/app/key/list`,
@@ -25,7 +25,7 @@ export const getApiKeyList = (params)=>{
         params
     })
 };
-// Getapikey根Address
+// Get API key base URL
 export const getApiKeyRoot = (params)=>{
     return request({
         url: `${USER_API}/appspace/app/url`,
@@ -43,7 +43,7 @@ export const getAppSpaceList = (params)=>{
     })
 }
 
-//Publishapp
+// Publish app
 export const appPublish = (data)=>{
     return request({
         url: `${USER_API}/appspace/app/publish`,
@@ -52,7 +52,7 @@ export const appPublish = (data)=>{
     })
 };
 
-// CancelPublishapp
+// Cancel app publication
 export const appCancelPublish = (data)=>{
     return request({
         url: `${USER_API}/appspace/app/publish`,
@@ -61,7 +61,7 @@ export const appCancelPublish = (data)=>{
     })
 };
 
-//统一Delete工作室AppInterface
+// Unified deletion interface for studio apps
 export const deleteApp = (data)=>{
     return request({
         url: `${USER_API}/appspace/app`,
@@ -94,7 +94,7 @@ export const agnetTemplateDetail = (params)=>{
         params
     })
 };
-//CopyText Q&AApp
+// Copy text Q&A app
 export const copyTextQues = (data)=>{
     return request({
         url: `${USER_API}/appspace/rag/copy`,
@@ -102,7 +102,7 @@ export const copyTextQues = (data)=>{
         data
     })
 };
-//CopyAgentApp
+// Copy agent app
 export const copyAgentApp = (data)=>{
     return request({
         url: `${USER_API}/assistant/copy`,

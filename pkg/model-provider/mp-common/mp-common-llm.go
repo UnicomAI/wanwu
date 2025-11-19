@@ -29,9 +29,9 @@ const (
 	TagRerank        string = "Rerank"
 	TagGui           string = "GUI"
 	TagOcr           string = "OCR"
-	TagPdfParser     string = "文档解析"
-	TagVisionSupport string = "图文问答"
-	TagToolCall      string = "工具调用"
+	TagPdfParser     string = "Document Parsing"
+	TagVisionSupport string = "Multimodal QA"
+	TagToolCall      string = "Tool Invocation"
 )
 
 type Tag struct {

@@ -268,7 +268,7 @@ export default {
       knowledgeGraphModelOptions: [],
       modelLoading: false,
       knowledgeGraphTips: KNOWLEDGE_GRAPH_TIPS,
-      maxSizeBytes: 0, // Setting为0，所HasFile都走切片Upload
+      maxSizeBytes: 0, // Settingis0，所HasFile都走切片Upload
       rules: {
         name: [
           {
@@ -345,7 +345,7 @@ export default {
         a.download = fileName;
         a.click();
 
-        URL.revokeObjectURL(blobUrl); // 释放Memory
+        URL.revokeObjectURL(blobUrl); // Release memory
       } catch (error) {
         this.$message.error(this.$t("knowledgeManage.create.downloadFailed"));
       }
@@ -398,11 +398,11 @@ export default {
             }
           });
         }, 10);
-        //开始切片Upload(IfNoFile正在Upload)
+        //Start chunk upload (if no file is uploading)
         if (this.file === null) {
           this.startUpload();
         } else {
-          //IfUpload当中Has新 of File加入
+          //If new file is added during upload
           if (this.file.progressStatus === "success") {
             this.startUpload(this.fileIndex);
           }
@@ -464,7 +464,7 @@ export default {
         return true;
       }
     },
-    //  VerifyFile重复
+    //  VerifyFileduplicate
     verifyRepeat(file) {
       let res = true;
       setTimeout(() => {
@@ -502,7 +502,7 @@ export default {
         this.cancelAllRequests();
         return;
       }
-      // IfFile已UploadSuccess，NeedDeleteService器上 of File
+      // IfFilealreadyUploadSuccess，NeedDeleteService器上 of File
       if (this.resList && this.resList[index] && this.resList[index]["name"]) {
         this.delfile({
           fileList: [this.resList[index]["name"]],

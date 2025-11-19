@@ -1,7 +1,7 @@
 import service from "@/utils/request"
 import {USER_API} from "@/utils/requestConstants"
 
-// GetDocument中心 md Content
+// Get document markdown content
 export const getMarkdown = (params) => {
     return service({
         url: `${USER_API}/doc_center/markdown`,
@@ -10,7 +10,7 @@ export const getMarkdown = (params) => {
     });
 };
 
-// GetDocument中心目录
+// Get document catalog
 export const getDocMenu = () => {
     return service({
         url: `${USER_API}/doc_center/menu`,

@@ -5,8 +5,8 @@
     :before-close="handleClose"
   >
   <template #title>
-    <span class="dialog-title">元Data管理</span>
-    <span>[ 元DatakeyIs Empty when ，去<span class="link" @click="goCreate">Create元Data</span> ]</span>
+    <span class="dialog-title">Metadata Management</span>
+    <span>[ MetadatakeyIs Empty when ，去<span class="link" @click="goCreate">CreateMetadata</span> ]</span>
   </template>
     <div>
         <el-table
@@ -67,7 +67,7 @@
                   clearable
                   :disabled="!row.editable"
                   type="number"
-                  placeholder="Please enter数字"
+                  placeholder="Please enternumber"
                   @change="handleValueChange(row)"
               />
               <el-date-picker
@@ -81,7 +81,7 @@
                   format="yyyy-MM-dd HH:mm:ss"
                   value-format="timestamp"
                   type="datetime"
-                  placeholder="Please select date when 间"
+                  placeholder="Please select date and time"
                   style="width:100%;"
               />
             </template>
@@ -104,13 +104,13 @@
       slot="footer"
       class="dialog-footer"
     >
-      <el-button @click="dialogVisible = false">取 消</el-button>
-      <el-button @click="addItem" type="primary">+ Create元Data</el-button>
+      <el-button @click="dialogVisible = false">Cancel</el-button>
+      <el-button @click="addItem" type="primary">+ CreateMetadata</el-button>
       <el-button
         type="primary"
         @click="submitDialog('submit')"
         :disabled="isDisabled"
-      >确 定</el-button>
+      >Confirm</el-button>
     </span>
   </el-dialog>
 </template>

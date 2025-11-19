@@ -57,16 +57,16 @@ func newClient(ctx context.Context, c Config) (*client, error) {
 
 		esClient, err := elasticsearch.NewClient(cfg)
 		if err != nil {
-			lastErr = fmt.Errorf("创建ES客户端失败 [%s]: %v", addr, err)
-			log.Warnf("创建ES客户端失败，地址: %s, 错误: %v", addr, err)
+			lastErr = fmt.Errorf("failed to create ES client [%s]: %v", addr, err)
+			log.Warnf("Failed to create ES client, address: %s, error: %v", addr, err)
 			continue
 		}
 
 		// test connection
 		res, err := esClient.Info()
 		if err != nil {
-			lastErr = fmt.Errorf("ES连接测试失败 [%s]: %v", addr, err)
-			log.Warnf("ES连接测试失败，地址: %s, 错误: %v", addr, err)
+			lastErr = fmt.Errorf("ES connection test failed [%s]: %v", addr, err)
+			log.Warnf("ES connection test failed, address: %s, error: %v", addr, err)
 			continue
 		}
 
@@ -74,13 +74,13 @@ func newClient(ctx context.Context, c Config) (*client, error) {
 			defer res.Body.Close()
 
 			if res.IsError() {
-				lastErr = fmt.Errorf("ES连接响应错误 [%s]: %s", addr, res.String())
-				log.Warnf("ES连接响应错误，地址: %s, 响应: %s", addr, res.String())
+				lastErr = fmt.Errorf("ES connection response error [%s]: %s", addr, res.String())
+				log.Warnf("ES connection response error, address: %s, response: %s", addr, res.String())
 				continue
 			}
 		}
 
-		log.Infof("ES连接成功，地址: %s", addr)
+		log.Infof("ES connection succeeded, address: %s", addr)
 		return &client{
 			ctx:  ctx,
 			cli:  esClient,
@@ -93,20 +93,20 @@ func newClient(ctx context.Context, c Config) (*client, error) {
 		return nil, lastErr
 	}
 
-	return nil, fmt.Errorf("无法连接到ES，尝试的地址: %v", addresses)
+	return nil, fmt.Errorf("failed to connect to ES, attempted addresses: %v", addresses)
 }
 
 func (c *client) Stop() {
 	c.mutex.Lock()
 	if c.stopped {
-		log.Errorf("ES客户端已经停止")
+		log.Errorf("ES client already stopped")
 		c.mutex.Unlock()
 		return
 	}
 	c.stopped = true
 	close(c.stop)
 	c.mutex.Unlock()
-	log.Infof("ES客户端停止")
+	log.Infof("ES client stopped")
 }
 
 func (c *client) Cli() *elasticsearch.Client {
@@ -117,7 +117,7 @@ func (c *client) Cli() *elasticsearch.Client {
 func (c *client) IndexDocument(ctx context.Context, index string, document interface{}) error {
 	docJSON, err := json.Marshal(document)
 	if err != nil {
-		return fmt.Errorf("序列化文档失败: %v", err)
+		return fmt.Errorf("failed to serialize document: %v", err)
 	}
 
 	res, err := c.cli.Index(
@@ -127,15 +127,15 @@ func (c *client) IndexDocument(ctx context.Context, index string, document inter
 		c.cli.Index.WithRefresh("true"),
 	)
 	if err != nil {
-		return fmt.Errorf("写入ES失败: %v", err)
+		return fmt.Errorf("failed to write to ES: %v", err)
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return fmt.Errorf("ES写入响应错误: %s", res.String())
+		return fmt.Errorf("ES write response error: %s", res.String())
 	}
 
-	log.Infof("成功写入ES，索引: %s", index)
+	log.Infof("Successfully wrote to ES, index: %s", index)
 	return nil
 }
 
@@ -160,7 +160,7 @@ func (c *client) SearchByFields(ctx context.Context, index string, fieldConditio
 
 	queryJSON, err := json.Marshal(query)
 	if err != nil {
-		return nil, 0, fmt.Errorf("序列化查询失败: %v", err)
+		return nil, 0, fmt.Errorf("failed to serialize query: %v", err)
 	}
 
 	res, err := c.cli.Search(
@@ -169,37 +169,37 @@ func (c *client) SearchByFields(ctx context.Context, index string, fieldConditio
 		c.cli.Search.WithBody(strings.NewReader(string(queryJSON))),
 	)
 	if err != nil {
-		return nil, 0, fmt.Errorf("ES查询失败: %v", err)
+		return nil, 0, fmt.Errorf("ES query failed: %v", err)
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return nil, 0, fmt.Errorf("ES查询响应错误: %s", res.String())
+		return nil, 0, fmt.Errorf("ES query response error: %s", res.String())
 	}
 
 	var result map[string]interface{}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, 0, fmt.Errorf("解析查询结果失败: %v", err)
+		return nil, 0, fmt.Errorf("failed to parse query result: %v", err)
 	}
 
 	hits, ok := result["hits"].(map[string]interface{})
 	if !ok {
-		return nil, 0, fmt.Errorf("无效的查询结果格式")
+		return nil, 0, fmt.Errorf("invalid query result format")
 	}
 
 	total, ok := hits["total"].(map[string]interface{})
 	if !ok {
-		return nil, 0, fmt.Errorf("无效的总数格式")
+		return nil, 0, fmt.Errorf("invalid total format")
 	}
 
 	totalValue, ok := total["value"].(float64)
 	if !ok {
-		return nil, 0, fmt.Errorf("无效的总数值")
+		return nil, 0, fmt.Errorf("invalid total value")
 	}
 
 	hitsList, ok := hits["hits"].([]interface{})
 	if !ok {
-		return nil, 0, fmt.Errorf("无效的命中列表格式")
+		return nil, 0, fmt.Errorf("invalid hit list format")
 	}
 
 	var documents []json.RawMessage
@@ -219,7 +219,7 @@ func (c *client) SearchByFields(ctx context.Context, index string, fieldConditio
 		documents = append(documents, sourceJSON)
 	}
 
-	log.Infof("ES查询成功，索引: %s, 总数: %d, 返回: %d", index, int64(totalValue), len(documents))
+	log.Infof("ES query succeeded, index: %s, total: %d, returned: %d", index, int64(totalValue), len(documents))
 	return documents, int64(totalValue), nil
 }
 
@@ -231,15 +231,15 @@ func (c *client) CreateIndexTemplate(ctx context.Context, templateName string, t
 		c.cli.Indices.PutIndexTemplate.WithContext(ctx),
 	)
 	if err != nil {
-		return fmt.Errorf("创建索引模板失败: %v", err)
+		return fmt.Errorf("failed to create index template: %v", err)
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return fmt.Errorf("创建索引模板响应错误: %s", res.String())
+		return fmt.Errorf("create index template response error: %s", res.String())
 	}
 
-	log.Infof("成功创建索引模板: %s", templateName)
+	log.Infof("Successfully created index template: %s", templateName)
 	return nil
 }
 
@@ -250,7 +250,7 @@ func (c *client) IndexTemplateExists(ctx context.Context, templateName string) (
 		c.cli.Indices.GetIndexTemplate.WithContext(ctx),
 	)
 	if err != nil {
-		return false, fmt.Errorf("检查索引模板失败: %v", err)
+		return false, fmt.Errorf("failed to check index template: %v", err)
 	}
 	defer res.Body.Close()
 
@@ -259,7 +259,7 @@ func (c *client) IndexTemplateExists(ctx context.Context, templateName string) (
 	}
 
 	if res.IsError() {
-		return false, fmt.Errorf("检查索引模板响应错误: %s", res.String())
+		return false, fmt.Errorf("check index template response error: %s", res.String())
 	}
 
 	return true, nil

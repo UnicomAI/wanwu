@@ -1,20 +1,20 @@
 export const PERMS = {
-    PERMISSION: 'permission', // Permission管理
-    PERMISSION_USER: 'permission.user', // Permission管理-User管理
-    PERMISSION_ORG: 'permission.org', // Permission管理-Organization管理
-    PERMISSION_ROLE: 'permission.role', // Permission管理-Role管理
-    SETTING: 'setting', // 平台Configuration
+    PERMISSION: 'permission', // Permission Management
+    PERMISSION_USER: 'permission.user', // Permission Management - User Management
+    PERMISSION_ORG: 'permission.org', // Permission Management - Organization Management
+    PERMISSION_ROLE: 'permission.role', // Permission Management - Role Management
+    SETTING: 'setting', // Platform Configuration
 
-    EXPLORE: 'exploration', // 探索广场
-    MODEL: 'model', // Model管理
+    EXPLORE: 'exploration', // Explore Marketplace
+    MODEL: 'model', // Model Management
     KNOWLEDGE: 'knowledge', // Knowledge Base
-    TOOL: 'tool', // 资源库
-    MCP: 'mcp', // MCP 广场
+    TOOL: 'tool', // Resource Library
+    MCP: 'mcp', // MCP Marketplace
     RAG: 'rag', // Text Q&A
     WORKFLOW: 'workflow', // Workflow
     AGENT: 'agent', // Agent
-    SAFETY:'safety',//安全护栏
+    SAFETY:'safety',//Safety Guardrail
 
-    STATISTIC: 'statistic_client', // Statistic看板
+    STATISTIC: 'statistic_client', // Statistics Dashboard
     OAUTH: 'oauth', // oauth
 }

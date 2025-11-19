@@ -7,12 +7,12 @@ hljs.configure({
 import 'highlight.js/styles/atom-one-dark.css';
 
 export const md = MarkdownIt({
-    // 在源码中Enable HTML Tag
+    // 在源码inEnable HTML Tag
     html: true,
     // IfResult以 <pre ... 开头，内部包装器Then会跳 。
     highlight: function (str, lang) {
 
-        // 经 highlight.jsProcess后 of html
+        // 经 highlight.jsProcessafter of html
         let preCode = ""
         try {
             if (lang && hljs.getLanguage(lang)) {
@@ -27,7 +27,7 @@ export const md = MarkdownIt({
         const lines = preCode.split(/\n/).slice(0, -1)
         let _lines = lines.filter((it, i) => it !== '')
 
-        // AddCustom行号
+        // AddCustomrow号
         let html = _lines.map((item, index) => {
             return '<li class="line-li"><span class="line-numbers-rows"></span>' + item +
                 '</li>'

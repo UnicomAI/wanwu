@@ -10,7 +10,7 @@ Vue.use(VueI18n)
 
 const messages = {
     zh: {
-        language: '简体中文',
+        language: 'Simplified Chinese',
         ...zh,
         ...zhLocale
     },
@@ -25,5 +25,5 @@ const i18n = new VueI18n({
     messages
 })
 
-// Export messages 给切换语言的时候用
+// Export messages for language switching
 export { i18n, messages }

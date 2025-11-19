@@ -211,7 +211,7 @@ export default {
         if (res.code === 0) {
           this.searchList = res.data !== null ? res.data.searchList : [];
           this.score = res.data !== null ? res.data.score : [];
-          // Setting所Has子分段Default展开
+          // Setting所Has子分段Defaultexpand
           this.activeNames = [];
           this.searchList.forEach((item, index) => {
             if (item.childContentList && item.childContentList.length > 0) {
@@ -469,7 +469,7 @@ export default {
           align-items: center;
           justify-content: center;
           flex-direction: column;
-          align-self: center; /* 仅该元素纵向居中 */
+          align-self: center; /* 仅该element纵向居in */
           .nodata_tip {
             padding: 10px 0;
             color: #595959;

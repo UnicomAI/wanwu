@@ -51,7 +51,7 @@
           v-if="platform !== 'YWD_RAG' && platform !== 'HW_RAG'"
         >
           <el-radio label="1">{{$t('knowledgeManage.formFile')}}</el-radio>
-          <!-- 华为一体机隐藏urlUpload -->
+          <!-- 华is一体机hideurlUpload -->
           <el-radio label="2">{{$t('knowledgeManage.fromURL')}}</el-radio>
         </el-radio-group>
 
@@ -116,8 +116,8 @@
                           style="width:360px;"
                         ></el-progress>
                         <el-link type="success" :underline="false" v-if="file.showRetry === 'true'" @click="refreshFile(index)">Retry</el-link>
-                        <el-link type="success" :underline="false" style="margin-left:10px;" v-if="file.showResume === 'true' && file.percentage > 0" @click="resumeFile(index)">续传</el-link>
-                        <el-link type="success" :underline="false" style="margin-left:10px;" v-if="file.showRemerge === 'true'" @click="remergeFile(index)">续传</el-link>
+                        <el-link type="success" :underline="false" style="margin-left:10px;" v-if="file.showResume === 'true' && file.percentage > 0" @click="resumeFile(index)">Resume</el-link>
+                        <el-link type="success" :underline="false" style="margin-left:10px;" v-if="file.showRemerge === 'true'" @click="remergeFile(index)">Resume</el-link>
                     </div>
                   </li>
                 </ul>
@@ -199,7 +199,7 @@ import urlAnalysis from "./urlAnalysis.vue";
 import urlBatch from "./urlBatch.vue";
 import { getDocList,importDoc,saveImportDoc,deleteInvalid } from "@/api/knowledge";
 import uploadChunk from "@/mixins/uploadChunk";
-// 防抖Function
+// debounceFunction
 function debounce(fn, wait) {
     let timeout = null;
     return function() {
@@ -314,27 +314,27 @@ export default {
             }
           });
         },10)
-        //开始切片Upload(IfNoFile正在Upload)
+        //Start chunk upload (if no file is uploading)
         if(this.file === null){
           this.startUpload();
-        }else{//IfUpload当中Has新 of File加入
+        }else{//If new file is added during upload
           if(this.file.progressStatus === 'success'){
             this.startUpload(this.fileIndex)
           }
         }
       }
     },
-    refreshFile(index){//重新UploadFile
+    refreshFile(index){//Re-upload file
       this.fileList[index]['showRetry'] = 'false';
       this.fileList[index]['percentage'] = 0;
       this.startUpload(index)
     },
-    resumeFile(index){//续传File
+    resumeFile(index){//Resume file upload
       this.fileList[index]['showResume'] = 'false';
       this.nextChunkIndex = this.uploadedChunks;
       this.processNextChunk();
     },
-    remergeFile(index){//重新Upload
+    remergeFile(index){//Re-upload
       this.mergeChunks()
     },
     //  VerifyFileIs Empty
@@ -398,7 +398,7 @@ export default {
         return res;
       }, 50);
     },
-    // Delete已UploadFile
+    // Delete uploaded file
     handleRemove(item) {
       this.fileList = this.fileList.filter((files) => files.name !== item.name);
       if(this.fileList.length === 0){
@@ -480,15 +480,15 @@ export default {
       formData.append("categoryId", this.uplodForm.knowValue);
       formData.append("plugin", this.uplodForm.plugin);
       formData.append("batchId", this.fileUuid);
-      const cancel = axios.CancelToken.source(); //Create一个Cancel令牌
+      const cancel = axios.CancelToken.source(); //Create一Cancel令牌
       this.source.push(cancel);
        importDoc(formData, cancel.token).then(res =>{
           if (res.code === 0) {
             if(Array.isArray(res.data)){
-              //Compress包会Back多个id(ArrayFormat)
+              //Compress包会Back多id(ArrayFormat)
               this.$set(this.fileList[this.fileIndex],'id',res.data.join(','))
             }else{
-              //单个FileUpload会Back一个id(String)
+              //singleFileUpload会Back一id(String)
               this.$set(this.fileList[this.fileIndex],'id',res.data)
             }
             this.$set(this.fileList[this.fileIndex], "progressStatus", "success");
@@ -515,7 +515,7 @@ export default {
       if(this.fileList.length > 0){
         this.fileList.map(item => {
           if(item.id){
-            if(item.id.includes(',')){//rag一体机No此逻辑
+            if(item.id.includes(',')){//RAG all-in-one machine does not have this logic
               const list = item.id.split(',')
               list.map(item =>{
                 ids.push(item)
@@ -611,7 +611,7 @@ export default {
         this.reset();
       }
     },
-    // VerifyurlBatchUpload ButtonYesNo可点击
+    // VerifyurlBatchUpload ButtonYesNo可click
     handleSetBatchDisabled(val) {
       this.urlBatchDis = val;
     }

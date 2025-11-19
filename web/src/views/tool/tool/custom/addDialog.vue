@@ -51,7 +51,7 @@
                 <div class="flex" style="margin-bottom: 10px">
                   <el-select v-model="example" :placeholder="$t('tool.custom.schema')" style="width:100%;"
                              @change="exampleChange">
-                    <!--<el-option label="模板样例Import" value="json"></el-option>-->
+                    <!--<el-option label="Import Template Example" value="json"></el-option>-->
                     <el-option :label="'JSON' + $t('tool.custom.example')" value="json"></el-option>
                     <el-option :label="'YAML' + $t('tool.custom.example')" value="yaml"></el-option>
                   </el-select>
@@ -114,7 +114,7 @@
         </el-col>
       </el-form>
 
-      <!--认证弹窗-->
+      <!--Authentication Dialog-->
       <el-dialog
         :title="$t('tool.custom.auth.title')"
         :visible.sync="dialogAuthVisible"
@@ -557,7 +557,7 @@ export default {
   }
 }
 
-/*通用*/
+/* General */
 .action {
   position: relative;
   height: 100%;

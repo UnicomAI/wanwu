@@ -14,12 +14,12 @@
     >
       <div>
         <i class="el-icon-upload"></i>
-        <p>将File拖到此处，OR点击Upload</p>
+        <p>Drag file here, orclick to upload</p>
         <div class="tips">
           <p>
-            支持
+            Supported
             {{ fileType }}
-            格式
+            format
           </p>
         </div>
       </div>
@@ -51,7 +51,7 @@
           v-if="fail"
           class="item"
           effect="dark"
-          content="重新Upload"
+          content="Re-upload"
           placement="top"
           v-show="!loading"
         >
@@ -112,7 +112,7 @@ export default {
       } else {
       }
     },
-    // 判断FileYesNoIs Empty
+    // CheckFileYesNoIs Empty
     handleVerifySize(file) {
       if (file.size <= 0) {
         this.fileList = [];
@@ -121,14 +121,14 @@ export default {
       }
       return true;
     },
-    // 判断FileFormat
+    // CheckFileFormat
     handleVerifyFormat(file) {
       let fileSplitArr = file.name.split(".");
       let fileType = fileSplitArr[fileSplitArr.length - 1];
       let res = this.fileType.split(",").includes("." + fileType);
       if (!res) {
         this.fileList = [];
-        this.$message.error("File格式不正确");
+        this.$message.error("Fileformat不正确");
         return false;
       }
       return res;
@@ -224,8 +224,8 @@ export default {
       margin: 0 6% 0 3%;
       max-width: 80%;
       font-size: 14px;
-      white-space: nowrap; /* 禁止换行 */
-      overflow: hidden; /* 隐藏溢出Content */
+      white-space: nowrap; /* 禁止换row */
+      overflow: hidden; /* hide溢出Content */
       text-overflow: ellipsis; /* Exceed用省略号Table示 */
     }
     .el-icon-delete,

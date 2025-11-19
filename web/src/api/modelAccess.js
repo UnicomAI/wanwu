@@ -10,7 +10,7 @@ export const fetchModelList = (params) => {
     })
 }
 
-// Get单个Model
+// GetsingleModel
 export const getModelDetail = (params) => {
     return service({
         url: `${USER_API}/model`,
@@ -43,7 +43,7 @@ export const deleteModel = (data) => {
         data,
     })
 }
-// ModifyStatus
+// Modify status
 export const changeModelStatus = (data) => {
     return service({
         url: `${USER_API}/model/status`,
@@ -69,7 +69,7 @@ export const getRerankList = () => {
     })
 }
 
-//Get下来选择ModelList
+// Get select model list
 export const selectModelList = () => {
     return service({
         url: `${USER_API}/model/select/llm`,

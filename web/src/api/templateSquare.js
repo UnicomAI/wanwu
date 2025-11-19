@@ -39,7 +39,7 @@ export const copyWorkflowTemplate = (data)=>{
     })
 };
 
-/*---Tip词Template---*/
+/*--- Prompt template ---*/
 export const getPromptTempList = (data)=>{
     return request({
         url: `${USER_API}/prompt/template/list`,
@@ -56,7 +56,7 @@ export const copyPromptTemplate = (data)=>{
     })
 };
 
-/*---CustomTip词---*/
+/*--- Custom prompt ---*/
 export const getCustomPromptList = (data)=>{
     return request({
         url: `${USER_API}/prompt/custom/list`,

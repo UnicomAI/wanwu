@@ -9,21 +9,21 @@
         border
         v-loading="loading"
       >
-        <el-table-column prop="userName" label="成员" width="200">
+        <el-table-column prop="userName" label="Member" width="200">
           <template slot-scope="scope">
             <div class="name-cell">
               <span class="name-text">{{ scope.row.userName }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="orgName" label="组织" width="200">
+        <el-table-column prop="orgName" label="Organization" width="200">
           <template slot-scope="scope">
             <div class="org-cell">
               <span class="org-text">{{ scope.row.orgName || '-' }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="permissionType" label="权限">
+        <el-table-column prop="permissionType" label="Permission">
           <template slot-scope="scope">
             <div class="type-cell">
               <span v-if="!scope.row.editing" class="type-text">{{ powerType[scope.row.permissionType] }}</span>
@@ -33,9 +33,9 @@
                 size="small" 
                 class="permission-select"
               >
-                <el-option label="可读" :value="0"></el-option>
-                <el-option label="可Edit" :value="10"></el-option>
-                <el-option label="管理员" :value="20"></el-option>
+                <el-option label="Read" :value="0"></el-option>
+                <el-option label="Edit" :value="10"></el-option>
+                <el-option label="Administrator" :value="20"></el-option>
               </el-select>
             </div>
           </template>
@@ -43,7 +43,7 @@
         <el-table-column label="Operation" width="180" align="center">
           <template slot-scope="scope">
             <div class="action-buttons">
-              <!-- System管理员权限：只Show转让Button -->
+              <!-- SystemAdministratorPermission：只ShowTransferButton -->
               <template v-if="scope.row.transfer && !scope.row.editing">
                 <el-button
                   type="text"
@@ -52,10 +52,10 @@
                   @click="handleTransfer(scope.row)"
                   class="action-btn transfer-btn"
                 >
-                  转让
+                  Transfer
                 </el-button>
               </template>
-              <!-- 非管理员权限：ShowEditAndDeleteButton -->
+              <!-- nonAdministratorPermission：ShowEditAndDeleteButton -->
               <template v-if="scope.row.editing">
                 <el-button
                   type="text"
@@ -173,7 +173,7 @@ export default {
     },
     handleEdit(row) {
       row.editing = true
-      row.originalType = row.permissionType // Save原始Value
+      row.originalType = row.permissionType // Save original value
     },
     handleSave(row) {
       // SaveEdit
@@ -187,7 +187,7 @@ export default {
         }
       editUserPower({knowledgeId:this.knowledgeId,knowledgeUser:knowledgeUser}).then(res => {
         if(res.code === 0){
-          this.$message.success('权限ModifySuccess')
+          this.$message.success('PermissionModifySuccess')
           this.getUserPower()
         }
       }).catch(() => {})
@@ -197,19 +197,19 @@ export default {
       row.editing = false
     },
     handleTransfer(row) {
-      this.$confirm('确定要转让管理员权限吗？转让后您将失去管理员权限。', '转让Confirm', {
-        confirmButtonText: '确定转让',
+      this.$confirm('ConfirmtoTransferAdministratorPermission吗？Transferafter您将失去AdministratorPermission。', 'TransferConfirm', {
+        confirmButtonText: 'ConfirmTransfer',
         cancelButtonText: 'Cancel',
         type: 'warning'
       }).then(() => {
         this.$emit('transfer', row)
       }).catch(() => {
-        this.$message.info('已Cancel转让')
+        this.$message.info('alreadyCancelTransfer')
       })
     },
     handleDelete(row) {
-      this.$confirm('确定要Delete这条Data吗？', 'Tip', {
-        confirmButtonText: '确定',
+      this.$confirm('Confirm deletion of this data?', 'Tip', {
+        confirmButtonText: 'Confirm',
         cancelButtonText: 'Cancel',
         type: 'warning'
       }).then(() => {
@@ -220,7 +220,7 @@ export default {
           }
         }).catch(() => {})
       }).catch(() => {
-        this.$message.info('已CancelDelete')
+        this.$message.info('Deletion cancelled')
       })
     }
   }

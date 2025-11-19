@@ -182,7 +182,7 @@ import {avatarSrc} from "@/utils/util";
 export default {
   data() {
     const checkImage = (val, rule, value, callback) => {
-      // 判断Edit器Value，Edit器Default没Enter when Yes <p><br></p>
+      // CheckEdit器Value，Edit器Default没Enter when Yes <p><br></p>
       if (!val) {
         callback(new Error(this.$t('infoSetting.form.uploadHint')))
       } else {

@@ -71,7 +71,7 @@ export default {
         xTime = this.content[0].items.map(item => item.key);
       }
 
-      // Build每个系列 of Data
+      // Buildeach系column of Data
       this.content.forEach((line, index) => {
         legendData.push(line.lineName);
 
@@ -223,7 +223,7 @@ export default {
       this.api.setOption(option);
     },
 
-    // 根据IndexGet不同颜色
+    // 根据IndexGetdifferent颜色
     getColorByIndex(index) {
       const colors = ["#0088FF", "#FF9F40", "#1DD1A1", "#FF6B6B", "#5F27CD"];
       return colors[index % colors.length];

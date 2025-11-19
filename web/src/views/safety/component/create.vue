@@ -22,20 +22,20 @@
             >
             <el-input
                 v-model="ruleForm.tableName"
-                placeholder="Please enter表Name，可包括汉字、英文、数字"
+                placeholder="Please enter table name; can contain Chinese characters, letters, or numbers"
                 maxlength="15"
                 show-word-limit
             ></el-input>
             </el-form-item>
             <el-form-item
-            label="表Remark"
+            label="tableRemark"
             prop="remark"
             >
             <el-input 
             v-model="ruleForm.remark" 
             type="textarea"
             :rows="4"
-            placeholder="EnterRemark，如说明App Scenario，App渠道、强调重要性等"></el-input>
+            placeholder="Enter a remark, e.g. describe the app scenario, channel, or any important notes"></el-input>
             </el-form-item>
         </el-form>
         <span
@@ -63,7 +63,7 @@ export default {
         if (!reg.test(value)) {
             callback(
             new Error(
-                'Please enter表Name，可Contains汉字、英文、数字'
+                'Please enter a table name; it can contain Chinese characters, letters, or numbers'
             )
             );
         } else {
@@ -71,7 +71,7 @@ export default {
         }
         };
         return{
-            title:"新建词表",
+            title:"New word table",
             dialogVisible:false,
             ruleForm:{
                 tableName:'',
@@ -82,7 +82,7 @@ export default {
                 { required: true, message:'Please enterSensitive Word TableName', trigger: "blur" },
                 { validator: checkName, trigger: "blur" },
                 ],
-                remark:[{ required: true, message: 'Please enter表Remark', trigger: "blur" }]
+                remark:[{ required: true, message: 'Please entertableRemark', trigger: "blur" }]
             },
             tableId:''
         }
@@ -141,14 +141,14 @@ export default {
         showDialog(row=null){
             this.dialogVisible = true;
             if (row) {
-                this.title = 'Edit词表';
+                this.title = 'Edit word table';
                 this.tableId = row.tableId;
                 this.ruleForm = {
                     tableName:row.tableName,
                     remark:row.remark
                 }
             }else{
-                this.title = '新建词表';
+                this.title = 'New word table';
                 this.ruleForm = {
                     tableName:'',
                     remark:''

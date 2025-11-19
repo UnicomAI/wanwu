@@ -114,7 +114,7 @@ export default {
       handler() {
         this.initData()
       },
-      // 深度ObserveListen
+      // Deep watch route updates
       deep: true
     }
   },
@@ -130,7 +130,7 @@ export default {
       this.assistantTemplateId = this.$route.query.id
       this.getDetailData()
 
-      //滚动到顶部
+      //scrolltotop
       const main = document.querySelector(".el-main > .page-container")
       if (main) main.scrollTop = 0
     },
@@ -148,7 +148,7 @@ export default {
       this.assistantTemplateId = item.assistantTemplateId;
       this.getDetailData();
     },
-    // ParseText，遇到.换行Etc
+    // Parse text and keep line breaks/tabs readable
     parseTxt(txt){
       if (!txt) return ''
       const text = txt.replaceAll('\n\t','<br/>&nbsp;').replaceAll('\n','<br/>').replaceAll('\t', '   &nbsp;')

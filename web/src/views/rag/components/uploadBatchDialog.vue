@@ -37,7 +37,7 @@
                                             <img  :src='require('@/assets/imgs/docFile.png')' />
                                         </div>
                                         <p>FileName: {{fileList[0]['name']}}</p>
-                                        <p>File大小: {{fileList[0]['size'] > 1024 ? (fileList[0]['size'] / (1024 * 1024 )).toFixed(2) + ' MB' : fileList[0]['size'] + ' bytes' }}</p>
+                                        <p>Filesize: {{fileList[0]['size'] > 1024 ? (fileList[0]['size'] / (1024 * 1024 )).toFixed(2) + ' MB' : fileList[0]['size'] + ' bytes' }}</p>
                                     </div>
                                     <!--<i  class="el-icon-close" @click.stop="clearFile"></i>-->
                                     <div class="tips">
@@ -135,7 +135,7 @@
             },
             uploadOnChange(file, fileList) {
                 let filename= file.name
-                //ByUpload of FileName判断FileType，Used for回显
+                //ByUpload of FileNameCheckFileType，Used for回显
                 let fileType = filename.split('.')[filename.split('.').length-1]
                 if(["jpeg", "PNG", "png", "JPG", "jpg",'bmp','webp'].includes(fileType)){
                     this.fileType = 'image/*'

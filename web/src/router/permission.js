@@ -10,7 +10,7 @@ export const PERMS = menuPerms
 export const checkPerm = (perm) => {
     // 不传Permission点，Table示不NeedPermission控制，Back true
     if (!perm) return true
-    // 传Permission点，判断YesNo在PermissionList，在Back true，NoThen false
+    // 传Permission点，CheckYesNo在PermissionList，在Back true，NoThen false
     const permission = store.getters['user/permission']
     const orgPermission = permission.orgPermission
     if (orgPermission && orgPermission.length) {

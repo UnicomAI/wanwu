@@ -10,12 +10,12 @@
             <span class="app_name"><span class="el-icon-arrow-left goBack" @click="goBack"></span>{{editForm.name}}</span>
             <div class="header-api-box">
                 <div class="header-api-url">
-                    <el-tag  effect="plain" class="root-url">API根地址</el-tag>
+                    <el-tag  effect="plain" class="root-url">API Base URL</el-tag>
                     {{apiURL}}
                 </div>
                 <el-button size="small" @click="openApiDialog" plain class="apikeyBtn" >
                     <img :src="require('@/assets/imgs/apikey.png')" />
-                    API密钥
+                    API Key
                 </el-button>
             </div>
         </div> -->
@@ -49,7 +49,7 @@ export default {
                     conversationId: '39ecc738-eb39-4812-93bf-3280746082ca',
                     createdAt: '2025-06-03 14:57:44',
                     hover:false,
-                    title: "你Yes一个问答助手，主要任务Yes汇总参考Information回答用户问题。Please根据参考Information中提供 of 上下文Information回答用户问题，注意仅用提供 of 上下文作答不要根据自己已经有 of First验知识来回答问题。"
+                    title: "你Yes一问答助手，主to任务Yes汇总参考Information回答user问题。Please根据参考Informationin提供 of 上下文Information回答user问题，注意仅用提供 of 上下文作答不to根据自己already经have of First验知识来回答问题。"
                 }
             ]
         }

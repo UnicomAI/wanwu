@@ -40,7 +40,7 @@ export const setReply = (data)=>{
         data
     })
 };
-//GetSensitive Word Table下拉List
+// Get sensitive word table dropdown list
 export const sensitiveSelect = ()=>{
     return request({
         url: `${USER_API}/safe/sensitive/table/select`,
@@ -55,7 +55,7 @@ export const delSensitiveWord = (data)=>{
         data
     })
 };
-//Query词TableDataList
+// Query sensitive word table data list
 export const getSensitiveWord = (data)=>{
     return request({
         url: `${USER_API}/safe/sensitive/word/list`,

@@ -45,12 +45,12 @@ export default {
             toolList:[
                 {
                     name:'Web URL',
-                    desc:'分享Link后，可By网页DirectlyAccessAgentApp',
+                    desc:'shareLinkafter，可By网页DirectlyAccessAgentApp',
                     type:'url'
                 },
                 {
                     name:'API',
-                    desc:'支持嵌入第三方AppSystem',
+                    desc:'Supported嵌入第三方AppSystem',
                     type:'api'
                 }
             ]

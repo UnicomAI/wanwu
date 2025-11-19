@@ -387,7 +387,7 @@ export default {
           this.$set(this.fileList[index], "loading", false);
         });
     },
-    //  VerifyFileFormat大小
+    //  VerifyFileFormatsize
     verifyFormat(file) {
       var testmsg = file.name.substring(file.name.lastIndexOf(".") + 1);
 
@@ -472,7 +472,7 @@ export default {
     //   const blob = new Blob(["https://122.13.25.19:17776/cubm/demo.xlsx"], {
     //     type: "application/octet-stream",
     //   });
-    //   const blobUrl = window.URL.createObjectURL(blob); // 将blobObject转为一个URL
+    //   const blobUrl = window.URL.createObjectURL(blob); // 将blobObject转is一URL
     //   const link = document.createElement("a");
     //   link.href = blobUrl;
     //   link.download = "template.xlsx";

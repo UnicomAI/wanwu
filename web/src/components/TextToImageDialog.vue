@@ -7,13 +7,13 @@
     class="text-to-image-dialog"
   >
     <div class="dialog-content">
-      <!-- Title and Description -->
+      <!-- Title and description -->
       <div class="header-section">
         <h2 class="dialog-title">Text-to-Image Name</h2>
         <p class="dialog-subtitle">MaaS-Brief Description</p>
       </div>
 
-      <!-- API Key Section -->
+      <!-- API key section -->
       <div class="api-key-section">
         <div class="api-key-label">API Key</div>
         <div class="api-key-input-group">
@@ -44,7 +44,7 @@
         </div>
       </div>
 
-      <!-- Parameter Table -->
+      <!-- Parameter table -->
       <div class="parameters-section">
         <el-table
           :data="parametersData"
@@ -59,7 +59,7 @@
       </div>
     </div>
 
-    <!-- Bottom Confirm Button -->
+    <!-- Bottom confirm button -->
     <div slot="footer" class="dialog-footer">
       <el-button 
         type="danger" 
@@ -244,7 +244,7 @@ export default {
   }
 }
 
-// Response式设计
+// Responsive design
 @media (max-width: 768px) {
   .text-to-image-dialog {
     ::v-deep .el-dialog {

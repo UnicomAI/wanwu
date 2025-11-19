@@ -31,7 +31,7 @@
                                 </div>
                                 <div>
                                     <el-button type="text" @click="openTool($event,item,type)" v-if="!item.checked">Add</el-button>
-                                    <el-button type="text" v-else style="color:#ccc;">已Add</el-button>
+                                    <el-button type="text" v-else style="color:#ccc;">alreadyAdd</el-button>
                                 </div>
                         </template>
                         <el-collapse  @change="handleToolChange" v-else class="tool_collapse">
@@ -55,7 +55,7 @@
                                         </div>
                                         <div>
                                         <el-button type="text" @click="openTool($event,item,type,tool)" v-if="!tool.checked">Add</el-button>
-                                        <el-button type="text" v-else style="color:#ccc;">已Add</el-button>
+                                        <el-button type="text" v-else style="color:#ccc;">alreadyAdd</el-button>
                                         </div>
                                     </div>
                                 </template>
@@ -191,7 +191,7 @@ export default {
                 this.addMcpItem(item,action)
             }else{
                 if(item.needApiKeyInput && !item.apiKey.length){
-                    this.$message.warning('该内置Tool暂未绑定API Key，会导致CallFailed!')
+                    this.$message.warning('该内置Tool暂notbindAPI Key，会导致CallFailed!')
                 }
                 this.addCustomBuiltIn(item,action)
             }

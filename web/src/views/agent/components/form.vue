@@ -369,7 +369,7 @@
             </span>
           </p>
         </div>
-        <!-- 知识图谱开关 -->
+        <!-- Knowledge Graph开关 -->
         <div class="block prompt-box link-box" v-if="showGraphSwitch">
             <graphSwitch ref="graphSwitch" @graphSwitchchange="graphSwitchchange" :label="$t('knowledgeManage.create.knowledgeGraph')" :graphSwitch="editForm.knowledgeConfig.useGraph"/>
         </div>
@@ -396,7 +396,7 @@
       :modelform="editForm.modelConfig"
       :limitMaxTokens="limitMaxTokens"
     />
-    <!-- 选择ToolType -->
+    <!-- selectToolType -->
     <ToolDiaglog
       ref="toolDiaglog"
       @updateDetail="updateDetail"
@@ -412,7 +412,7 @@
       ref="knowledgeSetDialog"
       @setKnowledgeSet="setKnowledgeSet"
     />
-    <!-- Knowledge Base选择 -->
+    <!-- Knowledge Base Selection -->
     <knowledgeSelect
       ref="knowledgeSelect"
       @getKnowledgeData="getKnowledgeData"
@@ -424,11 +424,11 @@
     />
     <!-- 内置ToolDetails -->
     <ToolDeatail ref="toolDeatail" @updateDetail="updateDetail" />
-    <!-- 提交toTip词 -->
+    <!-- SubmittoTip词 -->
     <createPrompt :isCustom="true" :type="promptType" ref="createPrompt" @reload="updatePrompt"/>
     <!-- Tip词优化 -->
     <PromptOptimize ref="promptOptimize" @promptSubmit="promptSubmit" />
-    <!-- 元DataSetting -->
+    <!-- Metadata Settings -->
     <el-dialog
       :visible.sync="metaSetVisible"
       width="1050px"
@@ -519,7 +519,7 @@ export default {
   watch: {
     editForm: {
       handler(newVal, oldVal) {
-        // IfYes从DetailsSetting of Data，不TriggerUpdate逻辑
+        // If data is set from details, do not trigger update logic
         if (this.isSettingFromDetail) return;
 
         if (this.debounceTimer) {
@@ -589,14 +589,14 @@ export default {
           maxPicNum:6
         },
         knowledgeConfig: {
-          keywordPriority: 0.8, //关Key词权重
-          matchType: "mix", //vector（向量检索）、text（Text检索）、mix（混合检索：向量+Text）
-          priorityMatch: 1, //权重Match，只Has在混合检索模式下，选择权重Setting后，这个才Setting为1
+          keywordPriority: 0.8, //Keyword weight
+          matchType: "mix", //vector（Vector search）、text（Text search）、mix（Hybrid search: vector + text）
+          priorityMatch: 1, //Weight matching, only set to 1
           rerankModelId: "", //rerankModelid
-          semanticsPriority: 0.2, //语义权重
-          topK: 5, //topK Get最高 of 几行
-          threshold: 0.4, // 滤分数阈Value
-          maxHistory: 0, //最长Context
+          semanticsPriority: 0.2, //Semantic weight
+          topK: 5, //topK Get top N rows
+          threshold: 0.4, //Filter score threshold
+          maxHistory: 0, //Max context
           useGraph:false
         },
         recommendQuestion: [{ value: "" }],
@@ -640,8 +640,8 @@ export default {
       logoFileList: [],
       imageUrl: "",
       defaultLogo: require("@/assets/imgs/bg-logo.png"),
-      debounceTimer: null, //防抖计 when 器
-      isSettingFromDetail: false, // 防止DetailsDataTriggerUpdate标记
+      debounceTimer: null, //Debounce timer
+      isSettingFromDetail: false, // Prevent detail data trigger update flag
       nameMap: {
         workflow: {
           displayName: "Workflow",
@@ -655,9 +655,9 @@ export default {
           displayName: "CustomTool",
           propName: "actionName",
         },
-        // 可以继续AddOtherType
+        // 可以ContinueAddOtherType
         default: {
-          displayName: "未知Tool",
+          displayName: "not知Tool",
           propName: "name", // DefaultPropertyName
         },
       },
@@ -680,11 +680,11 @@ export default {
         this.getAppDetail();
       }, 500);
     }
-    //判断YesNoPublish
+    //Check if published
     if (this.$route.query.publish) {
       this.isPublish = true;
     }
-    //判断YesNoHasPlugin管理 of Permission
+    //CheckYesNoHasPlugin管理 of Permission
     const accessCert = localStorage.getItem("access_cert");
     const permission = accessCert
       ? JSON.parse(accessCert).user.permission.orgPermission
@@ -1425,7 +1425,7 @@ export default {
         margin-bottom: 0px !important;
       }
     }
-    /*通用*/
+    /* General */
     .block {
       margin-bottom: 15px;
       .tool-title {
@@ -1530,7 +1530,7 @@ export default {
       bottom: 5px;
       right: 10px;
     }
-    /*新建App*/
+    /* Create App */
     .name-box {
       height: 90px;
       line-height: 90px;
@@ -1599,7 +1599,7 @@ export default {
       margin-top: 10px;
       padding: 8px 20px;
     }
-    /*推荐问题*/
+    /* Recommended Questions */
     .recommend-box {
       .recommend-title {
         display: flex;
@@ -1638,7 +1638,7 @@ export default {
       }
     }
 
-    /*知识增强*/
+    /* Knowledge Enhancement */
     .knowledge-config-com {
       margin-top: 10px;
     }
@@ -1756,9 +1756,9 @@ export default {
   z-index: 9999 !important;
 }
 .custom-tooltip.is-light {
-  border-color: #ccc; /* Setting边框颜色 */
-  background-color: #fff; /* Setting背景颜色 */
-  color: #666; /* Setting文字颜色 */
+  border-color: #ccc; /* Set border color */
+  background-color: #fff; /* Set background color */
+  color: #666; /* Set text color */
 }
 .custom-tooltip.el-tooltip__popper[x-placement^="top"] .popper__arrow::after {
   border-top-color: #fff !important;

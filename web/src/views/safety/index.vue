@@ -2,8 +2,8 @@
   <div class="page-wrapper">
     <div class="page-title">
       <img class="page-title-img" src="@/assets/imgs/safety.svg" alt="" />
-      <span class="page-title-name">安全护栏</span>
-      <p class="page-tips">支持用户CustomSensitive Word Table，Configuration行业Sensitive Word，实 when 拦截高风险Content of EnterAnd输出，保障Content安全合规。可在CreateApp when 关联Configuration。</p>
+      <span class="page-title-name">Safety Guardrail</span>
+      <p class="page-tips">SupporteduserCustomSensitive Word Table，Configurationrow业Sensitive Word，Real-time interception of high-risk input and output content to ensure content safety and compliance.可在CreateApp when associatedConfiguration。</p>
     </div>
     <div style="padding: 0 20px 20px 20px;">
       <safetyList :appData="knowledgeData" @editItem="showCreate" @reloadData="getTableData" ref="knowledgeList" v-loading="tableLoading" />

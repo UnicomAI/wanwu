@@ -14,7 +14,7 @@ export function guid() {
 
 export const getXClientId = () => localStorage.getItem('xClientId')
 
-// Used forLogin切OrganizationEtc找到HasPermission of 第一个MenuPath (除用Model：用Model为打开 of 新Page)
+// Used forLogin切OrganizationEtc找toHasPermission of firstMenuPath (除用Model：用Modelisopen of 新Page)
 export const fetchPermFirPath = (list = menuList) => {
     if (!list.length) return ''
 
@@ -33,11 +33,11 @@ export const fetchPermFirPath = (list = menuList) => {
         }
     }
 
-    // IfHasPermission，跳转左侧Menu第一个HasPermission of Page；NoThen跳转 /404
+    // IfHasPermission，jump左侧MenufirstHasPermission of Page；NoThenjump /404
     return {path: path || '/404'}
 }
 
-// 找到HasPermission of 第一个Menu of  index
+// 找toHasPermission of firstMenu of  index
 export const fetchCurrentPathIndex = (path, list) => {
     let index = ''
     const findIndex = (list) => {
@@ -71,7 +71,7 @@ export const jumpOAuth = (params) => {
 }
 
 export const redirectUrl = () => {
-    // 跳到HasPermission of 第一个Page
+    // 跳toHasPermission of firstPage
     jumpPermUrl()
 }
 
@@ -97,9 +97,9 @@ export const getInitTimeRange = () => {
 }
 
 export function convertLatexSyntax(inputText) {
-    // 1. Match块级公式，将 `\[` And `\]` Replace为 `$$`，支持 `\\[` `\\]` OR单个 `\[` `\]`
+    // 1. Match块级公式，将 `\[` And `\]` Replaceis `$$`，Supported `\\[` `\\]` ORsingle `\[` `\]`
     inputText = inputText.replace(/\\\[\s*([\s\S]+?)\s*\\\]/g, (_, formula) => `$$${formula}$$`);
-    // 2. Match行内公式，将 `\(` And `\)` Replace为 `$`，支持 `\\(` `\\)` OR单个 `\(` `\)`
+    // 2. Matchrow内公式，将 `\(` And `\)` Replaceis `$`，Supported `\\(` `\\)` ORsingle `\(` `\)`
     inputText = inputText.replace(/\\\(\s*([\s\S]+?)\s*\\\)/g, (_, formula) => `$${formula}$`);
     return inputText;
 }
@@ -163,9 +163,9 @@ export const formatTools = (tools) => {
 }
 
 /**
- * 格式化得分，保留5位小数
+ * format得分，保留5位小数
  * @param {number|string} score - 得分Value
- * @returns {string} 格式化后 of 得分String
+ * @returns {string} formatafter of 得分String
  */
 export function formatScore(score) {
     // Format得分，保留5位小数
@@ -220,7 +220,7 @@ export const formatAmount = (num, returnType = 'string', preserveRange = false) 
             simplifiedNum = formattedValue + unit;
         }
     } else if (returnType === 'object') {
-        // Count级为0 when  of ObjectFormatBack
+        // Count级is0 when  of ObjectFormatBack
         return {
             value: simplifiedNum,
             type: ''

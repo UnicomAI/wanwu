@@ -146,7 +146,7 @@ export default {
   watch: {
     data: {
       handler(newData) {
-        // If graph 还没Init，Await mounted 后 of  initGraph Process
+        // If the graph has not been initialized yet, wait for mounted to finish initGraph
         if (!this.graph) {
           return
         }
@@ -292,9 +292,9 @@ export default {
         this.graph.render()
         
         this.$nextTick(() => {
-          // 适应View，让图谱占满整个屏幕
+          // Fit the view so the graph fills the viewport
           this.graph.fitView(20, true)
-          // Setting缩放比例为100%
+          // Reset zoom to 100%
           this.zoom = 1
         })
       }
@@ -374,7 +374,7 @@ export default {
            const minZoom = hideLabelZoom > 0 ? hideLabelZoom : 0.5
            let zoom = this.graph.getZoom()
            const maxZoom = 2
-           // If缩放Less ThanMin限制，自动调整到Min缩放，以画布中心为缩放中心
+           // If zoom drops below the minimum, adjust to the limit and keep focus centered
            if (zoom < minZoom) {
              zoom = minZoom
              const width = this.graph.getWidth()
@@ -417,10 +417,10 @@ export default {
       
       this.$nextTick(() => {
         if (this.autoFit) {
-          // Setting缩放比例为100%
+          // Reset zoom to 100%
           this.zoom = 1
         } else {
-          // If不自动适应，只Setting缩放为100%
+          // If auto-fit is disabled, only reset zoom to 100%
           const graphWidth = this.graph.getWidth()
           const graphHeight = this.graph.getHeight()
           const centerPoint = {
@@ -473,12 +473,12 @@ export default {
       if (!this.graph) return
       const currentZoom = this.graph.getZoom()
       const hideLabelZoom = (this.performance && this.performance.hideLabelZoom) || 0.5
-      // Min缩放限制为 hideLabelZoom，确保label能够Show
+      // Enforce the minimum zoom (hideLabelZoom) so labels can still display
       const minZoom = hideLabelZoom > 0 ? hideLabelZoom : 0.5
       const calculatedZoom = currentZoom * 0.8
       const newZoom = Math.max(calculatedZoom, minZoom)
       
-      // If达到Min缩放限制（That is计算出 of 缩放Less ThanMinValue），以画布中心为缩放中心
+      // If hitting the minimum zoom limit, keep scaling centered on the canvas
       const isAtMinLimit = calculatedZoom < minZoom
       if (isAtMinLimit) {
         const width = this.graph.getWidth()

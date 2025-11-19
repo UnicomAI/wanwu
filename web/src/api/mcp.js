@@ -172,7 +172,7 @@ export const setUpdate = (data)=>{
     })
 };
 
-/*---第三方MCP广场---*/
+/*--- Third-party MCP marketplace ---*/
 export const getPublicMcpList = (data)=>{
     return request({
         url: `${USER_API}/mcp/square/list`,
@@ -195,7 +195,7 @@ export const getRecommendsList = (data)=>{
     })
 };
 
-/*----内置Tool------*/
+/*---- Built-in tool ------*/
 export const getBuiltInList = (data)=>{
     return request({
         url: `${USER_API}/tool/square/list`,

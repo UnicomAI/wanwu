@@ -97,7 +97,7 @@ export default {
       this.$emit('reloadData');
     },
     deleteItem(tableId){
-      this.$confirm('确定要Delete当前词表？', this.$t('knowledgeManage.tip'), {
+      this.$confirm('ConfirmtoDeletecurrent词table？', this.$t('knowledgeManage.tip'), {
         confirmButtonText: this.$t('common.confirm.confirm'),
         cancelButtonText: this.$t('common.confirm.cancel'),
         type: "warning",

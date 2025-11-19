@@ -67,7 +67,7 @@
       <!--<div class="no-list" v-if="list.length === 0 && is">
         <div>
           <i class="el-icon-circle-plus-outline" @click="handleAddMCP"></i>
-          <span>Add你 of 第一个MCP Server</span>
+          <span>Add你 of firstMCP Server</span>
         </div>
       </div>-->
       <el-empty class="noData" v-if="!(list && list.length)" :description="$t('common.noData')"></el-empty>

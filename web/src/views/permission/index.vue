@@ -68,9 +68,9 @@ export default {
       statisticsPerm: PERMS.STATISTIC,
       oauthPerm: PERMS.OAUTH,
       list: [
-        {name: '用户', key: 'user', perm: PERMS.PERMISSION_USER},
+        {name: 'user', key: 'user', perm: PERMS.PERMISSION_USER},
         {name: '角色', key: 'role', perm: PERMS.PERMISSION_ROLE},
-        {name: '组织', key: 'org', perm: PERMS.PERMISSION_ORG},
+        {name: 'Organization', key: 'org', perm: PERMS.PERMISSION_ORG},
       ]
     }
   },

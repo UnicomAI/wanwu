@@ -83,7 +83,7 @@ type GetKnowledgeKeywordsListReq struct {
 
 	PageSize int32     `protobuf:"varint,1,opt,name=pageSize,proto3" json:"pageSize,omitempty"`
 	PageNum  int32     `protobuf:"varint,2,opt,name=pageNum,proto3" json:"pageNum,omitempty"`
-	Name     string    `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"` // 用于搜索【问题中的关键词】/【文档中的词语】 [EN] Used to search for [keywords in the question]/[words in the document]
+	Name     string    `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"` // Used to search for keywords in questions or words in documents
 	Identity *Identity `protobuf:"bytes,4,opt,name=identity,proto3" json:"identity,omitempty"`
 }
 

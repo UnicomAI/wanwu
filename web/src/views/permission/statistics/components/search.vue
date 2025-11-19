@@ -57,7 +57,7 @@ export default {
   mounted() {
     // 赋予DefaultValue
     this.time = this.shortcuts;
-    // Trigger父级Event，传递Parameter
+    // TriggerparentEvent，传递Parameter
     this.$emit("handleSetTime", { type: obj[this.radio], time: this.time });
   },
   methods: {
@@ -80,7 +80,7 @@ export default {
       const year = dateObj.getFullYear(); // Get年份
       const month = ("0" + (dateObj.getMonth() + 1)).slice(-2); // Get月份，并补零
       const day = ("0" + dateObj.getDate()).slice(-2); // GetDate，并补零
-      return `${year}-${month}-${day}`; // BackConvert后 of DateFormat
+      return `${year}-${month}-${day}`; // BackConvertafter of DateFormat
     },
     handleSearch() {
       this.$emit("handleSetTime", { type: obj["cust"], time: this.time });
@@ -132,8 +132,8 @@ export default {
               time.getTime() > _this.nowTime.getTime() + 90 * 24 * 3600000
             );
           } else {
-            // return time.getTime() > Date.now() - 8.64e6; //只能选择今天And今天之前 of Date
-            return time.getTime() > Date.now() - 8.64e7; //只能选择今天之前 of Date，连今天 of Date也不能选
+            // return time.getTime() > Date.now() - 8.64e6; //can onlyselect今天And今天previous of Date
+            return time.getTime() > Date.now() - 8.64e7; //can onlyselect今天previous of Date，连今天 of Date也不能选
           }
         },
         onPick(picker, date, dateString) {

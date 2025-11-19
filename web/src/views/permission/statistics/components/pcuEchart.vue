@@ -33,7 +33,7 @@ export default {
       handler(val) {
         if (val.length > 0) {
           if (this.api) {
-            this.api.dispose(); // Destroy之前 of 实例
+            this.api.dispose(); // Destroyprevious of 实例
           }
           this.api = echarts.init(this.$refs.api);
 
@@ -80,7 +80,7 @@ export default {
               readOnly: false,
               optionToContent: function (opt) {
                 // console.log(opt)
-                //该Function可以CustomList为table，optYes给我们提供 of 原始Data of obj。 可打印出来Data结构View
+                //该Function可以CustomLististable，optYes给我们提供 of 原始Data of obj。 可print出来DatastructureView
                 var axisData = opt.xAxis[0].data; //坐标轴
                 var series = opt.series; //折线图 of Data
                 var tdHeads = `<td  style="margin-top:10px; padding: 0 15px">${i18n.t('statisticsEcharts.date')}</td>`; //Table头
@@ -157,7 +157,7 @@ export default {
             name: lineName,
             data: yData,
             type: "line",
-            symbolSize: 5, // 原点大小
+            symbolSize: 5, // 原点size
             smooth: true,
             zlevel: 1, // 层级
             label: {

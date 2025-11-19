@@ -2,7 +2,7 @@
     <div class="knowledgeEnhance ">
         <div class="knowledge-upload" v-loading="fileLoading" element-loading-background="rgba(255, 255, 255, 0.8)">
             <div class="el-upload-box">
-                <!--算法ParseFile能力不够，改为每次只Upload一个File-->
+                <!--算法ParseFile能力不够，改iseach次只Upload一File-->
                 <el-upload
                         :disabled="!assistantId"
                         :class="!assistantId?'not-allow':'allow'"

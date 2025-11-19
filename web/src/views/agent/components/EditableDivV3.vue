@@ -21,7 +21,7 @@
                 <img :src="require('@/assets/imgs/fileicon.png')" class="docIcon">
                 <div class="docInfo">
                     <p class="docInfo_name">FileName：{{fileList[0]['name']}}</p>
-                    <p class="docInfo_size">File大小：{{fileList[0]['size'] > 1024 ?(fileList[0]['size'] / (1024 * 1024 )).toFixed(5) + ' MB' : fileList[0]['size'] + ' bytes'}}</p>
+                    <p class="docInfo_size">Filesize：{{fileList[0]['size'] > 1024 ?(fileList[0]['size'] / (1024 * 1024 )).toFixed(5) + ' MB' : fileList[0]['size'] + ' bytes'}}</p>
                 </div>
                 <span class="el-icon-loading loading-icon" v-if="fileLoading"></span>
                 <i class="el-icon-close echo-close" @click="clearFile"></i>
@@ -39,10 +39,10 @@
                     <div class="edtable--wrap">
                         <el-button size="mini" :class="{'btnActive':isActive,'btnAnactive':!isActive}" @click="linkSearch" v-if="showModelSelect && !isPower && isLink">{{$t('agent.connectInternect')}}</el-button>
                         <!-- <img class="editable--send" :src="require('@/assets/imgs/send.png')" @click="preSend" /> -->
-                        <el-button type="primary" class="editable--send" @click="preSend"><span>发送</span> <img :src="require('@/assets/imgs/sendIcon.png')" /></el-button>
+                        <el-button type="primary" class="editable--send" @click="preSend"><span>send</span> <img :src="require('@/assets/imgs/sendIcon.png')" /></el-button>
                     </div>
                 </div>
-                <!-- 覆盖层，Model下线禁止点击 -->
+                <!-- override层，Model下线禁止click -->
                 <!-- <div class="overlay" v-if="modelParams === null"></div> -->
             </div>
         </div>
@@ -95,10 +95,10 @@
                 colorArr:['#dca3c2','#aaa9db','#d1a69b','#7894cf','#4fbed9',
                     '#ebb8bd','#9b9655','#3bb4b7','#61aac5','#d79ae5',
                     '#51a2da','#89b0f9','#738cbd'],
-                placeholder:'Please enterContent,用Ctrl+Enter可换行',
+                placeholder:'Please enterContent,用Ctrl+Enter可换row',
                 promptHtml:'',
                 promptValue:'',
-                randomReminderList:[],  //随机8个Tip词
+                randomReminderList:[],  //随机8Tip词
                 randomReminderShow:false,
                 refreshLoading:false,
                //File
@@ -126,7 +126,7 @@
                         }
                     })
                     this.modelType = this.modelParams.modelSeries === 'deepseek' ? 'deepseek' : 'bigModel';
-                    this.$emit('getModelType',this.modelType)
+                    this.$emit('getModel Type',this.modelType)
                 }
             }
         },
@@ -172,7 +172,7 @@
                 this.fileLoading = true
 
             },
-            // ProcessDrag到Input Box of File
+            // ProcessDragtoInput Box of File
             handleDrop(event) {
                 /* const dt = event.dataTransfer
                 if (!dt || !dt.files) return
@@ -196,7 +196,7 @@
                             this.modelParams = this.modleOptions[0];
                         }
                         this.modelType = this.modelParams.modelSeries === 'deepseek' ? 'deepseek' : 'bigModel';
-                        this.$emit('getModelType',this.modelType);
+                        this.$emit('getModel Type',this.modelType);
                     }
                 }).catch(err =>{
                 })
@@ -208,7 +208,7 @@
             },
             modelChange(){
                 this.modelType = this.modelParams.modelSeries === 'deepseek' ? 'deepseek' : 'bigModel';
-                this.$emit('getModelType',this.modelType)
+                this.$emit('getModel Type',this.modelType)
                 this.$emit('modelChange')
             },
             showBigImg(url){
@@ -242,7 +242,7 @@
                 if(['txt','csv','xlsx','doc','docx','html','pptx','pdf'].includes(fileType)){
                     this.fileType = 'doc/*'
                 }
-                //this.$emit('setSessionStatus',0)   //UploadImage后，算法自动BackResult，此 when 将statusSetting为0
+                //this.$emit('setSessionStatus',0)   //UploadImageafter，算法自动BackResult，此 when 将statusSettingis0
             },
             setFile(fileList){
                 this.fileList = fileList;
@@ -272,7 +272,7 @@
                 const matches = [];
 
                 while ((match = regex.exec(str))) {
-                    matches.push(match[1]); // 第一个括号中 of ContentYes我们想要 of Result
+                    matches.push(match[1]); // first括号in of ContentYes我们想to of Result
                 }
 
                 return matches;
@@ -305,7 +305,7 @@
                     }
                     prompt = this.$refs.editor.innerHTML.replaceAll('<div class="light-input" contenteditable="true">','').replaceAll('</div>','').replaceAll(' ','')
                 }else{
-                    prompt = this.$refs.editor.innerHTML  //从DialogCopy 来 of 会换行，临 when Process，后期优化
+                    prompt = this.$refs.editor.innerHTML  //从DialogCopy 来 of 会换row，临 when Process，after期优化
                 }
                 let prompt2 = prompt.replace('<div><br></div>','')
                 this.promptValue = this.$refs.editor.innerHTML
@@ -315,7 +315,7 @@
                 //勿删，Define此MethodUsed forGet焦点
             },
             async getReminderList(){
-                //Show8个Tip词
+                //Show8Tip词
                 this.refreshLoading = true
                 let res = await this.$api.expand.getPerfectReminderV2({pageNo:1,pageSize:1000,randomNum:8})
                 if(res.code === 0){
@@ -329,19 +329,19 @@
                     })
                 }
             },
-            //换行并重新定位光标位置
+            //换row并restart定位光标位置
             textareaRange() {
                 var el = this.$refs.editor
                 var range = document.createRange();
-                //BackUser当前 of 选Area
+                //BackUsercurrent of 选Area
                 var sel =  document.getSelection();
-                //Get当前光标位置
+                //Getcurrent光标位置
                 var offset = sel.focusOffset
-                //div当前Content
-                var content = el.innerHTML　　　　　//Add换行符\n
-                el.innerHTML = content.slice(0,offset)+'\n'+content.slice(offset)　　　　　//Setting光标为当前位置
+                //divcurrentContent
+                var content = el.innerHTML　　　　　//Add换row符\n
+                el.innerHTML = content.slice(0,offset)+'\n'+content.slice(offset)　　　　　//Setting光标iscurrent位置
                 range.setStart(el.childNodes[0], offset+1);
-                //使得选Area(光标)开始With结束位置重叠
+                //使得选Area(光标)startWithend位置重叠
                 range.collapse(true);
                 //Remove现HasOther of 选Area
                 sel.removeAllRanges();
@@ -356,7 +356,7 @@
                 }else if (event.keyCode === 13) {
                     //enter
                     this.preSend()
-                    event.preventDefault() // 阻止浏览器Default换行Operation
+                    event.preventDefault() // preventbrowserDefault换rowOperation
                     return false
                 }
             },
@@ -370,7 +370,7 @@
                 this.hasFile = false;
                 this.$emit('preSend');
             },
-            goModelList(){//跳转到Service管理
+            goModelList(){//jumptoService管理
                 location.href = window.location.origin + `${this.$basePath}/aibase/portal/training/releaseTable`
             }
         }
@@ -378,7 +378,7 @@
 </script>
 <style lang="scss" scoped>
     .tips{color:#ccc;}
-    //Model选择框自适应
+    //Model Selection框自适应
     .auto-width-select{
         min-width:250px;
         max-width:450px;

@@ -9,7 +9,7 @@
       class="vertical-form-item"
     >
     <template #label>
-        <span v-if="!setType" class="vertical-form-title">检索方式Configuration</span>
+        <span v-if="!setType" class="vertical-form-title">Search Method Configuration</span>
     </template>
       <div
         v-for="item in searchTypeData"
@@ -50,8 +50,8 @@
             @click.stop
           >
             <el-col class="mixTypeRange-title">
-              <span>语义[{{item.mixTypeRange}}]</span>
-              <span>关键词[{{(1 - (item.mixTypeRange || 0)).toFixed(1)}}]</span>
+              <span>Semantic[{{item.mixTypeRange}}]</span>
+              <span>Keyword[{{(1 - (item.mixTypeRange || 0)).toFixed(1)}}]</span>
             </el-col>
             <el-col>
               <el-slider
@@ -70,7 +70,7 @@
               <el-tooltip
                 class="item"
                 effect="dark"
-                content="重排序Model会根据候选Document与用户问题 of 语义匹配度，对初步检索结果进行重新排序从而进一步提升最终Back结果 of 相关性And准确性。"
+                content="The reranking model reorders initial search results based on semantic matching between candidate documents and user questions, further improving the relevance and accuracy of final returned results."
                 placement="right"
               >
                 <span class="el-icon-question tips"></span>
@@ -104,7 +104,7 @@
               <el-tooltip
                 class="item"
                 effect="dark"
-                content="Used for控制检索阶段Back of 最相关 of Document片段 of Count。这些Document片段将被送入GenerateModel中，Used for Generate最终 of 回答。"
+                content="Used to control the number of most relevant document segments returned in the retrieval phase. These document segments will be sent to the generation model to generate the final answer."
                 placement="right"
               >
                 <span class="el-icon-question tips"></span>
@@ -123,11 +123,11 @@
           </el-row>
           <el-row v-if=showHistory(item)>
             <el-col>
-              <span class="content-name">最长上下文</span>
+              <span class="content-name">Max Context Length</span>
               <el-tooltip
                 class="item"
                 effect="dark"
-                content="Save of 最长 of 上下文对话轮数。"
+                content="Maximum number of context dialogue rounds to save."
                 placement="right"
               >
                 <span class="el-icon-question tips"></span>
@@ -146,11 +146,11 @@
           </el-row>
           <el-row>
             <el-col>
-              <span class="content-name">Score阈Value</span>
+              <span class="content-name">Score Threshold</span>
               <el-tooltip
                 class="item"
                 effect="dark"
-                content="检索结果 of 相似度阈Value，低于该Value of 结果将被 滤。"
+                content="Similarity threshold for search results, results below this value will be filtered."
                 placement="right"
               >
                 <span class="el-icon-question tips"></span>
@@ -181,41 +181,41 @@ export default {
       debounceTimer:null,
       rerankOptions: [],
       rerankLoading: false,
-      isSettingFromConfig: false, // Add标志位，Used forArea分YesNoYes从configSetting of Value
+      isSettingFromConfig: false, // Add flag to distinguish whether value is set from config
       formInline: {
         knowledgeMatchParams: {
-          keywordPriority: 0.8, //关Key词权重
-          matchType: "", //vector（向量检索）、text（Text检索）、mix（混合检索：向量+Text）
-          priorityMatch: 1, //权重Match，只Has在混合检索模式下，选择权重Setting后，这个才Setting为1
+          keywordPriority: 0.8, //Keyword weight
+          matchType: "", //vector（Vector search）、text（Text search）、mix（Hybrid search: vector + text）
+          priorityMatch: 1, //Weight matching, only set to 1
           rerankModelId: "", //rerankModelid
-          threshold: 0.4, // 滤分数阈Value
-          semanticsPriority: 0.2, //语义权重
-          topK:5, //topK Get最高 of 几行
-          maxHistory:0//最长Context
+          threshold: 0.4, //Filter score threshold
+          semanticsPriority: 0.2, //Semantic weight
+          topK:5, //topK Get top N rows
+          maxHistory:0//Max context
         },
       },
       initialEditForm:null,
       searchTypeData: [
         {
-          name: "向量检索",
+          name: "Vector search",
           value: "vector",
-          desc: "By向量相似度找到语义相近、表达多样 of 文本片段，适Used for理解And召回语义相关Information。",
+          desc: "Find semantically similar and diversely expressed text segments through vector similarity, suitable for understanding and recalling semantically related information.",
           icon: "el-icon-menu",
           isWeight: false,
           showContent: false,
         },
         {
-          name: "全文检索",
+          name: "Full-text Search",
           value: "text",
-          desc: "基于关键词匹配，能够高效QueryContains指定词汇 of 文本片段，适Used for精确查找",
+          desc: "Based on keyword matching, efficiently query text segments containing specified words, suitable for precise search",
           icon: "el-icon-document",
           isWeight: false,
           showContent: false,
         },
         {
-          name: "混合检索",
+          name: "Hybrid Search",
           value: "mix",
-          desc: "结合向量And关键词检索，融合语义理解与关键词匹配，兼顾相关性And准确性，提升检索效果。",
+          desc: "Combines vector and keyword search, integrating semantic understanding with keyword matching, balancing relevance and accuracy to improve search results.",
           icon: "el-icon-s-grid",
           isWeight: true,
           Weight: "",
@@ -224,14 +224,14 @@ export default {
           mixTypeRange: 0.2,
           mixType: [
             {
-              name: "权重Setting",
+              name: "Weight Settings",
               value: "weight",
-              desc: "权重Setting功能Used for调整不同检索方式 of 影响力。BySetting权重，可以控制语义相似度And关键词匹配在最终排序中 of 占比。",
+              desc: "Use weight settings to adjust the influence of each retrieval method. By tuning the weights you control how semantic similarity and keyword matching contribute to the final ranking.",
             },
             {
               name: "RerankModel",
               value: "rerank",
-              desc: "重排序Model会根据候选Document与用户问题 of 语义匹配度，对初步检索结果进行重新排序从而进一步提升最终Back结果 of 相关性And准确性。",
+              desc: "The reranking model reorders initial search results based on semantic matching between candidate documents and user questions, further improving the relevance and accuracy of final returned results.",
             },
           ],
         },
@@ -241,7 +241,7 @@ export default {
   watch: {
     formInline: {
       handler(newVal) {
-        // IfYes从configSetting of Value，不TriggersendConfigInfo
+        // If value is set from config, do not trigger sendConfigInfo
         if (this.isSettingFromConfig) {
           return;
         }
@@ -270,7 +270,7 @@ export default {
     config:{
       handler(newVal) {
         if(newVal && Object.keys(newVal).length > 0){
-          this.isSettingFromConfig = true; // Setting标志位
+          this.isSettingFromConfig = true; // Set flag
           const formData = JSON.parse(JSON.stringify(newVal))
           this.formInline.knowledgeMatchParams = formData;
           const { matchType,priorityMatch } = this.formInline.knowledgeMatchParams;
@@ -284,7 +284,7 @@ export default {
             }
           }
 
-          // UsenextTick确保DOMUpdate完成后再Reset标志位
+          // Use nextTick to ensure DOM update completes before resetting flag
           this.$nextTick(() => {
             this.isSettingFromConfig = false;
           });
@@ -300,7 +300,7 @@ export default {
     });
   },
   created() {
-    // 预LoadData，避免首次打开下拉框 when  of Delay
+    // Preload data to avoid delay when opening dropdown for the first time
     this.getRerankData();
   },
   methods: {
@@ -364,7 +364,7 @@ export default {
       }
     },
     handleRerankChange(value) {
-      // DirectlyTriggerEvent，避免防抖Delay
+      // Directly trigger event to avoid debounce delay
       if(!this.setType){
         const formData = JSON.parse(JSON.stringify(this.formInline));
         delete formData.knowledgeMatchParams.maxHistory;

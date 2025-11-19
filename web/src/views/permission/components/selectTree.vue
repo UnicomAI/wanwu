@@ -104,7 +104,7 @@ export default {
       }
       // this.$emit('handleChange', this.choosedValue)
     },
-    // 点击Tree形选择节点
+    // clickTree形selectNode
     handleNodeClick(node, checked) {
       const {value, label, children} = this.defaultProps
 
@@ -130,7 +130,7 @@ export default {
       }
       this.$emit('handleChange', this.choosedValue)
     },
-    // Delete单个Tag
+    // DeletesingleTag
     changeValue(val) {
       this.allChecked = false
       const curObj = this.findItemByName(this.data, val)
@@ -140,7 +140,7 @@ export default {
       this.$refs.tree.setCheckedKeys([...this.choosedValue])
       // this.$emit('handleChange', this.choosedValue)
     },
-    // Recurse找到符合 of 元素
+    // Recurse找to符合 of element
     findItemByName(items, targetName) {
       const {children, label} = this.defaultProps
       for (let i = 0; i < items.length; i++) {

@@ -7,7 +7,7 @@ export const useQiankun = () => {
       {
           name: 'test', // 子AppName
           entry: process.env.NODE_ENV === 'development'?'http://localhost:8081/' : window.location.origin + basePath + '/sub/test/', // 子App入口
-          container: '#container', // 子App所在容器
+          container: '#container', // 子App所在container
           props: () => ({ user: store.state.user }), // 传参给子App
           activeRule: basePath + '/aibase/portal/test', // 子AppTrigger规Then（Path）
       },

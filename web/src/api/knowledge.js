@@ -1,6 +1,6 @@
 import service from "@/utils/request";
 import {KNOWLEDGE_API} from "@/utils/requestConstants";
-//AddDocument知识分Class
+// Add document classification
 export const createDoc = (data) => {
     return service({
         url: `${KNOWLEDGE_API}/ux/doccategory`,
@@ -9,7 +9,7 @@ export const createDoc = (data) => {
     });
 };
 
-//ModifyDocument知识分Class
+// Modify document classification
 export const editDoc = (data) => {
     return service({
         url: `${KNOWLEDGE_API}/ux/doccategory`,
@@ -18,7 +18,7 @@ export const editDoc = (data) => {
     });
 };
 
-//DeleteDocument知识分Class
+// Delete document classification
 export const removeDoc = (data) => {
     return service({
         url: `${KNOWLEDGE_API}/ux/doccategory`,
@@ -76,7 +76,7 @@ export const getDocLink = (id) => {
         method: "get"
     });
 };
-//命中Test
+// Hit test
 export const test = (data) => {
     return service({
         url: `${KNOWLEDGE_API}/ux/chunk/evaluate`,
@@ -92,7 +92,7 @@ export const deleteInvalid = (data) => {
         data: data
     });
 }
-//从urlUpload
+// Upload from URL
 export const setUploadURL = (data)=>{
     return service({
         url: `${KNOWLEDGE_API}/ux/doc/importUrl`,
@@ -109,7 +109,7 @@ export const analyzeURL = (data)=>{
     })
 };
 
-// View分段ResultList
+// View chunk result list
 export const getContentList = (data,config)=>{
     return service({
         url: `${KNOWLEDGE_API}/ux/doc/fileSplit`,
@@ -119,7 +119,7 @@ export const getContentList = (data,config)=>{
     })
 };
 
-// View分段ResultList
+// Update chunk status list
 export const setStatus = (data,config)=>{
     return service({
         url: `${KNOWLEDGE_API}/ux/doc/updateFileStatus`,
@@ -227,7 +227,7 @@ export const getSectionList = (params)=>{
         params
     })
 };
-//UpdateDocument切片Tag
+// Update document chunk tags
 export const sectionLabels = (data)=>{
     return service({
         url: `${USER_API}/knowledge/doc/segment/labels`,
@@ -309,7 +309,7 @@ export const bindTagCount = (params)=>{
     })
 };
 
-//命中TestInterface
+// Hit test interface
 export const hitTest = (data)=>{
     return service({
         url: `${USER_API}/knowledge/hit`,
@@ -460,7 +460,7 @@ export const addUserPower = (data)=>{
         data
     })
 };
-// 转让Knowledge Base管理Permission
+// Transfer knowledge base admin permissions
 export const transferUserPower = (data)=>{
     return service({
         url: `${USER_API}/knowledge/user/admin/transfer`,
@@ -484,7 +484,7 @@ export const delUserPower = (data)=>{
         data
     })
 };
-//UpdateDocument元Data
+//UpdateDocumentMetadata
 export const updateMetaData = (data)=>{
     return service({
         url: `${USER_API}/knowledge/meta/value/update`,
@@ -493,7 +493,7 @@ export const updateMetaData = (data)=>{
     })
 };
 
-//GetDocument元DataList
+//GetDocumentMetadataList
 export const getDocMetaList = (data)=>{
     return service({
         url: `${USER_API}/knowledge/meta/value/list`,
@@ -502,7 +502,7 @@ export const getDocMetaList = (data)=>{
     })
 };
 
-//Get知识图谱Details
+//GetKnowledge GraphDetails
 export const getGraphDetail = (data)=>{
     return service({
         url: `${USER_API}/knowledge/graph`,
@@ -511,7 +511,7 @@ export const getGraphDetail = (data)=>{
     })
 };
 
-//单条Add社Area报告
+// Add community report for a single item
 export const createCommunityReport = (data)=>{
     return service({
         url: `${USER_API}/knowledge/report/add`,
@@ -519,7 +519,7 @@ export const createCommunityReport = (data)=>{
         data
     })
 };
-//BatchAdd社Area报告
+// Batch add community reports
 export const createBatchCommunityReport = (data)=>{
     return service({
         url: `${USER_API}/knowledge/report/batch/add`,
@@ -527,7 +527,7 @@ export const createBatchCommunityReport = (data)=>{
         data
     })
 };
-//Delete社Area报告
+// Delete community reports
 export const delCommunityReport = (data)=>{
     return service({
         url: `${USER_API}/knowledge/report/delete`,
@@ -535,7 +535,7 @@ export const delCommunityReport = (data)=>{
         data
     })
 };
-//Generate社Area报告
+// Generate community reports
 export const generateCommunityReport = (data)=>{
     return service({
         url: `${USER_API}/knowledge/report/generate`,
@@ -543,7 +543,7 @@ export const generateCommunityReport = (data)=>{
         data
     })
 };
-//Get社Area报告
+// Get community reports
 export const getCommunityReportList = (data)=>{
     return service({
         url: `${USER_API}/knowledge/report/list`,
@@ -551,7 +551,7 @@ export const getCommunityReportList = (data)=>{
         params:data
     })
 };
-//Edit社Area报告
+// Edit community reports
 export const editCommunityReportList = (data)=>{
     return service({
         url: `${USER_API}/knowledge/report/update`,

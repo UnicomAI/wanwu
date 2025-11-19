@@ -1,7 +1,7 @@
 <template>
     <div>
         <el-dialog
-        title="召回ParameterConfiguration"
+        title="Recall parameter configuration"
         :visible.sync="dialogVisible"
         width="50%"
         :before-close="handleClose">
@@ -25,8 +25,8 @@
             </el-form>
         </span>
         <span slot="footer" class="dialog-footer">
-            <el-button @click="dialogVisible = false">取 消</el-button>
-            <el-button type="primary" @click="submit">确 定</el-button>
+            <el-button @click="dialogVisible = false">Cancel</el-button>
+            <el-button type="primary" @click="submit">Confirm</el-button>
         </span>
         </el-dialog>
     </div>
@@ -52,8 +52,8 @@ export default {
             },
             konwledgeSet: [
                 {
-                    label:'最长上下文',
-                    desc: 'Save of 最长 of 上下文对话轮数',
+                    label:'Max Context Length',
+                    desc: 'Maximum number of conversation turns to keep in context.',
                     props: 'maxHistory',
                     btnProps:'maxHistoryEnable',
                     min: 0,
@@ -61,8 +61,8 @@ export default {
                     step: 1,
                 },
                 {
-                    label:' 滤阀Value',
-                    desc: '检索结果匹配度 of 最小Value，Less Than阈Value of 结果会被 滤掉',
+                    label:' Filter threshold value',
+                    desc: 'Minimum relevance score for retrieved results; items below this threshold are filtered out.',
                     props: "threshold",
                     btnProps:"thresholdEnable",
                     precision:1,
@@ -71,8 +71,8 @@ export default {
                     step: 0.1,
                 },
                 {
-                    label:'知识条数',
-                    desc: '检索召回 of 知识片段Count of MaxValue，当检索到 of 知识CountGreater Than知识条数，也只BackMax知识条数',
+                    label:' Number of knowledge items',
+                    desc: 'Maximum number of knowledge segments to retrieve; if more are found, only this many will be returned.',
                     props: "topK",
                     btnProps:"topKEnable",
                     min:1,

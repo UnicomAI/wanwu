@@ -5,7 +5,7 @@
         <div class="search-section">
           <el-select
             v-model="selectedOrganization"
-            placeholder="选择组织"
+            placeholder="selectOrganization"
             filterable
             clearable
             class="org-select"
@@ -21,7 +21,7 @@
           </el-select>
           <el-input
             v-model="searchKeyword"
-            placeholder="Search用户Name"
+            placeholder="SearchuserName"
             class="search-input"
             :disabled="!selectedOrganization"
             @focus="handleInputFocus"
@@ -55,11 +55,11 @@
       
       <div class="right-panel" v-if="!transferMode">
         <div class="permission-section">
-          <div class="permission-label">权限:</div>
-          <el-select v-model="selectedPermission" placeholder="Please select权限" class="permission-select">
-            <el-option label="可读" :value="0"></el-option>
-            <el-option label="可Edit" :value="10"></el-option>
-            <el-option label="管理员" :value="20"></el-option>
+          <div class="permission-label">Permission:</div>
+          <el-select v-model="selectedPermission" placeholder="Please selectPermission" class="permission-select">
+            <el-option label="Read" :value="0"></el-option>
+            <el-option label="Edit" :value="10"></el-option>
+            <el-option label="Administrator" :value="20"></el-option>
           </el-select>
         </div>
         
@@ -112,10 +112,10 @@ export default {
   },
   computed: {
     defaultPermission() {
-      return this.transferMode ? '管理员' : '可读'
+      return this.transferMode ? 'Administrator' : 'Read'
     },
     groupedSelectedUsers() {
-      // 按Organization分组选中 of User
+      // 按Organizationgroup选in of User
       const groups = {};
       this.selectedUsers.forEach(user => {
         if (!groups[user.organization]) {
@@ -127,7 +127,7 @@ export default {
         groups[user.organization].users.push(user);
       });
       
-      // Convert为Array并按OrganizationNameSort
+      // ConvertisArray并按OrganizationNameSort
       return Object.values(groups).sort((a, b) => a.organization.localeCompare(b.organization));
     }
   },
@@ -151,13 +151,13 @@ export default {
     transferMode: {
       handler(newVal) {
         if (newVal) {
-          this.selectedPermission = '管理员'
+          this.selectedPermission = 'Administrator'
         }
       },
       immediate: true
     },
     searchKeyword(val){
-      // 只Has在选择了Organization when 才进行Search
+      // 只Has在select了Organization when 才进rowSearch
       if (this.selectedOrganization) {
         this.$refs.tree.filter(val);
       }
@@ -182,17 +182,17 @@ export default {
     },
     filterNode(value,data){
       if (!value) return true;
-      // SearchUserName，Need判断PropertyYesNo存在
+      // SearchUserName，NeedCheckPropertyYesNoexist
       if (data.userName) {
         return data.userName.indexOf(value) !== -1;
       }
       return false;
     },
     handleOrgChange(orgId) {
-      // 当Organization选择改变 when ， 滤Tree形Data
+      // 当Organizationselect改变 when ， 滤Tree形Data
       this.getOrgUser(orgId);
       
-      // IfEmpty了Organization选择，同 when EmptyUserNameSearch
+      // IfEmpty了Organizationselect，同 when EmptyUserNameSearch
       if (!orgId) {
         this.searchKeyword = '';
       }
@@ -204,13 +204,13 @@ export default {
         if(res.code === 0){
            var userList = res.data.userInfoList || [];
            var orgIdValue = res.data.orgId;
-           // 给每一项Add orgId And id Field
+           // 给each一itemAdd orgId And id Field
            self.treeData = userList.map(function(item) {
              item.orgId = orgIdValue;
-             item.id = item.userId;  // 确保Has id Field，With userId 保持一致，Used forTree节点 of  key
+             item.id = item.userId;  // ensureHas id Field，With userId keepconsistent，Used forTreeNode of  key
              return item;
            });
-           // Load完Data后，Setting当前Organization已选中 of User
+           // Load完Dataafter，SettingcurrentOrganizationalready选in of User
            self.$nextTick(function() {
              self.setCheckedUsersForCurrentOrg();
            });
@@ -219,10 +219,10 @@ export default {
     },
     setCheckedUsersForCurrentOrg() {
       var self = this;
-      //Get当前Organizationid
+      //GetcurrentOrganizationid
       var currentOrgId = this.selectedOrganization;
       
-      // 确保HasOrganization选择
+      // ensureHasOrganizationselect
       if (!currentOrgId) {
         if (this.$refs.tree) {
           this.$refs.tree.setCheckedKeys([]);
@@ -230,23 +230,23 @@ export default {
         return;
       }
       
-      // 找出当前OrganizationID下已选中 of UserIDList
-      // Must同 when MatchUser of  orgId And当前选择 of Organization ID
+      // 找出currentOrganizationID下already选in of UserIDList
+      // Must同 when MatchUser of  orgId Andcurrentselect of Organization ID
       var checkedUserIds = this.selectedUsers
         .filter(function(user) {
           return user.orgId === currentOrgId;
         })
         .map(function(user) {
-          // 兼容 id And userId 两种Field
+          // compatible id And userId 两种Field
           return user.id || user.userId;
         })
         .filter(function(id) {
           return id != null && id !== undefined && id !== '';
         });
       
-      // SettingTree形控件 of 选中Status
+      // SettingTree形控件 of 选inStatus
       if (this.$refs.tree) {
-        // Setting标志位，防止Trigger handleTreeCheck
+        // Set flag，防止Trigger handleTreeCheck
         this.isSettingChecked = true;
         if (checkedUserIds.length > 0) {
           this.$refs.tree.setCheckedKeys(checkedUserIds);
@@ -260,9 +260,9 @@ export default {
       }
     },
     handleInputFocus() {
-      // 当UserNameInput Box获得焦点 when ，IfNo选择Organization，给出Tip
+      // 当UserNameInput Box获得焦点 when ，IfNoselectOrganization，给出Tip
       if (!this.selectedOrganization) {
-        this.$message.warning('PleaseFirst选择组织');
+        this.$message.warning('PleaseFirstselectOrganization');
       }
     },
     filterTreeByOrganization(orgId) {
@@ -275,7 +275,7 @@ export default {
       this.treeData = filterData(this.originalTreeData);
     },
     handleTreeCheck(data, checkedInfo) {
-      // IfYes程序Setting of 选中Status，不Process
+      // IfYes程序Setting of 选inStatus，不Process
       if (this.isSettingChecked) {
         return;
       }
@@ -288,17 +288,17 @@ export default {
       const currentOrgId = this.selectedOrganization;
       const currentOrgName = currentOrg ? currentOrg.orgName : '';
       
-      // FirstRemove当前Organization of 所HasUser
+      // FirstRemovecurrentOrganization of 所HasUser
       var otherOrgUsers = this.selectedUsers.filter(function(user) {
         return user.orgId !== currentOrgId;
       });
       
-      // 收集当前选中 of User（去重）
+      // 收集current选in of User（去重）
       var currentOrgUsers = [];
       var addedUserIds = {};
       
       checkedNodes.forEach(function(node) {
-        // Use id Field（已经With userId 保持一致）
+        // Use id Field（already经With userId keepconsistent）
         const nodeId = node.id || node.userId;
         if (nodeId && !addedUserIds[nodeId]) {
           addedUserIds[nodeId] = true;
@@ -310,10 +310,10 @@ export default {
           });
         }
       });
-      // 合并OtherOrganization of UserAnd当前Organization of User
+      // 合并OtherOrganization of UserAndcurrentOrganization of User
       var mergedUsers = otherOrgUsers.concat(currentOrgUsers);
       
-      // 最终去重：Use userId + orgId 作为唯一标识
+      // 最终去重：Use userId + orgId 作isunique标识
       var uniqueUsers = [];
       var uniqueKeys = {};
       
@@ -370,7 +370,7 @@ export default {
     updateTreeSelection(userId, selected) {
       const updateNode = (nodes) => {
         nodes.forEach(node => {
-          // 兼容 id And userId 两种Field
+          // compatible id And userId 两种Field
           const nodeId = node.id || node.userId;
           if (nodeId === userId) {
             node.selected = selected;

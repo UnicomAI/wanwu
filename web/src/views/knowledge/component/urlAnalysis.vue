@@ -10,7 +10,7 @@
       <p class="urlTips">{{$t('knowledgeManage.addLimitTips')}}</p>
       <el-form-item
         v-for="(domain, index) in dynamicValidateForm.domains"
-        label="url地址"
+        label="urladdress"
         :key="domain.key"
         :prop="'domains.' + index + '.value'"
         :rules="[
@@ -102,7 +102,7 @@ export default {
         this.dynamicValidateForm.domains[index].back = null;
       }
     },
-    // 开始Parse
+    // startParse
     async submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
@@ -133,8 +133,8 @@ export default {
           resolve([]);
         }
         const results = []; // 存放RequestResult
-        let index = 0; // 下一个Request of urlAddress of 下标
-        let count = 0; // 已完成 of RequestCount
+        let index = 0; // 下一Request of urlAddress of 下标
+        let count = 0; // alreadyComplete of RequestCount
         async function request() {
           if (index === urls.length) return;
           const i = index; // SaveNo.，使resultAndurls相对应
@@ -166,7 +166,7 @@ export default {
           } catch (err) {
             console.log(err)
           } finally {
-            count++; // 判断YesNo所Has of Request都已完成
+            count++; // CheckYesNo所Has of Request都alreadyComplete
             if (count === urls.length) {
               resolve(results);
             }

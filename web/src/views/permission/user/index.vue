@@ -116,7 +116,7 @@
       </span>
     </el-dialog>
 
-    <!--邀Please用户-->
+    <!--邀Pleaseuser-->
     <el-dialog
       v-if="!isSystem"
       :title="$t('user.button.invite')"
@@ -373,7 +373,7 @@
               this.$message.success(this.$t('common.message.success'))
               this.dialogVisible = false
 
-              // IfModify of Yes当前User，ThenUpdatePermission
+              // IfModify of YescurrentUser，ThenUpdatePermission
               const useInfo = this.$store.state.user.userInfo || {}
               if (useInfo.uid === this.row.userId) {
                 await this.getPermissionInfo()

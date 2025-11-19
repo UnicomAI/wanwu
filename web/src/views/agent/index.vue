@@ -1,10 +1,10 @@
 <template>
   <div class="agent-mobile-wrapper">
-    <!-- 移动端菜单Button -->
+    <!-- move端菜单Button -->
     <div class="mobile-menu-btn" @click="toggleMobileMenu" v-if="!showAside">
       <img src="@/assets/imgs/historyList.png"  class="mobile-menu-img"/>
     </div>
-    <!-- 移动端遮罩层 -->
+    <!-- move端遮罩层 -->
     <div 
       class="mobile-overlay" 
       :class="{ show: showMobileMenu && isMobile }"
@@ -94,7 +94,7 @@ export default {
       showAside:false,
       asideWidth: "260px",
       apiURL: "",
-      asideTitle: "新建对话",
+      asideTitle: "New Conversation",
       assistantId: "",
       historyList: [],
       appUrlInfo:{},
@@ -142,7 +142,7 @@ export default {
       localStorage.setItem(this.STORAGE_KEY, "");
     }
     window.addEventListener("storage", this.handleStorageEvent);
-    //CheckYesNoYes移动端
+    //CheckYesNoYesmove端
     this.checkMobile();
     window.addEventListener('resize', this.checkMobile);
   },
@@ -240,7 +240,7 @@ export default {
             return { ...n, hover: false, active: false };
           });
           if (noInit) {
-            this.historyList[0].active = true; //noInit Yestrue when ，左侧Default选中第一个,但Yes不要调InterfaceRefreshDetails
+            this.historyList[0].active = true; //noInit Yestrue when ，左侧Default选infirst,butYes不to调InterfaceRefreshDetails
           } else {
             this.historyClick[this.historyList[0]];
           }
@@ -257,7 +257,7 @@ export default {
       });
     },
     historyClick(n) {
-      //切换对话
+      //toggleconversation
       n.hover = true;
       this.$refs["agentChat"].conversionClick(n);
       if(this.isMobile){
@@ -269,7 +269,7 @@ export default {
       this.$refs["agentChat"].preDelConversation(n);
     },
     handleBtnClick() {
-      //新建对话
+      //New Conversation
       this.$refs["agentChat"].createConversion();
       if(this.isMobile){
           this.showMobileMenu = false;
@@ -393,7 +393,7 @@ export default {
   height: 100%;
 }
 
-// weburl适配移动端Style
+// weburl适配move端Style
 /deep/ .chatBg,
 /deep/ .explore-container {
   @media (max-width: 768px) {

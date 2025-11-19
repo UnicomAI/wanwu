@@ -18,7 +18,7 @@
         >
             <el-form-item class="itemCenter">
               <el-radio-group v-model="ruleForm.importType">
-                <el-radio-button :label="'single'">单条Add</el-radio-button>
+                <el-radio-button :label="'single'">单itemAdd</el-radio-button>
                 <el-radio-button :label="'file'">BatchUpload</el-radio-button>
               </el-radio-group>  
             </el-form-item>
@@ -29,7 +29,7 @@
             >
             <el-input
                 v-model="ruleForm.word"
-                placeholder="您可Add一个词"
+                placeholder="You can add one word"
             ></el-input>
             </el-form-item>
             <el-form-item
@@ -65,9 +65,9 @@
                 <div>
                     <img :src="require('@/assets/imgs/uploadImg.png')" class="upload-img" />
                     <p class="click-text">
-                        将File拖到此处，OR
-                        <span class="clickUpload">点击Upload</span>
-                        <a class="clickUpload template" :href="`/user/api/v1/static/docs/sensitive.xlsx`" download @click.stop>模版Download</a>
+                        Drag file here, or
+                        <span class="clickUpload">click to upload</span>
+                        <a class="clickUpload template" :href="`/user/api/v1/static/docs/sensitive.xlsx`" download @click.stop>Download Template</a>
                     </p>
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default {
                     name:'Other'
                 }
             ],
-            title:"新建词表",
+            title:"new词table",
             dialogVisible:false,
             ruleForm:{
                 importType:'single',
@@ -181,7 +181,7 @@ export default {
             fileList:[],
             rules: {
                 word: [{ required: true, message:'Please enterSensitive Word', trigger: "blur" }],
-                sensitiveType:[{ required: true, message: 'Please输选择Sensitive WordType', trigger: "blur" }],
+                sensitiveType:[{ required: true, message: 'Please输selectSensitive WordType', trigger: "blur" }],
                 fileName:[{ required: true, message: 'PleaseUploadFile', trigger: "blur" }]
             }
         }

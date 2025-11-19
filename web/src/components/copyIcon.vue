@@ -24,11 +24,11 @@ export default {
       try {
         const text = this.text;
 
-        // 优FirstUse现代 Clipboard API
+        // Prefer modern Clipboard API
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(text);
         } else {
-          // Downgrade方案：Create input 并Use execCommand
+          // Fallback: Create input and use execCommand
           const input = document.createElement('input');
           input.value = text;
           input.setAttribute('readonly', '');
@@ -39,10 +39,10 @@ export default {
           document.body.removeChild(input);
         }
 
-        this.$message.success('已Copy到剪贴板');
+        this.$message.success(this.$t('common.copy.success'));
       } catch (err) {
         console.error('Copy failed:', err);
-        this.$message.error('Copy failed，Please手动Copy');
+        this.$message.error('Copy failed, please copy manually');
       }
     }
   }

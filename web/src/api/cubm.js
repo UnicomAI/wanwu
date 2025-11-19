@@ -1,8 +1,8 @@
 import request from "@/utils/request";
 import {MODEL_API, DATACENTER_API} from "@/utils/requestConstants";
 
-/*----元景------*/
-//对话List
+/*---- Yuanjing ------*/
+//conversationList
 export const getConversationList = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/list`,
@@ -10,7 +10,7 @@ export const getConversationList = (data)=>{
         params: data
     })
 };
-//Create对话
+//Createconversation
 export const createConversation = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/create`,
@@ -18,7 +18,7 @@ export const createConversation = (data)=>{
         data
     })
 };
-//Delete对话
+//Delete Conversation
 export const deleteConversation = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/delete`,
@@ -26,7 +26,7 @@ export const deleteConversation = (data)=>{
         data
     })
 };
-//对话Details
+//conversationDetails
 export const getConversationDetail = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/detail`,
@@ -78,7 +78,7 @@ export const getModelList= (data) => {
     });
 }
 
-//AI自动Generate原生App
+// AI auto-generates native app
 export const autoCreate= (data) => {
     return request({
         url: `${MODEL_API}/assistant/auto/create`,

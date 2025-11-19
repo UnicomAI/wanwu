@@ -49,7 +49,7 @@ export const changeUserStatus = (data) => {
         data,
     })
 }
-// Get邀PleaseUser when  of UserList
+// Get list of users available for invitation
 export const fetchInviteUser = (params) => {
     return service({
         url: `${USER_API}/org/other/select`,
@@ -57,7 +57,7 @@ export const fetchInviteUser = (params) => {
         params,
     })
 }
-// 邀PleaseUser
+// Invite user
 export const inviteUser = (data) => {
     return service({
         url: `${USER_API}/org/user`,

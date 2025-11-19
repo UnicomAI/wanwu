@@ -149,7 +149,7 @@ export const getAgentList = (params)=>{
     })
 }
 
-//DeletemcpTool
+//Delete mcp Tool
 export const deleteMcp = (data)=>{
     return service({
         url: `${USER_API}/assistant/tool/mcp`,
@@ -157,7 +157,7 @@ export const deleteMcp = (data)=>{
         data
     })
 }
-//AddmcpTool
+//Add mcp Tool
 export const addMcp = (data)=>{
     return service({
         url: `${USER_API}/assistant/tool/mcp`,
@@ -165,7 +165,7 @@ export const addMcp = (data)=>{
         data
     })
 }
-//启停mcpTool
+//Enable/Disable mcp Tool
 export const enableMcp = (data)=>{
     return service({
         url: `${USER_API}/assistant/tool/mcp/switch`,
@@ -174,7 +174,7 @@ export const enableMcp = (data)=>{
     })
 }
 
-// DeleteCustom、内置Tool
+// Delete Custom/Built-in Tool
 export const delCustomBuiltIn = (data)=>{
     return service({
         url: `${USER_API}/assistant/tool`,
@@ -182,7 +182,7 @@ export const delCustomBuiltIn = (data)=>{
         data
     })
 }
-// AddCustom、内置Tool
+// Add Custom/Built-in Tool
 export const addCustomBuiltIn = (data)=>{
     return service({
         url: `${USER_API}/assistant/tool`,
@@ -190,7 +190,7 @@ export const addCustomBuiltIn = (data)=>{
         data
     })
 }
-// 启停Custom、内置Tool
+// Enable or disable custom and built-in tools
 export const switchCustomBuiltIn = (data)=>{
     return service({
         url: `${USER_API}/assistant/tool/switch`,
@@ -206,7 +206,7 @@ export const toolList = (data)=>{
         params:data
     })
 }
-//Tool下面 of actionList
+// Action list under a tool
 export const toolActionList = (data)=>{
     return service({
         url: `${USER_API}/tool/action/list`,
@@ -214,7 +214,7 @@ export const toolActionList = (data)=>{
         params:data
     })
 }
-//内置Tool下面 of actionDetails
+// Action details for a built-in tool
 export const toolActionDetail = (data)=>{
     return service({
         url: `${USER_API}/tool/action/detail`,
@@ -230,7 +230,7 @@ export const mcptoolList = (data)=>{
         params:data
     })
 }
-//mcpTool下面 of actionList
+// Action list under an MCP tool
 export const mcpActionList = (data)=>{
     return service({
         url: `${USER_API}/mcp/action/list`,
@@ -271,7 +271,7 @@ export const getOpenurl = (data)=>{
         params:data
     })
 }
-//启停AppurlStatus
+// Enable or disable app URL status
 export const switchOpenurl = (data)=>{
     return service({
         url: `${USER_API}/appspace/app/openurl/status`,
@@ -290,7 +290,7 @@ export const getOpenurlInfo = (suffix,config={})=>{
         isOpenUrl:true
     })
 }
-//AgentopenurlCreateAgent对话
+//AgentopenurlCreateAgentconversation
 export const openurlConversation = (data,suffix,config={})=>{
     return service({
         url: `${OPENURL_API}/agent/${suffix}/conversation`,
@@ -300,7 +300,7 @@ export const openurlConversation = (data,suffix,config={})=>{
         isOpenUrl:true
     })
 }
-//DeleteAgentopenurlCreateAgent对话
+//DeleteAgentopenurlCreateAgentconversation
 export const delOpenurlConversation = (data,suffix,config={})=>{
     return service({
         url: `${OPENURL_API}/agent/${suffix}/conversation`,
@@ -310,7 +310,7 @@ export const delOpenurlConversation = (data,suffix,config={})=>{
         isOpenUrl:true
     })
 }
-//AgentopenurlDetails历史List
+//AgentopenurlDetailshistoryList
 export const OpenurlConverHistory = (data,suffix,config={})=>{
     return service({
         url: `${OPENURL_API}/agent/${suffix}/conversation/detail`,
@@ -320,7 +320,7 @@ export const OpenurlConverHistory = (data,suffix,config={})=>{
         isOpenUrl:true
     })
 }
-//Agentopenurl对话List
+//AgentopenurlconversationList
 export const OpenurlConverList = (suffix,config={})=>{
     return service({
         url: `${OPENURL_API}/agent/${suffix}/conversation/list`,
@@ -329,7 +329,7 @@ export const OpenurlConverList = (suffix,config={})=>{
         isOpenUrl:true
     })
 }
-//Agentopenurl流式对话
+// Agent open URL streaming conversation
 export const OpenurlStream = (data,suffix,config={})=>{
     return service({
         url: `${OPENURL_API}/agent/${suffix}/stream`,
@@ -339,7 +339,7 @@ export const OpenurlStream = (data,suffix,config={})=>{
         isOpenUrl:true
     })
 }
-//Update博查rerankModel
+// Update Bocha rerank model
 export const updateRerank = (data)=>{
     return service({
         url: `${USER_API}/assistant/tool/config`,

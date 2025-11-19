@@ -14,9 +14,9 @@
             <div>
                 <img :src="require('@/assets/imgs/uploadImg.png')" class="upload-img" />
                 <p class="click-text">
-                    将File拖到此处，OR
-                    <span class="clickUpload">点击Upload</span>
-                    <a class="clickUpload template" :href="templateUrl" download @click.stop>模版Download</a>
+                    Drag file here, or
+                    <span class="clickUpload">click to upload</span>
+                    <a class="clickUpload template" :href="templateUrl" download @click.stop>Download Template</a>
                 </p>
             </div>
             </div>

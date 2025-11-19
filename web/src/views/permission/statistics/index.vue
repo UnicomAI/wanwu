@@ -130,7 +130,7 @@ export default {
         },
       ],
       searchShow: true,
-      timeout: null, // 防抖定 when 
+      timeout: null, // debounce定 when 
       searchTime: {
         time: [],
       },
@@ -180,7 +180,7 @@ export default {
         const {overview, trend} = res.data || {}
         this.content = overview || {}
         this.echartContent = trend || {}
-        // 解构后台Back of Data，暂存And count Array中key对应 of Data
+        // 解构after台Back of Data，暂存And count Arrayinkey对应 of Data
         this.count.map((item) => {
           item.value = overview[item.key] ? overview[item.key].value : 0;
           item.des_value = overview[item.key] ? overview[item.key].periodOverPeriod : -9999;

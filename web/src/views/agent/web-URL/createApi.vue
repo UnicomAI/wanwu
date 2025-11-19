@@ -5,7 +5,7 @@
         <el-tag
           effect="plain"
           class="root-url"
-        >API根地址</el-tag>
+        >API Base URL</el-tag>
         {{apiURL}}
       </div>
       <el-button
@@ -14,10 +14,10 @@
         class="apikeyBtn"
       >
         <img :src="require('@/assets/imgs/apikey.png')" />
-        API密钥
+        API Key
       </el-button>
       <div class="show-doc" @click="jumpApiDoc">
-        查看APIDocument
+        viewAPIDocument
       </div>
     </div>
     <el-table
@@ -25,7 +25,7 @@
       style="width: 100%"
     >
       <el-table-column
-        label="密钥"
+        label="API Key"
         prop="apiKey"
         width="300"
       >
@@ -112,7 +112,7 @@ export default {
       return res;
     },
     copycb() {
-      this.$message.success("Content已Copy到粘贴板");
+      this.$message.success("Content copied to clipboard");
     },
     handleCreate() {
       const data = { appId: this.appId, appType: this.appType };
@@ -132,10 +132,10 @@ export default {
     },
     handleDelete(row) {
       this.$confirm(
-        "确定要Delete当前APIkey吗？",
+        "ConfirmtoDeletecurrentAPIkey吗？",
         this.$t("knowledgeManage.tip"),
         {
-          confirmButtonText: "确定",
+          confirmButtonText: "Confirm",
           cancelButtonText: "Cancel",
           type: "warning",
         }

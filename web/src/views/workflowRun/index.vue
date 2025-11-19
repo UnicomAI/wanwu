@@ -64,7 +64,7 @@
         </div>
       </div>
     </div>
-    <el-empty class="noData" v-if="isInit" description="点击左侧 '运行' Button，开始运行Workflow"></el-empty>
+    <el-empty class="noData" v-if="isInit" description="click左侧 '运row' Button，start运rowWorkflow"></el-empty>
   </div>
 </template>
 
@@ -81,9 +81,9 @@ export default {
       statusObj: {
         success: "Success",
         failed: "Failed",
-        init: "等待",
-        loading: "运行中",
-        running_skip: "未运行",
+        init: "waiting",
+        loading: "Running",
+        running_skip: "not运row",
       },
       isInit: true,
       nodeData: {
@@ -99,7 +99,7 @@ export default {
   methods: {
     preCopy(val) {
       this.$copy(JSON.stringify(val));
-      this.$message.success("Content已Copy到粘贴板");
+      this.$message.success("Content copied to clipboard");
     },
     async doDebug(data) {
       this.nodeData.node_status = 'loading'

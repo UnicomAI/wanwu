@@ -41,7 +41,7 @@ export default {
         this.langOptions = languages || []
         const langCode = localStorage.getItem("locale")
 
-        // If本地CacheNoDefault语言，ThenSettingInterfaceBack of Default语言到Cache
+        // If no default language is cached locally, store the backend default language and reload
         if (!langCode) {
           window.localStorage.setItem('locale', defaultLanguage.code || ZH)
           window.location.reload()

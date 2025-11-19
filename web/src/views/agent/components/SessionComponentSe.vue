@@ -10,7 +10,7 @@
         v-for="(n,i) in session_data.history"
         :key="`${i}sdhs`"
       >
-        <!--问题-->
+        <!-- Question -->
         <div
           v-if="n.query"
           class="session-question"
@@ -62,7 +62,7 @@
                   />
                   <div class="docInfo">
                     <p class="docInfo_name">FileName：{{file.name}}</p>
-                    <p class="docInfo_size">File大小:{{getFileSizeDisplay(file.size)}}</p>
+                    <p class="docInfo_size">Filesize:{{getFileSizeDisplay(file.size)}}</p>
                   </div>
                   </div>
                  </div>
@@ -107,13 +107,13 @@
           </div>
         </div>
 
-        <!-- 回答故障  code:7-->
+        <!-- Answer error  code:7 -->
         <div
           class="session-error"
           v-if="n.error"
         ><i class="el-icon-warning"></i>&nbsp;{{n.response}}</div>
 
-        <!--回答 文字+图片-->
+        <!-- Answer: text + image -->
         <div
           v-if="(n.response && !n.error)"
           class="session-answer"
@@ -187,7 +187,7 @@
               :preview-src-list="[g]"
             ></el-image>
           </div>
-          <!--出处-->
+          <!-- Source -->
           <div
             v-if="n.searchList && n.searchList.length && n.finish === 1"
             class="search-list"
@@ -201,7 +201,7 @@
                 class="serach-list-item"
                 v-if="showSearchList(j,n.qa_type,n.citations)"
               >
-                <span @click="collapseClick(n,m,j)"><i :class="['',m.collapse?'el-icon-caret-bottom':'el-icon-caret-right']"></i>出处：</span>
+                <span @click="collapseClick(n,m,j)"><i :class="['',m.collapse?'el-icon-caret-bottom':'el-icon-caret-right']"></i>Source:</span>
                 <a
                   v-if="m.link"
                   :href="m.link"
@@ -217,7 +217,7 @@
                     v-if="n.qa_type === 1"
                   >{{j + 1}}</sub> {{m.title}}
                 </span>
-                <!-- <span @click="goPreview($event,m)" class="search-doc">查看全文</span> -->
+                <!-- <span @click="goPreview($event,m)" class="search-doc">View full text</span> -->
               </div>
               <el-collapse-transition>
                 <div
@@ -238,7 +238,7 @@
             <div></div>
             <div></div>
           </div>
-          <!--停止Generate 重新Generate 点赞   session code Yes0 when 不可Operation-->
+          <!-- Stop and regenerate actions; when session code is 0 these operations are disabled. -->
           <div class="answer-operation">
             <div class="opera-left">
               <span
@@ -262,7 +262,7 @@
           </div>
         </div>
 
-        <!-- 回答 仅图片-->
+        <!-- Answer with images only -->
         <div
           v-if="!n.response && n.gen_file_url_list && n.gen_file_url_list.length"
           class="session-answer"
@@ -286,7 +286,7 @@
               </div>
             </div>
           </div>
-          <!--仅图片 when 只有 重新Generate-->
+          <!-- For image-only answers, only the regenerate action is available -->
           <div class="answer-operation">
             <div class="opera-left">
               <span
@@ -355,18 +355,18 @@ export default {
       },
       basePath: this.$basePath,
       current_data: [],
-      //标注相关
+      // Annotation related
       c: null,
       ctx: null,
       canvasShow: false,
       cv: null,
       currImg: {
         url: "",
-        width: 0, // 原始宽高
+        width: 0, // Original width
         height: 0,
-        w: 0, // Compress后 of 宽高
+        w: 0, // Width after compression
         h: 358,
-        roteX: 0, // Compress后 of 比例
+        roteX: 0, // Compression ratio
         roteY: 0,
       },
       imgConfig: ["jpeg", "PNG", "png", "JPG", "jpg", "bmp", "webp"],
@@ -419,7 +419,7 @@ export default {
       clearTimeout(this.resizeTimer);
     }
     
-    // RemoveImageErrorEventListen器
+    // Remove image load error event listener
     if (this.imageErrorHandler) {
       document.body.removeEventListener("error", this.imageErrorHandler, true);
     }
@@ -458,7 +458,7 @@ export default {
       if (showScrollBtn !== null && showScrollBtn !== undefined) {
         return showScrollBtn;
       }
-      // NoThen从 fileScrollStateMap 中Get
+      // Otherwise, get from fileScrollStateMap
       return this.fileScrollStateMap[i] || false;
     },
     prev(e,i){
@@ -523,7 +523,7 @@ export default {
       return Array.from(citationsSet);
     },
     goPreview(event, item) {
-      event.stopPropagation(); // 阻止Event冒泡
+      event.stopPropagation(); // preventEventbubbling
       let { meta_data } = item;
       let { file_name, download_link, page_num, row_num, sheet_name } =
         meta_data;
@@ -559,13 +559,13 @@ export default {
               sheet_name;
             break;
           default:
-            this.$message.warning("暂Not Supported此格式查看");
+            this.$message.warning("This format is not currently supported for preview.");
         }
       }
       if (openUrl !== "") {
         window.open(openUrl, "_blank","noopener,noreferrer");
       } else {
-        this.$message.warning("暂Not Supported此格式查看");
+        this.$message.warning("This format is not currently supported for preview.");
       }
     },
     setupScrollListener() {
@@ -575,22 +575,22 @@ export default {
     handleScroll(e) {
       const container = document.getElementById("timeScroll");
       const { scrollTop, clientHeight, scrollHeight } = container;
-      // 检测YesNo接近Bottom（5px容差）
+      // Check whether scroll is near the bottom (5px tolerance)
       const nearBottom = scrollHeight - (scrollTop + clientHeight) < 5;
-      // User手动滚动 when Cancel自动置底
+      // If the user scrolls manually, disable auto-scroll to bottom
       if (!nearBottom) {
         this.autoScroll = false;
       }
-      // Clear之前 of 定 when 器
+      // Clear previous timer
       clearTimeout(this.scrollTimeout);
-      // Setting新 of 定 when 器检测滚动Stop
+      // Set a new timer to detect when scrolling stops
       this.scrollTimeout = setTimeout(() => {
-        // IfStop when 接近Bottom，Restore自动置底
+        // If scrolling stops near the bottom, restore auto-scroll
         if (nearBottom) {
           this.autoScroll = true;
           this.scrollBottom();
         }
-      }, 500); // 500ms内No新滚动视为Stop
+      }, 500); // If no new scroll occurs within 500ms, treat it as stopped
     },
     replaceHTML(data, n) {
       let _data = data;
@@ -601,7 +601,7 @@ export default {
 
       // Process think Tag
       if (thinkEnd.test(data)) {
-        n.thinkText = "已深度思考";
+        n.thinkText = "Deep thinking completed";
         if (!thinkStart.test(data)) {
           data = "<think>\n" + data;
         }
@@ -609,12 +609,12 @@ export default {
 
       // AddProcess tool Tag
       if (toolEnd.test(data)) {
-        n.toolText = "已使用Tool"; // NeedAdd对应 of 翻译
+        n.toolText = "Tool execution completed"; // TODO: add corresponding translation key if needed
         if (!toolStart.test(data)) {
           data = "<tool>\n" + data;
         }
       }
-      // 统一Replace为 section Tag
+      // Normalize by replacing custom tags with section tags
       return data
         .replace(/think>/gi, "section>")
         .replace(/tool>/gi, "section>");
@@ -665,7 +665,7 @@ export default {
     copy(text) {
       text = text.replaceAll("<br/>", "\n");
       var textareaEl = document.createElement("textarea");
-      textareaEl.setAttribute("readonly", "readonly"); // 防止手机上弹出软Key盘
+      textareaEl.setAttribute("readonly", "readonly"); // Prevent soft keyboard from showing on mobile
       textareaEl.value = text;
       document.body.appendChild(textareaEl);
       textareaEl.select();
@@ -708,11 +708,11 @@ export default {
     },
     replaceLastData(index, data) {
       if (!data.response) {
-        data.response = "无响应Data";
+        data.response = "No response data";
       }
       this.$set(this.session_data.history, index, data);
       this.scrollBottom();
-      this.codeScrollBottom(); //codeContent置底
+      this.codeScrollBottom(); // Scroll code content to the bottom
       if (data.finish === 1) {
         const setCitations = this.setCitations(index);
         this.$set(this.session_data.history[index], "citations", setCitations);
@@ -726,12 +726,12 @@ export default {
         ? `${(fileSize / (1024 * 1024)).toFixed(2)} MB`
         : `${fileSize} bytes`;
     },
-    //websocket Replace全部Data
+    //websocket ReplaceallData
     replaceData(data) {
       this.session_data = data;
       this.scrollBottom();
     },
-    //http 只Replacehistory
+    // For HTTP, only replace history
     replaceHistory(data) {
       this.session_data.history = data;
       this.scrollBottom();
@@ -813,11 +813,11 @@ export default {
       }
       this.$set(this.session_data.history, index, { ...item, evaluate: 2 });
     },
-    //=================标注相关===============
+    //================= Annotation related ===============
     initCanvasUtil() {
       this.canvasShow = true;
       this.$nextTick(() => {
-        // 开始画图 canvas, 2d, 宽高，形状
+        // Initialize drawing canvas, 2D context, size, and shapes
         this.cv &&
           this.cv.destroy() &&
           this.cv.clearPre() &&
@@ -827,7 +827,7 @@ export default {
       });
     },
     preTagging(response) {
-      // canvas大小Reset
+      // Reset canvas size
       this.currImg = {
         url: "",
         width: 0,
@@ -839,7 +839,7 @@ export default {
         dx: 0,
         dy: 0,
       };
-      // Image原始宽高
+      // Original image width and height
       var image = new Image();
       image.src = response.annotationImg;
       image.onload = () => {
@@ -871,11 +871,11 @@ export default {
       let currImg = this.currImg;
       let contain = document.getElementById("mycantain");
       if (currImg.width > contain.offsetWidth) {
-        // 宽度Greater Than容器
+        // Width is greater than the container width
         this.currImg.roteX = currImg.width / contain.offsetWidth;
         currImg.w = contain.offsetWidth;
         currImg.h = (currImg.height * contain.offsetWidth) / currImg.width;
-        // Compress后高度Greater Thancantain
+        // After compression, height is greater than the container height
         if (currImg.h > contain.offsetHeight) {
           currImg.h = contain.offsetHeight;
           currImg.w = (currImg.width * currImg.h) / currImg.height;
@@ -886,9 +886,9 @@ export default {
           currImg.dy = (contain.offsetHeight - currImg.h) / 2;
         }
       } else {
-        // 高度Compress比例
+        // Compression ratio based on height
         currImg.roteY = currImg.height / currImg.h;
-        // Compress后宽度
+        // Width after compression
         currImg.w = (currImg.width * currImg.h) / currImg.height;
         currImg.roteX = currImg.width / currImg.w;
         currImg.dx = (contain.offsetWidth - currImg.w) / 2;
@@ -902,7 +902,7 @@ export default {
       });
     },
     listenerImg() {
-      //捕获ImageLoad Error
+      // Capture image load errors
       this.imageErrorHandler = (e) => {
         if (e.target.tagName === "IMG") {
           this.handleImageError(e.target);
@@ -911,13 +911,13 @@ export default {
       document.body.addEventListener("error", this.imageErrorHandler, true);
     },
     handleImageError(img) {
-      // 防止重复Process
+      // Prevent duplicate processing
       if (img.classList.contains("failed")) {
         return;
       }
       img.classList.add("failed");
 
-      // SettingImage为不可见，避免闪烁
+      // Hide the image to avoid flickering
       img.style.visibility = "hidden";
       img.style.display = "none";
     },
@@ -984,7 +984,7 @@ export default {
       width: 80% !important;
     }
     section li,li {
-      list-style-position: inside !important; /* 将标记Symbol放在Content框内 */
+      list-style-position: inside !important; /* Place list marker inside the content box */
     }
    
     .citation {
@@ -1095,8 +1095,8 @@ export default {
             border-radius: 5px;
           }
           .docInfo-img-container{
-            flex-shrink: 0;  /* 防止Image被Compress */
-            width: auto;  /* OR固定宽度 */
+            flex-shrink: 0;  /* Prevent image from being squeezed */
+            width: auto;  /* Or use a fixed width */
             p{
               text-align: center;
               color: $color;
@@ -1151,7 +1151,7 @@ export default {
     .no-response {
       margin: 15px 0;
     }
-    /*出处*/
+    /* Source list */
     .search-list {
       padding: 10px 20px 3px 54px;
       .search-list-item {
@@ -1276,7 +1276,7 @@ export default {
     overflow-y: auto;
     padding: 20px;
   }
-  /*Delete历史...*/
+  /*Deletehistory...*/
   .session-setting {
     position: relative;
     height: 36px;
@@ -1334,8 +1334,7 @@ export default {
   }
 }
 
-/* 仅By样式调整位置：
-   问题在右侧（Content在右、头像在最右），答案在左侧（默认） */
+/* Layout adjustment only: question on the right (content and avatar on the right), answer on the left (default). */
 .session-question {
   .session-item {
     flex-direction: row-reverse;
@@ -1347,23 +1346,23 @@ export default {
   .session-answer-wrapper {
     display: flex;
     align-items: flex-start;
-    gap: 10px; /* AvatarAndContent之间10px距离 */
+    gap: 10px; /* 10px gap between avatar and content */
     padding: 20px 20px 0 20px;
     min-height: 80px;
-    background: none; /* 确保外层容器No背景色 */
+    background: none; /* Ensure outer container has no background color */
     
     .logo {
       width: 30px;
       height: 30px;
       border-radius: 6px;
       object-fit: cover;
-      flex-shrink: 0; /* 防止Avatar被Compress */
-      background: none; /* AvatarNo背景色 */
+      flex-shrink: 0; /* Prevent avatar from being squeezed */
+      background: none; /* No background color for avatar */
     }
     
     .answer-content {
       flex: 1;
-      background-color: #eceefe; /* 只HasContentArea域Has背景色 */
+      background-color: #eceefe; /* Only the content area has background color */
       border-radius: 0 10px 10px 10px;
       padding: 20px;
       line-height:1.6;
@@ -1380,7 +1379,7 @@ img.failed {
 }
 
 img.failed::after {
-  content: "图片加载Failed";
+  content: "imageloadingFailed";
   position: absolute;
   top: 50%;
   left: 50%;

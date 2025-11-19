@@ -15,7 +15,7 @@ export const useWorkFlow = (data)=>{
         data
     })
 };
-//App广场WorkflowList
+// App marketplace workflow list
 export const getExplorationFlowList = (params)=>{
     return request({
         url: `${USER_API}/exploration/app/list`,
@@ -52,7 +52,7 @@ export const copyWorkFlow = (data)=>{
         data
     })
 };
-//chakan
+// View workflow schema
 export const readWorkFlow = (data)=>{
     return request({
         url: `${WORKFLOW_API}/workflow/openapi_schema`,

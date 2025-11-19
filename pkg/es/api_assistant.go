@@ -13,7 +13,7 @@ var (
 
 func InitAssistant(ctx context.Context, cfg Config) error {
 	if _esAssistant != nil {
-		return fmt.Errorf("ES assistant客户端已经初始化")
+		return fmt.Errorf("ES assistant client already initialized")
 	}
 	c, err := newClient(ctx, cfg)
 	if err != nil {
@@ -40,11 +40,11 @@ func InitESIndexTemplate(ctx context.Context) error {
 	// Check if the template already exists
 	exists, err := Assistant().IndexTemplateExists(ctx, templateName)
 	if err != nil {
-		return fmt.Errorf("检查ES索引模板失败: %v", err)
+		return fmt.Errorf("failed to check ES index template: %v", err)
 	}
 
 	if exists {
-		log.Infof("ES索引模板已存在: %s", templateName)
+		log.Infof("ES index template already exists: %s", templateName)
 		return nil
 	}
 
@@ -208,9 +208,9 @@ func InitESIndexTemplate(ctx context.Context) error {
 		}
 	}`
 	if err := Assistant().CreateIndexTemplate(ctx, templateName, template); err != nil {
-		return fmt.Errorf("创建ES索引模板失败: %v", err)
+		return fmt.Errorf("failed to create ES index template: %v", err)
 	}
 
-	log.Infof("成功创建ES索引模板: %s", templateName)
+	log.Infof("Successfully created ES index template: %s", templateName)
 	return nil
 }

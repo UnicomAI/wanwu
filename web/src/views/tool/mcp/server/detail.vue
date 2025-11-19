@@ -274,7 +274,7 @@ export default {
         this.apiKeyList = res.data || []
       })
 
-      //滚动到顶部
+      //scrolltotop
       const main = document.querySelector(".el-main > .page-container")
       if (main) main.scrollTop = 0
     },

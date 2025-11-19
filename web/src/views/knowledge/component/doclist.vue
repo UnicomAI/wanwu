@@ -197,7 +197,7 @@
         </el-main>
       </el-container>
     </div>
-    <!-- 元Data管理 -->
+    <!-- Metadata Management -->
     <el-dialog
       :title="$t('knowledgeManage.docList.metaDataManagement')"
       :visible.sync="metaVisible"
@@ -211,9 +211,9 @@
       </span>
     </el-dialog>
     
-    <!-- BatchEdit元DataValue弹窗 -->
+    <!-- BatchEditMetadataValue弹窗 -->
     <batchMetaData ref="batchMetaData" :selectedDocIds="selectedDocIds" @reLoadDocList="reLoadDocList" />
-    <!-- BatchEdit元DataValueOperation框 -->
+    <!-- BatchEditMetadataValueOperation框 -->
     <BatchMetatButton ref="BatchMetatButton" :selectedCount="selectedTableData.length" @showBatchMeta="showBatchMeta" @handleMetaCancel="handleMetaCancel"/>
   </div>
 </template>
@@ -305,7 +305,7 @@ export default {
     handleMetaCancel(){
       this.selectedTableData = []
       this.selectedDocIds = []
-      // Cancel所HasTableData of 选中Status
+      // Cancel所HasTableData of 选inStatus
       this.$nextTick(() => {
         const table = this.$refs.dataTable
         if (table) {
@@ -318,7 +318,7 @@ export default {
       this.selectedTableData = []
       this.selectedDocIds = []
       
-      // Cancel所HasTableData of 选中Status
+      // Cancel所HasTableData of 选inStatus
       this.$nextTick(() => {
         const table = this.$refs.dataTable
         if (table) {
@@ -445,7 +445,7 @@ export default {
         return data.join(',')
       }
     },
-    handleHit(){//跳转到命中预测Page
+    handleHit(){//jumpto命in预测Page
       if(this.$route.path.includes('rag')){
         this.$router.push({path:'/rag/knowledge/hitTest'})
       }else{
@@ -529,7 +529,7 @@ export default {
         })
     },
     changeOption(data) {
-      //ByDocumentStatusFind
+      //ByDocument StatusFind
       this.docQuery.status = data
       this.getTableData({...this.docQuery, pageNo: 1})
     },
@@ -575,7 +575,7 @@ export default {
     },
     async download(url,name){
       const res = await downDoc(url)
-      const blobUrl = window.URL.createObjectURL(res) // 将blobObject转为一个URL
+      const blobUrl = window.URL.createObjectURL(res) // 将blobObject转is一URL
       const link = document.createElement('a')
       link.href = blobUrl
       link.download = name
@@ -821,9 +821,9 @@ export default {
 </style>
 <style lang="scss">
 .custom-tooltip.is-light {
-  border-color: #eee; /* Setting边框颜色 */
-  background-color: #fff; /* Setting背景颜色 */
-  color: #666; /* Setting文字颜色 */
+  border-color: #eee; /* Set border color */
+  background-color: #fff; /* Set background color */
+  color: #666; /* Set text color */
 }
 .custom-tooltip.el-tooltip__popper[x-placement^="top"] .popper__arrow::after {
   border-top-color: #fff !important;

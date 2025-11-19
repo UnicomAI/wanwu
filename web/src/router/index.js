@@ -275,7 +275,7 @@ const constantRoutes = [
 ]
 
 
-// 判断YesNoHasPermission
+// CheckYesNoHasPermission
 const hasPermission = (perm, route) => {
     if (!Array.isArray(perm)) return false
     if (route.meta && route.meta.perm) {
@@ -284,7 +284,7 @@ const hasPermission = (perm, route) => {
         return true
     }
 }
-// 把HasPermission of Route重新组合
+// 把HasPermission of Routerestart组合
 const filterAsyncRoutes = (routes, perm) => {
     const res = []
 

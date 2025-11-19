@@ -7,7 +7,7 @@
                 <div v-show="echo" class="session rl echo">
                     <Prologue  :editForm="editForm" @setProloguePrompt="setProloguePrompt" :isBigModel="true" />
                 </div>
-                <!--对话-->
+                <!--conversation-->
                 <div  v-show="!echo" class="center-session">
                     <SessionComponentSe
                             ref="session-com"
@@ -24,7 +24,7 @@
                     <div v-show="stopBtShow" class="stop-box">
                         <span v-show="sessionStatus === 0" class="stop" @click="preStop">
                             <img class="stop-icon mdl" :src="require('@/assets/imgs/stop.png')"/>
-                            <span class="mdl">停止Generate</span>
+                            <span class="mdl">StopGenerate</span>
                         </span>
                         <!-- <span v-show="sessionStatus !== 0" class="stop" @click="refresh">
                             <img class="stop-icon mdl" :src="require('@/assets/imgs/refresh.png')"/>
@@ -97,7 +97,7 @@
                     starterPrompts: [
                         // {value: 'Such as何打粉底不卡粉?'},
                         // {value: '我想问怎么化妆皮肤不干?'},
-                        // {value: '写一个故宫一日游攻略'}
+                        // {value: '写一故宫一日游攻略'}
                     ]
                 },
                 // fileTypeArr: ['image/*','doc/*'],
@@ -136,7 +136,7 @@
                    this.basicForm.avatar = this.$basePath + '/use/model/api' + dataInfo.useModels[0]['welcomeLogoPath'];
                 }
             },
-            //对话List
+            //conversationList
             async getConversationList(noInit) {
                 let res = await getConversationList({assistantId: this.assistantId, pageSize: 1000, pageNo: 1})
                 if (res.code === 0) {
@@ -145,7 +145,7 @@
                             return {...n, hover: false, active: false}
                          })
                         if (noInit) {
-                            this.chatList[0].active = true  //noInit Yestrue when ，左侧Default选中第一个,但Yes不要调InterfaceRefreshDetails
+                            this.chatList[0].active = true  //noInit Yestrue when ，左侧Default选infirst,butYes不to调InterfaceRefreshDetails
                         } else {
                             this.conversionClick[this.chatList[0]]
                         }
@@ -154,7 +154,7 @@
                     }
                 }
             },
-            //新建对话
+            //New Conversation
             preCreateConversation() {
                 if (this.echo) {
                     this.$message({
@@ -175,11 +175,11 @@
                     m.active = false
                 })
             },
-            //切换对话
+            //toggleconversation
             async conversionClick(n) {
                 this.isModelDisable = true;
                 if (this.sessionStatus === 0) {
-                    //this.$message.warning('上个问题未答完')
+                    //this.$message.warning('上问题not答完')
                     return
                 }else{
                     this.stopBtShow = false
@@ -214,7 +214,7 @@
                         }
                     }) : []
 
-                    //切换History Record，选择对应Model
+                    //toggleHistory Record，select对应Model
                     if(res.data.list && res.data.list !== null){
                         this.currentModel = {
                         modelId:res.data.list[0]['modelId'],
@@ -229,11 +229,11 @@
                     })
                 }
             },
-            //Delete对话
+            //Delete Conversation
             async preDelConversation(n) {
-                //todo 给所Has of 点击Event统一Add拦截
+                //todo 给所Has of clickEvent统一Add拦截
                 if (this.sessionStatus === 0) {
-                    //this.$message.warning('上个问题未答完')
+                    //this.$message.warning('上问题not答完')
                     return
                 }
                 let res = await deleteConversation({conversationId: n.conversationId})
@@ -246,7 +246,7 @@
                     this.echo = true
                 }
             },
-            /*------会话------*/
+            /*------session------*/
             async preSend(val,fileId,fileInfo) {
                 this.inputVal = val || this.$refs['editable'].getPrompt()
                 if (!this.inputVal) {
@@ -278,7 +278,7 @@
                 }
                 return true;
             },
-            modelChange(){//切换Model新建对话
+            modelChange(){//toggleModelNew Conversation
                 this.preCreateConversation()
             },
             setParams() {

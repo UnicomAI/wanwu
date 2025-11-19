@@ -3,7 +3,7 @@
 </template>
 
 <script>
-// 引入JavaScript支持
+// 引入JavaScriptSupported
 // import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import * as monaco from "monaco-editor";
 
@@ -37,12 +37,12 @@ export default {
         automaticLayout: true, // 自动Layout
         theme: "vs", // 官方自带三种主题vs, hc-black, or vs-dark
         tabSize: 0, // tab 缩进Length
-        autoIndent: "None", // 控制Edit器在UserKey入、Paste、移动OR缩进行 when YesNo应自动调整缩进
+        autoIndent: "None", // 控制Edit器在UserKey入、Paste、moveOR缩进row when YesNo应自动调整缩进
         minimap: {
           enabled: false, // Close小地图
         },
         readOnly: false,
-        lineNumbers: "on", // 隐藏控制行号
+        lineNumbers: "on", // hide控制row号
         autoClosingBrackets: true,
         formatOnPaste: true, //YesNoPaste自动Format
       },
@@ -62,7 +62,7 @@ export default {
   methods: {
     init() {
       if (this.$refs[this.id]) {
-        // InitEdit器，确保dom已经Render
+        // InitEdit器，ensuredomalready经Render
         const config = Object.assign({}, this.monacoEditorConfig, {
           language: this.language,
           value: this.value,
@@ -84,7 +84,7 @@ export default {
     getCodeVal() {
       const content = this.monacoEditor && this.monacoEditor.getValue();
       if (!content) {
-        this.$message.error("Cannot be empty, 提交Failed");
+        this.$message.error("Cannot be empty, SubmitFailed");
       }
       return content;
     },
