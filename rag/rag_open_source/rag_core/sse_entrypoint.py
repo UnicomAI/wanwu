@@ -12,7 +12,7 @@ def main():
     parser.add_argument('--timeout', type=int, default=600, help='超时时间(秒)')
     args = parser.parse_args()
 
-    # 记录日志 [EN] logging
+    # logging
     log_file = f"sse_logs_{args.port}.log"
     print(f"正在启动FastAPI应用，端口号为{args.port}...")
     print(f"日志将输出到 {log_file}")

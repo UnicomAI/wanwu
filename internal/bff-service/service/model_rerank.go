@@ -21,7 +21,7 @@ func ModelRerank(ctx *gin.Context, modelID string, req *mp_common.RerankReq) {
 		return
 	}
 
-	// 校验model字段 [EN] Verify model fields
+	// Verify model fields
 	if req != nil {
 		if req.Model != "" && req.Model != modelInfo.Model {
 			gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v rerank err: model mismatch!", modelInfo.ModelId)))

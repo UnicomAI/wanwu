@@ -1,0 +1,22 @@
+Scanning web/src for Chinese characters (ignoring comments)...
+Found 561 potential untranslated lines:
+web/src/utils/schema.conf.js:47: '                                    "description": "Please求Failed时的ErrorInformation",\n' +
+web/src/utils/schema.conf.js:99: '          description: Please求Failed时的ErrorInformation\n' +
+web/src/components/agentDetail.vue:11: 返回
+web/src/components/agentDetail.vue:45: <div class="item-title">• &nbsp;使用概述</div>
+web/src/components/agentDetail.vue:52: <div class="item-title">• &nbsp;特性说明</div>
+web/src/components/agentDetail.vue:59: <div class="item-title">• &nbsp;App场景</div>
+web/src/components/agentDetail.vue:67: <div class="item-title" style="width:110px;">• &nbsp;WorkflowConfiguration说明</div>
+web/src/components/agentDetail.vue:78: <p style="margin: 20px 0;color: #333;">更多推荐</p>
+web/src/components/metaSet.vue:4: <el-button icon="el-icon-plus" type="primary" @click="addMataItem" size="small">Add条件</el-button>
+web/src/components/metaSet.vue:35: placeholder="Please select条件"
+web/src/components/metaSet.vue:82: placeholder="选择日期时间"
+web/src/components/metaSet.vue:99: placeholder="条件"
+web/src/components/metaSet.vue:138: label:'且'
+web/src/components/metaSet.vue:142: label:'或'
+web/src/components/metaSet.vue:153: label:'早于'
+web/src/components/metaSet.vue:157: label:'晚于'
+web/src/components/metaSet.vue:165: label:'不Is Empty'
+web/src/components/metaSet.vue:175: label:'不Yes'
+web/src/components/metaSet.vue:179: label:'包含'
+web/src/components/metaSet.vue:183: label:'不包含'

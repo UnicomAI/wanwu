@@ -12,12 +12,12 @@ import (
 // CreateOrg
 //
 //	@Tags			permission.org
-//	@Summary		创建下级组织 [EN] @Summary Create subordinate organization
-//	@Description	创建X-Org-Id组织的下级组织 [EN] @Description Create a subordinate organization of the X-Org-Id organization
+//	@Summary Create subordinate organization
+//	@Description Create a subordinate organization of the X-Org-Id organization
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.OrgCreate	true	"组织信息" [EN] @Param data body request.OrgCreate true "Organization information"
+//	@Param data body request.OrgCreate true "Organization information"
 //	@Success		200		{object}	response.Response{data=response.OrgID}
 //	@Router			/org [post]
 func CreateOrg(ctx *gin.Context) {
@@ -36,11 +36,11 @@ func CreateOrg(ctx *gin.Context) {
 // ChangeOrg
 //
 //	@Tags		permission.org
-//	@Summary	编辑下级组织 [EN] @Summary Edit subordinate organizations
+//	@Summary Edit subordinate organizations
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		data	body		request.OrgUpdate	true	"组织信息" [EN] @Param data body request.OrgUpdate true "Organization information"
+//	@Param data body request.OrgUpdate true "Organization information"
 //	@Success	200		{object}	response.Response
 //	@Router		/org [put]
 func ChangeOrg(ctx *gin.Context) {
@@ -59,11 +59,11 @@ func ChangeOrg(ctx *gin.Context) {
 // DeleteOrg
 //
 //	@Tags		permission.org
-//	@Summary	删除下级组织 [EN] @Summary Delete subordinate organizations
+//	@Summary Delete subordinate organizations
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		data	body		request.OrgID	true	"组织ID" [EN] @Param data body request.OrgID true "Organization ID"
+//	@Param data body request.OrgID true "Organization ID"
 //	@Success	200		{object}	response.Response
 //	@Router		/org [delete]
 func DeleteOrg(ctx *gin.Context) {
@@ -82,11 +82,11 @@ func DeleteOrg(ctx *gin.Context) {
 // GetOrgInfo
 //
 //	@Tags		permission.org
-//	@Summary	获取组织信息 [EN] @Summary Get organization information
+//	@Summary Get organization information
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		orgId	query		string	true	"组织ID" [EN] @Param orgId query string true "Organization ID"
+//	@Param orgId query string true "Organization ID"
 //	@Success	200		{object}	response.Response{data=response.OrgInfo}
 //	@Router		/org/info [get]
 func GetOrgInfo(ctx *gin.Context) {
@@ -97,14 +97,14 @@ func GetOrgInfo(ctx *gin.Context) {
 // GetOrgList
 //
 //	@Tags			permission.org
-//	@Summary		获取下级组织列表 [EN] @Summary Get the list of subordinate organizations
-//	@Description	获取X-Org-Id组织的下级组织列表 [EN] @Description Get the list of subordinate organizations of the X-Org-Id organization
+//	@Summary Get the list of subordinate organizations
+//	@Description Get the list of subordinate organizations of the X-Org-Id organization
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			name		query		string	false	"组织名(模糊查询)" [EN] @Param name query string false "Organization name (fuzzy query)"
-//	@Param			pageNo		query		int		true	"页面编号，从1开始" [EN] @Param pageNo query int true "Page number, starting from 1"
-//	@Param			pageSize	query		int		true	"单页数量，从1开始" [EN] @Param pageSize query int true "Number of single pages, starting from 1"
+//	@Param name query string false "Organization name (fuzzy query)"
+//	@Param pageNo query int true "Page number, starting from 1"
+//	@Param pageSize query int true "Number of single pages, starting from 1"
 //	@Success		200			{object}	response.Response{data=response.PageResult{list=[]response.OrgInfo}}
 //	@Router			/org/list [get]
 func GetOrgList(ctx *gin.Context) {
@@ -115,11 +115,11 @@ func GetOrgList(ctx *gin.Context) {
 // ChangeOrgStatus
 //
 //	@Tags		permission.org
-//	@Summary	修改下级组织状态 [EN] @Summary Modify the status of subordinate organizations
+//	@Summary Modify the status of subordinate organizations
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		data	body		request.OrgStatus	true	"组织信息" [EN] @Param data body request.OrgStatus true "Organization information"
+//	@Param data body request.OrgStatus true "Organization information"
 //	@Success	200		{object}	response.Response
 //	@Router		/org/status [put]
 func ChangeOrgStatus(ctx *gin.Context) {

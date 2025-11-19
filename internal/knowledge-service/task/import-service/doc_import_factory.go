@@ -20,7 +20,7 @@ func AddDocImportService(service DocImportService) {
 	docImportServiceMap[service.ImportType()] = service
 }
 
-// DoDocImport 执行文件导入 [EN] DoDocImport executes file import
+// DoDocImport executes file import
 func DoDocImport(ctx context.Context, task *model.KnowledgeImportTask) (resultList []*model.DocInfo, err error) {
 	defer util.PrintPanicStackWithCall(func(panicOccur bool, err2 error) {
 		if panicOccur {
@@ -33,7 +33,7 @@ func DoDocImport(ctx context.Context, task *model.KnowledgeImportTask) (resultLi
 			status = model.KnowledgeImportError
 			errMsg = err.Error()
 		}
-		//更新状态和数量 [EN] Update status and quantity
+		//Update status and quantity
 		err = db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
 			err = orm.UpdateKnowledgeImportTaskStatus(ctx, tx, task.Id, status, errMsg)
 			if err != nil {
@@ -46,11 +46,11 @@ func DoDocImport(ctx context.Context, task *model.KnowledgeImportTask) (resultLi
 		})
 	})
 
-	//1.获取服务service [EN] 1. Get service service
+	//1. Get service service
 	docImportService, ok := docImportServiceMap[task.ImportType]
 	if !ok {
 		log.Errorf("DoDocAnalyze not found import type %d", task.ImportType)
-		//没找到处理器不算处理错误 [EN] Not finding the processor does not count as a processing error
+		//Not finding the processor does not count as a processing error
 		return nil, errors.New("DoDocAnalyze not found import type")
 	}
 	var importDocInfo = model.DocImportInfo{}
@@ -59,7 +59,7 @@ func DoDocImport(ctx context.Context, task *model.KnowledgeImportTask) (resultLi
 		log.Errorf("Unmarshal fail %v", err)
 		return nil, err
 	}
-	//2.更新导入任务状态 [EN] 2. Update the import task status
+	//2. Update the import task status
 	err = orm.UpdateKnowledgeImportTaskStatus(ctx, nil, task.Id, model.KnowledgeImportAnalyze, "")
 	if err != nil {
 		log.Errorf("Update fail %v", err)
@@ -73,7 +73,7 @@ func DoDocImport(ctx context.Context, task *model.KnowledgeImportTask) (resultLi
 	if len(docList) == 0 {
 		return make([]*model.DocInfo, 0), nil
 	}
-	//3.执行文件校验 [EN] 3. Perform file verification
+	//3. Perform file verification
 	docCheckList, err := docImportService.CheckDoc(ctx, task, docList)
 	if err != nil {
 		log.Errorf("CheckDoc fail %v", err)
@@ -82,7 +82,7 @@ func DoDocImport(ctx context.Context, task *model.KnowledgeImportTask) (resultLi
 	if len(docCheckList) == 0 {
 		return make([]*model.DocInfo, 0), nil
 	}
-	//4.执行文件导入 [EN] 4. Execute file import
+	//4. Execute file import
 	resultList, err = docImportService.ImportDoc(ctx, task, docCheckList)
 	return
 }

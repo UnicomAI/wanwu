@@ -36,7 +36,7 @@ func (cfg *textConfig) langMsg(lang, defaultLang Lang, args []string) string {
 	var format string
 	var ok bool
 	if format, ok = cfg.Langs[lang]; !ok {
-		// 没有对应语言，则使用默认语言 [EN] If there is no corresponding language, the default language will be used.
+		// If there is no corresponding language, the default language will be used.
 		format = cfg.Langs[defaultLang]
 	}
 	if format != "" {

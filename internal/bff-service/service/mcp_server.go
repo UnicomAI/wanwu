@@ -112,7 +112,7 @@ func GetMCPServerDetail(ctx *gin.Context, mcpServerId string) (*response.MCPServ
 }
 
 func DeleteMCPServer(ctx *gin.Context, mcpServerId string) error {
-	// 删除智能体表AssistantMCPServer相关记录 [EN] Delete records related to AssistantMCPServer on the smart body table
+	// Delete records related to AssistantMCPServer on the smart body table
 	_, err := assistant.AssistantMCPDeleteByMCPId(ctx.Request.Context(), &assistant_service.AssistantMCPDeleteByMCPIdReq{
 		McpId:   mcpServerId,
 		McpType: constant.MCPTypeMCPServer,
@@ -121,7 +121,7 @@ func DeleteMCPServer(ctx *gin.Context, mcpServerId string) error {
 		return err
 	}
 
-	// 删除MCPServer相关 [EN] Delete MCPServer related
+	// Delete MCPServer related
 	_, err = app.DeleteApp(ctx.Request.Context(), &app_service.DeleteAppReq{
 		AppId:   mcpServerId,
 		AppType: constant.AppTypeMCPServer,
@@ -267,7 +267,7 @@ func GetMCPServerMessage(ctx *gin.Context, mcpServerId string) error {
 		}
 	}
 	if body != nil {
-		// 调用前再次确保Body可用（防止中间件已读取） [EN] Make sure the Body is available again before calling (to prevent the middleware from reading it)
+		// Make sure the Body is available again before calling (to prevent the middleware from reading it)
 		ctx.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 	}
 
@@ -285,7 +285,7 @@ func GetMCPServerStreamable(ctx *gin.Context, mcpServerId string) error {
 		}
 	}
 	if body != nil {
-		// 调用前再次确保Body可用（防止中间件已读取） [EN] Make sure the Body is available again before calling (to prevent the middleware from reading it)
+		// Make sure the Body is available again before calling (to prevent the middleware from reading it)
 		ctx.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 	}
 	if err := mcp_util.HandleStreamable(mcpServerId, ctx.Writer, ctx.Request); err != nil {

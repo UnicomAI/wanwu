@@ -66,12 +66,12 @@ export default {
       let legendData = [];
       let xTime = [];
 
-      // 获取x轴数据
+      // Getx轴Data
       if (this.content.length > 0 && this.content[0].items) {
         xTime = this.content[0].items.map(item => item.key);
       }
 
-      // 构建每个系列的数据
+      // Build每个系列 of Data
       this.content.forEach((line, index) => {
         legendData.push(line.lineName);
 
@@ -223,13 +223,13 @@ export default {
       this.api.setOption(option);
     },
 
-    // 根据索引获取不同颜色
+    // 根据IndexGet不同颜色
     getColorByIndex(index) {
       const colors = ["#0088FF", "#FF9F40", "#1DD1A1", "#FF6B6B", "#5F27CD"];
       return colors[index % colors.length];
     },
 
-    // 根据索引获取区域颜色
+    // 根据IndexGetArea域颜色
     getAreaColorByIndex(index, opacity) {
       const baseColors = ["80,141,255", "255,159,64", "29,209,161", "255,107,107", "95,39,205"];
       const baseColor = baseColors[index % baseColors.length];

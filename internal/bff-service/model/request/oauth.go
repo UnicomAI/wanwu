@@ -66,7 +66,7 @@ func (u *UpdateOauthAppReq) Check() error {
 
 type UpdateOauthAppStatusReq struct {
 	ClientID string `json:"clientId" validate:"required"`
-	Status   bool   `json:"status"` // 启停状态 [EN] Start and stop status
+	Status   bool   `json:"status"` // Start and stop status
 }
 
 func (u *UpdateOauthAppStatusReq) Check() error {

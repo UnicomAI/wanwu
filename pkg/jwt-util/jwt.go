@@ -11,7 +11,7 @@ const (
 	// jwt subject
 	SUBJECT_USER = "user"
 
-	UserTokenTimeout      = int64(60 * 60 * 24) // 1天 [EN] 1 day
+	UserTokenTimeout      = int64(60 * 60 * 24) // 1 day
 	BufferTime            = int64(60 * 60 * 2)
 	UserLoginTokenTimeout = int64(60 * 5) // 5 min
 )
@@ -28,7 +28,7 @@ var (
 )
 
 type CustomClaims struct {
-	UserID     string `json:"userId"` // 用户ID [EN] User ID
+	UserID     string `json:"userId"` // User ID
 	BufferTime int64  `json:"bufferTime"`
 	jwt.StandardClaims
 }
@@ -59,12 +59,12 @@ func generateToken(id string, timeout int64, secretKey string) (*CustomClaims, s
 	nowTime := time.Now().Unix()
 	claims := &CustomClaims{
 		UserID:     id,
-		BufferTime: nowTime + BufferTime, // 缓冲时间，当nowTime大于等于BufferTime and nowTime小于ExpiresAt是获得新的token [EN] Buffer time, when nowTime is greater than or equal to BufferTime and nowTime is less than ExpiresAt, a new token is obtained
+		BufferTime: nowTime + BufferTime, // Buffer time, when nowTime is greater than or equal to BufferTime and nowTime is less than ExpiresAt, a new token is obtained
 		StandardClaims: jwt.StandardClaims{
 			Issuer:    "wanwu",
-			Subject:   SUBJECT_USER,      // 用途，目前固定user [EN] Purpose, currently fixed user
-			NotBefore: nowTime,           // 生效时间 [EN] Effective time
-			ExpiresAt: nowTime + timeout, // 过期时间 [EN] Expiration time
+			Subject:   SUBJECT_USER,      // Purpose, currently fixed user
+			NotBefore: nowTime,           // Effective time
+			ExpiresAt: nowTime + timeout, // Expiration time
 		},
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secretKey))

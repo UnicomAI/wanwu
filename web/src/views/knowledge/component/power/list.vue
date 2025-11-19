@@ -34,16 +34,16 @@
                 class="permission-select"
               >
                 <el-option label="可读" :value="0"></el-option>
-                <el-option label="可编辑" :value="10"></el-option>
+                <el-option label="可Edit" :value="10"></el-option>
                 <el-option label="管理员" :value="20"></el-option>
               </el-select>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" align="center">
+        <el-table-column label="Operation" width="180" align="center">
           <template slot-scope="scope">
             <div class="action-buttons">
-              <!-- 系统管理员权限：只显示转让按钮 -->
+              <!-- System管理员权限：只Show转让Button -->
               <template v-if="scope.row.transfer && !scope.row.editing">
                 <el-button
                   type="text"
@@ -55,7 +55,7 @@
                   转让
                 </el-button>
               </template>
-              <!-- 非管理员权限：显示编辑和删除按钮 -->
+              <!-- 非管理员权限：ShowEditAndDeleteButton -->
               <template v-if="scope.row.editing">
                 <el-button
                   type="text"
@@ -64,7 +64,7 @@
                   @click="handleSave(scope.row)"
                   class="action-btn save-btn"
                 >
-                  保存
+                  Save
                 </el-button>
                 <el-button
                   type="text"
@@ -73,7 +73,7 @@
                   @click="handleCancel(scope.row)"
                   class="action-btn cancel-btn"
                 >
-                  取消
+                  Cancel
                 </el-button>
               </template>
               <template v-if="showEdit(scope.row)">
@@ -84,7 +84,7 @@
                   @click="handleEdit(scope.row)"
                   class="action-btn edit-btn"
                 >
-                  编辑
+                  Edit
                 </el-button>
                 <el-button
                   type="text"
@@ -93,7 +93,7 @@
                   @click="handleDelete(scope.row)"
                   class="action-btn delete-btn"
                 >
-                  删除
+                  Delete
                 </el-button>
               </template>
               <span v-else-if="showInfo(scope.row)" class="noPower">--</span>
@@ -173,10 +173,10 @@ export default {
     },
     handleEdit(row) {
       row.editing = true
-      row.originalType = row.permissionType // 保存原始值
+      row.originalType = row.permissionType // Save原始Value
     },
     handleSave(row) {
-      // 保存编辑
+      // SaveEdit
       row.editing = false
       row.originalType = row.permissionType
       const knowledgeUser = {
@@ -187,7 +187,7 @@ export default {
         }
       editUserPower({knowledgeId:this.knowledgeId,knowledgeUser:knowledgeUser}).then(res => {
         if(res.code === 0){
-          this.$message.success('权限修改成功')
+          this.$message.success('权限ModifySuccess')
           this.getUserPower()
         }
       }).catch(() => {})
@@ -197,30 +197,30 @@ export default {
       row.editing = false
     },
     handleTransfer(row) {
-      this.$confirm('确定要转让管理员权限吗？转让后您将失去管理员权限。', '转让确认', {
+      this.$confirm('确定要转让管理员权限吗？转让后您将失去管理员权限。', '转让Confirm', {
         confirmButtonText: '确定转让',
-        cancelButtonText: '取消',
+        cancelButtonText: 'Cancel',
         type: 'warning'
       }).then(() => {
         this.$emit('transfer', row)
       }).catch(() => {
-        this.$message.info('已取消转让')
+        this.$message.info('已Cancel转让')
       })
     },
     handleDelete(row) {
-      this.$confirm('确定要删除这条数据吗？', '提示', {
+      this.$confirm('确定要Delete这条Data吗？', 'Tip', {
         confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        cancelButtonText: 'Cancel',
         type: 'warning'
       }).then(() => {
         delUserPower({knowledgeId:this.knowledgeId,permissionId:row.permissionId}).then(res => {
           if(res.code === 0){
-            this.$message.success('删除成功')
+            this.$message.success('DeleteSuccess')
             this.getUserPower()
           }
         }).catch(() => {})
       }).catch(() => {
-        this.$message.info('已取消删除')
+        this.$message.info('已CancelDelete')
       })
     }
   }

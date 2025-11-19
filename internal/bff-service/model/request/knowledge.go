@@ -41,16 +41,16 @@ type KnowledgeHitReq struct {
 }
 
 type KnowledgeMatchParams struct {
-	MatchType         string  `json:"matchType"  validate:"required"` //matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本） [EN] matchType: vector (vector search), text (text search), mix (mixed search: vector + text)
-	RerankModelId     string  `json:"rerankModelId"`                  //rerank模型id [EN] rerank model id
-	PriorityMatch     int32   `json:"priorityMatch"`                  // 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1 [EN] Weight matching. This is only set to 1 after selecting the weight setting in mixed search mode.
-	SemanticsPriority float32 `json:"semanticsPriority"`              // 语义权重 [EN] semantic weight
-	KeywordPriority   float32 `json:"keywordPriority"`                // 关键词权重 [EN] Keyword weight
-	TopK              int32   `json:"topK"`                           //topK 获取最高的几行 [EN] topK gets the highest rows
-	Threshold         float32 `json:"threshold"`                      //threshold 过滤分数阈值 [EN] threshold filter score threshold
-	TermWeight        float32 `json:"termWeight"`                     // 关键词系数 [EN] keyword coefficient
-	TermWeightEnable  bool    `json:"termWeightEnable"`               // 关键词系数开关 [EN] Keyword coefficient switch
-	UseGraph          bool    `json:"useGraph"`                       // 是否使用知识图谱 [EN] Whether to use knowledge graph
+	MatchType         string  `json:"matchType"  validate:"required"` //matchType: vector (vector search), text (text search), mix (mixed search: vector + text)
+	RerankModelId     string  `json:"rerankModelId"`                  //rerank model id
+	PriorityMatch     int32   `json:"priorityMatch"`                  // Weight matching. This is only set to 1 after selecting the weight setting in mixed search mode.
+	SemanticsPriority float32 `json:"semanticsPriority"`              // semantic weight
+	KeywordPriority   float32 `json:"keywordPriority"`                // Keyword weight
+	TopK              int32   `json:"topK"`                           //topK gets the highest rows
+	Threshold         float32 `json:"threshold"`                      //threshold filter score threshold
+	TermWeight        float32 `json:"termWeight"`                     // keyword coefficient
+	TermWeightEnable  bool    `json:"termWeightEnable"`               // Keyword coefficient switch
+	UseGraph          bool    `json:"useGraph"`                       // Whether to use knowledge graph
 	CommonCheck
 }
 
@@ -58,11 +58,11 @@ type EmbeddingModel struct {
 	ModelId string `json:"modelId"  validate:"required"`
 }
 
-// KnowledgeGraph 知识图谱信息 [EN] KnowledgeGraph knowledge graph information
+// KnowledgeGraph knowledge graph information
 type KnowledgeGraph struct {
-	Switch     bool   `json:"switch"`     //知识图谱开关 [EN] Knowledge graph switch
-	LLMModelId string `json:"llmModelId"` //大模型id，开关为true必填 [EN] Large model id, the switch is true and required
-	SchemaUrl  string `json:"schemaUrl"`  //模型schema文件地址，可以为空 [EN] Model schema file address, can be empty
+	Switch     bool   `json:"switch"`     //Knowledge graph switch
+	LLMModelId string `json:"llmModelId"` //Large model id, the switch is true and required
+	SchemaUrl  string `json:"schemaUrl"`  //Model schema file address, can be empty
 }
 
 type DeleteKnowledge struct {
@@ -84,7 +84,7 @@ type CallbackUpdateDocStatusReq struct {
 
 type CallbackUpdateKnowledgeStatusReq struct {
 	KnowledgeId  string `json:"knowledgeId" validate:"required"`
-	ReportStatus int32  `json:"reportStatus" validate:"required"` //此状态不会是0 [EN] This status will not be 0
+	ReportStatus int32  `json:"reportStatus" validate:"required"` //This status will not be 0
 	CommonCheck
 }
 
@@ -95,12 +95,12 @@ type CallbackMetaData struct {
 }
 
 type DocMetaData struct {
-	MetaId        string `json:"metaId"`        // 元数据id [EN] metadata id
+	MetaId        string `json:"metaId"`        // metadata id
 	MetaKey       string `json:"metaKey"`       // key
-	MetaValue     string `json:"metaValue"`     // 确定值 [EN] Determine value
+	MetaValue     string `json:"metaValue"`     // Determine value
 	MetaValueType string `json:"metaValueType"` // string，number，time
-	MetaRule      string `json:"metaRule"`      // 正则表达式 [EN] regular expression
-	Option        string `json:"option"`        // option:add(新增)、update(更新)、delete(删除),update 和delete 的时候metaId 不能为空 [EN] option: add (new), update (update), delete (delete), metaId cannot be empty when updating and deleting.
+	MetaRule      string `json:"metaRule"`      // regular expression
+	Option        string `json:"option"`        // option: add (new), update (update), delete (delete), metaId cannot be empty when updating and deleting.
 }
 
 type SearchKnowledgeInfoReq struct {
@@ -128,7 +128,7 @@ type UpdateMetaValueReq struct {
 	ApplyToSelected bool           `json:"applyToSelected"`
 }
 
-// RagSearchKnowledgeBaseReq rag知识库查询请求 [EN] RagSearchKnowledgeBaseReq rag knowledge base query request
+// RagSearchKnowledgeBaseReq rag knowledge base query request
 type RagSearchKnowledgeBaseReq struct {
 	UserId               string                         `json:"userId" validate:"required"`
 	Question             string                         `json:"question" validate:"required"`
@@ -137,42 +137,42 @@ type RagSearchKnowledgeBaseReq struct {
 	Threshold            float64                        `json:"threshold"`
 	TopK                 int32                          `json:"topK"`
 	RerankModelId        string                         `json:"rerank_model_id"`               // rerankId
-	RerankMod            string                         `json:"rerank_mod"`                    // rerank_model:重排序模式，weighted_score：权重搜索 [EN] rerank_model: reranking mode, weighted_score: weighted search
-	RetrieveMethod       string                         `json:"retrieve_method"`               // hybrid_search:混合搜索， semantic_search:向量搜索， full_text_search：文本搜索 [EN] hybrid_search: hybrid search, semantic_search: vector search, full_text_search: text search
-	Weight               *WeightParams                  `json:"weights"`                       // 权重搜索下的权重配置 [EN] Weight configuration under weight search
-	TermWeight           float32                        `json:"term_weight_coefficient"`       // 关键词系数 [EN] keyword coefficient
-	MetaFilter           bool                           `json:"metadata_filtering"`            // 元数据过滤开关 [EN] Metadata filter switch
-	MetaFilterConditions []*MetadataFilterItem          `json:"metadata_filtering_conditions"` // 元数据过滤条件 [EN] Metadata filters
-	UseGraph             bool                           `json:"use_graph"`                     // 是否启动知识图谱查询 [EN] Whether to start knowledge graph query
+	RerankMod            string                         `json:"rerank_mod"`                    // rerank_model: reranking mode, weighted_score: weighted search
+	RetrieveMethod       string                         `json:"retrieve_method"`               // hybrid_search: hybrid search, semantic_search: vector search, full_text_search: text search
+	Weight               *WeightParams                  `json:"weights"`                       // Weight configuration under weight search
+	TermWeight           float32                        `json:"term_weight_coefficient"`       // keyword coefficient
+	MetaFilter           bool                           `json:"metadata_filtering"`            // Metadata filter switch
+	MetaFilterConditions []*MetadataFilterItem          `json:"metadata_filtering_conditions"` // Metadata filters
+	UseGraph             bool                           `json:"use_graph"`                     // Whether to start knowledge graph query
 	CommonCheck
 }
 
 type RagKnowledgeChatReq struct {
 	UserId               string                         `json:"userId"`
 	KnowledgeUser        map[string][]*RagKnowledgeInfo `json:"knowledge_base_info"`
-	KnowledgeIdList      []string                       `json:"knowledgeIdList"` // 知识库id列表 [EN] Knowledge base id list
+	KnowledgeIdList      []string                       `json:"knowledgeIdList"` // Knowledge base id list
 	Question             string                         `json:"question"`
-	Threshold            float32                        `json:"threshold"` // Score阈值 [EN] Score threshold
+	Threshold            float32                        `json:"threshold"` // Score threshold
 	TopK                 int32                          `json:"topK"`
 	Stream               bool                           `json:"stream"`
-	Chichat              bool                           `json:"chichat"` // 当知识库召回结果为空时是否使用默认话术（兜底），默认为true [EN] Whether to use the default speech technique (covering the bottom) when the knowledge base recall result is empty, the default is true
+	Chichat              bool                           `json:"chichat"` // Whether to use the default speech technique (covering the bottom) when the knowledge base recall result is empty, the default is true
 	RerankModelId        string                         `json:"rerank_model_id"`
 	CustomModelInfo      *CustomModelInfo               `json:"custom_model_info"`
 	History              []*HistoryItem                 `json:"history"`
 	MaxHistory           int32                          `json:"max_history"`
-	RewriteQuery         bool                           `json:"rewrite_query"`   // 是否query改写 [EN] Whether to rewrite query
-	RerankMod            string                         `json:"rerank_mod"`      // rerank_model:重排序模式，weighted_score：权重搜索 [EN] rerank_model: reranking mode, weighted_score: weighted search
-	RetrieveMethod       string                         `json:"retrieve_method"` // hybrid_search:混合搜索， semantic_search:向量搜索， full_text_search：文本搜索 [EN] hybrid_search: hybrid search, semantic_search: vector search, full_text_search: text search
-	Weight               *WeightParams                  `json:"weights"`         // 权重搜索下的权重配置 [EN] Weight configuration under weight search
+	RewriteQuery         bool                           `json:"rewrite_query"`   // Whether to rewrite query
+	RerankMod            string                         `json:"rerank_mod"`      // rerank_model: reranking mode, weighted_score: weighted search
+	RetrieveMethod       string                         `json:"retrieve_method"` // hybrid_search: hybrid search, semantic_search: vector search, full_text_search: text search
+	Weight               *WeightParams                  `json:"weights"`         // Weight configuration under weight search
 	Temperature          float32                        `json:"temperature,omitempty"`
-	TopP                 float32                        `json:"top_p,omitempty"`               // 多样性 [EN] Diversity
-	RepetitionPenalty    float32                        `json:"repetition_penalty,omitempty"`  // 重复惩罚/频率惩罚 [EN] Repetition Penalty/Frequency Penalty
-	ReturnMeta           bool                           `json:"return_meta,omitempty"`         // 是否返回元数据 [EN] Whether to return metadata
-	AutoCitation         bool                           `json:"auto_citation"`                 // 是否自动角标 [EN] Whether to auto-mark
-	TermWeight           float32                        `json:"term_weight_coefficient"`       // 关键词系数 [EN] keyword coefficient
-	MetaFilter           bool                           `json:"metadata_filtering"`            // 元数据过滤开关 [EN] Metadata filter switch
-	MetaFilterConditions []*MetadataFilterItem          `json:"metadata_filtering_conditions"` // 元数据过滤条件 [EN] Metadata filters
-	UseGraph             bool                           `json:"use_graph"`                     // 是否启动知识图谱查询 [EN] Whether to start knowledge graph query
+	TopP                 float32                        `json:"top_p,omitempty"`               // Diversity
+	RepetitionPenalty    float32                        `json:"repetition_penalty,omitempty"`  // Repetition Penalty/Frequency Penalty
+	ReturnMeta           bool                           `json:"return_meta,omitempty"`         // Whether to return metadata
+	AutoCitation         bool                           `json:"auto_citation"`                 // Whether to auto-mark
+	TermWeight           float32                        `json:"term_weight_coefficient"`       // keyword coefficient
+	MetaFilter           bool                           `json:"metadata_filtering"`            // Metadata filter switch
+	MetaFilterConditions []*MetadataFilterItem          `json:"metadata_filtering_conditions"` // Metadata filters
+	UseGraph             bool                           `json:"use_graph"`                     // Whether to start knowledge graph query
 	CommonCheck
 }
 
@@ -197,8 +197,8 @@ type RagKnowledgeInfo struct {
 }
 
 type WeightParams struct {
-	VectorWeight float32 `json:"vector_weight"` //语义权重 [EN] semantic weight
-	TextWeight   float32 `json:"text_weight"`   //关键字权重 [EN] keyword weight
+	VectorWeight float32 `json:"vector_weight"` //semantic weight
+	TextWeight   float32 `json:"text_weight"`   //keyword weight
 }
 
 type MetadataFilterItem struct {
@@ -208,10 +208,10 @@ type MetadataFilterItem struct {
 }
 
 type MetaItem struct {
-	MetaName           string      `json:"meta_name"`           // 元数据名称 [EN] metadata name
-	MetaType           string      `json:"meta_type"`           // 元数据类型 [EN] metadata type
-	ComparisonOperator string      `json:"comparison_operator"` // 比较运算符 [EN] comparison operator
-	Value              interface{} `json:"value,omitempty"`     // 用于过滤的条件值 [EN] condition value for filtering
+	MetaName           string      `json:"meta_name"`           // metadata name
+	MetaType           string      `json:"meta_type"`           // metadata type
+	ComparisonOperator string      `json:"comparison_operator"` // comparison operator
+	Value              interface{} `json:"value,omitempty"`     // condition value for filtering
 }
 
 func (c *UpdateMetaValueReq) Check() error {

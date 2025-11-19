@@ -6,8 +6,8 @@ import (
 )
 
 type DistributedLockConfig struct {
-	Timeout     time.Duration // 锁超时时间 [EN] lock timeout
-	SyncAcquire bool          // 同步获取锁 [EN] Acquire locks synchronously
+	Timeout     time.Duration // lock timeout
+	SyncAcquire bool          // Acquire locks synchronously
 }
 
 type DistributedLockService interface {

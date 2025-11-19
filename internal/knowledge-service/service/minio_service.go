@@ -47,7 +47,7 @@ func DeleteFile(ctx context.Context, minioFilePath string) error {
 	return nil
 }
 
-// UploadLocalFile 根据文件路径上传文件 [EN] UploadLocalFile uploads files based on file path
+// UploadLocalFile uploads files based on file path
 func UploadLocalFile(ctx context.Context, minioDir string, minioFileName string, srcFilePath string) (string, string, int64, error) {
 	srcFile, err := os.Open(srcFilePath)
 	if err != nil {
@@ -116,7 +116,7 @@ func getContentType(uri string) (contentType string) {
 
 func UploadFile(ctx context.Context, dir string, fileName string, reader io.Reader, objectSize int64) (string, int64, error) {
 	bucketName := config.GetConfig().Minio.Bucket
-	// 上传文件。 [EN] Upload files.
+	// Upload files.
 	//milli := time.Now().UnixMilli()
 	var uploadInfo minio.UploadInfo
 	objectName := buildObjectName(dir, fileName)
@@ -182,7 +182,7 @@ func SplitFilePath(filePath string) (bucketName string, objectName string, fileN
 	if err != nil {
 		return "", "", ""
 	}
-	//此处拿到的path是以"/"开头的，因此split的时候split[0]="",数据从split[1]开始 [EN] The path obtained here starts with "/", so when splitting, split[0]="", the data starts from split[1]
+	//The path obtained here starts with "/", so when splitting, split[0]="", the data starts from split[1]
 	split := strings.Split(u.Path, "/")
 	totalLen := len(split)
 	if totalLen > 2 {

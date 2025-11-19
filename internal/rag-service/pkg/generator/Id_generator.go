@@ -11,9 +11,9 @@ type IDGenerator struct {
 	Node *snowflake.Node
 }
 
-// 初始化函数 [EN] initialization function
+// initialization function
 func init() {
-	// 创建节点 [EN] Create node
+	// Create node
 	node, err := snowflake.NewNode(1)
 	if err != nil {
 		log.Errorf("snowflake-generator init err: %s", err.Error())

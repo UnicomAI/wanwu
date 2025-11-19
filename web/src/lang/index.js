@@ -25,5 +25,5 @@ const i18n = new VueI18n({
     messages
 })
 
-// 导出 messages 给切换语言的时候用
+// Export messages 给切换语言的时候用
 export { i18n, messages }

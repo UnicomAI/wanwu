@@ -17,25 +17,25 @@
             @submit.native.prevent
         >
             <el-form-item
-            label="敏感词表名"
+            label="Sensitive Word TableName"
             prop="tableName"
             >
             <el-input
                 v-model="ruleForm.tableName"
-                placeholder="请输入表名，可包括汉字、英文、数字"
+                placeholder="Please enter表Name，可包括汉字、英文、数字"
                 maxlength="15"
                 show-word-limit
             ></el-input>
             </el-form-item>
             <el-form-item
-            label="表备注"
+            label="表Remark"
             prop="remark"
             >
             <el-input 
             v-model="ruleForm.remark" 
             type="textarea"
             :rows="4"
-            placeholder="输入备注，如说明应用场景，应用渠道、强调重要性等"></el-input>
+            placeholder="EnterRemark，如说明App Scenario，App渠道、强调重要性等"></el-input>
             </el-form-item>
         </el-form>
         <span
@@ -63,7 +63,7 @@ export default {
         if (!reg.test(value)) {
             callback(
             new Error(
-                '请输入表名，可包含汉字、英文、数字'
+                'Please enter表Name，可Contains汉字、英文、数字'
             )
             );
         } else {
@@ -79,10 +79,10 @@ export default {
             },
             rules: {
                 tableName: [
-                { required: true, message:'请输入敏感词表名', trigger: "blur" },
+                { required: true, message:'Please enterSensitive Word TableName', trigger: "blur" },
                 { validator: checkName, trigger: "blur" },
                 ],
-                remark:[{ required: true, message: '请输入表备注', trigger: "blur" }]
+                remark:[{ required: true, message: 'Please enter表Remark', trigger: "blur" }]
             },
             tableId:''
         }
@@ -113,7 +113,7 @@ export default {
         createSensitive(){
             createSensitive(this.ruleForm).then(res =>{
                 if(res.code === 0){
-                    this.$message.success('创建成功');
+                    this.$message.success('CreateSuccess');
                     this.$emit('reloadData')
                     this.dialogVisible = false;
                     this.$router.push({path:`/safety/wordList/${res.data.tableId}`});
@@ -129,7 +129,7 @@ export default {
             }
             editSensitive(data).then(res =>{
                 if(res.code === 0){
-                    this.$message.success('编辑成功');
+                    this.$message.success('EditSuccess');
                     this.$emit('reloadData')
                     this.clearform();
                     this.dialogVisible = false;
@@ -141,7 +141,7 @@ export default {
         showDialog(row=null){
             this.dialogVisible = true;
             if (row) {
-                this.title = '编辑词表';
+                this.title = 'Edit词表';
                 this.tableId = row.tableId;
                 this.ruleForm = {
                     tableName:row.tableName,

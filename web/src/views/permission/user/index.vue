@@ -116,7 +116,7 @@
       </span>
     </el-dialog>
 
-    <!--邀请用户-->
+    <!--邀Please用户-->
     <el-dialog
       v-if="!isSystem"
       :title="$t('user.button.invite')"
@@ -263,7 +263,7 @@
           this.loading = false
         }
       },
-      // 获取从分页组件传递的 data
+      // Get从分页Component传递 of  data
       refreshData(data) {
         this.tableData = data
       },
@@ -373,7 +373,7 @@
               this.$message.success(this.$t('common.message.success'))
               this.dialogVisible = false
 
-              // 如果修改的是当前用户，则更新权限
+              // IfModify of Yes当前User，ThenUpdatePermission
               const useInfo = this.$store.state.user.userInfo || {}
               if (useInfo.uid === this.row.userId) {
                 await this.getPermissionInfo()

@@ -16,7 +16,7 @@ const (
 	SystemPermission int32 = 30
 )
 
-// SelectKnowledgeOrg 查询知识库组织 [EN] SelectKnowledgeOrg Query knowledge base organization
+// SelectKnowledgeOrg Query knowledge base organization
 func SelectKnowledgeOrg(ctx *gin.Context, userId, orgId string, req *request.KnowledgeOrgSelectReq) (*response.KnowOrgInfoResp, error) {
 	orgInfo, err := iam.GetOrgAndSubOrgSelectByUser(ctx.Request.Context(), &iam_service.GetOrgAndSubOrgSelectByUserReq{
 		UserId: userId,
@@ -28,7 +28,7 @@ func SelectKnowledgeOrg(ctx *gin.Context, userId, orgId string, req *request.Kno
 	return buildKnowOrgInfo(orgInfo), nil
 }
 
-// SelectKnowledgePermissionUser 查询知识库有权限用户 [EN] SelectKnowledgePermissionUser Query knowledge base authorized users
+// SelectKnowledgePermissionUser Query knowledge base authorized users
 func SelectKnowledgePermissionUser(ctx *gin.Context, userId, orgId string, req *request.KnowledgeUserSelectReq) (*response.KnowledgeUserPermissionResp, error) {
 	dataListResp, err := knowledgeBasePermission.SelectKnowledgeUserPermission(ctx.Request.Context(), &knowledgebase_permission_service.KnowledgeUserPermissionReq{
 		KnowledgeId: req.KnowledgeId,
@@ -44,7 +44,7 @@ func SelectKnowledgePermissionUser(ctx *gin.Context, userId, orgId string, req *
 	}, err
 }
 
-// SelectKnowledgeNoPermissionUser 查询知识库没有权限用户 [EN] SelectKnowledgeNoPermissionUser queries the knowledge base for users without permission
+// SelectKnowledgeNoPermissionUser queries the knowledge base for users without permission
 func SelectKnowledgeNoPermissionUser(ctx *gin.Context, userId, orgId string, req *request.KnowledgeUserNoPermitSelectReq) (*response.KnowOrgUserInfoResp, error) {
 	list, err := iam.GetUserList(ctx.Request.Context(), &iam_service.GetUserListReq{
 		OrgId:    req.OrgId,
@@ -91,7 +91,7 @@ func CheckKnowledgeUserPermission(ctx *gin.Context, userId, orgId, knowledgeId s
 	return err
 }
 
-// AddKnowledgeUser 增加知识库用户 [EN] AddKnowledgeUser adds a knowledge base user
+// AddKnowledgeUser adds a knowledge base user
 func AddKnowledgeUser(ctx *gin.Context, userId, orgId string, req *request.KnowledgeUserAddReq) error {
 	_, err := knowledgeBasePermission.AddKnowledgeUser(ctx.Request.Context(), &knowledgebase_permission_service.AddKnowledgeUserReq{
 		KnowledgeId:       req.KnowledgeId,
@@ -103,7 +103,7 @@ func AddKnowledgeUser(ctx *gin.Context, userId, orgId string, req *request.Knowl
 	return err
 }
 
-// EditKnowledgeUser 修改知识库用户 [EN] EditKnowledgeUser Modify knowledge base user
+// EditKnowledgeUser Modify knowledge base user
 func EditKnowledgeUser(ctx *gin.Context, userId, orgId string, req *request.KnowledgeUserEditReq) error {
 	_, err := knowledgeBasePermission.EditKnowledgeUser(ctx.Request.Context(), &knowledgebase_permission_service.EditKnowledgeUserReq{
 		KnowledgeId:   req.KnowledgeId,
@@ -114,7 +114,7 @@ func EditKnowledgeUser(ctx *gin.Context, userId, orgId string, req *request.Know
 	return err
 }
 
-// DeleteKnowledgeUser 删除知识库用户 [EN] DeleteKnowledgeUser Delete knowledge base user
+// DeleteKnowledgeUser Delete knowledge base user
 func DeleteKnowledgeUser(ctx *gin.Context, userId, orgId string, req *request.KnowledgeUserDeleteReq) error {
 	_, err := knowledgeBasePermission.DeleteKnowledgeUser(ctx.Request.Context(), &knowledgebase_permission_service.DeleteKnowledgeUserReq{
 		KnowledgeId:  req.KnowledgeId,
@@ -125,7 +125,7 @@ func DeleteKnowledgeUser(ctx *gin.Context, userId, orgId string, req *request.Kn
 	return err
 }
 
-// TransferKnowledgeAdminUser 转让知识库管理员权限 [EN] TransferKnowledgeAdminUser transfers knowledge base administrator permissions
+// TransferKnowledgeAdminUser transfers knowledge base administrator permissions
 func TransferKnowledgeAdminUser(ctx *gin.Context, userId, orgId string, req *request.KnowledgeTransferUserAdminReq) error {
 	_, err := knowledgeBasePermission.TransferKnowledgeAdminUser(ctx.Request.Context(), &knowledgebase_permission_service.TransferKnowledgeAdminUserReq{
 		KnowledgeId:  req.KnowledgeId,
@@ -187,7 +187,7 @@ func buildNoPermissionKnowledgeUserList(permissionUserMap map[string]bool, userL
 	return list
 }
 
-// 构建知识库有权限用户id map [EN] Build a knowledge base authorized user id map
+// Build a knowledge base authorized user id map
 func buildPermissionUserIdMap(permissionList *knowledgebase_permission_service.KnowledgeUserPermissionResp) map[string]bool {
 	m := make(map[string]bool)
 	for _, info := range permissionList.KnowledgeUserList {
@@ -196,10 +196,10 @@ func buildPermissionUserIdMap(permissionList *knowledgebase_permission_service.K
 	return m
 }
 
-// 构建知识库有权限用户列表 [EN] Build a list of authorized users in the knowledge base
+// Build a list of authorized users in the knowledge base
 func buildKnowledgePermissionUserList(ctx *gin.Context, knowledgeUserList []*knowledgebase_permission_service.KnowledgeUserInfo, userId, orgId string) []*response.KnowledgeUserInfo {
 	if len(knowledgeUserList) > 0 {
-		//并发请求userName 和orgName [EN] Concurrent requests for userName and orgName
+		//Concurrent requests for userName and orgName
 		var userIdMap = make(map[string]bool)
 		var orgIdMap = make(map[string]bool)
 		for _, info := range knowledgeUserList {
@@ -225,11 +225,11 @@ func buildKnowledgePermissionUserList(ctx *gin.Context, knowledgeUserList []*kno
 }
 
 func buildUserTransfer(userInfo *knowledgebase_permission_service.KnowledgeUserInfo, userId, orgId string) bool {
-	//是系统管理员，同时当前用户 是 此权限记录的用户 [EN] Is the system administrator, and the current user is a user recorded with this permission
+	//Is the system administrator, and the current user is a user recorded with this permission
 	return userInfo.UserId == userId && userInfo.OrgId == orgId && userInfo.PermissionType == SystemPermission
 }
 
-// 并发查询用户详情和组织详情 [EN] Query user details and organization details concurrently
+// Query user details and organization details concurrently
 func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool) (map[string]*iam_service.IDName, map[string]*iam_service.IDName) {
 	var userIdList, orgIdList []string
 	for userId := range userIdMap {
@@ -242,7 +242,7 @@ func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool)
 	wg.Add(2)
 	orgInfoMap := make(map[string]*iam_service.IDName)
 	userInfoMap := make(map[string]*iam_service.IDName)
-	//查询user详情信息 [EN] Query user details
+	//Query user details
 	go func() {
 		defer func() {
 			wg.Done()
@@ -259,7 +259,7 @@ func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool)
 			userInfoMap[info.Id] = info
 		}
 	}()
-	//查询组织详情信息 [EN] Query organization details
+	//Query organization details
 	go func() {
 		defer func() {
 			wg.Done()

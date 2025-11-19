@@ -60,7 +60,7 @@ func loadXlsxSheetTextConfigs(f *excelize.File, sheet string, langs []string) ([
 	var ret []*textConfig
 	for idx := 1; idx < len(rows); idx++ {
 		if len(rows[idx]) == 0 {
-			// 允许跳过绝对空行 [EN] Allow skipping absolutely empty lines
+			// Allow skipping absolutely empty lines
 			continue
 		}
 		textCfg, err := row2textConfig(rows[idx], colIdxes)
@@ -82,7 +82,7 @@ func row2textConfig(row []string, colIdxes map[string]int) (*textConfig, error) 
 			case _errCodeCol, _textKeyCol:
 				return nil, fmt.Errorf("invalid col(%v) index(%v)", col, colIdx)
 			default:
-				// 没有对应语言列，或对应语言文本为空 [EN] There is no corresponding language column, or the corresponding language text is empty
+				// There is no corresponding language column, or the corresponding language text is empty
 			}
 			continue
 		}
@@ -98,7 +98,7 @@ func row2textConfig(row []string, colIdxes map[string]int) (*textConfig, error) 
 			ret.Key = colValue
 		default:
 			if colValue != "" {
-				// 对应语言文本为空，不增加key [EN] The corresponding language text is empty and no key is added.
+				// The corresponding language text is empty and no key is added.
 				ret.Langs[Lang(col)] = colValue
 			}
 		}
@@ -119,9 +119,9 @@ func str2code(s string) (err_code.Code, error) {
 
 func trimInvisibleSpace(s string) string {
 	return strings.TrimFunc(s, func(r rune) bool {
-		// 移除 Unicode 格式字符（如零宽空格 U+200B、U+FEFF 等） [EN] Remove Unicode format characters (such as zero-width spaces U+200B, U+FEFF, etc.)
-		return unicode.Is(unicode.Cf, r) || // 格式字符（Format） [EN] Format character (Format)
-			unicode.Is(unicode.Cc, r) || // 控制字符（Control） [EN] Control character (Control)
-			unicode.IsSpace(r) // 标准空白字符 [EN] Standard whitespace characters
+		// Remove Unicode format characters (such as zero-width spaces U+200B, U+FEFF, etc.)
+		return unicode.Is(unicode.Cf, r) || // Format character (Format)
+			unicode.Is(unicode.Cc, r) || // Control character (Control)
+			unicode.IsSpace(r) // Standard whitespace characters
 	})
 }

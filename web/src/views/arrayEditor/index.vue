@@ -32,19 +32,19 @@ export default {
   },
   data() {
     return {
-      monacoEditor: null, // 语言编辑器,
+      monacoEditor: null, // 语言Edit器,
       monacoEditorConfig: {
-        automaticLayout: true, // 自动布局
+        automaticLayout: true, // 自动Layout
         theme: "vs", // 官方自带三种主题vs, hc-black, or vs-dark
-        tabSize: 0, // tab 缩进长度
-        autoIndent: "None", // 控制编辑器在用户键入、粘贴、移动或缩进行时是否应自动调整缩进
+        tabSize: 0, // tab 缩进Length
+        autoIndent: "None", // 控制Edit器在UserKey入、Paste、移动OR缩进行 when YesNo应自动调整缩进
         minimap: {
-          enabled: false, // 关闭小地图
+          enabled: false, // Close小地图
         },
         readOnly: false,
         lineNumbers: "on", // 隐藏控制行号
         autoClosingBrackets: true,
-        formatOnPaste: true, //是否粘贴自动格式化
+        formatOnPaste: true, //YesNoPaste自动Format
       },
     };
   },
@@ -62,7 +62,7 @@ export default {
   methods: {
     init() {
       if (this.$refs[this.id]) {
-        // 初始化编辑器，确保dom已经渲染
+        // InitEdit器，确保dom已经Render
         const config = Object.assign({}, this.monacoEditorConfig, {
           language: this.language,
           value: this.value,
@@ -72,26 +72,26 @@ export default {
           config
         );
         //this.monacoEditor.editor.remeasureFonts();
-        // 编辑器绑定事件
+        // Edit器BindEvent
         this.monacoEditorBindEvent();
       }
     },
-    // 销毁编辑器
+    // DestroyEdit器
     monacoEditorDispose() {
       this.monacoEditor && this.monacoEditor.dispose();
     },
-    // 获取编辑器的值
+    // GetEdit器 of Value
     getCodeVal() {
       const content = this.monacoEditor && this.monacoEditor.getValue();
       if (!content) {
-        this.$message.error("不能为空, 提交失败");
+        this.$message.error("Cannot be empty, 提交Failed");
       }
       return content;
     },
-    // 编辑器事件
+    // Edit器Event
     monacoEditorBindEvent() {
       if (this.monacoEditor) {
-        // 实时获取编辑器的值
+        // 实 when GetEdit器 of Value
         this.monacoEditor.onDidChangeModelContent(() => {
           this.$emit("handleChange", this.monacoEditor.getValue(), this.n);
         });

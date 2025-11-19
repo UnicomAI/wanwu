@@ -4,62 +4,62 @@ import {i18n} from "@/lang"
 export default {
     data() {
         return {
-            isStop: false, // 判断是否取消请求
-            fileList:[],//文件列表
-            fileIndex:0,//文件索引
-            isChunk:true,//判断是否是切片上传
-            isExpire:false,//合并接口是否添加isExpired参数，用来判断minio存储文件是否过期
+            isStop: false, // 判断YesNoCancelRequest
+            fileList:[],//FileList
+            fileIndex:0,//FileIndex
+            isChunk:true,//判断YesNoYes切片Upload
+            isExpire:false,//合并InterfaceYesNoAddisExpiredParameter，用来判断minio存储FileYesNo 期
             // maxSizeBytes: 20 * 1024 * 1024,//可切片大小
             maxSizeBytes:0,//可切片大小
             chunkSize: 4 * 1024 * 1024,//切片大小1MB
-            file: null,//当前文件
-            totalChunks: 0,//所有切片数
+            file: null,//当前File
+            totalChunks: 0,//所Has切片数
             uploadedChunks: 0,
-            MAX_CONCURRENT:5,//最大并发数
-            chunks:[],//所有切片
-            nextChunkIndex: 0, // 下一个要处理的块索引
-            uploadQueue: [], // 当前正在处理的请求队列
-            failChunk:[],//上传失败切片
-            cancelSources: [], // 存储每个请求的取消令牌源
-            resList:[],//记录返回成功的文件name
-            uuid:'',//生成当前文件的uuid
+            MAX_CONCURRENT:5,//MaxConcurrency数
+            chunks:[],//所Has切片
+            nextChunkIndex: 0, // 下一个要Process of 块Index
+            uploadQueue: [], // 当前正在Process of RequestQueue
+            failChunk:[],//UploadFailed切片
+            cancelSources: [], // 存储每个Request of Cancel令牌源
+            resList:[],//RecordBackSuccess of Filename
+            uuid:'',//Generate当前File of uuid
         }
     },
     created() {
-      // 监听页面刷新或关闭事件
+      // ListenPageRefreshORCloseEvent
       window.addEventListener('beforeunload', this.cancelAllRequests);
     },
     beforeDestroy() {
-      // 移除事件监听器
+      // RemoveEventListen器
       window.removeEventListener('beforeunload', this.cancelAllRequests);
-      // 确保在组件销毁时取消所有请求
+      // 确保在ComponentDestroy when Cancel所HasRequest
       this.cancelAllRequests();
     },
     methods: {
-        async startUpload(fileIndex=0){//开始上传切片
+        async startUpload(fileIndex=0){//开始Upload切片
           this.isStop = false;
           this.fileIndex = fileIndex;
           this.file = this.fileList[this.fileIndex];
           this.uploadedChunks = 0;
           this.nextChunkIndex = 0;
-          this.uploadQueue = []; // 初始化队列
+          this.uploadQueue = []; // InitQueue
           this.failChunk = [];
           this.isChunk = true;
           this.uuid = this.$guid();
-          //判断是否需要切片
+          //判断YesNoNeed切片
           if(this.file.size < this.maxSizeBytes){
             this.isChunk = false;
             this.uploadFile()
             return
           }
-          //获取切片
+          //Get切片
           this.chunks = this.createFileChunks(this.file);
-          // 启动初始的MAX_CONCURRENT个请求
+          // Start初始 of MAX_CONCURRENT个Request
           for (let i = 0; i < Math.min(this.MAX_CONCURRENT, this.chunks.length); i++) {
             this.processNextChunk();
           }
         },
-        createFileChunks(file) {//创建切片
+        createFileChunks(file) {//Create切片
             this.totalChunks  = Math.ceil(file.size / this.chunkSize);
             const chunks = [];
             let start = 0;
@@ -75,10 +75,10 @@ export default {
             }
             return chunks;
         },
-        async processNextChunk() {//进行下一个切片上传
-          //如果当前切片文件已经上传完停止上传
+        async processNextChunk() {//进行下一个切片Upload
+          //If当前切片File已经Upload完StopUpload
           if (this.nextChunkIndex >= this.chunks.length){
-            //所有执行完之后，失败切片进行重试
+            //所HasExecute完之后，Failed切片进行Retry
             if(this.failChunk.length !== 0){
                 this.resetUpload()
             }
@@ -87,26 +87,26 @@ export default {
 
           const chunk = this.chunks[this.nextChunkIndex++];
           const uploadPromise = this.uploadChunk(chunk).then(() => {
-              this.processNextChunk(); // 递归调用以处理下一个块
+              this.processNextChunk(); // RecurseCall以Process下一个块
           }).catch(error =>{
-            //网络问题，参数问题导致的失败
+            //Network问题，Parameter问题导致 of Failed
             if(this.isStop) return;
             this.failChunk.push(chunk);
             this.processNextChunk();
           });
           
           this.uploadQueue.push(uploadPromise);
-          // 等待队列中的任意一个请求完成,忽略已完成或失败的请求错误
+          // AwaitQueue中 of 任意一个Request完成,忽略已完成ORFailed of RequestError
           await Promise.race(this.uploadQueue.map(promise => promise.catch(() => {}))); 
-          // 移除已完成的请求
+          // Remove已完成 of Request
           this.uploadQueue = this.uploadQueue.filter(promise => !promise.isFulfilled);
         },
-        clearFile(index){//清除文件
+        clearFile(index){//ClearFile
           // let formData = new FormData();
           const file = this.fileList[index]
           const hash = `${this.uuid}.${file.name.split(".").pop()}`
-          // formData.append('chunkName', hash);//前端uuid+文件后缀,标识一次上传批次
-          // formData.append('version', 0);//前端uuid+文件后缀,标识一次上传批次
+          // formData.append('chunkName', hash);//前端uuid+File后缀,标识一次Upload批次
+          // formData.append('version', 0);//前端uuid+File后缀,标识一次Upload批次
           const formData = {
             chunkName:hash,
             version:0
@@ -122,35 +122,35 @@ export default {
             }
           })
         },
-        async uploadChunk(chunkData) {//上传切片
-              const source = axios.CancelToken.source();//创建一个取消令牌
+        async uploadChunk(chunkData) {//Upload切片
+              const source = axios.CancelToken.source();//Create一个Cancel令牌
               this.cancelSources.push(source);
               const config =  source.token
 
               let formData = new FormData();
               const hash = `${this.uuid}.${this.file.name.split(".").pop()}`
-              formData.append('chunkName', hash);//前端uuid+文件后缀,标识一次上传批次
-              formData.append('fileName', this.file.name);//原始文件名称
-              formData.append('files', chunkData.chunk);//文件
+              formData.append('chunkName', hash);//前端uuid+File后缀,标识一次Upload批次
+              formData.append('fileName', this.file.name);//原始FileName
+              formData.append('files', chunkData.chunk);//File
               formData.append('concurrentTotal',this.MAX_CONCURRENT);
               formData.append('chunkSize',chunkData.chunk.size);
-              formData.append('concurrentNo', chunkData.group);//并发上传线程的序号
-              formData.append('sequence', chunkData.index + 1);//拆分小文件的序号
+              formData.append('concurrentNo', chunkData.group);//ConcurrencyUploadThread of No.
+              formData.append('sequence', chunkData.index + 1);//拆分小File of No.
               formData.append('version',0);
               try{
                 const res = await uploadChunks(formData,config);// 传递 AbortSigna
                 if(res.code === 0 && res.data.status === 1){
-                  this.uploadedChunks++;//用来判断执行成功的切片的数量
+                  this.uploadedChunks++;//用来判断ExecuteSuccess of 切片 of Count
                   if(Math.floor((this.uploadedChunks*100) / this.totalChunks) >= 100){
                     this.fileList[this.fileIndex].percentage = 99
                   }else{
                     this.fileList[this.fileIndex].percentage = Math.floor((this.uploadedChunks*100) / this.totalChunks);
                   }
-                  if(this.uploadedChunks === this.totalChunks){//如果都已上传完成，合并文件
+                  if(this.uploadedChunks === this.totalChunks){//If都已Upload完成，合并File
                     await this.mergeChunks()
                   }
 
-                  //完成请求，cancelSources删除一个token
+                  //完成Request，cancelSourcesDelete一个token
                   const index = this.cancelSources.indexOf(source);
                   if(index !== -1){
                     this.cancelSources.splice(index, 1);
@@ -164,16 +164,16 @@ export default {
                 throw error;
               }
           },
-        async resetUpload(){//失败切片重试
+        async resetUpload(){//Failed切片Retry
           const failedChunksCopy = [...this.failChunk];
           this.failChunk = [];
           for(const chunk of failedChunksCopy){
             try{
               await this.uploadChunk(chunk);
             }catch(error){
-              //点击续传按钮续传失败列表里面的切片
+              //点击续传Button续传FailedList里面 of 切片
               this.failChunk.push(chunk);
-              //重试失败显示重试、续传按钮
+              //RetryFailedShowRetry、续传Button
               this.fileList[this.fileIndex]['showRetry'] = 'true';
               this.fileList[this.fileIndex]['showResume'] = 'true';
             }
@@ -199,7 +199,7 @@ export default {
                 this.fileList[this.fileIndex]['showResume'] = 'false';
                 this.fileListSize += (file_size/1024/1024).toFixed(5);
                 this.resList.push({name:res.data.fileName});
-                //接片合并完之后走上传接口
+                //接片合并完之后走UploadInterface
                 this.uploadFile(res.data.fileName,this.file.name,res.data.filePath)
               }else{
                 this.$message.error(`${this.file.name}`+ i18n.t('fileChunk.uploadFail'))
@@ -211,7 +211,7 @@ export default {
             this.fileList[this.fileIndex]['showRemerge'] = 'true';
           }
         },
-        cancelAllRequests() {//取消所有请求
+        cancelAllRequests() {//Cancel所HasRequest
           this.isStop = true;
           if (this.cancelSources.length > 0) {
             for (let i = 0; i < this.cancelSources.length; i++) {

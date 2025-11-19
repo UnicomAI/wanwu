@@ -88,7 +88,7 @@
                   <el-menu-item v-else :index="m.index" @click="menuClick(m)" class="menu-indent-item">{{m.name}}</el-menu-item>
                 </div >
               </el-submenu>
-              <!--没有下一级-->
+              <!--No下一级-->
               <el-menu-item :index="n.index" v-if="!n.children && checkPerm(n.perm)" @click="menuClick(n)">
                 <i :class="n.icon || 'el-icon-menu'"></i>
                 <span slot="title">{{n.name}}</span>
@@ -96,7 +96,7 @@
             </div>
           </el-menu>
         </el-aside>
-        <!-- 右侧内容 -->
+        <!-- 右侧Content -->
         <div class="doc-page-main">
           <DocPage />
         </div>
@@ -134,7 +134,7 @@ export default {
       handler (val) {
         this.changeMenuIndex(fetchCurrentPathIndex(val.path, this.menuList))
       },
-      // 深度观察监听
+      // 深度ObserveListen
       deep: true
     },
     commonInfo:{
@@ -150,7 +150,7 @@ export default {
     ...mapGetters('user', ['commonInfo']),
   },
   async created() {
-    // 获取菜单
+    // GetMenu
     this.getCurrentMenu()
   },
   methods: {
@@ -180,7 +180,7 @@ export default {
       if (item.redirect) {
         item.redirect()
       } else {
-        // 文档中心返回不带页面 path 前缀，跳转加上 path 前缀，避免点击路径直接拼到当前链接后面等问题
+        // Document中心Back不带Page path 前缀，跳转加上 path 前缀，避免点击PathDirectly拼到当前Link后面Etc问题
         this.$router.push({path: `/docCenter/pages/${item.path}`})
       }
     },
@@ -199,19 +199,19 @@ export default {
       const { params, path } = this.$route || {}
       const { id } = params || {}
       let val = path
-      // 获取当前菜单列表
+      // Get当前MenuList
       const menus = this.docMenuList
       this.menuList = menus
       this.defaultOpeneds = menus.map(item => item.index)
 
-      // 跳转到文档中心第一个菜单栏
+      // 跳转到Document中心第一个Menu栏
       if (id === DOC_FIRST_KEY) {
         const { path } = fetchPermFirPath(menus)
         val = path
         this.$router.push({path})
       }
 
-      // 给当前 activeIndex 赋值
+      // 给当前 activeIndex 赋Value
       this.changeMenuIndex(fetchCurrentPathIndex(val, menus))
     },
     changeMenuIndex(index) {
@@ -230,7 +230,7 @@ export default {
     width: calc(100% - 130px);
     margin: 0 auto;
     border-radius: 8px;
-    /*element ui 样式重写*/
+    /*element ui Style重写*/
     .doc-inner-container{
       height: 100%;
       display: flex;
@@ -371,7 +371,7 @@ export default {
           padding: 3px 10px;
           color: #666;
           font-weight: bold;
-          white-space: normal; /* 保留空白符序列，但是正常换行 */
+          white-space: normal; /* 保留Null白符序列，但Yes正常换行 */
           word-break: break-all;
           span {
             color: $color;

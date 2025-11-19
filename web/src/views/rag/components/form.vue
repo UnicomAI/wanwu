@@ -3,16 +3,16 @@
     <div class="form-header">
       <div class="header-left">
         <span class="el-icon-arrow-left btn" @click="goBack"></span>
-        <!-- <span class="header-left-title">文本问答编辑</span> -->
+        <!-- <span class="header-left-title">Text Q&AEdit</span> -->
         <div class="basicInfo">
           <div class="img">
             <img :src="editForm.avatar.path ? `/user/api`+ editForm.avatar.path : '@/assets/imgs/bg-logo.png'"  />
           </div>
           <div class="basicInfo-desc">
-            <span class="basicInfo-title">{{editForm.name || '无信息'}}</span>
+            <span class="basicInfo-title">{{editForm.name || '无Information'}}</span>
             <span class="el-icon-edit-outline editIcon" @click="editAgent"></span>
             <LinkIcon type="rag" />
-            <p>{{editForm.desc || '无信息'}}</p>
+            <p>{{editForm.desc || '无Information'}}</p>
           </div>
           </div>
       </div>
@@ -25,16 +25,16 @@
           <img :src="require('@/assets/imgs/apikey.png')" />
           API密钥
         </el-button>
-        <el-button size="small" type="primary" @click="handlePublish" style="padding:13px 12px;">发布<span class="el-icon-arrow-down" style="margin-left:5px;"></span></el-button>
+        <el-button size="small" type="primary" @click="handlePublish" style="padding:13px 12px;">Publish<span class="el-icon-arrow-down" style="margin-left:5px;"></span></el-button>
         <div class="popover-operation" v-if="showOperation">
           <div>
-            <el-radio :label="'private'" v-model="scope">私密发布为应用：仅自己可见</el-radio>
+            <el-radio :label="'private'" v-model="scope">私密Publish为App：仅自己可见</el-radio>
           </div>
           <div>
-            <el-radio :label="'organization'" v-model="scope">公开发布为应用：组织内可见</el-radio>
+            <el-radio :label="'organization'" v-model="scope">公开Publish为App：组织内可见</el-radio>
           </div>
           <div>
-            <el-radio :label="'public'" v-model="scope">公开发布为应用：全局可见</el-radio>
+            <el-radio :label="'public'" v-model="scope">公开Publish为App：全局可见</el-radio>
           </div>
           <div class="saveBtn">
             <el-button size="mini" type="primary" @click="savePublish">保 存</el-button>
@@ -49,17 +49,17 @@
             <p class="block-title common-set">
               <span class="common-set-label">
                 <img :src="require('@/assets/imgs/require.png')" class="required-label"/>
-                模型选择
-                <span class="model-tips">[ 暂不支持选择图文问答类模型 ]</span>
+                Model选择
+                <span class="model-tips">[ 暂Not Supported选择图文问答类Model ]</span>
               </span>
               <span class="el-icon-s-operation operation" @click="showModelSet"></span>
             </p>
             <div class="rl">
               <el-select
                 v-model="editForm.modelParams"
-                placeholder="可输入模型名称搜索"
+                placeholder="可EnterModelNameSearch"
                 @visible-change="visibleChange"
-                loading-text="模型加载中..."
+                loading-text="ModelLoading..."
                 class="cover-input-icon model-select"
                 :disabled="isPublish"
                 :loading="modelLoading"
@@ -90,12 +90,12 @@
             <p class="block-title common-set">
               <span class="common-set-label">
                 <img :src="require('@/assets/imgs/require.png')" class="required-label"/>
-                关联知识库
+                关联Knowledge Base
               </span>
               <span>
                 <span class="common-add" @click="showKnowledgeDiglog">
                   <span class="el-icon-plus"></span>
-                  <span class="handleBtn">添加</span>
+                  <span class="handleBtn">Add</span>
                 </span>
               </span>
             </p>
@@ -107,7 +107,7 @@
                         <span>{{n.name}}</span>
                        </div>
                         <div class="bt">
-                          <el-tooltip class="item" effect="dark" content="元数据过滤" placement="top-start">
+                          <el-tooltip class="item" effect="dark" content="元Data 滤" placement="top-start">
                             <span class="el-icon-setting del" @click="showMetaSet(n,i)" style="margin-right:10px;"></span>
                           </el-tooltip>
                           <span class="el-icon-delete del" @click="delKnowledge(i)"></span>
@@ -122,7 +122,7 @@
             <p class="block-title common-set">
               <span class="common-set-label">
                 <img :src="require('@/assets/imgs/require.png')" class="required-label"/>
-                检索方式配置
+                检索方式Configuration
               </span>
             </p>
           <div class="rl">
@@ -132,15 +132,15 @@
         <div class="block prompt-box safety-box">
             <p class="block-title tool-title">
             <span class="block-title-text">
-              安全护栏配置
-              <el-tooltip class="item" effect="dark" content="实时拦截高风险内容的输入和输出，保障内容安全合规。" placement="top">
+              安全护栏Configuration
+              <el-tooltip class="item" effect="dark" content="实 when 拦截高风险Content of EnterAnd输出，保障Content安全合规。" placement="top">
                   <span class="el-icon-question question-tips"></span>
               </el-tooltip>
             </span>
             <span class="common-add">
               <span @click="showSafety">
                 <span class="el-icon-s-operation" ></span>
-                <span class="handleBtn" style="margin-right:10px;">配置</span>
+                <span class="handleBtn" style="margin-right:10px;">Configuration</span>
               </span>
               <el-switch v-model="editForm.safetyConfig.enable" :disabled="!(editForm.safetyConfig.tables || []).length"></el-switch>
             </span>
@@ -154,18 +154,18 @@
         <Chat :chatType="'test'" :editForm="editForm"/>
       </div>
     </div>
-    <!-- 编辑智能体 -->
+    <!-- EditAgent -->
     <CreateTxtQues ref="createTxtQues" :type="'edit'" :editForm="editForm" @updateInfo="getDetail"/>
-    <!-- 模型设置 -->
+    <!-- ModelSetting -->
     <ModelSet @setModelSet="setModelSet" ref="modelSetDialog" :modelConfig="editForm.modelConfig" />
-    <!-- 知识库设置 -->
+    <!-- Knowledge BaseSetting -->
     <knowledgeSet @setKnowledgeSet="setKnowledgeSet" ref="knowledgeSetDialog" :knowledgeConfig="editForm.knowledgeConfig" />
     <!-- apikey -->
     <ApiKeyDialog ref="apiKeyDialog" :appId="editForm.appId" :appType="'rag'" />
     <setSafety ref="setSafety" @sendSafety="sendSafety" />
-    <!-- 知识库选择 -->
+    <!-- Knowledge Base选择 -->
     <knowledgeSelect ref="knowledgeSelect" @getKnowledgeData="getKnowledgeData" />
-    <!-- 元数据设置 -->
+    <!-- 元DataSetting -->
     <el-dialog
       :visible.sync="metaSetVisible"
       width="1050px"
@@ -173,8 +173,8 @@
       :before-close="handleMetaClose">
       <template #title>
          <div class="metaHeader">
-          <h3>配置元数据过滤</h3>
-          <span>[ 通过设置的元数据，对知识库内信息进行更加细化的筛选与检索控制。]</span>
+          <h3>Configuration元Data 滤</h3>
+          <span>[ BySetting of 元Data，对Knowledge Base内Information进行更加细化 of 筛选与检索控制。]</span>
          </div>
       </template>
       <metaSet ref="metaSet"  :knowledgeId="currentKnowledgeId" :currentMetaData="currentMetaData"/>
@@ -242,13 +242,13 @@ export default {
         rerankParams:'',
         knowledgebases:[],
         knowledgeConfig:{
-          keywordPriority: 0.8, //关键词权重
-          matchType: "mix", //vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
-          priorityMatch: 1, //权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1
-          rerankModelId: "", //rerank模型id
+          keywordPriority: 0.8, //关Key词权重
+          matchType: "mix", //vector（向量检索）、text（Text检索）、mix（混合检索：向量+Text）
+          priorityMatch: 1, //权重Match，只Has在混合检索模式下，选择权重Setting后，这个才Setting为1
+          rerankModelId: "", //rerankModelid
           semanticsPriority: 0.2, //语义权重
-          topK: 5, //topK 获取最高的几行
-          threshold: 0.4, //过滤分数阈值
+          topK: 5, //topK Get最高 of 几行
+          threshold: 0.4, // 滤分数阈Value
           maxHistory:0,//
           useGraph:false
         },
@@ -271,19 +271,19 @@ export default {
       selectKnowledge: [],
       loadingPercent: 10,
       nameStatus: "",
-      saved: false, //按钮
-      loading: false, //按钮
+      saved: false, //Button
+      loading: false, //Button
       t: null,
       logoFileList: [],
-      debounceTimer:null, //防抖计时器
-      isUpdating: false, // 防止重复更新标记
-      isSettingFromDetail: false, // 防止详情数据触发更新标记
+      debounceTimer:null, //防抖计 when 器
+      isUpdating: false, // 防止重复Update标记
+      isSettingFromDetail: false, // 防止DetailsDataTriggerUpdate标记
     };
   },
   watch:{
     editForm: {
     handler(newVal) {
-      // 如果是从详情设置的数据，不触发更新逻辑
+      // IfYes从DetailsSetting of Data，不TriggerUpdate逻辑
       if (this.isSettingFromDetail) {
         return;
       }
@@ -318,16 +318,16 @@ export default {
     this.initialEditForm = JSON.parse(JSON.stringify(this.editForm));
   },
   created() {
-    this.getModelData(); //获取模型列表
-    this.getRerankData(); //获取rerank模型
+    this.getModelData(); //GetModelList
+    this.getRerankData(); //GetrerankModel
     if (this.$route.query.id) {
       this.editForm.appId = this.$route.query.id;
       setTimeout(() => {
-        this.getDetail();//获取详情
-        this.apiKeyRootUrl(); //获取api跟地址
+        this.getDetail();//GetDetails
+        this.apiKeyRootUrl(); //Getapi跟Address
       }, 500);
     }
-        //判断是否发布
+        //判断YesNoPublish
     if (this.$route.query.publish) {
       this.isPublish = true;
     }
@@ -339,7 +339,7 @@ export default {
     submitMeta(){
       const metaData  = this.$refs.metaSet.getMetaData();
       if(this.$refs.metaSet.validateRequiredFields(metaData['metaDataFilterParams']['metaFilterParams'])){
-        this.$message.warning('存在未填信息,请补充')
+        this.$message.warning('Missing information, please complete')
         return
       }
       this.$set(this.editForm.knowledgebases, this.knowledgeIndex, { ...this.editForm.knowledgebases[this.knowledgeIndex], ...metaData });
@@ -381,8 +381,8 @@ export default {
     goBack(){
       this.$router.go(-1);
     },
-    getDetail(){//获取详情
-      this.isSettingFromDetail = true; // 设置标志位，防止触发更新逻辑
+    getDetail(){//GetDetails
+      this.isSettingFromDetail = true; // Setting标志位，防止TriggerUpdate逻辑
       getRagInfo({ragId:this.editForm.appId}).then(res =>{
         if(res.code === 0){
             this.editForm.avatar = res.data.avatar;
@@ -413,7 +413,7 @@ export default {
             }
             
             this.editForm.knowledgeConfig.rerankModelId = res.data.rerankConfig.modelId;
-            // 使用nextTick确保所有数据设置完成后再重置标志位
+            // UsenextTick确保所HasDataSetting完成后再Reset标志位
             this.$nextTick(() => {
               this.isSettingFromDetail = false;
             });
@@ -438,15 +438,15 @@ export default {
       const { matchType, priorityMatch, rerankModelId } = this.editForm.knowledgeConfig;
       const isMixPriorityMatch = matchType === 'mix' && priorityMatch;
       if(this.editForm.modelParams === ''){
-        this.$message.warning('请选择模型！')
+        this.$message.warning('Please selectModel！')
         return false
       }
       if(!isMixPriorityMatch && !rerankModelId){
-        this.$message.warning('请选rerank择模型！')
+        this.$message.warning('Please选rerank择Model！')
         return false
       }
       if(this.editForm.knowledgebases.length === 0){
-        this.$message.warning('请选择关联知识库！')
+        this.$message.warning('Please select关联Knowledge Base！')
         return false
       }
       const data = {appId:this.editForm.appId,appType:'rag',publishType:this.scope}
@@ -505,12 +505,12 @@ export default {
       this.modelLoading = false;
     },
     async updateInfo() {
-      if (this.isUpdating) return; // 防止重复调用
+      if (this.isUpdating) return; // 防止重复Call
       
       this.isUpdating = true;
       try {
-        //知识库数据
-        //模型数据
+        //Knowledge BaseData
+        //ModelData
         const modeInfo = this.modleOptions.find(item => item.modelId === this.editForm.modelParams)
         if(this.editForm.knowledgeConfig.matchType === 'mix' && this.editForm.knowledgeConfig.priorityMatch === 1){
           this.editForm.knowledgeConfig.rerankModelId = ''
@@ -541,13 +541,13 @@ export default {
         }
         const res = await updateRagConfig(fromParams)
         
-        // 更新成功后，更新 initialEditForm 避免重复触发
+        // UpdateSuccess后，Update initialEditForm 避免重复Trigger
         if (res.code === 0) {
           this.initialEditForm = JSON.parse(JSON.stringify(this.editForm));
-          this.getDetail();//获取详情
+          this.getDetail();//GetDetails
         }
       } catch (error) {
-        console.error('更新配置失败:', error);
+        console.error('UpdateConfigurationFailed:', error);
       } finally {
         this.isUpdating = false;
       }
@@ -900,7 +900,7 @@ export default {
     bottom: 5px;
     right: 10px;
   }
-  /*新建应用*/
+  /*新建App*/
   .name-box {
     height: 90px;
     line-height: 90px;
@@ -1000,7 +1000,7 @@ export default {
     padding-bottom: 60px;
   }
 
-  /*插件*/
+  /*Plugin*/
   .plugin-box {
     .el-checkbox-group {
       margin-top: 10px;
@@ -1084,9 +1084,9 @@ export default {
   z-index: 9999 !important;
 }
 .custom-tooltip.is-light {
-  border-color: #ccc; /* 设置边框颜色 */
-  background-color: #fff; /* 设置背景颜色 */
-  color: #666; /* 设置文字颜色 */
+  border-color: #ccc; /* Setting边框颜色 */
+  background-color: #fff; /* Setting背景颜色 */
+  color: #666; /* Setting文字颜色 */
 }
 .custom-tooltip.el-tooltip__popper[x-placement^="top"] .popper__arrow::after {
   border-top-color: #fff !important;

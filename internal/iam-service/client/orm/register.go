@@ -32,7 +32,7 @@ func (c *Client) RegisterSendEmailCode(ctx context.Context, username, email stri
 	// check user
 	if err := sqlopt.WithName(username).Apply(c.db).WithContext(ctx).First(&model.User{}).Error; err != gorm.ErrRecordNotFound {
 		if err == nil {
-			return toErrStatus("iam_user_create_name") // 用户名已存在 [EN] Username already exists
+			return toErrStatus("iam_user_create_name") // Username already exists
 		}
 		return toErrStatus("iam_register_by_email_send_code", err.Error())
 	}
@@ -54,18 +54,18 @@ func (c *Client) RegisterSendEmailCode(ctx context.Context, username, email stri
 	if err != nil {
 		return toErrStatus("iam_register_by_email_send_code", err.Error())
 	} else if item != nil {
-		// email发送过验证码 [EN] Verification code sent via email
+		// Verification code sent via email
 		record, err := getRedisUserRegisterByEmailRecord(item.V)
 		if err != nil {
 			return toErrStatus("iam_register_by_email_send_code", err.Error())
 		}
-		// 距离上次发送不足1min [EN] Less than 1 minute since last sent
+		// Less than 1 minute since last sent
 		if now.Sub(time.UnixMilli(record.Timestamp)) < time.Minute {
 			return toErrStatus("iam_register_by_email_send_code_frequent")
 		}
 	}
-	// email未发送过验证码 或者 距离上次发送超过1min [EN] The verification code has not been sent by email or it has been more than 1 minute since it was last sent.
-	// 发送邮件 [EN] Send email
+	// The verification code has not been sent by email or it has been more than 1 minute since it was last sent.
+	// Send email
 	if err := smtp_util.SendEmail([]string{email},
 		config.Cfg().Register.Email.Template.Subject,
 		config.Cfg().Register.Email.Template.ContentType,
@@ -73,7 +73,7 @@ func (c *Client) RegisterSendEmailCode(ctx context.Context, username, email stri
 	); err != nil {
 		return toErrStatus("iam_register_by_email_send_code", err.Error())
 	}
-	// 记录redis [EN] Record redis
+	// Record redis
 	if err := redis.IAM().HSet(ctx, getRedisUserRegisterByEmailKey(email), []redis.HashItem{
 		{
 			K: redisUserRegisterByEmailField,
@@ -144,8 +144,8 @@ func (c *Client) RegisterByEmail(ctx context.Context, username, email, code stri
 
 type redisUserRegisterByEmail struct {
 	Code      string `json:"code"`
-	Password  string `json:"password"`  // 默认密码 [EN] default password
-	Timestamp int64  `json:"timestamp"` //  当前验证码的创建时间 [EN] The creation time of the current verification code
+	Password  string `json:"password"`  // default password
+	Timestamp int64  `json:"timestamp"` //  The creation time of the current verification code
 }
 
 func getRedisUserRegisterByEmailKey(email string) string {

@@ -5,7 +5,7 @@
             <div :class="['session-item','rl']">
                 <img class="logo" :src="editForm.avatar.path ? `/user/api`+ editForm.avatar.path : '@/assets/imgs/bg-logo.png'" />
                 <div class="answer-content">
-                    <p class="name">{{editForm.name || '无信息'}}</p>
+                    <p class="name">{{editForm.name || '无Information'}}</p>
                     <p class="systemPrompt">{{editForm.prologue || ''}}</p>
                     <div class="recommend">
                         <template v-if="recommendQuestion.length > 0">

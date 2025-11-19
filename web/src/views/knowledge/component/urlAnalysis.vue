@@ -83,7 +83,7 @@ export default {
       loading: {
         url: false,
       },
-      oldList: [{ value: "" }], //保存上一次url结果
+      oldList: [{ value: "" }], //Save上一次urlResult
       dynamicValidateForm: {
         domains: [
           {
@@ -102,7 +102,7 @@ export default {
         this.dynamicValidateForm.domains[index].back = null;
       }
     },
-    // 开始解析
+    // 开始Parse
     async submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
@@ -132,12 +132,12 @@ export default {
         if (urls.length === 0) {
           resolve([]);
         }
-        const results = []; // 存放请求结果
-        let index = 0; // 下一个请求的url地址的下标
-        let count = 0; // 已完成的请求数量
+        const results = []; // 存放RequestResult
+        let index = 0; // 下一个Request of urlAddress of 下标
+        let count = 0; // 已完成 of RequestCount
         async function request() {
           if (index === urls.length) return;
-          const i = index; // 保存序号，使result和urls相对应
+          const i = index; // SaveNo.，使resultAndurls相对应
           const url = index < urls.length && urls[i].value;
           index++;
           try {
@@ -166,7 +166,7 @@ export default {
           } catch (err) {
             console.log(err)
           } finally {
-            count++; // 判断是否所有的请求都已完成
+            count++; // 判断YesNo所Has of Request都已完成
             if (count === urls.length) {
               resolve(results);
             }
@@ -225,7 +225,7 @@ export default {
             })
               .then((res) => {
                 if (res.code === 0) {
-                  this.$message.success("操作成功");
+                  this.$message.success("OperationSuccess");
                 } else {
                   this.$message.error(res.msg);
                 }

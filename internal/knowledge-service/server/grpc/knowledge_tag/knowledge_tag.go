@@ -35,41 +35,41 @@ func (s *Service) SelectKnowledgeTagList(ctx context.Context, req *knowledgebase
 }
 
 func (s *Service) CreateKnowledgeTag(ctx context.Context, req *knowledgebase_tag_service.CreateKnowledgeTagReq) (*knowledgebase_tag_service.CreateKnowledgeTagResp, error) {
-	//1.重名校验 [EN] 1. Duplicate name verification
+	//1. Duplicate name verification
 	err := orm.CheckSameKnowledgeTagName(ctx, req.UserId, req.OrgId, req.TagName)
 	if err != nil {
 		return nil, err
 	}
-	//2.创建创建知识库 [EN] 2. Create a knowledge base
+	//2. Create a knowledge base
 	tagModel := buildKnowledgeTagModel(req)
 	err = orm.CreateKnowledgeTag(ctx, tagModel)
 	if err != nil {
 		log.Errorf("CreateKnowledgeTag error %v params %v", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeTagCreateFailed)
 	}
-	//3.返回结果 [EN] 3.Return results
+	//3.Return results
 	return &knowledgebase_tag_service.CreateKnowledgeTagResp{
 		TagId: tagModel.TagId,
 	}, nil
 }
 
 func (s *Service) UpdateKnowledgeTag(ctx context.Context, req *knowledgebase_tag_service.UpdateKnowledgeTagReq) (*emptypb.Empty, error) {
-	//1.查询知识库标签详情 [EN] 1. Query knowledge base tag details
+	//1. Query knowledge base tag details
 	knowledgeTag, err := orm.SelectKnowledgeTagDetail(ctx, req.UserId, req.OrgId, req.TagId)
 	if err != nil {
 		log.Errorf(fmt.Sprintf("没有操作该标签的权限 参数(%v)", req))
 		return nil, util.ErrCode(errs.Code_KnowledgeTagAccessDenied)
 	}
-	//2.重名校验 [EN] 2. Duplicate name verification
+	//2. Duplicate name verification
 	if knowledgeTag.Name == req.TagName {
-		//如何修改得名称和原名称一样无需修改 [EN] How to modify the name so that it is the same as the original name without modification
+		//How to modify the name so that it is the same as the original name without modification
 		return &emptypb.Empty{}, nil
 	}
 	err = orm.CheckSameKnowledgeTagName(ctx, req.UserId, req.OrgId, req.TagName)
 	if err != nil {
 		return nil, err
 	}
-	//3.更新知识库 [EN] 3. Update knowledge base
+	//3. Update knowledge base
 	err = orm.UpdateKnowledgeTag(ctx, req.TagName, knowledgeTag.Id)
 	if err != nil {
 		log.Errorf("知识库标签更新失败(%v)  参数(%v)", err, req)
@@ -79,13 +79,13 @@ func (s *Service) UpdateKnowledgeTag(ctx context.Context, req *knowledgebase_tag
 }
 
 func (s *Service) DeleteKnowledgeTag(ctx context.Context, req *knowledgebase_tag_service.DeleteKnowledgeTagReq) (*emptypb.Empty, error) {
-	//1.查询知识库标签详情 [EN] 1. Query knowledge base tag details
+	//1. Query knowledge base tag details
 	knowledgeTag, err := orm.SelectKnowledgeTagDetail(ctx, req.UserId, req.OrgId, req.TagId)
 	if err != nil {
 		log.Errorf(fmt.Sprintf("没有操作该标签的权限 参数(%v)", req))
 		return nil, err
 	}
-	//2.删除知识库标签 [EN] 2. Delete knowledge base tags
+	//2. Delete knowledge base tags
 	err = orm.DeleteKnowledgeTag(ctx, req.TagId, knowledgeTag.Id)
 	if err != nil {
 		log.Errorf("知识库标签删除失败(%v)  参数(%v)", err, req)
@@ -104,7 +104,7 @@ func (s *Service) BindKnowledgeTag(ctx context.Context, req *knowledgebase_tag_s
 }
 
 func (s *Service) TagBindCount(ctx context.Context, req *knowledgebase_tag_service.TagBindCountReq) (*knowledgebase_tag_service.TagBindCountResp, error) {
-	//1.查询知识库标签详情 [EN] 1. Query knowledge base tag details
+	//1. Query knowledge base tag details
 	knowledgeTag, err := orm.SelectKnowledgeTagDetail(ctx, req.UserId, req.OrgId, req.TagId)
 	if err != nil {
 		log.Errorf(fmt.Sprintf("没有操作该标签的权限 参数(%v)", req))
@@ -114,7 +114,7 @@ func (s *Service) TagBindCount(ctx context.Context, req *knowledgebase_tag_servi
 	return &knowledgebase_tag_service.TagBindCountResp{BindCount: count}, nil
 }
 
-// buildKnowledgeTagListResp 构造知识库标签列表返回结果 [EN] buildKnowledgeTagListResp constructs a knowledge base tag list and returns the results
+// buildKnowledgeTagListResp constructs a knowledge base tag list and returns the results
 func buildKnowledgeTagListResp(knowledgeTagList []*model.KnowledgeTag) *knowledgebase_tag_service.KnowledgeTagSelectListResp {
 	if len(knowledgeTagList) == 0 {
 		return &knowledgebase_tag_service.KnowledgeTagSelectListResp{}
@@ -128,13 +128,13 @@ func buildKnowledgeTagListResp(knowledgeTagList []*model.KnowledgeTag) *knowledg
 	}
 }
 
-// buildKnowledgeTagListRespByRelation 构造知识库标签列表返回结果 [EN] buildKnowledgeTagListRespByRelation constructs a knowledge base tag list and returns the results
+// buildKnowledgeTagListRespByRelation constructs a knowledge base tag list and returns the results
 func buildKnowledgeTagListRespByRelation(tagRelation *orm.TagRelation) *knowledgebase_tag_service.KnowledgeTagSelectListResp {
 	if len(tagRelation.TagList) == 0 {
 		return &knowledgebase_tag_service.KnowledgeTagSelectListResp{}
 	}
 	var retList []*knowledgebase_tag_service.KnowledgeTagInfo
-	//这里只有指定知识库id 才能进来，所以直接组合得是tagId 和knowledgeId 的map不会出现覆盖的情况 [EN] Only the specified knowledge base ID can be entered here, so the map that directly combines tagId and knowledgeId will not be overwritten.
+	//Only the specified knowledge base ID can be entered here, so the map that directly combines tagId and knowledgeId will not be overwritten.
 	var relationMap = make(map[string]string)
 	list := tagRelation.RelationList
 	if len(list) > 0 {
@@ -150,7 +150,7 @@ func buildKnowledgeTagListRespByRelation(tagRelation *orm.TagRelation) *knowledg
 	}
 }
 
-// buildKnowledgeTag 构造知识库tag [EN] buildKnowledgeTag constructs knowledge base tag
+// buildKnowledgeTag constructs knowledge base tag
 func buildKnowledgeTag(knowledgeTag *model.KnowledgeTag, selected bool) *knowledgebase_tag_service.KnowledgeTagInfo {
 	return &knowledgebase_tag_service.KnowledgeTagInfo{
 		TagId:    knowledgeTag.TagId,
@@ -159,7 +159,7 @@ func buildKnowledgeTag(knowledgeTag *model.KnowledgeTag, selected bool) *knowled
 	}
 }
 
-// buildKnowledgeTagModel 构造知识库标签模型 [EN] buildKnowledgeTagModel constructs the knowledge base tag model
+// buildKnowledgeTagModel constructs the knowledge base tag model
 func buildKnowledgeTagModel(req *knowledgebase_tag_service.CreateKnowledgeTagReq) *model.KnowledgeTag {
 	return &model.KnowledgeTag{
 		TagId:     generator.GetGenerator().NewID(),
@@ -171,7 +171,7 @@ func buildKnowledgeTagModel(req *knowledgebase_tag_service.CreateKnowledgeTagReq
 	}
 }
 
-// buildKnowledgeTagRelationModel 构造知识库标签关系模型 [EN] buildKnowledgeTagRelationModel constructs a knowledge base tag relationship model
+// buildKnowledgeTagRelationModel constructs a knowledge base tag relationship model
 func buildKnowledgeTagRelationModelList(req *knowledgebase_tag_service.BindKnowledgeTagReq) []*model.KnowledgeTagRelation {
 	var retList []*model.KnowledgeTagRelation
 	for _, tagId := range req.TagIdList {

@@ -2,7 +2,7 @@ import service from "@/utils/request";
 const hasLang = true
 import {USER_API} from "@/utils/requestConstants"
 
-// 登录
+// Login
 export const login = (data) => {
     return service({
         url: `${USER_API}/base/login`,
@@ -12,8 +12,8 @@ export const login = (data) => {
     });
 };
 
-// 2FA登录
-// 第一级验证：密码
+// 2FALogin
+// 第一级Verify：Password
 export const login2FA1 = (data) => {
     return service({
         url: `${USER_API}/base/login/email`,
@@ -21,8 +21,8 @@ export const login2FA1 = (data) => {
         data
     });
 };
-// 第二级验证：验证码
-// 邮箱验证码
+// 第二级Verify：Verification Code
+// EmailVerification Code
 export const login2FA2Code = (data) => {
     return service({
         url: `${USER_API}/user/login/email/code`,
@@ -30,7 +30,7 @@ export const login2FA2Code = (data) => {
         data,
     });
 };
-// 首次登录
+// 首次Login
 export const login2FA2new = (data) => {
     return service({
         url: `${USER_API}/user/login`,
@@ -38,7 +38,7 @@ export const login2FA2new = (data) => {
         data
     });
 }
-// 非首次登录
+// Non首次Login
 export const login2FA2exist = (data) => {
     return service({
         url: `${USER_API}/user/login`,
@@ -47,7 +47,7 @@ export const login2FA2exist = (data) => {
     });
 }
 
-// 获取图形验证码
+// Get图形Verification Code
 export const getImgVerCode = () => {
     return service({
         url: `${USER_API}/base/captcha`,
@@ -56,7 +56,7 @@ export const getImgVerCode = () => {
     });
 };
 
-// 邮箱注册验证码发送
+// EmailRegisterVerification CodeSend
 export const registerCode = (data) => {
     return service({
         url: `${USER_API}/base/register/email/code`,
@@ -65,7 +65,7 @@ export const registerCode = (data) => {
     });
 };
 
-// 用户邮箱注册
+// UserEmailRegister
 export const register = (data) => {
     return service({
         url: `${USER_API}/base/register/email`,
@@ -74,7 +74,7 @@ export const register = (data) => {
     });
 };
 
-// 重置密码邮箱验证码发送
+// ResetPasswordEmailVerification CodeSend
 export const resetCode = (data) => {
     return service({
         url: `${USER_API}/base/password/email/code`,
@@ -83,7 +83,7 @@ export const resetCode = (data) => {
     });
 };
 
-// 重置密码
+// ResetPassword
 export const reset = (data) => {
     return service({
         url: `${USER_API}/base/password/email`,
@@ -155,7 +155,7 @@ export const docDownload = () => {
     });
 };
 
-// 公用上传 avatar
+// 公用Upload avatar
 export const uploadAvatar = (data, config) => {
     return service({
         url: `${USER_API}/avatar`,
@@ -165,7 +165,7 @@ export const uploadAvatar = (data, config) => {
     })
 }
 
-// 平台信息
+// 平台Information
 export const getCommonInfo= () => {
     return service({
         url: `${USER_API}/base/custom`,

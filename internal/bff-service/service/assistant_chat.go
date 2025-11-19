@@ -24,14 +24,14 @@ func AssistantConversionStream(ctx *gin.Context, userId, orgId string, req reque
 	if err != nil {
 		return err
 	}
-	// 2. 流式返回结果 [EN] 2. Streaming return results
+	// 2. Streaming return results
 	_ = sse_util.NewSSEWriter(ctx, fmt.Sprintf("[Agent] %v conversation %v user %v org %v recv", req.AssistantId, req.ConversationId, userId, orgId), sse_util.DONE_MSG).
 		WriteStream(chatCh, nil, buildAgentChatRespLineProcessor(), nil)
 	return nil
 }
 
 func CallAssistantConversationStream(ctx *gin.Context, userId, orgId string, req request.ConversionStreamRequest) (<-chan string, error) {
-	// 根据agentID获取敏感词配置 [EN] Get sensitive word configuration based on agentID
+	// Get sensitive word configuration based on agentID
 	agentInfo, err := assistant.GetAssistantInfo(ctx, &assistant_service.GetAssistantInfoReq{
 		AssistantId: req.AssistantId,
 	})
@@ -40,7 +40,7 @@ func CallAssistantConversationStream(ctx *gin.Context, userId, orgId string, req
 	}
 
 	var matchDicts []ahocorasick.DictConfig
-	// 如果Enable为true,则处理敏感词 [EN] If Enable is true, handle sensitive words
+	// If Enable is true, handle sensitive words
 	if agentInfo.SafetyConfig.GetEnable() {
 		var ids []string
 		for _, idx := range agentInfo.SafetyConfig.GetSensitiveTable() {
@@ -97,12 +97,12 @@ func CallAssistantConversationStream(ctx *gin.Context, userId, orgId string, req
 	if !agentInfo.SafetyConfig.GetEnable() {
 		return rawCh, nil
 	}
-	// 敏感词过滤 [EN] Sensitive word filtering
+	// Sensitive word filtering
 	outputCh := ProcessSensitiveWords(ctx, rawCh, matchDicts, &agentSensitiveService{})
 	return outputCh, nil
 }
 
-// transFileInfo 转换文件信息从请求模型到protobuf模型 [EN] transFileInfo converts file information from the request model to the protobuf model
+// transFileInfo converts file information from the request model to the protobuf model
 func transFileInfo(fileInfo []request.ConversionStreamFile) []*assistant_service.ConversionStreamFile {
 	if len(fileInfo) == 0 {
 		return nil
@@ -118,7 +118,7 @@ func transFileInfo(fileInfo []request.ConversionStreamFile) []*assistant_service
 	return result
 }
 
-// buildAgentChatRespLineProcessor 构造agent对话结果行处理器 [EN] buildAgentChatRespLineProcessor constructs the agent conversation result line processor
+// buildAgentChatRespLineProcessor constructs the agent conversation result line processor
 func buildAgentChatRespLineProcessor() func(*gin.Context, string, interface{}) (string, bool, error) {
 	return func(c *gin.Context, lineText string, params interface{}) (string, bool, error) {
 		if strings.HasPrefix(lineText, "error:") {

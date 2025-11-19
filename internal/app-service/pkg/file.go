@@ -24,7 +24,7 @@ type SensitiveRawData struct {
 	SensitiveType string
 }
 
-// ParseSensitiveExcel 解析Excel文件返回敏感词列表 [EN] ParseSensitiveExcel parses Excel files and returns a list of sensitive words
+// ParseSensitiveExcel parses Excel files and returns a list of sensitive words
 func ParseSensitiveExcel(fileData []byte) ([]SensitiveRawData, error) {
 	f, err := excelize.OpenReader(bytes.NewReader(fileData))
 	if err != nil {
@@ -74,10 +74,10 @@ func ParseSensitiveExcel(fileData []byte) ([]SensitiveRawData, error) {
 	return rawDataList, nil
 }
 
-// 解析表头映射关系 [EN] Parse header mapping relationship
+// Parse header mapping relationship
 func parseSensitiveHeader(headerRow []string) (map[int]string, error) {
 
-	// 创建表头映射：列索引 -> 敏感类型 [EN] Create header mapping: column index -> sensitive type
+	// Create header mapping: column index -> sensitive type
 	headerMap := make(map[int]string)
 	validColumns := 0
 
@@ -96,7 +96,7 @@ func parseSensitiveHeader(headerRow []string) (map[int]string, error) {
 	return headerMap, nil
 }
 
-// 处理单行数据 [EN] Process single row of data
+// Process single row of data
 func processSensitiveRow(row []string, headerMap map[int]string) ([]SensitiveRawData, error) {
 	results := make([]SensitiveRawData, 0, len(headerMap))
 

@@ -26,20 +26,20 @@ import (
 
 const (
 	docCenterLocalDir        = "configs/microservice/bff-service/static/manual/"
-	docCenterStaticAPIPrefix = "../../../user/api/v1/static/manual" // ../../..用于抵消前端固定前缀 aibase/docCenter/pages [EN] ../../.. is used to offset the front-end fixed prefix aibase/docCenter/pages
-	docCenterSnippetLen      = 200                                  // 截取文本长度 [EN] Cut text length
+	docCenterStaticAPIPrefix = "../../../user/api/v1/static/manual" // ../../.. is used to offset the front-end fixed prefix aibase/docCenter/pages
+	docCenterSnippetLen      = 200                                  // Cut text length
 
-	// 文档通用命名： [EN] Common naming for documents:
+	// Common naming for documents:
 	// fileName:    e.g. StartNode.md
 	// filePath:    configs/microservice/bff-service/static/manual + relFilePath e.g. configs/microservice/bff-service/static/manual/workflow/StartNode.md
-	// relFilePath: configs/microservice/bff-service/static/manual中文件的相对路径 e.g. workflow/StartNode.md [EN] relFilePath: relative path to the file in configs/microservice/bff-service/static/manual e.g. workflow/StartNode.md
+	// relFilePath: relative path to the file in configs/microservice/bff-service/static/manual e.g. workflow/StartNode.md
 )
 
 var (
-	mdImageRegex          = regexp.MustCompile(`!\[.*?\]\((.*?)\)`)        // 从markdown文本中匹配 ![](xxxxx) 图片引用 [EN] Match ![](xxxxx) image quotes from markdown text
-	mdParenthesisRefRegex = regexp.MustCompile(`\((.*?)\)`)                // 从markdown引用中匹配 (xxxxx) [EN] Match (xxxxx) from markdown quote
-	mdLinkRegex           = regexp.MustCompile(`[^!]\[.*?\]\((.*?\.md)\)`) // 从markdown匹配出跳转链接[](xxxxx) [EN] Match jump links from markdown [](xxxxx)
-	mdBracketRegex        = regexp.MustCompile(`\[(.*?)\]`)                // 从markdown匹配[]中的文本 [EN] Match text in [] from markdown
+	mdImageRegex          = regexp.MustCompile(`!\[.*?\]\((.*?)\)`)        // Match ![](xxxxx) image quotes from markdown text
+	mdParenthesisRefRegex = regexp.MustCompile(`\((.*?)\)`)                // Match (xxxxx) from markdown quote
+	mdLinkRegex           = regexp.MustCompile(`[^!]\[.*?\]\((.*?\.md)\)`) // Match jump links from markdown [](xxxxx)
+	mdBracketRegex        = regexp.MustCompile(`\[(.*?)\]`)                // Match text in [] from markdown
 
 	_docCenter *docCenter
 )
@@ -60,20 +60,20 @@ func InitDocCenter() error {
 		return errors.New("already init")
 	}
 
-	// 0. 读取docCenterLocalDir所有md文件 [EN] 0. Read all md files in docCenterLocalDir
+	// 0. Read all md files in docCenterLocalDir
 	var mdInfos []mdInfo
 	if err := filepath.Walk(docCenterLocalDir, func(filePath string, fileInfo os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		// 检查不为目录并且是否为markdown文件 [EN] Check if it is not a directory and if it is a markdown file
+		// Check if it is not a directory and if it is a markdown file
 		if !fileInfo.IsDir() && strings.HasSuffix(fileInfo.Name(), ".md") {
-			// 读取文件内容 [EN] Read file contents
+			// Read file contents
 			content, err := os.ReadFile(filePath)
 			if err != nil {
 				return fmt.Errorf("read %v err: %v", filePath, err)
 			}
-			// 将markdown文本中图片引用 ![](xxxxx )与链接引用[](xxxxx )里的 xxxxx 处理为前端可访问的地址 [EN] Process the xxxxx in the image reference ![](xxxxx) and link reference [](xxxxx) in the markdown text as an address accessible to the front end
+			// Process the xxxxx in the image reference ![](xxxxx) and link reference [](xxxxx) in the markdown text as an address accessible to the front end
 			relFilePath := strings.TrimPrefix(filePath, docCenterLocalDir)
 			convertByte := convertMarkdown(docCenterStaticAPIPrefix, relFilePath, string(content))
 			mdInfos = append(mdInfos, mdInfo{
@@ -86,13 +86,13 @@ func InitDocCenter() error {
 		return err
 	}
 
-	// 1. 构建搜索引擎 [EN] 1. Build a search engine
+	// 1. Build a search engine
 	searcher, err := newDocMenuSearcher(mdInfos)
 	if err != nil {
 		return fmt.Errorf("init search engin err: %v", err)
 	}
 
-	// 2. 构造menus、contents [EN] 2. Construct menus and contents
+	// 2. Construct menus and contents
 	var menus []*response.DocMenu
 	contents := make(map[string]string)
 	for _, mdInfo := range mdInfos {
@@ -100,10 +100,10 @@ func InitDocCenter() error {
 		addDocMenusMdFile(&menus, mdInfo.relFilePath, mdInfo)
 	}
 
-	// 3. 刷新索引 [EN] 3. Refresh the index
-	// 3.1 menus排序 [EN] 3.1 menu sorting
+	// 3. Refresh the index
+	// 3.1 menu sorting
 	sortDocMenus(&menus)
-	// 3.2 重新生成menus index [EN] 3.2 Regenerate menu index
+	// 3.2 Regenerate menu index
 	for i, menu := range menus {
 		refreshDocMenuIndex(menu, fmt.Sprintf("doc%d", i+1))
 	}
@@ -128,7 +128,7 @@ func SearchDocCenter(ctx *gin.Context, content string) ([]response.DocSearchResp
 		snippet, err := util.Md2html([]byte(getMarkdownSnippet(doc.Content, content, docCenterSnippetLen)))
 		if err != nil {
 			log.Errorf("doc center %v md2html error", doc.DocId)
-			continue // 跳过当前doc不做处理 [EN] Skip the current doc without processing it
+			continue // Skip the current doc without processing it
 		}
 		searchUrl, err := url.JoinPath(config.Cfg().Server.WebBaseUrl, config.Cfg().DocCenter.FrontendPrefix, url.PathEscape(doc.DocId))
 		if err != nil {
@@ -164,7 +164,7 @@ func GetDocCenterMarkdown(ctx *gin.Context, relFilePath string) (string, error) 
 
 // --- doc-center convert raw markdown ---
 
-// 将markdown文本中图片引用 ![](xxxxx )与链接引用[](xxxxx )里的 xxxxx 处理为前端可访问的地址 [EN] Process the xxxxx in the image reference ![](xxxxx) and link reference [](xxxxx) in the markdown text as an address accessible to the front end
+// Process the xxxxx in the image reference ![](xxxxx) and link reference [](xxxxx) in the markdown text as an address accessible to the front end
 //
 //nolint:staticcheck
 func convertMarkdown(apiPrefix, refFilePath, mdContent string) string {
@@ -179,17 +179,17 @@ func convertMarkdown(apiPrefix, refFilePath, mdContent string) string {
 		return mdLabel
 	})
 	return mdImageRegex.ReplaceAllStringFunc(convertHttp, func(imageLabel string) string {
-		// imageLabel是匹配到的图片格式，例如 ![](../assets/append.png) [EN] imageLabel is the matched image format, such as ![](../assets/append.png)
+		// imageLabel is the matched image format, such as ![](../assets/append.png)
 		for _, imageRelPaths := range mdParenthesisRefRegex.FindAllStringSubmatch(imageLabel, -1) {
-			// 从imageLabel中继续匹配，例如imageRelPaths[0] 是 ![](../assets/append.png)，imageRelPaths[1]是 ../assets/append.png [EN] Continue matching from imageLabel, for example, imageRelPaths[0] is ![](../assets/append.png), imageRelPaths[1] is ../assets/append.png
+			// Continue matching from imageLabel, for example, imageRelPaths[0] is ![](../assets/append.png), imageRelPaths[1] is ../assets/append.png
 			if len(imageRelPaths) <= 1 {
 				return imageLabel
 			}
-			// 重新生成图片引用，将 ../assets/append.png 处理为 user/api/v1/static/manual/assets/append.png [EN] Regenerate the image reference and process ../assets/append.png as user/api/v1/static/manual/assets/append.png
-			// 例如refFilePath是workflow/StartNode.md [EN] For example, refFilePath is workflow/StartNode.md
+			// Regenerate the image reference and process ../assets/append.png as user/api/v1/static/manual/assets/append.png
+			// For example, refFilePath is workflow/StartNode.md
 			// 1. "workflow/StartNode.md" + "../" + "../assets/append.png" => assets/append.png
 			// 2. "../../../user/api/v1/static/manual" + "assets/append.png" => ../../../user/api/v1/static/manual/assets/append.png
-			// 3. 对路径中的非数字字母等做转义，再将 %2F 转回 / [EN] 3. Escape non-numeric letters in the path, and then convert %2F back to /
+			// 3. Escape non-numeric letters in the path, and then convert %2F back to /
 			return "![](" + strings.ReplaceAll(url.PathEscape(path.Join(apiPrefix, path.Join(refFilePath, "../", imageRelPaths[1]))), "%2F", "/") + ")"
 		}
 		return imageLabel
@@ -201,21 +201,21 @@ func convertMarkdown(apiPrefix, refFilePath, mdContent string) string {
 func newDocMenuSearcher(mdInfos []mdInfo) (*riot.Engine, error) {
 	engine := &riot.Engine{}
 	engine.Init(types.EngineOpts{})
-	// 创建索引 [EN] Create index
+	// Create index
 	for _, mdInfo := range mdInfos {
 		engine.Index(mdInfo.relFilePath, types.DocData{
 			Content: string(mdInfo.content),
 		})
 	}
-	// 刷新索引 [EN] refresh index
+	// refresh index
 	engine.Flush()
 	return engine, nil
 }
 
 func getMarkdownSnippet(content, keyword string, snippetLen int) string {
-	//string就是只读的采用utf8编码的字节切片(slice) 因此用len函数获取到的长度并不是字符个数，而是字节个数。 [EN] String is a read-only byte slice encoded with utf8. Therefore, the length obtained by using the len function is not the number of characters, but the number of bytes.
-	//rune是int32的别名，代表字符的Unicode编码，采用4个字节存储，将string转成rune就意味着任何一个字符都用4个字节来存储其unicode值， [EN] rune is an alias of int32, which represents the Unicode encoding of the character and is stored in 4 bytes. Converting string to rune means that any character uses 4 bytes to store its unicode value.
-	//这样每次遍历的时候返回的就是unicode值，而不再是字节。 [EN] In this way, the unicode value returned each time it is traversed is no longer bytes.
+	//String is a read-only byte slice encoded with utf8. Therefore, the length obtained by using the len function is not the number of characters, but the number of bytes.
+	//rune is an alias of int32, which represents the Unicode encoding of the character and is stored in 4 bytes. Converting string to rune means that any character uses 4 bytes to store its unicode value.
+	//In this way, the unicode value returned each time it is traversed is no longer bytes.
 	runes := []rune(content)
 	keyRunes := []rune(keyword)
 	index := strings.Index(content, keyword)
@@ -256,10 +256,10 @@ func addDocMenusMdFile(menus *[]*response.DocMenu, rest string, mdInfo mdInfo) {
 		menu = &response.DocMenu{
 			Name: parts[0],
 		}
-		if len(parts) == 1 { // 非目录，是md文件 [EN] Not a directory, it is an md file
+		if len(parts) == 1 { // Not a directory, it is an md file
 			menu.Name = strings.TrimSuffix(menu.Name, ".md")
 			menu.PathRaw = mdInfo.relFilePath
-			menu.Path = url.PathEscape(mdInfo.relFilePath) // 前端要求做path转义 [EN] The front end requires path escaping
+			menu.Path = url.PathEscape(mdInfo.relFilePath) // The front end requires path escaping
 			menu.SetContent(mdInfo.content)
 		}
 		*menus = append(*menus, menu)
@@ -282,14 +282,14 @@ func sortDocMenus(menus *[]*response.DocMenu) {
 	}
 }
 
-// 实现自然排序（数字优先） [EN] Implement natural ordering (number first)
+// Implement natural ordering (number first)
 func orderDocNum(s1, s2 string) bool {
 	numParts1, isNum1 := extractDocNum(s1)
 	numParts2, isNum2 := extractDocNum(s2)
 	if isNum1 && isNum2 {
 		return numParts1 < numParts2
 	} else if isNum1 {
-		// 如果一个是数字，一个是非数字，数字部分排在前 [EN] If one is a number and one is a non-number, the numeric part comes first
+		// If one is a number and one is a non-number, the numeric part comes first
 		return true
 	} else if isNum2 {
 		return false
@@ -297,7 +297,7 @@ func orderDocNum(s1, s2 string) bool {
 	return s1 < s2
 }
 
-// extractNum 将字符串按数字和非数字部分分割 [EN] extractNum splits the string into numeric and non-numeric parts
+// extractNum splits the string into numeric and non-numeric parts
 func extractDocNum(s string) (int, bool) {
 	var result strings.Builder
 	for _, r := range s {

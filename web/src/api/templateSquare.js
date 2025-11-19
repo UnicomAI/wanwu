@@ -1,7 +1,7 @@
 import request from "@/utils/request"
 import {USER_API} from "@/utils/requestConstants"
 
-/*---工作流模板---*/
+/*---WorkflowTemplate---*/
 export const getWorkflowTempList = (data)=>{
     return request({
         url: `${USER_API}/workflow/template/list`,
@@ -39,7 +39,7 @@ export const copyWorkflowTemplate = (data)=>{
     })
 };
 
-/*---提示词模板---*/
+/*---Tip词Template---*/
 export const getPromptTempList = (data)=>{
     return request({
         url: `${USER_API}/prompt/template/list`,
@@ -56,7 +56,7 @@ export const copyPromptTemplate = (data)=>{
     })
 };
 
-/*---自定义提示词---*/
+/*---CustomTip词---*/
 export const getCustomPromptList = (data)=>{
     return request({
         url: `${USER_API}/prompt/custom/list`,

@@ -84,17 +84,17 @@ type ToolDetail4Workflow struct {
 	IconUrl    string        `json:"iconUrl"`
 }
 
-// ToolActionParamWithoutTypeList4Workflow type非list的定义 [EN] ToolActionParamWithoutTypeList4Workflow type non-list definition
+// ToolActionParamWithoutTypeList4Workflow type non-list definition
 type ToolActionParamWithoutTypeList4Workflow struct {
 	Input       struct{}      `json:"input"`
 	Description string        `json:"description"`
 	Name        string        `json:"name"`
-	Type        string        `json:"type"` // 非list [EN] non-list
+	Type        string        `json:"type"` // non-list
 	Required    bool          `json:"required"`
 	Children    []interface{} `json:"schema"`
 }
 
-// ToolActionParamWithTypeList4Workflow type是list的定义 [EN] ToolActionParamWithTypeList4Workflow type is the definition of list
+// ToolActionParamWithTypeList4Workflow type is the definition of list
 type ToolActionParamWithTypeList4Workflow struct {
 	Input       struct{}                           `json:"input"`
 	Description string                             `json:"description"`

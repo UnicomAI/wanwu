@@ -13,8 +13,8 @@ type PageSearch struct {
 }
 
 type LoginEmailCheck struct {
-	Email string `json:"email" validate:"required"` // 邮箱 [EN] Mail
-	Code  string `json:"code" validate:"required"`  // 邮箱验证码 [EN] Email verification code
+	Email string `json:"email" validate:"required"` // Mail
+	Code  string `json:"code" validate:"required"`  // Email verification code
 }
 
 func (l *LoginEmailCheck) Check() error {
@@ -24,8 +24,8 @@ func (l *LoginEmailCheck) Check() error {
 type ChangeUserPasswordByEmail struct {
 	OldPassword string `json:"oldPassword" validate:"required"`
 	NewPassword string `json:"newPassword" validate:"required"`
-	Email       string `json:"email" validate:"required"` // 邮箱 [EN] Mail
-	Code        string `json:"code" validate:"required"`  // 邮箱验证码 [EN] Email verification code
+	Email       string `json:"email" validate:"required"` // Mail
+	Code        string `json:"code" validate:"required"`  // Email verification code
 }
 
 func (c *ChangeUserPasswordByEmail) Check() error {

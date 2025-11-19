@@ -9,7 +9,7 @@ import (
 
 type Gui struct {
 	ApiKey      string `json:"apiKey"`      // ApiKey
-	EndpointUrl string `json:"endpointUrl"` // 推理url [EN] inference url
+	EndpointUrl string `json:"endpointUrl"` // inference url
 }
 
 func (cfg *Gui) Tags() []mp_common.Tag {

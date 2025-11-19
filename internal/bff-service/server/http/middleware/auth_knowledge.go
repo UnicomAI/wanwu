@@ -17,27 +17,27 @@ const (
 	KnowledgeSystem int32 = 30
 )
 
-// AuthKnowledgeDoc 校验知识库权限 [EN] AuthKnowledgeDoc verifies knowledge base permissions
+// AuthKnowledgeDoc verifies knowledge base permissions
 func AuthKnowledgeDoc(fieldName string, permissionType int32) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		defer util.PrintPanicStack()
-		//1.获取value值 [EN] 1. Get the value
+		//1. Get the value
 		value := getFieldValue(ctx, fieldName)
 		if len(value) == 0 {
 			gin_util.ResponseErrWithStatus(ctx, http.StatusBadRequest, errors.New("docId is required"))
 			ctx.Abort()
 			return
 		}
-		//2.根据docId获取知识库id [EN] 2. Get the knowledge base id based on docId
+		//2. Get the knowledge base id based on docId
 		knowledgeId, err := searchKnowledgeId(ctx, value)
 		if err != nil {
 			gin_util.ResponseErrWithStatus(ctx, http.StatusBadRequest, err)
 			ctx.Abort()
 			return
 		}
-		//3.校验用户授权权限 [EN] 3. Verify user authorization permissions
+		//3. Verify user authorization permissions
 		err = knowledgeGrantUser(ctx, knowledgeId, permissionType)
-		//4.异常处理 [EN] 4.Exception handling
+		//4.Exception handling
 		if err != nil {
 			gin_util.ResponseErrWithStatus(ctx, http.StatusBadRequest, err)
 			ctx.Abort()
@@ -46,19 +46,19 @@ func AuthKnowledgeDoc(fieldName string, permissionType int32) func(ctx *gin.Cont
 	}
 }
 
-// AuthKnowledgeIfHas 校验知识库权限,允许字段为空 [EN] AuthKnowledgeIfHas verifies knowledge base permissions, allowing fields to be empty
+// AuthKnowledgeIfHas verifies knowledge base permissions, allowing fields to be empty
 func AuthKnowledgeIfHas(fieldName string, permissionType int32) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		defer util.PrintPanicStack()
-		//1.获取value值 [EN] 1. Get the value
+		//1. Get the value
 		value := getFieldValue(ctx, fieldName)
 		if len(value) == 0 {
 			ctx.Next()
 			return
 		}
-		//2.校验用户授权权限 [EN] 2. Verify user authorization permissions
+		//2. Verify user authorization permissions
 		err := knowledgeGrantUser(ctx, value, permissionType)
-		//3.返回结果 [EN] 3.Return results
+		//3.Return results
 		if err != nil {
 			gin_util.ResponseErrWithStatus(ctx, http.StatusBadRequest, err)
 			ctx.Abort()
@@ -67,20 +67,20 @@ func AuthKnowledgeIfHas(fieldName string, permissionType int32) func(ctx *gin.Co
 	}
 }
 
-// AuthKnowledge 校验知识库权限 [EN] AuthKnowledge verifies knowledge base permissions
+// AuthKnowledge verifies knowledge base permissions
 func AuthKnowledge(fieldName string, permissionType int32) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		defer util.PrintPanicStack()
-		//1.获取value值 [EN] 1. Get the value
+		//1. Get the value
 		value := getFieldValue(ctx, fieldName)
 		if len(value) == 0 {
 			gin_util.ResponseErrWithStatus(ctx, http.StatusBadRequest, errors.New("knowledgeId is required"))
 			ctx.Abort()
 			return
 		}
-		//2.校验用户授权权限 [EN] 2. Verify user authorization permissions
+		//2. Verify user authorization permissions
 		err := knowledgeGrantUser(ctx, value, permissionType)
-		//3.返回结果 [EN] 3.Return results
+		//3.Return results
 		if err != nil {
 			gin_util.ResponseErrWithStatus(ctx, http.StatusBadRequest, err)
 			ctx.Abort()

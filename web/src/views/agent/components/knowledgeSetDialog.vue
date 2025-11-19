@@ -1,7 +1,7 @@
 <template>
     <div>
         <el-dialog
-        title="召回参数配置"
+        title="召回ParameterConfiguration"
         :visible.sync="dialogVisible"
         width="50%"
         :before-close="handleClose">
@@ -39,14 +39,14 @@ export default {
             this.dialogVisible = false;
         },
         submit(){
-            // 验证模型选择
+            // VerifyModel选择
             const { matchType, priorityMatch, rerankModelId } = this.knowledgeConfig;
             const needRerankModel = matchType === 'vector' || 
                                    matchType === 'text' || 
                                    (matchType === 'mix' && priorityMatch === 0);
             
             if (needRerankModel && !rerankModelId) {
-                this.$message.error('请选择模型');
+                this.$message.error('Please selectModel');
                 return;
             }
             

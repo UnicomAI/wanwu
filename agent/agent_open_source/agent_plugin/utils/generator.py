@@ -38,7 +38,7 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
     else:
         history_tmp = []
     
-    # 定义全局变量，流式结束原因：0（生成中），1（正常结束），2（非正常结束，输出超过最大长度） [EN] Define global variables, reasons for streaming end: 0 (generating), 1 (normal end), 2 (abnormal end, output exceeds the maximum length)
+    # Define global variables, reasons for streaming end: 0 (generating), 1 (normal end), 2 (abnormal end, output exceeds the maximum length)
     finish_reason = 0
     
     if response:
@@ -87,7 +87,7 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
 
 
         if isinstance(response, requests.models.Response):
-            # http服务方式的 response，来自语言或编码模型 [EN] HTTP service response, from language or encoding model
+            # HTTP service response, from language or encoding model
             for line in response.iter_lines(decode_unicode=True):
                 if isinstance(line,list) and isinstance(line[0]['content'],str):
                     line = line[0]['content']
@@ -138,19 +138,19 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
 
                     else:
                         if datajson['data']['choices'][0]['finish_reason']=="stop":  
-                            # 正常结束 [EN] End normally
+                            # End normally
                             finish_reason = 1
                         if datajson['data']['choices'][0]['finish_reason']=="tool_calls": 
-                            # 正常结束 [EN] End normally
+                            # End normally
                             finish_reason = 1
                             
                         if datajson['data']['choices'][0]['finish_reason']=="length":
-                            # 长度被截断 [EN] length truncated
+                            # length truncated
                             finish_reason = 2
                             
 
                         if not is_query_sens: 
-                            # 将当前对话存入对话历史，但有条件，如下 [EN] Save the current conversation into the conversation history, but there are conditions, as follows
+                            # Save the current conversation into the conversation history, but there are conditions, as follows
                             # only if user query is not sensitive, push the current turn into dialog history
                             subjson = {}
                             subjson["query"] = query
@@ -248,15 +248,15 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
 
                     else:
                         if datajson['data']['choices'][0]['finish_reason']=="stop":  
-                            # 正常结束 [EN] End normally
+                            # End normally
                             finish_reason = 1
                         if datajson['data']['choices'][0]['finish_reason']=="length":
-                            # 长度被截断 [EN] length truncated
+                            # length truncated
                             finish_reason = 2
                             
 
                         if not is_query_sens: 
-                            # 将当前对话存入对话历史，但有条件，如下 [EN] Save the current conversation into the conversation history, but there are conditions, as follows
+                            # Save the current conversation into the conversation history, but there are conditions, as follows
                             # only if user query is not sensitive, push the current turn into dialog history
                             subjson = {}
                             subjson["query"] = query
@@ -306,7 +306,7 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
                         yield str_out           
                     
     elif non_llm_response:
-        #非语言模型的消息，模拟流式结果 [EN] Messages from non-linguistic models, simulating streaming results
+        #Messages from non-linguistic models, simulating streaming results
         finish_reason = 1
         if qa_type in [7,9]:
             thought_inference = thought_inference+"\n"+non_llm_response
@@ -372,7 +372,7 @@ def generate_non_stream_response(query, rewrite_query, prompt, llm_response,qa_t
    
     """
 
-    # 直接在历史记录中添加新的项 [EN] Add new items directly to history
+    # Add new items directly to history
     if history:
         history_tmp = history.copy()
     else:
@@ -414,7 +414,7 @@ def generate_non_stream_response(query, rewrite_query, prompt, llm_response,qa_t
             
         jsonarr = json.dumps(result, ensure_ascii=False)
         logger.info(f'generate_non_stream_response: {jsonarr}')
-        # 返回响应 [EN] Return response
+        # Return response
         return Response(jsonarr, mimetype='application/json')
         
     elif non_llm_response:
@@ -459,7 +459,7 @@ def generate_non_stream_response(query, rewrite_query, prompt, llm_response,qa_t
         jsonarr = json.dumps(result, ensure_ascii=False)
         logger.info(f'generate_non_stream_non_llm_response: {jsonarr}')
 
-        # 直接返回响应 [EN] Return response directly
+        # Return response directly
         return Response(jsonarr, mimetype='application/json')
     else:
         msg_error = "参数错误: 缺少答案正文，语言模型输出（response）和非语言模型输出（non_llm_response）不能同时为空!"

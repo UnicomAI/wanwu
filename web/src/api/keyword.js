@@ -1,7 +1,7 @@
 import service from "@/utils/request";
 import {USER_API} from "@/utils/requestConstants"
 
-//查询知识库关键词列表
+//QueryKnowledge Base关Key词List
 export const getKeyWord = (data)=>{
     return service({
         url: `${USER_API}/knowledge/keywords`,
@@ -10,7 +10,7 @@ export const getKeyWord = (data)=>{
     })
 };
 
-//新增知识库关键词列表
+//AddKnowledge Base关Key词List
 export const addKeyWord = (data)=>{
     return service({
         url: `${USER_API}/knowledge/keywords`,
@@ -18,7 +18,7 @@ export const addKeyWord = (data)=>{
         data
     })
 };
-//编辑知识库关键词列表
+//EditKnowledge Base关Key词List
 export const editKeyWord = (data)=>{
     return service({
         url: `${USER_API}/knowledge/keywords`,
@@ -26,7 +26,7 @@ export const editKeyWord = (data)=>{
         data
     })
 };
-//删除知识库关键词列表
+//DeleteKnowledge Base关Key词List
 export const delKeyWord = (data)=>{
     return service({
         url: `${USER_API}/knowledge/keywords`,
@@ -34,7 +34,7 @@ export const delKeyWord = (data)=>{
         data
     })
 };
-//知识库关键词详情
+//Knowledge Base关Key词Details
 export const keyWordDetail = (data)=>{
     return service({
         url: `${USER_API}/knowledge/keywords/detail`,

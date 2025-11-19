@@ -33,7 +33,7 @@ export default {
       handler(val) {
         if (val.length > 0) {
           if (this.api) {
-            this.api.dispose(); // 销毁之前的实例
+            this.api.dispose(); // Destroy之前 of 实例
           }
           this.api = echarts.init(this.$refs.api);
 
@@ -80,10 +80,10 @@ export default {
               readOnly: false,
               optionToContent: function (opt) {
                 // console.log(opt)
-                //该函数可以自定义列表为table，opt是给我们提供的原始数据的obj。 可打印出来数据结构查看
+                //该Function可以CustomList为table，optYes给我们提供 of 原始Data of obj。 可打印出来Data结构View
                 var axisData = opt.xAxis[0].data; //坐标轴
-                var series = opt.series; //折线图的数据
-                var tdHeads = `<td  style="margin-top:10px; padding: 0 15px">${i18n.t('statisticsEcharts.date')}</td>`; //表头
+                var series = opt.series; //折线图 of Data
+                var tdHeads = `<td  style="margin-top:10px; padding: 0 15px">${i18n.t('statisticsEcharts.date')}</td>`; //Table头
                 var tdBodys = "";
                 series.forEach(function (item) {
                   tdHeads += `<td style="padding:5px 15px">${item.name}</td>`;
@@ -169,11 +169,11 @@ export default {
                 return params.data + i18n.t('statisticsEcharts.minute');
               },
             },
-            // 折线拐点的样式
+            // 折线拐点 of Style
             itemStyle: {
-              // 静止时：
+              // 静止 when ：
               color: "#0088FF",
-              borderColor: "#0088FF", //拐点的边框颜色
+              borderColor: "#0088FF", //拐点 of 边框颜色
               borderWidth: 2,
             },
             areaStyle: {
@@ -194,7 +194,7 @@ export default {
             },
             emphasis: {
               focus: "series",
-              // 鼠标经过时：
+              // 鼠标经  when ：
               itemStyle: {
                   color: "#4CF8C5",
               },

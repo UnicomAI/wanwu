@@ -74,9 +74,9 @@ vector_dynamic_templates = [
 mappings = {
     "dynamic_templates": vector_dynamic_templates,
     "properties": {
-        "content_id": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
-        "file_name": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
-        "kb_name": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
+        "content_id": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
+        "file_name": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
+        "kb_name": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
         "content": {"type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart"},  # 指定分词方式
         "embedding_content": {"type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart"},
         # 指定分词方式
@@ -84,22 +84,22 @@ mappings = {
 }
 uk_mappings = {
     "properties": {
-        "index_name": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
-        "userId": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
-        "kb_name": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
-        "kb_id": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
-        "embedding_model_id": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合"
+        "index_name": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
+        "userId": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
+        "kb_name": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
+        "kb_id": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
+        "embedding_model_id": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合"
         "enable_graph": {"type": "boolean"},
     }
 }
-# ES 需提前 init_kb 添加 content中控部分索引
+# ES 需提Before init_kb 添加 contentMedium控部分Index
 cc_mappings = {
     "properties": {
-        "content_id": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
-        "chunk_id": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
-        "file_name": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
-        "kb_name": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
-        "status": {"type": "boolean"},  # 指定为 keyword，方便用于排序和聚合
+        "content_id": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
+        "chunk_id": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
+        "file_name": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
+        "kb_name": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
+        "status": {"type": "boolean"},  # 指定为 keyword，方便用于Sort和聚合
         "labels": {"type": "keyword"},
         "content": {"type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart"},  # 指定分词方式
         "child_chunk_total_num": {"type": "long"},
@@ -122,9 +122,9 @@ cc_mappings = {
 snippet_mappings = {
     "properties": {
         "snippet": {"type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart"},  # 指定分词方式
-        "file_name": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
-        "kb_name": {"type": "keyword"},  # 指定为 keyword，方便用于排序和聚合
-        "content_id": {"type": "keyword"}, # 指定为 keyword，方便用于排序和聚合
+        "file_name": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
+        "kb_name": {"type": "keyword"},  # 指定为 keyword，方便用于Sort和聚合
+        "content_id": {"type": "keyword"}, # 指定为 keyword，方便用于Sort和聚合
     }
 }
 
@@ -188,19 +188,19 @@ def update_doc_meta_mapping(index_name):
         .get("properties", {})
     )
 
-    # 要新增的字段定义
+    # 要Add的Field定义
     new_fields = {
         "int_value": {"type": "long"},
         "string_value": {"type": "keyword"},
     }
-    # 检测缺失字段
+    # 检测缺失Field
     missing_fields = {
         k: v for k, v in new_fields.items() if k not in doc_meta_props
     }
 
 
     if not meta_data_exist or missing_fields:
-        # 如果 meta_data 或者 doc_meta 字段不存在，添加它
+        # If meta_data Or doc_meta Field不存在，添加它
         es.indices.put_mapping(
             index=index_name,
             body={

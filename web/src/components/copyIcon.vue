@@ -24,11 +24,11 @@ export default {
       try {
         const text = this.text;
 
-        // 优先使用现代 Clipboard API
+        // 优FirstUse现代 Clipboard API
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(text);
         } else {
-          // 降级方案：创建 input 并使用 execCommand
+          // Downgrade方案：Create input 并Use execCommand
           const input = document.createElement('input');
           input.value = text;
           input.setAttribute('readonly', '');
@@ -39,10 +39,10 @@ export default {
           document.body.removeChild(input);
         }
 
-        this.$message.success('已复制到剪贴板');
+        this.$message.success('已Copy到剪贴板');
       } catch (err) {
-        console.error('复制失败:', err);
-        this.$message.error('复制失败，请手动复制');
+        console.error('Copy failed:', err);
+        this.$message.error('Copy failed，Please手动Copy');
       }
     }
   }

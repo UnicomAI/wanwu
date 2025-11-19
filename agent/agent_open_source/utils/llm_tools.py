@@ -70,10 +70,10 @@ def generate(llm_chain: RunnableSequence, stream:bool=False, **kwargs: Any) -> D
     """Generate a research plan using the provided LLM chain."""
     try:
         if stream:
-            return llm_chain.stream(input=kwargs)  # 使用 input 参数 [EN] Use input parameters
+            return llm_chain.stream(input=kwargs)  # Use input parameters
         else:
             # print(kwargs)
-            response = llm_chain.invoke(input=kwargs)  # 使用 input 参数 [EN] Use input parameters
+            response = llm_chain.invoke(input=kwargs)  # Use input parameters
             return response
     except Exception as e:
         logger.error(f"lc_generate failed: {e}")
@@ -94,10 +94,10 @@ def req_llm_structed_output(promt_file, model="yuanjing-70b-chat", **kwargs: Any
     llm_chain =  prompt_template | llm | extract_json_plus
     
     # print("-" * 50)
-    # 获取生成器的结果并转换为列表 [EN] Get the result of the generator and convert it to a list
+    # Get the result of the generator and convert it to a list
     result = list(generate(llm_chain, stream=True, **kwargs))
     
-    # 现在可以安全地序列化为JSON [EN] Can now be safely serialized to JSON
+    # Can now be safely serialized to JSON
     # print(json.dumps(result[0], ensure_ascii=False, indent=2))
     # print("-" * 50)
     return result[0]

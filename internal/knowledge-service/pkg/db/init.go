@@ -47,17 +47,17 @@ func (c DataBaseClient) Load() error {
 		log.Errorf("init knowledge_base_service db err: %v", err)
 		return err
 	}
-	//创建数据库配置 [EN] Create database configuration
+	//Create database configuration
 	err = createDB(dbHandle)
 	if err != nil {
 		return err
 	}
-	//注册表配置 [EN] Registry configuration
+	//Registry configuration
 	err = registerTables(dbHandle)
 	if err != nil {
 		return err
 	}
-	//初始化数据 [EN] initialization data
+	//initialization data
 	err = initData(dbHandle)
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func (c DataBaseClient) Stop() error {
 	return err
 }
 
-// 创建db [EN] createdb
+// createdb
 func createDB(dbClient *gorm.DB) error {
 	err := dbClient.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;", knowledgeDBName)).Error
 	if err != nil {
@@ -97,7 +97,7 @@ func createDB(dbClient *gorm.DB) error {
 	return nil
 }
 
-// 注册表信息 [EN] Registry information
+// Registry information
 func registerTables(dbClient *gorm.DB) error {
 	err := dbClient.AutoMigrate(
 		model.KnowledgeDoc{},
@@ -120,7 +120,7 @@ func registerTables(dbClient *gorm.DB) error {
 	return nil
 }
 
-// initData初始化数据 [EN] initData initialization data
+// initData initialization data
 func initData(dbClient *gorm.DB) error {
 	err := initDocMeta(dbClient)
 	if err != nil {
@@ -137,7 +137,7 @@ func initData(dbClient *gorm.DB) error {
 
 func initDocMeta(dbClient *gorm.DB) error {
 	var knowledgeDocMetaList []model.KnowledgeDocMeta
-	//数据量不会太大直接getAll [EN] The amount of data will not be too large, just getAll
+	//The amount of data will not be too large, just getAll
 	err := dbClient.Model(&model.KnowledgeDocMeta{}).Where("create_at <= ?", docMetaTimestampOld).Find(&knowledgeDocMetaList).Error
 	if err != nil {
 		return err
@@ -166,7 +166,7 @@ func initDocMeta(dbClient *gorm.DB) error {
 
 func initKnowledgeName(dbClient *gorm.DB) error {
 	var knowledgeBaseList []model.KnowledgeBase
-	//数据量不会太大直接getAll [EN] The amount of data will not be too large, just getAll
+	//The amount of data will not be too large, just getAll
 	err := dbClient.Model(&model.KnowledgeBase{}).Find(&knowledgeBaseList).Error
 	if err != nil {
 		return err
@@ -190,7 +190,7 @@ func initKnowledgeName(dbClient *gorm.DB) error {
 
 func initKnowledgePermission(dbClient *gorm.DB) error {
 	var knowledgeBaseList []model.KnowledgeBase
-	//数据量不会太大直接getAll [EN] The amount of data will not be too large, just getAll
+	//The amount of data will not be too large, just getAll
 	err := dbClient.Model(&model.KnowledgeBase{}).Find(&knowledgeBaseList).Error
 	if err != nil {
 		return err

@@ -35,7 +35,7 @@ func (c *Client) GetUser(ctx context.Context, userID, orgID uint32) (*UserInfo, 
 			ret = toUserInfo(user)
 			return nil
 		}
-		// check org user 用户在组织中的状态校验 [EN] check org user Check the status of the user in the organization
+		// check org user Check the status of the user in the organization
 		orgUser := &model.OrgUser{}
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithUserID(user.ID),
@@ -154,7 +154,7 @@ func createUserTx(tx *gorm.DB, user *model.User, orgID uint32, roleIDs []uint32)
 	}
 	// check creator
 	if user.CreatorID != 0 {
-		// 正常创建用户 [EN] Create user normally
+		// Create user normally
 		if user.IsAdmin {
 			return toErrStatus("iam_user_create", "cannot create admin user")
 		}
@@ -162,7 +162,7 @@ func createUserTx(tx *gorm.DB, user *model.User, orgID uint32, roleIDs []uint32)
 			return toErrStatus("iam_user_create", err.Error())
 		}
 	} else {
-		// 创建系统内管理员，此时系统内不能存在任何用户 [EN] Create an administrator within the system. There cannot be any users in the system at this time.
+		// Create an administrator within the system. There cannot be any users in the system at this time.
 		if !user.IsAdmin {
 			return toErrStatus("iam_user_create", "create admin user but is not admin")
 		}
@@ -201,7 +201,7 @@ func createUserTx(tx *gorm.DB, user *model.User, orgID uint32, roleIDs []uint32)
 		OrgID:  orgID,
 		UserID: user.ID,
 	})
-	if orgID != config.TopOrgID() { // 默认也加入顶级组织 [EN] Also join top-level organizations by default
+	if orgID != config.TopOrgID() { // Also join top-level organizations by default
 		orgUsers = append(orgUsers, &model.OrgUser{
 			OrgID:  config.TopOrgID(),
 			UserID: user.ID,
@@ -240,7 +240,7 @@ func (c *Client) UpdateUser(ctx context.Context, user *model.User, orgID uint32,
 		return toErrStatus("iam_user_update", "update user but id 0")
 	}
 	return c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
-		// check org user 用户在组织中的状态校验 [EN] check org user Check the status of the user in the organization
+		// check org user Check the status of the user in the organization
 		orgUser := &model.OrgUser{}
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithUserID(user.ID),
@@ -694,7 +694,7 @@ func getUserPermission(tx *gorm.DB, userID, orgID uint32) (*Permission, error) {
 	if err := sqlopt.WithID(orgID).Apply(tx).First(org).Error; err != nil {
 		return nil, fmt.Errorf("get org %v err: %v", orgID, err)
 	}
-	// check org user 用户在组织中的状态校验 [EN] check org user Check the status of the user in the organization
+	// check org user Check the status of the user in the organization
 	orgUser := &model.OrgUser{}
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithUserID(userID),

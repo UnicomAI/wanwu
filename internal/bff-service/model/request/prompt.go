@@ -1,10 +1,10 @@
 package request
 
 type CustomPromptCreate struct {
-	Avatar Avatar `json:"avatar"`                     // 图标 [EN] icon
-	Name   string `json:"name" validate:"required"`   // 名称 [EN] name
-	Desc   string `json:"desc" validate:"required"`   // 描述 [EN] describe
-	Prompt string `json:"prompt" validate:"required"` // 提示词 [EN] prompt word
+	Avatar Avatar `json:"avatar"`                     // icon
+	Name   string `json:"name" validate:"required"`   // name
+	Desc   string `json:"desc" validate:"required"`   // describe
+	Prompt string `json:"prompt" validate:"required"` // prompt word
 }
 
 func (req *CustomPromptCreate) Check() error {
@@ -12,7 +12,7 @@ func (req *CustomPromptCreate) Check() error {
 }
 
 type CustomPromptIDReq struct {
-	CustomPromptID string `json:"customPromptId" validate:"required"` // 自定义提示词ID [EN] Custom prompt word ID
+	CustomPromptID string `json:"customPromptId" validate:"required"` // Custom prompt word ID
 }
 
 func (req *CustomPromptIDReq) Check() error {
@@ -21,10 +21,10 @@ func (req *CustomPromptIDReq) Check() error {
 
 type UpdateCustomPrompt struct {
 	CustomPromptIDReq
-	Avatar Avatar `json:"avatar"`                     // 图标 [EN] icon
-	Name   string `json:"name" validate:"required"`   // 名称 [EN] name
-	Desc   string `json:"desc" validate:"required"`   // 描述 [EN] describe
-	Prompt string `json:"prompt" validate:"required"` // 提示词 [EN] prompt word
+	Avatar Avatar `json:"avatar"`                     // icon
+	Name   string `json:"name" validate:"required"`   // name
+	Desc   string `json:"desc" validate:"required"`   // describe
+	Prompt string `json:"prompt" validate:"required"` // prompt word
 }
 
 func (req *UpdateCustomPrompt) Check() error {

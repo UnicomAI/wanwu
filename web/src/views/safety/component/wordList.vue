@@ -20,8 +20,8 @@
               </div>
 
               <div class="content_title">
-                <el-button size="mini" type="primary"  @click="showCreate">添加敏感词</el-button>
-                <el-button size="mini" type="primary" @click="showReply">回复设置</el-button>
+                <el-button size="mini" type="primary"  @click="showCreate">AddSensitive Word</el-button>
+                <el-button size="mini" type="primary" @click="showReply">ReplySetting</el-button>
               </div>
             </el-header>
             <el-main
@@ -35,12 +35,12 @@
               >
                 <el-table-column
                   prop="word"
-                  label="敏感词"
+                  label="Sensitive Word"
                 >
                 </el-table-column>
                 <el-table-column
                   prop="sensitiveType"
-                  label="类型"
+                  label="Type"
                 >
                 <template slot-scope="scope">
                   <span>{{safetyType[scope.row.sensitiveType]}}</span>
@@ -123,7 +123,7 @@ export default {
       this.getTableData(this.docQuery)
     },
     handleDel(data){
-       this.$confirm(`确定删除敏感词-${data.word}`,this.$t('knowledgeManage.tip'),
+       this.$confirm(`确定DeleteSensitive Word-${data.word}`,this.$t('knowledgeManage.tip'),
         {
           confirmButtonText:  this.$t('common.button.confirm'),
           cancelButtonText: this.$t('common.button.cancel'),
@@ -135,7 +135,7 @@ export default {
           this.loading = true;
           let res = await delSensitiveWord(jsondata);
           if (res.code === 0) {
-            this.$message.success('删除成功');
+            this.$message.success('DeleteSuccess');
             this.getTableData(this.docQuery)
           }
           this.loading = false;
@@ -151,12 +151,12 @@ export default {
     },
     async download(url,name){
       const res = await downDoc(url)
-      const blobUrl = window.URL.createObjectURL(res) // 将blob对象转为一个URL
+      const blobUrl = window.URL.createObjectURL(res) // 将blobObject转为一个URL
       const link = document.createElement('a')
       link.href = blobUrl
       link.download = name
-      link.click() // 启动下载
-      window.URL.revokeObjectURL(link.href) // 下载完毕删除a标签
+      link.click() // StartDownload
+      window.URL.revokeObjectURL(link.href) // Download完毕DeleteaTag
     },
     handleUpload() {
       this.$router.push({path:'/knowledge/fileUpload',query:{id:this.docQuery.knowledgeId,name:this.knowledgeName}})
@@ -373,9 +373,9 @@ export default {
 </style>
 <style lang="scss">
 .custom-tooltip.is-light {
-  border-color: #eee; /* 设置边框颜色 */
-  background-color: #fff; /* 设置背景颜色 */
-  color: #666; /* 设置文字颜色 */
+  border-color: #eee; /* Setting边框颜色 */
+  background-color: #fff; /* Setting背景颜色 */
+  color: #666; /* Setting文字颜色 */
 }
 .custom-tooltip.el-tooltip__popper[x-placement^="top"] .popper__arrow::after {
   border-top-color: #fff !important;

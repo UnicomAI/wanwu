@@ -13,15 +13,15 @@
                         <span>{{scope.row.apiKey.slice(0,6) + '******'}}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="创建时间"  prop="createdAt"  />
-                <el-table-column label="操作" width="200">
+                <el-table-column label="Create Time"  prop="createdAt"  />
+                <el-table-column label="Operation" width="200">
                 <template slot-scope="scope">
                     <el-button
                     size="mini"
-                    @click="handleCopy(scope.row) && copycb()">复制</el-button>
+                    @click="handleCopy(scope.row) && copycb()">Copy</el-button>
                     <el-button
                     size="mini"
-                    @click="handleDelete(scope.row)">删除</el-button>
+                    @click="handleDelete(scope.row)">Delete</el-button>
                 </template>
                 </el-table-column>
             </el-table>
@@ -79,7 +79,7 @@ export default {
             return res;
         },
         copycb(){
-            this.$message.success('内容已复制到粘贴板')
+            this.$message.success('Content已Copy到粘贴板')
         },
         handleCreate(){
             const data = {appId:this.appId,appType:this.appType}
@@ -98,17 +98,17 @@ export default {
             })
         },
         handleDelete(row){
-            this.$confirm('确定要删除当前APIkey吗？',this.$t('knowledgeManage.tip'),
+            this.$confirm('确定要Delete当前APIkey吗？',this.$t('knowledgeManage.tip'),
                 {
                 confirmButtonText: '确定',
-                cancelButtonText: '取消',
+                cancelButtonText: 'Cancel',
                 type: "warning"
                 }
             )
             .then(() => {
                 delApiKey({apiId:row.apiId}).then(res =>{
                     if(res.code === 0){
-                        this.$message.success('删除成功')
+                        this.$message.success('DeleteSuccess')
                         this.getTableData()
                     }
                 })

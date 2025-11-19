@@ -15,13 +15,13 @@ import datetime,time
 from utils.auth import AccessTokenManager
 from utils.langchain_unicomai import ChatUnicomAI
 from langchain_openai import ChatOpenAI 
-from openai import RateLimitError  # 新的导入方式 [EN] New import method
+from openai import RateLimitError  # New import method
 from langchain_openai import ChatOpenAI 
 from langchain_core.messages import (
     AIMessage,
     AIMessageChunk,
 )
-from openai import RateLimitError  # 新的导入方式 [EN] New import method
+from openai import RateLimitError  # New import method
 
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -35,7 +35,7 @@ HISTORY_TURNS_NUM =10
 
 logger = logging.getLogger(__name__)
 
-# 实例化对象 [EN] instantiate object
+# instantiate object
 token_manager = AccessTokenManager()
 
 # MODEL_NAME = "unicom-72b-chat-ali"
@@ -61,14 +61,14 @@ MODEL_URL = MODEL_URL_CONFIG if env_value_model_url is None or env_value_model_u
 def parse_error_to_dict(error) -> Dict[str, Any]:
     """将错误信息转换为字典类型"""
     try:
-        # 从错误信息中提取 JSON 部分 [EN] Extract JSON part from error message
+        # Extract JSON part from error message
         error_str = str(error)
-        # 使用正则表达式匹配 '-' 后面的 JSON 字符串 [EN] Use regular expressions to match JSON strings following '-'
+        # Use regular expressions to match JSON strings following '-'
         match = re.search(r'-\s*(\{.*\})', error_str)
         if match:
             json_str = match.group(1)
             return json.loads(json_str)
-        # 如果没有匹配到 JSON 格式，返回基本错误信息 [EN] If no JSON format is matched, basic error information is returned.
+        # If no JSON format is matched, basic error information is returned.
         return {
             "error": {
                 "message": str(error),
@@ -77,7 +77,7 @@ def parse_error_to_dict(error) -> Dict[str, Any]:
             }
         }
     except Exception as e:
-        # 确保总是返回一个有效的错误字典 [EN] Ensure a valid error dictionary is always returned
+        # Ensure a valid error dictionary is always returned
         return {
             "error": {
                 "message": str(error),
@@ -109,7 +109,7 @@ def req_unicom_llm_chat(messages: List,
 
     llm = ChatOpenAI(
         model=model_name,
-        temperature=0.6,  #deepseek系列模型写死 [EN] Deepseek series models are written to death
+        temperature=0.6,  #Deepseek series models are written to death
         base_url=base_url,
 
         api_key = os.environ["ARK_API_KEY"]
@@ -154,7 +154,7 @@ def req_unicom_llm_chat_plus(messages:List, stop_words =  ['REASON'], model_name
     logger.info(f"model_tools req_unicom_llm_chat_plus  base_url:{base_url}  model_name:{model_name}")
     llm = ChatOpenAI(
         model=model_name,
-        temperature=0.6,  #deepseek系列模型写死 [EN] Deepseek series models are written to death
+        temperature=0.6,  #Deepseek series models are written to death
         base_url=base_url,
         api_key = os.environ["ARK_API_KEY"]
     )
@@ -185,9 +185,9 @@ def req_unicom_llm_chat_plus(messages:List, stop_words =  ['REASON'], model_name
 
 def can_answer_question(question, kb_result_str,model_name = MODEL_NAME,model_url = ""):
 #     flag = False
-#     KN_USED_PROMPT_TEMPLATE = '''文本内容： [EN] KN_USED_PROMPT_TEMPLATE = '''Text content:
+#     KN_USED_PROMPT_TEMPLATE = '''Text content:
 #         {context} 
-#        根据上述文本内容，判断是否可以回答用户的问题。\n\n用户问题是：{question}。\n\n如果完全无法从中得到答案，请回答 “否”。如果可以从中得到答案或者部分答案，请回答“是”。 \n\n现在请回答''' [EN] Based on the above text content, determine whether the user's question can be answered. \n\nThe user question is: {question}. \n\nIf you can't get an answer from it at all, please answer "No". If you can get an answer or a partial answer from it, please answer "yes". \n\nPlease answer now'''
+#        Based on the above text content, determine whether the user's question can be answered. \n\nThe user question is: {question}. \n\nIf you can't get an answer from it at all, please answer "No". If you can get an answer or a partial answer from it, please answer "yes". \n\nPlease answer now'''
 
 #     prompt = KN_USED_PROMPT_TEMPLATE.format(context=kb_result_str, question=question)
     
@@ -199,13 +199,13 @@ def can_answer_question(question, kb_result_str,model_name = MODEL_NAME,model_ur
     
     
 #     response = req_unicom_llm_chat(messages, stream=False,model_name = MODEL_NAME)
-#     # logger.info(f"can_answer_question的response: {response.content}") [EN] # logger.info(f"can_answer_question's response: {response.content}")
+#     # logger.info(f"can_answer_question's response: {response.content}")
 #     result = response.content
 #     # result = response.json()["data"]["choices"][0]["message"]["content"]
-#     # logger.info(f"can_answer_question的question: {question}") [EN] # logger.info(f"can_answer_question's question: {question}")
-#     # logger.info(f"can_answer_question的kb_result_str: {kb_result_str}") [EN] # logger.info(f"kb_result_str of can_answer_question: {kb_result_str}")
+#     # logger.info(f"can_answer_question's question: {question}")
+#     # logger.info(f"kb_result_str of can_answer_question: {kb_result_str}")
 #     logger.info(f"can_answer_question: {result}")
-#     if result.find('是') >= 0: [EN] if result.find('is') >= 0:
+#     if result.find('is') >= 0:
 #         flag = True 
 #     return flag
 
@@ -222,8 +222,8 @@ def can_answer_question(question, kb_result_str,model_name = MODEL_NAME,model_ur
      ```
      
      输出要求：
-     ## 如果无法从中得到答案，请回答 "0",并说明原因。如果可以从中得到答案，请回答"1"。 [EN] # If you cannot get an answer from it, please answer "0" and explain the reason. If you can get an answer from it, please answer "1".
-     ## 请用json格式回答，key为TYPE和REASON。''' [EN] # Please answer in json format, the keys are TYPE and REASON. '''
+     ## If you cannot get an answer from it, please answer "0" and explain the reason. If you can get an answer from it, please answer "1".
+     ## Please answer in json format, the keys are TYPE and REASON. '''
 
     prompt = KN_USED_PROMPT_TEMPLATE.format(context=kb_result_str, question=question)
     messages = []
@@ -243,16 +243,16 @@ def can_answer_question(question, kb_result_str,model_name = MODEL_NAME,model_ur
     return flag
 
 def extract_json(text):
-        # 使用正则表达式查找第一个包含在大括号之间的内容，并包括大括号本身 [EN] Use regex to find the first thing contained between braces, including the braces themselves
+        # Use regex to find the first thing contained between braces, including the braces themselves
         match = re.search(r'\{.*?\}', text, re.DOTALL)
         if match:
             json_content = match.group(0)
             try:
-                # 尝试将提取的内容解析为JSON [EN] Try parsing the extracted content into JSON
+                # Try parsing the extracted content into JSON
                 json_data = json.loads(json_content)
                 return json_data
             except json.JSONDecodeError as e:
-                logger.error("is_answer_additional_remarks--extract_json error: %s", str(e))  # 记录错误日志: [EN] Record error log:
+                logger.error("is_answer_additional_remarks--extract_json error: %s", str(e))  # Record error log:
                 json_data = {"flag":0,"reason": f"{str(e)}"}
                 return json_data
         else:
@@ -275,8 +275,8 @@ def is_answer_additional_remarks(question, final_answer,model_name = MODEL_NAME,
              ```
 
              输出要求：
-             ## 如果是，请回答1，并给出说明。如果不是，请回答0，并阐述原因。 [EN] # If yes, please answer 1 and give an explanation. If not, please answer 0 and explain why.
-             ## 请直接以纯净的json格式回答，key为flag和reason，不要其他任何信息。 [EN] # Please answer directly in pure json format, with the keys being flag and reason, without any other information.
+             ## If yes, please answer 1 and give an explanation. If not, please answer 0 and explain why.
+             ## Please answer directly in pure json format, with the keys being flag and reason, without any other information.
              '''
     prompt = KN_USED_PROMPT_TEMPLATE.format(context=final_answer, question=question)
     
@@ -321,7 +321,7 @@ def req_unicom_llm_chat_function_call(messages:List, tools = [],stream=True, mod
     
 def is_query_sen(query):
     # url = "http://192.168.0.247:1005/check"
-    # url配置校验，增加对私有化版本的兼容 [EN] URL configuration verification to increase compatibility with privatized versions
+    # URL configuration verification to increase compatibility with privatized versions
     url = config["MODELS"]["sensitive_url"]
   
     contents = []

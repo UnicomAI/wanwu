@@ -30,13 +30,13 @@ const (
 )
 
 func GetWorkflowTemplateList(ctx *gin.Context, clientId, category, name string) (*response.GetWorkflowTemplateListResp, error) {
-	// 记录平台板浏览量 [EN] Record platform board views
+	// Record platform board views
 	if category == "" || category == "all" {
 		if err := recordGlobalBrowse(ctx.Request.Context()); err != nil {
 			log.Errorf("record template browse count error: %v", err)
 		}
 	}
-	// 记录client数据 [EN] Record client data
+	// Record client data
 	if _, err := operate.AddClientRecord(ctx.Request.Context(), &operate_service.AddClientRecordReq{
 		ClientId: clientId,
 	}); err != nil {
@@ -49,7 +49,7 @@ func GetWorkflowTemplateList(ctx *gin.Context, clientId, category, name string) 
 	case "local":
 		return getLocalWorkflowTemplateList(ctx.Request.Context(), category, name)
 	default:
-		// 默认使用本地模式 [EN] Use local mode by default
+		// Use local mode by default
 		return getLocalWorkflowTemplateList(ctx.Request.Context(), category, name)
 	}
 }
@@ -61,7 +61,7 @@ func GetWorkflowTemplateDetail(ctx *gin.Context, clientId, templateId string) (*
 	case "local":
 		return getLocalWorkflowTemplateDetail(ctx.Request.Context(), templateId)
 	default:
-		// 默认使用本地模式 [EN] Use local mode by default
+		// Use local mode by default
 		return getLocalWorkflowTemplateDetail(ctx.Request.Context(), templateId)
 	}
 }
@@ -81,7 +81,7 @@ func GetWorkflowTemplateRecommend(ctx *gin.Context, clientId, templateId string)
 		}
 		return res, nil
 	default:
-		// 默认使用本地模式 [EN] Use local mode by default
+		// Use local mode by default
 		res, err := getLocalWorkflowTemplateList(ctx.Request.Context(), "", "")
 		if err != nil {
 			return nil, err
@@ -91,7 +91,7 @@ func GetWorkflowTemplateRecommend(ctx *gin.Context, clientId, templateId string)
 }
 
 func DownloadWorkflowTemplate(ctx *gin.Context, clientId, templateId string) ([]byte, error) {
-	// 记录工作流模板下载数据 [EN] Record workflow template download data
+	// Record workflow template download data
 	if err := recordTemplateDownloadCount(ctx.Request.Context(), templateId); err != nil {
 		log.Errorf("record template download count error: %v", err)
 	}
@@ -109,7 +109,7 @@ func DownloadWorkflowTemplate(ctx *gin.Context, clientId, templateId string) ([]
 		}
 		return res, nil
 	default:
-		// 默认使用本地模式 [EN] Use local mode by default
+		// Use local mode by default
 		res, err := getLocalDownloadWorkflowTemplate(templateId)
 		if err != nil {
 			return nil, err
@@ -133,7 +133,7 @@ func CreateWorkflowByTemplate(ctx *gin.Context, orgId, clientId string, req requ
 		}
 		return res, nil
 	default:
-		// 默认使用本地模式 [EN] Use local mode by default
+		// Use local mode by default
 		res, err := getLocalCreateWorkflowByTemplate(ctx, orgId, req)
 		if err != nil {
 			return nil, err
@@ -142,15 +142,15 @@ func CreateWorkflowByTemplate(ctx *gin.Context, orgId, clientId string, req requ
 	}
 }
 
-// --- 获取工作流模板列表 --- [EN] --- Get the list of workflow templates ---
+// --- Get the list of workflow templates ---
 
 func getRemoteWorkflowTemplateList(ctx *gin.Context, category, name string) (*response.GetWorkflowTemplateListResp, error) {
 	client := resty.NewWithClient(&http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			DialContext: (&net.Dialer{
-				Timeout:   10 * time.Second, // 连接超时时间 [EN] Connection timeout
-				KeepAlive: time.Minute,      // 连接保持活跃的时间 [EN] How long the connection remains active
+				Timeout:   10 * time.Second, // Connection timeout
+				KeepAlive: time.Minute,      // How long the connection remains active
 			}).DialContext,
 			ResponseHeaderTimeout: time.Minute,
 		},
@@ -168,7 +168,7 @@ func getRemoteWorkflowTemplateList(ctx *gin.Context, category, name string) (*re
 		SetResult(&res).
 		Get(config.Cfg().WorkflowTemplate.ListUrl)
 	if err != nil {
-		// 远程调用失败，返回默认下载链接 [EN] The remote call fails and the default download link is returned.
+		// The remote call fails and the default download link is returned.
 		log.Errorf("request remote workflow template err: %v", err)
 		return &response.GetWorkflowTemplateListResp{
 			Total: 0,
@@ -180,7 +180,7 @@ func getRemoteWorkflowTemplateList(ctx *gin.Context, category, name string) (*re
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		// status not ok,  返回默认下载链接 [EN] status not ok, return to default download link
+		// status not ok, return to default download link
 		log.Errorf("request remote workflow template http code: %v, resp: %v", resp.StatusCode(), resp.String())
 		return &response.GetWorkflowTemplateListResp{
 			Total: 0,
@@ -218,7 +218,7 @@ func getLocalWorkflowTemplateList(ctx context.Context, category, name string) (*
 	}, nil
 }
 
-// --- 获取工作流模板详情 --- [EN] --- Get workflow template details ---
+// --- Get workflow template details ---
 
 func getRemoteWorkflowTemplateDetail(ctx *gin.Context, templateId string) (*response.WorkflowTemplateDetail, error) {
 	var res response.Response
@@ -245,7 +245,7 @@ func getRemoteWorkflowTemplateDetail(ctx *gin.Context, templateId string) (*resp
 	if err = json.Unmarshal(marshal, &ret); err != nil {
 		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_template_detail", fmt.Sprintf("request unmarshal response body: %v", err))
 	}
-	// 远程调用成功，返回远程结果 [EN] The remote call is successful and the remote result is returned.
+	// The remote call is successful and the remote result is returned.
 	return &ret, nil
 }
 
@@ -257,7 +257,7 @@ func getLocalWorkflowTemplateDetail(ctx context.Context, templateId string) (*re
 	return buildWorkflowTempDetail(ctx, wtfCfg), nil
 }
 
-// --- 下载工作流模板 --- [EN] --- Download workflow template ---
+// --- Download workflow template ---
 
 func getRemoteDownloadWorkflowTemplate(ctx *gin.Context, templateId string) ([]byte, error) {
 	resp, err := resty.New().R().
@@ -274,7 +274,7 @@ func getRemoteDownloadWorkflowTemplate(ctx *gin.Context, templateId string) ([]b
 	if resp.StatusCode() != http.StatusOK {
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, "bff_workflow_template_download", fmt.Sprintf("request remote workflow template http code: %v", resp.StatusCode()))
 	}
-	// 远程调用成功，返回远程结果 [EN] The remote call is successful and the remote result is returned.
+	// The remote call is successful and the remote result is returned.
 	return convertToBytes(resp.Body())
 }
 
@@ -286,7 +286,7 @@ func getLocalDownloadWorkflowTemplate(templateId string) ([]byte, error) {
 	return []byte(wtfCfg.Schema), nil
 }
 
-// --- 复制工作流模板 --- [EN] --- Copy workflow template ---
+// --- Copy workflow template ---
 
 func getRemoteCreateWorkflowByTemplate(ctx *gin.Context, orgId string, req request.CreateWorkflowByTemplateReq) (*response.CozeWorkflowIDData, error) {
 	resp, err := getRemoteWorkflowTemplateList(ctx, "", "")
@@ -315,18 +315,18 @@ func getLocalCreateWorkflowByTemplate(ctx *gin.Context, orgId string, req reques
 	return createWorkflowByTemplate(ctx, orgId, req, wtfCfg.Schema)
 }
 
-// 工作流文件解析结构体 [EN] Workflow file parsing structure
+// Workflow file parsing structure
 type workflowTemplateSchema struct {
 	Name   string `json:"name"`
 	Desc   string `json:"desc"`
 	Schema string `json:"schema"`
 }
 
-// 提取工作流创建的公共函数 [EN] Extract public functions created by the workflow
+// Extract public functions created by the workflow
 func createWorkflowByTemplate(ctx *gin.Context, orgId string, req request.CreateWorkflowByTemplateReq, schema []byte) (*response.CozeWorkflowIDData, error) {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ImportUri)
 	ret := &response.CozeWorkflowIDResp{}
-	// 解析外层结构 [EN] Analyze outer structure
+	// Analyze outer structure
 	var templateSchema workflowTemplateSchema
 	if err := json.Unmarshal(schema, &templateSchema); err != nil {
 		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_import_file", err.Error())
@@ -407,9 +407,9 @@ func convertToBytes(data any) ([]byte, error) {
 	}
 }
 
-// 记录模板下载量到单独的Redis Key [EN] Record template downloads to a separate Redis Key
+// Record template downloads to a separate Redis Key
 func recordTemplateDownloadCount(ctx context.Context, templateID string) error {
-	// 使用HINCRBY原子性增加模板下载量 [EN] Use HINCRBY atomicity to increase template downloads
+	// Use HINCRBY atomicity to increase template downloads
 	err := redis.OP().Cli().HIncrBy(ctx, redisWorkflowTemplateDownloadKey, templateID, 1).Err()
 	if err != nil {
 		return fmt.Errorf("redis HIncrBy key %v field %v err: %v", redisWorkflowTemplateDownloadKey, templateID, err)
@@ -417,12 +417,12 @@ func recordTemplateDownloadCount(ctx context.Context, templateID string) error {
 	return nil
 }
 
-// 根据templateId获取下载量 [EN] Get downloads based on templateId
+// Get downloads based on templateId
 func getTemplateDownloadCount(ctx context.Context, templateID string) int32 {
-	// 使用HGet获取指定模板的下载量 [EN] Use HGet to get the download count of a specified template
+	// Use HGet to get the download count of a specified template
 	countStr, err := redis.OP().Cli().HGet(ctx, redisWorkflowTemplateDownloadKey, templateID).Result()
 	if err != nil {
-		// 键或字段不存在，返回0 [EN] Key or field does not exist, return 0
+		// Key or field does not exist, return 0
 		return 0
 	}
 	return util.MustI32(countStr)

@@ -9,9 +9,9 @@ type TagBindResp struct {
 }
 
 type KnowledgeTag struct {
-	TagId    string `json:"tagId"`    //知识库标签id [EN] Knowledge base tag id
-	TagName  string `json:"tagName"`  //知识库标签名称 [EN] Knowledge base tag name
-	Selected bool   `json:"selected"` //此表标签是否选中 [EN] Is this table label selected?
+	TagId    string `json:"tagId"`    //Knowledge base tag id
+	TagName  string `json:"tagName"`  //Knowledge base tag name
+	Selected bool   `json:"selected"` //Is this table label selected?
 }
 
 type CreateKnowledgeTagResp struct {

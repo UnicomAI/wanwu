@@ -87,12 +87,12 @@ func (s *Service) SelectKnowledgeDetailByIdList(ctx context.Context, req *knowle
 }
 
 func (s *Service) CreateKnowledge(ctx context.Context, req *knowledgebase_service.CreateKnowledgeReq) (*knowledgebase_service.CreateKnowledgeResp, error) {
-	//1.重名校验 [EN] 1. Duplicate name verification
+	//1. Duplicate name verification
 	err := orm.CheckSameKnowledgeName(ctx, req.UserId, req.OrgId, req.Name, "")
 	if err != nil {
 		return nil, err
 	}
-	//2.创建创建知识库 [EN] 2. Create a knowledge base
+	//2. Create a knowledge base
 	knowledgeModel, err := buildKnowledgeBaseModel(req)
 	if err != nil {
 		log.Errorf("buildKnowledgeBaseModel error %s", err)
@@ -103,27 +103,27 @@ func (s *Service) CreateKnowledge(ctx context.Context, req *knowledgebase_servic
 		log.Errorf("CreateKnowledge error %v params %v", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeBaseCreateFailed)
 	}
-	//3.异步存储知识图谱schema [EN] 3. Asynchronous storage of knowledge graph schema
+	//3. Asynchronous storage of knowledge graph schema
 	storeKnowledgeStoreSchema(knowledgeModel.KnowledgeId, req.KnowledgeGraph)
-	//4.返回结果 [EN] 4.Return results
+	//4.Return results
 	return &knowledgebase_service.CreateKnowledgeResp{
 		KnowledgeId: knowledgeModel.KnowledgeId,
 	}, nil
 }
 
 func (s *Service) UpdateKnowledge(ctx context.Context, req *knowledgebase_service.UpdateKnowledgeReq) (*emptypb.Empty, error) {
-	//1.查询知识库详情,这里前置做了前置权限校验，所以这里不需要再次校验 [EN] 1. Query the details of the knowledge base. Pre-authorization verification is done here, so there is no need to verify again.
+	//1. Query the details of the knowledge base. Pre-authorization verification is done here, so there is no need to verify again.
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf(fmt.Sprintf("没有操作该知识库的权限 参数(%v)", req))
 		return nil, err
 	}
-	//2.重名校验 [EN] 2. Duplicate name verification
+	//2. Duplicate name verification
 	err = orm.CheckSameKnowledgeName(ctx, req.UserId, req.OrgId, req.Name, knowledge.KnowledgeId)
 	if err != nil {
 		return nil, err
 	}
-	//3.更新知识库 [EN] 3. Update knowledge base
+	//3. Update knowledge base
 	err = orm.UpdateKnowledge(ctx, req.Name, req.Description, knowledge)
 	if err != nil {
 		log.Errorf("知识库更新失败(%v)  参数(%v)", err, req)
@@ -132,20 +132,20 @@ func (s *Service) UpdateKnowledge(ctx context.Context, req *knowledgebase_servic
 	return &emptypb.Empty{}, nil
 }
 
-// DeleteKnowledge 删除知识库 [EN] DeleteKnowledge Delete knowledge base
+// DeleteKnowledge Delete knowledge base
 func (s *Service) DeleteKnowledge(ctx context.Context, req *knowledgebase_service.DeleteKnowledgeReq) (*emptypb.Empty, error) {
-	//1.查询知识库详情 [EN] 1. Query knowledge base details
+	//1. Query knowledge base details
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf(fmt.Sprintf("没有操作该知识库的权限 参数(%v)", req))
 		return nil, err
 	}
-	//2.校验导入状态 [EN] 2. Verify import status
+	//2. Verify import status
 	err = orm.SelectKnowledgeRunningImportTask(ctx, knowledge.KnowledgeId)
 	if err != nil {
 		return nil, err
 	}
-	//3.先删除知识库，异步删除资源数据 [EN] 3. Delete the knowledge base first and delete the resource data asynchronously
+	//3. Delete the knowledge base first and delete the resource data asynchronously
 	err = orm.DeleteKnowledge(ctx, knowledge)
 	if err != nil {
 		log.Errorf("删除知识库失败 error %v params %v", err, req)
@@ -154,9 +154,9 @@ func (s *Service) DeleteKnowledge(ctx context.Context, req *knowledgebase_servic
 	return &emptypb.Empty{}, nil
 }
 
-// KnowledgeHit 知识库命中测试 [EN] KnowledgeHit knowledge base hit test
+// KnowledgeHit knowledge base hit test
 func (s *Service) KnowledgeHit(ctx context.Context, req *knowledgebase_service.KnowledgeHitReq) (*knowledgebase_service.KnowledgeHitResp, error) {
-	// 1.获取知识库信息列表 [EN] 1. Get the knowledge base information list
+	// 1. Get the knowledge base information list
 	if len(req.KnowledgeList) == 0 || req.Question == "" || req.KnowledgeMatchParams == nil {
 		return nil, util.ErrCode(errs.Code_KnowledgeInvalidArguments)
 	}
@@ -174,7 +174,7 @@ func (s *Service) KnowledgeHit(ctx context.Context, req *knowledgebase_service.K
 			knowledgeIDToName[k.KnowledgeId] = k.Name
 		}
 	}
-	// 2.RAG请求 [EN] 2.RAG request
+	// 2.RAG request
 	ragHitParams, err := buildRagHitParams(req, list, knowledgeIDToName)
 	if err != nil {
 		return nil, util.ErrCode(errs.Code_KnowledgeBaseHitFailed)
@@ -205,34 +205,34 @@ func (s *Service) GetKnowledgeMetaValueList(ctx context.Context, req *knowledgeb
 }
 
 func (s *Service) UpdateKnowledgeMetaValue(ctx context.Context, req *knowledgebase_service.UpdateKnowledgeMetaValueReq) (*emptypb.Empty, error) {
-	//1.查询文档详情 [EN] 1. Query document details
+	//1. Query document details
 	docList, err := orm.SelectDocByDocIdList(ctx, req.DocIdList, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库文档的权限 参数(%v)", req)
 		return nil, err
 	}
 	doc := docList[0]
-	//2.状态校验 [EN] 2. Status verification
+	//2. Status verification
 	if util.BuildDocRespStatus(doc.Status) != model.DocSuccess {
 		log.Errorf("非处理完成文档无法修改元数据 状态(%d) 错误(%v) 参数(%v)", doc.Status, err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeDocUpdateMetaStatusFailed)
 	}
-	//3.查询知识库信息 [EN] 3. Query knowledge base information
+	//3. Query knowledge base information
 	knowledge, err := orm.SelectKnowledgeById(ctx, doc.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 参数(%v)", req)
 		return nil, err
 	}
-	//4.查询元数据 [EN] 4. Query metadata
+	//4. Query metadata
 	docMetaList, err := orm.SelectMetaByDocIds(ctx, "", "", req.DocIdList)
 	if err != nil {
 		return nil, util.ErrCode(errs.Code_KnowledgeMetaFetchFailed)
 	}
-	//5.构造文档元数据map [EN] 5. Construct document metadata map
+	//5. Construct document metadata map
 	docMetaMap := buildDocMetaMap(docMetaList)
-	//6.构造元数据列表 [EN] 6. Construct metadata list
+	//6. Construct metadata list
 	addList, updateList, deleteList := buildMetaList(req, docMetaMap, doc.KnowledgeId)
-	//7.更新数据库并发送rag请求 [EN] 7. Update the database and send rag request
+	//7. Update the database and send rag request
 	err = orm.BatchUpdateDocMetaValue(ctx, addList, updateList, deleteList, knowledge, docList, knowledge.UserId, req.DocIdList)
 	if err != nil {
 		log.Errorf("更新文档元数据失败(%v)  参数(%v)", err, req)
@@ -308,7 +308,7 @@ func buildDocMetaMap(docMetaList []*model.KnowledgeDocMeta) map[string]map[strin
 }
 
 func buildMetaList(req *knowledgebase_service.UpdateKnowledgeMetaValueReq, docMetaMap map[string]map[string][]*model.KnowledgeDocMeta, knowledgeId string) (addList, updateList []*model.KnowledgeDocMeta, deleteList []string) {
-	// 处理请求数据 [EN] Process request data
+	// Process request data
 	reqMetaList := handleReqMetaList(req.MetaList)
 	for _, meta := range reqMetaList {
 		switch meta.Option {
@@ -333,7 +333,7 @@ func handleReqMetaList(metaList []*knowledgebase_service.MetaValueOperation) (re
 		if _, exists := keyMap[meta.MetaInfo.Key]; !exists {
 			keyMap[meta.MetaInfo.Key] = meta
 		} else {
-			// 同一key优先级：删除 > 更新 > 新增 [EN] Same key priority: Delete > Update > Add
+			// Same key priority: Delete > Update > Add
 			if meta.Option == MetaOperationDelete {
 				keyMap[meta.MetaInfo.Key] = meta
 			} else if meta.Option == MetaOperationUpdate {
@@ -434,26 +434,26 @@ func buildRagHitParams(req *knowledgebase_service.KnowledgeHitReq, list []*model
 }
 
 func buildRagHitMetaParams(req *knowledgebase_service.KnowledgeHitReq, knowledgeIDToName map[string]string) (bool, []*rag_service.MetadataFilterItem, error) {
-	filterEnable := false // 标记是否有启用的元数据过滤 [EN] Whether the tag has metadata filtering enabled
+	filterEnable := false // Whether the tag has metadata filtering enabled
 	var metaFilterConditions []*rag_service.MetadataFilterItem
 	for _, k := range req.KnowledgeList {
-		// 检查元数据过滤参数是否有效 [EN] Check if metadata filtering parameters are valid
+		// Check if metadata filtering parameters are valid
 		filterParams := k.MetaDataFilterParams
 		if !isValidFilterParams(k.MetaDataFilterParams) {
 			continue
 		}
-		// 校验合法值 [EN] Verify legal value
+		// Verify legal value
 		if k.MetaDataFilterParams.FilterLogicType == "" {
 			return false, nil, errors.New("FilterLogicType is empty")
 		}
-		// 标记元数据过滤生效 [EN] Tag metadata filtering takes effect
+		// Tag metadata filtering takes effect
 		filterEnable = true
-		// 构建元数据过滤条件 [EN] Build metadata filters
+		// Build metadata filters
 		metaItems, err := buildRagHitMetaItems(k.KnowledgeId, filterParams.MetaFilterParams)
 		if err != nil {
 			return false, nil, err
 		}
-		// 添加过滤项到结果 [EN] Add filter items to results
+		// Add filter items to results
 		metaFilterConditions = append(metaFilterConditions, &rag_service.MetadataFilterItem{
 			FilterKnowledgeName: knowledgeIDToName[k.KnowledgeId],
 			LogicalOperator:     filterParams.FilterLogicType,
@@ -463,15 +463,15 @@ func buildRagHitMetaParams(req *knowledgebase_service.KnowledgeHitReq, knowledge
 	return filterEnable, metaFilterConditions, nil
 }
 
-// 构建元数据项列表 [EN] Build a list of metadata items
+// Build a list of metadata items
 func buildRagHitMetaItems(knowledgeID string, params []*knowledgebase_service.MetaFilterParams) ([]*rag_service.MetaItem, error) {
 	var metaItems []*rag_service.MetaItem
 	for _, param := range params {
-		// 基础参数校验 [EN] Basic parameter verification
+		// Basic parameter verification
 		if err := validateMetaFilterParam(knowledgeID, param); err != nil {
 			return nil, err
 		}
-		// 转换参数值 [EN] Conversion parameter value
+		// Conversion parameter value
 		ragValue, err := convertValue(param.Value, param.Type)
 		if err != nil {
 			log.Errorf("kbId: %s, convert value failed: %v", knowledgeID, err)
@@ -487,16 +487,16 @@ func buildRagHitMetaItems(knowledgeID string, params []*knowledgebase_service.Me
 	return metaItems, nil
 }
 
-// 校验元数据过滤参数 [EN] Verify metadata filter parameters
+// Verify metadata filter parameters
 func validateMetaFilterParam(knowledgeID string, param *knowledgebase_service.MetaFilterParams) error {
-	// 检查关键参数是否为空 [EN] Check if key parameter is empty
+	// Check if key parameter is empty
 	if param.Key == "" || param.Type == "" || param.Condition == "" {
 		errMsg := "key/type/condition cannot be empty"
 		log.Errorf("kbId: %s, %s", knowledgeID, errMsg)
 		return errors.New(errMsg)
 	}
 
-	// 检查空条件与值的匹配性 [EN] Check the null condition for matching with the value
+	// Check the null condition for matching with the value
 	if param.Condition == MetaConditionEmpty || param.Condition == MetaConditionNotEmpty {
 		if param.Value != "" {
 			errMsg := "condition is empty/non-empty, value should be empty"
@@ -525,7 +525,7 @@ func convertValue(value, valueType string) (interface{}, error) {
 	if len(value) == 0 {
 		return nil, nil
 	}
-	// 根据类型转换value [EN] Convert value according to type
+	// Convert value according to type
 	if valueType == MetaValueTypeNumber || valueType == MetaValueTypeTime {
 		ragValue, err := pkg_util.I64(value)
 		if err != nil {
@@ -557,7 +557,7 @@ func buildKnowledgeMetaSelectResp(metaList []*model.KnowledgeDocMeta) *knowledge
 	}
 }
 
-// buildKnowledgeListResp 构造知识库列表返回结果 [EN] buildKnowledgeListResp constructs a knowledge base list and returns the results
+// buildKnowledgeListResp constructs a knowledge base list and returns the results
 func buildKnowledgeListResp(knowledgeList []*model.KnowledgeBase, knowledgeTagMap map[string][]*orm.TagRelationDetail, permissionMap map[string]int) *knowledgebase_service.KnowledgeSelectListResp {
 	if len(knowledgeList) == 0 {
 		return &knowledgebase_service.KnowledgeSelectListResp{}
@@ -628,7 +628,7 @@ func checkRepeatedMetaKey(metaList []*model.KnowledgeDocMeta) []*model.Knowledge
 	})
 }
 
-// buildKnowledgeInfo 构造知识库信息 [EN] buildKnowledgeInfo constructs knowledge base information
+// buildKnowledgeInfo constructs knowledge base information
 func buildKnowledgeInfo(knowledge *model.KnowledgeBase) *knowledgebase_service.KnowledgeInfo {
 	embeddingModelInfo := &knowledgebase_service.EmbeddingModelInfo{}
 	_ = json.Unmarshal([]byte(knowledge.EmbeddingModel), embeddingModelInfo)
@@ -647,7 +647,7 @@ func buildKnowledgeInfo(knowledge *model.KnowledgeBase) *knowledgebase_service.K
 	}
 }
 
-// buildKnowledgeInfoList 构造知识库信息列表 [EN] buildKnowledgeInfoList constructs a knowledge base information list
+// buildKnowledgeInfoList constructs a knowledge base information list
 func buildKnowledgeInfoList(knowledgeList []*model.KnowledgeBase) *knowledgebase_service.KnowledgeDetailSelectListResp {
 	var retList []*knowledgebase_service.KnowledgeInfo
 	for _, v := range knowledgeList {
@@ -660,7 +660,7 @@ func buildKnowledgeInfoList(knowledgeList []*model.KnowledgeBase) *knowledgebase
 	}
 }
 
-// buildKnowledgeBaseModel 构造知识库模型 [EN] buildKnowledgeBaseModel constructs the knowledge base model
+// buildKnowledgeBaseModel constructs the knowledge base model
 func buildKnowledgeBaseModel(req *knowledgebase_service.CreateKnowledgeReq) (*model.KnowledgeBase, error) {
 	embeddingModelInfo, err := json.Marshal(req.EmbeddingModelInfo)
 	if err != nil {
@@ -673,7 +673,7 @@ func buildKnowledgeBaseModel(req *knowledgebase_service.CreateKnowledgeReq) (*mo
 	return &model.KnowledgeBase{
 		KnowledgeId:          generator.GetGenerator().NewID(),
 		Name:                 req.Name,
-		RagName:              generator.GetGenerator().NewID(), //重新生成的 不是knowledgeID [EN] The regenerated one is not the knowledgeID
+		RagName:              generator.GetGenerator().NewID(), //The regenerated one is not the knowledgeID
 		Description:          req.Description,
 		OrgId:                req.OrgId,
 		UserId:               req.UserId,
@@ -685,7 +685,7 @@ func buildKnowledgeBaseModel(req *knowledgebase_service.CreateKnowledgeReq) (*mo
 	}, nil
 }
 
-// buildKnowledgeGraphSwitch 构造知识图谱开关 [EN] buildKnowledgeGraphSwitch constructs the knowledge graph switch
+// buildKnowledgeGraphSwitch constructs the knowledge graph switch
 func buildKnowledgeGraphSwitch(graphSwitch bool) int {
 	if graphSwitch {
 		return 1
@@ -693,7 +693,7 @@ func buildKnowledgeGraphSwitch(graphSwitch bool) int {
 	return 0
 }
 
-// buildKnowledgeList 构造知识库名称 [EN] buildKnowledgeList constructs the knowledge base name
+// buildKnowledgeList constructs the knowledge base name
 func buildKnowledgeList(knowledgeList []*model.KnowledgeBase) (knowledgeIdList []string, knowledgeNameList []string) {
 	if len(knowledgeList) == 0 {
 		return make([]string, 0), make([]string, 0)
@@ -705,7 +705,7 @@ func buildKnowledgeList(knowledgeList []*model.KnowledgeBase) (knowledgeIdList [
 	return
 }
 
-// buildKnowledgeBaseHitResp 构造知识库命中返回 [EN] buildKnowledgeBaseHitResp constructs knowledge base hit return
+// buildKnowledgeBaseHitResp constructs knowledge base hit return
 func buildKnowledgeBaseHitResp(ragKnowledgeHitResp *rag_service.RagKnowledgeHitResp) *knowledgebase_service.KnowledgeHitResp {
 	knowledgeHitData := ragKnowledgeHitResp.Data
 	var searchList = make([]*knowledgebase_service.KnowledgeSearchInfo, 0)
@@ -723,7 +723,7 @@ func buildKnowledgeBaseHitResp(ragKnowledgeHitResp *rag_service.RagKnowledgeHitR
 			for _, score := range search.ChildScore {
 				childScore = append(childScore, float32(score))
 			}
-			//todo knowledgeName 替换 [EN] todo knowledgeName replacement
+			//todo knowledgeName replacement
 			searchList = append(searchList, &knowledgebase_service.KnowledgeSearchInfo{
 				Title:            search.Title,
 				Snippet:          search.Snippet,
@@ -742,7 +742,7 @@ func buildKnowledgeBaseHitResp(ragKnowledgeHitResp *rag_service.RagKnowledgeHitR
 	}
 }
 
-// buildRerankId 构造重排序模型id [EN] buildRerankId constructs the reranking model id
+// buildRerankId constructs the reranking model id
 func buildRerankId(priorityType int32, rerankId string) string {
 	if priorityType == 1 {
 		return ""
@@ -750,7 +750,7 @@ func buildRerankId(priorityType int32, rerankId string) string {
 	return rerankId
 }
 
-// buildRetrieveMethod 构造检索方式 [EN] buildRetrieveMethod constructs the retrieval method
+// buildRetrieveMethod constructs the retrieval method
 func buildRetrieveMethod(matchType string) string {
 	switch matchType {
 	case "vector":
@@ -763,7 +763,7 @@ func buildRetrieveMethod(matchType string) string {
 	return ""
 }
 
-// buildRerankMod 构造重排序模式 [EN] buildRerankMod constructs reranking mode
+// buildRerankMod constructs reranking mode
 func buildRerankMod(priorityType int32) string {
 	if priorityType == 1 {
 		return "weighted_score"
@@ -771,7 +771,7 @@ func buildRerankMod(priorityType int32) string {
 	return "rerank_model"
 }
 
-// buildWeight 构造权重信息 [EN] buildWeight constructs weight information
+// buildWeight constructs weight information
 func buildWeight(priorityType int32, semanticsPriority float32, keywordPriority float32) *rag_service.WeightParams {
 	if priorityType != 1 {
 		return nil
@@ -782,7 +782,7 @@ func buildWeight(priorityType int32, semanticsPriority float32, keywordPriority 
 	}
 }
 
-// buildTermWeight 构造关键词系数信息 [EN] buildTermWeight constructs keyword coefficient information
+// buildTermWeight constructs keyword coefficient information
 func buildTermWeight(termWeight float32, termWeightEnable bool) float32 {
 	if termWeightEnable {
 		return termWeight
@@ -817,7 +817,7 @@ func buildKnowledgeMetaValueListResp(metaList []*model.KnowledgeDocMeta) *knowle
 	}
 }
 
-// storeKnowledgeStoreSchema 存储知识库图谱Url [EN] storeKnowledgeStoreSchema stores knowledge base graph Url
+// storeKnowledgeStoreSchema stores knowledge base graph Url
 func storeKnowledgeStoreSchema(knowledgeId string, knowledgeGraph *knowledgebase_service.KnowledgeGraph) {
 	if knowledgeGraph.Switch && knowledgeGraph.SchemaUrl != "" {
 		go func() {

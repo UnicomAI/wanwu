@@ -30,7 +30,7 @@ body,html{
   font-family: 'Source Han Sans SC', 'Segoe UI';
 }
 
-/*优化弹窗出现表格左移问题*/
+/*优化Dialog出现Table左移问题*/
 body.el-popup-parent--hidden {
   padding-right: 0 !important;
 }
@@ -85,7 +85,7 @@ body.el-popup-parent--hidden {
   bottom: 0;
   left: 0;
 }
-/*设置乾坤创建的div高度*/
+/*Setting乾坤Create of div高度*/
 div[data-name]{
   height: 100%;
 }
@@ -137,7 +137,7 @@ div[data-name]{
   cursor: pointer;
 }
 
-/*默认高度自适应*/
+/*Default高度自适应*/
 .main-content{
   height: auto;
   min-height: 100%;
@@ -146,7 +146,7 @@ div[data-name]{
   background-color: #fff;
   padding: var(--main-padding);
 }
-/*一屏显示*/
+/*一屏Show*/
 .full-content{
   height: 100%;
 }

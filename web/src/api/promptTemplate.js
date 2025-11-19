@@ -1,6 +1,6 @@
 import service from "@/utils/request"
 import {USER_API} from "@/utils/requestConstants"
-//获取自定义propmpt详情
+//GetCustompropmptDetails
 export const getPromptTemplateDetail = (data)=>{
     return service({
         url: `${USER_API}/prompt/custom`,
@@ -8,7 +8,7 @@ export const getPromptTemplateDetail = (data)=>{
         params: data
     })
 }
-//获取自定义prompt列表
+//GetCustompromptList
 export const getPromptTemplateList= (data)=>{
     return service({
         url: `${USER_API}/prompt/custom/list`,
@@ -17,7 +17,7 @@ export const getPromptTemplateList= (data)=>{
     })
 }
 
-//获取内置prompt列表
+//Get内置promptList
 export const getPromptBuiltInList= (data)=>{
     return service({
         url: `${USER_API}/prompt/template/list`,
@@ -25,7 +25,7 @@ export const getPromptBuiltInList= (data)=>{
         params: data
     })
 }
-//获取内置prompt详情
+//Get内置promptDetails
 export const getPromptBuiltInDetail= (data)=>{
     return service({
         url: `${USER_API}/prompt/template/detail`,

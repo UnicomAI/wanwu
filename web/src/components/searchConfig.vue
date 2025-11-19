@@ -9,7 +9,7 @@
       class="vertical-form-item"
     >
     <template #label>
-        <span v-if="!setType" class="vertical-form-title">检索方式配置</span>
+        <span v-if="!setType" class="vertical-form-title">检索方式Configuration</span>
     </template>
       <div
         v-for="item in searchTypeData"
@@ -66,11 +66,11 @@
           </el-row>
           <el-row v-if="showRerank(item)">
             <el-col>
-              <span class="content-name">Rerank模型</span>
+              <span class="content-name">RerankModel</span>
               <el-tooltip
                 class="item"
                 effect="dark"
-                content="重排序模型会根据候选文档与用户问题的语义匹配度，对初步检索结果进行重新排序从而进一步提升最终返回结果的相关性和准确性。"
+                content="重排序Model会根据候选Document与用户问题 of 语义匹配度，对初步检索结果进行重新排序从而进一步提升最终Back结果 of 相关性And准确性。"
                 placement="right"
               >
                 <span class="el-icon-question tips"></span>
@@ -81,11 +81,11 @@
                 clearable
                 filterable
                 style="width:100%;"
-                loading-text="模型加载中..."
+                loading-text="ModelLoading..."
                 v-model="formInline.knowledgeMatchParams.rerankModelId"
                 @visible-change="visibleChange($event)"
                 @change="handleRerankChange"
-                placeholder="请选择"
+                placeholder="Please select"
                 :loading="rerankLoading"
               >
                 <el-option
@@ -104,7 +104,7 @@
               <el-tooltip
                 class="item"
                 effect="dark"
-                content="用于控制检索阶段返回的最相关的文档片段的数量。这些文档片段将被送入生成模型中，用于 生成最终的回答。"
+                content="Used for控制检索阶段Back of 最相关 of Document片段 of Count。这些Document片段将被送入GenerateModel中，Used for Generate最终 of 回答。"
                 placement="right"
               >
                 <span class="el-icon-question tips"></span>
@@ -127,7 +127,7 @@
               <el-tooltip
                 class="item"
                 effect="dark"
-                content="保存的最长的上下文对话轮数。"
+                content="Save of 最长 of 上下文对话轮数。"
                 placement="right"
               >
                 <span class="el-icon-question tips"></span>
@@ -146,11 +146,11 @@
           </el-row>
           <el-row>
             <el-col>
-              <span class="content-name">Score阈值</span>
+              <span class="content-name">Score阈Value</span>
               <el-tooltip
                 class="item"
                 effect="dark"
-                content="检索结果的相似度阈值，低于该值的结果将被过滤。"
+                content="检索结果 of 相似度阈Value，低于该Value of 结果将被 滤。"
                 placement="right"
               >
                 <span class="el-icon-question tips"></span>
@@ -181,17 +181,17 @@ export default {
       debounceTimer:null,
       rerankOptions: [],
       rerankLoading: false,
-      isSettingFromConfig: false, // 添加标志位，用于区分是否是从config设置的值
+      isSettingFromConfig: false, // Add标志位，Used forArea分YesNoYes从configSetting of Value
       formInline: {
         knowledgeMatchParams: {
-          keywordPriority: 0.8, //关键词权重
-          matchType: "", //vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
-          priorityMatch: 1, //权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1
-          rerankModelId: "", //rerank模型id
-          threshold: 0.4, //过滤分数阈值
+          keywordPriority: 0.8, //关Key词权重
+          matchType: "", //vector（向量检索）、text（Text检索）、mix（混合检索：向量+Text）
+          priorityMatch: 1, //权重Match，只Has在混合检索模式下，选择权重Setting后，这个才Setting为1
+          rerankModelId: "", //rerankModelid
+          threshold: 0.4, // 滤分数阈Value
           semanticsPriority: 0.2, //语义权重
-          topK:5, //topK 获取最高的几行
-          maxHistory:0//最长上下文
+          topK:5, //topK Get最高 of 几行
+          maxHistory:0//最长Context
         },
       },
       initialEditForm:null,
@@ -199,7 +199,7 @@ export default {
         {
           name: "向量检索",
           value: "vector",
-          desc: "通过向量相似度找到语义相近、表达多样的文本片段，适用于理解和召回语义相关信息。",
+          desc: "By向量相似度找到语义相近、表达多样 of 文本片段，适Used for理解And召回语义相关Information。",
           icon: "el-icon-menu",
           isWeight: false,
           showContent: false,
@@ -207,7 +207,7 @@ export default {
         {
           name: "全文检索",
           value: "text",
-          desc: "基于关键词匹配，能够高效查询包含指定词汇的文本片段，适用于精确查找",
+          desc: "基于关键词匹配，能够高效QueryContains指定词汇 of 文本片段，适Used for精确查找",
           icon: "el-icon-document",
           isWeight: false,
           showContent: false,
@@ -215,7 +215,7 @@ export default {
         {
           name: "混合检索",
           value: "mix",
-          desc: "结合向量和关键词检索，融合语义理解与关键词匹配，兼顾相关性和准确性，提升检索效果。",
+          desc: "结合向量And关键词检索，融合语义理解与关键词匹配，兼顾相关性And准确性，提升检索效果。",
           icon: "el-icon-s-grid",
           isWeight: true,
           Weight: "",
@@ -224,14 +224,14 @@ export default {
           mixTypeRange: 0.2,
           mixType: [
             {
-              name: "权重设置",
+              name: "权重Setting",
               value: "weight",
-              desc: "权重设置功能用于调整不同检索方式的影响力。通过设置权重，可以控制语义相似度和关键词匹配在最终排序中的占比。",
+              desc: "权重Setting功能Used for调整不同检索方式 of 影响力。BySetting权重，可以控制语义相似度And关键词匹配在最终排序中 of 占比。",
             },
             {
-              name: "Rerank模型",
+              name: "RerankModel",
               value: "rerank",
-              desc: "重排序模型会根据候选文档与用户问题的语义匹配度，对初步检索结果进行重新排序从而进一步提升最终返回结果的相关性和准确性。",
+              desc: "重排序Model会根据候选Document与用户问题 of 语义匹配度，对初步检索结果进行重新排序从而进一步提升最终Back结果 of 相关性And准确性。",
             },
           ],
         },
@@ -241,7 +241,7 @@ export default {
   watch: {
     formInline: {
       handler(newVal) {
-        // 如果是从config设置的值，不触发sendConfigInfo
+        // IfYes从configSetting of Value，不TriggersendConfigInfo
         if (this.isSettingFromConfig) {
           return;
         }
@@ -270,7 +270,7 @@ export default {
     config:{
       handler(newVal) {
         if(newVal && Object.keys(newVal).length > 0){
-          this.isSettingFromConfig = true; // 设置标志位
+          this.isSettingFromConfig = true; // Setting标志位
           const formData = JSON.parse(JSON.stringify(newVal))
           this.formInline.knowledgeMatchParams = formData;
           const { matchType,priorityMatch } = this.formInline.knowledgeMatchParams;
@@ -284,7 +284,7 @@ export default {
             }
           }
 
-          // 使用nextTick确保DOM更新完成后再重置标志位
+          // UsenextTick确保DOMUpdate完成后再Reset标志位
           this.$nextTick(() => {
             this.isSettingFromConfig = false;
           });
@@ -300,7 +300,7 @@ export default {
     });
   },
   created() {
-    // 预加载数据，避免首次打开下拉框时的延迟
+    // 预LoadData，避免首次打开下拉框 when  of Delay
     this.getRerankData();
   },
   methods: {
@@ -364,7 +364,7 @@ export default {
       }
     },
     handleRerankChange(value) {
-      // 直接触发事件，避免防抖延迟
+      // DirectlyTriggerEvent，避免防抖Delay
       if(!this.setType){
         const formData = JSON.parse(JSON.stringify(this.formInline));
         delete formData.knowledgeMatchParams.maxHistory;

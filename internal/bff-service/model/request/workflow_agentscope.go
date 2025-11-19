@@ -1,7 +1,7 @@
 package request
 
 type DeleteAgentScopeWorkFlowRequest struct {
-	AppId string `form:"workflowID" json:"workflowID" validate:"required"` // 应用ID [EN] Application ID
+	AppId string `form:"workflowID" json:"workflowID" validate:"required"` // Application ID
 }
 
 func (o *DeleteAgentScopeWorkFlowRequest) Check() error {
@@ -9,7 +9,7 @@ func (o *DeleteAgentScopeWorkFlowRequest) Check() error {
 }
 
 type PublishAgentScopeWorkFlowRequest struct {
-	AppId string `form:"workflowID" json:"workflowID" validate:"required"` // 应用ID [EN] Application ID
+	AppId string `form:"workflowID" json:"workflowID" validate:"required"` // Application ID
 }
 
 func (p *PublishAgentScopeWorkFlowRequest) Check() error {
@@ -17,7 +17,7 @@ func (p *PublishAgentScopeWorkFlowRequest) Check() error {
 }
 
 type UnPublishAgentScopeWorkFlowRequest struct {
-	AppId string `form:"workflowID" json:"workflowID" validate:"required"` // 应用ID [EN] Application ID
+	AppId string `form:"workflowID" json:"workflowID" validate:"required"` // Application ID
 }
 
 func (p *UnPublishAgentScopeWorkFlowRequest) Check() error {

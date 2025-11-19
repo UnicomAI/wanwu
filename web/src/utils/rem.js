@@ -2,7 +2,7 @@
     var docEl = doc.documentElement,
         timer = '';
 
-  //当dom加载完成时，或者 屏幕垂直、水平方向有改变进行html的根元素计算
+  //当domLoad完成 when ，OR者 屏幕垂直、水平方向Has改变进行html of 根元素计算
   function recalc(){
         var clientWidth = docEl.getBoundingClientRect ? docEl.getBoundingClientRect().width : docEl.clientWidth;
 	    if (!clientWidth) return;

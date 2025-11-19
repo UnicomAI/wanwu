@@ -40,7 +40,7 @@ func (t ZipFileExtractServiceService) ExtractFile(ctx context.Context, localFile
 
 	for _, f := range fileReader.Reader.File {
 		var decodeFileName string
-		if f.Flags == 0 { //本地编码，默认GBK，转换成UTF-8 [EN] Local encoding, default GBK, converted to UTF-8
+		if f.Flags == 0 { //Local encoding, default GBK, converted to UTF-8
 			i := bytes.NewReader([]byte(f.Name))
 			decoder := transform.NewReader(i, simplifiedchinese.GB18030.NewDecoder())
 			content, _ := io.ReadAll(decoder)
@@ -48,23 +48,23 @@ func (t ZipFileExtractServiceService) ExtractFile(ctx context.Context, localFile
 		} else {
 			decodeFileName = f.Name
 		}
-		// 构建完整的文件路径 [EN] Build full file path
+		// Build full file path
 		destFilePath := filepath.Join(destDir, decodeFileName)
-		// 检查是否为目录 [EN] Check if it is a directory
+		// Check if it is a directory
 		if f.FileInfo().IsDir() {
-			// 创建目录 [EN] Create directory
+			// Create directory
 			if err := os.MkdirAll(destFilePath, f.Mode()); err != nil {
 				fmt.Printf("无法创建目录: %v\n", err)
 			}
 			continue
 		}
 		log.Infof("ExtractFile file path %s", destFilePath)
-		// 我们需要确保所有的文件夹都已经创建好 [EN] We need to make sure all folders have been created
+		// We need to make sure all folders have been created
 		err = os.MkdirAll(filepath.Dir(destFilePath), f.Mode())
 		if err != nil {
 			return "", err
 		}
-		//写入文件 [EN] write file
+		//write file
 		err = writeUnzipFile(f, destFilePath)
 		if err != nil {
 			return "", err
@@ -73,9 +73,9 @@ func (t ZipFileExtractServiceService) ExtractFile(ctx context.Context, localFile
 	return destDir, nil
 }
 
-// writeUnzipFile 写入文件 [EN] writeUnzipFile writes a file
+// writeUnzipFile writes a file
 func writeUnzipFile(zipFile *zip.File, destFilePath string) error {
-	//打开目标文件 [EN] Open target file
+	//Open target file
 	destFile, err := os.OpenFile(destFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, zipFile.Mode())
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func writeUnzipFile(zipFile *zip.File, destFilePath string) error {
 		}
 	}()
 
-	//打开源压缩文件 [EN] Open source compressed file
+	//Open source compressed file
 	sourceFile, err := zipFile.Open()
 	if err != nil {
 		return err

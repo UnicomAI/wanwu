@@ -29,14 +29,14 @@ def parse_excel_to_schema_json(file_path):
     """
     schema = {}
     try:
-        # 使用 pd.read_excel 自动推断引擎（支持 .xls 和 .xlsx） [EN] Automatic inference engine using pd.read_excel (supports .xls and .xlsx)
+        # Automatic inference engine using pd.read_excel (supports .xls and .xlsx)
         df_category = pd.read_excel(file_path, sheet_name='类目表')
         df_attribute = pd.read_excel(file_path, sheet_name='类目属性表')
-        # 清理列名：去除空格和换行 [EN] Clean column names: remove spaces and newlines
+        # Clean column names: remove spaces and newlines
         df_category.columns = df_category.columns.str.strip()
         df_attribute.columns = df_attribute.columns.str.strip()
 
-        # === 解析 类目表 === [EN] === Analysis Category Table ===
+        # === Analysis Category Table ===
         category_list = []
         for _, row in df_category.iterrows():
             item = {
@@ -45,19 +45,19 @@ def parse_excel_to_schema_json(file_path):
             }
             category_list.append(item)
 
-        # === 解析 类目属性表 === [EN] === Parse category attribute table ===
+        # === Parse category attribute table ===
         attribute_list = []
 
         for _, row in df_attribute.iterrows():
             class_name = str(row["类名"]).strip() if pd.notna(row["类名"]) else ""
             attr_name = str(row["属性/关系名"]).strip() if pd.notna(row["属性/关系名"]) else ""
 
-            # 修复说明字段 [EN] Fix description field
+            # Fix description field
             key = (class_name, attr_name)
 
             desc = str(row["属性/关系说明"]).strip() if pd.notna(row["属性/关系说明"]) else ""
 
-            # 处理别名字段（支持多个别名用 | 分隔） [EN] Processing alias fields (supports multiple aliases separated by |)
+            # Processing alias fields (supports multiple aliases separated by |)
             alias = row["别名(多别名以|隔开)"]
             if pd.isna(alias) or str(alias).strip() == "" or str(alias).lower() == "nan":
                 alias_str = ""
@@ -74,7 +74,7 @@ def parse_excel_to_schema_json(file_path):
                 "值类型": value_type
             })
 
-        # 构建最终 JSON 结构 [EN] Build the final JSON structure
+        # Build the final JSON structure
         schema = {
             "schema定义": {
                 "类目表": category_list,
@@ -114,7 +114,7 @@ def get_extrac_graph_data(user_id, kb_name, chunks, file_name, graph_model_id, s
             "llm_base_url": llm_base_url,
             "llm_api_key": llm_api_key
         }
-        # 将JSON数据转换好格式 [EN] Convert JSON data into good format
+        # Convert JSON data into good format
         json_data = json.dumps(data)
         extract_graph_url = GRAPH_SERVER_URL + "/extrac_graph_data"
         response = requests.post(extract_graph_url, headers=headers, data=json_data, timeout=600)
@@ -125,7 +125,7 @@ def get_extrac_graph_data(user_id, kb_name, chunks, file_name, graph_model_id, s
             logger.info(f"extrac_graph_data -{extract_graph_url}: 请求成功 耗时：{time_difference1}")
             return result_data
         else:
-            # 如果不是200，则抛出一个自定义异常 [EN] If not 200, throw a custom exception
+            # If not 200, throw a custom exception
             raise Exception(f"{extract_graph_url} 请求失败，错误信息：" + response.text)
     except Exception as e:
         raise Exception("get_extrac_graph_data 发生异常：" + str(e))
@@ -153,7 +153,7 @@ def generate_community_reports(user_id, kb_name, graph_model_id):
             "llm_base_url": llm_base_url,
             "llm_api_key": llm_api_key
         }
-        # 将JSON数据转换好格式 [EN] Convert JSON data into good format
+        # Convert JSON data into good format
         json_data = json.dumps(data)
         community_url = GRAPH_SERVER_URL + "/generate_community_reports"
         response = requests.post(community_url, headers=headers, data=json_data, timeout=600)
@@ -164,7 +164,7 @@ def generate_community_reports(user_id, kb_name, graph_model_id):
             logger.info(f"generate_community_reports -{community_url}: 请求成功 耗时：{time_difference1}")
             return result_data
         else:
-            # 如果不是200，则抛出一个自定义异常 [EN] If not 200, throw a custom exception
+            # If not 200, throw a custom exception
             raise Exception(f"{community_url} 请求失败，错误信息：" + response.text)
     except Exception as e:
         raise Exception("generate_community_reports 发生异常：" + str(e))
@@ -183,7 +183,7 @@ def delete_file_from_graph(user_id, kb_name, file_name):
             "kb_name": kb_name,
             "file_name": file_name
         }
-        # 将JSON数据转换好格式 [EN] Convert JSON data into good format
+        # Convert JSON data into good format
         json_data = json.dumps(data)
         delete_file_url = GRAPH_SERVER_URL + "/delete_file"
         response = requests.post(delete_file_url, headers=headers, data=json_data, timeout=600)
@@ -194,7 +194,7 @@ def delete_file_from_graph(user_id, kb_name, file_name):
             logger.info(f"graph delete_file -{delete_file_url}: 请求成功 耗时：{time_difference1}")
             return result_data
         else:
-            # 如果不是200，则抛出一个自定义异常 [EN] If not 200, throw a custom exception
+            # If not 200, throw a custom exception
             raise Exception(f"{delete_file_url} 请求失败，错误信息：" + response.text)
     except Exception as e:
         raise Exception("graph delete_file 发生异常：" + str(e))
@@ -212,7 +212,7 @@ def delete_kb_graph(user_id, kb_name):
             "user_id": user_id,
             "kb_name": kb_name,
         }
-        # 将JSON数据转换好格式 [EN] Convert JSON data into good format
+        # Convert JSON data into good format
         json_data = json.dumps(data)
         delete_kb_url = GRAPH_SERVER_URL + "/delete_kb"
         response = requests.post(delete_kb_url, headers=headers, data=json_data, timeout=600)
@@ -223,7 +223,7 @@ def delete_kb_graph(user_id, kb_name):
             logger.info(f"graph delete_kb_graph -{delete_kb_url}: 请求成功 耗时：{time_difference1}")
             return result_data
         else:
-            # 如果不是200，则抛出一个自定义异常 [EN] If not 200, throw a custom exception
+            # If not 200, throw a custom exception
             raise Exception(f"{delete_kb_url} 请求失败，错误信息：" + response.text)
     except Exception as e:
         raise Exception("graph delete_kb 发生异常：" + str(e))
@@ -242,7 +242,7 @@ def get_kb_graph_data(user_id, kb_name, kb_id):
             "kb_name": kb_name,
             "kb_id": kb_id
         }
-        # 将JSON数据转换好格式 [EN] Convert JSON data into good format
+        # Convert JSON data into good format
         json_data = json.dumps(data)
         graph_url = GRAPH_SERVER_URL + "/get_kb_graph_data"
         response = requests.post(graph_url, headers=headers, data=json_data, timeout=600)
@@ -255,7 +255,7 @@ def get_kb_graph_data(user_id, kb_name, kb_id):
             logger.info(f"extrac_graph_data -{graph_url}: 请求成功 耗时：{time_difference1}")
             return result_data["graph_data"]
         else:
-            # 如果不是200，则抛出一个自定义异常 [EN] If not 200, throw a custom exception
+            # If not 200, throw a custom exception
             raise Exception(f"{graph_url} 请求失败，错误信息：" + response.text)
     except Exception as e:
         raise Exception("get_kb_graph_data 发生异常：" + str(e))
@@ -270,7 +270,7 @@ def get_graph_vocabulary_set(kb_ids: list):
         res_vocabulary_list = [v.split("|||schema_type:")[0] for v in kb_graph_vocabulary_set]
         res_vocabulary_type_list = [v.split("|||schema_type:")[1] for v in kb_graph_vocabulary_set]
         kb_graph_vocabulary_list.append((res_vocabulary_list, res_vocabulary_type_list))
-    # 处理返回结果 [EN] Process the returned results
+    # Process the returned results
     return kb_graph_vocabulary_list
 
 
@@ -280,7 +280,7 @@ def get_all_extrac_graph_chunks(user_id, kb_name, file_name, kb_id=""):
     """
 
     try:
-        time.sleep(10)  # 先等待 10s [EN] Wait 10s first
+        time.sleep(10)  # Wait 10s first
         retry_num = 0
         all_chunks = []
         chunk_total_num = 1
@@ -291,7 +291,7 @@ def get_all_extrac_graph_chunks(user_id, kb_name, file_name, kb_id=""):
             response_info = milvus_utils.get_milvus_file_content_list(user_id, kb_name, file_name, page_size,
                                                                       search_after, kb_id=kb_id)
             temp_content_list = response_info["data"]["content_list"]
-            if not temp_content_list:  # 取不到则重试或置完成 [EN] If you can't get it, try again or set it to complete.
+            if not temp_content_list:  # If you can't get it, try again or set it to complete.
                 retry_num += 1
                 time.sleep(10)
                 if retry_num >= 5 or len(all_chunks) >= chunk_total_num:
@@ -299,7 +299,7 @@ def get_all_extrac_graph_chunks(user_id, kb_name, file_name, kb_id=""):
             else:
                 if chunk_total_num == 1:
                     chunk_total_num = temp_content_list[0]["meta_data"]["chunk_total_num"]
-                for doc in temp_content_list:  # 整理格式添加好 [EN] Organize the format and add it
+                for doc in temp_content_list:  # Organize the format and add it
                     all_chunks.append({
                         "title": doc["file_name"],
                         "snippet": doc["content"],
@@ -307,7 +307,7 @@ def get_all_extrac_graph_chunks(user_id, kb_name, file_name, kb_id=""):
                         "meta_data": doc["meta_data"]
                     })
                 search_after += 100
-        # ======== 取完了直接返回 ========= [EN] ======== Return directly after taking out =========
+        # ======== Return directly after taking out =========
         return all_chunks
     except Exception as e:
         logger.info(f"get_all_extrac_graph_chunks Error: {e}")
@@ -343,8 +343,8 @@ def update_community_reports(user_id: str, kb_name: str, report:dict, kb_id = ""
     chunk_current_num = old_report["meta_data"]["chunk_current_num"]
     chunk["meta_data"] = copy.deepcopy(old_report["meta_data"])
     chunk["create_time"] = old_report["create_time"]
-    if not kb_id:  # kb_id为空，则根据kb_name获取kb_id [EN] If kb_id is empty, get kb_id based on kb_name
-        kb_id = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)  # 获取kb_id [EN] Get kb_id
+    if not kb_id:  # If kb_id is empty, get kb_id based on kb_name
+        kb_id = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)  # Get kb_id
 
     file_name = "社区报告"
     content_str = kb_id + chunk["content"] + file_name + str(chunk_current_num)
@@ -358,13 +358,13 @@ def update_community_reports(user_id: str, kb_name: str, report:dict, kb_id = ""
             logger.error(
                 '新增report插入milvus失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
             response_info["message"] = insert_report_result["message"]
-            #新增数据回滚 [EN] New data rollback
+            #New data rollback
             milvus_utils.del_community_reports(user_id, kb_name, content_ids=[new_content_id], kb_id=kb_id)
             return response_info
         else:
             logger.info('新增report插入milvus完成' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
 
-        #清理旧数据 [EN] Clean old data
+        #Clean old data
         milvus_utils.del_community_reports(user_id, kb_name, content_ids=[old_content_id], kb_id=kb_id)
     logger.info(f"========= update_community_reports end：user_id: {user_id}, kb_name: {kb_name}, kb_id: {kb_id}, "
                 f"file_name: {file_name}, chunk: {chunk}")
@@ -406,8 +406,8 @@ def batch_add_community_reports(user_id: str, kb_name: str, reports:list, kb_id:
         chunk_total_num = allocate_report_result["data"]["chunk_total_num"]
         meta_data = allocate_report_result["data"]["meta_data"]
         current_chunk_num = chunk_total_num - len(chunks) + 1
-        if not kb_id:  # kb_id为空，则根据kb_name获取kb_id [EN] If kb_id is empty, get kb_id based on kb_name
-            kb_id = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)  # 获取kb_id [EN] Get kb_id
+        if not kb_id:  # If kb_id is empty, get kb_id based on kb_name
+            kb_id = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)  # Get kb_id
         for chunk in chunks:
             chunk["meta_data"] = copy.deepcopy(meta_data)
             chunk["meta_data"]["chunk_current_num"] = current_chunk_num
@@ -463,11 +463,11 @@ def get_community_report_list(user_id: str, kb_name: str, page_size: int, search
 @timing.timing_decorator(logger, include_args=True)
 def get_graph_search_list(user_id, kb_names, question, top_k, kb_ids=[], filter_file_name_list=[]):
     """ 根据问题召回知识图谱的 search列表"""
-    # 使用query去 es召回 图谱 SPO信息 [EN] Use query to recall graph SPO information
+    # Use query to recall graph SPO information
     try:
         if not kb_ids:
             for kb_n in kb_names:
-                kb_ids.append(milvus_utils.get_milvus_kb_name_id(user_id, kb_n))  # 获取kb_id [EN] Get kb_id
+                kb_ids.append(milvus_utils.get_milvus_kb_name_id(user_id, kb_n))  # Get kb_id
         kb_graph_vocabulary_list = get_graph_vocabulary_set(kb_ids)
         graph_node_query = ""
         entities = []
@@ -500,16 +500,16 @@ def get_graph_search_list(user_id, kb_names, question, top_k, kb_ids=[], filter_
                 report_texts = f"社区报告信息:{newline}{newline.join(contents)} "
                 graph_list.append({"snippet": report_texts, "meta_data": {},
                                           "title": "知识图谱-社区报告", "content_type": "community_report"})
-        if not all([not(ent) for ent in entities]):  # 如果有图关键词，则进行优先社区报告检索 [EN] If there are image keywords, perform priority community report retrieval.
-            # ======= 构建 triple_text 生成一个chunk插入社区报告开头 ======= [EN] ======= Build triple_text to generate a chunk and insert it into the beginning of the community report =======
+        if not all([not(ent) for ent in entities]):  # If there are image keywords, perform priority community report retrieval.
+            # ======= Build triple_text to generate a chunk and insert it into the beginning of the community report =======
             triple_text_list = []
             for s in es_graph_search_list:
-                # ====== SPO 三元组前处理 ======= [EN] ====== SPO triple preprocessing =======
+                # ====== SPO triple preprocessing =======
                 text = s["graph_data_text"]
-                # 检查字符串是否包含中文且包含has_attribute [EN] Check whether the string contains Chinese and contains has_attribute
+                # Check whether the string contains Chinese and contains has_attribute
                 if "has_attribute" in text and any('\u4e00' <= char <= '\u9fff' for char in text):
                     s["graph_data_text"] = text.replace("has_attribute", "其具有属性")
-                for kb_entities in entities:  # 如果有图关键词，则进行SPO拉取 [EN] If there are image keywords, perform SPO pull
+                for kb_entities in entities:  # If there are image keywords, perform SPO pull
                     for kb_entity in kb_entities:
                         if kb_entity in s["graph_data_text"] and s["graph_data_text"] not in triple_text_list:
                             triple_text_list.append(s["graph_data_text"])
@@ -520,10 +520,10 @@ def get_graph_search_list(user_id, kb_names, question, top_k, kb_ids=[], filter_
 
         logger.info(repr(user_id) + repr(kb_names) + repr(question)
                     + f'问题 graph 查询结果 es_graph_search_list len：{len(es_graph_search_list)},graph_list len：{len(graph_list)}')
-        # ====== 去重 ======= [EN] ====== Remove duplicates =======
+        # ====== Remove duplicates =======
         tmp_content = []
         graph_search_list = []
-        for i in es_graph_search_list:  # 去重 [EN] Remove duplicates
+        for i in es_graph_search_list:  # Remove duplicates
             i["snippet"] = i["meta_data"]["reference_snippet"]
             if i["snippet"] in tmp_content:
                 continue

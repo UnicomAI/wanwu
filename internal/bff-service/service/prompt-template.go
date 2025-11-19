@@ -71,14 +71,14 @@ func GetPromptTemplateDetail(ctx *gin.Context, templateId string) (*response.Pro
 }
 
 func GetPromptOptimize(ctx *gin.Context, userID, orgID string, req request.PromptOptimizeReq) {
-	// 获取模型信息 [EN] Get model information
+	// Get model information
 	modelInfo, err := model.GetModelById(ctx.Request.Context(), &model_service.GetModelByIdReq{ModelId: req.ModelId})
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
 
-	// 构建请求信息 [EN] Build request information
+	// Build request information
 	var stream bool = true
 	reqInfo := &mp_common.LLMReq{
 		Model: modelInfo.Model,
@@ -95,7 +95,7 @@ func GetPromptOptimize(ctx *gin.Context, userID, orgID string, req request.Promp
 		Stream: &stream,
 	}
 
-	// 配置模型参数 [EN] Configure model parameters
+	// Configure model parameters
 	llm, err := mp.ToModelConfig(modelInfo.Provider, modelInfo.ModelType, modelInfo.ProviderConfig)
 	if err != nil {
 		return
@@ -124,25 +124,25 @@ func GetPromptOptimize(ctx *gin.Context, userID, orgID string, req request.Promp
 	ctx.Header("Connection", "keep-alive")
 	ctx.Header("Content-Type", "text/event-stream; charset=utf-8")
 	var data *mp_common.LLMResp
-	var inThink bool = false // 是否在思考标签内 [EN] Are you thinking about tags?
+	var inThink bool = false // Are you thinking about tags?
 
 	for sseResp := range sseCh {
 		data, ok = sseResp.ConvertResp()
 		var dataStr string
-		var shouldSend bool = true // 标记是否应该发送此响应 [EN] Flag whether this response should be sent
+		var shouldSend bool = true // Flag whether this response should be sent
 
 		if ok && data != nil {
-			currentResponse := "" // 记录当前流式增量内容 [EN] Record the current streaming delta content
+			currentResponse := "" // Record the current streaming delta content
 			if len(data.Choices) > 0 && data.Choices[0].Delta != nil {
 				content := data.Choices[0].Delta.Content
 
-				// 过滤思考过程 [EN] filter thought process
+				// filter thought process
 				if inThink {
-					// 当前在思考标签内，检查是否遇到结束标签 [EN] Currently inside the think tag, check if an end tag is encountered
+					// Currently inside the think tag, check if an end tag is encountered
 					if strings.Contains(content, "</think>") {
 						inThink = false
 						parts := strings.SplitN(content, "</think>", 2)
-						// 找到</think>之后的内容 [EN] Find the content after </think>
+						// Find the content after </think>
 						if len(parts) > 1 && parts[1] != "" {
 							filteredContent := parts[1]
 							answer = answer + filteredContent
@@ -154,9 +154,9 @@ func GetPromptOptimize(ctx *gin.Context, userID, orgID string, req request.Promp
 						shouldSend = false
 					}
 				} else {
-					// 不在思考标签内，检查是否遇到开始标签 [EN] Not within the think tag, check if a start tag is encountered
+					// Not within the think tag, check if a start tag is encountered
 					if strings.Contains(content, "<think>") {
-						// 检查是否有<think>之前的内容 [EN] Check if there is content before <think>
+						// Check if there is content before <think>
 						parts := strings.SplitN(content, "<think>", 2)
 						if len(parts) > 0 && parts[0] != "" {
 							filteredContent := parts[0]
@@ -170,7 +170,7 @@ func GetPromptOptimize(ctx *gin.Context, userID, orgID string, req request.Promp
 						if len(parts) > 1 && strings.Contains(parts[1], "</think>") {
 							endParts := strings.SplitN(parts[1], "</think>", 2)
 							if len(endParts) > 1 && endParts[1] != "" {
-								// </think>之后还有内容，需要返回 [EN] </think>There is still content after that and needs to be returned
+								// </think>There is still content after that and needs to be returned
 								answer = answer + endParts[1]
 								currentResponse = currentResponse + endParts[1]
 							} else if currentResponse == "" {
@@ -179,16 +179,16 @@ func GetPromptOptimize(ctx *gin.Context, userID, orgID string, req request.Promp
 							inThink = false
 						}
 					} else {
-						// 没有思考标签，直接返回内容 [EN] No thinking about tags, return content directly
+						// No thinking about tags, return content directly
 						answer = answer + content
 						currentResponse = content
 					}
 				}
 			}
 
-			// 发送响应 [EN] Send response
+			// Send response
 			if shouldSend {
-				// 构建目标结构 [EN] Build target structure
+				// Build target structure
 				streamData := response.CustomPromptOpt{
 					Code:     data.Code,
 					Message:  "success",
@@ -198,9 +198,9 @@ func GetPromptOptimize(ctx *gin.Context, userID, orgID string, req request.Promp
 				}
 				if len(data.Choices) > 0 {
 					if data.Choices[0].FinishReason == "" {
-						streamData.Finish = 0 // 继续生成 [EN] Continue to generate
+						streamData.Finish = 0 // Continue to generate
 					} else if data.Choices[0].FinishReason == "stop" {
-						streamData.Finish = 1 // 结束标志 [EN] end sign
+						streamData.Finish = 1 // end sign
 					}
 				}
 
@@ -211,7 +211,7 @@ func GetPromptOptimize(ctx *gin.Context, userID, orgID string, req request.Promp
 			dataStr = fmt.Sprintf("%v\n", sseResp.String())
 		}
 
-		// 写入 [EN] write
+		// write
 		if dataStr != "" {
 			if _, err = ctx.Writer.Write([]byte(dataStr)); err != nil {
 				log.Errorf("model %v chat completions sse err: %v", modelInfo.ModelId, err)

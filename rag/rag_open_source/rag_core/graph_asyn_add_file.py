@@ -43,8 +43,8 @@ def kafkal():
                                      sasl_plain_password=KAFKA_SASL_PLAIN_PASSWORD,
                                      group_id=KAFKA_GRAPH_GROUP_ID,
                                      enable_auto_commit=KAFKA_ENABLE_AUTO_COMMIT,
-                                     max_poll_records=1,  # 设置每次最多拉取1条消息 [EN] Set to pull at most 1 message at a time
-                                     # max_poll_interval_ms=8000000,  # 设置最大轮询间隔为120分钟 [EN] max_poll_interval_ms=8000000, # Set the maximum polling interval to 120 minutes
+                                     max_poll_records=1,  # Set to pull at most 1 message at a time
+                                     # max_poll_interval_ms=8000000, # Set the maximum polling interval to 120 minutes
                                      value_deserializer=lambda x: x.decode('utf-8'))
 
         else:
@@ -52,8 +52,8 @@ def kafkal():
                                      bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
                                      group_id=KAFKA_GRAPH_GROUP_ID,
                                      enable_auto_commit=KAFKA_ENABLE_AUTO_COMMIT,
-                                     max_poll_records=1,  # 设置每次最多拉取1条消息 [EN] Set to pull at most 1 message at a time
-                                     # max_poll_interval_ms=8000000,  # 设置最大轮询间隔为120分钟 [EN] max_poll_interval_ms=8000000, # Set the maximum polling interval to 120 minutes
+                                     max_poll_records=1,  # Set to pull at most 1 message at a time
+                                     # max_poll_interval_ms=8000000, # Set the maximum polling interval to 120 minutes
                                      value_deserializer=lambda x: x.decode('utf-8'))
         for message in consumer:
             print('收到kafka消息：' + repr(message.value))
@@ -74,7 +74,7 @@ def kafkal():
 
             try:
                 if not KAFKA_ENABLE_AUTO_COMMIT:
-                    # 提交当前消息的偏移量 [EN] Commit the offset of the current message
+                    # Commit the offset of the current message
                     tp = TopicPartition(KAFKA_GRAPH_TOPICS, message.partition)
                     offset_and_metadata = OffsetAndMetadata(offset=message.offset + 1, metadata="")
                     offsets = {tp: offset_and_metadata}
@@ -85,7 +85,7 @@ def kafkal():
                     master_control_logger.info('consumer.commit offset：' + repr(offsets))
 
                 if KAFKA_USE_GRAPH_ASYN_ADD:
-                    # ============ 异步添加 ============= [EN] ============ Asynchronous addition =============
+                    # ============ Asynchronous addition =============
                     if message_type == "graph":
                         executor.submit(extrac_graph_data,
                                         user_id, kb_name, filename, file_id, enable_knowledge_graph,
@@ -98,7 +98,7 @@ def kafkal():
                         master_control_logger.warning(f"未知的message_type: {message_type}")
                         continue
                 else:
-                    # ============ 顺序添加 ============= [EN] ============ Sequential addition =============
+                    # ============ Sequential addition =============
                     if message_type == "graph":
                         extrac_graph_data(user_id, kb_name, filename, file_id, enable_knowledge_graph,
                                         graph_schema_objectname, graph_schema_filename, graph_model_id, kb_id=kb_id)
@@ -119,10 +119,10 @@ def kafkal():
 
 
 def extrac_graph_data(user_id, kb_name, file_name, file_id, enable_knowledge_graph, graph_schema_objectname, graph_schema_filename, graph_model_id="", kb_id=""):
-    # 图谱解析开始执行 [EN] Graph analysis begins
+    # Graph analysis begins
     mq_rel_utils.update_doc_status(file_id, status=110)
 
-    # -------------- 先将从数据库中获取 all_extrac_graph_chunks-------------- [EN] --------------- We will first get all_extrac_graph_chunks from the database--------------
+    # --------------- We will first get all_extrac_graph_chunks from the database--------------
     try:
         user_data_path = './user_data'
         filepath = os.path.join(user_data_path, user_id, kb_name)
@@ -149,14 +149,14 @@ def extrac_graph_data(user_id, kb_name, file_name, file_id, enable_knowledge_gra
         return
 
 
-    # -------------- 将切分好的chunks 进行图谱数据提取构建 -------------- [EN] -------------- Extract and construct the map data from the segmented chunks --------------
-    # 将 chunks 按 batch_size 分组提取 [EN] Group and extract chunks by batch_size
+    # -------------- Extract and construct the map data from the segmented chunks --------------
+    # Group and extract chunks by batch_size
     all_graph_chunks = []
     all_graph_vocabulary_set = set()
     batch_size = 10
     if enable_knowledge_graph:
         schema = {}
-        # 当graph_schema_filename,graph_schema_objectname有值则说明用户自己上传excel，否则schema为空后续会用内置schema抽取 [EN] When graph_schema_filename and graph_schema_objectname have values, it means that the user has uploaded excel himself. Otherwise, if the schema is empty, the built-in schema will be used to extract it later.
+        # When graph_schema_filename and graph_schema_objectname have values, it means that the user has uploaded excel himself. Otherwise, if the schema is empty, the built-in schema will be used to extract it later.
         if graph_schema_filename and graph_schema_objectname:
             try:
                 schema_file_path = os.path.join(filepath, graph_schema_filename)
@@ -209,18 +209,18 @@ def extrac_graph_data(user_id, kb_name, file_name, file_id, enable_knowledge_gra
             logger.info(repr(file_name) + '添加es结果：' + repr(insert_es_result))
             master_control_logger.info(repr(file_name) + '添加es结果：' + repr(insert_es_result))
             if insert_es_result['code'] != 0:
-                # 回调 [EN] callback
+                # callback
                 logger.error('graph_data插入es失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
                 master_control_logger.error(
                     'graph_data插入es失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
                 mq_rel_utils.update_doc_status(file_id, status=103)
                 return
             else:
-                # 插入成功后，更新update_graph_vocabulary_set 数据 [EN] After the insertion is successful, update the update_graph_vocabulary_set data
+                # After the insertion is successful, update the update_graph_vocabulary_set data
                 kb_id = knowledge_base_utils.get_kb_name_id(user_id, kb_name)
                 redis_utils.update_graph_vocabulary_set(graph_redis_client, kb_id,
                                                         elements_to_add=all_graph_vocabulary_set)
-                # 回调 [EN] callback
+                # callback
                 logger.info('graph_data插入es完成' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
                 master_control_logger.info(
                     'graph_data插入es完成' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
@@ -232,18 +232,18 @@ def extrac_graph_data(user_id, kb_name, file_name, file_id, enable_knowledge_gra
         mq_rel_utils.update_doc_status(file_id, status=103)
         return
 
-    # --------------7、最终完成 [EN] ---------------7. Final completion
-    # 回调 [EN] callback
+    # ---------------7. Final completion
+    # callback
     logger.info("user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name) + '===== 文档grahp解析成功且完成')
     master_control_logger.info("user_id=%s,kb_name=%s,file_name=%s,kb_id=%s" % (user_id, kb_name, file_name, kb_id) + '===== 文档grahp解析成功且完成')
     mq_rel_utils.update_doc_status(file_id, status=100)
 
 
 def generate_community_report(user_id, kb_name, enable_knowledge_graph, graph_model_id="", kb_id=""):
-    # 社区报告开始生成 [EN] Community report starts to be generated
+    # Community report starts to be generated
     mq_rel_utils.update_kb_status(kb_id, status=130)
 
-    # 清理旧的社区报告 [EN] Clean up old community reports
+    # Clean up old community reports
     try:
         clear_result = milvus_utils.del_community_reports(user_id, kb_name, clear_reports=True, kb_id=kb_id)
         if clear_result['code'] != 0:
@@ -258,7 +258,7 @@ def generate_community_report(user_id, kb_name, enable_knowledge_graph, graph_mo
         mq_rel_utils.update_kb_status(kb_id, status=124)
         return
 
-    # 提取社区报告 [EN] Pull community reports
+    # Pull community reports
     try:
         reports_result = graph_utils.generate_community_reports(user_id, kb_name, graph_model_id)
         reports = reports_result['community_reports']
@@ -273,7 +273,7 @@ def generate_community_report(user_id, kb_name, enable_knowledge_graph, graph_mo
         mq_rel_utils.update_kb_status(kb_id, status=122)
         return
 
-    # 存储社区报告 [EN] Store community reports
+    # Store community reports
     try:
         chunk_current_num = 0
         sub_chunks = []
@@ -308,7 +308,7 @@ def generate_community_report(user_id, kb_name, enable_knowledge_graph, graph_mo
         mq_rel_utils.update_kb_status(kb_id, status=123)
         return
 
-    # 最终完成 [EN] finally completed
+    # finally completed
     logger.info("user_id=%s,kb_name=%s" % (user_id, kb_name) + '===== 社区报告生成且存储完成')
     master_control_logger.info("user_id=%s,kb_name=%s,kb_id=%s" % (user_id, kb_name, kb_id) + '===== 社区报告生成且存储完成')
     mq_rel_utils.update_kb_status(kb_id, status=120)

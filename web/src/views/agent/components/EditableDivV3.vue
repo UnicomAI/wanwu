@@ -1,4 +1,4 @@
-<!--批量插件-->
+<!--BatchPlugin-->
 <template>
     <div class="rl">
         <div class="editable-box">
@@ -20,13 +20,13 @@
             <div v-if="fileType === 'doc/*'" class="echo-img-box echo-doc-box">
                 <img :src="require('@/assets/imgs/fileicon.png')" class="docIcon">
                 <div class="docInfo">
-                    <p class="docInfo_name">文件名称：{{fileList[0]['name']}}</p>
-                    <p class="docInfo_size">文件大小：{{fileList[0]['size'] > 1024 ?(fileList[0]['size'] / (1024 * 1024 )).toFixed(5) + ' MB' : fileList[0]['size'] + ' bytes'}}</p>
+                    <p class="docInfo_name">FileName：{{fileList[0]['name']}}</p>
+                    <p class="docInfo_size">File大小：{{fileList[0]['size'] > 1024 ?(fileList[0]['size'] / (1024 * 1024 )).toFixed(5) + ' MB' : fileList[0]['size'] + ' bytes'}}</p>
                 </div>
                 <span class="el-icon-loading loading-icon" v-if="fileLoading"></span>
                 <i class="el-icon-close echo-close" @click="clearFile"></i>
             </div>
-            <!-- 问答输入框 -->
+            <!-- 问答Input Box -->
             <div class="editable-wp flex">
                 <div class="editable-wp-left rl">
                      <!-- <i  class="el-icon-upload2 upload-icon" @click="preUpload"></i> -->
@@ -42,7 +42,7 @@
                         <el-button type="primary" class="editable--send" @click="preSend"><span>发送</span> <img :src="require('@/assets/imgs/sendIcon.png')" /></el-button>
                     </div>
                 </div>
-                <!-- 覆盖层，模型下线禁止点击 -->
+                <!-- 覆盖层，Model下线禁止点击 -->
                 <!-- <div class="overlay" v-if="modelParams === null"></div> -->
             </div>
         </div>
@@ -95,13 +95,13 @@
                 colorArr:['#dca3c2','#aaa9db','#d1a69b','#7894cf','#4fbed9',
                     '#ebb8bd','#9b9655','#3bb4b7','#61aac5','#d79ae5',
                     '#51a2da','#89b0f9','#738cbd'],
-                placeholder:'请输入内容,用Ctrl+Enter可换行',
+                placeholder:'Please enterContent,用Ctrl+Enter可换行',
                 promptHtml:'',
                 promptValue:'',
-                randomReminderList:[],  //随机8个提示词
+                randomReminderList:[],  //随机8个Tip词
                 randomReminderShow:false,
                 refreshLoading:false,
-               //文件
+               //File
                 hasFile:false,
                 fileIdList:null,
                 fileType:'',
@@ -150,7 +150,7 @@
             //  }) 
         },
         methods:{
-            // 处理文件的方法，提取出来供 handleDrop 和 onFiles 使用
+            // ProcessFile of Method，提取出来供 handleDrop And onFiles Use
             processFiles(files) {
                 if (!files || files.length === 0) return
                 
@@ -172,7 +172,7 @@
                 this.fileLoading = true
 
             },
-            // 处理拖拽到输入框的文件
+            // ProcessDrag到Input Box of File
             handleDrop(event) {
                 /* const dt = event.dataTransfer
                 if (!dt || !dt.files) return
@@ -181,7 +181,7 @@
                 const files = Array.prototype.slice.call(fileList)
                 if (files.length === 0) return
                 
-                // 调用文件处理方法
+                // CallFileProcessMethod
                 this.processFiles(files)
                 */
             },
@@ -242,7 +242,7 @@
                 if(['txt','csv','xlsx','doc','docx','html','pptx','pdf'].includes(fileType)){
                     this.fileType = 'doc/*'
                 }
-                //this.$emit('setSessionStatus',0)   //上传图片后，算法自动返回结果，此时将status设置为0
+                //this.$emit('setSessionStatus',0)   //UploadImage后，算法自动BackResult，此 when 将statusSetting为0
             },
             setFile(fileList){
                 this.fileList = fileList;
@@ -272,7 +272,7 @@
                 const matches = [];
 
                 while ((match = regex.exec(str))) {
-                    matches.push(match[1]); // 第一个括号中的内容是我们想要的结果
+                    matches.push(match[1]); // 第一个括号中 of ContentYes我们想要 of Result
                 }
 
                 return matches;
@@ -305,17 +305,17 @@
                     }
                     prompt = this.$refs.editor.innerHTML.replaceAll('<div class="light-input" contenteditable="true">','').replaceAll('</div>','').replaceAll(' ','')
                 }else{
-                    prompt = this.$refs.editor.innerHTML  //从对话框复制过来的会换行，临时处理，后期优化
+                    prompt = this.$refs.editor.innerHTML  //从DialogCopy 来 of 会换行，临 when Process，后期优化
                 }
                 let prompt2 = prompt.replace('<div><br></div>','')
                 this.promptValue = this.$refs.editor.innerHTML
                 return prompt2
             },
             onBlur(){
-                //勿删，定义此方法用于获取焦点
+                //勿删，Define此MethodUsed forGet焦点
             },
             async getReminderList(){
-                //显示8个提示词
+                //Show8个Tip词
                 this.refreshLoading = true
                 let res = await this.$api.expand.getPerfectReminderV2({pageNo:1,pageSize:1000,randomNum:8})
                 if(res.code === 0){
@@ -333,22 +333,22 @@
             textareaRange() {
                 var el = this.$refs.editor
                 var range = document.createRange();
-                //返回用户当前的选区
+                //BackUser当前 of 选Area
                 var sel =  document.getSelection();
-                //获取当前光标位置
+                //Get当前光标位置
                 var offset = sel.focusOffset
-                //div当前内容
-                var content = el.innerHTML　　　　　//添加换行符\n
-                el.innerHTML = content.slice(0,offset)+'\n'+content.slice(offset)　　　　　//设置光标为当前位置
+                //div当前Content
+                var content = el.innerHTML　　　　　//Add换行符\n
+                el.innerHTML = content.slice(0,offset)+'\n'+content.slice(offset)　　　　　//Setting光标为当前位置
                 range.setStart(el.childNodes[0], offset+1);
-                //使得选区(光标)开始与结束位置重叠
+                //使得选Area(光标)开始With结束位置重叠
                 range.collapse(true);
-                //移除现有其他的选区
+                //Remove现HasOther of 选Area
                 sel.removeAllRanges();
-                //加入光标的选区
+                //加入光标 of 选Area
                 sel.addRange(range);
             },
-            //监听按键操作
+            //Listen按KeyOperation
             textareaKeydown (event) {
                 if(event.ctrlKey && event.keyCode === 13){
                     //ctrl+enter
@@ -356,7 +356,7 @@
                 }else if (event.keyCode === 13) {
                     //enter
                     this.preSend()
-                    event.preventDefault() // 阻止浏览器默认换行操作
+                    event.preventDefault() // 阻止浏览器Default换行Operation
                     return false
                 }
             },
@@ -370,7 +370,7 @@
                 this.hasFile = false;
                 this.$emit('preSend');
             },
-            goModelList(){//跳转到服务管理
+            goModelList(){//跳转到Service管理
                 location.href = window.location.origin + `${this.$basePath}/aibase/portal/training/releaseTable`
             }
         }
@@ -378,7 +378,7 @@
 </script>
 <style lang="scss" scoped>
     .tips{color:#ccc;}
-    //模型选择框自适应
+    //Model选择框自适应
     .auto-width-select{
         min-width:250px;
         max-width:450px;

@@ -35,15 +35,15 @@ func errStatus(code errs.Code, status *errs.Status) error {
 
 func (s *Service) ChatRag(req *rag_service.ChatRagReq, stream grpc.ServerStreamingServer[rag_service.ChatRagResp]) error {
 	ctx := stream.Context()
-	// 获取rag详情 [EN] Get rag details
+	// Get rag details
 	rag, err := s.cli.FetchRagFirst(ctx, req.RagId)
 	if err != nil {
 		return errStatus(errs.Code_RagChatErr, err)
 	}
 	log.Infof("get rag: %v", rag)
-	// 校验知识库是否存在 [EN] Verify whether the knowledge base exists
+	// Verify whether the knowledge base exists
 	log.Infof("check know: userid = %s, orgId = %s, knowid = %s", rag.UserID, rag.UserID, rag.KnowledgeBaseConfig.KnowId)
-	// 反序列化字符串 [EN] Deserialize string
+	// Deserialize string
 	var knowledgeIds []string
 	errU := json.Unmarshal([]byte(rag.KnowledgeBaseConfig.KnowId), &knowledgeIds)
 	if errU != nil {
@@ -63,7 +63,7 @@ func (s *Service) ChatRag(req *rag_service.ChatRagReq, stream grpc.ServerStreami
 		return grpc_util.ErrorStatusWithKey(errs.Code_RagChatErr, "rag_chat_err", "check knowledgeInfoList err: knowledgeInfoList is nil")
 	}
 
-	//  请求rag [EN] Request rag
+	//  Request rag
 	buildParams, errk := service.BuildChatConsultParams(req, rag, knowledgeInfoList, knowledgeIds)
 	if errk != nil {
 		log.Errorf("errk = %s", errk.Error())
@@ -85,7 +85,7 @@ func (s *Service) ChatRag(req *rag_service.ChatRagReq, stream grpc.ServerStreami
 }
 
 func (s *Service) CreateRag(ctx context.Context, in *rag_service.CreateRagReq) (*rag_service.CreateRagResp, error) {
-	// 检查是否有重名应用 [EN] Check if there is an application with the same name
+	// Check if there is an application with the same name
 	rag, _ := s.cli.FetchRagFirstByName(ctx, in.AppBrief.Name, in.Identity.UserId, in.Identity.OrgId)
 	if rag != nil {
 		return nil, grpc_util.ErrorStatus(errs.Code_RagDuplicateName)
@@ -115,7 +115,7 @@ func (s *Service) UpdateRag(ctx context.Context, in *rag_service.UpdateRagReq) (
 		return nil, errStatus(errs.Code_RagGetErr, err)
 	}
 	if originalRag.BriefConfig.Name != in.AppBrief.Name {
-		// 检查是否有重名应用 [EN] Check if there is an application with the same name
+		// Check if there is an application with the same name
 		rag, _ := s.cli.FetchRagFirstByName(ctx, in.AppBrief.Name, in.Identity.UserId, in.Identity.OrgId)
 		if rag != nil {
 			return nil, grpc_util.ErrorStatus(errs.Code_RagDuplicateName)

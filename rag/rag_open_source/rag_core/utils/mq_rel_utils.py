@@ -33,9 +33,9 @@ def update_doc_status(doc_id, status, meta_datas = [], api_url=MQ_REL_URL):
     56 文档添加ES库失败
     """
     
-    # 请求体 [EN] Request body
+    # Request body
     # meta_data_list = [
-    #     {"key": "发布日期", "value": "2025-08-07"} [EN] {"key": "release date", "value": "2025-08-07"}
+    #     {"key": "release date", "value": "2025-08-07"}
     # ]
     meta_data_list = []
     for item in meta_datas:
@@ -47,17 +47,17 @@ def update_doc_status(doc_id, status, meta_datas = [], api_url=MQ_REL_URL):
         "status": status,
         "metaDataList": meta_data_list
     }
-    # 请求头 [EN] Request header
+    # Request header
     headers = {'Content-Type': 'application/json'}
     retries=0
     max_retries = 5
     while retries < max_retries:
         try:
-            # 发送POST请求 [EN] Send POST request
+            # Send POST request
             response = requests.post(api_url, data=json.dumps(payload), headers=headers)
             logger.info(f"---->回调Mass平台返回结果: {response}")
             logger.info('----->已回调Maas平台接口-同步状态：' + repr(api_url) + repr(json.dumps(payload)))
-            # 处理响应 [EN] Handle response
+            # Handle response
             if response.status_code == 200:
                 response_data = response.json()
                 return {"code": 0,"message":"文档状态更新回调成功"}
@@ -65,7 +65,7 @@ def update_doc_status(doc_id, status, meta_datas = [], api_url=MQ_REL_URL):
         except Exception as e:
             logger.error(f"文档状态更新回调错误：{e}，正在重试...")  
         retries += 1  
-        time.sleep(1)  # 每次重试前等待一段时间，例如1秒 [EN] Wait for a period of time before retrying, for example 1 second  
+        time.sleep(1)  # Wait for a period of time before retrying, for example 1 second
     return {"code": -1,"message":"文档状态更新回调错误"}
 
 
@@ -83,18 +83,18 @@ def update_url_status(id, status, fileSize=0, fileName='',api_url=MQ_URL_URL):
 
     """
     
-    # 请求体 [EN] Request body
+    # Request body
     payload = {"id": id,"status": status,'fileSize':fileSize,'fileName':fileName}
-    # 请求头 [EN] Request header
+    # Request header
     headers = {'Content-Type': 'application/json'}
     retries=0
     max_retries = 5
     while retries < max_retries:
         try:
-            # 发送POST请求 [EN] Send POST request
+            # Send POST request
             response = requests.post(api_url, data=json.dumps(payload), headers=headers)
             logger.info('----->已回调Maas平台接口-同步状态：' + repr(api_url) + repr(json.dumps(payload)))
-            # 处理响应 [EN] Handle response
+            # Handle response
             if response.status_code == 200:
                 response_data = response.json()
                 return {"code": 0,"message":"解析状态更新回调成功"}
@@ -102,25 +102,25 @@ def update_url_status(id, status, fileSize=0, fileName='',api_url=MQ_URL_URL):
         except Exception as e:
             logger.error(f"文档状态更新回调错误：{e}，正在重试...")  
         retries += 1  
-        time.sleep(1)  # 每次重试前等待一段时间，例如1秒 [EN] Wait for a period of time before retrying, for example 1 second  
+        time.sleep(1)  # Wait for a period of time before retrying, for example 1 second
     return {"code": -1,"message":"解析状态更新回调错误"}
 
 
 
 def update_urlinsert_status(doc_id, status, api_url=MQ_URLINSERT_URL):
     
-    # 请求体 [EN] Request body
+    # Request body
     payload = {"id": doc_id,"status": status}
-    # 请求头 [EN] Request header
+    # Request header
     headers = {'Content-Type': 'application/json'}
     retries=0
     max_retries = 5
     while retries < max_retries:
         try:
-            # 发送POST请求 [EN] Send POST request
+            # Send POST request
             response = requests.post(api_url, data=json.dumps(payload), headers=headers)
             logger.info('----->已回调Maas平台接口url入库-同步状态：' + repr(api_url) + repr(json.dumps(payload)))
-            # 处理响应 [EN] Handle response
+            # Handle response
             if response.status_code == 200:
                 response_data = response.json()
                 return {"code": 0,"message":"文档状态更新回调成功"}
@@ -128,7 +128,7 @@ def update_urlinsert_status(doc_id, status, api_url=MQ_URLINSERT_URL):
         except Exception as e:
             logger.error(f"文档状态更新回调错误：{e}，正在重试...")  
         retries += 1  
-        time.sleep(1)  # 每次重试前等待一段时间，例如1秒 [EN] Wait for a period of time before retrying, for example 1 second  
+        time.sleep(1)  # Wait for a period of time before retrying, for example 1 second
     return {"code": -1,"message":"文档状态更新回调错误"}
 
 
@@ -137,22 +137,22 @@ def update_kb_status(kb_id, status, api_url=MQ_KB_STATUS_URL):
         "knowledgeId": kb_id,
         "reportStatus": status
     }
-    # 请求头 [EN] Request header
+    # Request header
     headers = {'Content-Type': 'application/json'}
     retries = 0
     max_retries = 5
     while retries < max_retries:
         try:
-            # 发送POST请求 [EN] Send POST request
+            # Send POST request
             response = requests.post(api_url, data=json.dumps(payload), headers=headers)
             logger.info(f"---->回调Mass平台返回结果: {response}")
             logger.info('----->已回调Maas平台接口-同步状态：' + repr(api_url) + repr(json.dumps(payload)))
-            # 处理响应 [EN] Handle response
+            # Handle response
             if response.status_code == 200:
                 return {"code": 0, "message": "文档状态更新回调成功"}
 
         except Exception as e:
             logger.error(f"文档状态更新回调错误：{e}，正在重试...")
         retries += 1
-        time.sleep(1)  # 每次重试前等待一段时间，例如1秒 [EN] Wait for a period of time before retrying, for example 1 second
+        time.sleep(1)  # Wait for a period of time before retrying, for example 1 second
     return {"code": -1, "message": "文档状态更新回调错误"}

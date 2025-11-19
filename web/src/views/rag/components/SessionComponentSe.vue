@@ -1,4 +1,4 @@
-<!--http流式 前端保存点赞效果，后端不保存-->
+<!--http流式 前端Save点赞效果，后端不Save-->
 <template>
   <div class="session rl">
     <div class="session-setting">
@@ -125,7 +125,7 @@
                 />{{n.thinkText}}
                 <i v-bind:class="{'el-icon-arrow-down': !n.isOpen,'el-icon-arrow-up': n.isOpen}"></i>
               </div>
-              <!--内容-->
+              <!--Content-->
               <div
                 class="answer-content"
                 :id="i"
@@ -249,9 +249,9 @@ export default {
         url: "",
         width: 0, // 原始宽高
         height: 0,
-        w: 0, // 压缩后的宽高
+        w: 0, // Compress后 of 宽高
         h: 358,
-        roteX: 0, // 压缩后的比例
+        roteX: 0, // Compress后 of 比例
         roteY: 0,
       },
       imgConfig: ["jpeg", "PNG", "png", "JPG", "jpg", "bmp", "webp"],
@@ -285,14 +285,14 @@ export default {
   },
   methods: {
       handleCitationClick(e) {
-      // 调用 common.js 中的通用方法
+      // Call common.js 中 of 通用Method
       this.$handleCitationClick(e, {
         sessionStatus: this.sessionStatus,
         sessionData: this.session_data,
         citationSelector: '.citation',
         scrollElementId: 'timeScroll',
         onToggleCollapse: (item, collapse) => {
-          // 使用 Vue.set 确保响应式更新
+          // Use Vue.set 确保Response式Update
           this.$set(item, 'collapse', collapse);
         }
       });
@@ -312,7 +312,7 @@ export default {
       return Array.from(citationsSet);
     },
     goPreview(event, item) {
-      event.stopPropagation(); // 阻止事件冒泡
+      event.stopPropagation(); // 阻止Event冒泡
       let { meta_data } = item;
       let { file_name, download_link, page_num, row_num, sheet_name } =
         meta_data;
@@ -349,17 +349,17 @@ export default {
               sheet_name;
             break;
           default:
-            this.$message.warning("暂不支持此格式查看");
+            this.$message.warning("暂Not Supported此格式查看");
         }
       }
       if (openUrl !== "") {
         window.open(openUrl, "_blank","noopener,noreferrer");
       } else {
-        this.$message.warning("暂不支持此格式查看");
+        this.$message.warning("暂Not Supported此格式查看");
       }
     },
     listenerImg() {
-      //捕获图片加载错误
+      //捕获ImageLoad Error
       this.imageErrorHandler = (e) => {
         if (e.target.tagName === "IMG") {
           this.handleImageError(e.target);
@@ -368,13 +368,13 @@ export default {
       document.body.addEventListener("error", this.imageErrorHandler, true);
     },
     handleImageError(img) {
-      // 防止重复处理
+      // 防止重复Process
       if (img.classList.contains("failed")) {
         return;
       }
       img.classList.add("failed");
 
-      // // 设置图片为不可见，避免闪烁
+      // // SettingImage为不可见，避免闪烁
       img.style.visibility = "hidden";
       img.style.display = "none";
     },
@@ -385,22 +385,22 @@ export default {
     handleScroll(e) {
       const container = document.getElementById("timeScroll");
       const { scrollTop, clientHeight, scrollHeight } = container;
-      // 检测是否接近底部（5px容差）
+      // 检测YesNo接近Bottom（5px容差）
       const nearBottom = scrollHeight - (scrollTop + clientHeight) < 5;
-      // 用户手动滚动时取消自动置底
+      // User手动滚动 when Cancel自动置底
       if (!nearBottom) {
         this.autoScroll = false;
       }
-      // 清除之前的定时器
+      // Clear之前 of 定 when 器
       clearTimeout(this.scrollTimeout);
-      // 设置新的定时器检测滚动停止
+      // Setting新 of 定 when 器检测滚动Stop
       this.scrollTimeout = setTimeout(() => {
-        // 如果停止时接近底部，恢复自动置底
+        // IfStop when 接近Bottom，Restore自动置底
         if (nearBottom) {
           this.autoScroll = true;
           this.scrollBottom();
         }
-      }, 500); // 500ms内没有新滚动视为停止
+      }, 500); // 500ms内No新滚动视为Stop
     },
     replaceHTML(data, n) {
       let _data = data;
@@ -409,7 +409,7 @@ export default {
       if (b.test(data)) {
         n.thinkText = "已深度思考";
       }
-      // 如果没有返回前缀，则补上
+      // IfNoBack前缀，Then补上
       if (b.test(data) && !a.test(data)) {
         _data = "<think>\n" + data;
       }
@@ -460,7 +460,7 @@ export default {
     copy(text) {
       text = text.replaceAll("<br/>", "\n");
       var textareaEl = document.createElement("textarea");
-      textareaEl.setAttribute("readonly", "readonly"); // 防止手机上弹出软键盘
+      textareaEl.setAttribute("readonly", "readonly"); // 防止手机上弹出软Key盘
       textareaEl.value = text;
       document.body.appendChild(textareaEl);
       textareaEl.select();
@@ -469,7 +469,7 @@ export default {
       return res;
     },
     copycb() {
-      this.$message.success("内容已复制到粘贴板");
+      this.$message.success("Content已Copy到粘贴板");
     },
     collapseClick(n, m, j) {
       if (!m.collapse) {
@@ -495,7 +495,7 @@ export default {
     },
     replaceLastData(index, data) {
       if (!data.response) {
-        data.response = "无响应数据";
+        data.response = "无响应Data";
       }
       this.scrollBottom();
       this.$set(this.session_data.history, index, data);
@@ -512,12 +512,12 @@ export default {
         ? `${(fileSize / (1024 * 1024)).toFixed(2)} MB`
         : `${fileSize} bytes`;
     },
-    //websocket 替换全部数据
+    //websocket Replace全部Data
     replaceData(data) {
       this.session_data = data;
       this.scrollBottom();
     },
-    //http 只替换history
+    //http 只Replacehistory
     replaceHistory(data) {
       this.session_data.history = data;
       this.scrollBottom();
@@ -582,7 +582,7 @@ export default {
           return {
             ...item,
             responseLoading: false,
-            pendingResponse: "本次回答已被终止",
+            pendingResponse: "This response has been terminated",
             pending: false, // 标记为已完成
             finish: 1,
           };
@@ -624,7 +624,7 @@ export default {
       });
     },
     preTagging(response) {
-      // canvas大小重置
+      // canvas大小Reset
       this.currImg = {
         url: "",
         width: 0,
@@ -636,7 +636,7 @@ export default {
         dx: 0,
         dy: 0,
       };
-      // 图片原始宽高
+      // Image原始宽高
       var image = new Image();
       image.src = response.annotationImg;
       image.onload = () => {
@@ -668,11 +668,11 @@ export default {
       let currImg = this.currImg;
       let contain = document.getElementById("mycantain");
       if (currImg.width > contain.offsetWidth) {
-        // 宽度大于容器
+        // 宽度Greater Than容器
         this.currImg.roteX = currImg.width / contain.offsetWidth;
         currImg.w = contain.offsetWidth;
         currImg.h = (currImg.height * contain.offsetWidth) / currImg.width;
-        // 压缩后高度大于cantain
+        // Compress后高度Greater Thancantain
         if (currImg.h > contain.offsetHeight) {
           currImg.h = contain.offsetHeight;
           currImg.w = (currImg.width * currImg.h) / currImg.height;
@@ -683,9 +683,9 @@ export default {
           currImg.dy = (contain.offsetHeight - currImg.h) / 2;
         }
       } else {
-        // 高度压缩比例
+        // 高度Compress比例
         currImg.roteY = currImg.height / currImg.h;
-        // 压缩后宽度
+        // Compress后宽度
         currImg.w = (currImg.width * currImg.h) / currImg.height;
         currImg.roteX = currImg.width / currImg.w;
         currImg.dx = (contain.offsetWidth - currImg.w) / 2;
@@ -732,7 +732,7 @@ export default {
   }
 }
 
-/* 图片加载失败时的样式 */
+/* ImageLoadWhen Failed of Style */
 img.failed {
   position: relative;
   border: 2px dashed #ff6b6b;
@@ -741,7 +741,7 @@ img.failed {
 }
 
 img.failed::after {
-  content: "图片加载失败";
+  content: "图片加载Failed";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -766,7 +766,7 @@ img.failed::after {
       display: block;
     }
     section li {
-      list-style-position: inside; /* 将标记符号放在内容框内 */
+      list-style-position: inside; /* 将标记Symbol放在Content框内 */
     }
     .citation {
       display: inline-flex;
@@ -877,23 +877,23 @@ img.failed::after {
     .session-answer-wrapper {
       display: flex;
       align-items: flex-start;
-      gap: 10px; /* 头像和内容之间10px距离 */
+      gap: 10px; /* AvatarAndContent之间10px距离 */
       padding: 20px 20px 0 20px;
       min-height: 80px;
-      background: none; /* 确保外层容器无背景色 */
+      background: none; /* 确保外层容器No背景色 */
       
       .logo {
         width: 30px;
         height: 30px;
         border-radius: 6px;
         object-fit: cover;
-        flex-shrink: 0; /* 防止头像被压缩 */
-        background: none; /* 头像无背景色 */
+        flex-shrink: 0; /* 防止Avatar被Compress */
+        background: none; /* AvatarNo背景色 */
       }
       
       .answer-content {
         flex: 1;
-        background-color: #eceefe; /* 只有内容区域有背景色 */
+        background-color: #eceefe; /* 只HasContentArea域Has背景色 */
         border-radius: 0 10px 10px 10px;
         padding: 20px;
         line-height: 1.6;
@@ -907,7 +907,7 @@ img.failed::after {
       flex-direction: row-reverse;
       margin-left: auto;
       width: auto;
-      gap: 10px; /* 问题和问题图标之间10px间距 */
+      gap: 10px; /* 问题And问题图标之间10px间距 */
       display: flex;
       align-items: flex-start;
     }
@@ -961,7 +961,7 @@ img.failed::after {
         }
       }
     }
-    /*操作*/
+    /*Operation*/
     .answer-operation {
       display: flex;
       justify-content: space-between;
@@ -1000,7 +1000,7 @@ img.failed::after {
     }
   }
 
-  /*图片*/
+  /*Image*/
   .file-path {
     .el-image {
       height: 200px !important;
@@ -1051,7 +1051,7 @@ img.failed::after {
     overflow-y: auto;
     padding: 20px;
   }
-  /*删除历史...*/
+  /*Delete历史...*/
   .session-setting {
     position: relative;
     height: 36px;

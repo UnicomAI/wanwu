@@ -1,7 +1,7 @@
 <template>
     <div>
         <el-dialog
-        title="召回参数配置"
+        title="召回ParameterConfiguration"
         :visible.sync="dialogVisible"
         width="50%"
         :before-close="handleClose">
@@ -53,7 +53,7 @@ export default {
             konwledgeSet: [
                 {
                     label:'最长上下文',
-                    desc: '保存的最长的上下文对话轮数',
+                    desc: 'Save of 最长 of 上下文对话轮数',
                     props: 'maxHistory',
                     btnProps:'maxHistoryEnable',
                     min: 0,
@@ -61,8 +61,8 @@ export default {
                     step: 1,
                 },
                 {
-                    label:'过滤阀值',
-                    desc: '检索结果匹配度的最小值，小于阈值的结果会被过滤掉',
+                    label:' 滤阀Value',
+                    desc: '检索结果匹配度 of 最小Value，Less Than阈Value of 结果会被 滤掉',
                     props: "threshold",
                     btnProps:"thresholdEnable",
                     precision:1,
@@ -72,7 +72,7 @@ export default {
                 },
                 {
                     label:'知识条数',
-                    desc: '检索召回的知识片段数量的最大值，当检索到的知识数量大于知识条数，也只返回最大知识条数',
+                    desc: '检索召回 of 知识片段Count of MaxValue，当检索到 of 知识CountGreater Than知识条数，也只BackMax知识条数',
                     props: "topK",
                     btnProps:"topKEnable",
                     min:1,

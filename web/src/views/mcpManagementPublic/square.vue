@@ -46,7 +46,7 @@
                     <div class="card-des">{{ item.desc }}</div>
                   </div>
                   <!--<p class="loading-tips" v-if="loading"><i class="el-icon-loading"></i></p>
-                  <p class="loading-tips">没有更多了</p>-->
+                  <p class="loading-tips">No更多了</p>-->
                 </div>
               </div>
               <div v-else class="empty">

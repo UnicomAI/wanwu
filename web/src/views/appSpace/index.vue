@@ -53,20 +53,20 @@ export default {
       loading: false,
       listData:[],
       typeObj: {
-        workflow: {title: '工作流', img: require('@/assets/imgs/workflow_icon.svg')},
-        rag: {title: '文本问答', img: require('@/assets/imgs/rag.svg')},
-        agent: {title: '智能体', img: require('@/assets/imgs/agent.svg')}
+        workflow: {title: 'Workflow', img: require('@/assets/imgs/workflow_icon.svg')},
+        rag: {title: 'Text Q&A', img: require('@/assets/imgs/rag.svg')},
+        agent: {title: 'Agent', img: require('@/assets/imgs/agent.svg')}
       },
       currentTypeObj: {},
       agnet_type:'auto',
       agentSwitch:[
         {
           type:'template',
-          name:'智能体模版'
+          name:'Agent Template'
         },
         {
           type:'auto',
-          name:'自定义智能体'
+          name:'CustomAgent'
         }
       ]
     }
@@ -82,7 +82,7 @@ export default {
         // this.getTypeData();
         this.getTableData()
       },
-      // 深度观察监听
+      // 深度ObserveListen
       deep: true
     },
     fromList:{

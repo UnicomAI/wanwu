@@ -11,14 +11,14 @@ func (a *AssistantBrief) Check() error { return nil }
 
 type AssistantConfig struct {
 	AssistantId         string                 `json:"assistantId"  validate:"required"`
-	Prologue            string                 `json:"prologue"`            // 开场白 [EN] opening remarks
-	Instructions        string                 `json:"instructions"`        // 系统提示词 [EN] System prompt word
-	RecommendQuestion   []string               `json:"recommendQuestion"`   // 推荐问题 [EN] Recommended questions
-	ModelConfig         AppModelConfig         `json:"modelConfig"`         // 模型 [EN] Model
-	KnowledgeBaseConfig AppKnowledgebaseConfig `json:"knowledgeBaseConfig"` // 知识库 [EN] knowledge base
-	SafetyConfig        AppSafetyConfig        `json:"safetyConfig"`        // 敏感词表配置 [EN] Sensitive word list configuration
-	RerankConfig        AppModelConfig         `json:"rerankConfig"`        // Rerank模型 [EN] Rerank model
-	VisionConfig        VisionConfig           `json:"visionConfig"`        // 视觉配置 [EN] visual configuration
+	Prologue            string                 `json:"prologue"`            // opening remarks
+	Instructions        string                 `json:"instructions"`        // System prompt word
+	RecommendQuestion   []string               `json:"recommendQuestion"`   // Recommended questions
+	ModelConfig         AppModelConfig         `json:"modelConfig"`         // Model
+	KnowledgeBaseConfig AppKnowledgebaseConfig `json:"knowledgeBaseConfig"` // knowledge base
+	SafetyConfig        AppSafetyConfig        `json:"safetyConfig"`        // Sensitive word list configuration
+	RerankConfig        AppModelConfig         `json:"rerankConfig"`        // Rerank model
+	VisionConfig        VisionConfig           `json:"visionConfig"`        // visual configuration
 }
 
 func (a *AssistantConfig) Check() error { return nil }
@@ -130,7 +130,7 @@ type ConversionStreamRequest struct {
 }
 
 func (c *ConversionStreamRequest) Check() error {
-	// 当Trial=false时，ConversationId必填 [EN] When Trial=false, ConversationId is required
+	// When Trial=false, ConversationId is required
 	if !c.Trial && c.ConversationId == "" {
 		return fmt.Errorf("conversationId is required when trial is false")
 	}

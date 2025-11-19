@@ -47,12 +47,12 @@ func (c Config) Stop() error {
 	return nil
 }
 
-// 系统配置，对应yml [EN] System configuration, corresponding to yml
-// viper内置了mapstructure, yml文件用"-"区分单词, 转为驼峰方便 [EN] viper has a built-in mapstructure. The yml file uses "-" to distinguish words, and it is convenient to convert it to camel case.
+// System configuration, corresponding to yml
+// viper has a built-in mapstructure. The yml file uses "-" to distinguish words, and it is convenient to convert it to camel case.
 
-// 需要详细自定义配置项目 [EN] Detailed custom configuration items are required
-// 主要集中在系统配置、log配置、mysql、请求权限控制、请求速率限制 [EN] Mainly focused on system configuration, log configuration, mysql, request permission control, and request rate limit
-// 全局配置变量 [EN] Global configuration variables
+// Detailed custom configuration items are required
+// Mainly focused on system configuration, log configuration, mysql, request permission control, and request rate limit
+// Global configuration variables
 
 type Config struct {
 	Server             *Server             `mapstructure:"server" json:"server"`
@@ -107,7 +107,7 @@ type KafkaConfig struct {
 type UsageLimitConfig struct {
 	DocTotal                     int64  `mapstructure:"doc-total" json:"docTotal"`
 	FileTypes                    string `mapstructure:"file-types" json:"fileTypes"`
-	MaxFileSize                  int64  `mapstructure:"max-file-size" json:"maxFileSize"` //单位：字节 [EN] Unit: Bytes
+	MaxFileSize                  int64  `mapstructure:"max-file-size" json:"maxFileSize"` //Unit: Bytes
 	CompressedFileType           string `mapstructure:"compressed-file-type" json:"compressedFileType"`
 	MaxNumberOfFilesInCompressed int64  `mapstructure:"max-number-of-files-in-compressed" json:"maxNumberOfFilesInCompressed"`
 	FileSizeLimit                int64  `mapstructure:"file-size-limit" json:"fileSizeLimit"`

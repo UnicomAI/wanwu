@@ -7,17 +7,17 @@ hljs.configure({
 import 'highlight.js/styles/atom-one-dark.css';
 
 export const md = MarkdownIt({
-    // 在源码中启用 HTML 标签
+    // 在源码中Enable HTML Tag
     html: true,
-    // 如果结果以 <pre ... 开头，内部包装器则会跳过。
-    highlight: function(str, lang) {
+    // IfResult以 <pre ... 开头，内部包装器Then会跳 。
+    highlight: function (str, lang) {
 
-        // 经过highlight.js处理后的html
+        // 经 highlight.jsProcess后 of html
         let preCode = ""
         try {
-            if(lang && hljs.getLanguage(lang)){
+            if (lang && hljs.getLanguage(lang)) {
                 preCode = hljs.highlight(str, { language: lang }).value
-            }else{
+            } else {
                 preCode = hljs.highlightAuto(str).value;
             }
         } catch (err) {
@@ -25,22 +25,22 @@ export const md = MarkdownIt({
         }
 
         const lines = preCode.split(/\n/).slice(0, -1)
-        let _lines = lines.filter((it,i) => it !== '')
+        let _lines = lines.filter((it, i) => it !== '')
 
-        // 添加自定义行号
+        // AddCustom行号
         let html = _lines.map((item, index) => {
             return '<li class="line-li"><span class="line-numbers-rows"></span>' + item +
                 '</li>'
         }).join('')
         html = '<ol style="padding: 0px 30px;">' + html + '</ol>'
 
-        // 代码复制功能
+        // 代码Copy功能
         let htmlCode =
             `<div style="color: #888;border-radius: 0 0 5px 5px;">`
 
         htmlCode += `<div class="code-header">`
         htmlCode +=
-            `${lang}<a class="copy-btn mk-copy-btn" style="cursor: pointer;">复制 </a>`
+            `${lang}<a class="copy-btn mk-copy-btn" style="cursor: pointer;">Copy </a>`
         htmlCode += `</div>`
 
         htmlCode +=
@@ -50,4 +50,4 @@ export const md = MarkdownIt({
     }
 })
 
-md.use(mk, { "throwOnError": false, "errorColor": "#000000", "output": "mathml"})
+md.use(mk, { "throwOnError": false, "errorColor": "#000000", "output": "mathml" })

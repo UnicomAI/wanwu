@@ -1,7 +1,7 @@
 <template>
     <div>
         <el-dialog
-            title="新增工具"
+            title="AddTool"
             :visible.sync="dialogVisible"
             width="50%"
             :before-close="handleClose">
@@ -11,7 +11,7 @@
                         {{item.name}}
                     </div>
                 </div>
-                <el-input v-model="toolName" placeholder="搜索工具" class="tool-input" suffix-icon="el-icon-search" @keyup.enter.native="searchTool" clearable></el-input>
+                <el-input v-model="toolName" placeholder="SearchTool" class="tool-input" suffix-icon="el-icon-search" @keyup.enter.native="searchTool" clearable></el-input>
             </div>
             <div class="toolContent">
                 <div @click="goCreate" class="createTool"><span class="el-icon-plus add"></span>{{createText()}}</div>
@@ -30,8 +30,8 @@
                                     <span>{{item.name}}</span>
                                 </div>
                                 <div>
-                                    <el-button type="text" @click="openTool($event,item,type)" v-if="!item.checked">添加</el-button>
-                                    <el-button type="text" v-else style="color:#ccc;">已添加</el-button>
+                                    <el-button type="text" @click="openTool($event,item,type)" v-if="!item.checked">Add</el-button>
+                                    <el-button type="text" v-else style="color:#ccc;">已Add</el-button>
                                 </div>
                         </template>
                         <el-collapse  @change="handleToolChange" v-else class="tool_collapse">
@@ -54,8 +54,8 @@
                                             </p>
                                         </div>
                                         <div>
-                                        <el-button type="text" @click="openTool($event,item,type,tool)" v-if="!tool.checked">添加</el-button>
-                                        <el-button type="text" v-else style="color:#ccc;">已添加</el-button>
+                                        <el-button type="text" @click="openTool($event,item,type,tool)" v-if="!tool.checked">Add</el-button>
+                                        <el-button type="text" v-else style="color:#ccc;">已Add</el-button>
                                         </div>
                                     </div>
                                 </template>
@@ -89,7 +89,7 @@ export default {
             toolList:[
                 {
                     value:'tool',
-                    name:'工具'
+                    name:'Tool'
                 },
                 {
                     value:'mcp',
@@ -97,7 +97,7 @@ export default {
                 },
                 {
                     value:'workflow',
-                    name:'工作流'
+                    name:'Workflow'
                 }
             ]
         }
@@ -137,7 +137,7 @@ export default {
             }
            
         },
-        getCustomList(name){//获取自定义和内置工具
+        getCustomList(name){//GetCustomAnd内置Tool
             toolList({name}).then(res =>{
                 if(res.code === 0){
                     this.customInfos  = (res.data.list || []).map(m => ({
@@ -176,11 +176,11 @@ export default {
         },
         createText(){
             if(this.activeValue === 'tool'){
-                return '创建自定义工具'
+                return 'CreateCustomTool'
             }else if(this.activeValue === 'mcp'){
-                return '导入MCP'
+                return 'ImportMCP'
             }else{
-                return '创建工作流'
+                return 'CreateWorkflow'
             }
         },
         openTool(e,item,type,action){
@@ -191,18 +191,18 @@ export default {
                 this.addMcpItem(item,action)
             }else{
                 if(item.needApiKeyInput && !item.apiKey.length){
-                    this.$message.warning('该内置工具暂未绑定API Key，会导致调用失败!')
+                    this.$message.warning('该内置Tool暂未绑定API Key，会导致CallFailed!')
                 }
                 this.addCustomBuiltIn(item,action)
             }
         },
         addCustomBuiltIn(n,action){
-            //添加自定义工具和内置工具
+            //AddCustomToolAnd内置Tool
             addCustomBuiltIn({assistantId:this.assistantId,actionName:action.name,toolId:n.toolId,toolType:n.toolType}).then(res =>{
                 if(res.code === 0){
                     this.$set(action, 'checked', true);
                     this.$forceUpdate();
-                    this.$message.success('工具添加成功');
+                    this.$message.success('ToolAddSuccess');
                     this.$emit('updateDetail');
                 }
             }).catch(() =>{
@@ -214,7 +214,7 @@ export default {
                 if(res.code === 0){
                     this.$set(action, 'checked', true);
                     this.$forceUpdate();
-                    this.$message.success('工具添加成功');
+                    this.$message.success('ToolAddSuccess');
                     this.$emit('updateDetail');
                 }
             }).catch(() =>{
@@ -245,7 +245,7 @@ export default {
                 this.getWorkflowList(this.toolName)
             }
         },
-        getMcpSelect(name){//获取mcp工具
+        getMcpSelect(name){//GetmcpTool
             mcptoolList({name}).then(res => {
                 if(res.code === 0){
                     this.mcpInfos = (res.data.list || []).map(m => ({

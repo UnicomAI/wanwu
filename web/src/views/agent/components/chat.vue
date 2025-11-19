@@ -1,9 +1,9 @@
 <template>
-    <!-- 远景大模型 -->
+    <!-- 远景大Model -->
     <div class="full-content flex">
         <el-main class="scroll">
             <div class="smart-center" style="padding:0;">
-                <!--基础配置回显-->
+                <!--基础Configuration回显-->
                 <div v-show="echo" class="session rl echo">
                     <Prologue  :editForm="editForm" @setProloguePrompt="setProloguePrompt" :isBigModel="true" />
                 </div>
@@ -20,7 +20,7 @@
                             :defaultUrl="editForm.avatar.path"
                     />
                 </div>
-                <!--输入框-->
+                <!--Input Box-->
                 <div class="center-editable">
                     <div v-show="stopBtShow" class="stop-box">
                         <span v-show="sessionStatus === 0" class="stop" @click="preStop">
@@ -179,7 +179,7 @@
                             fileList: n.requestFiles,
                             "gen_file_url_list":n.responseFileUrls || [],
                             "isOpen":true,
-                            toolText:'已使用工具',
+                            toolText:'已使用Tool',
                             thinkText:'已深度思考',
                             showScrollBtn:null
                         }
@@ -190,7 +190,7 @@
                     })
                 }
             },
-            //删除对话
+            //Delete对话
             async preDelConversation(n) {
                 if (this.sessionStatus === 0) {
                     return
@@ -219,13 +219,13 @@
                 this.isTestChat = this.chatType === 'test' ? true :false;
                 this.fileList = fileList || this.$refs['editable'].getFileList();
                 if (!this.inputVal) {
-                    this.$message.warning('请输入内容');
+                    this.$message.warning('Please enterContent');
                     return
                 }
                 if (!this.verifiyFormParams()) {
                     return;
                 }
-                //如果是新会话，先创建
+                //IfYes新会话，FirstCreate
                 if (!this.conversationId && this.chatType === 'chat') {
                     let res = null;
                     if (this.type === "agentChat") {
@@ -247,8 +247,8 @@
             verifiyFormParams(){
                 if (this.chatType === 'chat') return true;
                 const conditions = [
-                    { check: !this.editForm.modelParams, message: '请选择模型' },
-                    { check: !this.editForm.prologue, message: '请输入开场白' }
+                    { check: !this.editForm.modelParams, message: 'Please selectModel' },
+                    { check: !this.editForm.prologue, message: 'Please enter开场白' }
                 ];
                 for (const condition of conditions) {
                     if (condition.check) {
@@ -258,7 +258,7 @@
                 }
                 return true;
             },
-            modelChange(){//切换模型新建对话
+            modelChange(){//切换Model新建对话
                 this.preCreateConversation()
             },
             setParams() {
@@ -272,7 +272,7 @@
                 this.doSend()
                 this.echo = false
             },
-            /*--右侧提示词--*/
+            /*--右侧Tip词--*/
             showDrawer() {
                 this.drawer = true
             },

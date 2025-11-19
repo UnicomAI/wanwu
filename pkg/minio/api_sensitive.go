@@ -19,7 +19,7 @@ func InitSafety(ctx context.Context, cfg Config, initBucketName string) error {
 		}
 		_minioSafety = c
 	}
-	// 创建存储桶并设置存储策略 [EN] Create a bucket and set storage policy
+	// Create a bucket and set storage policy
 	if err := _minioSafety.CreateBucketIfNotExist(ctx, initBucketName); err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func SplitFilePath(filePath string) (bucketName string, objectName string, fileN
 	if err != nil {
 		return "", "", ""
 	}
-	//此处拿到的path是以"/"开头的，因此split的时候split[0]="",数据从split[1]开始 [EN] The path obtained here starts with "/", so when splitting, split[0]="", the data starts from split[1]
+	//The path obtained here starts with "/", so when splitting, split[0]="", the data starts from split[1]
 	split := strings.Split(u.Path, "/")
 	totalLen := len(split)
 	if totalLen > 2 {

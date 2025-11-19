@@ -6,7 +6,7 @@ import urllib3
 import os
 import requests
 import configparser
-from utils.model_tools import req_unicom_llm_chat  #导入第三方工具模型 [EN] Import third-party tool models
+from utils.model_tools import req_unicom_llm_chat  #Import third-party tool models
 from utils.actions.agents import Assistant,ReActChat
 from utils.actions.tools.base import BaseTool, register_tool
 from utils.actions.llm import get_chat_model
@@ -19,14 +19,14 @@ from flask_cors import CORS
 from utils.model_tools import *
 
 
-###设置日志 [EN] ##Set up log
+###Set up log
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 setup_logging("http_action_server")
 logger = logging.getLogger("http_action_server")
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-###配置鉴权信息 [EN] ##Configure authentication information
+###Configure authentication information
 APP_ID = config["ACTION"]['APP_ID']
 API_KEY = config["ACTION"]['API_KEY']
 SECRET_KEY = config["ACTION"]['SECRET_KEY']
@@ -48,49 +48,49 @@ logger = logging.getLogger(__name__)
 
 
 def add_link_tags(text):
-    ####判断原始输出是否已是markdown格式 [EN] ### Determine whether the original output is in markdown format
+    #### Determine whether the original output is in markdown format
     markdown_pattern = r'(?:!\[(.*?)\]|\[(.*?)\])\((.+?)\)'
-    # 定义图片文件扩展名和非图片文件扩展名的正则表达式模式  (不含签名格式) [EN] Regular expression patterns that define image file extensions and non-image file extensions (excluding signature formats)
+    # Regular expression patterns that define image file extensions and non-image file extensions (excluding signature formats)
     image_extensions = r'\.(?:jpeg|jpg|png|webp)'
     non_image_extensions = r'\.(?:wav|mp3|mp4|m4a|txt|pdf|docx|xlsx|html)'
-    # 定义链接的正则表达式模式，匹配以指定扩展名结尾的链接 [EN] Defines a regular expression pattern for links that matches links ending with the specified extension
+    # Defines a regular expression pattern for links that matches links ending with the specified extension
     link_pattern = r'https?://[^\s]+(?:' + image_extensions + '|' + non_image_extensions + ')'
     # link_pattern = r'(?:!\[(.*?)\]|\[(.*?)\])\((.+?)\)' + '|' + r'https?://[^\s]+(?:' + image_extensions + '|' + non_image_extensions + ')'
 
 
-    # 定义图片文件扩展名和非图片文件扩展名的正则表达式模式  (含签名格式) [EN] Regular expression pattern defining image file extensions and non-image file extensions (including signature format)
+    # Regular expression pattern defining image file extensions and non-image file extensions (including signature format)
     # image_extensions_sign = r'\.(?:jpeg\?|jpg\?|png\?|webp\?)'
     # non_image_extensions_sign = r'\.(?:wav\?|mp3\?|mp4\?|m4a\?|txt\?|pdf\?|docx\?|xlsx\?|html\?)'
-    text = text.replace("https//", "https://").replace("http//", "http://") ##规范化大模型的输出 [EN] #Normalize the output of large models
-    # 查找所有匹配的链接 [EN] Find all matching links
+    text = text.replace("https//", "https://").replace("http//", "http://") ##Normalize the output of large models
+    # Find all matching links
     links = re.findall(link_pattern, text)
     logger.info(f"-------add_link_tags links:{links}-------")
 
     for link_tuple in links:
         logger.info(f"link_tuple:{link_tuple}")
 
-        # 提取元组中的信息 [EN] Extract information from a tuple
-        # 对于标准 Markdown 链接：('', '显示文本', 'URL') [EN] For standard Markdown links: ('', 'display text', 'URL')
-        # 对于普通 URL：('URL', '', '') [EN] For normal URLs: ('URL', '', '')
+        # Extract information from a tuple
+        # For standard Markdown links: ('', 'display text', 'URL')
+        # For normal URLs: ('URL', '', '')
         display_text = link_tuple[1] if link_tuple[1] else link_tuple[0]
         url = link_tuple[2] if link_tuple[2] else link_tuple[0]
 
         if not url:
-            continue  # 跳过无效链接 [EN] Skip dead links
+            continue  # Skip dead links
 
-        # 判断链接类型并添加对应标签 [EN] Determine the link type and add corresponding tags
+        # Determine the link type and add corresponding tags
         if re.search(image_extensions, url):
-            # 如果是图片链接，添加图片标签 [EN] If it is an image link, add an image tag
+            # If it is an image link, add an image tag
             tag = f'![{display_text}]({url})'
         elif re.search(non_image_extensions, url):
-            # 如果是非图片链接，添加普通链接标签 [EN] If it is a non-image link, add a normal link tag
+            # If it is a non-image link, add a normal link tag
             tag = f'[{display_text}]({url})'
         else:
-            # 其他情况保持原样 [EN] Leave everything else as is
+            # Leave everything else as is
             tag = url
 
-        # 替换原始文本中的链接部分 [EN] Replace the link part in the original text
-        # 注意：这里使用原始匹配的文本部分进行替换，确保准确替换 [EN] Note: The original matched text part is used for replacement here to ensure accurate replacement.
+        # Replace the link part in the original text
+        # Note: The original matched text part is used for replacement here to ensure accurate replacement.
         original_link_text = f'[{display_text}]({url})' if display_text else url
         text = text.replace(original_link_text, tag)
 
@@ -100,7 +100,7 @@ def add_link_tags(text):
 
 
 def plugin_config(API_KEY,query,plugin_list,function_calls_list,action_type,history,model,model_url):
-    ###配置模型服务 [EN] ##Configure model service
+    ###Configure model service
     llm = get_chat_model({
         # Use the model service provided by DashScope:
         'model': 'unicom-72b-chat-ali-v2',
@@ -142,13 +142,13 @@ def plugin_config(API_KEY,query,plugin_list,function_calls_list,action_type,hist
         name = "unicomllm"
         logger.info("\n---------识别action插件并进行配置-------------")
         function_list = []
-        # logger.info(f"原始的plugin_list：{plugin_list}") [EN] logger.info(f"Original plugin_list: {plugin_list}")
+        # logger.info(f"Original plugin_list: {plugin_list}")
         for i in range(0,len(plugin_list)):
             api_schema = plugin_list[i]['api_schema']  
             if 'api_auth' in plugin_list[i]:
                 api_auth = plugin_list[i]['api_auth']
             else:
-                ####非鉴权action适配 [EN] ###Non-authentication action adaptation
+                ####Non-authentication action adaptation
                 api_auth = {
                 'type': None,  
                 'in': 'header',  
@@ -159,7 +159,7 @@ def plugin_config(API_KEY,query,plugin_list,function_calls_list,action_type,hist
             # logger.info(f"api_cfg：{api_cfg}")
             if api_cfg:
                 plugin_cfg = api_cfg
-                # 注册function [EN] Register function
+                # Register function
                 fn_list = add_openapi_plugin_to_additional_tool(plugin_cfg, [])
                 function_list.extend(fn_list)
         
@@ -201,14 +201,14 @@ def plugin_config(API_KEY,query,plugin_list,function_calls_list,action_type,hist
                 prompt_tokens = prompt_tokens
                 total_tokens = completion_tokens + prompt_tokens
 
-                line = line + "\n\n" if "</tool>" in line else line  ###适配链接的markdown输出 [EN] ##Adapt the markdown output of the link
+                line = line + "\n\n" if "</tool>" in line else line  ###Adapt the markdown output of the link
 
                 result = {"code": 0, "data": {"choices": [{"finish_reason": "", "index": 0, "message": {"content": line, "role": "assistant"}}], "model": model, "object": "chat.completion", "usage": {"completion_tokens": completion_tokens, "prompt_tokens": prompt_tokens, "total_tokens": total_tokens}}, "msg": "ok"}
                 jsonarr = json.dumps(result, ensure_ascii=False)
                 str_out = f'id:{id}\nevent:result\ndata:{jsonarr}\n\n'
                 yield str_out
 
-            ####特殊情况处理：API原始为流式结果，直接输出结果 [EN] ###Special case processing: The API is originally a streaming result, and the result is output directly.
+            ####Special case processing: The API is originally a streaming result, and the result is output directly.
             elif ("<tool>" in total_result and "</tool>" in total_result) and ((not isinstance(line,dict)) or ((isinstance(line,dict)) and "action_code" not in line.keys())):
                 completion_tokens += len(line)
                 prompt_tokens = prompt_tokens
@@ -235,7 +235,7 @@ def plugin_config(API_KEY,query,plugin_list,function_calls_list,action_type,hist
                 else:
                     action_output = ""
                 logger.info(f"action_output:{action_output}")
-                ###正则匹配图片、文件链接 [EN] ##Regularly match pictures and file links
+                ###Regularly match pictures and file links
                 if action_output:
                     action_output = add_link_tags(action_output)
                     logger.info(f"add_link_tags action_output:{action_output}")
@@ -250,7 +250,7 @@ def plugin_config(API_KEY,query,plugin_list,function_calls_list,action_type,hist
                         yield str_out
                         id += 1
 
-                    ####增加流式输出结束点 [EN] ###Add streaming output end point
+                    ####Add streaming output end point
                     result = {"code": 0, "data": {"choices": [{"finish_reason": "stop", "index": 0,"message": {"content": "","role": "assistant"}}], "model": model,"object": "chat.completion","usage": {"completion_tokens": completion_tokens,"prompt_tokens": prompt_tokens, "total_tokens": total_tokens}},"msg": "ok"}
                     jsonarr = json.dumps(result, ensure_ascii=False)
                     str_out = f'id:{id}\nevent:result\ndata:{jsonarr}\n\n'

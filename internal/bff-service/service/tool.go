@@ -1,4 +1,4 @@
-// @Author wangxm 10/24/星期五 14:46:00 [EN] @Author wangxm 10/24/Friday 14:46:00
+// @Author wangxm 10/24/Friday 14:46:00
 package service
 
 import (
@@ -88,7 +88,7 @@ func GetToolActionDetail(ctx *gin.Context, userID, orgID string, req request.Too
 func getToolSchema(ctx *gin.Context, userID, orgID, toolID string, toolType string) (string, bool, string, error) {
 	switch toolType {
 	case constant.ToolTypeBuiltIn:
-		// 获取内置工具详情 [EN] Get built-in tool details
+		// Get built-in tool details
 		resp, err := mcp.GetSquareTool(ctx.Request.Context(), &mcp_service.GetSquareToolReq{
 			ToolSquareId: toolID,
 			Identity: &mcp_service.Identity{
@@ -102,7 +102,7 @@ func getToolSchema(ctx *gin.Context, userID, orgID, toolID string, toolType stri
 
 		return resp.Schema, resp.BuiltInTools.NeedApiKeyInput, resp.BuiltInTools.ApiAuth.ApiKeyValue, nil
 	case constant.ToolTypeCustom:
-		// 获取自定义工具详情 [EN] Get custom tool details
+		// Get custom tool details
 		resp, err := mcp.GetCustomToolInfo(ctx.Request.Context(), &mcp_service.GetCustomToolInfoReq{
 			CustomToolId: toolID,
 			Identity: &mcp_service.Identity{

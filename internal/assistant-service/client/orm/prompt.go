@@ -15,7 +15,7 @@ import (
 )
 
 func (c *Client) CreateCustomPrompt(ctx context.Context, avatarPath, name, desc, prompt, userId, orgID string) (string, *err_code.Status) {
-	// 检查是否已存在相同名称的自定义提示 [EN] Check if a custom prompt with the same name already exists
+	// Check if a custom prompt with the same name already exists
 	var count int64
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithCustomPromptName(name),
@@ -29,7 +29,7 @@ func (c *Client) CreateCustomPrompt(ctx context.Context, avatarPath, name, desc,
 		return "", toErrStatus("assistant_custom_prompt_create", "custom prompt already exists")
 	}
 
-	// 创建记录 [EN] Create record
+	// Create record
 	customPrompt := model.CustomPrompt{
 		AvatarPath: avatarPath,
 		Name:       name,
@@ -48,7 +48,7 @@ func (c *Client) CreateCustomPrompt(ctx context.Context, avatarPath, name, desc,
 }
 
 func (c *Client) DeleteCustomPrompt(ctx context.Context, customPromptID uint32) *err_code.Status {
-	// 删除记录 [EN] delete record
+	// delete record
 	if err := sqlopt.WithID(customPromptID).Apply(c.db.WithContext(ctx)).Delete(&model.CustomPrompt{}).Error; err != nil {
 		return toErrStatus("assistant_custom_prompt_delete", err.Error())
 	}
@@ -57,7 +57,7 @@ func (c *Client) DeleteCustomPrompt(ctx context.Context, customPromptID uint32) 
 
 func (c *Client) UpdateCustomPrompt(ctx context.Context, info *assistant_service.CustomPromptUpdateReq) *err_code.Status {
 	customPromptID := util.MustU32(info.CustomPromptId)
-	// 检查记录是否存在 [EN] Check if the record exists
+	// Check if the record exists
 	var existingPrompt model.CustomPrompt
 	err := sqlopt.WithID(customPromptID).Apply(c.db.WithContext(ctx)).First(&existingPrompt).Error
 	if err != nil {
@@ -67,7 +67,7 @@ func (c *Client) UpdateCustomPrompt(ctx context.Context, info *assistant_service
 		return toErrStatus("assistant_custom_prompt_update_err", err.Error())
 	}
 
-	// 检查重名 [EN] Check for duplicate names
+	// Check for duplicate names
 	if info.Name != existingPrompt.Name {
 		var count int64
 		if err := sqlopt.SQLOptions(
@@ -84,7 +84,7 @@ func (c *Client) UpdateCustomPrompt(ctx context.Context, info *assistant_service
 		}
 	}
 
-	// 执行更新操作 [EN] Perform update operation
+	// Perform update operation
 	updateData := map[string]interface{}{
 		"avatar_path": info.AvatarPath,
 		"name":        info.Name,
@@ -101,7 +101,7 @@ func (c *Client) UpdateCustomPrompt(ctx context.Context, info *assistant_service
 }
 
 func (c *Client) GetCustomPrompt(ctx context.Context, customPromptID uint32) (*model.CustomPrompt, *err_code.Status) {
-	// 查询记录 [EN] Query records
+	// Query records
 	var customPrompt model.CustomPrompt
 	if err := sqlopt.WithID(customPromptID).Apply(c.db.WithContext(ctx)).First(&customPrompt).Error; err != nil {
 		return nil, toErrStatus("assistant_custom_prompt_get_err", err.Error())
@@ -110,7 +110,7 @@ func (c *Client) GetCustomPrompt(ctx context.Context, customPromptID uint32) (*m
 }
 
 func (c *Client) GetCustomPromptList(ctx context.Context, userID, orgID string, name string) ([]*model.CustomPrompt, int64, *err_code.Status) {
-	// 查询记录 [EN] Query records
+	// Query records
 	var customPrompts []*model.CustomPrompt
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithUserId(userID),
@@ -123,16 +123,16 @@ func (c *Client) GetCustomPromptList(ctx context.Context, userID, orgID string, 
 }
 
 func (c *Client) CopyCustomPrompt(ctx context.Context, customPromptID uint32, userId, orgID string) (string, *err_code.Status) {
-	// 查询记录 [EN] Query records
+	// Query records
 	var customPrompt model.CustomPrompt
 	if err := sqlopt.WithID(customPromptID).Apply(c.db.WithContext(ctx)).First(&customPrompt).Error; err != nil {
 		return "", toErrStatus("assistant_custom_prompt_copy_err", err.Error())
 	}
 
-	// 名称前缀 [EN] name prefix
+	// name prefix
 	prefix := customPrompt.Name + "_"
 
-	// 查询所有以“原名称_”为前缀的名称 [EN] Query all names prefixed with "original name_"
+	// Query all names prefixed with "original name_"
 	var existingNames []string
 	err := c.db.WithContext(ctx).Model(&model.CustomPrompt{}).
 		Where("name LIKE ?", prefix+"%").
@@ -141,7 +141,7 @@ func (c *Client) CopyCustomPrompt(ctx context.Context, customPromptID uint32, us
 		return "", toErrStatus("assistant_custom_prompt_copy_err", err.Error())
 	}
 
-	// 解析名称 [EN] Parse name
+	// Parse name
 	maxNum := 0
 	for _, name := range existingNames {
 		numStr := strings.TrimPrefix(name, prefix)
@@ -154,10 +154,10 @@ func (c *Client) CopyCustomPrompt(ctx context.Context, customPromptID uint32, us
 		}
 	}
 
-	// 生成新名称 [EN] Generate new name
+	// Generate new name
 	newName := prefix + strconv.Itoa(maxNum+1)
 
-	// 创建记录 [EN] Create record
+	// Create record
 	customPrompt.ID = 0
 	customPrompt.Name = newName
 	if err := c.db.WithContext(ctx).Create(&customPrompt).Error; err != nil {

@@ -1,9 +1,8 @@
 import { PERMS } from "@/router/permission"
-import { i18n } from '@/lang'
 
 export const menuList = [
     {
-        name: i18n.t('menu.modelAccess'),
+        name: 'menu.modelAccess',
         key: 'modelAccess',
         img: require('@/assets/imgs/model.svg'),
         imgActive: require('@/assets/imgs/model_active.svg'),
@@ -11,7 +10,7 @@ export const menuList = [
         perm: PERMS.MODEL,
     },
     {
-        name: i18n.t('menu.knowledge'),
+        name: 'menu.knowledge',
         key: 'knowledge',
         img: require('@/assets/imgs/knowledge.svg'),
         imgActive: require('@/assets/imgs/knowledge_active.svg'),
@@ -19,7 +18,7 @@ export const menuList = [
         perm: PERMS.KNOWLEDGE,
     },
     {
-        name: i18n.t('menu.tool'),
+        name: 'menu.tool',
         key: 'tool',
         img: require('@/assets/imgs/tool.svg'),
         imgActive: require('@/assets/imgs/tool_active.svg'),
@@ -27,7 +26,7 @@ export const menuList = [
         perm: PERMS.TOOL,
     },
     {
-        name: i18n.t('menu.safetyGuard'),
+        name: 'menu.safetyGuard',
         key: 'safetyGuard',
         img: require('@/assets/imgs/safety.svg'),
         imgActive: require('@/assets/imgs/safety_active.svg'),
@@ -39,7 +38,7 @@ export const menuList = [
         perm: [PERMS.MODEL, PERMS.KNOWLEDGE, PERMS.TOOL]
     },
     {
-        name: i18n.t('menu.app.rag'),
+        name: 'menu.app.rag',
         key: 'rag',
         img: require('@/assets/imgs/rag.svg'),
         imgActive: require('@/assets/imgs/rag_active.svg'),
@@ -47,7 +46,7 @@ export const menuList = [
         perm: PERMS.RAG
     },
     {
-        name: i18n.t('menu.app.workflow'),
+        name: 'menu.app.workflow',
         key: 'workflow',
         img: require('@/assets/imgs/workflow_icon.svg'),
         imgActive: require('@/assets/imgs/workflow_icon_active.svg'),
@@ -55,7 +54,7 @@ export const menuList = [
         perm: PERMS.WORKFLOW
     },
     {
-        name: i18n.t('menu.app.agent'),
+        name: 'menu.app.agent',
         key: 'agent',
         img: require('@/assets/imgs/agent.svg'),
         imgActive: require('@/assets/imgs/agent_active.svg'),
@@ -67,7 +66,7 @@ export const menuList = [
         perm: [PERMS.RAG, PERMS.WORKFLOW, PERMS.AGENT]
     },
     {
-        name: i18n.t('menu.mcp'),
+        name: 'menu.mcp',
         key: 'mcpManage',
         img: require('@/assets/imgs/mcp_menu.svg'),
         imgActive: require('@/assets/imgs/mcp_menu_active.svg'),
@@ -75,7 +74,7 @@ export const menuList = [
         perm: PERMS.MCP,
     },
     {
-        name: i18n.t('menu.explore'),
+        name: 'menu.explore',
         key: 'explore',
         img: require('@/assets/imgs/explore.svg'),
         imgActive: require('@/assets/imgs/explore_active.svg'),
@@ -83,7 +82,7 @@ export const menuList = [
         perm: PERMS.EXPLORE
     },
     {
-        name: i18n.t('menu.templateSquare'),
+        name: 'menu.templateSquare',
         key: 'templateSquare',
         img: require('@/assets/imgs/template_square.svg'),
         imgActive: require('@/assets/imgs/template_square_active.svg'),

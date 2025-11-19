@@ -14,10 +14,10 @@
         <div class="echo-img">
           <img :src="form.avatar || defaultAvatar" alt=""/>
           <p class="echo-img-tip" v-if="isLoading">
-            图片上传中
+            图片Upload中
             <span class="el-icon-loading"></span>
           </p>
-          <p class="echo-img-tip" v-else>点击上传图片</p>
+          <p class="echo-img-tip" v-else>点击Upload图片</p>
         </div>
       </el-upload>
       <div class="row">
@@ -28,7 +28,7 @@
     <div class="row">
       <label>{{$t('userInfo.password')}}</label>
       <span class="pwd-span">{{form.password || '--'}}</span>
-      <el-button type="primary" size="mini" style="margin-left: 30px;" @click="showPwd">修改密码</el-button>
+      <el-button type="primary" size="mini" style="margin-left: 30px;" @click="showPwd">Modify密码</el-button>
     </div>
     <div class="row"><label>{{$t('userInfo.company')}}</label><span>{{form.company || '--'}}</span></div>
     <div class="row"><label>{{$t('userInfo.phone')}}</label><span>{{form.phone || '--'}}</span></div>

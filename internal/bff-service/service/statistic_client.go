@@ -17,12 +17,12 @@ import (
 )
 
 func GetClientStatistic(ctx *gin.Context, startDate, endDate string) (*response.ClientStatistic, error) {
-	// 客户端 [EN] client
+	// client
 	statistic, err := getClientStatistic(ctx, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}
-	// 浏览量 [EN] Views
+	// Views
 	browseOverview, browseTrend, err := getGlobalBrowseStatistic(ctx, startDate, endDate)
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func clientOverviewPb2resp(item *operate_service.ClientOverviewItem) response.St
 // --- global browse statistic ---
 
 func recordGlobalBrowse(ctx context.Context) error {
-	// 使用HINCRBY原子性增加模板下载量 [EN] Use HINCRBY atomicity to increase template downloads
+	// Use HINCRBY atomicity to increase template downloads
 	date := util.Time2Date(time.Now().UnixMilli())
 	err := redis.OP().Cli().HIncrBy(ctx, redisGlobalBrowseKey, date, 1).Err()
 	if err != nil {
@@ -77,13 +77,13 @@ func recordGlobalBrowse(ctx context.Context) error {
 }
 
 func getGlobalBrowseStatistic(ctx *gin.Context, startDate, endDate string) (*response.StatisticOverviewItem, *response.StatisticChart, error) {
-	// 获取当前周期和上一个周期的日期列表 [EN] Get a list of dates for the current period and the previous period
+	// Get a list of dates for the current period and the previous period
 	prevDates, currentDates, err := util.PreviousDateRange(startDate, endDate)
 	if err != nil {
 		return nil, nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_global_browse_stats", fmt.Sprintf("get date range error: %v", err))
 	}
 
-	// 获取浏览数据 [EN] Get browsing data
+	// Get browsing data
 	currentBrowseData, err := getBrowseDataFromRedis(ctx.Request.Context(), currentDates)
 	if err != nil {
 		return nil, nil, err
@@ -93,16 +93,16 @@ func getGlobalBrowseStatistic(ctx *gin.Context, startDate, endDate string) (*res
 		return nil, nil, err
 	}
 
-	// 计算总览数据 [EN] Calculate overview data
+	// Calculate overview data
 	overview := calculateGlobalBrowseOverview(currentBrowseData, prevBrowseData)
 
-	// 计算趋势数据 [EN] Calculate trend data
+	// Calculate trend data
 	trend := calculateGlobalBrowseTrend(ctx, currentBrowseData, currentDates)
 
 	return &overview, &trend, nil
 }
 
-// 从Redis获取多个日期的浏览数据 [EN] Get browsing data for multiple dates from Redis
+// Get browsing data for multiple dates from Redis
 func getBrowseDataFromRedis(ctx context.Context, dates []string) (map[string]int64, error) {
 	items, err := redis.OP().HGetAll(ctx, redisGlobalBrowseKey)
 	if err != nil {
@@ -120,7 +120,7 @@ func getBrowseDataFromRedis(ctx context.Context, dates []string) (map[string]int
 				break
 			}
 		}
-		// 如果某个日期没有数据，默认值为0 [EN] If there is no data for a certain date, the default value is 0
+		// If there is no data for a certain date, the default value is 0
 		if _, exist := data[date]; !exist {
 			data[date] = 0
 		}
@@ -129,26 +129,26 @@ func getBrowseDataFromRedis(ctx context.Context, dates []string) (map[string]int
 	return data, nil
 }
 
-// 计算总览数据 [EN] Calculate overview data
+// Calculate overview data
 func calculateGlobalBrowseOverview(currentData, prevData map[string]int64) response.StatisticOverviewItem {
-	// 计算当前周期总浏览量 [EN] Calculate the total number of views in the current period
+	// Calculate the total number of views in the current period
 	var currentTotal int64
 	for _, count := range currentData {
 		currentTotal += count
 	}
 
-	// 计算上一个周期总浏览量 [EN] Calculate the total number of pageviews in the previous cycle
+	// Calculate the total number of pageviews in the previous cycle
 	var prevTotal int64
 	for _, count := range prevData {
 		prevTotal += count
 	}
 
-	// 计算环比 [EN] Calculate month-on-month
+	// Calculate month-on-month
 	var pop float64
 	if prevTotal > 0 {
 		pop, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", (float32(currentTotal)-float32(prevTotal))/float32(prevTotal)*100), 64)
 	} else if currentTotal > 0 {
-		// 如果上期为0，本期有数据，增长率为100% [EN] If the previous period is 0 and there is data in this period, the growth rate is 100%.
+		// If the previous period is 0 and there is data in this period, the growth rate is 100%.
 		pop = 100
 	}
 
@@ -158,7 +158,7 @@ func calculateGlobalBrowseOverview(currentData, prevData map[string]int64) respo
 	}
 }
 
-// 计算趋势数据 [EN] Calculate trend data
+// Calculate trend data
 func calculateGlobalBrowseTrend(ctx *gin.Context, browseData map[string]int64, dates []string) response.StatisticChart {
 	var items []response.StatisticChartLineItem
 	for _, date := range dates {

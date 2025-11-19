@@ -274,7 +274,7 @@ func LoadConfig(in string) error {
 		url, _ := url.JoinPath(_c.Server.WebBaseUrl, _c.DocCenter.FrontendPrefix, url.PathEscape(link.Val))
 		_c.DocCenter.docs[link.Key] = url
 	}
-	// 加载工作流模板配置 [EN] Load workflow template configuration
+	// Load workflow template configuration
 	if err := util.LoadConfig(_c.WorkflowTemplate.ConfigPath, _c); err != nil {
 		return fmt.Errorf("load workflow template config err: %v", err)
 	}
@@ -283,7 +283,7 @@ func LoadConfig(in string) error {
 			return err
 		}
 	}
-	// 加载提示词模板配置 [EN] Load prompt word template configuration
+	// Load prompt word template configuration
 	promptIn := _c.PromptTemplate.ConfigPath
 	if err := util.LoadConfig(promptIn, _c); err != nil {
 		return fmt.Errorf("load prompt template config err: %v", err)
@@ -298,12 +298,12 @@ func Cfg() *Config {
 	return _c
 }
 
-// GetDocs 返回 docs 的深拷贝 [EN] GetDocs returns a deep copy of docs
+// GetDocs returns a deep copy of docs
 func (d *DocCenterConfig) GetDocs() map[string]string {
 	if d.docs == nil {
 		return nil
 	}
-	// 深拷贝 [EN] deep copy
+	// deep copy
 	result := make(map[string]string, len(d.docs))
 	for k, v := range d.docs {
 		result[k] = v

@@ -3,7 +3,7 @@ package request
 type ListKeywordsReq struct {
 	PageSize int    `json:"pageSize" form:"pageSize"`
 	PageNum  int    `json:"pageNo" form:"pageNo"`
-	Name     string `json:"name" form:"name"` // 用于搜索【问题中的关键词】/【文档中的词语】 [EN] Used to search for [keywords in the question]/[words in the document]
+	Name     string `json:"name" form:"name"` // Used to search for [keywords in the question]/[words in the document]
 	CommonCheck
 }
 

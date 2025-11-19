@@ -12,7 +12,7 @@ import (
 // GetUserPermission
 //
 //	@Tags		common
-//	@Summary	获取用户权限 [EN] @Summary Get user permissions
+//	@Summary Get user permissions
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
@@ -26,7 +26,7 @@ func GetUserPermission(ctx *gin.Context) {
 // GetUserInfo
 //
 //	@Tags		common
-//	@Summary	获取用户信息 [EN] @Summary Get user information
+//	@Summary Get user information
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
@@ -40,7 +40,7 @@ func GetUserInfo(ctx *gin.Context) {
 // GetOrgSelect
 //
 //	@Tags		common
-//	@Summary	获取用户组织列表（用于下拉选择） [EN] @Summary Get the user organization list (for drop-down selection)
+//	@Summary Get the user organization list (for drop-down selection)
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
@@ -54,11 +54,11 @@ func GetOrgSelect(ctx *gin.Context) {
 // UploadAvatar
 //
 //	@Tags		common
-//	@Summary	上传自定义图标 [EN] @Summary Upload custom icon
+//	@Summary Upload custom icon
 //	@Security	JWT
 //	@Accept		multipart/form-data
 //	@Produce	json
-//	@Param		avatar	formData	file	true	"自定义图标（JPG/JPEG/PNG）" [EN] @Param avatar formData file true "Custom icon (JPG/JPEG/PNG)"
+//	@Param avatar formData file true "Custom icon (JPG/JPEG/PNG)"
 //	@Success	200		{object}	response.Response{data=request.Avatar}
 //	@Router		/avatar [post]
 func UploadAvatar(ctx *gin.Context) {
@@ -79,11 +79,11 @@ func UploadAvatar(ctx *gin.Context) {
 // SearchDocCenter
 //
 //	@Tags		common
-//	@Summary	查找文档中心内容 [EN] @Summary Find Document Center content
+//	@Summary Find Document Center content
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		content	query		string	true	"搜索关键字" [EN] @Param content query string true "Search keyword"
+//	@Param content query string true "Search keyword"
 //	@Success	200		{object}	response.Response{data=[]response.DocSearchResp}
 //	@Router		/doc_center/search [get]
 func SearchDocCenter(ctx *gin.Context) {
@@ -94,7 +94,7 @@ func SearchDocCenter(ctx *gin.Context) {
 // GetDocCenterMenu
 //
 //	@Tags		common
-//	@Summary	获取文档中心目录 [EN] @Summary Get the document center directory
+//	@Summary Get the document center directory
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
@@ -107,11 +107,11 @@ func GetDocCenterMenu(ctx *gin.Context) {
 // GetDocCenterMarkdown
 //
 //	@Tags		common
-//	@Summary	获取文档中心Markdown文件内容 [EN] @Summary Get the content of the Markdown file in the Document Center
+//	@Summary Get the content of the Markdown file in the Document Center
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		path	query		string	true	"目录path" [EN] @Param path query string true "directory path"
+//	@Param path query string true "directory path"
 //	@Success	200		{object}	response.Response{data=string}
 //	@Router		/doc_center/markdown [get]
 func GetDocCenterMarkdown(ctx *gin.Context) {
@@ -122,12 +122,12 @@ func GetDocCenterMarkdown(ctx *gin.Context) {
 // UpdateUserAvatar
 //
 //	@Tags			common
-//	@Summary		编辑用户头像 [EN] @Summary Edit user avatar
-//	@Description	更新用户的头像信息 [EN] @Description updates the user’s avatar information
+//	@Summary Edit user avatar
+//	@Description updates the user’s avatar information
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.UserAvatarUpdate	true	"用户头像信息" [EN] @Param data body request.UserAvatarUpdate true "User avatar information"
+//	@Param data body request.UserAvatarUpdate true "User avatar information"
 //	@Success		200		{object}	response.Response
 //	@Router			/user/avatar [put]
 func UpdateUserAvatar(ctx *gin.Context) {
@@ -142,13 +142,13 @@ func UpdateUserAvatar(ctx *gin.Context) {
 // LoginEmailCheck
 //
 //	@Tags			common
-//	@Summary		非首次登录邮箱校验与绑定 [EN] @Summary Non-first login email verification and binding
-//	@Description	二阶段用户非首次登录邮箱校验与绑定 [EN] @Description Second-stage user email verification and binding when not logging in for the first time
+//	@Summary Non-first login email verification and binding
+//	@Description Second-stage user email verification and binding when not logging in for the first time
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			X-Language	header		string					false	"语言" [EN] @Param X-Language header string false "Language"
-//	@Param			data		body		request.LoginEmailCheck	true	"登录邮箱信息" [EN] @Param data body request.LoginEmailCheck true "Login email information"
+//	@Param X-Language header string false "Language"
+//	@Param data body request.LoginEmailCheck true "Login email information"
 //	@Success		200			{object}	response.Response{data=response.Login}
 //	@Router			/user/login [post]
 func LoginEmailCheck(ctx *gin.Context) {
@@ -156,7 +156,7 @@ func LoginEmailCheck(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	// 二阶段用户非首次登录邮箱校验与绑定 [EN] Second-stage user email verification and binding when not logging in for the first time
+	// Second-stage user email verification and binding when not logging in for the first time
 	resp, err := service.LoginEmailCheck(ctx, &req, getLanguage(ctx), getUserID(ctx))
 	gin_util.Response(ctx, resp, err)
 }
@@ -164,13 +164,13 @@ func LoginEmailCheck(ctx *gin.Context) {
 // ChangeUserPasswordByEmail
 //
 //	@Tags			common
-//	@Summary		用户首次登录邮箱校验绑定与修改密码 [EN] @Summary User first logs in to email to verify binding and change password
-//	@Description	二阶段用户首次登录邮箱校验绑定与修改密码 [EN] @Description In the second stage, users log in to their email address for the first time to verify binding and change passwords.
+//	@Summary User first logs in to email to verify binding and change password
+//	@Description In the second stage, users log in to their email address for the first time to verify binding and change passwords.
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			X-Language	header		string								false	"语言" [EN] @Param X-Language header string false "Language"
-//	@Param			data		body		request.ChangeUserPasswordByEmail	true	"密码和邮箱信息" [EN] @Param data body request.ChangeUserPasswordByEmail true "Password and email information"
+//	@Param X-Language header string false "Language"
+//	@Param data body request.ChangeUserPasswordByEmail true "Password and email information"
 //	@Success		200			{object}	response.Response{data=response.Login}
 //	@Router			/user/login [put]
 func ChangeUserPasswordByEmail(ctx *gin.Context) {
@@ -185,10 +185,10 @@ func ChangeUserPasswordByEmail(ctx *gin.Context) {
 // LoginSendEmailCode
 //
 //	@Tags		common
-//	@Summary	登录邮箱验证码发送 [EN] @Summary Login email verification code sent
+//	@Summary Login email verification code sent
 //	@Accept		json
 //	@Produce	application/json
-//	@Param		data	body		request.LoginSendEmailCode	true	"邮箱地址" [EN] @Param data body request.LoginSendEmailCode true "Email address"
+//	@Param data body request.LoginSendEmailCode true "Email address"
 //	@Success	200		{object}	response.Response
 //	@Router		/user/login/email/code [post]
 func LoginSendEmailCode(ctx *gin.Context) {
@@ -202,32 +202,32 @@ func LoginSendEmailCode(ctx *gin.Context) {
 
 // --- internal ---
 
-// 获取当前用户ID [EN] Get current user ID
+// Get current user ID
 func getUserID(ctx *gin.Context) string {
 	return ctx.GetString(gin_util.USER_ID)
 }
 
-// 获取当前组织ID [EN] Get the current organization ID
+// Get the current organization ID
 func getOrgID(ctx *gin.Context) string {
 	return ctx.GetHeader(gin_util.X_ORG_ID)
 }
 
-// 获取客户端ID [EN] Get client ID
+// Get client ID
 func getClientID(ctx *gin.Context) string {
 	return ctx.GetHeader(gin_util.X_CLIENT_ID)
 }
 
-// 获取当前系统语言 [EN] Get the current system language
+// Get the current system language
 func getLanguage(ctx *gin.Context) string {
 	return ctx.GetHeader(gin_util.X_LANGUAGE)
 }
 
-// 当前用户是否是当前组织内置管理员角色 [EN] Whether the current user has a built-in administrator role in the current organization
+// Whether the current user has a built-in administrator role in the current organization
 func isAdmin(ctx *gin.Context) bool {
 	return ctx.GetBool(gin_util.IS_ADMIN)
 }
 
-// 当前组织是否是内置顶级【系统】组织 [EN] Whether the current organization is a built-in top-level [system] organization
+// Whether the current organization is a built-in top-level [system] organization
 func isSystem(ctx *gin.Context) bool {
 	return ctx.GetBool(gin_util.IS_SYSTEM)
 }

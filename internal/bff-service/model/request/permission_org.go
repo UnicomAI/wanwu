@@ -1,8 +1,8 @@
 package request
 
 type OrgCreate struct {
-	Name   string `json:"name" validate:"required"` // 组织名 [EN] Organization name
-	Remark string `json:"remark"`                   // 备注 [EN] Remark
+	Name   string `json:"name" validate:"required"` // Organization name
+	Remark string `json:"remark"`                   // Remark
 }
 
 func (o *OrgCreate) Check() error {
@@ -19,7 +19,7 @@ func (o *OrgUpdate) Check() error {
 }
 
 type OrgID struct {
-	OrgID string `json:"orgId" validate:"required"` // 组织ID [EN] Organization ID
+	OrgID string `json:"orgId" validate:"required"` // Organization ID
 }
 
 func (o *OrgID) Check() error {

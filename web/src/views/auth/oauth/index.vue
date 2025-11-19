@@ -45,7 +45,7 @@ export default {
       handler() {
         this.params = this.$route.query
       },
-      // 深度观察监听
+      // 深度ObserveListen
       deep: true
     }
   },

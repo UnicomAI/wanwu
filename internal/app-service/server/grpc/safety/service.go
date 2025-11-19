@@ -179,6 +179,6 @@ func toOffset(req iReq) int32 {
 }
 
 type iReq interface {
-	GetPageNo() int32 // 从1开始 [EN] Start from 1
+	GetPageNo() int32 // Start from 1
 	GetPageSize() int32
 }

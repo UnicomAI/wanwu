@@ -124,11 +124,11 @@ func createRole(tx *gorm.DB, orgID, creatorID uint32, name, remark string, isOrg
 	// check creator
 	var isSysAdmin bool
 	if creatorID != 0 {
-		// 正常创建角色 [EN] Create role normally
+		// Create role normally
 		if err := sqlopt.WithID(creatorID).Apply(tx).First(&model.User{}).Error; err != nil {
 			return 0, fmt.Errorf("create org %v role check creator %v err: %v", orgID, creatorID, err)
 		}
-		// check name 角色名在组织内唯一 [EN] check name The role name is unique within the organization
+		// check name The role name is unique within the organization
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithOrgID(orgID),
 			sqlopt.WithName(name),
@@ -148,7 +148,7 @@ func createRole(tx *gorm.DB, orgID, creatorID uint32, name, remark string, isOrg
 			}
 		}
 	} else {
-		// 创建系统顶级组织的管理员角色，此时系统内不能存在任何角色 [EN] Create an administrator role for the top-level organization of the system. No role can exist in the system at this time.
+		// Create an administrator role for the top-level organization of the system. No role can exist in the system at this time.
 		if err := tx.First(&model.OrgRole{}).Error; err != gorm.ErrRecordNotFound {
 			if err == nil {
 				err = errors.New("already exist")
@@ -220,7 +220,7 @@ func (c *Client) UpdateRole(ctx context.Context, orgID, roleID uint32, name, rem
 			return toErrStatus("iam_role_update", util.Int2Str(orgID),
 				util.Int2Str(roleID), err.Error())
 		}
-		// 组织内置管理员，不修改权限 [EN] The organization has built-in administrators and does not need to modify permissions.
+		// The organization has built-in administrators and does not need to modify permissions.
 		if orgRole.IsAdmin {
 			return nil
 		}
@@ -252,7 +252,7 @@ func (c *Client) DeleteRole(ctx context.Context, orgID, roleID uint32) *errs.Sta
 			return toErrStatus("iam_role_delete", util.Int2Str(orgID),
 				util.Int2Str(roleID), err.Error())
 		}
-		// 组织内置管理员，不能被删除 [EN] The organization has built-in administrators and cannot be deleted.
+		// The organization has built-in administrators and cannot be deleted.
 		if orgRole.IsAdmin {
 			return toErrStatus("iam_role_delete", util.Int2Str(orgID),
 				util.Int2Str(roleID), "cannot delete org admin role")
@@ -291,7 +291,7 @@ func (c *Client) ChangeRoleStatus(ctx context.Context, orgID, roleID uint32, sta
 			return toErrStatus("iam_role_change", util.Int2Str(orgID),
 				util.Int2Str(roleID), strconv.FormatBool(status), err.Error())
 		}
-		// 组织内置管理员，不能修改状态 [EN] The organization has built-in administrators and cannot modify the status.
+		// The organization has built-in administrators and cannot modify the status.
 		if orgRole.IsAdmin {
 			return toErrStatus("iam_role_change", util.Int2Str(orgID),
 				util.Int2Str(roleID), strconv.FormatBool(status), "cannot change org admin role status")

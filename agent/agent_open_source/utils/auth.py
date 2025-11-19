@@ -50,7 +50,7 @@ class AccessTokenManager:
 
 
     def is_token_expired(self,AUTH_TYPE="gz"):
-        # 检查token是否超期（20天） [EN] Check whether the token has expired (20 days)
+        # Check whether the token has expired (20 days)
         self.AUTH_TYPE = AUTH_TYPE
         create_time = self.tokens.get(f"{self.AUTH_TYPE}",{}).get("create_time") 
         if not create_time or (datetime.now() - create_time >= timedelta(days=20)):

@@ -197,7 +197,7 @@
         </el-main>
       </el-container>
     </div>
-    <!-- 元数据管理 -->
+    <!-- 元Data管理 -->
     <el-dialog
       :title="$t('knowledgeManage.docList.metaDataManagement')"
       :visible.sync="metaVisible"
@@ -211,9 +211,9 @@
       </span>
     </el-dialog>
     
-    <!-- 批量编辑元数据值弹窗 -->
+    <!-- BatchEdit元DataValue弹窗 -->
     <batchMetaData ref="batchMetaData" :selectedDocIds="selectedDocIds" @reLoadDocList="reLoadDocList" />
-    <!-- 批量编辑元数据值操作框 -->
+    <!-- BatchEdit元DataValueOperation框 -->
     <BatchMetatButton ref="BatchMetatButton" :selectedCount="selectedTableData.length" @showBatchMeta="showBatchMeta" @handleMetaCancel="handleMetaCancel"/>
   </div>
 </template>
@@ -305,7 +305,7 @@ export default {
     handleMetaCancel(){
       this.selectedTableData = []
       this.selectedDocIds = []
-      // 取消所有表格数据的选中状态
+      // Cancel所HasTableData of 选中Status
       this.$nextTick(() => {
         const table = this.$refs.dataTable
         if (table) {
@@ -318,7 +318,7 @@ export default {
       this.selectedTableData = []
       this.selectedDocIds = []
       
-      // 取消所有表格数据的选中状态
+      // Cancel所HasTableData of 选中Status
       this.$nextTick(() => {
         const table = this.$refs.dataTable
         if (table) {
@@ -445,7 +445,7 @@ export default {
         return data.join(',')
       }
     },
-    handleHit(){//跳转到命中预测页面
+    handleHit(){//跳转到命中预测Page
       if(this.$route.path.includes('rag')){
         this.$router.push({path:'/rag/knowledge/hitTest'})
       }else{
@@ -498,7 +498,7 @@ export default {
           let res = await delDocItem(jsondata);
           if (res.code === 0) {
             this.$message.success(this.$t('common.info.delInfo'));
-            this.getTableData(this.docQuery)//获取知识分类数据
+            this.getTableData(this.docQuery)//Get知识分ClassData
           }
           this.loading = false;
         })
@@ -529,7 +529,7 @@ export default {
         })
     },
     changeOption(data) {
-      //通过文档状态查找
+      //ByDocumentStatusFind
       this.docQuery.status = data
       this.getTableData({...this.docQuery, pageNo: 1})
     },
@@ -575,12 +575,12 @@ export default {
     },
     async download(url,name){
       const res = await downDoc(url)
-      const blobUrl = window.URL.createObjectURL(res) // 将blob对象转为一个URL
+      const blobUrl = window.URL.createObjectURL(res) // 将blobObject转为一个URL
       const link = document.createElement('a')
       link.href = blobUrl
       link.download = name
-      link.click() // 启动下载
-      window.URL.revokeObjectURL(link.href) // 下载完毕删除a标签
+      link.click() // StartDownload
+      window.URL.revokeObjectURL(link.href) // Download完毕DeleteaTag
     },
     handleUpload() {
       this.$router.push({path:'/knowledge/fileUpload',query:{id:this.docQuery.knowledgeId,name:this.knowledgeName}})
@@ -821,9 +821,9 @@ export default {
 </style>
 <style lang="scss">
 .custom-tooltip.is-light {
-  border-color: #eee; /* 设置边框颜色 */
-  background-color: #fff; /* 设置背景颜色 */
-  color: #666; /* 设置文字颜色 */
+  border-color: #eee; /* Setting边框颜色 */
+  background-color: #fff; /* Setting背景颜色 */
+  color: #666; /* Setting文字颜色 */
 }
 .custom-tooltip.el-tooltip__popper[x-placement^="top"] .popper__arrow::after {
   border-top-color: #fff !important;

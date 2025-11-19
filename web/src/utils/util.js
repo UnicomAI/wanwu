@@ -14,7 +14,7 @@ export function guid() {
 
 export const getXClientId = () => localStorage.getItem('xClientId')
 
-// 用于登录切组织等找到有权限的第一个菜单路径 (除用模型：用模型为打开的新页面)
+// Used forLogin切OrganizationEtc找到HasPermission of 第一个MenuPath (除用Model：用Model为打开 of 新Page)
 export const fetchPermFirPath = (list = menuList) => {
     if (!list.length) return ''
 
@@ -33,11 +33,11 @@ export const fetchPermFirPath = (list = menuList) => {
         }
     }
 
-    // 若有权限，跳转左侧菜单第一个有权限的页面；否则跳转 /404
+    // IfHasPermission，跳转左侧Menu第一个HasPermission of Page；NoThen跳转 /404
     return {path: path || '/404'}
 }
 
-// 找到有权限的第一个菜单的 index
+// 找到HasPermission of 第一个Menu of  index
 export const fetchCurrentPathIndex = (path, list) => {
     let index = ''
     const findIndex = (list) => {
@@ -71,7 +71,7 @@ export const jumpOAuth = (params) => {
 }
 
 export const redirectUrl = () => {
-    // 跳到有权限的第一个页面
+    // 跳到HasPermission of 第一个Page
     jumpPermUrl()
 }
 
@@ -97,9 +97,9 @@ export const getInitTimeRange = () => {
 }
 
 export function convertLatexSyntax(inputText) {
-    // 1. 匹配块级公式，将 `\[` 和 `\]` 替换为 `$$`，支持 `\\[` `\\]` 或单个 `\[` `\]`
+    // 1. Match块级公式，将 `\[` And `\]` Replace为 `$$`，支持 `\\[` `\\]` OR单个 `\[` `\]`
     inputText = inputText.replace(/\\\[\s*([\s\S]+?)\s*\\\]/g, (_, formula) => `$$${formula}$$`);
-    // 2. 匹配行内公式，将 `\(` 和 `\)` 替换为 `$`，支持 `\\(` `\\)` 或单个 `\(` `\)`
+    // 2. Match行内公式，将 `\(` And `\)` Replace为 `$`，支持 `\\(` `\\)` OR单个 `\(` `\)`
     inputText = inputText.replace(/\\\(\s*([\s\S]+?)\s*\\\)/g, (_, formula) => `$${formula}$`);
     return inputText;
 }
@@ -116,7 +116,7 @@ export function parseSub(data,index){
 }
 
 /**
- *获取URL参数
+ *GetURLParameter
  */
 export function getQueryString(val, href) {
     const hrefNew = href || window.location.href;
@@ -131,7 +131,7 @@ export function getQueryString(val, href) {
     return null;
 }
 
-// 是否是有效的URL
+// YesNoYesHas效 of URL
 export function isValidURL(string) {
     const res = string.match(/(https?|ftp|file|ssh):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]/i);
     return res !== null;
@@ -149,7 +149,7 @@ export const formatTools = (tools) => {
         for(let key in properties){
             params.push({
                 "name": key,
-                "requiredBadge": n.inputSchema.required && n.inputSchema.required.includes(key) ? '必填' : '',
+                "requiredBadge": n.inputSchema.required && n.inputSchema.required.includes(key) ? 'Required' : '',
                 "type": properties[key].type,
                 "description": properties[key].description,
             })
@@ -164,11 +164,11 @@ export const formatTools = (tools) => {
 
 /**
  * 格式化得分，保留5位小数
- * @param {number|string} score - 得分值
- * @returns {string} 格式化后的得分字符串
+ * @param {number|string} score - 得分Value
+ * @returns {string} 格式化后 of 得分String
  */
 export function formatScore(score) {
-    // 格式化得分，保留5位小数
+    // Format得分，保留5位小数
     if (typeof score !== 'number') {
         return '0.00000';
     }
@@ -186,7 +186,7 @@ export const formatAmount = (num, returnType = 'string', preserveRange = false) 
     let formatNum = num
     let simplifiedNum = num.toString();
 
-    // 99999以内原样显示
+    // 99999以内原样Show
     if (preserveRange && num < 100000) {
         if (returnType === 'object') {
             return {
@@ -201,7 +201,7 @@ export const formatAmount = (num, returnType = 'string', preserveRange = false) 
     if (isHasDecimal) {
         formatNum = Number(num.toString().slice(0, num.toString().indexOf('.')))
     }
-    // 获取数字的数量级
+    // GetNumber of Count级
     let unitIndex = Math.floor((String(formatNum).length - 1) / 4);
 
     if (unitIndex > 0) {
@@ -220,7 +220,7 @@ export const formatAmount = (num, returnType = 'string', preserveRange = false) 
             simplifiedNum = formattedValue + unit;
         }
     } else if (returnType === 'object') {
-        // 数量级为0时的对象格式返回
+        // Count级为0 when  of ObjectFormatBack
         return {
             value: simplifiedNum,
             type: ''

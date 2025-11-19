@@ -1,6 +1,6 @@
 package model
 
-// ClientDailyStats 客户端日统计表 [EN] ClientDailyStats client daily statistics table
+// ClientDailyStats client daily statistics table
 type ClientDailyStats struct {
 	ID        int64  `gorm:"primaryKey;autoIncrement" json:"id"`
 	CreatedAt int64  `gorm:"autoCreateTime:milli"`

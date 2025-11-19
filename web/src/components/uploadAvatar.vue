@@ -28,7 +28,7 @@ export default {
         path: ""
       })
     },
-    // 默认头像，导入需要require("@/assets/imgs/defaultAvatar")
+    // DefaultAvatar，ImportNeedrequire("@/assets/imgs/defaultAvatar")
     defaultAvatar: {
       type: String,
       default: ''

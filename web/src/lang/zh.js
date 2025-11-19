@@ -1007,7 +1007,7 @@ export default {
                 headerHint: 'HTTP 头部名称，如果你不知道是什么，可以将其保留为 Authorization 或设置为自定义值',
                 value: '值',
                 query: '查询参数',
-                queryHint: '用于传递 API 密钥查询参数的名称，如"http://192.168.0.21:8081/server/test? key=xxx"中的"key"参数',
+                queryHint: '用于传递 API 密钥查询参数的名称，如"http://192.168.0.21:8081/server/test? key=xxx"中的"key"Parameter',
             }
         },
         square: {

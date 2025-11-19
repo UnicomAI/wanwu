@@ -39,22 +39,22 @@ export default {
       try{
         const response  = await axios({
           method: 'get',
-          responseType: 'blob', // 设置响应文件格式
+          responseType: 'blob', // SettingResponseFileFormat
           url: this.fileUrl
         })
 
         const blob = response.data;
         const arrayBuffer = await blob.arrayBuffer();
-        // 使用 mammoth 将 .docx 转为 HTML
+        // Use mammoth 将 .docx 转为 HTML
         const { value: html } = await mammoth.convertToHtml({ arrayBuffer });
-        // 渲染到页面
+        // Render到Page
         this.$nextTick(() => {
           this.$refs.wordRef.innerHTML = html; 
           this.loading = false;
         });
       }catch(error){
          this.$nextTick(() => {
-            this.$refs.wordRef.innerHTML = `<p style="color: red;">预览失败: ${error.message}</p>`;
+            this.$refs.wordRef.innerHTML = `<p style="color: red;">预览Failed: ${error.message}</p>`;
             this.loading = false;
         });
       }
@@ -63,7 +63,7 @@ export default {
       console.log('渲染完成')
     },
     errorHandler() {
-      console.log('渲染失败')
+      console.log('渲染Failed')
     }
   }
 }

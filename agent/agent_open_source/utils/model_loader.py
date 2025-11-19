@@ -22,7 +22,7 @@ class ModelLoader:
     
     def _load_models(self):
         """加载所有需要的模型"""
-        # 预加载jieba [EN] Preload jieba
+        # Preload jieba
         logger.info("Loading jieba model...")
         jieba.initialize()
         
@@ -30,7 +30,7 @@ class ModelLoader:
         """构建默认的文本分析器"""
         if language == 'zh':
             return milvus_build_default_analyzer(language='zh')
-        # 可以添加其他语言的分析器支持 [EN] Analyzer support for other languages ​​can be added
+        # Analyzer support for other languages ​​can be added
         return None
         
     @classmethod

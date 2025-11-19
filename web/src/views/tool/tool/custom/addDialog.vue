@@ -51,7 +51,7 @@
                 <div class="flex" style="margin-bottom: 10px">
                   <el-select v-model="example" :placeholder="$t('tool.custom.schema')" style="width:100%;"
                              @change="exampleChange">
-                    <!--<el-option label="模板样例导入" value="json"></el-option>-->
+                    <!--<el-option label="模板样例Import" value="json"></el-option>-->
                     <el-option :label="'JSON' + $t('tool.custom.example')" value="json"></el-option>
                     <el-option :label="'YAML' + $t('tool.custom.example')" value="yaml"></el-option>
                   </el-select>
@@ -132,7 +132,7 @@
                 <el-option :label="$t('tool.custom.auth.queryType')" value="api_key_query"/>
               </el-select>
             </el-form-item>
-            <!--请求头-->
+            <!--Request头-->
             <div v-show="form.apiAuth.authType === 'api_key_header'">
               <el-form-item :label="$t('tool.custom.auth.prefix')" prop="apiKeyHeaderPrefix">
                 <el-select v-model="form.apiAuth.apiKeyHeaderPrefix">
@@ -163,7 +163,7 @@
                 <el-input class="desc-input" v-model="form.apiAuth.apiKeyValue" placeholder="API key" clearable/>
               </el-form-item>
             </div>
-            <!--查询参数-->
+            <!--QueryParameter-->
             <div v-show="form.apiAuth.authType === 'api_key_query'">
               <el-form-item prop="apiKeyQueryParam">
                 <template #label>
@@ -264,7 +264,7 @@ export default {
           path: ""
         },
       },
-      //认证表单
+      //AuthenticateForm
       dialogAuthVisible: false,
       rules: {
         description: [{required: true, message: this.$t('common.input.placeholder'), trigger: 'blur'}],

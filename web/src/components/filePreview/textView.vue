@@ -4,7 +4,7 @@
       <span>txt</span>
       <span class="copy" @click="()=>{copy && copycb()}">
         <span class="el-icon-copy-document"></span>
-        复制
+        Copy
       </span>
     </div>
     <div class="txt" :loading="loading" style="width: 100%; height: 100%;white-space: pre-wrap;">{{ textContent }}</div>
@@ -75,7 +75,7 @@ export default {
       console.log('渲染完成')
     },
     errorHandler() {
-      console.log('渲染失败')
+      console.log('渲染Failed')
     }
   }
 }

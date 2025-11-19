@@ -15,73 +15,73 @@ import (
 )
 
 type RagCreateDocSegmentParams struct {
-	UserId           string            `json:"userId"`             // 发起请求的用户ID [EN] The user ID that initiated the request
-	KnowledgeBase    string            `json:"knowledgeBase"`      // 知识库的名称 [EN] The name of the knowledge base
-	KnowledgeId      string            `json:"kb_id"`              // 知识库的唯一ID [EN] The unique ID of the knowledge base
-	FileName         string            `json:"fileName"`           // 与chunk关联的文件名 [EN] The file name associated with the chunk
-	MaxSentenceSize  int               `json:"max_sentence_size"`  // 最大分段长度限制 [EN] Maximum segment length limit
-	Chunks           []*NewChunkItem   `json:"chunks"`             // 分段数据列表 [EN] Segmented data list
-	SplitType        string            `json:"split_type"`         // 分段类型 //parent_child|common [EN] Segmentation type //parent_child|common
-	ChildChunkConfig *ChildChunkConfig `json:"child_chunk_config"` //子分段配置 [EN] Subsegment configuration
+	UserId           string            `json:"userId"`             // The user ID that initiated the request
+	KnowledgeBase    string            `json:"knowledgeBase"`      // The name of the knowledge base
+	KnowledgeId      string            `json:"kb_id"`              // The unique ID of the knowledge base
+	FileName         string            `json:"fileName"`           // The file name associated with the chunk
+	MaxSentenceSize  int               `json:"max_sentence_size"`  // Maximum segment length limit
+	Chunks           []*NewChunkItem   `json:"chunks"`             // Segmented data list
+	SplitType        string            `json:"split_type"`         // Segmentation type //parent_child|common
+	ChildChunkConfig *ChildChunkConfig `json:"child_chunk_config"` //Subsegment configuration
 }
 
 type RagCreateDocChildSegmentParams struct {
-	UserId        string   `json:"userId"`         // 发起请求的用户ID [EN] The user ID that initiated the request
-	KnowledgeBase string   `json:"knowledgeBase"`  // 知识库的名称 [EN] The name of the knowledge base
-	KnowledgeId   string   `json:"kb_id"`          // 知识库的唯一ID [EN] The unique ID of the knowledge base
-	FileName      string   `json:"fileName"`       // 与chunk关联的文件名 [EN] The file name associated with the chunk
-	ChunkId       string   `json:"chunk_id"`       // 父分段id [EN] parent segment id
-	ChildContents []string `json:"child_contents"` // 子分段内容 [EN] subsection content
+	UserId        string   `json:"userId"`         // The user ID that initiated the request
+	KnowledgeBase string   `json:"knowledgeBase"`  // The name of the knowledge base
+	KnowledgeId   string   `json:"kb_id"`          // The unique ID of the knowledge base
+	FileName      string   `json:"fileName"`       // The file name associated with the chunk
+	ChunkId       string   `json:"chunk_id"`       // parent segment id
+	ChildContents []string `json:"child_contents"` // subsection content
 }
 
 type RagDeleteDocChildSegmentParams struct {
-	UserId                string  `json:"userId"`                   // 发起请求的用户ID [EN] The user ID that initiated the request
-	KnowledgeBase         string  `json:"knowledgeBase"`            // 知识库的名称 [EN] The name of the knowledge base
-	KnowledgeId           string  `json:"kb_id"`                    // 知识库的唯一ID [EN] The unique ID of the knowledge base
-	FileName              string  `json:"fileName"`                 // 与chunk关联的文件名 [EN] The file name associated with the chunk
-	ChunkId               string  `json:"chunk_id"`                 // 父分段id [EN] parent segment id
-	ChunkCurrentNum       int32   `json:"chunk_current_num"`        // 父分段序列号 [EN] Parent segment sequence number
-	ChildChunkCurrentNums []int32 `json:"child_chunk_current_nums"` // 子分段序列号列表 [EN] Subsegment sequence number list
+	UserId                string  `json:"userId"`                   // The user ID that initiated the request
+	KnowledgeBase         string  `json:"knowledgeBase"`            // The name of the knowledge base
+	KnowledgeId           string  `json:"kb_id"`                    // The unique ID of the knowledge base
+	FileName              string  `json:"fileName"`                 // The file name associated with the chunk
+	ChunkId               string  `json:"chunk_id"`                 // parent segment id
+	ChunkCurrentNum       int32   `json:"chunk_current_num"`        // Parent segment sequence number
+	ChildChunkCurrentNums []int32 `json:"child_chunk_current_nums"` // Subsegment sequence number list
 }
 
 type RagUpdateDocChildSegmentParams struct {
-	UserId          string      `json:"userId"`            // 发起请求的用户ID [EN] The user ID that initiated the request
-	KnowledgeBase   string      `json:"knowledgeBase"`     // 知识库的名称 [EN] The name of the knowledge base
-	KnowledgeId     string      `json:"kb_id"`             // 知识库的唯一ID [EN] The unique ID of the knowledge base
-	FileName        string      `json:"fileName"`          // 与chunk关联的文件名 [EN] The file name associated with the chunk
-	ChunkId         string      `json:"chunk_id"`          // 父分段id [EN] parent segment id
-	ChunkCurrentNum int32       `json:"chunk_current_num"` // 父分段序列号 [EN] Parent segment sequence number
-	ChildChunk      *ChildChunk `json:"child_chunk"`       // 子分段内容 [EN] subsection content
+	UserId          string      `json:"userId"`            // The user ID that initiated the request
+	KnowledgeBase   string      `json:"knowledgeBase"`     // The name of the knowledge base
+	KnowledgeId     string      `json:"kb_id"`             // The unique ID of the knowledge base
+	FileName        string      `json:"fileName"`          // The file name associated with the chunk
+	ChunkId         string      `json:"chunk_id"`          // parent segment id
+	ChunkCurrentNum int32       `json:"chunk_current_num"` // Parent segment sequence number
+	ChildChunk      *ChildChunk `json:"child_chunk"`       // subsection content
 
 }
 
 type ChildChunk struct {
-	ChildContent string `json:"child_content"`           //子分段内容 [EN] subsection content
-	ChildChunkNo int32  `json:"child_chunk_current_num"` // 子分段序列号 [EN] subsegment sequence number
+	ChildContent string `json:"child_content"`           //subsection content
+	ChildChunkNo int32  `json:"child_chunk_current_num"` // subsegment sequence number
 }
 
 type RagUpdateDocSegmentParams struct {
-	UserId           string            `json:"userId"`             // 发起请求的用户ID [EN] The user ID that initiated the request
-	KnowledgeBase    string            `json:"knowledgeBase"`      // 知识库的名称 [EN] The name of the knowledge base
-	KnowledgeId      string            `json:"kb_id"`              // 知识库的唯一ID [EN] The unique ID of the knowledge base
-	FileName         string            `json:"fileName"`           // 与chunk关联的文件名 [EN] The file name associated with the chunk
-	MaxSentenceSize  int               `json:"max_sentence_size"`  // 最大分段长度限制 [EN] Maximum segment length limit
-	Chunk            *UpdateChunkItem  `json:"chunk"`              // 分段数据列表 [EN] Segmented data list
-	SplitType        string            `json:"split_type"`         // 分段类型 //parent_child|common [EN] Segmentation type //parent_child|common
-	ChildChunkConfig *ChildChunkConfig `json:"child_chunk_config"` //子分段配置 [EN] Subsegment configuration
+	UserId           string            `json:"userId"`             // The user ID that initiated the request
+	KnowledgeBase    string            `json:"knowledgeBase"`      // The name of the knowledge base
+	KnowledgeId      string            `json:"kb_id"`              // The unique ID of the knowledge base
+	FileName         string            `json:"fileName"`           // The file name associated with the chunk
+	MaxSentenceSize  int               `json:"max_sentence_size"`  // Maximum segment length limit
+	Chunk            *UpdateChunkItem  `json:"chunk"`              // Segmented data list
+	SplitType        string            `json:"split_type"`         // Segmentation type //parent_child|common
+	ChildChunkConfig *ChildChunkConfig `json:"child_chunk_config"` //Subsegment configuration
 }
 
 type ChildChunkConfig struct {
-	Separators []string `json:"separators"` // 分隔符 [EN] delimiter
-	ChunkSize  int32    `json:"chunk_size"` // 子分段大小 [EN] subsegment size
+	Separators []string `json:"separators"` // delimiter
+	ChunkSize  int32    `json:"chunk_size"` // subsegment size
 }
 
 type RagDeleteDocSegmentParams struct {
-	UserId        string   `json:"userId"`        // 发起请求的用户ID [EN] The user ID that initiated the request
-	KnowledgeBase string   `json:"knowledgeBase"` // 知识库的名称 [EN] The name of the knowledge base
-	KnowledgeId   string   `json:"kb_id"`         // 知识库的唯一ID [EN] The unique ID of the knowledge base
-	FileName      string   `json:"fileName"`      // 与chunk关联的文件名 [EN] The file name associated with the chunk
-	ChunkIds      []string `json:"chunk_ids"`     // 分段数据列表 [EN] Segmented data list
+	UserId        string   `json:"userId"`        // The user ID that initiated the request
+	KnowledgeBase string   `json:"knowledgeBase"` // The name of the knowledge base
+	KnowledgeId   string   `json:"kb_id"`         // The unique ID of the knowledge base
+	FileName      string   `json:"fileName"`      // The file name associated with the chunk
+	ChunkIds      []string `json:"chunk_ids"`     // Segmented data list
 }
 
 type RagGetDocSegmentParams struct {
@@ -93,11 +93,11 @@ type RagGetDocSegmentParams struct {
 }
 
 type RagGetDocChildSegmentParams struct {
-	UserId            string `json:"userId"`        // 用户id [EN] user id
-	KnowledgeBaseName string `json:"knowledgeBase"` // 知识库名称 [EN] Knowledge base name
-	KnowledgeId       string `json:"kb_id"`         // 知识库id [EN] knowledge base id
-	FileName          string `json:"file_name"`     // 文件名 [EN] file name
-	ChunkId           string `json:"chunk_id"`      // 使用父分段的contentId [EN] Use the contentId of the parent segment
+	UserId            string `json:"userId"`        // user id
+	KnowledgeBaseName string `json:"knowledgeBase"` // Knowledge base name
+	KnowledgeId       string `json:"kb_id"`         // knowledge base id
+	FileName          string `json:"file_name"`     // file name
+	ChunkId           string `json:"chunk_id"`      // Use the contentId of the parent segment
 }
 
 type DocSegmentStatusUpdateParams struct {
@@ -135,8 +135,8 @@ type FileSplitContent struct {
 	Labels             []string        `json:"labels"`
 	ChunkId            string          `json:"chunk_id"`
 	OssPath            string          `json:"oss_path"`
-	IsParent           bool            `json:"is_parent"`             // 区分是否是父分段，true是父分段，false是子分段,不存在这个key时说明文档分段模式不是父子分段 [EN] Distinguish whether it is a parent segment, true is a parent segment, false is a child segment, if this key does not exist, it means that the document segmentation mode is not a parent-child segmentation
-	ChildChunkTotalNum int             `json:"child_chunk_total_num"` // 父分段对应子分段数量 [EN] Number of parent segments corresponding to child segments
+	IsParent           bool            `json:"is_parent"`             // Distinguish whether it is a parent segment, true is a parent segment, false is a child segment, if this key does not exist, it means that the document segmentation mode is not a parent-child segmentation
+	ChildChunkTotalNum int             `json:"child_chunk_total_num"` // Number of parent segments corresponding to child segments
 }
 
 type ContentMetaData struct {
@@ -156,13 +156,13 @@ type RagGetDocChildSegmentResp struct {
 
 type ChildContentListResp struct {
 	ParentChunkId      string                  `json:"parent_chunk_id"`
-	ChildChunkTotalNum int                     `json:"child_chunk_total_num"` // 以这个字段为准 [EN] Based on this field
+	ChildChunkTotalNum int                     `json:"child_chunk_total_num"` // Based on this field
 	ChildContentList   []ChildFileSplitContent `json:"child_content_list"`
 }
 
 type ChildFileSplitContent struct {
 	Content         string           `json:"content"`
-	ChunkId         string           `json:"chunk_id"` // 尽量不用 [EN] Try not to use it
+	ChunkId         string           `json:"chunk_id"` // Try not to use it
 	FileName        string           `json:"file_name"`
 	OssPath         string           `json:"oss_path"`
 	MetaData        ChildContentMeta `json:"meta_data"`
@@ -170,7 +170,7 @@ type ChildFileSplitContent struct {
 	ContentId       string           `json:"content_id"`
 	ParentContentId string           `json:"parent_content_id"`
 	KnowledgeName   string           `json:"kb_name"`
-	IsParent        bool             `json:"is_parent"` // false是子分段 [EN] false is a subsegment
+	IsParent        bool             `json:"is_parent"` // false is a subsegment
 }
 
 type ChildContentMeta struct {
@@ -183,7 +183,7 @@ type ChildContentMeta struct {
 	DocMeta              []*DocMetaData `json:"doc_meta"`
 }
 
-// RagCreateDocSegment 新增文档切片 [EN] RagCreateDocSegment adds a new document slice
+// RagCreateDocSegment adds a new document slice
 func RagCreateDocSegment(ctx context.Context, ragCreateDocSegmentParams *RagCreateDocSegmentParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.DocSegmentCreateUri
@@ -212,7 +212,7 @@ func RagCreateDocSegment(ctx context.Context, ragCreateDocSegmentParams *RagCrea
 	return nil
 }
 
-// RagUpdateDocSegment 更新文档切片 [EN] RagUpdateDocSegment updates document slices
+// RagUpdateDocSegment updates document slices
 func RagUpdateDocSegment(ctx context.Context, ragUpdateDocSegmentParams *RagUpdateDocSegmentParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.DocSegmentUpdateUri
@@ -241,7 +241,7 @@ func RagUpdateDocSegment(ctx context.Context, ragUpdateDocSegmentParams *RagUpda
 	return nil
 }
 
-// RagDeleteDocSegment 删除文档切片 [EN] RagDeleteDocSegment deletes document slices
+// RagDeleteDocSegment deletes document slices
 func RagDeleteDocSegment(ctx context.Context, ragDeleteDocSegmentParams *RagDeleteDocSegmentParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.DocSegmentDeleteUri
@@ -270,7 +270,7 @@ func RagDeleteDocSegment(ctx context.Context, ragDeleteDocSegmentParams *RagDele
 	return nil
 }
 
-// RagDocUpdateDocSegmentStatus 更新文档切片状态 [EN] RagDocUpdateDocSegmentStatus updates document slice status
+// RagDocUpdateDocSegmentStatus updates document slice status
 func RagDocUpdateDocSegmentStatus(ctx context.Context, docSegmentStatusUpdateParams interface{}) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.DocSegmentUpdateStatusUri
@@ -299,7 +299,7 @@ func RagDocUpdateDocSegmentStatus(ctx context.Context, docSegmentStatusUpdatePar
 	return nil
 }
 
-// RagGetDocSegmentList rag获取知识库文档分片 [EN] RagGetDocSegmentList rag gets the knowledge base document fragments
+// RagGetDocSegmentList rag gets the knowledge base document fragments
 func RagGetDocSegmentList(ctx context.Context, ragGetDocSegmentParams *RagGetDocSegmentParams) (*ContentListResp, error) {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.GetDocSegmentUri
@@ -325,14 +325,14 @@ func RagGetDocSegmentList(ctx context.Context, ragGetDocSegmentParams *RagGetDoc
 	if resp.Code != successCode {
 		return nil, errors.New(resp.Message)
 	}
-	// 排序 [EN] sort
+	// sort
 	slices.SortFunc(resp.Data.List, func(a, b FileSplitContent) int {
 		return cmp.Compare(a.MetaData.ChunkCurrentNum, b.MetaData.ChunkCurrentNum)
 	})
 	return resp.Data, nil
 }
 
-// RagCreateDocChildSegment 新增文档子切片 [EN] RagCreateDocChildSegment adds a new document sub-slice
+// RagCreateDocChildSegment adds a new document sub-slice
 func RagCreateDocChildSegment(ctx context.Context, ragCreateDocChildSegmentParams *RagCreateDocChildSegmentParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.DocChildSegmentCreateUri
@@ -361,7 +361,7 @@ func RagCreateDocChildSegment(ctx context.Context, ragCreateDocChildSegmentParam
 	return nil
 }
 
-// RagUpdateDocChildSegment 更新文档子切片 [EN] RagUpdateDocChildSegment updates document subslices
+// RagUpdateDocChildSegment updates document subslices
 func RagUpdateDocChildSegment(ctx context.Context, ragUpdateDocChildSegmentParams *RagUpdateDocChildSegmentParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.DocChildSegmentUpdateUri
@@ -390,7 +390,7 @@ func RagUpdateDocChildSegment(ctx context.Context, ragUpdateDocChildSegmentParam
 	return nil
 }
 
-// RagDeleteDocChildSegment 删除文档子切片 [EN] RagDeleteDocChildSegment deletes document subsegments
+// RagDeleteDocChildSegment deletes document subsegments
 func RagDeleteDocChildSegment(ctx context.Context, ragDeleteDocChildSegmentParams *RagDeleteDocChildSegmentParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.DocChildSegmentDeleteUri
@@ -448,7 +448,7 @@ func RagGetDocChildSegmentList(ctx context.Context, ragGetDocChildSegmentParams 
 		return nil, errors.New("doc child segment response is empty")
 	}
 	if len(resp.Data.ChildContentList) > 0 {
-		// 按排序 [EN] Sort by
+		// Sort by
 		slices.SortFunc(resp.Data.ChildContentList, func(a, b ChildFileSplitContent) int {
 			return cmp.Compare(a.MetaData.ChildChunkCurrentNum, b.MetaData.ChildChunkCurrentNum)
 		})

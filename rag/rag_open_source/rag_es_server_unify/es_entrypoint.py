@@ -2,7 +2,7 @@ import argparse
 import os
 
 import gunicorn_server
-from es_rag_server import app  # 绝对导入 [EN] absolute import
+from es_rag_server import app  # absolute import
 
 
 def main():
@@ -14,7 +14,7 @@ def main():
     parser.add_argument('--debug', action='store_true', help='调试模式')
     args = parser.parse_args()
 
-    # 记录日志 [EN] logging
+    # logging
     log_file = f"es_logs_{args.port}.log"
     print(f"正在启动Flask应用，端口号为{args.port}...")
     print(f"日志将输出到 {log_file}")

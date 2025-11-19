@@ -92,7 +92,7 @@ func (s *Service) GetCustomToolByCustomToolIdList(ctx context.Context, req *mcp_
 		return nil, errStatus(errs.Code_MCPGetCustomToolListErr, toErrStatus("mcp_get_custom_tool_list_err", "customToolIdList is empty"))
 	}
 
-	// 批量转换 string 为 uint32 [EN] Batch convert string to uint32
+	// Batch convert string to uint32
 	var ids []uint32
 	for _, idStr := range req.CustomToolIdList {
 		id := util.MustU32(idStr)

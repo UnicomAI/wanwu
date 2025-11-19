@@ -4,7 +4,7 @@
             <el-col :span="24" class="left-col">
                 <div class="left-col-header rl">
                     <i class="el-icon-arrow-left  back-icon" @click="goBack"></i>
-                    <span class="header-title">{{actionId?'编辑':'创建'}} actions</span>
+                    <span class="header-title">{{actionId?'Edit':'Create'}} actions</span>
                 </div>
                 <div class="action-form">
                     <div class="block prompt-box">
@@ -21,12 +21,12 @@
                         <div class="rl">
                             <div class="flex" style="margin-bottom: 10px">
                                 <el-select v-model="basicForm.example" placeholder="选择样例" style="width:100%;" @change="exampleChange">
-                                    <!--<el-option label="模板样例导入" value="json"></el-option>-->
-                                    <el-option label="JSON样例导入" value="json"></el-option>
-                                    <el-option label="YAML样例导入" value="yaml"></el-option>
+                                    <!--<el-option label="模板样例Import" value="json"></el-option>-->
+                                    <el-option label="JSON样例Import" value="json"></el-option>
+                                    <el-option label="YAML样例Import" value="yaml"></el-option>
                                 </el-select>
                             </div>
-                            <el-input class="schema-textarea" v-model="basicForm.schema" @blur="listenerUpdate"  placeholder="请输入对应API的openapi3.0结构，可以选择示例了解详情。" type="textarea" ></el-input>
+                            <el-input class="schema-textarea" v-model="basicForm.schema" @blur="listenerUpdate"  placeholder="Please enter对应API of openapi3.0结构，可以选择示例了解Details。" type="textarea" ></el-input>
                         </div>
                     </div>
 
@@ -57,7 +57,7 @@
                     </div>
                     <div class="block prompt-box">
                         <p class="block-title  rl">隐私政策</p>
-                        <el-input class="name-input" v-model="basicForm.privacy" placeholder="填写API对应的隐私政策url链接" ></el-input>
+                        <el-input class="name-input" v-model="basicForm.privacy" placeholder="填写API对应 of 隐私政策urlLink" ></el-input>
                     </div>
                 </div>
             </el-col>
@@ -75,7 +75,7 @@
             >
             <div class="action-form">
                 <el-form :rules="rules" ref="form" :inline="false" :model="authForm">
-                    <el-form-item label="认证类型">
+                    <el-form-item label="认证Type">
                         <el-radio-group v-model="authForm.type">
                             <el-radio label="none">None</el-radio>
                             <el-radio label="apiKey">API Key</el-radio>
@@ -87,7 +87,7 @@
                         <el-form-item label="API key" prop="apiKey">
                             <el-input class="desc-input " v-model="authForm.apiKey" placeholder="API key" clearable></el-input>
                         </el-form-item>
-                        <el-form-item label="Auth类型">
+                        <el-form-item label="AuthType">
                             <el-radio-group v-model="authForm.authType">
                                 <!--<el-radio label="1">Basic</el-radio>
                                 <el-radio label="2">Bearer</el-radio>-->
@@ -129,7 +129,7 @@
                     schema:'',
                     privacy:''
                 },
-                //认证表单
+                //AuthenticateForm
                 dialogVisible: false,
                 authForm:{
                     type:'none',
@@ -138,8 +138,8 @@
                     customHeaderName:'',
                 },
                 rules: {
-                    apiKey: [{required: true, message: '请输入', trigger: 'blur'}],
-                    customHeaderName: [{required: true, message: '请输入', trigger: 'blur'}],
+                    apiKey: [{required: true, message: 'Please enter', trigger: 'blur'}],
+                    customHeaderName: [{required: true, message: 'Please enter', trigger: 'blur'}],
                 },
                 schemaConfig: schemaConfig
 

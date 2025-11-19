@@ -8,7 +8,7 @@
             <img class="create-img" src="@/assets/imgs/create_icon.png" alt="" />
             <div class="create-filter"></div>
           </div>
-          <span>创建知识库</span>
+          <span>CreateKnowledge Base</span>
         </div>
       </div>
       <template v-if="listData && listData.length">
@@ -18,7 +18,7 @@
         @click.stop="toDocList(n)">
           <div>
               <img  class="logo" :src="require('@/assets/imgs/knowledgeIcon.png')" />
-              <p :class="['smartDate']">{{n.docCount || 0}}个文档</p>
+              <p :class="['smartDate']">{{n.docCount || 0}}个Document</p>
           </div>
           <div class="info rl">
             <p class="name" :title="n.name">
@@ -37,7 +37,7 @@
           <div class="tags">
             <span :class="['smartDate','tagList']" v-if="formattedTagNames(n.knowledgeTagList).length === 0" @click.stop="addTag(n.knowledgeId,n)">
               <span class="el-icon-price-tag icon-tag"></span>
-              添加标签
+              Add标签
             </span>
             <span v-else @click.stop="addTag(n.knowledgeId,n)">{{formattedTagNames(n.knowledgeTagList) }}</span>
           </div>
@@ -98,7 +98,7 @@ export default {
       apptype:AppType,
       basePath: this.$basePath,
       listData:[],
-      title:'创建标签'
+      title:'Create标签'
     }
   },
   
@@ -116,7 +116,7 @@ export default {
   },
   addTag(id,n){
     if([0].includes(n.permissionType)){
-      this.$message.warning('无操作权限')
+      this.$message.warning('无Operation权限')
       return;
     }
     this.$nextTick(() =>{

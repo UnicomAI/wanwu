@@ -113,7 +113,7 @@ export default {
               this.$message.success(this.$t('common.info.publish'))
               this.publishLoading = false
               this.handleCancel()
-              // 更新发送按钮状态
+              // UpdateSendButtonStatus
               this.$emit("getIsCanSendStatus");
             }
           }).finally(() => this.publishLoading = false)

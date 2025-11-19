@@ -39,7 +39,7 @@ func (s *Server) Start(ctx context.Context) error {
 	if s.serv != nil {
 		return nil
 	}
-	// 初始化微服务 [EN] Initialize microservices
+	// Initialize microservices
 	if err := rag.StartService(); err != nil {
 		log.Fatalf("init service err: %v", err)
 	}
@@ -62,7 +62,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	healthcheck := health.NewServer()
 	healthpb.RegisterHealthServer(s.serv, healthcheck)
-	// 注册operate_service [EN] Register operate_service
+	// Register operate_service
 	rag_service.RegisterRagServiceServer(s.serv, s.rag)
 	// listen
 	lis, err := net.Listen("tcp", s.cfg.Server.GrpcEndpoint)

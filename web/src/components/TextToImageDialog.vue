@@ -1,19 +1,19 @@
 <template>
   <el-dialog
     :visible.sync="dialogVisible"
-    title="文生图名字"
+    title="Text-to-Image Name"
     width="600px"
     :before-close="handleClose"
     class="text-to-image-dialog"
   >
     <div class="dialog-content">
-      <!-- 标题和描述 -->
+      <!-- Title and Description -->
       <div class="header-section">
-        <h2 class="dialog-title">文生图名字</h2>
-        <p class="dialog-subtitle">MaaS-简要描述</p>
+        <h2 class="dialog-title">Text-to-Image Name</h2>
+        <p class="dialog-subtitle">MaaS-Brief Description</p>
       </div>
 
-      <!-- API Key 部分 -->
+      <!-- API Key Section -->
       <div class="api-key-section">
         <div class="api-key-label">API Key</div>
         <div class="api-key-input-group">
@@ -30,7 +30,7 @@
               @click="handleConfirm"
               class="confirm-btn"
             >
-              确认
+              Confirm
             </el-button>
             <el-button 
               type="primary" 
@@ -38,35 +38,35 @@
               @click="handleUpdate"
               class="update-btn"
             >
-              更新
+              Update
             </el-button>
           </div>
         </div>
       </div>
 
-      <!-- 参数表格 -->
+      <!-- Parameter Table -->
       <div class="parameters-section">
         <el-table
           :data="parametersData"
           border
           class="parameters-table"
         >
-          <el-table-column prop="parameter" label="参数" width="120" />
-          <el-table-column prop="type" label="类型" width="100" />
-          <el-table-column prop="description" label="描述" />
-          <el-table-column prop="required" label="是否必填" width="100" align="center" />
+          <el-table-column prop="parameter" label="Parameter" width="120" />
+          <el-table-column prop="type" label="Type" width="100" />
+          <el-table-column prop="description" label="Description" />
+          <el-table-column prop="required" label="YesNoRequired" width="100" align="center" />
         </el-table>
       </div>
     </div>
 
-    <!-- 底部确认按钮 -->
+    <!-- Bottom Confirm Button -->
     <div slot="footer" class="dialog-footer">
       <el-button 
         type="danger" 
         @click="handleFinalConfirm"
         class="final-confirm-btn"
       >
-        确认
+        Confirm
       </el-button>
     </div>
   </el-dialog>
@@ -91,10 +91,10 @@ export default {
       apiKey: '',
       parametersData: [
         {
-          parameter: '网页链接',
-          type: '字符串',
-          description: '用于链接到网页',
-          required: '是'
+          parameter: 'Web Link',
+          type: 'String',
+          description: 'Used to link to webpage',
+          required: 'Yes'
         }
       ]
     }
@@ -105,8 +105,8 @@ export default {
     },
     apiKeyPlaceholder() {
       return this.hasApiKey 
-        ? '若没有添加过API Key,则显示输入框;若添加过,直接展示....'
-        : '请输入API Key';
+        ? 'If API Key not added, show input box; if added, show directly...'
+        : 'Please enterAPI Key';
     }
   },
   watch: {
@@ -130,26 +130,26 @@ export default {
     },
     handleConfirm() {
       if (!this.apiKey.trim()) {
-        this.$message.warning('请输入API Key');
+        this.$message.warning('Please enterAPI Key');
         return;
       }
-      this.$message.success('API Key 确认成功');
+      this.$message.success('API Key ConfirmSuccess');
       this.$emit('api-key-confirm', this.apiKey);
     },
     handleUpdate() {
       if (!this.apiKey.trim()) {
-        this.$message.warning('请输入API Key');
+        this.$message.warning('Please enterAPI Key');
         return;
       }
-      this.$message.success('API Key 更新成功');
+      this.$message.success('API Key UpdateSuccess');
       this.$emit('api-key-update', this.apiKey);
     },
     handleFinalConfirm() {
       if (!this.apiKey.trim()) {
-        this.$message.warning('请先输入API Key');
+        this.$message.warning('Please enter API Key first');
         return;
       }
-      this.$message.success('配置确认成功');
+      this.$message.success('ConfigurationConfirmSuccess');
       this.$emit('confirm', {
         apiKey: this.apiKey,
         parameters: this.parametersData
@@ -244,7 +244,7 @@ export default {
   }
 }
 
-// 响应式设计
+// Response式设计
 @media (max-width: 768px) {
   .text-to-image-dialog {
     ::v-deep .el-dialog {

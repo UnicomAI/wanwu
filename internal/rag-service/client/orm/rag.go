@@ -32,7 +32,7 @@ func (c *Client) DeleteRag(ctx context.Context, req *rag_service.RagDeleteReq) *
 func (c *Client) GetRag(ctx context.Context, req *rag_service.RagDetailReq) (*rag_service.RagInfo, *err_code.Status) {
 	info := &model.RagInfo{}
 
-	// 获取 rag 信息 [EN] Get rag information
+	// Get rag information
 	err := sqlopt.WithRagID(req.RagId).Apply(c.db.WithContext(ctx)).First(info).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, toErrStatus("rag_get_err", "rag not found: "+req.RagId)
@@ -40,7 +40,7 @@ func (c *Client) GetRag(ctx context.Context, req *rag_service.RagDetailReq) (*ra
 		return nil, toErrStatus("rag_get_err", err.Error())
 	}
 
-	// 反序列化敏感词表 [EN] Deserialize sensitive word list
+	// Deserialize sensitive word list
 	var sensitiveIds []string
 	if info.SensitiveConfig.TableIds != "" {
 		err = json.Unmarshal([]byte(info.SensitiveConfig.TableIds), &sensitiveIds)
@@ -70,7 +70,7 @@ func (c *Client) GetRag(ctx context.Context, req *rag_service.RagDetailReq) (*ra
 		}
 	}
 
-	// 填充 rag 的信息 [EN] Fill in rag information
+	// Fill in rag information
 	resp := &rag_service.RagInfo{
 		RagId: info.RagID,
 		BriefConfig: &common.AppBriefConfig{
@@ -177,7 +177,7 @@ func (c *Client) CreateRag(ctx context.Context, rag *model.RagInfo) *err_code.St
 		return toErrStatus("rag_create_err", "ragID cannot be empty")
 	}
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		// 检查是否有重复ragID [EN] Check if there are duplicate ragIDs
+		// Check if there are duplicate ragIDs
 		if err := sqlopt.WithRagID(rag.RagID).Apply(tx).First(&model.RagInfo{}).Error; err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return toErrStatus("rag_create_err", "failed to check ragID: "+err.Error())
@@ -186,7 +186,7 @@ func (c *Client) CreateRag(ctx context.Context, rag *model.RagInfo) *err_code.St
 			return toErrStatus("rag_create_err", "repeated ragID: "+rag.RagID)
 		}
 
-		// 默认开关开启 + 默认值 [EN] Default switch on + default value
+		// Default switch on + default value
 		rag.KnowledgeBaseConfig.MaxHistory = 0
 		rag.KnowledgeBaseConfig.Threshold = 0.4
 		rag.KnowledgeBaseConfig.TopK = 5
@@ -203,7 +203,7 @@ func (c *Client) UpdateRag(ctx context.Context, rag *model.RagInfo) *err_code.St
 		return toErrStatus("rag_update_err", "update rag but ragID is empty")
 	}
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		// 检查ragID是否存在 [EN] Check if ragID exists
+		// Check if ragID exists
 		if err := sqlopt.WithRagID(rag.RagID).Apply(tx).First(&model.RagInfo{}).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return toErrStatus("rag_update_err", "rag not found: "+rag.RagID)
@@ -217,7 +217,7 @@ func (c *Client) UpdateRag(ctx context.Context, rag *model.RagInfo) *err_code.St
 				"brief_desc":        rag.BriefConfig.Desc,
 				"brief_avatar_path": rag.BriefConfig.AvatarPath,
 			}
-			// 只更新指定 ragID 的记录 [EN] Only update records with specified ragID
+			// Only update records with specified ragID
 			if err := sqlopt.WithRagID(rag.RagID).Apply(tx).Model(&model.RagInfo{}).Updates(updateMap).Error; err != nil {
 				return toErrStatus("rag_update_err", "failed to update basic rag: "+err.Error())
 			}
@@ -231,7 +231,7 @@ func (c *Client) UpdateRagConfig(ctx context.Context, rag *model.RagInfo) *err_c
 		return toErrStatus("rag_update_err", "update rag but ragID is empty")
 	}
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		// 检查ragID是否存在 [EN] Check if ragID exists
+		// Check if ragID exists
 		if err := sqlopt.WithRagID(rag.RagID).Apply(tx).First(&model.RagInfo{}).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return toErrStatus("rag_update_err", "rag not found: "+rag.RagID)
@@ -271,7 +271,7 @@ func (c *Client) UpdateRagConfig(ctx context.Context, rag *model.RagInfo) *err_c
 				"sensitive_table_ids": rag.SensitiveConfig.TableIds,
 			}
 
-			// 只更新指定 ragID 的记录 [EN] Only update records with specified ragID
+			// Only update records with specified ragID
 			if err := sqlopt.WithRagID(rag.RagID).Apply(tx).Model(&model.RagInfo{}).Updates(updateMap).Error; err != nil {
 				return toErrStatus("rag_update_err", "failed to update basic rag config: "+err.Error())
 			}
@@ -309,7 +309,7 @@ func (c *Client) FetchRagCopyIndex(ctx context.Context, name, userId, orgId stri
 	}
 	prefix := name + "_"
 	var maxIndex *int
-	// 找出所有符合条件记录中最大的索引号 [EN] Find the largest index number among all eligible records
+	// Find the largest index number among all eligible records
 	query := `
         SELECT MAX(CAST(REPLACE(brief_name, ?, '') AS UNSIGNED)) 
 		FROM rag_info 
@@ -328,10 +328,10 @@ func (c *Client) FetchRagCopyIndex(ctx context.Context, name, userId, orgId stri
 	if err != nil {
 		return 0, toErrStatus("rag_get_err", "failed to fetch max rag copy index: "+err.Error())
 	}
-	// 没有匹配的记录 [EN] No matching records
+	// No matching records
 	if maxIndex == nil {
 		return 1, nil
 	}
-	// 返回最大索引 + 1 [EN] Returns maximum index + 1
+	// Returns maximum index + 1
 	return *maxIndex + 1, nil
 }

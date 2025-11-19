@@ -32,7 +32,7 @@ type RagOperateKeywordsParams struct {
 	RagKnowledgeInfo map[string][]*RagKnowledgeInfo `json:"knowledge_base_info"`
 }
 
-// RagOperateKeywords rag添加关键词 [EN] RagOperateKeywords rag add keywords
+// RagOperateKeywords rag add keywords
 func RagOperateKeywords(ctx context.Context, ragOperateKeywordsParams *RagOperateKeywordsParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.KeywordsUri

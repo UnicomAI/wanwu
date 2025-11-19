@@ -122,7 +122,7 @@
             <p class="nodata_tip">{{$t('knowledgeManage.hitTest.noData')}}</p>
           </div>
         </div>
-        <!-- 分段详情区域 -->
+        <!-- 分段DetailsArea域 -->
         <sectionShow ref="sectionShow" />
       </div>
     </div>
@@ -211,7 +211,7 @@ export default {
         if (res.code === 0) {
           this.searchList = res.data !== null ? res.data.searchList : [];
           this.score = res.data !== null ? res.data.score : [];
-          // 设置所有子分段默认展开
+          // Setting所Has子分段Default展开
           this.activeNames = [];
           this.searchList.forEach((item, index) => {
             if (item.childContentList && item.childContentList.length > 0) {
@@ -229,7 +229,7 @@ export default {
       })
     },
     
-    // 显示分段详情弹框
+    // Show分段Details弹框
     showSectionDetail(index) {
       const currentItem = this.searchList[index];
       const currentScore = parseFloat(this.score[index]) || 0;

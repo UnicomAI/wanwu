@@ -4,7 +4,7 @@
     width="600px"
     :before-close="handleClose"
   >
-    <!-- 标题和描述 -->
+    <!-- Title and Description -->
     <template slot="title">
       <div class="custom-title">
         <div class="header-section">
@@ -14,7 +14,7 @@
       </div>
     </template>
 
-    <!-- API Key 部分 -->
+    <!-- API Key Section -->
     <div class="api-key-section">
       <div class="api-key-label">API Key</div>
       <div class="api-key-input-group">
@@ -32,7 +32,7 @@
         </div>
       </div>
     </div>
-    <!-- rerank 部分 -->
+    <!-- rerank Section -->
     <div class="api-key-section rerank-section" v-if="currentItem && currentItem.toolId === 'bochawebsearch'">
     <div class="api-key-label">Rerank</div>
       <el-select

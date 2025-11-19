@@ -17,7 +17,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// SelectKnowledgeList 查询知识库列表 [EN] SelectKnowledgeList Query the knowledge base list
+// SelectKnowledgeList Query the knowledge base list
 func SelectKnowledgeList(ctx context.Context, userId, orgId, name string, tagIdList []string) ([]*model.KnowledgeBase, map[string]int, error) {
 	var knowledgeIdList []string
 	var err error
@@ -27,7 +27,7 @@ func SelectKnowledgeList(ctx context.Context, userId, orgId, name string, tagIdL
 			return nil, nil, err
 		}
 	}
-	//查询有权限的知识库列表，获取有权限的知识库id，目前是getALL，没有通过连表实现 [EN] Query the authorized knowledge base list and obtain the authorized knowledge base ID. Currently, it is getALL, which is not implemented through join tables.
+	//Query the authorized knowledge base list and obtain the authorized knowledge base ID. Currently, it is getALL, which is not implemented through join tables.
 	permissionKnowledgeList, err := SelectKnowledgeIdByPermission(ctx, userId, orgId, model.PermissionTypeView)
 	if err != nil {
 		return nil, nil, err
@@ -51,7 +51,7 @@ func SelectKnowledgeList(ctx context.Context, userId, orgId, name string, tagIdL
 	return knowledgeList, buildPermissionKnowledgeIdMap(permissionKnowledgeList), nil
 }
 
-// SelectKnowledgeById 查询知识库信息,todo [EN] SelectKnowledgeById Query knowledge base information, todo
+// SelectKnowledgeById Query knowledge base information, todo
 func SelectKnowledgeById(ctx context.Context, knowledgeId, userId, orgId string) (*model.KnowledgeBase, error) {
 	var knowledge model.KnowledgeBase
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithKnowledgeID(knowledgeId), sqlopt.WithDelete(0)).
@@ -64,9 +64,9 @@ func SelectKnowledgeById(ctx context.Context, knowledgeId, userId, orgId string)
 	return &knowledge, nil
 }
 
-// SelectKnowledgeByIdList 查询知识库信息 [EN] SelectKnowledgeByIdList Query knowledge base information
+// SelectKnowledgeByIdList Query knowledge base information
 func SelectKnowledgeByIdList(ctx context.Context, knowledgeIdList []string, userId, orgId string) ([]*model.KnowledgeBase, map[string]int, error) {
-	//查询有权限的知识库列表，获取有权限的知识库id，目前是getALL，没有通过连表实现 [EN] Query the authorized knowledge base list and obtain the authorized knowledge base ID. Currently, it is getALL, which is not implemented through join tables.
+	//Query the authorized knowledge base list and obtain the authorized knowledge base ID. Currently, it is getALL, which is not implemented through join tables.
 	permissionKnowledgeList, err := SelectKnowledgeIdByPermission(ctx, userId, orgId, model.PermissionTypeView)
 	if err != nil {
 		return nil, nil, err
@@ -89,7 +89,7 @@ func SelectKnowledgeByIdList(ctx context.Context, knowledgeIdList []string, user
 	return knowledgeList, buildPermissionKnowledgeIdMap(permissionKnowledgeList), nil
 }
 
-// SelectKnowledgeByName 查询知识库信息 [EN] SelectKnowledgeByName Query knowledge base information
+// SelectKnowledgeByName Query knowledge base information
 func SelectKnowledgeByName(ctx context.Context, knowledgeName, userId, orgId string) (*model.KnowledgeBase, error) {
 	var knowledge model.KnowledgeBase
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithName(knowledgeName), sqlopt.WithDelete(0)).
@@ -102,7 +102,7 @@ func SelectKnowledgeByName(ctx context.Context, knowledgeName, userId, orgId str
 	return &knowledge, nil
 }
 
-// SelectKnowledgeByIdNoDeleteCheck 查询知识库信息 [EN] SelectKnowledgeByIdNoDeleteCheck Query knowledge base information
+// SelectKnowledgeByIdNoDeleteCheck Query knowledge base information
 func SelectKnowledgeByIdNoDeleteCheck(ctx context.Context, knowledgeId, userId, orgId string) (*model.KnowledgeBase, error) {
 	var knowledge model.KnowledgeBase
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithKnowledgeID(knowledgeId)).
@@ -115,7 +115,7 @@ func SelectKnowledgeByIdNoDeleteCheck(ctx context.Context, knowledgeId, userId, 
 	return &knowledge, nil
 }
 
-// CheckSameKnowledgeName 知识库名称是否存在同名 [EN] CheckSameKnowledgeName Whether the knowledge base name has the same name
+// CheckSameKnowledgeName Whether the knowledge base name has the same name
 func CheckSameKnowledgeName(ctx context.Context, userId, orgId, name, knowledgeId string) error {
 	//var count int64
 	//err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithName(name), sqlopt.WithoutKnowledgeID(knowledgeId), sqlopt.WithDelete(0)).
@@ -152,20 +152,20 @@ func CheckSameKnowledgeName(ctx context.Context, userId, orgId, name, knowledgeI
 	return nil
 }
 
-// CreateKnowledge 创建知识库 [EN] CreateKnowledge Create a knowledge base
+// CreateKnowledge Create a knowledge base
 func CreateKnowledge(ctx context.Context, knowledge *model.KnowledgeBase, embeddingModelId string) error {
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		//1.插入数据 [EN] 1. Insert data
+		//1. Insert data
 		err := createKnowledge(tx, knowledge)
 		if err != nil {
 			return err
 		}
-		//2.插入权限信息 [EN] 2. Insert permission information
+		//2. Insert permission information
 		err = CreateKnowledgeIdPermission(tx, buildKnowledgePermission(knowledge))
 		if err != nil {
 			return err
 		}
-		//3.通知rag创建知识库 [EN] 3. Notify rag to create a knowledge base
+		//3. Notify rag to create a knowledge base
 		return service.RagKnowledgeCreate(ctx, &service.RagCreateParams{
 			UserId:               knowledge.UserId,
 			Name:                 knowledge.RagName,
@@ -176,22 +176,22 @@ func CreateKnowledge(ctx context.Context, knowledge *model.KnowledgeBase, embedd
 	})
 }
 
-// UpdateKnowledge 更新知识库 [EN] UpdateKnowledge Update knowledge base
+// UpdateKnowledge Update knowledge base
 func UpdateKnowledge(ctx context.Context, name, description string, knowledgeBase *model.KnowledgeBase) error {
 	//return updateKnowledge(db.GetHandle(ctx), knowledgeBase.Id, name, description)
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		//已经区分为知识库展示名称和rag知识库名称，不需要再通知rag修改名称 [EN] It has been divided into knowledge base display name and rag knowledge base name. There is no need to notify rag to change the name.
+		//It has been divided into knowledge base display name and rag knowledge base name. There is no need to notify rag to change the name.
 		if knowledgeBase.Name != knowledgeBase.RagName {
 			return updateKnowledge(tx, knowledgeBase.Id, name, description)
 		}
-		//2.更新数据 [EN] 2.Update data
+		//2.Update data
 		ragName := generator.GetGenerator().NewID()
 		err := updateKnowledgeWithRagName(tx, knowledgeBase.Id, name, ragName, description)
 		if err != nil {
 			return err
 		}
 
-		//2.通知rag更新知识库,只有老的需要更新 [EN] 2. Notify rag to update the knowledge base, only the old ones need to be updated
+		//2. Notify rag to update the knowledge base, only the old ones need to be updated
 		return service.RagKnowledgeUpdate(ctx, &service.RagUpdateParams{
 			UserId:          knowledgeBase.UserId,
 			KnowledgeBaseId: knowledgeBase.KnowledgeId,
@@ -201,7 +201,7 @@ func UpdateKnowledge(ctx context.Context, name, description string, knowledgeBas
 	})
 }
 
-// UpdateKnowledgeShareCount 更新知识库分享数量 [EN] UpdateKnowledgeShareCount updates the number of knowledge base shares
+// UpdateKnowledgeShareCount updates the number of knowledge base shares
 func UpdateKnowledgeShareCount(tx *gorm.DB, knowledgeId string, count int64) error {
 	var updateParams = map[string]interface{}{
 		"share_count": count,
@@ -209,7 +209,7 @@ func UpdateKnowledgeShareCount(tx *gorm.DB, knowledgeId string, count int64) err
 	return tx.Model(&model.KnowledgeBase{}).Where("knowledge_id=?", knowledgeId).Updates(updateParams).Error
 }
 
-// UpdateKnowledgeGraph 更新知识库图谱 [EN] UpdateKnowledgeGraph updates the knowledge base graph
+// UpdateKnowledgeGraph updates the knowledge base graph
 func UpdateKnowledgeGraph(tx *gorm.DB, knowledgeId string, knowledgeGraph string) error {
 	var updateParams = map[string]interface{}{
 		"knowledge_graph": knowledgeGraph,
@@ -217,7 +217,7 @@ func UpdateKnowledgeGraph(tx *gorm.DB, knowledgeId string, knowledgeGraph string
 	return tx.Model(&model.KnowledgeBase{}).Where("knowledge_id=?", knowledgeId).Updates(updateParams).Error
 }
 
-// UpdateKnowledgeReportStatus 更新社区报告状态 [EN] UpdateKnowledgeReportStatus updates community report status
+// UpdateKnowledgeReportStatus updates community report status
 func UpdateKnowledgeReportStatus(ctx context.Context, knowledgeId string, reportStatus int) error {
 	var updateParams = map[string]interface{}{
 		"report_status": model.ReportStatus(reportStatus),
@@ -225,27 +225,27 @@ func UpdateKnowledgeReportStatus(ctx context.Context, knowledgeId string, report
 	return db.GetHandle(ctx).Model(&model.KnowledgeBase{}).Where("knowledge_id=?", knowledgeId).Updates(updateParams).Error
 }
 
-// DeleteKnowledge 删除知识库 [EN] DeleteKnowledge Delete knowledge base
+// DeleteKnowledge Delete knowledge base
 func DeleteKnowledge(ctx context.Context, knowledgeBase *model.KnowledgeBase) error {
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		//1.逻辑删除数据 [EN] 1. Logically delete data
+		//1. Logically delete data
 		err := logicDeleteKnowledge(tx, knowledgeBase)
 		if err != nil {
 			return err
 		}
-		//2.通知rag更新知识库 [EN] 2. Notify rag to update the knowledge base
+		//2. Notify rag to update the knowledge base
 		return async_task.SubmitTask(ctx, async_task.KnowledgeDeleteTaskType, &async_task.KnowledgeDeleteParams{
 			KnowledgeId: knowledgeBase.KnowledgeId,
 		})
 	})
 }
 
-// ExecuteDeleteKnowledge 删除知识库 [EN] ExecuteDeleteKnowledge Delete knowledge base
+// ExecuteDeleteKnowledge Delete knowledge base
 func ExecuteDeleteKnowledge(tx *gorm.DB, id uint32) error {
 	return tx.Unscoped().Model(&model.KnowledgeBase{}).Where("id = ?", id).Delete(&model.KnowledgeBase{}).Error
 }
 
-// UpdateKnowledgeFileInfo 更新知识库文档信息 [EN] UpdateKnowledgeFileInfo updates knowledge base document information
+// UpdateKnowledgeFileInfo updates knowledge base document information
 func UpdateKnowledgeFileInfo(tx *gorm.DB, knowledgeId string, resultList []*model.DocInfo) error {
 	var docSize int64
 	for _, result := range resultList {
@@ -256,7 +256,7 @@ func UpdateKnowledgeFileInfo(tx *gorm.DB, knowledgeId string, resultList []*mode
 		Update("doc_count", gorm.Expr("doc_count + ?", len(resultList))).Error
 }
 
-// DeleteKnowledgeFileInfo 删除知识库文档信息 [EN] DeleteKnowledgeFileInfo deletes knowledge base document information
+// DeleteKnowledgeFileInfo deletes knowledge base document information
 func DeleteKnowledgeFileInfo(tx *gorm.DB, knowledgeId string, resultList []*model.DocInfo) error {
 	var docSize int64
 	for _, result := range resultList {
@@ -267,22 +267,22 @@ func DeleteKnowledgeFileInfo(tx *gorm.DB, knowledgeId string, resultList []*mode
 		Update("doc_count", gorm.Expr("doc_count - ?", len(resultList))).Error
 }
 
-// CreateKnowledgeReport 创建知识库社区报告 [EN] CreateKnowledgeReport creates a knowledge base community report
+// CreateKnowledgeReport creates a knowledge base community report
 func CreateKnowledgeReport(ctx context.Context, knowledgeId string) error {
 	knowledge, err := SelectKnowledgeById(ctx, knowledgeId, "", "")
 	if err != nil {
 		return err
 	}
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		//1.更新生成条数和状态 [EN] 1. Update the number and status of generated items
+		//1. Update the number and status of generated items
 		err := tx.Model(&model.KnowledgeBase{}).Where("knowledge_id=?", knowledgeId).Update("report_create_count", gorm.Expr("report_create_count + ?", 1)).
 			Update("report_status", model.ReportProcessing).Error
 		if err != nil {
 			return err
 		}
-		//构造知识库图谱 [EN] Constructing a knowledge base graph
+		//Constructing a knowledge base graph
 		knowledgeGraph := BuildKnowledgeGraph(knowledge.KnowledgeGraph)
-		//2.通知rag生成社区报告 [EN] 2. Notify rag to generate community report
+		//2. Notify rag to generate community report
 		return service.RagCreateKnowledgeReport(ctx, &service.RagImportDocParams{
 			KnowledgeName:        knowledge.RagName,
 			CategoryId:           knowledge.KnowledgeId,
@@ -314,7 +314,7 @@ func updateKnowledgeWithRagName(tx *gorm.DB, id uint32, name, ragName, descripti
 	return tx.Model(&model.KnowledgeBase{}).Where("id=?", id).Updates(updateParams).Error
 }
 
-// 逻辑删除 [EN] tombstone
+// tombstone
 func logicDeleteKnowledge(tx *gorm.DB, knowledge *model.KnowledgeBase) error {
 	var updateParams = map[string]interface{}{
 		"deleted": 1,
@@ -322,7 +322,7 @@ func logicDeleteKnowledge(tx *gorm.DB, knowledge *model.KnowledgeBase) error {
 	return tx.Model(&model.KnowledgeBase{}).Where("id=?", knowledge.Id).Updates(updateParams).Error
 }
 
-// buildKnowledgePermission 构建知识库权限信息 [EN] buildKnowledgePermission build knowledge base permission information
+// buildKnowledgePermission build knowledge base permission information
 func buildKnowledgePermission(knowledge *model.KnowledgeBase) *model.KnowledgePermission {
 	return &model.KnowledgePermission{
 		PermissionId:   generator.GetGenerator().NewID(),
@@ -351,9 +351,9 @@ func buildPermissionKnowledgeIdMap(permissionList []*model.KnowledgePermission) 
 	return permissionMap
 }
 
-// intersectionKnowledgeIdList 计算两个知识库id 列表的交集 [EN] intersectionKnowledgeIdList calculates the intersection of two knowledge base id lists
+// intersectionKnowledgeIdList calculates the intersection of two knowledge base id lists
 func intersectionKnowledgeIdList(knowledgeIdList, permissionKnowledgeIdList []string) []string {
-	//特殊逻辑，如果用户没有指定tag，则返回用户有权限的知识库id列表 [EN] Special logic, if the user does not specify a tag, a list of knowledge base IDs to which the user has permission is returned.
+	//Special logic, if the user does not specify a tag, a list of knowledge base IDs to which the user has permission is returned.
 	if len(knowledgeIdList) == 0 {
 		return permissionKnowledgeIdList
 	}

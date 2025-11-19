@@ -39,7 +39,7 @@ export default {
             isStoped : false,
             access_token:'',
             runResponse: "",
-            fileList: [],  // 文件列表
+            fileList: [],  // FileList
         };
     },
     created() {
@@ -63,12 +63,12 @@ export default {
     methods: {
         ...mapActions("app", ["setStoreSessionStatus"]),
         newFetch(url, options){
-                // 可以调用原始的 fetch 函数
+                // 可以Call原始 of  fetch Function
                 if(this.isStoped){
                     return 
                 }
                 return originalFetch(url, options).then(response => {
-                    // 可以在这里修改响应或者添加额外的处理
+                    // 可以在这里ModifyResponseOR者Add额外 of Process
                     let query = this.query
 
                     if(response.status != 200){
@@ -97,9 +97,9 @@ export default {
                                         "query": query,
                                         qa_type:0,
                                         finish:1,
-                                        response:msg,  //非代码文本使用自定义转换规则，不使用markdown,(markdown渲染会导致卡顿或样式丢失)
+                                        response:msg,  //Non代码TextUseCustomConvert规Then，不Usemarkdown,(markdownRender会导致卡顿ORStyle丢失)
                                         oriResponse:"",
-                                        searchList:[]  //过滤包含yunyingshang文件的出处
+                                        searchList:[]  // 滤ContainsyunyingshangFile of 出处
                                     }
                                     this.runResponse = msg
                                 }                                
@@ -121,7 +121,7 @@ export default {
 
                     return response;
                 }).catch((err)=>{
-                    this.$message.warning("连接失败，请稍后重试")
+                    this.$message.warning("Connection failed, please try again later")
                     this.isEnd = true
                     this.setStoreSessionStatus(-1)
                     this.runDisabled = false
@@ -131,7 +131,7 @@ export default {
         queryCopy(text){
             this.setPrompt(text)
         },
-        /*过滤掉markdown中自定义的行号*/
+        /* 滤掉markdown中Custom of 行号*/
         getContentInBraces(shtml) {
             let temp = document.createElement('div')
             temp.setAttribute('id','temp')
@@ -146,10 +146,10 @@ export default {
                 copys[i].addEventListener('click', (e)=> {
                     let innerText = e.target.parentNode.nextElementSibling.innerText
                     this.$copy(innerText)
-                    e.target.innerText ='复制成功'
-                    //document.getElementById('temp') && document.getElementById('temp').remove() //复制完成把临时生成的元素删除
+                    e.target.innerText ='Copy successful'
+                    //document.getElementById('temp') && document.getElementById('temp').remove() //Copy完成把临 when Generate of 元素Delete
                     setTimeout(()=>{
-                        e.target.innerText ='复制'
+                        e.target.innerText ='Copy'
                     },1500)
                 })
             }
@@ -159,7 +159,7 @@ export default {
             this.$refs['editable'].setPrompt(val)
             this.preSend()
         },
-        //获取上传的文件
+        //GetUpload of File
         getFileIdList() {
             let list = this.$refs['editable'].getFileIdList()  //[{fileId:"b67e79615"url:"b4d0a8.jpg"}]
             let fileIds = []
@@ -192,7 +192,7 @@ export default {
         },
         sendEventStream(prompt, msgStr, lastIndex){
             if (this.sessionStatus === 0) {
-                this.$message.warning('上个问题没有回答完！')
+                this.$message.warning('The previous question has not been answered yet!')
                 return
             }
 
@@ -229,9 +229,9 @@ export default {
                 },
                 signal: this.ctrlAbort.signal,
                 body: JSON.stringify({...this.sseParams,'history':history}),
-                openWhenHidden: true, //页面退至后台保持连接
+                openWhenHidden: true, //Page退to后台保持Join
                 onopen: async(e) => {
-                    //console.log("已建立SSE连接~",new Date().getTime());
+                    //console.log("SSE connection established~",new Date().getTime());
                     if (e.status !== 200) {
                         try {
                             const errorData = await e.json();
@@ -246,7 +246,7 @@ export default {
                             this.$refs['session-com'].replaceLastData(lastIndex, fillData)
                         } catch (e) {
                             const text = await e.text();
-                            this.$message.error(text || '未知错误');
+                            this.$message.error(text || 'Unknown error');
                         }
 
                         this.stopEventSource();
@@ -261,11 +261,11 @@ export default {
                             data = JSON.parse(e.data);
                             console.log('===>',new Date().getTime(), data);
                         } catch (error) {
-                            return; // 如果解析失败，直接返回，不处理这条消息
+                            return; // IfParseFailed，DirectlyBack，不Process这条Message
                         }
                         
                         this.sseResponse = data;
-                        //待替换的数据，需要前端组装
+                        //待Replace of Data，Need前端组装
                         let commonData = {
                             ...this.sseResponse,
                             ...this.sseParams,
@@ -277,12 +277,12 @@ export default {
                             "requestFileUrls":'',
                             "searchList": this.sseResponse.data && this.sseResponse.data.searchList ? this.sseResponse.data.searchList: [],
                             "gen_file_url_list": [],
-                            "thinkText":'思考中',
+                            "thinkText":'Thinking',
                             "isOpen":true,
                             "citations":[]
                         }
                         if(data.code === 0 || data.code === 1){
-                            //finish 0：进行中  1：关闭   2:敏感词关闭
+                            //finish 0：进行中  1：Close   2:Sensitive WordClose
                             let _sentence = data.data.output;
                                 this._print.print(
                                     {
@@ -326,18 +326,18 @@ export default {
                 },
                 onclose: () => {
                     console.log('===> eventSource onClose')
-                    this.setStoreSessionStatus(-1)//关闭后改变状态
+                    this.setStoreSessionStatus(-1)//Close后改变Status
                     this.sseOnCloseCallBack()
                 },
                 onerror: (e) => {
-                    console.log("服务连接异常请重试！");
+                    console.log("Service connection exception, please try again!");
                     if (e.readyState === EventSource.CLOSED) {
                         console.log("connection is closed");
                     } else {
                         console.log("Error occured", e);
                     }
-                    this.stopEventSource()//前端主动关闭连接
-                    this.setStoreSessionStatus(-1)//关闭后改变状态
+                    this.stopEventSource()//前端主动CloseJoin
+                    this.setStoreSessionStatus(-1)//Close后改变Status
                 }
             });
                       
@@ -352,12 +352,12 @@ export default {
             console.log('####  sendEventSource',new Date().getTime())
             const userInfo = this.$store.state.user.userInfo || {}
             if (this.sessionStatus === 0) {
-                this.$message.warning('上个问题没有回答完！')
+                this.$message.warning('The previous question has not been answered yet!')
                 return
             }
 
             this.sseResponse = {}
-            //发送问题后不允许继续提问
+            //Send问题后不允许继续提问
             this.setStoreSessionStatus(0)
 
             this.clearInput()
@@ -370,7 +370,7 @@ export default {
                 fileList:this.fileList,
                 pendingResponse:''
             }
-            //正式环境传模型参数
+            //正式Environment传ModelParameter
             this.$refs['session-com'].pushHistory(params)
             
             let endStr = ''
@@ -381,7 +381,7 @@ export default {
 
             let data = null;
             let headers = null;
-            //判断是是不是openurl对话
+            //判断YesYesIs Notopenurl对话
             if(this.type === 'agentChat'){
                 this.sseApi = `${USER_API}/assistant/stream`;
                 const trial = this.isTestChat ? true : false
@@ -413,10 +413,10 @@ export default {
                 headers,
                 signal: this.ctrlAbort.signal,
                 body: JSON.stringify(data),
-                openWhenHidden: true, //页面退至后台保持连接
+                openWhenHidden: true, //Page退to后台保持Join
                 ...(this.type === 'webChat' && { isOpenUrl: true }),
                 onopen: async(e) => {
-                    console.log("已建立SSE连接~",new Date().getTime());
+                    console.log("SSE connection established~",new Date().getTime());
                     if (e.status !== 200) {
                         try {
                             const errorData = await e.json();
@@ -431,7 +431,7 @@ export default {
                             this.$refs['session-com'].replaceLastData(lastIndex, fillData)
                         } catch (e) {
                             const text = await e.text();
-                            this.$message.error(text || '未知错误');
+                            this.$message.error(text || 'Unknown error');
                         }
 
                         this.stopEventSource();
@@ -444,7 +444,7 @@ export default {
                         let data = JSON.parse(e.data)
                         console.log('===>',new Date().getTime(),data)
                         this.sseResponse = data
-                        //待替换的数据，需要前端组装
+                        //待Replace of Data，Need前端组装
                         let commonData = {
                             ...data,
                             ...this.sseParams,
@@ -456,14 +456,14 @@ export default {
                             "searchList": data.search_list || [],
                             "gen_file_url_list":data.gen_file_url_list || [],
                             "thinkText":i18n.t('agent.thinking'),
-                            'toolText':'使用工具中...',
+                            'toolText':'Using tool...',
                             "isOpen":true,
                             "showScrollBtn":null,
                             "citations":[]
                         }
 
                         if(data.code === 0){
-                            //finish 0：进行中  1：关闭   2:敏感词关闭
+                            //finish 0：进行中  1：Close   2:Sensitive WordClose
                             let _sentence = data.response
                                 this._print.print(
                                     {
@@ -520,48 +520,48 @@ export default {
                 },
                 onclose: () => {
                     console.log('===> eventSource onClose')
-                    this.setStoreSessionStatus(-1)//关闭后改变状态
+                    this.setStoreSessionStatus(-1)//Close后改变Status
                     this.sseOnCloseCallBack()
                 },
                 onerror: (e) => {
-                    console.log("服务连接异常请重试！");
+                    console.log("Service connection exception, please try again!");
                     if (e.readyState === EventSource.CLOSED) {
                         console.log("connection is closed");
                     } else {
                         console.log("Error occured", e);
                     }
-                    this.stopEventSource()//前端主动关闭连接
-                    this.setStoreSessionStatus(-1)//关闭后改变状态
+                    this.stopEventSource()//前端主动CloseJoin
+                    this.setStoreSessionStatus(-1)//Close后改变Status
                 }
             });
         },
         preStop() {
-            //获取已经拿到的全部回答,一次性回显出来
+            //Get已经拿到 of 全部回答,一次性回显出来
             this.sseOnCloseCallBack(true)
         },
         sseOnCloseCallBack(isStoped){
             this.stopEventSource()
-            //图文问答不使用打字机
+            //图文问答不Use打字机
            /* if(this.sseResponse.qa_type === 6){
                 return
             }*/
-            //主动停止
+            //主动Stop
             if(isStoped) {
                 this.stopAndEcho()
             }else{
-                //收到onclose,且使用的是文生代码
+                //收到onclose,ANDUse of Yes文生代码
                 if(this.sseResponse.qa_type === 4){
                     this.stopAndEcho()
                 }else{
-                    //接口405等
+                    //Interface405Etc
                     let history_list = []
                     let lastIndex = history_list.length - 1
                     let lastRQ = history_list[lastIndex]
                     let endStr =this._print.getAllworld()
                     endStr = convertLatexSyntax(endStr)
-                    // 替换标签
+                    // ReplaceTag
                     endStr = parseSub(endStr)
-                    // 如果返回有结果，则在结束时不展示“本次回答已终止”
+                    // IfBackHasResult，Then在结束 when 不Show“本次回答已终止”
                     this.runResponse = md.render(endStr)
                     this.runDisabled = false
                     this.setStoreSessionStatus(-1)
@@ -569,7 +569,7 @@ export default {
             }
         },
         stopAndEcho(){
-            //暂存已经收到的所有response
+            //暂存已经收到 of 所Hasresponse
             let endResponse = this._print.getAllworld()
 
             this._print && this._print.stop()
@@ -582,7 +582,7 @@ export default {
                 let lastRQ = history_list[lastIndex]
                 if(endResponse){
                     endResponse = convertLatexSyntax(endResponse)
-                    // 替换标签
+                    // ReplaceTag
                     endResponse = parseSub(endResponse)
                     this.runResponse = md.render(endResponse)
                     this.runDisabled = false
@@ -592,7 +592,7 @@ export default {
 
                 }else{
                     if(Object.keys(this.sseResponse).length !== 0 && this.sseResponse.code !== 7){
-                        this.runResponse ="本次回答已被终止"
+                        this.runResponse ="This response has been terminated"
                         this.setStoreSessionStatus(-1)
                     }else{
                         this.stopEventSource();

@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// SelectKnowledgeRunningImportTask 查询导入信息 [EN] SelectKnowledgeRunningImportTask Query import information
+// SelectKnowledgeRunningImportTask Query import information
 func SelectKnowledgeRunningImportTask(ctx context.Context, knowledgeId string) error {
 	var count int64
 	err := sqlopt.SQLOptions(sqlopt.WithKnowledgeID(knowledgeId), sqlopt.WithStatusList([]int{model.KnowledgeImportAnalyze})).
@@ -29,7 +29,7 @@ func SelectKnowledgeRunningImportTask(ctx context.Context, knowledgeId string) e
 	return nil
 }
 
-// SelectKnowledgeLatestImportTask 查询最近导入任务 [EN] SelectKnowledgeLatestImportTask queries the latest import tasks
+// SelectKnowledgeLatestImportTask queries the latest import tasks
 func SelectKnowledgeLatestImportTask(ctx context.Context, knowledgeId string) ([]*model.KnowledgeImportTask, error) {
 	var importTaskList []*model.KnowledgeImportTask
 	err := sqlopt.SQLOptions(sqlopt.WithKnowledgeID(knowledgeId)).
@@ -44,7 +44,7 @@ func SelectKnowledgeLatestImportTask(ctx context.Context, knowledgeId string) ([
 	return importTaskList, nil
 }
 
-// SelectKnowledgeImportTaskById 根据id查询导入信息 [EN] SelectKnowledgeImportTaskById Query import information based on id
+// SelectKnowledgeImportTaskById Query import information based on id
 func SelectKnowledgeImportTaskById(ctx context.Context, importId string) (*model.KnowledgeImportTask, error) {
 	var importTask model.KnowledgeImportTask
 	err := sqlopt.SQLOptions(sqlopt.WithImportID(importId)).
@@ -57,7 +57,7 @@ func SelectKnowledgeImportTaskById(ctx context.Context, importId string) (*model
 	return &importTask, nil
 }
 
-// SelectKnowledgeImportTaskByIdList 根据id 列表查询导入信息 [EN] SelectKnowledgeImportTaskByIdList queries import information based on id list
+// SelectKnowledgeImportTaskByIdList queries import information based on id list
 func SelectKnowledgeImportTaskByIdList(ctx context.Context, importId []string) ([]*model.KnowledgeImportTask, error) {
 	var importTask []*model.KnowledgeImportTask
 	err := sqlopt.SQLOptions(sqlopt.WithImportIDs(importId)).
@@ -70,22 +70,22 @@ func SelectKnowledgeImportTaskByIdList(ctx context.Context, importId []string) (
 	return importTask, nil
 }
 
-// CreateKnowledgeImportTask 导入任务 [EN] CreateKnowledgeImportTask import task
+// CreateKnowledgeImportTask import task
 func CreateKnowledgeImportTask(ctx context.Context, importTask *model.KnowledgeImportTask) error {
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		//1.创建知识库导入任务 [EN] 1. Create a knowledge base import task
+		//1. Create a knowledge base import task
 		err := createKnowledgeImportTask(tx, importTask)
 		if err != nil {
 			return err
 		}
-		//2.通知rag更新知识库 [EN] 2. Notify rag to update the knowledge base
+		//2. Notify rag to update the knowledge base
 		return async_task.SubmitTask(ctx, async_task.DocImportTaskType, &async_task.DocImportTaskParams{
 			TaskId: importTask.ImportId,
 		})
 	})
 }
 
-// UpdateKnowledgeImportTaskStatus 更新导入任务状态 [EN] UpdateKnowledgeImportTaskStatus updates the import task status
+// UpdateKnowledgeImportTaskStatus updates the import task status
 func UpdateKnowledgeImportTaskStatus(ctx context.Context, tx *gorm.DB, id uint32, status int, errMsg string) error {
 	if tx == nil {
 		tx = db.GetHandle(ctx)
@@ -98,7 +98,7 @@ func UpdateKnowledgeImportTaskStatus(ctx context.Context, tx *gorm.DB, id uint32
 		}).Error
 }
 
-// DeleteImportTaskByKnowledgeId 根据知识库id 删除导入任务 [EN] DeleteImportTaskByKnowledgeId Delete the import task based on the knowledge base id
+// DeleteImportTaskByKnowledgeId Delete the import task based on the knowledge base id
 func DeleteImportTaskByKnowledgeId(tx *gorm.DB, knowledgeId string) error {
 	var count int64
 	err := sqlopt.SQLOptions(sqlopt.WithKnowledgeID(knowledgeId)).

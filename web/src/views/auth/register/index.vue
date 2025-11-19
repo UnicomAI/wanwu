@@ -97,7 +97,7 @@ export default {
   },
   methods: {
     handleCommonInfo(commonInfo) {
-      // 如果功能未开启，重定向到登录页
+      // If功能未开启，重定向到Login页
       if (!commonInfo.register.email.status) {
         this.$router.push({path: `/login`})
       }

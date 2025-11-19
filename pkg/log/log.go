@@ -9,15 +9,15 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// Config 日志文件配置 [EN] Log file configuration
+// Log file configuration
 type Config struct {
 	Enable     bool    `json:"enable" mapstructure:"enable"`
-	Filename   string  `json:"filename" mapstructure:"filename"` // 日志文件名 [EN] Log file name
-	Level      string  `json:"level" mapstructure:"level"`       // 日志等级 [EN] Log level
+	Filename   string  `json:"filename" mapstructure:"filename"` // Log file name
+	Level      string  `json:"level" mapstructure:"level"`       // Log level
 	LevelOp    LevelOp `json:"level_op" mapstructure:"level_op"`
-	MaxSize    int     `json:"max_size" mapstructure:"max_size"`       // 日志切割大小，m为单位 [EN] Log rotation size in MB
-	MaxBackups int     `json:"max_backups" mapstructure:"max_backups"` // 日志最大保留个数 [EN] Maximum number of log backups
-	MaxAge     int     `json:"max_age" mapstructure:"max_age"`         // 日志最大保留天数 [EN] Maximum retention days
+	MaxSize    int     `json:"max_size" mapstructure:"max_size"`       // Log rotation size in MB
+	MaxBackups int     `json:"max_backups" mapstructure:"max_backups"` // Maximum number of log backups
+	MaxAge     int     `json:"max_age" mapstructure:"max_age"`         // Maximum retention days
 }
 
 type LevelOp int32
@@ -30,7 +30,7 @@ const (
 	LevelGT LevelOp = 2  // great than
 )
 
-// 打印等级 Panic > Error > Warn > Info > Debug [EN] Log level precedence
+// Log level precedence
 
 var slog *zap.SugaredLogger
 
@@ -41,7 +41,7 @@ func init() {
 	slog = logger.Sugar()
 }
 
-// InitLog 初始化日志 [EN] Initialize logging
+// Initialize logging
 func InitLog(std bool, level string, cfgs ...Config) error {
 	core, err := InitLogCore(std, level, cfgs...)
 	if err != nil {
@@ -119,32 +119,32 @@ func getLogWriter(cfg Config) zapcore.WriteSyncer {
 	return zapcore.AddSync(lumberJackLogger)
 }
 
-// Debugf debug日志 [EN] Log debug-level messages
+// Log debug-level messages
 func Debugf(msg string, args ...interface{}) {
 	slog.Debugf(msg, args...)
 }
 
-// Infof info日志 [EN] Log info-level messages
+// Log info-level messages
 func Infof(msg string, args ...interface{}) {
 	slog.Infof(msg, args...)
 }
 
-// Warnf Warn日志 [EN] Log warning-level messages
+// Log warning-level messages
 func Warnf(msg string, args ...interface{}) {
 	slog.Warnf(msg, args...)
 }
 
-// Errorf Error日志 [EN] Log error-level messages
+// Log error-level messages
 func Errorf(msg string, args ...interface{}) {
 	slog.Errorf(msg, args...)
 }
 
-// Panicf Panic日志 [EN] Log panic-level messages
+// Log panic-level messages
 func Panicf(msg string, args ...interface{}) {
 	slog.Panicf(msg, args...)
 }
 
-// Fatalf Fatal日志 [EN] Log fatal-level messages
+// Log fatal-level messages
 func Fatalf(msg string, args ...interface{}) {
 	slog.Fatalf(msg, args...)
 }

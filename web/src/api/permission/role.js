@@ -1,7 +1,7 @@
 import service from "@/utils/request"
 import {USER_API} from "@/utils/requestConstants"
 
-// 获取角色列表
+// GetRoleList
 export const fetchRoleList = (params) => {
     return service({
         url: `${USER_API}/role/list`,
@@ -9,7 +9,7 @@ export const fetchRoleList = (params) => {
         params,
     })
 }
-// 获取角色详情
+// GetRoleDetails
 export const fetchRoleDetail = (params) => {
     return service({
         url: `${USER_API}/role/info`,
@@ -17,7 +17,7 @@ export const fetchRoleDetail = (params) => {
         params,
     })
 }
-// 创建角色
+// CreateRole
 export const createRole = (data) => {
     return service({
         url: `${USER_API}/role`,
@@ -25,7 +25,7 @@ export const createRole = (data) => {
         data,
     })
 }
-// 编辑角色
+// EditRole
 export const editRole = (data) => {
     return service({
         url: `${USER_API}/role`,
@@ -33,7 +33,7 @@ export const editRole = (data) => {
         data,
     })
 }
-// 删除角色
+// DeleteRole
 export const deleteRole = (data) => {
     return service({
         url: `${USER_API}/role`,
@@ -41,7 +41,7 @@ export const deleteRole = (data) => {
         data,
     })
 }
-// 修改角色状态
+// ModifyRoleStatus
 export const changeRoleStatus = (data) => {
     return service({
         url: `${USER_API}/role/status`,
@@ -49,7 +49,7 @@ export const changeRoleStatus = (data) => {
         data,
     })
 }
-// 获取权限树
+// GetPermissionTree
 export const fetchPermTree = () => {
     return service({
         url: `${USER_API}/role/template`,

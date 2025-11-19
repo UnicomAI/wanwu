@@ -1,8 +1,8 @@
 package request
 
 type GenApiKeyRequest struct {
-	AppId   string `json:"appId" validate:"required"`   // 应用id [EN] application id
-	AppType string `json:"appType" validate:"required"` // 应用类型 [EN] Application type
+	AppId   string `json:"appId" validate:"required"`   // application id
+	AppType string `json:"appType" validate:"required"` // Application type
 }
 
 func (g GenApiKeyRequest) Check() error {
@@ -18,8 +18,8 @@ func (d DelApiKeyRequest) Check() error {
 }
 
 type GetApiKeyListRequest struct {
-	AppId   string `form:"appId" json:"appId" validate:"required"`     // 应用id [EN] application id
-	AppType string `form:"appType" json:"appType" validate:"required"` // 应用类型 [EN] Application type
+	AppId   string `form:"appId" json:"appId" validate:"required"`     // application id
+	AppType string `form:"appType" json:"appType" validate:"required"` // Application type
 }
 
 func (g GetApiKeyListRequest) Check() error {

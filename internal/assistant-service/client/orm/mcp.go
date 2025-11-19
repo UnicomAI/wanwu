@@ -9,7 +9,7 @@ import (
 )
 
 func (c *Client) CreateAssistantMCP(ctx context.Context, assistantId uint32, mcpId, mcpType, actionName string, userId, orgID string) *err_code.Status {
-	// 检查是否已存在 [EN] Check if it already exists
+	// Check if it already exists
 	var count int64
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithAssistantID(assistantId),
@@ -28,7 +28,7 @@ func (c *Client) CreateAssistantMCP(ctx context.Context, assistantId uint32, mcp
 		MCPId:       mcpId,
 		MCPType:     mcpType,
 		ActionName:  actionName,
-		Enable:      true, // 默认开 [EN] On by default
+		Enable:      true, // On by default
 		UserId:      userId,
 		OrgId:       orgID,
 	}).Error

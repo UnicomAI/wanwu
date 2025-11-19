@@ -1,28 +1,28 @@
 package model
 
 const (
-	DocSegmentImportInit      = 0 //任务待处理 [EN] Task pending
-	DocSegmentImportImporting = 1 //文档分段导入中 [EN] Documents are being imported in sections
-	DocSegmentImportSuccess   = 2 //文档分段导入成功 [EN] Document segments imported successfully
-	DocSegmentImportFail      = 3 //文档分段导入失败 [EN] Document segment import failed
+	DocSegmentImportInit      = 0 //Task pending
+	DocSegmentImportImporting = 1 //Documents are being imported in sections
+	DocSegmentImportSuccess   = 2 //Document segments imported successfully
+	DocSegmentImportFail      = 3 //Document segment import failed
 )
 
 type DocSegmentImportParams struct {
-	KnowledgeName      string   `json:"knowledgeName"`      // 知识库的名称 [EN] The name of the knowledge base
-	KnowledgeRagName   string   `json:"knowledgeRagName"`   // 知识库的rag名称 [EN] The rag name of the knowledge base
-	KnowledgeId        string   `json:"knowledgeId"`        // 知识库的唯一ID [EN] The unique ID of the knowledge base
-	KnowledgeCreatorId string   `json:"knowledgeCreatorId"` // 知识库的创建者ID [EN] Creator ID of the knowledge base
-	FileName           string   `json:"fileName"`           // 与chunk关联的文件名 [EN] The file name associated with the chunk
-	MaxSentenceSize    int      `json:"maxSentenceSize"`    // 最大分段长度限制 [EN] Maximum segment length limit
-	FileUrl            string   `json:"fileUrl"`            //文件url [EN] file url
-	SegmentMethod      string   `json:"segmentMethod"`      ////分段方法 0：通用分段；1：父子分段,字符串为空则认为是通用分段 [EN] //Segmentation method 0: universal segmentation; 1: parent-child segmentation, if the string is empty, it is considered a universal segmentation
-	SubSplitter        []string `json:"subSplitter"`        // 分隔符（只有父子分段必填） [EN] Delimiter (required only for parent-child segments)
-	SubMaxSplitter     int      `json:"subMaxSplitter"`     // 可分隔最大值（只有父子分段必填） [EN] Maximum separable value (required only for parent-child segments)
+	KnowledgeName      string   `json:"knowledgeName"`      // The name of the knowledge base
+	KnowledgeRagName   string   `json:"knowledgeRagName"`   // The rag name of the knowledge base
+	KnowledgeId        string   `json:"knowledgeId"`        // The unique ID of the knowledge base
+	KnowledgeCreatorId string   `json:"knowledgeCreatorId"` // Creator ID of the knowledge base
+	FileName           string   `json:"fileName"`           // The file name associated with the chunk
+	MaxSentenceSize    int      `json:"maxSentenceSize"`    // Maximum segment length limit
+	FileUrl            string   `json:"fileUrl"`            //file url
+	SegmentMethod      string   `json:"segmentMethod"`      ////Segmentation method 0: universal segmentation; 1: parent-child segmentation, if the string is empty, it is considered a universal segmentation
+	SubSplitter        []string `json:"subSplitter"`        // Delimiter (required only for parent-child segments)
+	SubMaxSplitter     int      `json:"subMaxSplitter"`     // Maximum separable value (required only for parent-child segments)
 }
 
 type ChildChunkConfig struct {
-	Separators []string `json:"separators"` // 分隔符 [EN] delimiter
-	ChunkSize  int32    `json:"chunk_size"` // 子分段大小 [EN] subsegment size
+	Separators []string `json:"separators"` // delimiter
+	ChunkSize  int32    `json:"chunk_size"` // subsegment size
 }
 
 type DocSegmentImportTask struct {

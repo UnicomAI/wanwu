@@ -18,16 +18,16 @@ func LoggingUnaryGRPC() grpc.UnaryServerInterceptor {
 		startTime := time.Now()
 		requestId := uuid.New().String()
 
-		// 记录请求 [EN] Logging request
+		// Logging request
 		reqBuf := new(bytes.Buffer)
 		if err := json.NewEncoder(reqBuf).Encode(req); err != nil {
 			log.Errorf("[Request ID: %s] Request Method %s | Failed to encode request: %v", requestId, info.FullMethod, err)
 		}
 		log.Infof("[Request ID: %s] Request Method %s | Request Body: %s", requestId, info.FullMethod, reqBuf.String())
-		// 将请求ID添加到上下文中，以便下游服务也可以访问它 [EN] Add the request ID to the context so that downstream services can also access it
+		// Add the request ID to the context so that downstream services can also access it
 		//ctx = context.WithValue(ctx, "request_id", requestId)
 
-		// 调用下一个handler [EN] Call next handler
+		// Call next handler
 		resp, err := handler(ctx, req)
 		endTime := time.Now()
 		duration := endTime.Sub(startTime)
@@ -36,7 +36,7 @@ func LoggingUnaryGRPC() grpc.UnaryServerInterceptor {
 			return nil, err
 		}
 
-		// 记录响应 [EN] Log response
+		// Log response
 		respBuf := new(bytes.Buffer)
 		if err := json.NewEncoder(respBuf).Encode(resp); err != nil {
 			log.Errorf("[Request ID: %s] Failed to encode response: %v", requestId, err)

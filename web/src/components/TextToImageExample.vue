@@ -1,28 +1,28 @@
 <template>
   <div class="text-to-image-example">
     <div class="page-header">
-      <h1>文生图配置示例</h1>
+      <h1>文生图Configuration示例</h1>
       <el-button 
         type="primary" 
         @click="showDialog"
         icon="el-icon-plus"
       >
-        打开文生图配置
+        打开文生图Configuration
       </el-button>
     </div>
 
-    <!-- 配置信息展示 -->
+    <!-- ConfigurationInformationShow -->
     <div v-if="configData" class="config-display">
-      <h3>当前配置：</h3>
+      <h3>当前Configuration：</h3>
       <div class="config-item">
         <strong>API Key:</strong> {{ configData.apiKey }}
       </div>
       <div class="config-item">
-        <strong>参数数量:</strong> {{ configData.parameters.length }}
+        <strong>ParameterCount:</strong> {{ configData.parameters.length }}
       </div>
     </div>
 
-    <!-- 文生图配置弹窗 -->
+    <!-- 文生图Configuration弹窗 -->
     <TextToImageDialog
       :visible.sync="dialogVisible"
       :initial-api-key="initialApiKey"
@@ -45,7 +45,7 @@ export default {
   data() {
     return {
       dialogVisible: false,
-      initialApiKey: 'sk-1234567890abcdef', // 模拟已存在的API Key
+      initialApiKey: 'sk-1234567890abcdef', // 模拟Already exists of API Key
       configData: null
     }
   },
@@ -54,15 +54,15 @@ export default {
       this.dialogVisible = true;
     },
     handleConfirm(data) {
-      console.log('配置确认:', data);
+      console.log('ConfigurationConfirm:', data);
       this.configData = data;
-      this.$message.success('文生图配置已保存');
+      this.$message.success('文生图Configuration已Save');
     },
     handleApiKeyConfirm(apiKey) {
-      console.log('API Key 确认:', apiKey);
+      console.log('API Key Confirm:', apiKey);
     },
     handleApiKeyUpdate(apiKey) {
-      console.log('API Key 更新:', apiKey);
+      console.log('API Key Update:', apiKey);
     },
     handleClose() {
       console.log('弹窗关闭');

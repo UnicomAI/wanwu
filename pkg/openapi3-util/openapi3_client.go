@@ -45,8 +45,8 @@ func NewClientByDoc(doc *openapi3.T) *Client {
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 				DialContext: (&net.Dialer{
-					Timeout:   time.Minute, // 连接超时时间 [EN] Connection timeout
-					KeepAlive: time.Minute, // 连接保持活跃的时间 [EN] How long the connection remains active
+					Timeout:   time.Minute, // Connection timeout
+					KeepAlive: time.Minute, // How long the connection remains active
 				}).DialContext,
 				ResponseHeaderTimeout: time.Minute,
 			},
@@ -173,7 +173,7 @@ func executeRequest(
 				}
 			}
 			body = &buf
-			contentType = writer.FormDataContentType() // 获取包含boundary的完整Content-Type [EN] Get the complete Content-Type including boundary
+			contentType = writer.FormDataContentType() // Get the complete Content-Type including boundary
 			if err := writer.Close(); err != nil {
 				return nil, err
 			}
@@ -230,7 +230,7 @@ func executeRequest(
 func buildPathWithParams(path string, pathParams map[string]interface{}) (string, error) {
 	specPath := path
 
-	// 替换路径参数 [EN] Replace path parameters
+	// Replace path parameters
 	for paramName, paramValue := range pathParams {
 		placeholder := "{" + paramName + "}"
 		if !strings.Contains(specPath, placeholder) {

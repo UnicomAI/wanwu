@@ -41,20 +41,20 @@ const (
 )
 
 func (s *Service) GetDocList(ctx context.Context, req *knowledgebase_doc_service.GetDocListReq) (*knowledgebase_doc_service.GetDocListResp, error) {
-	//查询知识库信息 [EN] Query knowledge base information
+	//Query knowledge base information
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 错误(%v) 参数(%v)", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeBaseSelectFailed)
 	}
-	//入口层已经校验过用户权限，此处无需校验 [EN] The user permissions have been verified at the entry level, so there is no need to verify them here.
+	//The user permissions have been verified at the entry level, so there is no need to verify them here.
 	list, total, err := orm.GetDocList(ctx, "", "", req.KnowledgeId,
 		req.DocName, req.DocTag, util.BuildDocReqStatusList(int(req.Status)), req.PageSize, req.PageNum)
 	if err != nil {
 		log.Errorf("获取知识库列表失败(%v)  参数(%v)", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeBaseSelectFailed)
 	}
-	//查询配置信息 [EN] Query configuration information
+	//Query configuration information
 	var importTaskList []*model.KnowledgeImportTask
 	if len(list) > 0 {
 		importTaskList, err = orm.SelectKnowledgeImportTaskByIdList(ctx, buildImportTaskIdList(list))
@@ -80,7 +80,7 @@ func (s *Service) ImportDoc(ctx context.Context, req *knowledgebase_doc_service.
 	if err != nil {
 		return nil, err
 	}
-	//创建导入任务 [EN] Create import task
+	//Create import task
 	err = orm.CreateKnowledgeImportTask(ctx, task)
 	if err != nil {
 		log.Errorf("import doc fail %v", err)
@@ -101,7 +101,7 @@ func (s *Service) UpdateDocStatus(ctx context.Context, req *knowledgebase_doc_se
 			log.Errorf("docId: %v build knowledge info fail %v", req.DocId, err)
 			return nil, util.ErrCode(errs.Code_KnowledgeDocUpdateStatusFailed)
 		}
-		//开启了知识图谱 [EN] Opened the knowledge graph
+		//Opened the knowledge graph
 		if graph.KnowledgeGraphSwitch {
 			err = createKnowledgeGraph(ctx, knowledge, doc, graph)
 			if err != nil {
@@ -117,11 +117,11 @@ func (s *Service) UpdateDocMetaData(ctx context.Context, req *knowledgebase_doc_
 	if len(req.MetaDataList) == 0 {
 		return &emptypb.Empty{}, nil
 	}
-	// 更新文档元数据 [EN] Update document metadata
+	// Update document metadata
 	if len(req.DocId) > 0 {
 		return updateDocMetaData(ctx, req)
 	}
-	// 更新知识库元数据 [EN] Update knowledge base metadata
+	// Update knowledge base metadata
 	if len(req.KnowledgeId) > 0 {
 		return updateKnowledgeMetaData(ctx, req)
 	}
@@ -144,30 +144,30 @@ func buildMetaDocMap(metaList []*model.KnowledgeDocMeta) map[string][]*model.Kno
 	return dataMap
 }
 
-// updateKnowledgeMetaData 更新知识库元数据 [EN] updateKnowledgeMetaData updates knowledge base metadata
+// updateKnowledgeMetaData updates knowledge base metadata
 func updateKnowledgeMetaData(ctx context.Context, req *knowledgebase_doc_service.UpdateDocMetaDataReq) (*emptypb.Empty, error) {
-	// 1.查询知识库信息 [EN] 1. Query knowledge base information
+	// 1. Query knowledge base information
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 参数(%v)", req)
 		return nil, err
 	}
-	// 2.查询知识库元数据 [EN] 2. Query knowledge base metadata
+	// 2. Query knowledge base metadata
 	metaList, err := orm.SelectMetaByKnowledgeId(ctx, "", "", req.KnowledgeId)
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 错误(%v) 参数(%v)", err, req)
 		return nil, err
 	}
-	// 3.构造各种操作列表 [EN] 3. Construct various operation lists
+	// 3. Construct various operation lists
 	deleteList, updateList, addList := buildOptionList(metaList, req)
-	// 4.校验updateList和addList [EN] 4. Verify updateList and addList
+	// 4. Verify updateList and addList
 	err = checkUpdateAndAddMetaList(addList, updateList, metaList)
 	if err != nil {
 		log.Errorf("更新元数据失败 错误(%v) 参数(%v)", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeMetaDuplicateKey)
 	}
 	updateStatus := MetaStatusFailed
-	// 5.执行批量删除 [EN] 5. Perform batch deletion
+	// 5. Perform batch deletion
 	if len(deleteList) > 0 {
 		err = orm.BatchDeleteMeta(ctx, deleteList, req.KnowledgeId, &service.RagBatchDeleteMetaParams{
 			UserId:        knowledge.UserId,
@@ -181,7 +181,7 @@ func updateKnowledgeMetaData(ctx context.Context, req *knowledgebase_doc_service
 		}
 		updateStatus = MetaStatusPartial
 	}
-	// 6.执行批量更新 [EN] 6. Perform batch updates
+	// 6. Perform batch updates
 	if len(updateList) > 0 {
 		err = orm.BatchUpdateMetaKey(ctx, updateList, req.KnowledgeId, &service.RagBatchUpdateMetaKeyParams{
 			UserId:        knowledge.UserId,
@@ -200,7 +200,7 @@ func updateKnowledgeMetaData(ctx context.Context, req *knowledgebase_doc_service
 			updateStatus = MetaStatusPartial
 		}
 	}
-	// 7.执行批量新增 [EN] 7. Execute batch addition
+	// 7. Execute batch addition
 	if len(addList) > 0 {
 		err = orm.BatchAddMeta(ctx, addList)
 		if err != nil {
@@ -221,46 +221,46 @@ func buildImportTaskIdList(docList []*model.KnowledgeDoc) []string {
 	})
 }
 
-// updateDocMetaData 更新文档元数据 [EN] updateDocMetaData updates document metadata
+// updateDocMetaData updates document metadata
 func updateDocMetaData(ctx context.Context, req *knowledgebase_doc_service.UpdateDocMetaDataReq) (*emptypb.Empty, error) {
-	//1.查询文档详情 [EN] 1. Query document details
+	//1. Query document details
 	docList, err := orm.SelectDocByDocIdList(ctx, []string{req.DocId}, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库文档的权限 参数(%v)", req)
 		return nil, err
 	}
 	doc := docList[0]
-	//2.状态校验 [EN] 2. Status verification
+	//2. Status verification
 	if util.BuildDocRespStatus(doc.Status) != model.DocSuccess {
 		log.Errorf("非处理完成文档无法增加元数据 状态(%d) 错误(%v) 参数(%v)", doc.Status, err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeDocUpdateMetaStatusFailed)
 	}
-	//3.查询知识库信息 [EN] 3. Query knowledge base information
+	//3. Query knowledge base information
 	knowledge, err := orm.SelectKnowledgeById(ctx, doc.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 参数(%v)", req)
 		return nil, err
 	}
-	//4.查询元数据 [EN] 4. Query metadata
+	//4. Query metadata
 	metaDocList, err := orm.SelectMetaByKnowledgeId(ctx, "", "", knowledge.KnowledgeId)
 	if err != nil {
 		return nil, util.ErrCode(errs.Code_KnowledgeDocUpdateMetaStatusFailed)
 	}
 	docMetaMap := buildMetaDocMap(metaDocList)
-	//5.构造元数据操作列表 [EN] 5. Construct a metadata operation list
+	//5. Construct a metadata operation list
 	metaDataList := removeDuplicateMeta(req.MetaDataList)
 	var fileName = service.RebuildFileName(doc.DocId, doc.FileType, doc.Name)
 	addList, updateList, deleteList := buildDocMetaModelList(metaDataList, "", "", req.KnowledgeId, req.DocId)
 	if err1 := checkMetaKeyType(addList, updateList, docMetaMap); err1 != nil {
 		return nil, err1
 	}
-	//6.构造RAG请求参数 [EN] 6. Construct RAG request parameters
+	//6. Construct RAG request parameters
 	params, err := buildMetaRagParams(metaDataList)
 	if err != nil {
 		log.Errorf("docId %v update buildMetaRagParams fail %v", req.DocId, err)
 		return nil, util.ErrCode(errs.Code_KnowledgeDocUpdateMetaFailed)
 	}
-	//7.更新数据库并发送RAG请求 [EN] 7. Update the database and send a RAG request
+	//7. Update the database and send a RAG request
 	err = orm.UpdateDocStatusDocMeta(ctx, req.DocId, addList, updateList, deleteList,
 		&service.RagDocMetaParams{
 			FileName:      fileName,
@@ -364,13 +364,13 @@ func (s *Service) InitDocStatus(ctx context.Context, req *knowledgebase_doc_serv
 }
 
 func (s *Service) DeleteDoc(ctx context.Context, req *knowledgebase_doc_service.DeleteDocReq) (*emptypb.Empty, error) {
-	//1.查询文档详情 [EN] 1. Query document details
+	//1. Query document details
 	docList, err := orm.SelectDocByDocIdList(ctx, req.Ids, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 参数(%v)", req)
 		return nil, err
 	}
-	//2.校验导入状态 [EN] 2. Verify import status
+	//2. Verify import status
 	docIdList, resultDocList, err := checkDocStatus(docList)
 	if err != nil {
 		log.Errorf("删除知识库文件失败 error %v params %v", err, req)
@@ -379,7 +379,7 @@ func (s *Service) DeleteDoc(ctx context.Context, req *knowledgebase_doc_service.
 	if len(docIdList) == 0 {
 		return &emptypb.Empty{}, nil
 	}
-	//3.删除文档 [EN] 3. Delete documents
+	//3. Delete documents
 	err = orm.DeleteDocByIdList(ctx, docIdList, resultDocList)
 	if err != nil {
 		log.Errorf("删除知识库文件失败 error %v params %v", err, req)
@@ -389,12 +389,12 @@ func (s *Service) DeleteDoc(ctx context.Context, req *knowledgebase_doc_service.
 }
 
 func (s *Service) GetDocCategoryUploadTip(ctx context.Context, req *knowledgebase_doc_service.DocImportTipReq) (*knowledgebase_doc_service.DocImportTipResp, error) {
-	//1.查询知识库详情,前置参数校验 [EN] 1. Query knowledge base details and verify pre-parameters
+	//1. Query knowledge base details and verify pre-parameters
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
 	if err != nil {
 		return nil, err
 	}
-	//2.查询第一个异步任务信息 [EN] 2. Query the first asynchronous task information
+	//2. Query the first asynchronous task information
 	taskList, err := orm.SelectKnowledgeLatestImportTask(ctx, req.KnowledgeId)
 	if err != nil {
 		return nil, err
@@ -432,32 +432,32 @@ func (s *Service) GetDocCategoryUploadTip(ctx context.Context, req *knowledgebas
 }
 
 func (s *Service) GetDocSegmentList(ctx context.Context, req *knowledgebase_doc_service.DocSegmentListReq) (*knowledgebase_doc_service.DocSegmentListResp, error) {
-	//1.查询文档详情 [EN] 1. Query document details
+	//1. Query document details
 	docList, err := orm.SelectDocByDocIdList(ctx, []string{req.DocId}, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 参数(%v)", req)
 		return nil, err
 	}
 	docInfo := docList[0]
-	//2.查询知识库详情 [EN] 2. Query knowledge base details
+	//2. Query knowledge base details
 	knowledge, err := orm.SelectKnowledgeById(ctx, docInfo.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf("查询知识库详情失败 参数(%v)", req)
 		return nil, err
 	}
-	//3.查询知识库导入详情 [EN] 3. Query knowledge base import details
+	//3. Query knowledge base import details
 	importTask, err := orm.SelectKnowledgeImportTaskById(ctx, docInfo.ImportTaskId)
 	if err != nil {
 		log.Errorf("查询知识库导入详情失败 参数(%v)", req)
 		return nil, err
 	}
-	//4.查询最新导入详情 [EN] 4. Query the latest import details
+	//4. Query the latest import details
 	segmentImportTask, err := orm.SelectSegmentLatestImportTaskByDocID(ctx, docInfo.DocId)
-	//此处失败不影响详情展示 [EN] Failure here will not affect the detailed display
+	//Failure here will not affect the detailed display
 	if err != nil {
 		log.Errorf("查询知识库导入详情失败 参数(%v)", req)
 	}
-	//4.查询分片信息 [EN] 4. Query shard information
+	//4. Query shard information
 	segmentListResp, err := service.RagGetDocSegmentList(ctx, &service.RagGetDocSegmentParams{
 		UserId:            knowledge.UserId,
 		KnowledgeBaseName: knowledge.RagName,
@@ -468,26 +468,26 @@ func (s *Service) GetDocSegmentList(ctx context.Context, req *knowledgebase_doc_
 	if err != nil {
 		return nil, util.ErrCode(errs.Code_KnowledgeDocSplitFailed)
 	}
-	//5.查询文档元数据,忽略错误 [EN] 5. Query document metadata and ignore errors
+	//5. Query document metadata and ignore errors
 	metaDataList, _ := orm.SelectDocMetaList(ctx, "", "", req.DocId)
 	return buildSegmentListResp(importTask, docInfo, segmentListResp, req.PageNo, req.PageSize, metaDataList, segmentImportTask)
 }
 
 func (s *Service) GetDocChildSegmentList(ctx context.Context, req *knowledgebase_doc_service.GetDocChildSegmentListReq) (*knowledgebase_doc_service.GetDocChildSegmentListResp, error) {
-	//1.查询文档详情 [EN] 1. Query document details
+	//1. Query document details
 	docList, err := orm.SelectDocByDocIdList(ctx, []string{req.DocId}, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 参数(%v)", req)
 		return nil, err
 	}
 	docInfo := docList[0]
-	//2.查询知识库详情 [EN] 2. Query knowledge base details
+	//2. Query knowledge base details
 	knowledge, err := orm.SelectKnowledgeById(ctx, docInfo.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf("查询知识库详情失败 参数(%v)", req)
 		return nil, err
 	}
-	//3.查询分片信息 [EN] 3. Query shard information
+	//3. Query shard information
 	segmentListResp, err := service.RagGetDocChildSegmentList(ctx, &service.RagGetDocChildSegmentParams{
 		UserId:            knowledge.UserId,
 		KnowledgeBaseName: knowledge.RagName,
@@ -517,15 +517,15 @@ func (s *Service) AnalysisDocUrl(ctx context.Context, req *knowledgebase_doc_ser
 	return &knowledgebase_doc_service.AnalysisUrlDocResp{UrlList: retUrlList}, nil
 }
 
-// BatchUpdateDocMetaData 批量更新文档元数据 [EN] BatchUpdateDocMetaData batch updates document metadata
+// BatchUpdateDocMetaData batch updates document metadata
 func (s *Service) BatchUpdateDocMetaData(ctx context.Context, req *knowledgebase_doc_service.BatchUpdateDocMetaDataReq) (*emptypb.Empty, error) {
-	//1.查询知识库信息 [EN] 1. Query knowledge base information
+	//1. Query knowledge base information
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 参数(%v)", req)
 		return nil, err
 	}
-	//2.查询知识库下所有文档 [EN] 2. Query all documents under the knowledge base
+	//2. Query all documents under the knowledge base
 	docList, err := orm.GetDocListByKnowledgeId(ctx, "", "", req.KnowledgeId)
 	if err != nil {
 		log.Errorf("没有查询到文档列表 错误(%v) 参数(%v)", err, req)
@@ -534,24 +534,24 @@ func (s *Service) BatchUpdateDocMetaData(ctx context.Context, req *knowledgebase
 	if len(docList) == 0 {
 		return &emptypb.Empty{}, nil
 	}
-	//3.查询已经设置key的文档 [EN] 3. Query documents for which key has been set
+	//3. Query documents for which key has been set
 	metaList, err := orm.SelectMetaByKnowledgeId(ctx, "", "", req.KnowledgeId)
 	if err != nil {
 		log.Errorf("没有查询到文档列表 错误(%v) 参数(%v)", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeDocSegmentCreateFailed)
 	}
-	//4.更新数据map [EN] 4. Update data map
+	//4. Update data map
 	var keyValueMap = make(map[string]string)
 	for _, item := range req.MetaDataList {
 		keyValueMap[item.Key] = item.Value
 	}
 	addList, updateList := buildUpdateMetaDataParams(knowledge.KnowledgeId, req.OrgId, req.UserId, docList, metaList, keyValueMap)
-	//5.文档Id与名称map [EN] 5.Document ID and name map
+	//5.Document ID and name map
 	docNameMap := make(map[string]string)
 	for _, doc := range docList {
 		docNameMap[doc.DocId] = service.RebuildFileName(doc.DocId, doc.FileType, doc.Name)
 	}
-	//6.批量更新 [EN] 6. Batch update
+	//6. Batch update
 	err = orm.UpdateBatchStatusDocMeta(ctx, req.KnowledgeId, docNameMap, addList, updateList, &service.BatchRagDocMetaParams{
 		KnowledgeId:   knowledge.KnowledgeId,
 		KnowledgeBase: knowledge.RagName,
@@ -626,7 +626,7 @@ func checkDocStatus(docList []*model.KnowledgeDoc) ([]uint32, []*model.Knowledge
 	return docIdList, docResultList, nil
 }
 
-// buildDocListResp 构造知识库文档列表 [EN] buildDocListResp constructs a knowledge base document list
+// buildDocListResp constructs a knowledge base document list
 func buildDocListResp(list []*model.KnowledgeDoc, importTaskList []*model.KnowledgeImportTask, knowledge *model.KnowledgeBase, total int64, pageSize int32, pageNum int32) *knowledgebase_doc_service.GetDocListResp {
 	segmentConfigMap := buildSegmentConfigMap(importTaskList)
 	var retList = make([]*knowledgebase_doc_service.DocInfo, 0)
@@ -679,7 +679,7 @@ func buildSegmentMethod(knowledgeDoc *model.KnowledgeDoc, configMap map[string]*
 	return config.SegmentMethod
 }
 
-// buildSegmentConfigMap 构造分词配置 [EN] buildSegmentConfigMap constructs segmentation configuration
+// buildSegmentConfigMap constructs segmentation configuration
 func buildSegmentConfigMap(importTaskList []*model.KnowledgeImportTask) map[string]*model.SegmentConfig {
 	retMap := make(map[string]*model.SegmentConfig)
 	if len(importTaskList) == 0 {
@@ -706,9 +706,9 @@ func removeDuplicateMeta(metaDataList []*knowledgebase_doc_service.MetaData) []*
 	})
 }
 
-// buildImportTask 构造导入任务 [EN] buildImportTask constructs the import task
+// buildImportTask constructs the import task
 func buildImportTask(req *knowledgebase_doc_service.ImportDocReq) (*model.KnowledgeImportTask, error) {
-	//是否是自动分段类型 [EN] Whether it is an automatic segmentation type
+	//Whether it is an automatic segmentation type
 	if autoSegmentType(req.DocSegment.SegmentType, req.DocSegment.SegmentMethod) {
 		req.DocSegment.Overlap = 0.0
 		req.DocSegment.MaxSplitter = 4000
@@ -789,7 +789,7 @@ func autoSegmentType(segmentType, segmentMethod string) bool {
 	return false
 }
 
-// buildSegmentListResp 构造文档分段列表 [EN] buildSegmentListResp constructs a document segment list
+// buildSegmentListResp constructs a document segment list
 func buildSegmentListResp(importTask *model.KnowledgeImportTask, doc *model.KnowledgeDoc,
 	segmentListResp *service.ContentListResp, pageNo, pageSize int32, metaDataList []*model.KnowledgeDocMeta,
 	segmentImportTask *model.DocSegmentImportTask) (*knowledgebase_doc_service.DocSegmentListResp, error) {
@@ -844,7 +844,7 @@ func buildSegmentImportStatus(segmentImportTask *model.DocSegmentImportTask) str
 		if timeSpan < fiveMinutes {
 			return segmentImportingMessage
 		}
-		//大于5分钟标识异步任务中间断了，todo 异步更新任务 [EN] More than 5 minutes indicates that the asynchronous task was interrupted, and the todo asynchronous update task
+		//More than 5 minutes indicates that the asynchronous task was interrupted, and the todo asynchronous update task
 	}
 	if segmentImportTask.SuccessCount <= 0 {
 		return segmentCompleteFail
@@ -1010,13 +1010,13 @@ func buildContentList(contentList []service.FileSplitContent) []*knowledgebase_d
 }
 
 func checkUpdateAndAddMetaList(addList []*model.KnowledgeDocMeta, updateList []*service.RagMetaMapKeys, dbMetaList []*model.KnowledgeDocMeta) error {
-	// 构造数据库map [EN] Construct database map
+	// Construct database map
 	dbKeySet := make(map[string]bool, len(dbMetaList))
 	for _, dbMeta := range dbMetaList {
 		dbKeySet[dbMeta.Key] = true
 	}
 
-	// 校验addList [EN] Check addList
+	// Check addList
 	addKeySet := make(map[string]bool, len(addList))
 	for _, addMeta := range addList {
 		if dbKeySet[addMeta.Key] {
@@ -1030,7 +1030,7 @@ func checkUpdateAndAddMetaList(addList []*model.KnowledgeDocMeta, updateList []*
 		addKeySet[addMeta.Key] = true
 	}
 
-	// 校验updateList [EN] Verify updateList
+	// Verify updateList
 	for _, updateMeta := range updateList {
 		if dbKeySet[updateMeta.NewKey] {
 			log.Errorf("update meta failed: key %s already exists", updateMeta.NewKey)
@@ -1065,12 +1065,12 @@ func buildKnowledgeInfo(ctx context.Context, docId string) (*model.KnowledgeBase
 		return nil, nil, nil, util.ErrCode(errs.Code_KnowledgeDocUpdateStatusFailed)
 	}
 
-	//构造知识库图谱 [EN] Constructing a knowledge base graph
+	//Constructing a knowledge base graph
 	knowledgeGraph := orm.BuildKnowledgeGraph(knowledge.KnowledgeGraph)
 	return knowledge, doc, knowledgeGraph, nil
 }
 
-// 创建知识图谱 [EN] Create a knowledge graph
+// Create a knowledge graph
 func createKnowledgeGraph(ctx context.Context, knowledge *model.KnowledgeBase, doc *model.KnowledgeDoc, graph *orm.KnowledgeGraph) error {
 	importTask, err := orm.SelectKnowledgeImportTaskById(ctx, doc.ImportTaskId)
 	if err != nil {
@@ -1095,7 +1095,7 @@ func createKnowledgeGraph(ctx context.Context, knowledge *model.KnowledgeBase, d
 		log.Errorf("DocPreprocess process error %s", err.Error())
 		return err
 	}
-	//3.rag 文档开始导入操作 [EN] 3.rag document starts importing operation
+	//3.rag document starts importing operation
 	var fileName = service.RebuildFileName(doc.DocId, doc.FileType, doc.Name)
 
 	return service.RagBuildKnowledgeGraph(ctx, &service.RagImportDocParams{

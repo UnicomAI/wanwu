@@ -7,7 +7,7 @@ from utils.timing import advanced_timing_decorator
 
 logger = logging.getLogger(__name__)
 
-# 获取预加载的分词器实例 [EN] Get a preloaded tokenizer instance
+# Get a preloaded tokenizer instance
 model_loader = ModelLoader.get_instance()
 ANALYZER = model_loader.build_default_analyzer(language='zh')
 
@@ -30,28 +30,28 @@ def rerank_by_bm25(query, raw_search_list, top_k, threshold, sort_enable=True):
         print("没有文档可用于重新排序。")
         return {'sorted_scores': [], 'sorted_search_list': []}
     
-    # 分词查询 [EN] Word segmentation query
+    # Word segmentation query
     tokenized_query = ANALYZER(query)
     # print(tokenized_query)
     # tokenized_query = query.split()
     # print(tokenized_query)
 
     
-    # 使用jieba进行分词处理 [EN] Use jieba for word segmentation processing
+    # Use jieba for word segmentation processing
     # tokenized_corpus = [list(jieba.cut(doc['snippet'])) for doc in raw_search_list]
     tokenized_corpus = [ ANALYZER(doc['snippet']) for doc in raw_search_list]
     # print(tokenized_corpus)
     bm25 = BM25Okapi(tokenized_corpus)
     
 
-    # 获取BM25分数 [EN] Get BM25 Score
+    # Get BM25 Score
     scores = bm25.get_scores(tokenized_query)
     
 
     raw_rerank_result = list(zip(scores, raw_search_list)) 
     # logger.info('raw_search_list_with_score: '+ json.dumps(raw_rerank_result, ensure_ascii=False,indent=4))
     scores_dicts = [(score, item) for score, item in zip(scores, raw_search_list) if score >= threshold]
-    # 过滤并排序结果 [EN] Filter and sort results
+    # Filter and sort results
 
     if not scores_dicts:
         return {'sorted_scores': [], 'sorted_search_list': []}
@@ -74,9 +74,9 @@ if __name__ == "__main__":
         
 
 
-    # 示例数据和查询参数 [EN] Sample data and query parameters
+    # Sample data and query parameters
     query = "刘姓 历史 称帝王 数量"
-# query = "刘宋政权又出现了刘义隆、刘骏等励精图治的帝王  " [EN] query = "The Liu Song regime saw the emergence of Liu Yilong, Liu Jun and other emperors who worked hard to govern"
+# query = "The Liu Song regime saw the emergence of Liu Yilong, Liu Jun and other emperors who worked hard to govern"
 
     search_list = [
         {
@@ -102,14 +102,14 @@ if __name__ == "__main__":
         }
     ]
 
-    # query1 = " ".join(['滕王阁', '序', '全文']) [EN] query1 = " ".join(['Tengwangge', 'Preface', 'Full text'])
-    # query2 = " ".join(['滕王阁序', '全文']) [EN] query2 = " ".join(['Tengwang Pavilion Preface', 'Full text'])
-    # query3 = " ".join(['滕王阁序', '滕王阁', '序', '全文']) [EN] query3 = " ".join(['Tengwang Pavilion Preface', 'Tengwang Pavilion', 'Preface', 'Full text'])
+    # query1 = " ".join(['Tengwangge', 'Preface', 'Full text'])
+    # query2 = " ".join(['Tengwang Pavilion Preface', 'Full text'])
+    # query3 = " ".join(['Tengwang Pavilion Preface', 'Tengwang Pavilion', 'Preface', 'Full text'])
     query = "巴黎奥运会 金牌数量排名"
     top_k = 10
-    threshold = 0  # 根据实际情况调整阈值 [EN] Adjust the threshold according to actual conditions
+    threshold = 0  # Adjust the threshold according to actual conditions
 
-    # 调用函数 [EN] call function
+    # call function
     start_time = datetime.datetime.now()
     results = rerank_by_bm25(query, search_list4, top_k, threshold)
     finish_time1 = datetime.datetime.now()
@@ -118,22 +118,22 @@ if __name__ == "__main__":
     print(json.dumps(results,ensure_ascii=False,indent=4))
 
     
-#         # 调用函数 [EN] # Call function
+#         # Call function
 #     start_time = datetime.datetime.now()
 #     results = rerank_by_bm25(query2, search_list3, top_k, threshold)
 #     finish_time1 = datetime.datetime.now()
 #     time_difference = finish_time1 - start_time
-#     print("排序用时:", time_difference) [EN] print("Sorting time:", time_difference)
+#     print("Sorting time:", time_difference)
 #     print(json.dumps(results,ensure_ascii=False,indent=4))
 
-#     # 调用函数 [EN] # Call function
+#     # Call function
 #     start_time = datetime.datetime.now()
 #     results = rerank_by_bm25(query3, search_list3, top_k, threshold)
 #     finish_time1 = datetime.datetime.now()
 #     time_difference = finish_time1 - start_time
-#     print("排序用时:", time_difference) [EN] print("Sorting time:", time_difference)
+#     print("Sorting time:", time_difference)
 #     print(json.dumps(results,ensure_ascii=False,indent=4))
-#     # 输出结果 [EN] # Output results
+#     # Output results
     # print("Sorted Scores:", results['sorted_scores'])
     # print("Sorted Documents:")
     # for doc in results['sorted_search_list']:

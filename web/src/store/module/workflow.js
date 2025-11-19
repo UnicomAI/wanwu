@@ -1,7 +1,7 @@
 export const workflow = {
     namespaced: true,
     state: {
-        nodeIdMap:{}, //用来在选择引用类型数据时，根据节点id回显节点名称
+        nodeIdMap:{}, //用来在选择ReferenceTypeData when ，根据节点id回显节点Name
         activeName: ['1', '2'],
         lastDebugResult:{},
         knowledgeData:[]

@@ -37,7 +37,7 @@
           </div>
           <div class="overview bg-border" v-if="detail.detail">
             <div class="overview-item">
-              <!--<div class="item-title">• &nbsp;详情</div>-->
+              <!--<div class="item-title">• &nbsp;Details</div>-->
               <div class="item-desc">
                 <div class="readme-content markdown-body mcp-markdown" v-html="md.render(detail.detail || '')"></div>
               </div>
@@ -46,7 +46,7 @@
         </div>
         <div class="tool bg-border" v-if="tools && tools.length">
           <div class="tool-item">
-            <!--<p class="title">工具介绍:</p>-->
+            <!--<p class="title">Tool介绍:</p>-->
             <div class="tool-item-bg tool-intro">
               <el-collapse class="mcp-el-collapse" v-model="activeNames">
                 <el-collapse-item v-for="(n,i) in tools" :key="n.name + i" :title="n.name" :name="i">
@@ -107,7 +107,7 @@ export default {
       handler() {
         this.initData()
       },
-      // 深度观察监听
+      // 深度ObserveListen
       deep: true
     }
   },
@@ -146,7 +146,7 @@ export default {
     handleClick(val){
       this.$router.push(`/mcp/detail/square?mcpSquareId=${val.mcpSquareId}`)
     },
-    // 解析文本，遇到.换行等
+    // ParseText，遇到.换行Etc
     parseTxt(txt){
       if (!txt) return ''
       const text = txt.replaceAll('\n\t','<br/>&nbsp;').replaceAll('\n','<br/>').replaceAll('\t', '   &nbsp;')

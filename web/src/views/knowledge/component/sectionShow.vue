@@ -1,27 +1,27 @@
 <template>
   <el-dialog
     :visible.sync="dialogVisible"
-    title="命中分段详情"
+    title="命中分段Details"
     width="70%"
     @close="handleClose"
     class="section-dialog"
   >
     <div class="section-show-container">
-      <!-- 父分段区域 -->
+      <!-- 父分段Area域 -->
       <div class="parent-segment" v-if="parentSegment">
         <div class="segment-header">
-          <span class="parent-badge" v-if="['graph','community_report'].includes(parentSegment.contentType)">{{parentSegment.contentType === 'graph' ? '知识图谱' : '社区报告'}}</span>
+          <span class="parent-badge" v-if="['graph','community_report'].includes(parentSegment.contentType)">{{parentSegment.contentType === 'graph' ? '知识图谱' : '社Area报告'}}</span>
           <span class="parent-badge" v-else>{{segmentList.length > 0 ? '父分段' :'通用分段'}}</span>
           <div class="parent-score">
             <span class="score-label">命中得分:</span>
             <span class="score-value">{{ formatScore(parentSegment.score) }}</span>
           </div>
         </div>
-        <div class="parent-content" v-html="parentSegment.content ? md.render(parentSegment.content) : '暂无内容'">
+        <div class="parent-content" v-html="parentSegment.content ? md.render(parentSegment.content) : 'NoContent'">
         </div>
       </div>
 
-      <!-- 子分段区域 -->
+      <!-- 子分段Area域 -->
         <div class="sub-segments" v-if="segmentList.length > 0">
         <div class="segment-header">
           <span class="sub-badge">命中{{ segmentList.length }}个子分段</span>
@@ -46,7 +46,7 @@
               <span class="score-value">{{ formatScore(childscore[index]) }}</span>
             </span>
           </template>
-          <div class="segment-content" v-html="segment.content ? md.render(segment.content) : '暂无内容'"></div> 
+          <div class="segment-content" v-html="segment.content ? md.render(segment.content) : 'NoContent'"></div> 
         </el-collapse-item>
         </el-collapse>
       </div>
@@ -71,19 +71,19 @@ export default {
   },
   methods: {
     formatScore,
-    // 显示弹框
+    // Show弹框
     showDiaglog(data) {
       if (data) {
-        // 更新父分段数据
+        // Update父分段Data
         if (data.searchList) {
           this.parentSegment = {
             score: parseFloat(data.score) || 0,
-            content: data.searchList.snippet||'暂无内容',
+            content: data.searchList.snippet||'NoContent',
             contentType: data.searchList.contentType
           };
         }
         
-        // 更新子分段数据
+        // Update子分段Data
         if (data.searchList && Array.isArray(data.searchList.childContentList)) {
           this.childscore = data.searchList.childScore;
           this.segmentList = data.searchList.childContentList.map(segment => ({
@@ -91,7 +91,7 @@ export default {
             autoSave: Boolean(segment.autoSave),
             score: parseFloat(segment.score) || 0
           }));
-          // 设置所有折叠项为展开状态
+          // Setting所Has折叠项为展开Status
           this.activeNames = this.segmentList.map((_, index) => index);
         }
         
@@ -99,7 +99,7 @@ export default {
       }
       this.dialogVisible = true;
     },
-    // 关闭弹框
+    // Close弹框
     handleClose() {
       this.dialogVisible = false;
     },
@@ -285,7 +285,7 @@ export default {
   }
 }
 
-// 响应式设计
+// Response式设计
 @media (max-width: 768px) {
   .section-show-container {
     .parent-segment,

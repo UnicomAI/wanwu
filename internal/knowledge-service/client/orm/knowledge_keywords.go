@@ -16,12 +16,12 @@ import (
 )
 
 const (
-	KeywordsAdd    = "add"    // 添加关键词 [EN] Add keywords
-	KeywordsDelete = "delete" // 删除关键词 [EN] Delete keywords
-	KeywordsUpdate = "update" // 更新关键词 [EN] Update keywords
+	KeywordsAdd    = "add"    // Add keywords
+	KeywordsDelete = "delete" // Delete keywords
+	KeywordsUpdate = "update" // Update keywords
 )
 
-// GetKeywordsList 根据 userId 和 orgId 查询关键词列表 [EN] GetKeywordsList queries the keyword list based on userId and orgId
+// GetKeywordsList queries the keyword list based on userId and orgId
 func GetKeywordsList(ctx context.Context, req *knowledgebase_keywords_service.GetKnowledgeKeywordsListReq) ([]*model.KnowledgeKeywords, int64, error) {
 	var keywordsList []*model.KnowledgeKeywords
 	tx := sqlopt.SQLOptions(sqlopt.WithPermit(req.Identity.OrgId, req.Identity.UserId), sqlopt.WithNameOrAliasLike(req.Name)).
@@ -40,7 +40,7 @@ func GetKeywordsList(ctx context.Context, req *knowledgebase_keywords_service.Ge
 	return keywordsList, total, nil
 }
 
-// GetKeywordsById 根据关键词id查询关键词 [EN] GetKeywordsById Query keywords based on keyword id
+// GetKeywordsById Query keywords based on keyword id
 func GetKeywordsById(ctx context.Context, id uint32) (*model.KnowledgeKeywords, error) {
 	var keywords model.KnowledgeKeywords
 	err := sqlopt.SQLOptions(sqlopt.WithID(id)).
@@ -51,17 +51,17 @@ func GetKeywordsById(ctx context.Context, id uint32) (*model.KnowledgeKeywords, 
 	return &keywords, nil
 }
 
-// CheckRepeatedKeywords 查询用户是否存在同名关键词设置 [EN] CheckRepeatedKeywords Checks whether the user has a keyword setting with the same name
+// CheckRepeatedKeywords Checks whether the user has a keyword setting with the same name
 func CheckRepeatedKeywords(ctx context.Context, req *knowledgebase_keywords_service.UpdateKnowledgeKeywordsReq) error {
 	var keywordsList []*model.KnowledgeKeywords
-	// 查找同名关键词列表 [EN] Find a list of keywords with the same name
+	// Find a list of keywords with the same name
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(req.Detail.Identity.OrgId, req.Detail.Identity.UserId), sqlopt.WithName(req.Detail.Name), sqlopt.WithoutID(req.Id)).
 		Apply(db.GetHandle(ctx), &model.KnowledgeKeywords{}).Find(&keywordsList).Error
 
 	if err != nil {
 		return err
 	}
-	// 已有关键词，检查同名知识库 [EN] There are already keywords, check the knowledge base with the same name
+	// There are already keywords, check the knowledge base with the same name
 	if len(keywordsList) > 0 {
 		for _, kw := range keywordsList {
 			dbKnowledgeIds, err := jsonToList(kw.KnowledgeBaseIds)
@@ -77,10 +77,10 @@ func CheckRepeatedKeywords(ctx context.Context, req *knowledgebase_keywords_serv
 	return nil
 }
 
-// CreateKeywords 创建关键词 [EN] CreateKeywords Create keywords
+// CreateKeywords Create keywords
 func CreateKeywords(ctx context.Context, keywords *model.KnowledgeKeywords) error {
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		// 创建关键词 [EN] Create keywords
+		// Create keywords
 		err := db.GetHandle(ctx).Create(keywords).Error
 		if err != nil {
 			return err
@@ -89,26 +89,26 @@ func CreateKeywords(ctx context.Context, keywords *model.KnowledgeKeywords) erro
 		if err != nil {
 			return err
 		}
-		// 同步RAG [EN] Sync RAG
+		// Sync RAG
 		return service.RagOperateKeywords(ctx, keywordsParams)
 	})
 }
 
-// DeleteKeywords 删除知识库关键词 [EN] DeleteKeywords deletes knowledge base keywords
+// DeleteKeywords deletes knowledge base keywords
 func DeleteKeywords(ctx context.Context, id uint32) error {
-	// 获取关键词 [EN] Get keywords
+	// Get keywords
 	keywords, err := GetKeywordsById(ctx, id)
 	if err != nil {
 		return err
 	}
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		// 删除关键词 [EN] Delete keywords
+		// Delete keywords
 		err = tx.Unscoped().Model(&model.KnowledgeKeywords{}).Where("id = ?", id).Delete(&model.KnowledgeKeywords{}).Error
 		if err != nil {
 			log.Errorf("DeleteKnowledgeKeywords err: %v", err)
 			return err
 		}
-		// 同步RAG [EN] Sync RAG
+		// Sync RAG
 		keywordsParams, err := buildOperateKeywordsParams(ctx, keywords, KeywordsDelete)
 		if err != nil {
 			return err
@@ -117,16 +117,16 @@ func DeleteKeywords(ctx context.Context, id uint32) error {
 	})
 }
 
-// UpdateKeywords 更新知识库关键词 [EN] UpdateKeywords Update knowledge base keywords
+// UpdateKeywords Update knowledge base keywords
 func UpdateKeywords(ctx context.Context, keywords *model.KnowledgeKeywords) error {
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		// 删除关键词 [EN] Delete keywords
+		// Delete keywords
 		err := db.GetHandle(ctx).Model(&model.KnowledgeKeywords{}).Where("id = ?", keywords.Id).Updates(keywords).Debug().Error
 		if err != nil {
 			log.Errorf("UpdateKeywords err: %v", err)
 			return err
 		}
-		// 同步RAG [EN] Sync RAG
+		// Sync RAG
 		keywordsParams, err := buildOperateKeywordsParams(ctx, keywords, KeywordsUpdate)
 		if err != nil {
 			return err
@@ -136,7 +136,7 @@ func UpdateKeywords(ctx context.Context, keywords *model.KnowledgeKeywords) erro
 }
 
 func buildOperateKeywordsParams(ctx context.Context, keywords *model.KnowledgeKeywords, action string) (*service.RagOperateKeywordsParams, error) {
-	// 反序列化id列表 [EN] Deserialize id list
+	// Deserialize id list
 	knowledgeIds, err := jsonToList(keywords.KnowledgeBaseIds)
 	if err != nil {
 		return nil, err

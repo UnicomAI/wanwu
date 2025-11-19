@@ -25,10 +25,10 @@ func (o *GetModelRequest) Check() error {
 }
 
 type ListModelsRequest struct {
-	ModelType   string `json:"modelType" form:"modelType" `    // 模型类型 [EN] Model type
-	Provider    string `json:"provider" form:"provider"`       // 模型供应商 [EN] model supplier
-	DisplayName string `json:"displayName" form:"displayName"` // 模型显示名称 [EN] Model display name
-	IsActive    bool   `json:"isActive" form:"isActive"`       // 启用状态（true: 启用） [EN] Enabled status (true: enabled)
+	ModelType   string `json:"modelType" form:"modelType" `    // Model type
+	Provider    string `json:"provider" form:"provider"`       // model supplier
+	DisplayName string `json:"displayName" form:"displayName"` // Model display name
+	IsActive    bool   `json:"isActive" form:"isActive"`       // Enabled status (true: enabled)
 }
 
 func (o *ListModelsRequest) Check() error {
@@ -36,7 +36,7 @@ func (o *ListModelsRequest) Check() error {
 }
 
 type ListTypeModelsRequest struct {
-	ModelType string `json:"modelType" form:"modelType" ` // 模型类型 [EN] Model type
+	ModelType string `json:"modelType" form:"modelType" ` // Model type
 }
 
 func (o *ListTypeModelsRequest) Check() error {
@@ -45,7 +45,7 @@ func (o *ListTypeModelsRequest) Check() error {
 
 type ModelStatusRequest struct {
 	BaseModelRequest
-	IsActive bool `json:"isActive"` // 启用状态（true: 启用，false: 禁用） [EN] Enabled status (true: enabled, false: disabled)
+	IsActive bool `json:"isActive"` // Enabled status (true: enabled, false: disabled)
 }
 
 func (o *ModelStatusRequest) Check() error {

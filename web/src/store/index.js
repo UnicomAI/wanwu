@@ -8,13 +8,13 @@ import { workflow } from './module/workflow'
 
 
 Vue.use(Vuex)
-// 用户信息持久化
+// UserInformation持久化
 const vuexLocal = new VuexPersistence({
     key:'access_cert',
     storage: window.localStorage,
     modules: ['user']
 })
-//知识库全选权限持久化
+//Knowledge BaseSelect AllPermission持久化
 const permissionLocal = new VuexPersistence({
     key:'permission_data',
     storage: window.localStorage,

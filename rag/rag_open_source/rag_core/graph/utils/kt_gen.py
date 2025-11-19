@@ -53,7 +53,7 @@ class KTBuilder:
         #              if isinstance(text, dict) else str(text)]
         # else:
         #     chunks = [str(text)]
-        # ===== 直接保存完整 信息 ===== [EN] ===== Save complete information directly =====
+        # ===== Save complete information directly =====
         chunks = [text]
         chunk2id = {}
         for chunk in chunks:
@@ -499,7 +499,7 @@ class KTBuilder:
         logger.info(f"---- {'Processing Level 3 and 4':^20} ----")
         logger.info(f"{'-' * 20}")
         self.triple_deduplicate()
-        # self.process_level4()  # Process level 4 构建社区关系 [EN] self.process_level4() # Process level 4 build community relations
+        # self.process_level4() # Process level 4 build community relations
 
     def triple_deduplicate(self):
         """deduplicate triples in lv1 and lv2"""
@@ -551,7 +551,7 @@ class KTBuilder:
 
         logger.info(f"All Process finished, token cost: {self.token_len}")
 
-        # self.save_chunks_to_file()   # 保存分块结果到文件 [EN] self.save_chunks_to_file() # Save chunked results to file
+        # self.save_chunks_to_file() # Save chunked results to file
 
         output = self.format_output(file_name)
 

@@ -1,7 +1,7 @@
 <template>
     <div>
         <div>
-            <el-button type="primary" icon="el-icon-plus" size="mini" @click="showDialog(null)">创建</el-button>
+            <el-button type="primary" icon="el-icon-plus" size="mini" @click="showDialog(null)">Create</el-button>
             <el-table
                 :data="tableData"
                 style="width: 100%;margin-top:15px;"
@@ -9,17 +9,17 @@
               >
                 <el-table-column
                   prop="name"
-                  label="应用名称"
+                  label="AppName"
                 >
                 </el-table-column>
                 <el-table-column
                   prop="description"
-                  label="描述"
+                  label="Description"
                 >
                 </el-table-column>
                 <el-table-column
                   prop="suffix"
-                  label="访问Url"
+                  label="AccessUrl"
                 >
                 <template slot-scope="scope">
                     <span>{{scope.row.suffix}}</span>
@@ -28,13 +28,13 @@
                 </el-table-column>
                 <el-table-column
                   prop="expiredAt"
-                  label="过期时间"
+                  label=" 期 when 间"
                   width="180"
                 >
                 </el-table-column>
                 <el-table-column
                   prop="status"
-                  label="状态"
+                  label="Status"
                   width="180"
                 >
                 <template slot-scope="scope">
@@ -55,7 +55,7 @@
                       size="mini"
                       round
                       @click="showDialog(scope.row)"
-                    >编辑</el-button>
+                    >Edit</el-button>
                     <el-button
                       size="mini"
                       round
@@ -71,32 +71,32 @@
           width="30%"
           :before-close="handleClose">
           <el-form ref="form" :model="form" class="formUrl" label-width="100px">
-            <el-form-item label="应用名称" 
+            <el-form-item label="AppName" 
               prop="name"
-              :rules="[{ required: true, message: '请输入应用名称', trigger: 'blur' }]"
+              :rules="[{ required: true, message: 'Please enterAppName', trigger: 'blur' }]"
             >
-              <el-input v-model="form.name" placeholder="请输入应用名称"></el-input>
+              <el-input v-model="form.name" placeholder="Please enterAppName"></el-input>
             </el-form-item>
-            <el-form-item label="应用描述" 
+            <el-form-item label="AppDescription" 
               prop="description"
             >
-              <el-input v-model="form.description" placeholder="请输入应用描述" type="textarea" :rows="2"></el-input>
+              <el-input v-model="form.description" placeholder="Please enterAppDescription" type="textarea" :rows="2"></el-input>
             </el-form-item>
-            <el-form-item label="过期时间" prop="expiredAt">
+            <el-form-item label=" 期 when 间" prop="expiredAt">
                <el-date-picker
                 v-model="form.expiredAt"
                 type="datetime"
                 value-format="yyyy-MM-dd HH:mm:ss"
-                placeholder="url生效时间">
+                placeholder="url生效 when 间">
               </el-date-picker>
             </el-form-item>
-            <!-- <el-form-item label="知识库出处详情">
+            <!-- <el-form-item label="Knowledge Base出处Details">
               <el-switch
                 v-model="value"
                 active-color="var(--color)">
               </el-switch>
             </el-form-item> -->
-            <!-- <el-form-item label="工作流详情">
+            <!-- <el-form-item label="WorkflowDetails">
               <el-switch
                 v-model="value"
                 active-color="var(--color)">
@@ -106,11 +106,11 @@
               <el-form-item  prop="copyright">
                 <template #label>
                   <span>版权</span>
-                  <el-tooltip class="item" effect="dark" content="是否在界面中显示版权信息" placement="top-start">
+                  <el-tooltip class="item" effect="dark" content="YesNo在界面中Show版权Information" placement="top-start">
                     <span class="el-icon-question tips"></span>
                   </el-tooltip>
                 </template>
-                <el-input v-model="form.copyright" placeholder="请输入版权信息"></el-input>
+                <el-input v-model="form.copyright" placeholder="Please enter版权Information"></el-input>
               </el-form-item>
               <el-form-item prop="copyrightEnable">
                 <el-switch
@@ -124,11 +124,11 @@
               <el-form-item prop="privacyPolicy">
                 <template #label>
                   <span>隐私协议</span>
-                  <el-tooltip class="item" effect="dark" content="是否在界面中显示隐私协议信息" placement="top-start">
+                  <el-tooltip class="item" effect="dark" content="YesNo在界面中Show隐私协议Information" placement="top-start">
                     <span class="el-icon-question tips"></span>
                   </el-tooltip>
                 </template>
-                <el-input v-model="form.privacyPolicy" placeholder="请输入隐私政策链接" @blur="urlBlur"></el-input>
+                <el-input v-model="form.privacyPolicy" placeholder="Please enter隐私政策Link" @blur="urlBlur"></el-input>
               </el-form-item>
               <el-form-item prop="privacyPolicyEnable">
                 <el-switch
@@ -142,11 +142,11 @@
               <el-form-item prop="disclaimer">
                 <template #label>
                   <span>免责声明</span>
-                  <el-tooltip class="item" effect="dark" content="是否在界面中显示免责声明" placement="top-start">
+                  <el-tooltip class="item" effect="dark" content="YesNo在界面中Show免责声明" placement="top-start">
                     <span class="el-icon-question tips"></span>
                   </el-tooltip>
                 </template>
-                <el-input v-model="form.disclaimer" type="textarea" :rows="2" placeholder="请输入免责声明"></el-input>
+                <el-input v-model="form.disclaimer" type="textarea" :rows="2" placeholder="Please enter免责声明"></el-input>
               </el-form-item>
               <el-form-item prop="disclaimerEnable">
                 <el-switch
@@ -183,7 +183,7 @@ export default {
             privacyPolicy:'',
             privacyPolicyEnable:false
           },
-          title:'创建URL',
+          title:'CreateURL',
           dialogVisible:false,
           tableData:[],
           urlId:''
@@ -198,7 +198,7 @@ export default {
         urlBlur(){
           const text = this.form.privacyPolicy;
           if(!this.isValidUrl(text)){
-            this.$message.warning('链接效验不合格')
+            this.$message.warning('Link效验不合格')
             this.form.privacyPolicy = '';
           }
         },
@@ -218,7 +218,7 @@ export default {
           return res;
         },
         copycb() {
-          this.$message.success("内容已复制到粘贴板");
+          this.$message.success("Content已Copy到粘贴板");
         },
        getList(){
           getOpenurl({appId:this.appId,appType:this.appType}).then(res =>{
@@ -232,7 +232,7 @@ export default {
        statusChange(status,row){
           switchOpenurl({status,urlId:row.urlId}).then(res =>{
             if(res.code === 0){
-              this.$message.success('操作成功');
+              this.$message.success('OperationSuccess');
               this.getList();
             }
           }).catch(() =>{
@@ -242,7 +242,7 @@ export default {
       showDialog(row=null){
         this.dialogVisible = true
         if(row === null){
-          this.title = '创建URL';
+          this.title = 'CreateURL';
           this.urlId = '';
           this.$nextTick(() =>{
             if (this.$refs.form) {
@@ -252,7 +252,7 @@ export default {
             }
           })
         }else{
-          this.title = '编辑URL';
+          this.title = 'EditURL';
           this.urlId = row.urlId;
           Object.keys(row).forEach(key  =>{
             if(this.form.hasOwnProperty(key)){
@@ -287,7 +287,7 @@ export default {
       createUrl(){
         createOpenurl(this.form).then(res =>{
           if(res.code === 0){
-            this.$message.success('操作成功');
+            this.$message.success('OperationSuccess');
             this.dialogVisible = false;
             this.getList();
           }
@@ -302,7 +302,7 @@ export default {
         }
         editOpenurl(data).then(res =>{
           if(res.code === 0){
-            this.$message.success('操作成功');
+            this.$message.success('OperationSuccess');
             this.dialogVisible = false;
             this.getList();
           }
@@ -312,18 +312,18 @@ export default {
       },
       handleDel(row){
           this.$confirm(
-          "确定要删除当前访问URL吗？",
+          "确定要Delete当前AccessURL吗？",
           this.$t("knowledgeManage.tip"),
           {
             confirmButtonText: "确定",
-            cancelButtonText: "取消",
+            cancelButtonText: "Cancel",
             type: "warning",
           }
         )
           .then(() => {
             delOpenurl({ urlId: row.urlId }).then((res) => {
               if (res.code === 0) {
-                this.$message.success("删除成功");
+                this.$message.success("DeleteSuccess");
                 this.getList();
               }
             });

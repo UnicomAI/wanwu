@@ -18,7 +18,7 @@ import (
 	"github.com/samber/lo"
 )
 
-// GetDocList 查询知识库所属文档列表 [EN] GetDocList Query the list of documents belonging to the knowledge base
+// GetDocList Query the list of documents belonging to the knowledge base
 func GetDocList(ctx *gin.Context, userId, orgId string, r *request.DocListReq) (*response.DocPageResult, error) {
 	resp, err := knowledgeBaseDoc.GetDocList(ctx.Request.Context(), &knowledgebase_doc_service.GetDocListReq{
 		KnowledgeId: r.KnowledgeId,
@@ -47,7 +47,7 @@ func GetDocList(ctx *gin.Context, userId, orgId string, r *request.DocListReq) (
 	}, nil
 }
 
-// GetDocDetail 查询知识库所属文档详情 [EN] GetDocDetail queries the document details of the knowledge base
+// GetDocDetail queries the document details of the knowledge base
 func GetDocDetail(ctx *gin.Context, userId, orgId, docId string) (*response.ListDocResp, error) {
 	data, err := knowledgeBaseDoc.GetDocDetail(ctx.Request.Context(), &knowledgebase_doc_service.GetDocDetailReq{
 		DocId:  docId,
@@ -70,7 +70,7 @@ func GetDocDetail(ctx *gin.Context, userId, orgId, docId string) (*response.List
 	}, nil
 }
 
-// ImportDoc 导入文档 [EN] ImportDoc import document
+// ImportDoc import document
 func ImportDoc(ctx *gin.Context, userId, orgId string, req *request.DocImportReq) error {
 	segment := req.DocSegment
 	docInfoList, err := buildDocInfoList(ctx, req)
@@ -105,7 +105,7 @@ func ImportDoc(ctx *gin.Context, userId, orgId string, req *request.DocImportReq
 	return nil
 }
 
-// UpdateDocMetaData 更新文档元数据 [EN] UpdateDocMetaData updates document metadata
+// UpdateDocMetaData updates document metadata
 func UpdateDocMetaData(ctx *gin.Context, userId, orgId string, r *request.DocMetaDataReq) error {
 	_, err := knowledgeBaseDoc.UpdateDocMetaData(ctx.Request.Context(), &knowledgebase_doc_service.UpdateDocMetaDataReq{
 		UserId:       userId,
@@ -117,7 +117,7 @@ func UpdateDocMetaData(ctx *gin.Context, userId, orgId string, r *request.DocMet
 	return err
 }
 
-// BatchUpdateDocMetaData 批量文档元数据 [EN] BatchUpdateDocMetaData batch document metadata
+// BatchUpdateDocMetaData batch document metadata
 func BatchUpdateDocMetaData(ctx *gin.Context, userId, orgId string, r *request.BatchDocMetaDataReq) error {
 	_, err := knowledgeBaseDoc.BatchUpdateDocMetaData(ctx.Request.Context(), &knowledgebase_doc_service.BatchUpdateDocMetaDataReq{
 		UserId:       userId,
@@ -224,7 +224,7 @@ func AnalysisDocUrl(ctx *gin.Context, userId, orgId string, r *request.AnalysisU
 	return &response.AnalysisDocUrlResp{UrlList: urlList}, nil
 }
 
-// buildDocRespList 构造文档返回列表 [EN] buildDocRespList constructs a document return list
+// buildDocRespList constructs a document return list
 func buildDocRespList(ctx *gin.Context, dataList []*knowledgebase_doc_service.DocInfo, knowledgeId string) []*response.ListDocResp {
 	retList := make([]*response.ListDocResp, 0)
 	authorMap := buildAuthorMap(ctx, dataList)
@@ -278,7 +278,7 @@ func buildAuthorMap(ctx *gin.Context, dataList []*knowledgebase_doc_service.DocI
 	return authorMap
 }
 
-// buildDocSegmentResp 构造doc分片返回信息 [EN] buildDocSegmentResp constructs doc segmentation and returns information
+// buildDocSegmentResp constructs doc segmentation and returns information
 func buildDocSegmentResp(docSegmentListResp *knowledgebase_doc_service.DocSegmentListResp) *response.DocSegmentResp {
 	var segmentContentList = make([]*response.SegmentContent, 0)
 	if len(docSegmentListResp.ContentList) > 0 {
@@ -509,7 +509,7 @@ func buildDocInfoList(ctx *gin.Context, req *request.DocImportReq) ([]*knowledge
 				log.Errorf("GetUploadFileWithNotExpire error %v", err)
 				return nil, grpc_util.ErrorStatus(errs.Code_KnowledgeDocImportUrlFailed)
 			}
-			//特殊处理类型 [EN] special processing type
+			//special processing type
 			if strings.HasSuffix(docUrl, ".tar.gz") {
 				docType = ".tar.gz"
 			}

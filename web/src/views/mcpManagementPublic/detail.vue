@@ -62,7 +62,7 @@
                 <i class="fas fa-lock el-icon-lock" style="font-size: 48px; color: #D33A3A; margin-bottom: 20px; display: block;"></i>
                 <h3 style="margin-bottom: 15px; color: #333;font-size: 20px;">需要登录</h3>
                 <p style="margin-bottom: 25px; color: #666; line-height: 40px;">
-                    要获取SSE URL和配置MCP服务器，请先登录您的账号。如果没有账号，您可以快速注册一个。
+                    要GetSSE URLAndConfigurationMCP服务器，PleaseFirst登录您 of 账号。如果No账号，您可以快速注册一个。
                 </p>
                 <div style="display: flex; justify-content: center; gap: 15px;">
                     <a href="https://mcpmarket.cn/auth/login?next=%2Fserver%2F67ff4974764487b6b9e11c21" style="display: inline-block; padding: 10px 20px; background-color: #D33A3A; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">
@@ -108,7 +108,7 @@
             </div>
           </div>
           <!--<div class="tool-item">
-              <p class="title">MCP服务器配置:</p>
+              <p class="title">MCP服务器Configuration:</p>
               <div class="tool-item-bg service-config"></div>
           </div>-->
           <div class="tool-item">
@@ -184,7 +184,7 @@ export default {
       handler() {
         this.initData()
       },
-      // 深度观察监听
+      // 深度ObserveListen
       deep: true
     }
   },
@@ -243,7 +243,7 @@ export default {
     handleClick(val){
       this.$router.push(`/mcp/detail/square?mcpSquareId=${val.mcpSquareId}`)
     },
-    // 解析文本，遇到.换行等
+    // ParseText，遇到.换行Etc
     parseTxt(txt){
       if (!txt) return ''
       const text = txt.replaceAll('\n\t','<br/>&nbsp;').replaceAll('\n','<br/>').replaceAll('\t', '   &nbsp;')

@@ -13,8 +13,8 @@ const (
 )
 
 type AccessTokenClaims struct {
-	Scope    []string `json:"scope"`    // access token访问范围 [EN] access token access scope
-	UserID   string   `json:"userId"`   // 用户ID [EN] User ID
+	Scope    []string `json:"scope"`    // access token access scope
+	UserID   string   `json:"userId"`   // User ID
 	ClientID string   `json:"clientId"` // Client ID
 	jwt.StandardClaims
 }
@@ -30,9 +30,9 @@ func GenerateAccessToken(userID, clientID string, scopes []string, timeout int64
 		Scope:    scopes,
 		StandardClaims: jwt.StandardClaims{
 			Issuer:    _issuer,
-			Subject:   SUBJECT_ACCESS,    // 用途，目前固定access [EN] Purpose, currently fixed access
-			NotBefore: nowTime,           // 生效时间 [EN] Effective time
-			ExpiresAt: nowTime + timeout, // 过期时间 [EN] Expiration time
+			Subject:   SUBJECT_ACCESS,    // Purpose, currently fixed access
+			NotBefore: nowTime,           // Effective time
+			ExpiresAt: nowTime + timeout, // Expiration time
 		},
 	}).SignedString([]byte(_jwtSecret))
 	if err != nil {

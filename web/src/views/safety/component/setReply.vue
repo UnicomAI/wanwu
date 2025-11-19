@@ -2,7 +2,7 @@
     <div>
       <el-dialog
         top="10vh"
-        title="回复设置"
+        title="ReplySetting"
         :close-on-click-modal="false"
         :visible.sync="dialogVisible"
         width="50%"
@@ -16,9 +16,9 @@
             @submit.native.prevent
         >
             <el-form-item
-            label="回复设置"
+            label="ReplySetting"
             prop="reply"
-             :rules="[{ required: true, message: '请输入回复设置', trigger: 'blur' },]"
+             :rules="[{ required: true, message: 'Please enterReplySetting', trigger: 'blur' },]"
             >
             <el-input 
             v-model="ruleForm.reply" 
@@ -26,8 +26,8 @@
             :rows="4"
             maxlength="100"
             show-word-limit
-            placeholder="不超过100字"></el-input>
-            <p class="tips">若不设置,默认回复：您当前请求或者历史信息中包含敏感内容，根据相关安全要求，该轮对话终止，请清除历史信息或者重新开启新的对话。</p>
+            placeholder="不超 100字"></el-input>
+            <p class="tips">If不Setting,默认Reply：您当前RequestOR者历史Information中Contains敏感Content，根据相关安全要Request，该轮对话终止，Please清除历史InformationOR者重新开启新 of 对话。</p>
             </el-form-item>
         </el-form>
         <span
@@ -89,7 +89,7 @@ export default {
                 if(valid){
                     setReply(this.ruleForm).then(res =>{
                         if(res.code === 0){
-                            this.$message.success('设置成功')
+                            this.$message.success('SettingSuccess')
                             this.dialogVisible = false;
                         }
                     })

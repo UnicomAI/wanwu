@@ -1,14 +1,14 @@
 <template>
     <el-dialog
-    title="视觉设置"
+    title="视觉Setting"
     :visible.sync="dialogVisible"
     width="40%"
     :before-close="handleClose">
         <el-form :model="ruleForm" ref="ruleForm"  class="demo-ruleForm" label-width="120px" label-position="left">
             <el-form-item 
-            label="图片上传限制" 
+            label="图片Upload限制" 
             prop="visionConfig.picNum"
-            :rules="[{ required: true, message: '请选设置图片上传限制', trigger: 'blur'}]"
+            :rules="[{ required: true, message: 'Please选Setting图片Upload限制', trigger: 'blur'}]"
             >
                 <el-slider
                     v-model="ruleForm.visionConfig.picNum"

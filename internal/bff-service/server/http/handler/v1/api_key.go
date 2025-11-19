@@ -10,12 +10,12 @@ import (
 // GetApiBaseUrl
 //
 //	@Tags			app.key
-//	@Summary		获取Api根地址 [EN] @Summary Get the Api root address
-//	@Description	获取Api根地址 [EN] @Description Get the Api root address
+//	@Summary Get the Api root address
+//	@Description Get the Api root address
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	query		request.GetApiBaseUrlRequest	true	"获取Api根地址参数" [EN] @Param data query request.GetApiBaseUrlRequest true "Get Api root address parameters"
+//	@Param data query request.GetApiBaseUrlRequest true "Get Api root address parameters"
 //	@Success		200		{object}	response.Response{data=string}
 //	@Router			/appspace/app/url [get]
 func GetApiBaseUrl(ctx *gin.Context) {
@@ -30,11 +30,11 @@ func GetApiBaseUrl(ctx *gin.Context) {
 // GenApiKey
 //
 //	@Tags			app.key
-//	@Summary		生成ApiKey [EN] @Summary Generate ApiKey
-//	@Description	生成ApiKey [EN] @Description Generate ApiKey
+//	@Summary Generate ApiKey
+//	@Description Generate ApiKey
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.GenApiKeyRequest	true	"生成ApiKey参数" [EN] @Param data body request.GenApiKeyRequest true "Generate ApiKey parameters"
+//	@Param data body request.GenApiKeyRequest true "Generate ApiKey parameters"
 //	@Success		200		{object}	response.Response{data=response.ApiResponse}
 //	@Router			/appspace/app/key [post]
 func GenApiKey(ctx *gin.Context) {
@@ -49,11 +49,11 @@ func GenApiKey(ctx *gin.Context) {
 // DelApiKey
 //
 //	@Tags			app.key
-//	@Summary		删除ApiKey [EN] @Summary Delete ApiKey
-//	@Description	删除ApiKey [EN] @Description Delete ApiKey
+//	@Summary Delete ApiKey
+//	@Description Delete ApiKey
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.DelApiKeyRequest	true	"删除Apikey参数" [EN] @Param data body request.DelApiKeyRequest true "Delete Apikey parameters"
+//	@Param data body request.DelApiKeyRequest true "Delete Apikey parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/appspace/app/key [delete]
 func DelApiKey(ctx *gin.Context) {
@@ -68,11 +68,11 @@ func DelApiKey(ctx *gin.Context) {
 // GetApiKeyList
 //
 //	@Tags			app.key
-//	@Summary		获取ApiKey [EN] @Summary Get ApiKey
-//	@Description	获取ApiKey [EN] @Description Get ApiKey
+//	@Summary Get ApiKey
+//	@Description Get ApiKey
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	query		request.GetApiKeyListRequest	true	"获取ApiKey参数" [EN] @Param data query request.GetApiKeyListRequest true "Get ApiKey parameters"
+//	@Param data query request.GetApiKeyListRequest true "Get ApiKey parameters"
 //	@Success		200		{object}	response.Response{data=[]response.ApiResponse}
 //	@Router			/appspace/app/key/list [get]
 func GetApiKeyList(ctx *gin.Context) {

@@ -16,12 +16,12 @@ func registerCommon(apiV1 *gin.RouterGroup) {
 	mid.Sub("common").Reg(apiV1, "/avatar", http.MethodPost, v1.UploadAvatar, "上传自定义图标")
 	mid.Sub("common").Reg(apiV1, "/user/avatar", http.MethodPut, v1.UpdateUserAvatar, "编辑用户头像")
 
-	// 二阶段用户登录 [EN] Second stage user login
+	// Second stage user login
 	mid.Sub("common").Reg(apiV1, "/user/login", http.MethodPost, v1.LoginEmailCheck, "非首次登录邮箱绑定校验")
 	mid.Sub("common").Reg(apiV1, "/user/login", http.MethodPut, v1.ChangeUserPasswordByEmail, "首次登录修改用户密码与邮箱绑定校验（by 个人）")
 	mid.Sub("common").Reg(apiV1, "/user/login/email/code", http.MethodPost, v1.LoginSendEmailCode, "登录邮箱验证码发送")
 
-	// 通用文件上传 [EN] Universal file upload
+	// Universal file upload
 	mid.Sub("common").Reg(apiV1, "/file/check", http.MethodGet, v1.CheckFile, "校验文件")
 	mid.Sub("common").Reg(apiV1, "/file/check/list", http.MethodGet, v1.CheckFileList, "校验文件列表")
 	mid.Sub("common").Reg(apiV1, "/file/upload", http.MethodPost, v1.UploadFile, "上传文件")
@@ -30,12 +30,12 @@ func registerCommon(apiV1 *gin.RouterGroup) {
 	mid.Sub("common").Reg(apiV1, "/file/delete", http.MethodDelete, v1.DeleteFile, "刪除文件")
 	mid.Sub("common").Reg(apiV1, "/proxy/file/upload", http.MethodPost, v1.ProxyUploadFile, "代理上传文件")
 
-	// 文档中心 [EN] Document Center
+	// Document Center
 	mid.Sub("common").Reg(apiV1, "/doc_center/search", http.MethodGet, v1.SearchDocCenter, "查找文档中心内容")
 	mid.Sub("common").Reg(apiV1, "/doc_center/menu", http.MethodGet, v1.GetDocCenterMenu, "获取文档中心目录")
 	mid.Sub("common").Reg(apiV1, "/doc_center/markdown", http.MethodGet, v1.GetDocCenterMarkdown, "获取文档中心Markdown文件内容")
 
-	// 模型通用 [EN] Model universal
+	// Model universal
 	mid.Sub("common").Reg(apiV1, "/model/select/llm", http.MethodGet, v1.ListLlmModels, "llm模型列表展示")
 	mid.Sub("common").Reg(apiV1, "/model/select/rerank", http.MethodGet, v1.ListRerankModels, "rerank模型列表展示")
 	mid.Sub("common").Reg(apiV1, "/model/select/embedding", http.MethodGet, v1.ListEmbeddingModels, "embedding模型列表展示")
@@ -43,10 +43,10 @@ func registerCommon(apiV1 *gin.RouterGroup) {
 	mid.Sub("common").Reg(apiV1, "/model/select/pdf-parser", http.MethodGet, v1.ListPdfParserModels, "pdf文档解析模型列表展示")
 	mid.Sub("common").Reg(apiV1, "/model/select/gui", http.MethodGet, v1.ListGuiModels, "gui模型列表展示")
 
-	// 知识库通用 [EN] Knowledge base common
+	// Knowledge base common
 	mid.Sub("common").Reg(apiV1, "/knowledge/select", http.MethodPost, v1.GetKnowledgeSelect, "查询用户知识库列表")
 
-	// rag/agent/workflow通用 [EN] rag/agent/workflow general
+	// rag/agent/workflow general
 	mid.Sub("common").Reg(apiV1, "/appspace/app", http.MethodDelete, v1.DeleteAppSapceApp, "刪除应用")
 	mid.Sub("common").Reg(apiV1, "/appspace/app/list", http.MethodGet, v1.GetAppSpaceAppList, "获取应用列表")
 	mid.Sub("common").Reg(apiV1, "/appspace/app/publish", http.MethodPost, v1.PublishApp, "发布应用")
@@ -56,10 +56,10 @@ func registerCommon(apiV1 *gin.RouterGroup) {
 	mid.Sub("common").Reg(apiV1, "/appspace/app/key", http.MethodDelete, v1.DelApiKey, "删除ApiKey")
 	mid.Sub("common").Reg(apiV1, "/appspace/app/key/list", http.MethodGet, v1.GetApiKeyList, "获取ApiKey列表")
 
-	// Safety通用 [EN] SafetyUniversal
+	// SafetyUniversal
 	mid.Sub("common").Reg(apiV1, "/safe/sensitive/table/select", http.MethodGet, v1.GetSensitiveWordTableSelect, "获取敏感词表下拉列表")
 
-	// 应用Url [EN] ApplicationUrl
+	// ApplicationUrl
 	mid.Sub("common").Reg(apiV1, "/appspace/app/openurl", http.MethodPost, v1.AppUrlCreate, "创建应用Url")
 	mid.Sub("common").Reg(apiV1, "/appspace/app/openurl", http.MethodDelete, v1.AppUrlDelete, "删除应用Url")
 	mid.Sub("common").Reg(apiV1, "/appspace/app/openurl", http.MethodPut, v1.AppUrlUpdate, "编辑应用Url")

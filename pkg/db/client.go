@@ -74,10 +74,10 @@ func New(cfg Config) (*gorm.DB, error) {
 	return db, err
 }
 
-// 构建gorm 日志配置 [EN] Build gorm log configuration
+// Build gorm log configuration
 func buildGormConfig(cfg ConnConfig) *gorm.Config {
 	var gormConfig *gorm.Config
-	if cfg.LogMode { //根据配置决定是否开启日志 [EN] Determine whether to enable logs based on configuration
+	if cfg.LogMode { //Determine whether to enable logs based on configuration
 		gormConfig = &gorm.Config{
 			Logger:                                   logger.Default.LogMode(logger.Info),
 			DisableForeignKeyConstraintWhenMigrating: true,

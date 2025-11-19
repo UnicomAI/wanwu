@@ -11,7 +11,7 @@ export const MODEL_TYPE_OBJ = {
     [EMBEDDING]: 'Embedding',
     [OCR]: 'OCR',
     [GUI]: 'GUI',
-    [PDF_PARSER]: '文档解析服务'
+    [PDF_PARSER]: 'DocumentParse服务'
 }
 
 export const MODEL_TYPE = Object.keys(MODEL_TYPE_OBJ).map(key => ({key, name: MODEL_TYPE_OBJ[key]}))
@@ -55,14 +55,14 @@ export const PROVIDER_TYPE = Object.keys(PROVIDER_OBJ)
 
 export const DEFAULT_CALLING = 'noSupport'
 export const FUNC_CALLING = [
-    {key: 'noSupport', name: '不支持'},
+    {key: 'noSupport', name: 'Not Supported'},
     {key: 'toolCall', name: 'Tool call'},
     /*{key: 'functionCall', name: 'Function call'},*/
 ]
 
 export const DEFAULT_SUPPORT = 'noSupport'
 export const SUPPORT_LIST = [
-    {key: 'noSupport', name: '不支持'},
+    {key: 'noSupport', name: 'Not Supported'},
     {key: 'support', name: '支持'},
 ]
 

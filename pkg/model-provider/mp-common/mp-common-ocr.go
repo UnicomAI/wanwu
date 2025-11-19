@@ -131,8 +131,8 @@ func Ocr(ctx *gin.Context, provider, apiKey, url string, req *OcrReq, headers ..
 	}
 	defer file.Close()
 	request := resty.New().
-		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验 [EN] Turn off certificate verification
-		SetTimeout(0).                                             // 关闭请求超时 [EN] Close request timeout
+		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // Turn off certificate verification
+		SetTimeout(0).                                             // Close request timeout
 		R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "multipart/form-data").

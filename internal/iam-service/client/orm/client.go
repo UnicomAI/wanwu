@@ -103,7 +103,7 @@ type UserOrg struct {
 }
 
 type Permission struct {
-	IsAdmin              bool // 是否是当前组织的内置管理角色 [EN] Is it a built-in management role for the current organization?
+	IsAdmin              bool // Is it a built-in management role for the current organization?
 	IsSystem             bool
 	Org                  IDName
 	Roles                []RoleIDName

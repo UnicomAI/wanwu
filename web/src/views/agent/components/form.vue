@@ -75,7 +75,7 @@
         </div>
       </div>
     </div>
-    <!-- 智能体配置 -->
+    <!-- AgentConfiguration -->
     <div class="agent_form">
       <div class="block prompt-box drawer-info">
         <div class="promptTitle">
@@ -382,53 +382,53 @@
       </div>
     </div>
 
-    <!-- 编辑智能体 -->
+    <!-- EditAgent -->
     <CreateIntelligent
       ref="createIntelligentDialog"
       :type="'edit'"
       :editForm="editForm"
       @updateInfo="getAppDetail"
     />
-    <!-- 模型设置 -->
+    <!-- ModelSetting -->
     <ModelSet
       @setModelSet="setModelSet"
       ref="modelSetDialog"
       :modelform="editForm.modelConfig"
       :limitMaxTokens="limitMaxTokens"
     />
-    <!-- 选择工具类型 -->
+    <!-- 选择ToolType -->
     <ToolDiaglog
       ref="toolDiaglog"
       @updateDetail="updateDetail"
       :assistantId="editForm.assistantId"
     />
-    <!-- 敏感词设置 -->
+    <!-- Sensitive WordSetting -->
     <setSafety
       ref="setSafety"
       @sendSafety="sendSafety"
     />
-    <!-- 知识库召回参数配置 -->
+    <!-- Knowledge Base召回ParameterConfiguration -->
     <knowledgeSetDialog
       ref="knowledgeSetDialog"
       @setKnowledgeSet="setKnowledgeSet"
     />
-    <!-- 知识库选择 -->
+    <!-- Knowledge Base选择 -->
     <knowledgeSelect
       ref="knowledgeSelect"
       @getKnowledgeData="getKnowledgeData"
     />
-    <!-- 视图设置 -->
+    <!-- 视图Setting -->
     <visualSet
       ref="visualSet"
       @sendVisual="sendVisual"
     />
-    <!-- 内置工具详情 -->
+    <!-- 内置ToolDetails -->
     <ToolDeatail ref="toolDeatail" @updateDetail="updateDetail" />
-    <!-- 提交至提示词 -->
+    <!-- 提交toTip词 -->
     <createPrompt :isCustom="true" :type="promptType" ref="createPrompt" @reload="updatePrompt"/>
-    <!-- 提示词优化 -->
+    <!-- Tip词优化 -->
     <PromptOptimize ref="promptOptimize" @promptSubmit="promptSubmit" />
-    <!-- 元数据设置 -->
+    <!-- 元DataSetting -->
     <el-dialog
       :visible.sync="metaSetVisible"
       width="1050px"
@@ -519,7 +519,7 @@ export default {
   watch: {
     editForm: {
       handler(newVal, oldVal) {
-        // 如果是从详情设置的数据，不触发更新逻辑
+        // IfYes从DetailsSetting of Data，不TriggerUpdate逻辑
         if (this.isSettingFromDetail) return;
 
         if (this.debounceTimer) {
@@ -582,21 +582,21 @@ export default {
         rerankParams: "",
         modelParams: "",
         prologue: "", //开场白
-        instructions: "", //系统提示词
+        instructions: "", //SystemTip词
         knowledgebases: [],
-        visionConfig:{//视觉配置
+        visionConfig:{//视觉Configuration
           picNum: 3,
           maxPicNum:6
         },
         knowledgeConfig: {
-          keywordPriority: 0.8, //关键词权重
-          matchType: "mix", //vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
-          priorityMatch: 1, //权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1
-          rerankModelId: "", //rerank模型id
+          keywordPriority: 0.8, //关Key词权重
+          matchType: "mix", //vector（向量检索）、text（Text检索）、mix（混合检索：向量+Text）
+          priorityMatch: 1, //权重Match，只Has在混合检索模式下，选择权重Setting后，这个才Setting为1
+          rerankModelId: "", //rerankModelid
           semanticsPriority: 0.2, //语义权重
-          topK: 5, //topK 获取最高的几行
-          threshold: 0.4, //过滤分数阈值
-          maxHistory: 0, //最长上下文
+          topK: 5, //topK Get最高 of 几行
+          threshold: 0.4, // 滤分数阈Value
+          maxHistory: 0, //最长Context
           useGraph:false
         },
         recommendQuestion: [{ value: "" }],
@@ -624,7 +624,7 @@ export default {
       workFlowInfos: [],
       actionInfos: [],
       mcpInfos: [],
-      allTools: [], //所有的工具
+      allTools: [], //所Has of Tool
       workflowList: [],
       modelParams: {},
       platform: this.$platform,
@@ -634,31 +634,31 @@ export default {
       knowledgeData: [],
       loadingPercent: 10,
       nameStatus: "",
-      saved: false, //按钮
-      loading: false, //按钮
+      saved: false, //Button
+      loading: false, //Button
       t: null,
       logoFileList: [],
       imageUrl: "",
       defaultLogo: require("@/assets/imgs/bg-logo.png"),
-      debounceTimer: null, //防抖计时器
-      isSettingFromDetail: false, // 防止详情数据触发更新标记
+      debounceTimer: null, //防抖计 when 器
+      isSettingFromDetail: false, // 防止DetailsDataTriggerUpdate标记
       nameMap: {
         workflow: {
-          displayName: "工作流",
+          displayName: "Workflow",
           propName: "name",
         },
         mcp: {
-          displayName: "MCP工具",
+          displayName: "MCPTool",
           propName: "actionName",
         },
         action: {
-          displayName: "自定义工具",
+          displayName: "CustomTool",
           propName: "actionName",
         },
-        // 可以继续添加其他类型
+        // 可以继续AddOtherType
         default: {
-          displayName: "未知工具",
-          propName: "name", // 默认属性名
+          displayName: "未知Tool",
+          propName: "name", // DefaultPropertyName
         },
       },
     };
@@ -672,19 +672,19 @@ export default {
     this.initialEditForm = JSON.parse(JSON.stringify(this.editForm));
   },
   created() {
-    this.getModelData(); //获取模型列表
-    this.getRerankData(); //获取rerank模型
+    this.getModelData(); //GetModelList
+    this.getRerankData(); //GetrerankModel
     if (this.$route.query.id) {
       this.editForm.assistantId = this.$route.query.id;
       setTimeout(() => {
         this.getAppDetail();
       }, 500);
     }
-    //判断是否发布
+    //判断YesNoPublish
     if (this.$route.query.publish) {
       this.isPublish = true;
     }
-    //判断是否有插件管理的权限
+    //判断YesNoHasPlugin管理 of Permission
     const accessCert = localStorage.getItem("access_cert");
     const permission = accessCert
       ? JSON.parse(accessCert).user.permission.orgPermission
@@ -964,7 +964,7 @@ export default {
         .catch((err) => {});
     },
     visibleChange(val) {
-      //下拉框显示的时候请求模型列表
+      //下拉框Show of  when 候RequestModelList
       if (val) {
         this.getModelData();
       }
@@ -979,7 +979,7 @@ export default {
       this.modelLoading = false;
     },
     async updateInfo() {
-      //模型数据
+      //ModelData
       let modeInfo;
       if (
         typeof this.editForm.modelParams === "object" &&
@@ -1068,9 +1068,9 @@ export default {
           prologue: data.prologue || "", //开场白
           name: data.name || "",
           desc: data.desc || "",
-          instructions: data.instructions || "", //系统提示词
+          instructions: data.instructions || "", //SystemTip词
           rerankParams: data.rerankConfig.modelId || "",
-          visionConfig: data.visionConfig,//图片配置
+          visionConfig: data.visionConfig,//ImageConfiguration
           modelConfig:
             data.modelConfig.config !== null
               ? data.modelConfig.config
@@ -1090,10 +1090,10 @@ export default {
               : this.editForm.safetyConfig,
         };
 
-        //设置模型信息
+        //SettingModelInformation
         this.setModelInfo(data.modelConfig.modelId);
 
-        //回显自定义插件
+        //回显CustomPlugin
         this.workFlowInfos = data.workFlowInfos || [];
         this.mcpInfos = data.mcpInfos || [];
         this.actionInfos = data.toolInfos || [];
@@ -1201,7 +1201,7 @@ export default {
     padding-top: 5px;
   }
 }
-//通用添加按钮
+//通用AddButton
 .common-add {
   color: #595959;
   cursor: pointer;
@@ -1530,7 +1530,7 @@ export default {
       bottom: 5px;
       right: 10px;
     }
-    /*新建应用*/
+    /*新建App*/
     .name-box {
       height: 90px;
       line-height: 90px;
@@ -1648,7 +1648,7 @@ export default {
       padding-bottom: 60px;
     }
 
-    /*插件*/
+    /*Plugin*/
     .plugin-box {
       .el-checkbox-group {
         margin-top: 10px;
@@ -1756,9 +1756,9 @@ export default {
   z-index: 9999 !important;
 }
 .custom-tooltip.is-light {
-  border-color: #ccc; /* 设置边框颜色 */
-  background-color: #fff; /* 设置背景颜色 */
-  color: #666; /* 设置文字颜色 */
+  border-color: #ccc; /* Setting边框颜色 */
+  background-color: #fff; /* Setting背景颜色 */
+  color: #666; /* Setting文字颜色 */
 }
 .custom-tooltip.el-tooltip__popper[x-placement^="top"] .popper__arrow::after {
   border-top-color: #fff !important;

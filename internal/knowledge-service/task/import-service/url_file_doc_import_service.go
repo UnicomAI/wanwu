@@ -24,8 +24,8 @@ func (f UrlFileDocImportService) ImportType() int {
 }
 
 func (f UrlFileDocImportService) AnalyzeDoc(ctx context.Context, importTask *model.KnowledgeImportTask, importDocInfo *model.DocImportInfo) ([]*model.DocInfo, error) {
-	docInfo := importDocInfo.DocInfoList[0] // 一个excel 文件 [EN] an excel file
-	//1.下载压缩文件到本地 [EN] 1. Download the compressed file to local
+	docInfo := importDocInfo.DocInfoList[0] // an excel file
+	//1. Download the compressed file to local
 	var localFilePath = util.BuildFilePath(config.GetConfig().KnowledgeDocConfig.DocLocalFilePath, docInfo.DocType)
 	err := service.DownloadFileToLocal(ctx, docInfo.DocUrl, localFilePath)
 	if err != nil {
@@ -38,17 +38,17 @@ func (f UrlFileDocImportService) AnalyzeDoc(ctx context.Context, importTask *mod
 			log.Errorf("DoFileExtract local file delete %v", err)
 		}
 	}()
-	//2.读取excel [EN] 2.Read excel
+	//2.Read excel
 	columnList, err := util.ReadExcelColumn(localFilePath, 1)
 	if err != nil {
 		return nil, err
 	}
-	//3.执行文档解析 [EN] 3. Perform document parsing
+	//3. Perform document parsing
 	docUrlRespList, err := service.BatchRagDocUrlAnalysis(ctx, columnList)
 	if err != nil {
 		return nil, err
 	}
-	//4.转换结果 [EN] 4. Conversion results
+	//4. Conversion results
 	var retList []*model.DocInfo
 	for _, docUrlREsp := range docUrlRespList {
 		retList = append(retList, &model.DocInfo{

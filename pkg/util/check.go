@@ -14,7 +14,7 @@ func Exist[T ~int | ~int32 | ~uint32 | ~int64 | ~string](arr []T, n T) bool {
 	return false
 }
 
-// IsAlphanumeric 特殊字符校验 [EN] IsAlphanumeric special character check
+// IsAlphanumeric special character check
 func IsAlphanumeric(input string) bool {
 	for _, r := range input {
 		if !(unicode.Is(unicode.Han, r) || // Chinese character

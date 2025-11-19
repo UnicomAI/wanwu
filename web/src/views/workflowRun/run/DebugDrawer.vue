@@ -2,7 +2,7 @@
   <div class="debug">
     <div class="config-header">
       <!--<i class="el-icon-close close-icon" @click="preClose"></i>-->
-      <div style="color: #888; cursor: pointer" @click="$router.go(-1)">返回</div>
+      <div style="color: #888; cursor: pointer" @click="$router.go(-1)">Back</div>
       <div class="header-name">{{startNode.workflowName || '--'}}</div>
     </div>
     <div class="form">
@@ -13,7 +13,7 @@
           <el-tooltip
             class="item"
             effect="dark"
-            :content="n.desc || '暂无描述'"
+            :content="n.desc || 'NoDescription'"
             placement="top-start"
           >
             <i class="el-icon-question desc-icon"></i>
@@ -23,11 +23,11 @@
             size="mini"
             v-model="n.upLoadType"
             v-if="n.type === 'fileUrl'"
-            placeholder="请选择"
+            placeholder="Please select"
             @change="handleUrlChange(i)"
           >
-            <el-option :label="'上传文件'" :value="'0'"> </el-option>
-            <el-option :label="'输入Url'" :value="'1'"> </el-option>
+            <el-option :label="'UploadFile'" :value="'0'"> </el-option>
+            <el-option :label="'EnterUrl'" :value="'1'"> </el-option>
           </el-select>
         </div>
         <div v-if="n.type !== 'fileUrl'">
@@ -38,7 +38,7 @@
             "
             class="form-item--input"
             v-model="n.value.content"
-            placeholder="请填写输入参数值"
+            placeholder="Please fill inEnterParameterValue"
           ></el-input>
           <ArrayEditor
             v-else
@@ -55,7 +55,7 @@
             v-if="n.upLoadType === '1'"
             class="form-item--input"
             v-model="n.value.content"
-            placeholder="请填写输入参数值"
+            placeholder="Please fill inEnterParameterValue"
           ></el-input>
           <Upload
             v-if="n.upLoadType === '0'"
@@ -133,7 +133,7 @@ export default {
   mixins: [sseMethod],
   data() {
     return {
-      source: [], // 储存目前上传的接口
+      source: [], // 储存目前Upload of Interface
       isStream: getQueryString("isStream"),
       startNode: {
         data: {
@@ -163,21 +163,21 @@ export default {
         this.startNode = res.data || {}
       })
     },
-    // 上传功能新增代码
+    // Upload功能Add代码
     handleUploadSuccess(obj) {
       /** obj
-       * obj.index 下标 第几个参数
-       * obj.url 返回的 downloadUrl
-       * obj.fileId 返回的 fileId
-       * obj.file 选中的文件信息 */
+       * obj.index 下标 第几个Parameter
+       * obj.url Back of  downloadUrl
+       * obj.fileId Back of  fileId
+       * obj.file 选中 of FileInformation */
       this.startNode.data.outputs[obj.index].value.content = obj.fileId;
     },
-    // 上传中触发事件,返回目前是否在上传文件
+    // Upload中TriggerEvent,Back目前YesNo在UploadFile
     handleDisabled(val) {
-      // val: true 代表正在上传
+      // val: true 代Table正在Upload
       this.runDisabled = val;
     },
-    // 储存目前正在上传的接口信息
+    // 储存目前正在Upload of InterfaceInformation
     handleCancel(obj) {
       this.source.push(obj.source);
     },
@@ -263,11 +263,11 @@ export default {
             this.thinkText = "思考已停止";
           }
         } else {
-          this.thinkText = "思考中...";
+          this.thinkText = "Thinking...";
         }
       }
 
-      // 如果没有返回前缀，则补上
+      // IfNoBack前缀，Then补上
       if (b.test(data) && !a.test(data)) {
         _data = "<think>" + data;
       }

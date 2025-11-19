@@ -72,15 +72,15 @@ func GetClient() HttpClient {
 	return httpClient
 }
 
-// newHttpClient 初始化httpclient,httpclient 是一个比较重的资源， [EN] newHttpClient initializes httpclient. httpclient is a relatively heavy resource.
-// 为了http连接的复用在启动时做一次初始化，但是请注意如果需要做http请求的绝对隔离可以再创建其他的httpclient [EN] In order to reuse the http connection, initialization is done at startup, but please note that if you need absolute isolation of http requests, you can create other httpclients.
+// newHttpClient initializes httpclient. httpclient is a relatively heavy resource.
+// In order to reuse the http connection, initialization is done at startup, but please note that if you need absolute isolation of http requests, you can create other httpclients.
 func newHttpClient() *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			DialContext: (&net.Dialer{
-				Timeout:   connectTimeout, // 连接超时时间 [EN] Connection timeout
-				KeepAlive: timeout,        // 连接保持活跃的时间 [EN] How long the connection remains active
+				Timeout:   connectTimeout, // Connection timeout
+				KeepAlive: timeout,        // How long the connection remains active
 			}).DialContext,
 			MaxIdleConnsPerHost:   100,
 			ResponseHeaderTimeout: timeout,
@@ -127,7 +127,7 @@ func (c HttpClient) PostJson(ctx context.Context, httpRequestParams *HttpRequest
 	})
 }
 
-// PostJsonOriResp 此方法需要在外部设置content 超时，并进行defer cancel [EN] PostJsonOriResp This method needs to set the content timeout externally and perform defer cancel.
+// PostJsonOriResp This method needs to set the content timeout externally and perform defer cancel.
 func (c HttpClient) PostJsonOriResp(ctx context.Context, httpRequestParams *HttpRequestParams) (result *http.Response, err error) {
 	return SendRequestOriResp(ctx, c.Client, httpRequestParams, "POST-JSON", func(params *HttpRequestParams, ctx context.Context) (*http.Request, string, error) {
 		var requestBody *bytes.Buffer
@@ -152,7 +152,7 @@ func (c HttpClient) PostForm(ctx context.Context, httpRequestParams *HttpRequest
 	})
 }
 
-// PostFile 如果想传递其他参数，则通过params传递 [EN] PostFile If you want to pass other parameters, pass them through params
+// PostFile If you want to pass other parameters, pass them through params
 func (c HttpClient) PostFile(ctx context.Context, httpRequestParams *HttpRequestParams) (result []byte, err error) {
 	return SendRequest(ctx, c.Client, httpRequestParams, "POST-FILE", func(params *HttpRequestParams, ctx context.Context) (*http.Request, string, error) {
 		payload := &bytes.Buffer{}
@@ -188,7 +188,7 @@ func (c HttpClient) PostFile(ctx context.Context, httpRequestParams *HttpRequest
 	})
 }
 
-// Delete 删除数据 [EN] Delete Delete data
+// Delete Delete data
 func (c HttpClient) Delete(ctx context.Context, httpRequestParams *HttpRequestParams) (result []byte, err error) {
 	return SendRequest(ctx, c.Client, httpRequestParams, "DELETE", func(params *HttpRequestParams, ctx context.Context) (*http.Request, string, error) {
 		request, err2 := http.NewRequest("DELETE", httpRequestParams.Url, nil)
@@ -196,7 +196,7 @@ func (c HttpClient) Delete(ctx context.Context, httpRequestParams *HttpRequestPa
 	})
 }
 
-// SendRequest 此方法实现的目的是作为一个通用的http调用方法，也是最核心http调用 [EN] SendRequest This method is implemented as a general http calling method and is also the core http calling.
+// SendRequest This method is implemented as a general http calling method and is also the core http calling.
 func SendRequest(ctx context.Context, client *http.Client, httpRequestParams *HttpRequestParams, requestType string, buildRequest func(*HttpRequestParams, context.Context) (*http.Request, string, error)) (result []byte, err error) {
 	start := time.Now()
 	if httpRequestParams == nil {
@@ -210,45 +210,45 @@ func SendRequest(ctx context.Context, client *http.Client, httpRequestParams *Ht
 		}
 	}()
 
-	//1.开启超时监控 [EN] 1. Turn on timeout monitoring
+	//1. Turn on timeout monitoring
 	if httpRequestParams.Timeout == 0 {
 		httpRequestParams.Timeout = time.Minute * 1
 	}
 	ctx, cancel := context.WithTimeout(ctx, httpRequestParams.Timeout)
 	defer cancel()
 
-	//2.构造请求 [EN] 2. Construct a request
+	//2. Construct a request
 	req, contentType, err := buildRequest(httpRequestParams, ctx)
 	if err != nil {
 		return nil, err
 	}
-	//3.设置请求头 [EN] 3. Set request headers
+	//3. Set request headers
 	setHeader(req, httpRequestParams.Headers, contentType)
 	req = req.WithContext(ctx)
-	//4.执行请求 [EN] 4. Execute the request
+	//4. Execute the request
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	//5.处理返回结果 [EN] 5. Process the returned results
+	//5. Process the returned results
 	defer func(Body io.ReadCloser) {
 		err1 := Body.Close()
 		if err1 != nil {
-			//todo 通用日志文件 [EN] todo general log file
+			//todo general log file
 			err = err1
 		}
-	}(resp.Body) // 确保关闭响应体 [EN] Make sure to close the response body
+	}(resp.Body) // Make sure to close the response body
 
-	// 读取响应体 [EN] Read response body
+	// Read response body
 	body, err := io.ReadAll(resp.Body)
 
-	// 6.打印日志 [EN] 6.Print log
+	// 6.Print log
 	logRequest(ctx, httpRequestParams, requestType, start, resp.StatusCode, body, err)
 	return body, err
 }
 
-// SendRequestOriResp 此方法实现的目的是作为一个通用的http调用方法，也是最核心http调用 [EN] SendRequestOriResp This method is implemented as a general http calling method and is also the core http calling.
+// SendRequestOriResp This method is implemented as a general http calling method and is also the core http calling.
 func SendRequestOriResp(ctx context.Context, client *http.Client, httpRequestParams *HttpRequestParams, requestType string, buildRequest func(*HttpRequestParams, context.Context) (*http.Request, string, error)) (result *http.Response, err error) {
 	start := time.Now()
 	if httpRequestParams == nil {
@@ -262,26 +262,26 @@ func SendRequestOriResp(ctx context.Context, client *http.Client, httpRequestPar
 		}
 	}()
 
-	//2.构造请求 [EN] 2. Construct a request
+	//2. Construct a request
 	req, contentType, err := buildRequest(httpRequestParams, ctx)
 	if err != nil {
 		return nil, err
 	}
-	//3.设置请求头 [EN] 3. Set request headers
+	//3. Set request headers
 	setHeader(req, httpRequestParams.Headers, contentType)
 	req = req.WithContext(ctx)
-	//4.执行请求 [EN] 4. Execute the request
+	//4. Execute the request
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	// 6.打印日志 [EN] 6.Print log
+	// 6.Print log
 	logRequest(ctx, httpRequestParams, requestType, start, resp.StatusCode, nil, err)
 	return resp, err
 }
 
-// setHeader 设置请求头 [EN] setHeader sets the request header
+// setHeader sets the request header
 func setHeader(request *http.Request, headerMap map[string]string, contentType string) {
 	hasContentType := false
 	if len(headerMap) > 0 {
@@ -297,7 +297,7 @@ func setHeader(request *http.Request, headerMap map[string]string, contentType s
 	}
 }
 
-// logRequest 打印http请求日志，不会抛出panic [EN] logRequest prints http request log without throwing panic
+// logRequest prints http request log without throwing panic
 func logRequest(ctx context.Context, httpRequestParams *HttpRequestParams, requestType string, start time.Time, statusCode int, response []byte, err error) {
 	defer func() {
 		if r := recover(); r != nil {

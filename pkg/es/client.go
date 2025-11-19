@@ -29,20 +29,20 @@ type client struct {
 }
 
 func newClient(ctx context.Context, c Config) (*client, error) {
-	// 智能判断协议，如果地址没有协议前缀，则尝试HTTPS，失败后尝试HTTP [EN] Intelligently determine the protocol. If the address does not have a protocol prefix, HTTPS will be tried. If it fails, HTTP will be tried.
+	// Intelligently determine the protocol. If the address does not have a protocol prefix, HTTPS will be tried. If it fails, HTTP will be tried.
 	addresses := []string{}
 
-	// 如果地址已经包含协议，直接使用 [EN] If the address already contains a protocol, use it directly
+	// If the address already contains a protocol, use it directly
 	if strings.HasPrefix(c.Address, "http://") || strings.HasPrefix(c.Address, "https://") {
 		addresses = append(addresses, c.Address)
 	} else {
-		// 优先尝试HTTPS，然后HTTP [EN] Try HTTPS first, then HTTP
+		// Try HTTPS first, then HTTP
 		addresses = append(addresses, "https://"+c.Address, "http://"+c.Address)
 	}
 
 	var lastErr error
 
-	// 尝试每个地址 [EN] try every address
+	// try every address
 	for _, addr := range addresses {
 		cfg := elasticsearch.Config{
 			Addresses: []string{addr},
@@ -62,7 +62,7 @@ func newClient(ctx context.Context, c Config) (*client, error) {
 			continue
 		}
 
-		// 测试连接 [EN] test connection
+		// test connection
 		res, err := esClient.Info()
 		if err != nil {
 			lastErr = fmt.Errorf("ES连接测试失败 [%s]: %v", addr, err)
@@ -88,7 +88,7 @@ func newClient(ctx context.Context, c Config) (*client, error) {
 		}, nil
 	}
 
-	// 所有地址都失败了 [EN] All addresses failed
+	// All addresses failed
 	if lastErr != nil {
 		return nil, lastErr
 	}
@@ -113,7 +113,7 @@ func (c *client) Cli() *elasticsearch.Client {
 	return c.cli
 }
 
-// 写入数据到指定索引 [EN] Write data to the specified index
+// Write data to the specified index
 func (c *client) IndexDocument(ctx context.Context, index string, document interface{}) error {
 	docJSON, err := json.Marshal(document)
 	if err != nil {
@@ -139,7 +139,7 @@ func (c *client) IndexDocument(ctx context.Context, index string, document inter
 	return nil
 }
 
-// 根据指定字段条件查询所有数据 [EN] Query all data based on specified field conditions
+// Query all data based on specified field conditions
 func (c *client) SearchByFields(ctx context.Context, index string, fieldConditions map[string]interface{}, from, size int) ([]json.RawMessage, int64, error) {
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
@@ -223,7 +223,7 @@ func (c *client) SearchByFields(ctx context.Context, index string, fieldConditio
 	return documents, int64(totalValue), nil
 }
 
-// 创建索引模板 [EN] Create index template
+// Create index template
 func (c *client) CreateIndexTemplate(ctx context.Context, templateName string, templateBody string) error {
 	res, err := c.cli.Indices.PutIndexTemplate(
 		templateName,
@@ -243,7 +243,7 @@ func (c *client) CreateIndexTemplate(ctx context.Context, templateName string, t
 	return nil
 }
 
-// 检查索引模板是否存在 [EN] Check if index template exists
+// Check if index template exists
 func (c *client) IndexTemplateExists(ctx context.Context, templateName string) (bool, error) {
 	res, err := c.cli.Indices.GetIndexTemplate(
 		c.cli.Indices.GetIndexTemplate.WithName(templateName),

@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	expire    = 60 // 验证码有效期 秒 [EN] Verification code validity period seconds
-	frequency = 10 // 验证码每分钟可刷新次数（一分钟过后次数重置） [EN] The number of times the verification code can be refreshed per minute (the number is reset after one minute)
+	expire    = 60 // Verification code validity period seconds
+	frequency = 10 // The number of times the verification code can be refreshed per minute (the number is reset after one minute)
 )
 
 func (c *Client) RefreshCaptcha(ctx context.Context, key, code string) *errs.Status {
@@ -23,7 +23,7 @@ func (c *Client) RefreshCaptcha(ctx context.Context, key, code string) *errs.Sta
 		now := time.Now()
 		captcha := &model.Captcha{}
 		if err := tx.Where("id = ?", key).First(captcha).Error; err != nil {
-			// 1. 未创建过 [EN] 1. Never created
+			// 1. Never created
 			if err == gorm.ErrRecordNotFound {
 				if err := tx.Create(&model.Captcha{
 					ID:         key,
@@ -38,10 +38,10 @@ func (c *Client) RefreshCaptcha(ctx context.Context, key, code string) *errs.Sta
 			}
 			return toErrStatus("iam_captcha_create", err.Error())
 		}
-		// 2. 创建过 [EN] 2. Created
-		// 2.A 距离上次刷新不足1min [EN] 2.A Less than 1 minute has passed since the last refresh
+		// 2. Created
+		// 2.A Less than 1 minute has passed since the last refresh
 		if now.Sub(time.UnixMilli(captcha.StartAt)) < time.Minute {
-			// 2.A.a 未达刷新次数上限 [EN] 2.A.a The upper limit of refresh times has not been reached.
+			// 2.A.a The upper limit of refresh times has not been reached.
 			if captcha.RefreshCnt < int32(frequency) {
 				if err := tx.Model(captcha).Updates(map[string]interface{}{
 					"code":        code,
@@ -52,10 +52,10 @@ func (c *Client) RefreshCaptcha(ctx context.Context, key, code string) *errs.Sta
 				}
 				return nil
 			}
-			// 2.A.b 超过刷新次数上限 [EN] 2.A.b Exceeds the upper limit of refresh times
+			// 2.A.b Exceeds the upper limit of refresh times
 			return toErrStatus("iam_captcha_create", "check captcha but key or code empty")
 		}
-		// 2.B 距离上次刷新超过1min [EN] 2.B More than 1 minute has passed since the last refresh
+		// 2.B More than 1 minute has passed since the last refresh
 		if err := tx.Model(captcha).Updates(map[string]interface{}{
 			"code":        code,
 			"start_at":    now.UnixMilli(),

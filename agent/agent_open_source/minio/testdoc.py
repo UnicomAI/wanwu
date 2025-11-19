@@ -1,13 +1,13 @@
 import requests
 import json
 
-# 修改为你的服务地址 [EN] Change it to your service address
+# Change it to your service address
 URL = "http://172.17.0.1:15003/doc_pra"
 
-# 构造测试数据 [EN] Construct test data
+# Construct test data
 payload = {
     "upload_file_url": [
-        "xxxxx"  # 替换为真实可访问的文档 URL [EN] Replaced with a real accessible document URL
+        "xxxxx"  # Replaced with a real accessible document URL
     ]
 }
 

@@ -57,7 +57,7 @@ export const getMyAppList = (data)=>{
         params: data
     })
 };
-//头像上传
+//AvatarUpload
 export const fileUpload = (data,config)=>{
     return request({
         url: `${SERVICE_API}/model/expansion/file/batch/upload`,
@@ -66,7 +66,7 @@ export const fileUpload = (data,config)=>{
         config
     })
 };
-//知识增强文件上传
+//知识增强FileUpload
 export const knowledgeFileUpload = (data,config)=>{
     return request({
         url: `${MODEL_API}/assistant/knowledge/file/upload`,
@@ -75,7 +75,7 @@ export const knowledgeFileUpload = (data,config)=>{
         config
     })
 };
-//查询已上传文件列表
+//Query已UploadFileList
 export const getKnowledgeFileList = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/knowledge/file/list`,
@@ -90,7 +90,7 @@ export const deleteKnowledgeFile = (data)=>{
         data
     })
 };
-//常用应用
+//常用App
 export const getRecentApp = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/common/list`,
@@ -98,7 +98,7 @@ export const getRecentApp = (data)=>{
         params: data
     })
 };
-//删除常用应用
+//Delete常用App
 export const deleteRecentApp = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/common/delete`,
@@ -107,7 +107,7 @@ export const deleteRecentApp = (data)=>{
     })
 };
 
-//对话列表
+//对话List
 export const getConversationList = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/conversation/list`,
@@ -115,7 +115,7 @@ export const getConversationList = (data)=>{
         params: data
     })
 };
-//创建对话
+//Create对话
 export const createConversation = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/conversation/create`,
@@ -123,7 +123,7 @@ export const createConversation = (data)=>{
         data
     })
 };
-//删除对话
+//Delete对话
 export const deleteConversation = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/conversation/delete`,
@@ -131,7 +131,7 @@ export const deleteConversation = (data)=>{
         data
     })
 };
-//对话详情
+//对话Details
 export const getConversationDetail = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/conversation/detail`,
@@ -140,7 +140,7 @@ export const getConversationDetail = (data)=>{
     })
 };
 /*----元景------*/
-//对话列表
+//对话List
 export const getConversationListCUBM = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/list`,
@@ -148,7 +148,7 @@ export const getConversationListCUBM = (data)=>{
         params: data
     })
 };
-//创建对话
+//Create对话
 export const createConversationCUBM = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/create`,
@@ -156,7 +156,7 @@ export const createConversationCUBM = (data)=>{
         data
     })
 };
-//删除对话
+//Delete对话
 export const deleteConversationCUBM = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/delete`,
@@ -164,7 +164,7 @@ export const deleteConversationCUBM = (data)=>{
         data
     })
 };
-//对话详情
+//对话Details
 export const getConversationDetailCUBM = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/detail`,
@@ -172,7 +172,7 @@ export const getConversationDetailCUBM = (data)=>{
         params: data
     })
 };
-//批量文件上传
+//BatchFileUpload
 export const batchUpload = (data,config)=>{
     return request({
         url: `${MODEL_API}/file/batch/upload`,
@@ -190,7 +190,7 @@ export const linkAPP = (data)=>{
     })
 };
 
-//推荐智能体列表
+//推荐AgentList
 export const recommendList = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/recommend/list`,
@@ -198,7 +198,7 @@ export const recommendList = (data)=>{
         params:data
     })
 };
-//标记推荐智能体
+//标记推荐Agent
 export const recommendMark = (data)=>{
     return request({
         url: `${MODEL_API}/assistant/recommend/update`,
@@ -207,7 +207,7 @@ export const recommendMark = (data)=>{
     })
 };
 
-//上传文件确认路径
+//UploadFileConfirmPath
 export const confirmPath = (data)=>{
     return request({
         url: `${MODEL_API}/file/confirmPath`,

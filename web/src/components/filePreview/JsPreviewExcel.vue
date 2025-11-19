@@ -28,14 +28,14 @@ export default {
   },
 
   mounted() {
-    // 获取路由参数
+    // GetRouteParameter
     this.page = this.$route.query || {};
     this.initPreviewer();
   },
 
   methods: {
     initPreviewer() {
-      const highlightRowNum = this.page.rownum ? parseInt(this.page.rownum) - 1 : null; // 高亮行索引（0开始）
+      const highlightRowNum = this.page.rownum ? parseInt(this.page.rownum) - 1 : null; // 高亮行Index（0开始）
       let dataIndex = -1;
 
       this.options = {
@@ -45,11 +45,11 @@ export default {
         widthOffset: 20,
         heightOffset: 10,
         transformData: (workbookData) => {
-          // 查找指定 sheet
+          // Find指定 sheet
           dataIndex = workbookData.findIndex(item => item.name === this.page.sheetName);
 
           if (dataIndex === -1) {
-            console.warn('未找到指定的 sheet:', this.page.sheetName);
+            console.warn('未找到指定 of  sheet:', this.page.sheetName);
             return workbookData;
           }
 
@@ -80,12 +80,12 @@ export default {
     },
 
     errorHandler(err) {
-      console.error('Excel 加载失败:', err);
+      console.error('Excel 加载Failed:', err);
     }
   },
 
   watch: {
-    // 如果你想监听路由变化（比如 url 参数变了），重新初始化
+    // If你想ListenRoute变化（For example url Parameter变了），重新Init
     '$route.query': {
       handler(newQuery) {
         this.page = newQuery || {};

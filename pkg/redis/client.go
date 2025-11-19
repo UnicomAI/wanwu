@@ -49,8 +49,8 @@ func newClient(ctx context.Context, c Config, db int) (*client, error) {
 	} else {
 		r = redis.NewFailoverClient(&redis.FailoverOptions{
 			MasterName:       c.MasterName,
-			SentinelAddrs:    []string{redisAddr}, // 哨兵节点地址 [EN] Sentinel node address
-			DB:               db,                  // 使用的Redis数据库编号 [EN] Redis database number used
+			SentinelAddrs:    []string{redisAddr}, // Sentinel node address
+			DB:               db,                  // Redis database number used
 			SentinelPassword: c.Password,
 			Password:         c.Password,
 		})

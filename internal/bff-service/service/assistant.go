@@ -92,7 +92,7 @@ func GetAssistantInfo(ctx *gin.Context, userId, orgId string, req request.Assist
 func GetAssistantDraftInfo(ctx *gin.Context, userId, orgId string, req request.AssistantIdRequest) (*response.Assistant, error) {
 	resp, err := assistant.GetAssistantInfo(ctx.Request.Context(), &assistant_service.GetAssistantInfoReq{
 		AssistantId: req.AssistantId,
-		Identity: &assistant_service.Identity{ //草稿只能看自己的 [EN] You can only read your own drafts
+		Identity: &assistant_service.Identity{ //You can only read your own drafts
 			UserId: userId,
 			OrgId:  orgId,
 		},
@@ -252,12 +252,12 @@ func AssistantToolConfig(ctx *gin.Context, userId, orgId string, req request.Ass
 }
 
 func assistantMCPConvert(ctx *gin.Context, assistantMCPInfos []*assistant_service.AssistantMCPInfos) ([]*response.AssistantMCPInfo, error) {
-	// 若查询结果为空，返回空列表 [EN] If the query result is empty, return an empty list
+	// If the query result is empty, return an empty list
 	if len(assistantMCPInfos) == 0 {
 		return nil, nil
 	}
 
-	// 提取MCP ID列表 [EN] Extract MCP ID list
+	// Extract MCP ID list
 	var MCPCustomIds, MCPServerIds []string
 	for _, m := range assistantMCPInfos {
 		if m.McpType == constant.MCPTypeMCP {
@@ -267,28 +267,28 @@ func assistantMCPConvert(ctx *gin.Context, assistantMCPInfos []*assistant_servic
 		}
 	}
 
-	// 批量查询MCP详情 [EN] Query MCP details in batches
+	// Query MCP details in batches
 	mcpResp, err := mcp.GetMCPByMCPIdList(ctx.Request.Context(), &mcp_service.GetMCPByMCPIdListReq{
 		McpIdList:       MCPCustomIds,
 		McpServerIdList: MCPServerIds,
 	})
 
-	// 构建MCP详情映射 [EN] Build MCP details mapping
+	// Build MCP details mapping
 	mcpDetailMap := make(map[string]*mcp_service.CustomMCPInfo)
-	if err == nil && mcpResp != nil { // 仅当查询成功且响应有效时才构建映射 [EN] The map is only built if the query is successful and the response is valid
+	if err == nil && mcpResp != nil { // The map is only built if the query is successful and the response is valid
 		for _, item := range mcpResp.Infos {
 			mcpDetailMap[item.McpId] = item
 		}
 	}
-	// 构建MCPServer详情映射 [EN] Build MCPServer details mapping
+	// Build MCPServer details mapping
 	mcpserverDetailMap := make(map[string]*mcp_service.MCPServerInfo)
-	if err == nil && mcpResp != nil { // 仅当查询成功且响应有效时才构建映射 [EN] The map is only built if the query is successful and the response is valid
+	if err == nil && mcpResp != nil { // The map is only built if the query is successful and the response is valid
 		for _, item := range mcpResp.Servers {
 			mcpserverDetailMap[item.McpServerId] = item
 		}
 	}
 
-	// 构建返回结果 [EN] Build return results
+	// Build return results
 	var retMCPInfos []*response.AssistantMCPInfo
 	for _, info := range assistantMCPInfos {
 		var exists bool
@@ -328,12 +328,12 @@ func assistantMCPConvert(ctx *gin.Context, assistantMCPInfos []*assistant_servic
 }
 
 func assistantToolsConvert(ctx *gin.Context, assistantToolInfos []*assistant_service.AssistantToolInfos) ([]*response.AssistantToolInfo, error) {
-	// 若查询为空，返回空列表 [EN] If the query is empty, an empty list is returned
+	// If the query is empty, an empty list is returned
 	if len(assistantToolInfos) == 0 {
 		return nil, nil
 	}
 
-	// 提取工具ID列表 [EN] Extract tool ID list
+	// Extract tool ID list
 	var customToolIds, builtinToolIds []string
 	for _, tool := range assistantToolInfos {
 		switch tool.ToolType {
@@ -344,27 +344,27 @@ func assistantToolsConvert(ctx *gin.Context, assistantToolInfos []*assistant_ser
 		}
 	}
 
-	// 批量查询 [EN] Batch query
+	// Batch query
 	toolInfoResp, err := mcp.GetToolByIdList(ctx.Request.Context(), &mcp_service.GetToolByToolIdListReq{
 		BuiltInToolIdList: builtinToolIds,
 		CustomToolIdList:  customToolIds,
 	})
 
-	// 构建ID到工具信息的映射 [EN] Build a mapping from ID to tool information
+	// Build a mapping from ID to tool information
 	customToolMap := make(map[string]*mcp_service.GetCustomToolItem)
-	if err == nil && toolInfoResp != nil { // 仅当查询成功且响应有效时才构建映射 [EN] The map is only built if the query is successful and the response is valid
+	if err == nil && toolInfoResp != nil { // The map is only built if the query is successful and the response is valid
 		for _, item := range toolInfoResp.List {
 			customToolMap[item.CustomToolId] = item
 		}
 	}
 	builtinToolMap := make(map[string]*mcp_service.ToolSquareInfo)
-	if err == nil && toolInfoResp != nil { // 仅当查询成功且响应有效时才构建映射 [EN] The map is only built if the query is successful and the response is valid
+	if err == nil && toolInfoResp != nil { // The map is only built if the query is successful and the response is valid
 		for _, item := range toolInfoResp.ToolSquareInfoList {
 			builtinToolMap[item.ToolSquareId] = item
 		}
 	}
 
-	// 组装返回结果 [EN] Assemble return results
+	// Assemble return results
 	var retToolInfos []*response.AssistantToolInfo
 	for _, info := range assistantToolInfos {
 		var exists bool
@@ -470,7 +470,7 @@ func GetConversationDetailList(ctx *gin.Context, userId, orgId string, req reque
 		return response.PageResult{}, err
 	}
 
-	// 转换resp.Data为自定义的ConversionDetailInfo结构体数组 [EN] Convert resp.Data into a custom ConversionDetailInfo structure array
+	// Convert resp.Data into a custom ConversionDetailInfo structure array
 	var convertedList []response.ConversationDetailInfo
 	for _, item := range resp.Data {
 		convertedItem := response.ConversationDetailInfo{
@@ -489,7 +489,7 @@ func GetConversationDetailList(ctx *gin.Context, userId, orgId string, req reque
 			FileName:       item.FileName,
 		}
 
-		// 将SearchList从string转换为interface{} [EN] Convert SearchList from string to interface{}
+		// Convert SearchList from string to interface{}
 		if item.SearchList != "" {
 			var searchList interface{}
 			if err := json.Unmarshal([]byte(item.SearchList), &searchList); err != nil {
@@ -504,9 +504,9 @@ func GetConversationDetailList(ctx *gin.Context, userId, orgId string, req reque
 
 		convertedList = append(convertedList, convertedItem)
 
-		// 对切片进行排序 [EN] Sort slices
+		// Sort slices
 		sort.Slice(convertedList, func(i, j int) bool {
-			// CreatedAt值小的时间更早，排在前面 [EN] The time with a smaller CreatedAt value is earlier and ranked first.
+			// The time with a smaller CreatedAt value is earlier and ranked first.
 			return convertedList[i].CreatedAt < convertedList[j].CreatedAt
 		})
 	}
@@ -655,7 +655,7 @@ func transAssistantResp2Model(ctx *gin.Context, resp *assistant_service.Assistan
 
 			for _, info := range cozeWorkflowList.Workflows {
 				if info.WorkflowId == wf.WorkFlowId {
-					// 找到匹配的工作流，设置名称和描述 [EN] Find matching workflow, set name and description
+					// Find matching workflow, set name and description
 					workFlowInfo.WorkFlowName = info.Name
 					workFlowInfo.WorkFlowDesc = info.Desc
 					workFlowInfo.AvatarPath = cacheWorkflowAvatar(info.URL, constant.AppTypeWorkflow)
@@ -670,12 +670,12 @@ func transAssistantResp2Model(ctx *gin.Context, resp *assistant_service.Assistan
 		log.Debugf("工作流信息为空")
 	}
 
-	// 查询该用户所有权限的所有 MCP [EN] Query all MCPs with all permissions of this user
+	// Query all MCPs with all permissions of this user
 	assistantMCPInfos, err := assistantMCPConvert(ctx, resp.McpInfos)
 	if err != nil {
 		return nil, err
 	}
-	// 查询该用户所有权限的 custom、builtin 工具 [EN] Query custom and builtin tools for all permissions of the user
+	// Query custom and builtin tools for all permissions of the user
 	assistantToolInfos, err := assistantToolsConvert(ctx, resp.ToolInfos)
 	if err != nil {
 		return nil, err
@@ -746,7 +746,7 @@ func transKnowledgeBases2Model(ctx *gin.Context, kbConfig *assistant_service.Ass
 		}, nil
 	}
 
-	// 获取知识库详情列表 [EN] Get a list of knowledge base details
+	// Get a list of knowledge base details
 	kbInfoList, err := knowledgeBase.SelectKnowledgeDetailByIdList(ctx, &knowledgeBase_service.KnowledgeDetailSelectListReq{
 		KnowledgeIds: kbConfig.KnowledgeBaseIds,
 	})

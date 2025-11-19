@@ -1,7 +1,7 @@
 <template>
     <div>
         <el-dialog
-        title="模型配置"
+        title="ModelConfiguration"
         :visible.sync="dialogVisible"
         width="50%"
         :before-close="handleClose">
@@ -53,7 +53,7 @@ export default {
             modelSet: [
                 {
                     label:'温度',
-                    desc: '增加温度将使模型的回答更具创造性',
+                    desc: '增加温度将使Model of 回答更具创造性',
                     props: 'temperature',
                     btnProps:'temperatureEnable',
                     min: 0,
@@ -62,7 +62,7 @@ export default {
                 },
                 {
                     label:'多样性',
-                    desc: '生成过程中核采样方法概率阈值。取值越大，生成的随机性越高；取值越小，生成的确定性越高',
+                    desc: 'Generate 程中核采样方法概率阈Value。取Value越大，Generate of 随机性越高；取Value越小，Generate of 确定性越高',
                     props: "topP",
                     btnProps:"topPEnable",
                     min: 0,
@@ -71,7 +71,7 @@ export default {
                 },
                 {
                     label:'重复惩罚',
-                    desc: '用于控制模型已使用字词的重复率。提高此项可以降低模型在输出中重复相同字词的重复度。',
+                    desc: 'Used for控制Model已使用字词 of 重复率。提高此项可以降低Model在输出中重复相同字词 of 重复度。',
                     props: "frequencyPenalty",
                     btnProps:"frequencyPenaltyEnable",
                     min: 1,

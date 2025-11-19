@@ -174,7 +174,7 @@ def build_single_condition(condition):
     operator = condition["comparison_operator"]
     value = condition.get("value", "")
 
-    # 创建对应的构建器
+    # Create对应的Build器
     if meta_type == "string":
         builder = StringConditionBuilder(meta_name, operator, value)
     elif meta_type == "number":
@@ -202,11 +202,11 @@ def build_conditions_group(group):
     }
 
     if logical_op == "and":
-        # 对于AND操作，每个条件都作为must子句
+        # 对于AND操作，每个条件都作为mustChild句
         for condition in conditions:
             query["bool"]["must"].append(build_single_condition(condition))
     elif logical_op == "or":
-        # 对于OR操作，所有条件作为should子句
+        # 对于OR操作，所Has条件作为shouldChild句
         should_clauses = []
         for condition in conditions:
             should_clauses.append(build_single_condition(condition))
@@ -230,12 +230,12 @@ def build_doc_meta_query(filtering_conditions):
     返回:
     Elasticsearch查询DSL
     """
-    # 构建完整的查询
+    # Build完整的Query
     if len(filtering_conditions) == 1:
         # 单个条件组
         return build_conditions_group(filtering_conditions[0])
     else:
-        # 多个条件组，使用should连接（OR关系）
+        # Many个条件组，UseshouldConnect（OR关系）
         should_clauses = []
         for group in filtering_conditions:
             should_clauses.append(build_conditions_group(group))
@@ -263,12 +263,12 @@ def search_with_doc_meta_filter(index_name, filtering_conditions):
 
     logger.info('search_with_doc_meta_filter, query body: ' + json.dumps(query_body, indent=4, ensure_ascii=False))
 
-    # 添加搜索参数
+    # 添加SearchParameter
     search_body = {
         "query": query_body,
     }
 
-    # 初始化scroll
+    # Initializescroll
     response = es.search(
         index=index_name,
         body=search_body,
@@ -279,12 +279,12 @@ def search_with_doc_meta_filter(index_name, filtering_conditions):
     hits = response['hits']['hits']
     file_names = set()
 
-    # 添加第一批结果
+    # 添加第一批Result
     for hit in hits:
         hit_data = hit['_source']
         file_names.add(hit_data["file_name"])
 
-    # 继续scroll直到没有更多结果
+    # 继续scroll直到没Has更ManyResult
     while len(hits) > 0:
         response = es.scroll(scroll_id=scroll_id, scroll='2m')
         hits = response['hits']['hits']
@@ -294,7 +294,7 @@ def search_with_doc_meta_filter(index_name, filtering_conditions):
             hit_data = hit['_source']
             file_names.add(hit_data["file_name"])
 
-    # 清理scroll
+    # Cleanscroll
     if scroll_id:
         es.clear_scroll(scroll_id=scroll_id)
 
@@ -334,7 +334,7 @@ def get_index_update_actions(index_name, kb_name, file_name, update_data, index_
     返回:
     actions: 更新操作列表
     """
-    # 根据索引类型确定查询字段和ID字段
+    # Root据IndexType确定QueryField和IDField
     if index_type == IndexType.SNIPPET:
         file_field = "title"
         id_field = "chunk_id"
@@ -370,7 +370,7 @@ def get_index_update_actions(index_name, kb_name, file_name, update_data, index_
 
     upsert_data = []
     for doc in helpers.scan(es, **scan_kwargs):
-        # 处理元数据
+        # Process元Data
         data = {
             id_field: doc["_source"][id_field],
             "meta_data": doc["_source"].get("meta_data", {})
@@ -409,7 +409,7 @@ def get_index_delete_meta_actions(index_name, kb_name, keys, index_type:IndexTyp
     actions: 更新操作列表
     """
 
-    # 根据索引类型确定ID字段
+    # Root据IndexType确定IDField
     if index_type == IndexType.SNIPPET:
         id_field = "chunk_id"
     elif index_type == IndexType.CONTENT_CONTROL:
@@ -419,7 +419,7 @@ def get_index_delete_meta_actions(index_name, kb_name, keys, index_type:IndexTyp
     else:
         id_field = "chunk_id"
 
-    # 构建查询条件 - 只返回包含指定keys的文档
+    # BuildQuery条件 - 只Return包含指定keys的Doc
     query = {
         "query": {
             "bool": {
@@ -450,11 +450,11 @@ def get_index_delete_meta_actions(index_name, kb_name, keys, index_type:IndexTyp
 
     upsert_data = []
     for doc in helpers.scan(es, **scan_kwargs):
-        # 获取文档当前的元数据
+        # GetDoc当Before的元Data
         current_meta_data = doc["_source"].get("meta_data", {})
         current_doc_meta = current_meta_data.get("doc_meta", [])
 
-        # 过滤掉在keys列表中的元数据key
+        # 过滤掉在keysListMedium的元Datakey
         filtered_doc_meta = [item for item in current_doc_meta if item.get("key") not in keys]
 
         if len(filtered_doc_meta) != len(current_doc_meta):
@@ -493,7 +493,7 @@ def get_index_rename_meta_actions(index_name, kb_name, key_mappings, index_type:
     actions: 更新操作列表
     """
 
-    # 根据索引类型确定ID字段
+    # Root据IndexType确定IDField
     if index_type == IndexType.SNIPPET:
         id_field = "chunk_id"
     elif index_type == IndexType.CONTENT_CONTROL:
@@ -503,7 +503,7 @@ def get_index_rename_meta_actions(index_name, kb_name, key_mappings, index_type:
     else:
         id_field = "chunk_id"
 
-    # 构建查询条件 - 只返回包含需要重命名的键的文档
+    # BuildQuery条件 - 只Return包含Need重命名的键的Doc
     old_keys = [mapping["old_key"] for mapping in key_mappings]
 
     query = {
@@ -536,14 +536,14 @@ def get_index_rename_meta_actions(index_name, kb_name, key_mappings, index_type:
 
     upsert_data = []
     for doc in helpers.scan(es, **scan_kwargs):
-        # 获取文档当前的元数据
+        # GetDoc当Before的元Data
         current_meta_data = doc["_source"].get("meta_data", {})
         current_doc_meta = current_meta_data.get("doc_meta", [])
 
-        # 创建key映射快速查找
+        # Createkey映射快速查找
         key_map = {mapping["old_key"]: mapping["new_key"] for mapping in key_mappings}
 
-        # 重命名需要更改的键
+        # 重命名Need更改的键
         renamed_doc_meta = []
         has_changes = False
 
@@ -551,14 +551,14 @@ def get_index_rename_meta_actions(index_name, kb_name, key_mappings, index_type:
             new_item = item.copy()
             old_key = item.get("key")
 
-            # 如果当前键需要重命名
+            # If当Before键Need重命名
             if old_key in key_map:
                 new_item["key"] = key_map[old_key]
                 has_changes = True
 
             renamed_doc_meta.append(new_item)
 
-        # 只有当key确实有被重命名时才添加到更新列表
+        # 只Has当key确实Has被重命名时才添加到UpdateList
         if has_changes:
             data = {
                 id_field: doc["_source"][id_field],
@@ -635,9 +635,9 @@ def update_file_metas(user_id:str, kb_name: str, update_datas: dict):
         }
 
 
-# 使用示例
+# UseExample
 if __name__ == "__main__":
-    # 示例1: 单个条件组，AND关系
+    # Example1: 单个条件组，AND关系
     filtering_conditions_1 = [
         {
             "filtering_kb_name": "gx_test",
@@ -658,7 +658,7 @@ if __name__ == "__main__":
         }
     ]
 
-    # 示例2: 单个条件组，OR关系
+    # Example2: 单个条件组，OR关系
     filtering_conditions_2 = [
         {
             "filtering_kb_name": "gx_test",
@@ -679,7 +679,7 @@ if __name__ == "__main__":
         }
     ]
 
-    # 示例3: 多个条件组
+    # Example3: Many个条件组
     filtering_conditions_3 = [
         {
             "filtering_kb_name": "gx_test",
@@ -715,7 +715,7 @@ if __name__ == "__main__":
     query3 = build_doc_meta_query(filtering_conditions_3)
     print(query3)
 
-    # 执行搜索
+    # ExecuteSearch
     # result1 = search_with_doc_meta_filter("your_index_name", filtering_conditions_1)
     # result2 = search_with_doc_meta_filter("your_index_name", filtering_conditions_2)
     # result3 = search_with_doc_meta_filter("your_index_name", filtering_conditions_3)

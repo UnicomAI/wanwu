@@ -41,21 +41,21 @@ export default {
   components: {},
   name: "ec-table",
   props: {
-    listApi: "",//table接口
-    resKey:{ type:String,default:''},//判断是否是正常列表返回
-    data: { type: Array, default: () => [] },//默认数据
-    height: { type: [String,Number], default: "100%" },//表格高度
-    rowKey: { type: String, default: "" },//行数据的key，唯一标识符
-    border: { type: Boolean, default: false },//是否带有纵向边框
-    stripe: { type: Boolean, default: false },//是否显示斑马纹
-    size: { type: String, default: "default" },//table尺寸设置
-    remoteSummary: { type: Boolean, default: false },//是否显示自定义合计计算方法
-    summaryMethod: { type: Function, default: null },//自定义合计计算方法
-    spanMethod:{type:Function,default:null},//自定义合并单元格
+    listApi: "",//tableInterface
+    resKey:{ type:String,default:''},//判断YesNoYes正常ListBack
+    data: { type: Array, default: () => [] },//DefaultData
+    height: { type: [String,Number], default: "100%" },//Table高度
+    rowKey: { type: String, default: "" },//行Data of key，唯一标识符
+    border: { type: Boolean, default: false },//YesNo带Has纵向边框
+    stripe: { type: Boolean, default: false },//YesNoShow斑马纹
+    size: { type: String, default: "default" },//table尺寸Setting
+    remoteSummary: { type: Boolean, default: false },//YesNoShowCustom合计计算Method
+    summaryMethod: { type: Function, default: null },//Custom合计计算Method
+    spanMethod:{type:Function,default:null},//Custom合并单元格
     hidePagination: { type: Boolean, default: false },//隐藏分页
     pageSize:{ type: Number, default: 10 },
-    searchInfo:{type:Object,default(){return {}}},//查询信息
-    isHandelpage:{type:Boolean,default:false},//是否前端手动分页
+    searchInfo:{type:Object,default(){return {}}},//QueryInformation
+    isHandelpage:{type:Boolean,default:false},//YesNo前端手动分页
   },
   data() {
     return {
@@ -73,7 +73,7 @@ export default {
 				return Number(this.height)?Number(this.height)+'px':this.height
 			},
     _maxHeight(){
-      //计算table自动撑开的最大高度
+      //计算table自动撑开 of Max高度
       this.$nextTick(() =>{
         const c_height =  document.getElementById('table-container').clientHeight;
         if(this.hidePagination){
@@ -128,12 +128,12 @@ export default {
             pageSize:this.page_size,
             ...this.search_info
         }
-        //是否有分页
+        //YesNoHas分页
         if(this.hidePagination){
           delete reqData['pageNo']
           delete reqData['pageSize']
         }
-        //请求接口
+        //RequestInterface
         try {
           var table = await this.listApi(reqData);
         }catch(error){
@@ -224,51 +224,51 @@ export default {
       })
       return sums
     },
-    reload(params, page=1){//刷新列表
+    reload(params, page=1){//RefreshList
       this.pageNo = page;
       this.search_info = params || {}
       this.$refs.ecTable.clearSelection();
       this.getTableData(this.searchInfo)
     },
-    //插入行 unshiftRow
+    //Insert行 unshiftRow
 		unshiftRow(row){
 				this.tableData.unshift(row)
 		},
-    //插入行 pushRow
+    //Insert行 pushRow
     pushRow(row){
       this.tableData.push(row)
     },
-    //根据key覆盖数据
+    //根据key覆盖Data
     updateKey(row, rowKey=this.rowKey){
       this.tableData.filter(item => item[rowKey]===row[rowKey] ).forEach(item => {
         Object.assign(item, row)
       })
     },
-    //根据index覆盖数据
+    //根据index覆盖Data
     updateIndex(row, index){
       Object.assign(this.tableData[index], row)
     },
-    //根据index删除
+    //根据indexDelete
     removeIndex(index){
       this.tableData.splice(index, 1)
     },
-    //根据index批量删除
+    //根据indexBatch Delete
     removeIndexes(indexes=[]){
       indexes.forEach(index => {
         this.tableData.splice(index, 1)
       })
     },
-    //根据key删除
+    //根据keyDelete
     removeKey(key, rowKey=this.rowKey){
       this.tableData.splice(this.tableData.findIndex(item => item[rowKey]===key), 1)
     },
-    //根据keys批量删除
+    //根据keysBatch Delete
     removeKeys(keys=[], rowKey=this.rowKey){
       keys.forEach(key => {
         this.tableData.splice(this.tableData.findIndex(item => item[rowKey]===key), 1)
       })
     },
-    //清除勾选
+    //Clear勾选
     clearSelection(){
       this.$refs.ecTable.clearSelection()
     },
@@ -281,12 +281,12 @@ export default {
     setCurrentRow(row){//高亮选中某一行
       this.$refs.scTable.setCurrentRow(row)
     },
-    doLayout(){//对table进行重新布局
+    doLayout(){//对table进行重新Layout
       this.$refs.scTable.doLayout()
     },
-    handleSizeChange(val) {//分页数据修改点击
+    handleSizeChange(val) {//分页DataModify点击
       this.page_size = val;
-      if(this.isHandelpage=== true){//前端手动分页，修改分页页数
+      if(this.isHandelpage=== true){//前端手动分页，Modify分页页数
         const start = (this.pageNo - 1) * this.page_size;
         const end = start + this.page_size;
         this.tableData = this.data.slice(start,end);
@@ -311,7 +311,7 @@ export default {
 <style lang="scss" scoped>
 /deep/{
   .el-loading-spinner .path { stroke: #e60001 !important;}
-  /* 隐藏滚动条但保留滚动功能 */
+  /* 隐藏Scrollbar但保留滚动功能 */
   .el-table--scrollable-y .el-table__body-wrapper::-webkit-scrollbar {
     display: none !important;
   }

@@ -11,7 +11,7 @@ from utils.actions.log import logger
 from utils.actions.tools import BaseTool
 from utils.actions.utils.utils import get_basename_from_url, print_traceback
 
-KNOWLEDGE_TEMPLATE_ZH = """# 知识库
+KNOWLEDGE_TEMPLATE_ZH = """# Knowledge Base
 
 {knowledge}"""
 
@@ -21,7 +21,7 @@ KNOWLEDGE_TEMPLATE_EN = """# Knowledge Base
 
 KNOWLEDGE_TEMPLATE = {'zh': KNOWLEDGE_TEMPLATE_ZH, 'en': KNOWLEDGE_TEMPLATE_EN}
 
-KNOWLEDGE_SNIPPET_ZH = """## 来自 {source} 的内容：
+KNOWLEDGE_SNIPPET_ZH = """## 来自 {source} 的Inner容：
 
 ```
 {content}

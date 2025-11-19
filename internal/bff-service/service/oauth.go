@@ -29,7 +29,7 @@ func OAuthLogin(ctx *gin.Context, req *request.OAuthRequest) (string, error) {
 		return "", grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error())
 	}
 
-	// 将 []string 转为以空格分隔的字符串 [EN] Convert []string to space-separated string
+	// Convert []string to space-separated string
 	scopeStr := strings.Join(req.Scopes, " ")
 
 	oauthApp, err := iam.GetOauthApp(ctx, &iam_service.GetOauthAppReq{
@@ -46,7 +46,7 @@ func OAuthLogin(ctx *gin.Context, req *request.OAuthRequest) (string, error) {
 		url.QueryEscape(scopeStr),
 		url.QueryEscape(oauthApp.Name),
 		url.QueryEscape(req.RedirectURI),
-		url.QueryEscape(req.State), // 对state也进行编码 [EN] Also encode the state
+		url.QueryEscape(req.State), // Also encode the state
 	)
 
 	return loginURI, nil
@@ -75,7 +75,7 @@ func OAuthAuthorize(ctx *gin.Context, req *request.OAuthRequest, userID string) 
 		"%s?code=%s&state=%s",
 		req.RedirectURI,
 		url.QueryEscape(code),
-		url.QueryEscape(req.State), // 对state也进行编码 [EN] Also encode the state
+		url.QueryEscape(req.State), // Also encode the state
 	)
 	return redirectURI, nil
 }
@@ -103,7 +103,7 @@ func OAuthToken(ctx *gin.Context, req *request.OAuthTokenRequest) (*response.OAu
 		return nil, err
 	}
 	//access token
-	scopes := []string{} //预留scope处理 [EN] Reserve scope processing
+	scopes := []string{} //Reserve scope processing
 	accessToken, err := oauth2_util.GenerateAccessToken(user.UserId, req.ClientID, scopes, oauth2_util.AccessTokenTimeout)
 	if err != nil {
 		return nil, grpc_util.ErrorStatus(err_code.Code_BFFJWT, err.Error())
@@ -143,7 +143,7 @@ func OAuthRefresh(ctx *gin.Context, req *request.OAuthRefreshRequest) (*response
 	if err != nil {
 		return nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_oauth_err", err.Error())
 	}
-	scopes := []string{} //scopes处理预留 [EN] scopes handling reservation
+	scopes := []string{} //scopes handling reservation
 	//new access token
 	accessToken, err := oauth2_util.GenerateAccessToken(refreshPayload.UserID, req.ClientID, scopes, oauth2_util.AccessTokenTimeout)
 	if err != nil {
