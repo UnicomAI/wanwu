@@ -27,7 +27,7 @@ func GetJWK() (JWK, error) {
 func getJWKandKid(pubKey *rsa.PublicKey) (JWK, string) {
 	kid := uuid.New().String()
 
-	// 导出公钥参数 n 和 e
+	// 导出公钥参数 n 和 e [EN] Export public key parameters n and e
 	n := base64.RawURLEncoding.EncodeToString(pubKey.N.Bytes())
 	e := base64.RawURLEncoding.EncodeToString(big.NewInt(int64(pubKey.E)).Bytes())
 

@@ -16,9 +16,9 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// GetAssistantByIds 根据智能体id集合获取智能体列表
+// GetAssistantByIds 根据智能体id集合获取智能体列表 [EN] GetAssistantByIds Gets the list of agents based on the agent id set
 func (s *Service) GetAssistantByIds(ctx context.Context, req *assistant_service.GetAssistantByIdsReq) (*assistant_service.AppBriefList, error) {
-	// 转换字符串ID为uint32
+	// 转换字符串ID为uint32 [EN] Convert string ID to uint32
 	var assistantIDs []uint32
 	for _, idStr := range req.AssistantIdList {
 		if id, err := strconv.ParseUint(idStr, 10, 32); err == nil {
@@ -26,13 +26,13 @@ func (s *Service) GetAssistantByIds(ctx context.Context, req *assistant_service.
 		}
 	}
 
-	// 调用client方法获取智能体列表
+	// 调用client方法获取智能体列表 [EN] Call the client method to get the list of agents
 	assistants, status := s.cli.GetAssistantsByIDs(ctx, assistantIDs)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 
-	// 转换为响应格式
+	// 转换为响应格式 [EN] Convert to responsive format
 	var appBriefs []*common.AppBrief
 	for _, assistant := range assistants {
 		appBriefs = append(appBriefs, &common.AppBrief{
@@ -53,9 +53,9 @@ func (s *Service) GetAssistantByIds(ctx context.Context, req *assistant_service.
 	}, nil
 }
 
-// AssistantCreate 创建智能体
+// AssistantCreate 创建智能体 [EN] AssistantCreate creates an agent
 func (s *Service) AssistantCreate(ctx context.Context, req *assistant_service.AssistantCreateReq) (*assistant_service.AssistantCreateResp, error) {
-	// 组装model参数
+	// 组装model参数 [EN] Assemble model parameters
 	assistant := &model.Assistant{
 		AvatarPath: req.AssistantBrief.AvatarPath,
 		Name:       req.AssistantBrief.Name,
@@ -64,11 +64,11 @@ func (s *Service) AssistantCreate(ctx context.Context, req *assistant_service.As
 		UserId:     req.Identity.UserId,
 		OrgId:      req.Identity.OrgId,
 	}
-	// 查找否存在相同名称智能体
+	// 查找否存在相同名称智能体 [EN] Find if an agent with the same name exists
 	if err := s.cli.CheckSameAssistantName(ctx, req.Identity.UserId, req.Identity.OrgId, req.AssistantBrief.Name, ""); err != nil {
 		return nil, errStatus(errs.Code_AssistantErr, err)
 	}
-	// 调用client方法创建智能体
+	// 调用client方法创建智能体 [EN] Call the client method to create an agent
 	if status := s.cli.CreateAssistant(ctx, assistant); status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
@@ -78,21 +78,21 @@ func (s *Service) AssistantCreate(ctx context.Context, req *assistant_service.As
 	}, nil
 }
 
-// AssistantUpdate 修改智能体
+// AssistantUpdate 修改智能体 [EN] AssistantUpdate modifies the agent
 func (s *Service) AssistantUpdate(ctx context.Context, req *assistant_service.AssistantUpdateReq) (*emptypb.Empty, error) {
-	// 转换ID
+	// 转换ID [EN] Conversion ID
 	assistantID, err := strconv.ParseUint(req.AssistantId, 10, 32)
 	if err != nil {
 		return nil, err
 	}
 
-	// 获取现有智能体信息
+	// 获取现有智能体信息 [EN] Get existing agent information
 	existingAssistant, status := s.cli.GetAssistant(ctx, uint32(assistantID), "", "")
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 
-	// 查找否存在相同名称智能体
+	// 查找否存在相同名称智能体 [EN] Find if an agent with the same name exists
 	if err := s.cli.CheckSameAssistantName(ctx, req.Identity.UserId, req.Identity.OrgId, req.AssistantBrief.Name, req.AssistantId); err != nil {
 		return nil, errStatus(errs.Code_AssistantErr, err)
 	}
@@ -101,7 +101,7 @@ func (s *Service) AssistantUpdate(ctx context.Context, req *assistant_service.As
 	existingAssistant.Name = req.AssistantBrief.Name
 	existingAssistant.Desc = req.AssistantBrief.Desc
 
-	// 调用client方法更新智能体
+	// 调用client方法更新智能体 [EN] Call the client method to update the agent
 	if status := s.cli.UpdateAssistant(ctx, existingAssistant); status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
@@ -109,15 +109,15 @@ func (s *Service) AssistantUpdate(ctx context.Context, req *assistant_service.As
 	return &emptypb.Empty{}, nil
 }
 
-// AssistantDelete 删除智能体
+// AssistantDelete 删除智能体 [EN] AssistantDelete deletes the agent
 func (s *Service) AssistantDelete(ctx context.Context, req *assistant_service.AssistantDeleteReq) (*emptypb.Empty, error) {
-	// 转换ID
+	// 转换ID [EN] Conversion ID
 	assistantID, err := strconv.ParseUint(req.AssistantId, 10, 32)
 	if err != nil {
 		return nil, err
 	}
 
-	// 调用client方法删除智能体
+	// 调用client方法删除智能体 [EN] Call the client method to delete the agent
 	if status := s.cli.DeleteAssistant(ctx, uint32(assistantID)); status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
@@ -125,26 +125,26 @@ func (s *Service) AssistantDelete(ctx context.Context, req *assistant_service.As
 	return &emptypb.Empty{}, nil
 }
 
-// AssistantConfigUpdate 修改智能体配置
+// AssistantConfigUpdate 修改智能体配置 [EN] AssistantConfigUpdate modifies the agent configuration
 func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_service.AssistantConfigUpdateReq) (*emptypb.Empty, error) {
-	// 转换ID
+	// 转换ID [EN] Conversion ID
 	assistantID, err := strconv.ParseUint(req.AssistantId, 10, 32)
 	if err != nil {
 		return nil, err
 	}
 
-	// 先获取现有智能体信息
+	// 先获取现有智能体信息 [EN] First obtain existing agent information
 	existingAssistant, status := s.cli.GetAssistant(ctx, uint32(assistantID), "", "")
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 
-	// 更新配置字段
+	// 更新配置字段 [EN] Update configuration fields
 	existingAssistant.Instructions = req.Instructions
 	existingAssistant.Prologue = req.Prologue
 	existingAssistant.RecommendQuestion = strings.Join(req.RecommendQuestion, "@#@")
 
-	// 处理modelConfig，转换成json字符串之后再更新
+	// 处理modelConfig，转换成json字符串之后再更新 [EN] Process modelConfig, convert it into a json string and then update it
 	if req.ModelConfig != nil {
 		modelConfigBytes, err := json.Marshal(req.ModelConfig)
 		if err != nil {
@@ -156,7 +156,7 @@ func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_serv
 		existingAssistant.ModelConfig = string(modelConfigBytes)
 	}
 
-	// 处理rerankConfig，转换成json字符串之后再更新
+	// 处理rerankConfig，转换成json字符串之后再更新 [EN] Process rerankConfig, convert it into a json string and then update it
 	if req.RerankConfig != nil {
 		rerankConfigBytes, err := json.Marshal(req.RerankConfig)
 		if err != nil {
@@ -168,7 +168,7 @@ func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_serv
 		existingAssistant.RerankConfig = string(rerankConfigBytes)
 	}
 
-	// 处理knowledgeBaseConfig，转换成json字符串之后再更新
+	// 处理knowledgeBaseConfig，转换成json字符串之后再更新 [EN] Process knowledgeBaseConfig, convert it into a json string and then update it
 	if req.KnowledgeBaseConfig != nil {
 		knowledgeBaseConfigBytes, err := json.Marshal(req.KnowledgeBaseConfig)
 		if err != nil {
@@ -181,7 +181,7 @@ func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_serv
 		log.Debugf("knowConfig = %s", existingAssistant.KnowledgebaseConfig)
 	}
 
-	// 处理safetyConfig，转换成json字符串之后再更新
+	// 处理safetyConfig，转换成json字符串之后再更新 [EN] Process safetyConfig, convert it into a json string and then update it
 	if req.SafetyConfig != nil {
 		safetyConfigBytes, err := json.Marshal(req.SafetyConfig)
 		if err != nil {
@@ -193,7 +193,7 @@ func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_serv
 		existingAssistant.SafetyConfig = string(safetyConfigBytes)
 	}
 
-	// 处理visionConfig，转换成json字符串之后再更新
+	// 处理visionConfig，转换成json字符串之后再更新 [EN] Process visionConfig, convert it into a json string and then update it
 	if req.VisionConfig != nil {
 		visionConfigBytes, err := json.Marshal(req.VisionConfig)
 		if err != nil {
@@ -205,7 +205,7 @@ func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_serv
 		existingAssistant.VisionConfig = string(visionConfigBytes)
 	}
 
-	// 调用client方法更新智能体
+	// 调用client方法更新智能体 [EN] Call the client method to update the agent
 	if status := s.cli.UpdateAssistant(ctx, existingAssistant); status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
@@ -213,15 +213,15 @@ func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_serv
 	return &emptypb.Empty{}, nil
 }
 
-// GetAssistantListMyAll 智能体列表
+// GetAssistantListMyAll 智能体列表 [EN] GetAssistantListMyAll agent list
 func (s *Service) GetAssistantListMyAll(ctx context.Context, req *assistant_service.GetAssistantListMyAllReq) (*assistant_service.AppBriefList, error) {
-	// 调用client方法获取智能体列表
+	// 调用client方法获取智能体列表 [EN] Call the client method to get the list of agents
 	assistants, _, status := s.cli.GetAssistantList(ctx, req.Identity.UserId, req.Identity.OrgId, req.Name)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 
-	// 转换为响应格式
+	// 转换为响应格式 [EN] Convert to responsive format
 	var appBriefs []*common.AppBrief
 	for _, assistant := range assistants {
 		appBriefs = append(appBriefs, &common.AppBrief{
@@ -242,15 +242,15 @@ func (s *Service) GetAssistantListMyAll(ctx context.Context, req *assistant_serv
 	}, nil
 }
 
-// GetAssistantInfo 查看智能体详情
+// GetAssistantInfo 查看智能体详情 [EN] GetAssistantInfo View agent details
 func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.GetAssistantInfoReq) (*assistant_service.AssistantInfo, error) {
-	// 转换ID
+	// 转换ID [EN] Conversion ID
 	assistantId, err := util.U32(req.AssistantId)
 	if err != nil {
 		return nil, err
 	}
 
-	// 判空处理，根据Identity是否为空使用不同参数
+	// 判空处理，根据Identity是否为空使用不同参数 [EN] Null judgment processing, using different parameters depending on whether the Identity is empty
 	var assistant *model.Assistant
 	var status *errs.Status
 	if req.Identity == nil {
@@ -262,10 +262,10 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 
-	// 获取关联的WorkFlows
+	// 获取关联的WorkFlows [EN] Get associated WorkFlows
 	workflows, _ := s.cli.GetAssistantWorkflowsByAssistantID(ctx, assistantId)
 
-	// 转换WorkFlows
+	// 转换WorkFlows [EN] Convert WorkFlows
 	var workFlowInfos []*assistant_service.AssistantWorkFlowInfos
 	for _, workflow := range workflows {
 		workFlowInfos = append(workFlowInfos, &assistant_service.AssistantWorkFlowInfos{
@@ -275,9 +275,9 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 		})
 	}
 
-	// 获取关联的 MCP
+	// 获取关联的 MCP [EN] Get associated MCP
 	mcps, _ := s.cli.GetAssistantMCPList(ctx, assistantId)
-	// 转换MCP
+	// 转换MCP [EN] Convert MCP
 	var mcpInfos []*assistant_service.AssistantMCPInfos
 	for _, mcp := range mcps {
 		mcpInfos = append(mcpInfos, &assistant_service.AssistantMCPInfos{
@@ -289,9 +289,9 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 		})
 	}
 
-	// 获取关联的 Tool
+	// 获取关联的 Tool [EN] Get the associated Tool
 	tools, _ := s.cli.GetAssistantToolList(ctx, assistantId)
-	// 转换 Tool
+	// 转换 Tool [EN] Convert Tool
 	var toolInfos []*assistant_service.AssistantToolInfos
 	for _, tool := range tools {
 		toolInfos = append(toolInfos, &assistant_service.AssistantToolInfos{
@@ -304,7 +304,7 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 		})
 	}
 
-	// 处理assistant.ModelConfig，转换成common.AppModelConfig
+	// 处理assistant.ModelConfig，转换成common.AppModelConfig [EN] Process assistant.ModelConfig and convert to common.AppModelConfig
 	var modelConfig *common.AppModelConfig
 	if assistant.ModelConfig != "" {
 		modelConfig = &common.AppModelConfig{}
@@ -316,7 +316,7 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 		}
 	}
 
-	// 处理assistant.RerankConfig，转换成common.AppModelConfig
+	// 处理assistant.RerankConfig，转换成common.AppModelConfig [EN] Process assistant.RerankConfig and convert to common.AppModelConfig
 	var rerankConfig *common.AppModelConfig
 	if assistant.RerankConfig != "" {
 		rerankConfig = &common.AppModelConfig{}
@@ -328,7 +328,7 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 		}
 	}
 
-	// 处理assistant.KnowledgebaseConfig，转换成AssistantKnowledgeBaseConfig
+	// 处理assistant.KnowledgebaseConfig，转换成AssistantKnowledgeBaseConfig [EN] Process assistant.KnowledgebaseConfig and convert to AssistantKnowledgeBaseConfig
 	var knowledgeBaseConfig *assistant_service.AssistantKnowledgeBaseConfig
 	if assistant.KnowledgebaseConfig != "" {
 		knowledgeBaseConfig = &assistant_service.AssistantKnowledgeBaseConfig{}
@@ -340,7 +340,7 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 		}
 	}
 
-	// 处理assistant.SafetyConfig，转换成AssistantSafetyConfig
+	// 处理assistant.SafetyConfig，转换成AssistantSafetyConfig [EN] Process assistant.SafetyConfig and convert to AssistantSafetyConfig
 	var safetyConfig *assistant_service.AssistantSafetyConfig
 	if assistant.SafetyConfig != "" {
 		safetyConfig = &assistant_service.AssistantSafetyConfig{}
@@ -352,7 +352,7 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 		}
 	}
 
-	// 处理assistant.VisionConfig，转换成AssistantVisionConfig
+	// 处理assistant.VisionConfig，转换成AssistantVisionConfig [EN] Process assistant.VisionConfig and convert to AssistantVisionConfig
 	var visionConfig *assistant_service.AssistantVisionConfig
 	if assistant.VisionConfig != "" {
 		visionConfig = &assistant_service.AssistantVisionConfig{}
@@ -399,31 +399,31 @@ func (s *Service) AssistantCopy(ctx context.Context, req *assistant_service.Assi
 		return nil, err
 	}
 
-	// 获取父智能体信息
+	// 获取父智能体信息 [EN] Get parent agent information
 	parentAssistant, status := s.cli.GetAssistant(ctx, assistantId, "", "")
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 
-	// 获取关联的 workflow
+	// 获取关联的 workflow [EN] Get the associated workflow
 	workflows, status := s.cli.GetAssistantWorkflowsByAssistantID(ctx, assistantId)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 
-	// 获取关联的 mcp
+	// 获取关联的 mcp [EN] Get associated mcp
 	mcps, status := s.cli.GetAssistantMCPList(ctx, assistantId)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 
-	// 获取关联的 tool
+	// 获取关联的 tool [EN] Get the associated tool
 	tools, status := s.cli.GetAssistantToolList(ctx, assistantId)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 
-	// 复制智能体
+	// 复制智能体 [EN] Copy agent
 	assistantID, status := s.cli.CopyAssistant(ctx, parentAssistant, workflows, mcps, tools)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)

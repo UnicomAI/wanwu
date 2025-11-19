@@ -9,7 +9,7 @@ import (
 )
 
 func (c *Client) CreateAssistantTool(ctx context.Context, assistantId uint32, toolId, toolType, actionName string, userId, orgID string) *err_code.Status {
-	// 检查是否已存在
+	// 检查是否已存在 [EN] Check if it already exists
 	var count int64
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithAssistantID(assistantId),
@@ -29,7 +29,7 @@ func (c *Client) CreateAssistantTool(ctx context.Context, assistantId uint32, to
 		ToolId:      toolId,
 		ToolType:    toolType,
 		ActionName:  actionName,
-		Enable:      true, // 默认打开
+		Enable:      true, // 默认打开 [EN] Open by default
 		UserId:      userId,
 		OrgId:       orgID,
 	}).Error
@@ -53,7 +53,7 @@ func (c *Client) DeleteAssistantTool(ctx context.Context, assistantId uint32, to
 }
 
 func (c *Client) UpdateAssistantTool(ctx context.Context, tool *model.AssistantTool) *err_code.Status {
-	// 更新
+	// 更新 [EN] renew
 	result := sqlopt.SQLOptions(
 		sqlopt.WithAssistantID(tool.AssistantId),
 		sqlopt.WithToolId(tool.ToolId),
@@ -75,7 +75,7 @@ func (c *Client) UpdateAssistantTool(ctx context.Context, tool *model.AssistantT
 }
 
 func (c *Client) UpdateAssistantToolConfig(ctx context.Context, assistantId uint32, toolId, toolConfig string) *err_code.Status {
-	// 更新
+	// 更新 [EN] renew
 	result := sqlopt.SQLOptions(
 		sqlopt.WithAssistantID(assistantId),
 		sqlopt.WithToolId(toolId),

@@ -40,8 +40,8 @@ CHROME_PATH = "/opt/chrome-linux/chrome"
 def clean_text(text):
     """清除文本中的特殊字符和多余的空白，以及HTML标签。"""
     patterns = [
-        r'\xa0+', r'\u3000', r'\t+', r'\r+', r'\n+',   # 清除特殊空白字符和多行换行符
-        r'<[/]?b>|&gt;|&lt;'                        # 清除HTML标签
+        r'\xa0+', r'\u3000', r'\t+', r'\r+', r'\n+',   # 清除特殊空白字符和多行换行符 [EN] Clear special whitespace characters and multiline newlines
+        r'<[/]?b>|&gt;|&lt;'                        # 清除HTML标签 [EN] Clear HTML tags
     ]
     for pattern in patterns:
         text = re.sub(pattern, '', text)
@@ -58,7 +58,7 @@ def fetch_html_with_chromium(url: str, wait_until="networkidle"):
             executable_path=CHROME_PATH,
             headless=True,
             args=["--no-sandbox", "--disable-dev-shm-usage"]
-        )  # 启动无头浏览器
+        )  # 启动无头浏览器 [EN] Start a headless browser
         page = browser.new_page()
         page.goto(url, wait_until=wait_until)
         html_text = page.content()
@@ -70,7 +70,7 @@ def fetch_html_with_chromium(url: str, wait_until="networkidle"):
         return text.strip(), title
 
 
-#解析服务
+#解析服务 [EN] parsing service
 @app.route('/url_pra', methods=["POST","GET"])
 def url_add():
     data = request.json
@@ -92,7 +92,7 @@ def url_add():
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             encoding = chardet.detect(response.content)['encoding']
-            response.encoding = encoding if encoding else 'utf-8'# 设置编码，确保中文显示正常
+            response.encoding = encoding if encoding else 'utf-8'# 设置编码，确保中文显示正常 [EN] Set the encoding to ensure that Chinese display is normal
             soup = BeautifulSoup(response.content, 'html.parser')
             text = clean_text(soup.get_text())
             title = soup.find('title').get_text()
@@ -105,11 +105,11 @@ def url_add():
             text, title = fetch_html_with_chromium(url)
             logger.info(f"解析出的内容是: {text}")
 
-        #解析有问题，在这里返回
+        #解析有问题，在这里返回 [EN] There is a problem with parsing, please return here
         if len(text) < 30:
             response_data = {  
                 "file_name": '',
-                "old_name":url,# 添加原始name和文件名到响应数据中  
+                "old_name":url,# 添加原始name和文件名到响应数据中 [EN] Add original name and file name to response data  
                 "response_info": {
                     "code": 1,
                     "message": "该网站不支持抓取解析"                
@@ -122,7 +122,7 @@ def url_add():
         if is_text_garbled(text):
             response_data = {
                 "file_name": '',
-                "old_name":url,# 添加原始name和文件名到响应数据中
+                "old_name":url,# 添加原始name和文件名到响应数据中 [EN] Add original name and file name to response data
                 "response_info": {
                     "code": 1,
                     "message": "该网站不支持抓取解析"
@@ -148,7 +148,7 @@ def url_add():
         file_size_kb = file_size / 1024
         response_data = {  
             "file_name": title,
-            "old_name":url,# 添加原始name和文件名到响应数据中  
+            "old_name":url,# 添加原始name和文件名到响应数据中 [EN] Add original name and file name to response data  
             "file_size":file_size_kb,
             "response_info": {
                 "code": 0,
@@ -163,7 +163,7 @@ def url_add():
         if "HTTPSConnectionPoolstr" in str(e):
             response_data = {  
                 "file_name": '',
-                "old_name":url,# 添加原始name和文件名到响应数据中  
+                "old_name":url,# 添加原始name和文件名到响应数据中 [EN] Add original name and file name to response data  
                 "response_info": {
                     "code": 1,
                     "message": "该网站不支持抓取解析"                
@@ -175,7 +175,7 @@ def url_add():
     return response,200
 
 
-#解析出内容入库
+#解析出内容入库 [EN] Parse out the content and store it in the database
 @app.route('/url_insert', methods=["POST","GET"])
 def url_insert_data():
     logger.info('进入入库')

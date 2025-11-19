@@ -82,7 +82,7 @@ class DOCXLoader(TextLoader):
             separator="\n",
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
-            length_function=len_fun,  # 以tokens计算长度
+            length_function=len_fun,  # 以tokens计算长度 [EN] Calculate length in tokens
             is_separator_regex=False,
         )
         try:
@@ -91,7 +91,7 @@ class DOCXLoader(TextLoader):
             docs = text_splitter.create_documents([text])
 
             chunk_order = 0
-            for doc in docs:  # 添加好到 chunks 和 sub_chunks
+            for doc in docs:  # 添加好到 chunks 和 sub_chunks [EN] Added to chunks and sub_chunks
                 embedding_chunks = []
                 chunk_order += 1
                 meta_data = {'file_name': self.file_path.split("/")[-1],
@@ -100,7 +100,7 @@ class DOCXLoader(TextLoader):
 
                 # sub_chunk.append({'content': doc.page_content, 'embedding_content': doc.page_content,
                 #                   'meta_data': meta_data})
-                for paragraph in doc.page_content.split('\n\n'):  # 拆分到 sub_chunks
+                for paragraph in doc.page_content.split('\n\n'):  # 拆分到 sub_chunks [EN] Split into sub_chunks
                     embedding_chunks.append(paragraph)
                     # sub_chunk.append({'content': doc.page_content, 'embedding_content': paragraph,
                     #                   'meta_data': meta_data})
@@ -109,7 +109,7 @@ class DOCXLoader(TextLoader):
         except Exception as e:
             raise RuntimeError(f"Error loading docx {self.file_path}") from e
 
-        # 返回 chunks 和 sub_chunks
+        # 返回 chunks 和 sub_chunks [EN] Return chunks and sub_chunks
         return chunks
 
 
@@ -162,48 +162,48 @@ def docx_to_markdown(docx_path):
             paragraph_content.append(run.text)
         return "".join(paragraph_content).strip()
 
-    #  ======== 加载文档 ========
+    #  ======== 加载文档 ======== [EN] ======== Loading Documents ========
     try:
         doc = docx_Document(docx_path)
     except Exception as e:
         print(f"docx_Document have err:{e}")
-        # 提取文本
+        # 提取文本 [EN] Extract text
         text = docx2txt.process(docx_path)
         return text
 
     part = doc.part
 
-    # Markdown字符串
+    # Markdown字符串 [EN] Markdown string
     markdown_text = ""
 
-    # 遍历文档中的所有段落和表格
+    # 遍历文档中的所有段落和表格 [EN] Iterate through all paragraphs and tables in a document
     for element in doc.element.body.iterchildren():
         if isinstance(element, docx.oxml.text.paragraph.CT_P):
             p = Paragraph(element, doc)
-            # 将段落转换为Markdown格式
+            # 将段落转换为Markdown格式 [EN] Convert paragraphs to Markdown format
             paragraph_text = p.text.strip()
 
-            if paragraph_text:  # 忽略空段落
+            if paragraph_text:  # 忽略空段落 [EN] Ignore empty paragraphs
                 markdown_text += f"{paragraph_text}  \n\n"
-            if '<w:drawing>' in element.xml:  # 判断是否是插图
-                # 正则表达式
+            if '<w:drawing>' in element.xml:  # 判断是否是插图 [EN] Determine whether it is an illustration
+                # 正则表达式 [EN] regular expression
                 pattern = r'<a:blip\s+r:embed="([^"]+)"'
-                # 使用正则表达式搜索
+                # 使用正则表达式搜索 [EN] Search using regular expressions
                 match = re.search(pattern, element.xml)
                 if match:
                     try:
-                        image_rid = match.group(1)  # 获取捕获组中的内容
+                        image_rid = match.group(1)  # 获取捕获组中的内容 [EN] Get the contents of a capturing group
                         print(f"Found r:embed value: {image_rid}")
-                        # ========= 将图片转写成 base64 =========
+                        # ========= 将图片转写成 base64 ========= [EN] ========= Convert the image to base64 =========
                         image_part = part.related_parts[image_rid]
                         image_bytes = image_part.blob
                         with Image.open(BytesIO(image_bytes)) as img:
-                            # 创建一个临时文件路径
+                            # 创建一个临时文件路径 [EN] Create a temporary file path
                             with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
                                 img_tmp_path = tmp_file.name
-                                # 保存图像到临时文件
+                                # 保存图像到临时文件 [EN] Save image to temporary file
                                 img.save(img_tmp_path)
-                                # 上传临时文件
+                                # 上传临时文件 [EN] Upload temporary files
                                 minio_result = upload_local_file(img_tmp_path)
                                 if minio_result['code'] == 0:
                                     image_download_link = minio_result['download_link']
@@ -213,31 +213,31 @@ def docx_to_markdown(docx_path):
                                 else:
                                     print(f"====>geu image_download_link err:{minio_result}")
                                 # img_base64 = base64.b64encode(image_bytes).decode('utf-8')
-                                # 删除临时文件
+                                # 删除临时文件 [EN] Delete temporary files
                                 os.remove(img_tmp_path)
                     except Exception as e:
                         print(f"====>geu image_download_link err:{e}")
                 else:
                     pass
         elif isinstance(element, docx.oxml.table.CT_Tbl):
-            # 处理表格
-            markdown_text += '\n'  # 在表格前添加空行
+            # 处理表格 [EN] Processing forms
+            markdown_text += '\n'  # 在表格前添加空行 [EN] Add a blank row before the table
             block = Table(element, doc)
             # for row in block.rows:
             #     row_text = '|'.join([cell.text.strip() for cell in row.cells])
             #     markdown_text += f"|{row_text}|\n"
-            # markdown_text += '\n'  # 在表格后添加空行
+            # markdown_text += '\n'  # 在表格后添加空行 [EN] markdown_text += '\n' # Add a blank line after the table
             table_text = _table_to_markdown(block)
             markdown_text += table_text
-            markdown_text += '\n'  # 在表格后添加空行
+            markdown_text += '\n'  # 在表格后添加空行 [EN] Add a blank row after the table
         else:
             pass
-    # 打印Markdown文本
+    # 打印Markdown文本 [EN] Print Markdown text
     if markdown_text:
         return markdown_text
-    else:  # 如果第一种方式没有提取到文本，则使用第二种方式
+    else:  # 如果第一种方式没有提取到文本，则使用第二种方式 [EN] If the first method does not extract text, use the second method
         print(f"docx_Document markdown_text is None ")
-        # 提取文本
+        # 提取文本 [EN] Extract text
         text = docx2txt.process(docx_path)
         return text
 
@@ -245,7 +245,7 @@ def docx_to_markdown(docx_path):
 
 if __name__ == "__main__":
     filepath = "./your_file.docx"
-    # # 根据文件类型选择加载器
+    # # 根据文件类型选择加载器 [EN] # Select loader based on file type
     # if filepath.endswith(".doc"):
     #     loader = DOCLoader(filepath)
     # elif filepath.endswith(".docx"):
@@ -254,6 +254,6 @@ if __name__ == "__main__":
     # for doc in docs:
     #     print(doc)
 
-    # ============ 测试使用 docx 读取 文档并转换为 markdown 格式 =============
+    # ============ 测试使用 docx 读取 文档并转换为 markdown 格式 ============= [EN] ============ The test uses docx to read the document and convert it to markdown format =============
     docx_to_markdown(filepath)
     print(1)

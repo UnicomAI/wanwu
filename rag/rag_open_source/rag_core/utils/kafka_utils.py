@@ -35,13 +35,13 @@ def push_kafka_msg(message):
     bootstrap_servers = KAFKA_BOOTSTRAP_SERVERS
     topic = FLYWHEEL_KAFKA_TOPIC
 
-    # 创建 Kafka 生产者
+    # 创建 Kafka 生产者 [EN] Create a Kafka producer
     producer = create_kafka_producer(bootstrap_servers)
 
     
     send_message(producer, topic, message)
 
-    # 关闭生产者
+    # 关闭生产者 [EN] shutdown producer
     producer.close()
 
 

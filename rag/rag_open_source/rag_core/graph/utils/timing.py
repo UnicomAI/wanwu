@@ -36,26 +36,26 @@ def timing_decorator(logger,
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
-            # 确定任务名称
+            # 确定任务名称 [EN] Determine task name
             actual_task_name = task_name if task_name is not None else func.__name__
 
-            # 获取开始时间
+            # 获取开始时间 [EN] Get start time
             start_time = time.perf_counter()
             start_datetime = datetime.now()
 
             try:
-                # 执行原函数
+                # 执行原函数 [EN] Execute original function
                 result = func(*args, **kwargs)
                 success = True
             except Exception as e:
                 success = False
                 raise e
             finally:
-                # 计算执行时间
+                # 计算执行时间 [EN] Calculate execution time
                 end_time = time.perf_counter()
                 execution_time = end_time - start_time
 
-                # 构建日志消息
+                # 构建日志消息 [EN] Build log messages
                 log_message = f"任务 [{actual_task_name}] "
                 if include_args:
                     log_message += f"参数: args={args}, kwargs={kwargs} "
@@ -63,10 +63,10 @@ def timing_decorator(logger,
                 if not success:
                     log_message += " (执行失败)"
 
-                # 添加开始时间信息
+                # 添加开始时间信息 [EN] Add start time information
                 log_message += f" (开始于: {start_datetime.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]})"
 
-                # 根据指定的日志级别记录
+                # 根据指定的日志级别记录 [EN] Logging according to the specified log level
                 log_func = getattr(logger, log_level.lower(), logger.info)
                 log_func(log_message)
 
@@ -77,7 +77,7 @@ def timing_decorator(logger,
     return decorator
 
 
-# 为了方便使用，提供一些预设的装饰器
+# 为了方便使用，提供一些预设的装饰器 [EN] For ease of use, some preset decorators are provided
 def timing_debug(logger, task_name: Optional[str] = None, include_args: bool = False) -> Callable:
     """DEBUG级别的计时装饰器"""
     return timing_decorator(logger, task_name, 'DEBUG', include_args)
@@ -93,6 +93,6 @@ def timing_warning(logger, task_name: Optional[str] = None, include_args: bool =
     return timing_decorator(logger, task_name, 'WARNING', include_args)
 
 
-# 使用示例
+# 使用示例 [EN] Usage example
 if __name__ == "__main__":
     pass

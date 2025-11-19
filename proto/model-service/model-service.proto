@@ -7,23 +7,23 @@ import "google/protobuf/empty.proto";
 option go_package = "github.com/UnicomAI/wanwu/api/proto/model-service";
 
 service ModelService {
-    // 模型导入(默认启用
+    // 模型导入(默认启用 [EN] Model import (enabled by default
     rpc ImportModel(ModelInfo) returns (google.protobuf.Empty) {}
-    // 导入模型更新
+    // 导入模型更新 [EN] Import model updates
     rpc UpdateModel(ModelInfo) returns (google.protobuf.Empty) {}
-    // 导入模型删除
+    // 导入模型删除 [EN] Import model delete
     rpc DeleteModel(DeleteModelReq) returns (google.protobuf.Empty) {}
-    // ‌查询单个模型‌
+    // ‌查询单个模型‌ [EN] ‌Query a single model‌
     rpc GetModel(GetModelReq) returns (ModelInfo) {}
-    // 导入模型列表展示
+    // 导入模型列表展示 [EN] Imported model list display
     rpc ListModels(ListModelsReq) returns (ModelInfos) {}
-    // 模型启用/关闭
+    // 模型启用/关闭 [EN] Model enable/disable
     rpc ChangeModelStatus(ModelStatusReq) returns (google.protobuf.Empty) {}
-    // 根据模型ID查询
+    // 根据模型ID查询 [EN] Query based on model ID
     rpc GetModelById(GetModelByIdReq) returns (ModelInfo) {}
-    // llm/rerank/embedding模型列表展示
+    // llm/rerank/embedding模型列表展示 [EN] llm/rerank/embedding model list display
     rpc ListTypeModels(ListTypeModelsReq) returns (ModelInfos) {}
-    // 根据模型ID列表查询
+    // 根据模型ID列表查询 [EN] Query based on model ID list
     rpc GetModelByIds(GetModelByIdsReq) returns (ModelInfos) {}
 }
 
@@ -31,13 +31,13 @@ message ModelInfo {
     string userId = 1;
     string orgId = 2;
     string modelId = 3;
-    string provider = 4;        // 模型供应商
-    string modelType = 5;       // 模型类型
-    string model = 6;           // 模型名称
-    string displayName = 7;     // 模型显示名称
-    string modelIconPath = 8;   // 模型图标路径
-    string publishDate = 9;     // 模型发布时间
-    bool isActive = 10;         // 启用状态（true: 启用，false: 禁用）
+    string provider = 4;        // 模型供应商 [EN] model supplier
+    string modelType = 5;       // 模型类型 [EN] Model type
+    string model = 6;           // 模型名称 [EN] Model name
+    string displayName = 7;     // 模型显示名称 [EN] Model display name
+    string modelIconPath = 8;   // 模型图标路径 [EN] Model icon path
+    string publishDate = 9;     // 模型发布时间 [EN] Model release time
+    bool isActive = 10;         // 启用状态（true: 启用，false: 禁用） [EN] Enabled status (true: enabled, false: disabled)
     string providerConfig = 11;
     int64 createdAt = 12;
     int64 updatedAt = 13;
@@ -62,17 +62,17 @@ message GetModelReq{
 }
 
 message ListModelsReq{
-    string modelType = 1;       // 模型类型
-    string provider = 2;        // 模型供应商
-    bool isActive = 3;          // 启用状态（true: 启用，false: 禁用）
+    string modelType = 1;       // 模型类型 [EN] Model type
+    string provider = 2;        // 模型供应商 [EN] model supplier
+    bool isActive = 3;          // 启用状态（true: 启用，false: 禁用） [EN] Enabled status (true: enabled, false: disabled)
     string userId = 4;
     string orgId = 5;
-    string displayName = 6;           // 模型显示名称
+    string displayName = 6;           // 模型显示名称 [EN] Model display name
 }
 
 message ModelStatusReq {
     string modelId = 1;
-    bool isActive = 2;          // 启用状态（true: 启用，false: 禁用）
+    bool isActive = 2;          // 启用状态（true: 启用，false: 禁用） [EN] Enabled status (true: enabled, false: disabled)
     string userId = 3;
     string orgId = 4;
 }
@@ -92,5 +92,5 @@ message GetModelByIdsReq{
 message ListTypeModelsReq {
     string userId = 1;
     string orgId = 2;
-    string modelType = 3;       // 模型类型
+    string modelType = 3;       // 模型类型 [EN] Model type
 }

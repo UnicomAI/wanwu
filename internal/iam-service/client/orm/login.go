@@ -200,18 +200,18 @@ func (c *Client) LoginSendEmailCode(ctx context.Context, email string) *errs.Sta
 	if err != nil {
 		return toErrStatus("iam_user_email_code", err.Error())
 	} else if item != nil {
-		// email发送过验证码
+		// email发送过验证码 [EN] Verification code sent via email
 		record, err := getRedisLoginEmailRecord(item.V)
 		if err != nil {
 			return toErrStatus("iam_user_email_code", err.Error())
 		}
-		// 距离上次发送不足1min
+		// 距离上次发送不足1min [EN] Less than 1 minute since last sent
 		if now.Sub(time.UnixMilli(record.Timestamp)) < time.Minute {
 			return toErrStatus("iam_register_by_email_send_code_frequent")
 		}
 	}
-	// email未发送过验证码 或者 距离上次发送超过1min
-	// 发送邮件
+	// email未发送过验证码 或者 距离上次发送超过1min [EN] The verification code has not been sent by email or it has been more than 1 minute since it was last sent.
+	// 发送邮件 [EN] Send email
 	if err := smtp_util.SendEmail([]string{email},
 		config.Cfg().Password.Email.Template.Subject,
 		config.Cfg().Password.Email.Template.ContentType,
@@ -219,7 +219,7 @@ func (c *Client) LoginSendEmailCode(ctx context.Context, email string) *errs.Sta
 	); err != nil {
 		return toErrStatus("iam_register_by_email_send_code", err.Error())
 	}
-	// 记录redis
+	// 记录redis [EN] Record redis
 	if err := redis.IAM().HSet(ctx, getRedisLoginEmailKey(email), []redis.HashItem{
 		{
 			K: redisLoginEmailField,
@@ -241,7 +241,7 @@ func (c *Client) LoginSendEmailCode(ctx context.Context, email string) *errs.Sta
 
 type redisLoginEmail struct {
 	Code      string `json:"code"`
-	Timestamp int64  `json:"timestamp"` //  当前验证码的创建时间
+	Timestamp int64  `json:"timestamp"` //  当前验证码的创建时间 [EN] The creation time of the current verification code
 }
 
 func getRedisLoginEmailKey(email string) string {

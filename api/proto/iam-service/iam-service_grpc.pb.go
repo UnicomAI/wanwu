@@ -73,102 +73,102 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type IAMServiceClient interface {
-	// 获取用户列表（用于下拉选择，不在组织中的用户）
+	// 获取用户列表（用于下拉选择，不在组织中的用户） [EN] Get a list of users (for drop-down selection, users not in the organization)
 	GetUserSelectNotInOrg(ctx context.Context, in *GetUserSelectNotInOrgReq, opts ...grpc.CallOption) (*Select, error)
-	// 获取用户列表 by userIDs
+	// 获取用户列表 by userIDs [EN] Get user list by userIDs
 	GetUserSelectByUserIDs(ctx context.Context, in *GetUserSelectByUserIDsReq, opts ...grpc.CallOption) (*Select, error)
-	// 获取用户列表
+	// 获取用户列表 [EN] Get user list
 	GetUserList(ctx context.Context, in *GetUserListReq, opts ...grpc.CallOption) (*GetUserListResp, error)
-	// 获取用户
+	// 获取用户 [EN] Get user
 	GetUserInfo(ctx context.Context, in *GetUserInfoReq, opts ...grpc.CallOption) (*UserInfo, error)
-	// 创建用户
+	// 创建用户 [EN] Create user
 	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*IDName, error)
-	// 编辑用户
+	// 编辑用户 [EN] Edit user
 	UpdateUser(ctx context.Context, in *UpdateUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除用户
+	// 删除用户 [EN] Delete user
 	DeleteUser(ctx context.Context, in *DeleteUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 修改用户状态
+	// 修改用户状态 [EN] Modify user status
 	ChangeUserStatus(ctx context.Context, in *ChangeUserStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 更新用户密码
+	// 更新用户密码 [EN] Update user password
 	UpdateUserPassword(ctx context.Context, in *UpdateUserPasswordReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 重置用户密码
+	// 重置用户密码 [EN] Reset user password
 	ResetUserPassword(ctx context.Context, in *ResetUserPasswordReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取用户权限
+	// 获取用户权限 [EN] Get user permissions
 	GetUserPermission(ctx context.Context, in *GetUserPermissionReq, opts ...grpc.CallOption) (*UserPermission, error)
-	// 修改用户语言
+	// 修改用户语言 [EN] Modify user language
 	ChangeUserLanguage(ctx context.Context, in *ChangeUserLanguageReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 上传用户头像
+	// 上传用户头像 [EN] Upload user avatar
 	UpdateUserAvatar(ctx context.Context, in *UpdateUserAvatarReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取组织列表（用于下拉选择）
+	// 获取组织列表（用于下拉选择） [EN] Get list of organizations (for drop-down selection)
 	GetOrgSelect(ctx context.Context, in *GetOrgSelectReq, opts ...grpc.CallOption) (*Select, error)
-	// 获取组织列表
+	// 获取组织列表 [EN] Get list of organizations
 	GetOrgList(ctx context.Context, in *GetOrgListReq, opts ...grpc.CallOption) (*GetOrgListResp, error)
-	// 获取组织
+	// 获取组织 [EN] Get organization
 	GetOrgInfo(ctx context.Context, in *GetOrgInfoReq, opts ...grpc.CallOption) (*OrgInfo, error)
-	// 通过orgIds获取组织信息
+	// 通过orgIds获取组织信息 [EN] Get organization information through orgIds
 	GetOrgByOrgIDs(ctx context.Context, in *GetOrgByOrgIDsReq, opts ...grpc.CallOption) (*GetOrgByOrgIDsResp, error)
-	// 获取子组织信息
+	// 获取子组织信息 [EN] Get sub-organization information
 	GetOrgAndSubOrgSelectByUser(ctx context.Context, in *GetOrgAndSubOrgSelectByUserReq, opts ...grpc.CallOption) (*GetOrgAndSubOrgSelectByUserResp, error)
-	// 创建组织
+	// 创建组织 [EN] Create an organization
 	CreateOrg(ctx context.Context, in *CreateOrgReq, opts ...grpc.CallOption) (*IDName, error)
-	// 编辑组织
+	// 编辑组织 [EN] Edit organization
 	UpdateOrg(ctx context.Context, in *UpdateOrgReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除组织
+	// 删除组织 [EN] Delete organization
 	DeleteOrg(ctx context.Context, in *DeleteOrgReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 修改组织状态
+	// 修改组织状态 [EN] Modify organization status
 	ChangeOrgStatus(ctx context.Context, in *ChangeOrgStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 增加组织用户
+	// 增加组织用户 [EN] Add organizational users
 	AddOrgUser(ctx context.Context, in *AddOrgUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 移除组织用户
+	// 移除组织用户 [EN] Remove organization user
 	RemoveOrgUser(ctx context.Context, in *RemoveOrgUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取角色列表（用于下拉选择）
+	// 获取角色列表（用于下拉选择） [EN] Get a list of roles (for drop-down selection)
 	GetRoleSelect(ctx context.Context, in *GetRoleSelectReq, opts ...grpc.CallOption) (*GetRoleSelectResp, error)
-	// 获取角色列表
+	// 获取角色列表 [EN] Get role list
 	GetRoleList(ctx context.Context, in *GetRoleListReq, opts ...grpc.CallOption) (*GetRoleListResp, error)
-	// 获取角色
+	// 获取角色 [EN] Get role
 	GetRoleInfo(ctx context.Context, in *GetRoleInfoReq, opts ...grpc.CallOption) (*RoleInfo, error)
-	// 创建角色
+	// 创建角色 [EN] Create a role
 	CreateRole(ctx context.Context, in *CreateRoleReq, opts ...grpc.CallOption) (*RoleIDName, error)
-	// 编辑角色
+	// 编辑角色 [EN] Edit role
 	UpdateRole(ctx context.Context, in *UpdateRoleReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除角色
+	// 删除角色 [EN] Delete role
 	DeleteRole(ctx context.Context, in *DeleteRoleReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 修改角色状态
+	// 修改角色状态 [EN] Modify character status
 	ChangeRoleStatus(ctx context.Context, in *ChangeRoleStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取验证码
+	// 获取验证码 [EN] Get verification code
 	GetCaptcha(ctx context.Context, in *GetCaptchaReq, opts ...grpc.CallOption) (*GetCaptchaResp, error)
-	// 登录
+	// 登录 [EN] Log in
 	Login(ctx context.Context, in *LoginReq, opts ...grpc.CallOption) (*LoginResp, error)
-	// 一阶段登录
+	// 一阶段登录 [EN] One stage login
 	LoginByEmail(ctx context.Context, in *LoginByEmailReq, opts ...grpc.CallOption) (*LoginByEmailResp, error)
-	// 登录发送邮箱验证码
+	// 登录发送邮箱验证码 [EN] Log in and send email verification code
 	LoginSendEmailCode(ctx context.Context, in *LoginSendEmailCodeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 二阶段登录邮箱校验
+	// 二阶段登录邮箱校验 [EN] Two-stage login email verification
 	LoginEmailCheck(ctx context.Context, in *LoginEmailCheckReq, opts ...grpc.CallOption) (*LoginResp, error)
-	// 二阶段登录重置密码与邮箱校验
+	// 二阶段登录重置密码与邮箱校验 [EN] Two-stage login, password reset and email verification
 	ChangeUserPasswordByEmail(ctx context.Context, in *ChangeUserPasswordByEmailReq, opts ...grpc.CallOption) (*LoginResp, error)
 	// --- register ---
-	// 邮箱注册用户
+	// 邮箱注册用户 [EN] Email registered user
 	RegisterByEmail(ctx context.Context, in *RegisterByEmailReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 邮箱注册发送邮件
+	// 邮箱注册发送邮件 [EN] Email registration to send emails
 	RegisterSendEmailCode(ctx context.Context, in *RegisterSendEmailCodeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// --- reset password ---
-	// 重置密码邮箱验证码发送
+	// 重置密码邮箱验证码发送 [EN] Reset password email verification code sent
 	ResetPasswordSendEmailCode(ctx context.Context, in *ResetPasswordSendEmailCodeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 邮箱重置密码
+	// 邮箱重置密码 [EN] Email password reset
 	ResetPasswordByEmail(ctx context.Context, in *ResetPasswordByEmailReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// --- oauth ---
-	// 创建OAuth应用
+	// 创建OAuth应用 [EN] Create an OAuth application
 	CreateOauthApp(ctx context.Context, in *CreateOauthAppReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除OAuth应用
+	// 删除OAuth应用 [EN] Delete OAuth application
 	DeleteOauthApp(ctx context.Context, in *DeleteOauthAppReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 更新OAuth应用
+	// 更新OAuth应用 [EN] Update OAuth application
 	UpdateOauthApp(ctx context.Context, in *UpdateOauthAppReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取OAuth应用列表
+	// 获取OAuth应用列表 [EN] Get OAuth application list
 	GetOauthAppList(ctx context.Context, in *GetOauthAppListReq, opts ...grpc.CallOption) (*OauthAppListResp, error)
-	// 更新OAuth应用状态
+	// 更新OAuth应用状态 [EN] Update OAuth application status
 	UpdateOauthAppStatus(ctx context.Context, in *UpdateOauthAppStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 根据clientID获取oauth app信息
+	// 根据clientID获取oauth app信息 [EN] Get oauth app information based on clientID
 	GetOauthApp(ctx context.Context, in *GetOauthAppReq, opts ...grpc.CallOption) (*OauthApp, error)
 }
 
@@ -654,102 +654,102 @@ func (c *iAMServiceClient) GetOauthApp(ctx context.Context, in *GetOauthAppReq, 
 // All implementations must embed UnimplementedIAMServiceServer
 // for forward compatibility.
 type IAMServiceServer interface {
-	// 获取用户列表（用于下拉选择，不在组织中的用户）
+	// 获取用户列表（用于下拉选择，不在组织中的用户） [EN] Get a list of users (for drop-down selection, users not in the organization)
 	GetUserSelectNotInOrg(context.Context, *GetUserSelectNotInOrgReq) (*Select, error)
-	// 获取用户列表 by userIDs
+	// 获取用户列表 by userIDs [EN] Get user list by userIDs
 	GetUserSelectByUserIDs(context.Context, *GetUserSelectByUserIDsReq) (*Select, error)
-	// 获取用户列表
+	// 获取用户列表 [EN] Get user list
 	GetUserList(context.Context, *GetUserListReq) (*GetUserListResp, error)
-	// 获取用户
+	// 获取用户 [EN] Get user
 	GetUserInfo(context.Context, *GetUserInfoReq) (*UserInfo, error)
-	// 创建用户
+	// 创建用户 [EN] Create user
 	CreateUser(context.Context, *CreateUserReq) (*IDName, error)
-	// 编辑用户
+	// 编辑用户 [EN] Edit user
 	UpdateUser(context.Context, *UpdateUserReq) (*emptypb.Empty, error)
-	// 删除用户
+	// 删除用户 [EN] Delete user
 	DeleteUser(context.Context, *DeleteUserReq) (*emptypb.Empty, error)
-	// 修改用户状态
+	// 修改用户状态 [EN] Modify user status
 	ChangeUserStatus(context.Context, *ChangeUserStatusReq) (*emptypb.Empty, error)
-	// 更新用户密码
+	// 更新用户密码 [EN] Update user password
 	UpdateUserPassword(context.Context, *UpdateUserPasswordReq) (*emptypb.Empty, error)
-	// 重置用户密码
+	// 重置用户密码 [EN] Reset user password
 	ResetUserPassword(context.Context, *ResetUserPasswordReq) (*emptypb.Empty, error)
-	// 获取用户权限
+	// 获取用户权限 [EN] Get user permissions
 	GetUserPermission(context.Context, *GetUserPermissionReq) (*UserPermission, error)
-	// 修改用户语言
+	// 修改用户语言 [EN] Modify user language
 	ChangeUserLanguage(context.Context, *ChangeUserLanguageReq) (*emptypb.Empty, error)
-	// 上传用户头像
+	// 上传用户头像 [EN] Upload user avatar
 	UpdateUserAvatar(context.Context, *UpdateUserAvatarReq) (*emptypb.Empty, error)
-	// 获取组织列表（用于下拉选择）
+	// 获取组织列表（用于下拉选择） [EN] Get list of organizations (for drop-down selection)
 	GetOrgSelect(context.Context, *GetOrgSelectReq) (*Select, error)
-	// 获取组织列表
+	// 获取组织列表 [EN] Get list of organizations
 	GetOrgList(context.Context, *GetOrgListReq) (*GetOrgListResp, error)
-	// 获取组织
+	// 获取组织 [EN] Get organization
 	GetOrgInfo(context.Context, *GetOrgInfoReq) (*OrgInfo, error)
-	// 通过orgIds获取组织信息
+	// 通过orgIds获取组织信息 [EN] Get organization information through orgIds
 	GetOrgByOrgIDs(context.Context, *GetOrgByOrgIDsReq) (*GetOrgByOrgIDsResp, error)
-	// 获取子组织信息
+	// 获取子组织信息 [EN] Get sub-organization information
 	GetOrgAndSubOrgSelectByUser(context.Context, *GetOrgAndSubOrgSelectByUserReq) (*GetOrgAndSubOrgSelectByUserResp, error)
-	// 创建组织
+	// 创建组织 [EN] Create an organization
 	CreateOrg(context.Context, *CreateOrgReq) (*IDName, error)
-	// 编辑组织
+	// 编辑组织 [EN] Edit organization
 	UpdateOrg(context.Context, *UpdateOrgReq) (*emptypb.Empty, error)
-	// 删除组织
+	// 删除组织 [EN] Delete organization
 	DeleteOrg(context.Context, *DeleteOrgReq) (*emptypb.Empty, error)
-	// 修改组织状态
+	// 修改组织状态 [EN] Modify organization status
 	ChangeOrgStatus(context.Context, *ChangeOrgStatusReq) (*emptypb.Empty, error)
-	// 增加组织用户
+	// 增加组织用户 [EN] Add organizational users
 	AddOrgUser(context.Context, *AddOrgUserReq) (*emptypb.Empty, error)
-	// 移除组织用户
+	// 移除组织用户 [EN] Remove organization user
 	RemoveOrgUser(context.Context, *RemoveOrgUserReq) (*emptypb.Empty, error)
-	// 获取角色列表（用于下拉选择）
+	// 获取角色列表（用于下拉选择） [EN] Get a list of roles (for drop-down selection)
 	GetRoleSelect(context.Context, *GetRoleSelectReq) (*GetRoleSelectResp, error)
-	// 获取角色列表
+	// 获取角色列表 [EN] Get role list
 	GetRoleList(context.Context, *GetRoleListReq) (*GetRoleListResp, error)
-	// 获取角色
+	// 获取角色 [EN] Get role
 	GetRoleInfo(context.Context, *GetRoleInfoReq) (*RoleInfo, error)
-	// 创建角色
+	// 创建角色 [EN] Create a role
 	CreateRole(context.Context, *CreateRoleReq) (*RoleIDName, error)
-	// 编辑角色
+	// 编辑角色 [EN] Edit role
 	UpdateRole(context.Context, *UpdateRoleReq) (*emptypb.Empty, error)
-	// 删除角色
+	// 删除角色 [EN] Delete role
 	DeleteRole(context.Context, *DeleteRoleReq) (*emptypb.Empty, error)
-	// 修改角色状态
+	// 修改角色状态 [EN] Modify character status
 	ChangeRoleStatus(context.Context, *ChangeRoleStatusReq) (*emptypb.Empty, error)
-	// 获取验证码
+	// 获取验证码 [EN] Get verification code
 	GetCaptcha(context.Context, *GetCaptchaReq) (*GetCaptchaResp, error)
-	// 登录
+	// 登录 [EN] Log in
 	Login(context.Context, *LoginReq) (*LoginResp, error)
-	// 一阶段登录
+	// 一阶段登录 [EN] One stage login
 	LoginByEmail(context.Context, *LoginByEmailReq) (*LoginByEmailResp, error)
-	// 登录发送邮箱验证码
+	// 登录发送邮箱验证码 [EN] Log in and send email verification code
 	LoginSendEmailCode(context.Context, *LoginSendEmailCodeReq) (*emptypb.Empty, error)
-	// 二阶段登录邮箱校验
+	// 二阶段登录邮箱校验 [EN] Two-stage login email verification
 	LoginEmailCheck(context.Context, *LoginEmailCheckReq) (*LoginResp, error)
-	// 二阶段登录重置密码与邮箱校验
+	// 二阶段登录重置密码与邮箱校验 [EN] Two-stage login, password reset and email verification
 	ChangeUserPasswordByEmail(context.Context, *ChangeUserPasswordByEmailReq) (*LoginResp, error)
 	// --- register ---
-	// 邮箱注册用户
+	// 邮箱注册用户 [EN] Email registered user
 	RegisterByEmail(context.Context, *RegisterByEmailReq) (*emptypb.Empty, error)
-	// 邮箱注册发送邮件
+	// 邮箱注册发送邮件 [EN] Email registration to send emails
 	RegisterSendEmailCode(context.Context, *RegisterSendEmailCodeReq) (*emptypb.Empty, error)
 	// --- reset password ---
-	// 重置密码邮箱验证码发送
+	// 重置密码邮箱验证码发送 [EN] Reset password email verification code sent
 	ResetPasswordSendEmailCode(context.Context, *ResetPasswordSendEmailCodeReq) (*emptypb.Empty, error)
-	// 邮箱重置密码
+	// 邮箱重置密码 [EN] Email password reset
 	ResetPasswordByEmail(context.Context, *ResetPasswordByEmailReq) (*emptypb.Empty, error)
 	// --- oauth ---
-	// 创建OAuth应用
+	// 创建OAuth应用 [EN] Create an OAuth application
 	CreateOauthApp(context.Context, *CreateOauthAppReq) (*emptypb.Empty, error)
-	// 删除OAuth应用
+	// 删除OAuth应用 [EN] Delete OAuth application
 	DeleteOauthApp(context.Context, *DeleteOauthAppReq) (*emptypb.Empty, error)
-	// 更新OAuth应用
+	// 更新OAuth应用 [EN] Update OAuth application
 	UpdateOauthApp(context.Context, *UpdateOauthAppReq) (*emptypb.Empty, error)
-	// 获取OAuth应用列表
+	// 获取OAuth应用列表 [EN] Get OAuth application list
 	GetOauthAppList(context.Context, *GetOauthAppListReq) (*OauthAppListResp, error)
-	// 更新OAuth应用状态
+	// 更新OAuth应用状态 [EN] Update OAuth application status
 	UpdateOauthAppStatus(context.Context, *UpdateOauthAppStatusReq) (*emptypb.Empty, error)
-	// 根据clientID获取oauth app信息
+	// 根据clientID获取oauth app信息 [EN] Get oauth app information based on clientID
 	GetOauthApp(context.Context, *GetOauthAppReq) (*OauthApp, error)
 	mustEmbedUnimplementedIAMServiceServer()
 }

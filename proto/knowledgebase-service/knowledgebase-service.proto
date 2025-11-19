@@ -7,33 +7,33 @@ import "google/protobuf/empty.proto";
 option go_package = "gitlab.ai-yuanjing.cn/ai-platform-private/backend-used-bff/common-api/api/proto/knowledgebase-service";
 
 service KnowledgeBaseService {
-  // 获取知识库列表
+  // 获取知识库列表 [EN] Get a list of knowledge bases
   rpc SelectKnowledgeList(KnowledgeSelectReq) returns (KnowledgeSelectListResp) {}
-  // 获取知识库列表
+  // 获取知识库列表 [EN] Get a list of knowledge bases
   rpc SelectKnowledgeListByIdList(BatchKnowledgeSelectReq) returns (KnowledgeSelectListResp) {}
-  // 获取知识库详情
+  // 获取知识库详情 [EN] Get knowledge base details
   rpc SelectKnowledgeDetailById(KnowledgeDetailSelectReq) returns (KnowledgeInfo) {}
-  // 获取知识库详情列表
+  // 获取知识库详情列表 [EN] Get a list of knowledge base details
   rpc SelectKnowledgeDetailByIdList(KnowledgeDetailSelectListReq) returns (KnowledgeDetailSelectListResp) {}
-  // 获取知识库详情
+  // 获取知识库详情 [EN] Get knowledge base details
   rpc SelectKnowledgeDetailByName(KnowledgeDetailSelectReq) returns (KnowledgeInfo) {}
-  // 新增知识库
+  // 新增知识库 [EN] Add new knowledge base
   rpc CreateKnowledge(CreateKnowledgeReq) returns (CreateKnowledgeResp) {}
-  // 修改知识库
+  // 修改知识库 [EN] Modify knowledge base
   rpc UpdateKnowledge(UpdateKnowledgeReq) returns (google.protobuf.Empty) {}
-  // 删除文档知识分类
+  // 删除文档知识分类 [EN] Delete document knowledge classification
   rpc DeleteKnowledge(DeleteKnowledgeReq) returns (google.protobuf.Empty) {}
-  // 知识库命中测试
+  // 知识库命中测试 [EN] Knowledge base hit testing
   rpc KnowledgeHit(KnowledgeHitReq) returns (KnowledgeHitResp) {}
-  // 获取知识库元数据（key + type）
+  // 获取知识库元数据（key + type） [EN] Get knowledge base metadata (key + type)
   rpc GetKnowledgeMetaSelect(SelectKnowledgeMetaReq) returns (SelectKnowledgeMetaResp) {}
-  // 获取知识库元数据值列表 (合并过的value)
+  // 获取知识库元数据值列表 (合并过的value) [EN] Get the list of knowledge base metadata values ​​(merged values)
   rpc GetKnowledgeMetaValueList(KnowledgeMetaValueListReq) returns (KnowledgeMetaValueListResp) {}
-  // 更新知识库元数据值列表
+  // 更新知识库元数据值列表 [EN] Update the list of knowledge base metadata values
   rpc UpdateKnowledgeMetaValue(UpdateKnowledgeMetaValueReq) returns (google.protobuf.Empty) {}
-  // 修改知识库状态
+  // 修改知识库状态 [EN] Modify knowledge base status
   rpc UpdateKnowledgeStatus(UpdateKnowledgeStatusReq) returns (google.protobuf.Empty) {}
-  // 获取知识图谱详情
+  // 获取知识图谱详情 [EN] Get knowledge graph details
   rpc GetKnowledgeGraph(KnowledgeGraphReq) returns (KnowledgeGraphResp){}
 }
 
@@ -59,41 +59,41 @@ message UpdateKnowledgeStatusReq{
 message KnowledgeHitReq{
   string orgId = 1;
   string userId = 2;
-  string question = 3; //问题
-  repeated KnowledgeParams knowledgeList = 4;//知识库参数列表
-  KnowledgeMatchParams knowledgeMatchParams = 5; //模型匹配方式
+  string question = 3; //问题 [EN] question
+  repeated KnowledgeParams knowledgeList = 4;//知识库参数列表 [EN] Knowledge base parameter list
+  KnowledgeMatchParams knowledgeMatchParams = 5; //模型匹配方式 [EN] Model matching method
 }
 
 
 message KnowledgeMatchParams{
-  string  matchType = 1; //matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
-  string  rerankModelId = 2;//rerank模型id
-  int32 priorityMatch = 3;// 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1
-  float semanticsPriority = 4;// 语义权重
-  float keywordPriority = 5;// 关键词权重
-  int32 topK = 6;//topK 获取最高的几行
-  float score = 7;//score 过滤分数阈值
-  float termWeight = 8; // 关键词系数
-  bool termWeightEnable = 9; // 关键词系数开关
-  bool useGraph = 10; // 是否使用知识图谱
+  string  matchType = 1; //matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本） [EN] matchType: vector (vector search), text (text search), mix (mixed search: vector + text)
+  string  rerankModelId = 2;//rerank模型id [EN] rerank model id
+  int32 priorityMatch = 3;// 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1 [EN] Weight matching. This is only set to 1 after selecting the weight setting in mixed search mode.
+  float semanticsPriority = 4;// 语义权重 [EN] semantic weight
+  float keywordPriority = 5;// 关键词权重 [EN] Keyword weight
+  int32 topK = 6;//topK 获取最高的几行 [EN] topK gets the highest rows
+  float score = 7;//score 过滤分数阈值 [EN] score filter score threshold
+  float termWeight = 8; // 关键词系数 [EN] keyword coefficient
+  bool termWeightEnable = 9; // 关键词系数开关 [EN] Keyword coefficient switch
+  bool useGraph = 10; // 是否使用知识图谱 [EN] Whether to use knowledge graph
 }
 
 message KnowledgeParams{
-  string knowledgeId = 1; // 知识库id
-  MetaDataFilterParams metaDataFilterParams = 2; // 元数据过滤参数
+  string knowledgeId = 1; // 知识库id [EN] knowledge base id
+  MetaDataFilterParams metaDataFilterParams = 2; // 元数据过滤参数 [EN] Metadata filter parameters
 }
 
 message MetaDataFilterParams{
-  bool filterEnable = 1; // 元数据过滤开关
-  string filterLogicType = 2; // 元数据过滤逻辑类型
-  repeated MetaFilterParams metaFilterParams = 3; // 元数据过滤参数
+  bool filterEnable = 1; // 元数据过滤开关 [EN] Metadata filter switch
+  string filterLogicType = 2; // 元数据过滤逻辑类型 [EN] Metadata filtering logic type
+  repeated MetaFilterParams metaFilterParams = 3; // 元数据过滤参数 [EN] Metadata filter parameters
 }
 
 message MetaFilterParams{
-  string key = 1; // 元数据key
-  string type = 2; // 元数据类型
-  string value = 3; // 元数据值
-  string condition = 4; // 元数据过滤条件
+  string key = 1; // 元数据key [EN] Metadata key
+  string type = 2; // 元数据类型 [EN] metadata type
+  string value = 3; // 元数据值 [EN] metadata value
+  string condition = 4; // 元数据过滤条件 [EN] Metadata filters
 }
 
 message CreateKnowledgeReq{
@@ -102,7 +102,7 @@ message CreateKnowledgeReq{
   string name = 3;
   string description = 4;
   EmbeddingModelInfo embeddingModelInfo = 5;
-  KnowledgeGraph knowledgeGraph = 6; //知识图谱配置
+  KnowledgeGraph knowledgeGraph = 6; //知识图谱配置 [EN] Knowledge graph configuration
 }
 
 message EmbeddingModelInfo{
@@ -110,9 +110,9 @@ message EmbeddingModelInfo{
 }
 
 message KnowledgeGraph {
-  bool switch = 1; //知识图谱开关
-  string llmModelId = 2;//大模型id
-  string schemaUrl = 3; //知识图谱schema文件地址
+  bool switch = 1; //知识图谱开关 [EN] Knowledge graph switch
+  string llmModelId = 2;//大模型id [EN] Large model id
+  string schemaUrl = 3; //知识图谱schema文件地址 [EN] Knowledge graph schema file address
 }
 
 message CreateKnowledgeResp{
@@ -122,58 +122,58 @@ message CreateKnowledgeResp{
 message KnowledgeSelectReq {
   string userId = 1;
   string orgId = 2;
-  string name = 3; //知识库名称，支持模糊搜索
-  repeated string tagIdList = 4; //知识库id 列表
+  string name = 3; //知识库名称，支持模糊搜索 [EN] Knowledge base name, supports fuzzy search
+  repeated string tagIdList = 4; //知识库id 列表 [EN] Knowledge base id list
 }
 
 message BatchKnowledgeSelectReq {
   string userId = 1;
   string orgId = 2;
-  repeated string knowledgeIdList = 3; //知识库id列表
+  repeated string knowledgeIdList = 3; //知识库id列表 [EN] Knowledge base id list
 }
 
 message KnowledgeSelectListResp {
-  repeated KnowledgeInfo knowledgeList = 1; //知识库列表
+  repeated KnowledgeInfo knowledgeList = 1; //知识库列表 [EN] Knowledge base list
 }
 
 message KnowledgeDetailSelectReq {
   string userId = 1;
   string orgId = 2;
-  string knowledgeId = 3; //知识库id
-  string knowledgeName = 4; // 知识库名称
+  string knowledgeId = 3; //知识库id [EN] knowledge base id
+  string knowledgeName = 4; // 知识库名称 [EN] Knowledge base name
 }
 
 message KnowledgeDetailSelectListReq{
   string userId = 1;
   string orgId = 2;
-  repeated string knowledgeIds = 3; //知识库id列表
+  repeated string knowledgeIds = 3; //知识库id列表 [EN] Knowledge base id list
 }
 
 message KnowledgeDetailSelectListResp{
-  repeated KnowledgeInfo list = 1; // 知识库详情列表
+  repeated KnowledgeInfo list = 1; // 知识库详情列表 [EN] Knowledge base details list
   int32 total = 2;
 }
 
-// 知识库信息
+// 知识库信息 [EN] Knowledge base information
 message KnowledgeInfo {
-  string knowledgeId = 1; //知识库id
-  string name = 2; //知识库名称
+  string knowledgeId = 1; //知识库id [EN] knowledge base id
+  string name = 2; //知识库名称 [EN] Knowledge base name
   int32 docCount = 3;
   string description = 4;
   EmbeddingModelInfo embeddingModelInfo = 5;
   repeated KnowledgeTagInfo knowledgeTagInfoList = 6;
   string createdAt = 7;
-  int32 permissionType = 8; // 权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限
-  string createUserId = 9;//创建者id
-  string createOrgId = 10;//创建者组织id
-  int32 shareCount = 11;//共享数量
-  string ragName = 12;//传给rag的知识库名称
-  int32 graphSwitch = 13; //知识图谱开关
+  int32 permissionType = 8; // 权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限 [EN] Permission type: 0: View permission; 10: Edit permission; 20: Authorization permission. The reason for discontinuous values ​​prevents intermediate permissions in the future. The current logic is Authorization permission > Edit permission > View permission.
+  string createUserId = 9;//创建者id [EN] creator id
+  string createOrgId = 10;//创建者组织id [EN] Creator organization id
+  int32 shareCount = 11;//共享数量 [EN] Number of shares
+  string ragName = 12;//传给rag的知识库名称 [EN] The name of the knowledge base passed to rag
+  int32 graphSwitch = 13; //知识图谱开关 [EN] Knowledge graph switch
 }
 
 message KnowledgeTagInfo {
-  string tagId = 1;//知识库标签id
-  string tagName = 2; //知识库标签名称
+  string tagId = 1;//知识库标签id [EN] Knowledge base tag id
+  string tagName = 2; //知识库标签名称 [EN] Knowledge base tag name
 }
 
 message KnowledgeMetaData{
@@ -196,7 +196,7 @@ message KnowledgeSearchInfo{
   string knowledgeName = 3;
   repeated ChildContent childContentList = 4;
   repeated float childScore = 5;
-  string contentType = 6; // graph：知识图谱（文本）, text：文档分段（文本）, community_report：社区报告（markdown）
+  string contentType = 6; // graph：知识图谱（文本）, text：文档分段（文本）, community_report：社区报告（markdown） [EN] graph: knowledge graph (text), text: document segmentation (text), community_report: community report (markdown)
 }
 
 message ChildContent{

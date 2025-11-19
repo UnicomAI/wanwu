@@ -40,33 +40,33 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KnowledgeBaseServiceClient interface {
-	// 获取知识库列表
+	// 获取知识库列表 [EN] Get a list of knowledge bases
 	SelectKnowledgeList(ctx context.Context, in *KnowledgeSelectReq, opts ...grpc.CallOption) (*KnowledgeSelectListResp, error)
-	// 获取知识库列表
+	// 获取知识库列表 [EN] Get a list of knowledge bases
 	SelectKnowledgeListByIdList(ctx context.Context, in *BatchKnowledgeSelectReq, opts ...grpc.CallOption) (*KnowledgeSelectListResp, error)
-	// 获取知识库详情
+	// 获取知识库详情 [EN] Get knowledge base details
 	SelectKnowledgeDetailById(ctx context.Context, in *KnowledgeDetailSelectReq, opts ...grpc.CallOption) (*KnowledgeInfo, error)
-	// 获取知识库详情列表
+	// 获取知识库详情列表 [EN] Get a list of knowledge base details
 	SelectKnowledgeDetailByIdList(ctx context.Context, in *KnowledgeDetailSelectListReq, opts ...grpc.CallOption) (*KnowledgeDetailSelectListResp, error)
-	// 获取知识库详情
+	// 获取知识库详情 [EN] Get knowledge base details
 	SelectKnowledgeDetailByName(ctx context.Context, in *KnowledgeDetailSelectReq, opts ...grpc.CallOption) (*KnowledgeInfo, error)
-	// 新增知识库
+	// 新增知识库 [EN] Add new knowledge base
 	CreateKnowledge(ctx context.Context, in *CreateKnowledgeReq, opts ...grpc.CallOption) (*CreateKnowledgeResp, error)
-	// 修改知识库
+	// 修改知识库 [EN] Modify knowledge base
 	UpdateKnowledge(ctx context.Context, in *UpdateKnowledgeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除文档知识分类
+	// 删除文档知识分类 [EN] Delete document knowledge classification
 	DeleteKnowledge(ctx context.Context, in *DeleteKnowledgeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 知识库命中测试
+	// 知识库命中测试 [EN] Knowledge base hit testing
 	KnowledgeHit(ctx context.Context, in *KnowledgeHitReq, opts ...grpc.CallOption) (*KnowledgeHitResp, error)
-	// 获取知识库元数据（key + type）
+	// 获取知识库元数据（key + type） [EN] Get knowledge base metadata (key + type)
 	GetKnowledgeMetaSelect(ctx context.Context, in *SelectKnowledgeMetaReq, opts ...grpc.CallOption) (*SelectKnowledgeMetaResp, error)
-	// 获取知识库元数据值列表 (合并过的value)
+	// 获取知识库元数据值列表 (合并过的value) [EN] Get the list of knowledge base metadata values ​​(merged values)
 	GetKnowledgeMetaValueList(ctx context.Context, in *KnowledgeMetaValueListReq, opts ...grpc.CallOption) (*KnowledgeMetaValueListResp, error)
-	// 更新知识库元数据值列表
+	// 更新知识库元数据值列表 [EN] Update the list of knowledge base metadata values
 	UpdateKnowledgeMetaValue(ctx context.Context, in *UpdateKnowledgeMetaValueReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 修改知识库状态
+	// 修改知识库状态 [EN] Modify knowledge base status
 	UpdateKnowledgeStatus(ctx context.Context, in *UpdateKnowledgeStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取知识图谱详情
+	// 获取知识图谱详情 [EN] Get knowledge graph details
 	GetKnowledgeGraph(ctx context.Context, in *KnowledgeGraphReq, opts ...grpc.CallOption) (*KnowledgeGraphResp, error)
 }
 
@@ -222,33 +222,33 @@ func (c *knowledgeBaseServiceClient) GetKnowledgeGraph(ctx context.Context, in *
 // All implementations must embed UnimplementedKnowledgeBaseServiceServer
 // for forward compatibility.
 type KnowledgeBaseServiceServer interface {
-	// 获取知识库列表
+	// 获取知识库列表 [EN] Get a list of knowledge bases
 	SelectKnowledgeList(context.Context, *KnowledgeSelectReq) (*KnowledgeSelectListResp, error)
-	// 获取知识库列表
+	// 获取知识库列表 [EN] Get a list of knowledge bases
 	SelectKnowledgeListByIdList(context.Context, *BatchKnowledgeSelectReq) (*KnowledgeSelectListResp, error)
-	// 获取知识库详情
+	// 获取知识库详情 [EN] Get knowledge base details
 	SelectKnowledgeDetailById(context.Context, *KnowledgeDetailSelectReq) (*KnowledgeInfo, error)
-	// 获取知识库详情列表
+	// 获取知识库详情列表 [EN] Get a list of knowledge base details
 	SelectKnowledgeDetailByIdList(context.Context, *KnowledgeDetailSelectListReq) (*KnowledgeDetailSelectListResp, error)
-	// 获取知识库详情
+	// 获取知识库详情 [EN] Get knowledge base details
 	SelectKnowledgeDetailByName(context.Context, *KnowledgeDetailSelectReq) (*KnowledgeInfo, error)
-	// 新增知识库
+	// 新增知识库 [EN] Add new knowledge base
 	CreateKnowledge(context.Context, *CreateKnowledgeReq) (*CreateKnowledgeResp, error)
-	// 修改知识库
+	// 修改知识库 [EN] Modify knowledge base
 	UpdateKnowledge(context.Context, *UpdateKnowledgeReq) (*emptypb.Empty, error)
-	// 删除文档知识分类
+	// 删除文档知识分类 [EN] Delete document knowledge classification
 	DeleteKnowledge(context.Context, *DeleteKnowledgeReq) (*emptypb.Empty, error)
-	// 知识库命中测试
+	// 知识库命中测试 [EN] Knowledge base hit testing
 	KnowledgeHit(context.Context, *KnowledgeHitReq) (*KnowledgeHitResp, error)
-	// 获取知识库元数据（key + type）
+	// 获取知识库元数据（key + type） [EN] Get knowledge base metadata (key + type)
 	GetKnowledgeMetaSelect(context.Context, *SelectKnowledgeMetaReq) (*SelectKnowledgeMetaResp, error)
-	// 获取知识库元数据值列表 (合并过的value)
+	// 获取知识库元数据值列表 (合并过的value) [EN] Get the list of knowledge base metadata values ​​(merged values)
 	GetKnowledgeMetaValueList(context.Context, *KnowledgeMetaValueListReq) (*KnowledgeMetaValueListResp, error)
-	// 更新知识库元数据值列表
+	// 更新知识库元数据值列表 [EN] Update the list of knowledge base metadata values
 	UpdateKnowledgeMetaValue(context.Context, *UpdateKnowledgeMetaValueReq) (*emptypb.Empty, error)
-	// 修改知识库状态
+	// 修改知识库状态 [EN] Modify knowledge base status
 	UpdateKnowledgeStatus(context.Context, *UpdateKnowledgeStatusReq) (*emptypb.Empty, error)
-	// 获取知识图谱详情
+	// 获取知识图谱详情 [EN] Get knowledge graph details
 	GetKnowledgeGraph(context.Context, *KnowledgeGraphReq) (*KnowledgeGraphResp, error)
 	mustEmbedUnimplementedKnowledgeBaseServiceServer()
 }

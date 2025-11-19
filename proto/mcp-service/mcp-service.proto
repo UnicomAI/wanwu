@@ -65,8 +65,8 @@ message GetSquareMCPReq {
 }
 
 message GetSquareMCPListReq {
-    string orgId = 1;    // (暂无)
-    string userId = 2;   // (暂无)
+    string orgId = 1;    // (暂无) [EN] (None yet)
+    string userId = 2;   // (暂无) [EN] (None yet)
     string category = 3; // all | data | create | search | ...
     string name = 4;
 }
@@ -117,8 +117,8 @@ message CustomMCPList {
 }
 
 message GetMCPToolListReq {
-    string mcpId = 1;  // mcpId优先
-    string sseUrl = 2; // mcpId为空取sseUrl
+    string mcpId = 1;  // mcpId优先 [EN] mcpId takes priority
+    string sseUrl = 2; // mcpId为空取sseUrl [EN] If mcpId is empty, take sseUrl
 }
 
 message MCPToolList {
@@ -130,8 +130,8 @@ message GetMCPAvatarReq {
 }
 
 message MCPAvatar {
-    string fileName = 1; // 文件名
-    bytes data = 2;      // 文件二进制数据
+    string fileName = 1; // 文件名 [EN] file name
+    bytes data = 2;      // 文件二进制数据 [EN] file binary data
 }
 
 // --- mcp ---
@@ -167,11 +167,11 @@ message SquareMCPInfo {
 }
 
 message SquareMCPIntro {
-    string summary = 1;  // 使用概述
-    string feature = 2;  // 特性说明
-    string scenario = 3; // 应用场景
-    string manual = 4;   // 使用说明
-    string detail = 5;   // 详情
+    string summary = 1;  // 使用概述 [EN] Usage overview
+    string feature = 2;  // 特性说明 [EN] Feature description
+    string scenario = 3; // 应用场景 [EN] Application scenarios
+    string manual = 4;   // 使用说明 [EN] Instructions for use
+    string detail = 5;   // 详情 [EN] Details
 }
 
 message MCPTools {

@@ -38,29 +38,29 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SafetyServiceClient interface {
 	// --- safety ---
-	// 敏感词表相关
-	// 创建敏感词表
+	// 敏感词表相关 [EN] Sensitive vocabulary related
+	// 创建敏感词表 [EN] Create a sensitive word list
 	CreateSensitiveWordTable(ctx context.Context, in *CreateSensitiveWordTableReq, opts ...grpc.CallOption) (*CreateSensitiveWordTableResp, error)
-	// 编辑敏感词表
+	// 编辑敏感词表 [EN] Edit sensitive word list
 	UpdateSensitiveWordTable(ctx context.Context, in *UpdateSensitiveWordTableReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 编辑敏感词表回复设置
+	// 编辑敏感词表回复设置 [EN] Edit sensitive word list reply settings
 	UpdateSensitiveWordTableReply(ctx context.Context, in *UpdateSensitiveWordTableReplyReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除敏感词表
+	// 删除敏感词表 [EN] Delete sensitive word list
 	DeleteSensitiveWordTable(ctx context.Context, in *DeleteSensitiveWordTableReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取敏感词表列表
+	// 获取敏感词表列表 [EN] Get a list of sensitive words
 	GetSensitiveWordTableList(ctx context.Context, in *GetSensitiveWordTableListReq, opts ...grpc.CallOption) (*SensitiveWordTables, error)
-	// 通过敏感词表id列表获取敏感词表信息
+	// 通过敏感词表id列表获取敏感词表信息 [EN] Obtain sensitive word list information through the sensitive word list id list
 	GetSensitiveWordTableListByIDs(ctx context.Context, in *GetSensitiveWordTableListByIDsReq, opts ...grpc.CallOption) (*SensitiveWordTables, error)
-	// 通过敏感词表id获取敏感词表信息
+	// 通过敏感词表id获取敏感词表信息 [EN] Obtain sensitive word list information through sensitive word list id
 	GetSensitiveWordTableByID(ctx context.Context, in *GetSensitiveWordTableByIDReq, opts ...grpc.CallOption) (*SensitiveWordTable, error)
-	// 敏感词相关
-	// 上传敏感词
+	// 敏感词相关 [EN] Sensitive word related
+	// 上传敏感词 [EN] Upload sensitive words
 	UploadSensitiveVocabulary(ctx context.Context, in *UploadSensitiveVocabularyReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除敏感词
+	// 删除敏感词 [EN] Delete sensitive words
 	DeleteSensitiveVocabulary(ctx context.Context, in *DeleteSensitiveVocabularyReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取敏感词列表
+	// 获取敏感词列表 [EN] Get a list of sensitive words
 	GetSensitiveVocabularyList(ctx context.Context, in *GetSensitiveVocabularyListReq, opts ...grpc.CallOption) (*SensitiveWordVocabularyResp, error)
-	// 获取多个敏感词表详细数据(带敏感词)
+	// 获取多个敏感词表详细数据(带敏感词) [EN] Obtain detailed data of multiple sensitive word lists (with sensitive words)
 	GetSensitiveWordTableListWithWordsByIDs(ctx context.Context, in *GetSensitiveWordTableListByIDsReq, opts ...grpc.CallOption) (*SensitiveWordTableListWithWords, error)
 }
 
@@ -187,29 +187,29 @@ func (c *safetyServiceClient) GetSensitiveWordTableListWithWordsByIDs(ctx contex
 // for forward compatibility.
 type SafetyServiceServer interface {
 	// --- safety ---
-	// 敏感词表相关
-	// 创建敏感词表
+	// 敏感词表相关 [EN] Sensitive vocabulary related
+	// 创建敏感词表 [EN] Create a sensitive word list
 	CreateSensitiveWordTable(context.Context, *CreateSensitiveWordTableReq) (*CreateSensitiveWordTableResp, error)
-	// 编辑敏感词表
+	// 编辑敏感词表 [EN] Edit sensitive word list
 	UpdateSensitiveWordTable(context.Context, *UpdateSensitiveWordTableReq) (*emptypb.Empty, error)
-	// 编辑敏感词表回复设置
+	// 编辑敏感词表回复设置 [EN] Edit sensitive word list reply settings
 	UpdateSensitiveWordTableReply(context.Context, *UpdateSensitiveWordTableReplyReq) (*emptypb.Empty, error)
-	// 删除敏感词表
+	// 删除敏感词表 [EN] Delete sensitive word list
 	DeleteSensitiveWordTable(context.Context, *DeleteSensitiveWordTableReq) (*emptypb.Empty, error)
-	// 获取敏感词表列表
+	// 获取敏感词表列表 [EN] Get a list of sensitive words
 	GetSensitiveWordTableList(context.Context, *GetSensitiveWordTableListReq) (*SensitiveWordTables, error)
-	// 通过敏感词表id列表获取敏感词表信息
+	// 通过敏感词表id列表获取敏感词表信息 [EN] Obtain sensitive word list information through the sensitive word list id list
 	GetSensitiveWordTableListByIDs(context.Context, *GetSensitiveWordTableListByIDsReq) (*SensitiveWordTables, error)
-	// 通过敏感词表id获取敏感词表信息
+	// 通过敏感词表id获取敏感词表信息 [EN] Obtain sensitive word list information through sensitive word list id
 	GetSensitiveWordTableByID(context.Context, *GetSensitiveWordTableByIDReq) (*SensitiveWordTable, error)
-	// 敏感词相关
-	// 上传敏感词
+	// 敏感词相关 [EN] Sensitive word related
+	// 上传敏感词 [EN] Upload sensitive words
 	UploadSensitiveVocabulary(context.Context, *UploadSensitiveVocabularyReq) (*emptypb.Empty, error)
-	// 删除敏感词
+	// 删除敏感词 [EN] Delete sensitive words
 	DeleteSensitiveVocabulary(context.Context, *DeleteSensitiveVocabularyReq) (*emptypb.Empty, error)
-	// 获取敏感词列表
+	// 获取敏感词列表 [EN] Get a list of sensitive words
 	GetSensitiveVocabularyList(context.Context, *GetSensitiveVocabularyListReq) (*SensitiveWordVocabularyResp, error)
-	// 获取多个敏感词表详细数据(带敏感词)
+	// 获取多个敏感词表详细数据(带敏感词) [EN] Obtain detailed data of multiple sensitive word lists (with sensitive words)
 	GetSensitiveWordTableListWithWordsByIDs(context.Context, *GetSensitiveWordTableListByIDsReq) (*SensitiveWordTableListWithWords, error)
 	mustEmbedUnimplementedSafetyServiceServer()
 }

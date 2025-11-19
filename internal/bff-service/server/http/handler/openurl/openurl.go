@@ -15,13 +15,13 @@ import (
 // GetUrlAgentDetail
 //
 //	@Tags			openurl
-//	@Summary		获取智能体url信息
-//	@Description	获取智能体url信息
+//	@Summary		获取智能体url信息 [EN] @Summary Get the agent url information
+//	@Description	获取智能体url信息 [EN] @Description Get the agent url information
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			X-Client-ID			header		string	true	"临时唯一标识"
-//	@Param			suffix				path		string	true	"Url后缀"
+//	@Param			X-Client-ID			header		string	true	"临时唯一标识" [EN] @Param X-Client-ID header string true "Temporary unique identification"
+//	@Param			suffix				path		string	true	"Url后缀" [EN] @Param suffix path string true "Url suffix"
 //	@Success		200					{object}	response.Response{data=response.AppUrlConfig}
 //	@Router			/agent/{suffix} 	[get]
 func GetUrlAgentDetail(ctx *gin.Context) {
@@ -32,14 +32,14 @@ func GetUrlAgentDetail(ctx *gin.Context) {
 // UrlConversationCreate
 //
 //	@Tags			openurl
-//	@Summary		创建智能体对话
-//	@Description	创建智能体对话
+//	@Summary		创建智能体对话 [EN] @Summary Create agent dialogue
+//	@Description	创建智能体对话 [EN] @Description Create an agent dialogue
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			X-Client-ID						header		string									true	"临时唯一标识"
-//	@Param			suffix							path		string									true	"Url后缀"
-//	@Param			data							body		request.UrlConversationCreateRequest	true	"智能体对话创建参数"
+//	@Param			X-Client-ID						header		string									true	"临时唯一标识" [EN] @Param X-Client-ID header string true "Temporary unique identifier"
+//	@Param			suffix							path		string									true	"Url后缀" [EN] @Param suffix path string true "Url suffix"
+//	@Param			data							body		request.UrlConversationCreateRequest	true	"智能体对话创建参数" [EN] @Param data body request.UrlConversationCreateRequest true "Agent conversation creation parameters"
 //	@Success		200								{object}	response.Response{data=response.ConversationCreateResp}
 //	@Router			/agent/{suffix}/conversation 	[post]
 func UrlConversationCreate(ctx *gin.Context) {
@@ -54,14 +54,14 @@ func UrlConversationCreate(ctx *gin.Context) {
 // UrlConversationDelete
 //
 //	@Tags			openurl
-//	@Summary		删除智能体对话
-//	@Description	删除智能体对话
+//	@Summary		删除智能体对话 [EN] @Summary Delete agent dialogue
+//	@Description	删除智能体对话 [EN] @Description Delete agent dialogue
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			X-Client-ID						header		string							true	"临时唯一标识"
-//	@Param			suffix							path		string							true	"Url后缀"
-//	@Param			data							body		request.ConversationIdRequest	true	"智能体对话的id"
+//	@Param			X-Client-ID						header		string							true	"临时唯一标识" [EN] @Param X-Client-ID header string true "Temporary unique identification"
+//	@Param			suffix							path		string							true	"Url后缀" [EN] @Param suffix path string true "Url suffix"
+//	@Param			data							body		request.ConversationIdRequest	true	"智能体对话的id" [EN] @Param data body request.ConversationIdRequest true "ID of the agent conversation"
 //	@Success		200								{object}	response.Response
 //	@Router			/agent/{suffix}/conversation 	[delete]
 func UrlConversationDelete(ctx *gin.Context) {
@@ -76,13 +76,13 @@ func UrlConversationDelete(ctx *gin.Context) {
 // GetUrlConversationList
 //
 //	@Tags			openurl
-//	@Summary		获取智能体对话列表
-//	@Description	获取智能体对话列表
+//	@Summary		获取智能体对话列表 [EN] @Summary Get the agent dialogue list
+//	@Description	获取智能体对话列表 [EN] @Description Get the agent dialogue list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			X-Client-ID							header		string	true	"临时唯一标识"
-//	@Param			suffix								path		string	true	"Url后缀"
+//	@Param			X-Client-ID							header		string	true	"临时唯一标识" [EN] @Param X-Client-ID header string true "Temporary unique identifier"
+//	@Param			suffix								path		string	true	"Url后缀" [EN] @Param suffix path string true "Url suffix"
 //	@Success		200									{object}	response.Response{data=response.ListResult{list=[]response.ConversationInfo}}
 //	@Router			/agent/{suffix}/conversation/list 	[get]
 func GetUrlConversationList(ctx *gin.Context) {
@@ -93,14 +93,14 @@ func GetUrlConversationList(ctx *gin.Context) {
 // GetUrlConversationDetailList
 //
 //	@Tags			openurl
-//	@Summary		智能体对话详情历史列表
-//	@Description	智能体对话详情历史列表
+//	@Summary		智能体对话详情历史列表 [EN] @Summary Agent conversation details history list
+//	@Description	智能体对话详情历史列表 [EN] @Description Agent conversation details history list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			X-Client-ID								header		string	true	"临时唯一标识"
-//	@Param			suffix									path		string	true	"Url后缀"
-//	@Param			conversationId							query		string	true	"智能体对话id"
+//	@Param			X-Client-ID								header		string	true	"临时唯一标识" [EN] @Param X-Client-ID header string true "Temporary unique identifier"
+//	@Param			suffix									path		string	true	"Url后缀" [EN] @Param suffix path string true "Url suffix"
+//	@Param			conversationId							query		string	true	"智能体对话id" [EN] @Param conversationId query string true "agent conversation id"
 //	@Success		200										{object}	response.Response{data=response.ListResult{list=[]response.ConversationDetailInfo}}
 //	@Router			/agent/{suffix}/conversation/detail 	[get]
 func GetUrlConversationDetailList(ctx *gin.Context) {
@@ -115,14 +115,14 @@ func GetUrlConversationDetailList(ctx *gin.Context) {
 // AssistantUrlConversionStream
 //
 //	@Tags			openurl
-//	@Summary		智能体流式问答
-//	@Description	智能体流式问答
+//	@Summary		智能体流式问答 [EN] @Summary Agent Streaming Q&A
+//	@Description	智能体流式问答 [EN] @Description Agent Streaming Q&A
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			X-Client-ID				header		string								true	"临时唯一标识"
-//	@Param			suffix					path		string								true	"Url后缀"
-//	@Param			data					body		request.UrlConversionStreamRequest	true	"智能体流式问答参数"
+//	@Param			X-Client-ID				header		string								true	"临时唯一标识" [EN] @Param X-Client-ID header string true "Temporary unique identification"
+//	@Param			suffix					path		string								true	"Url后缀" [EN] @Param suffix path string true "Url suffix"
+//	@Param			data					body		request.UrlConversionStreamRequest	true	"智能体流式问答参数" [EN] @Param data body request.UrlConversionStreamRequest true "Agent streaming question and answer parameters"
 //	@Success		200						{object}	response.Response
 //	@Router			/agent/{suffix}/stream 	[post]
 func AssistantUrlConversionStream(ctx *gin.Context) {

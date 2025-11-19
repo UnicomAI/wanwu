@@ -1,12 +1,12 @@
 package model
 
 const (
-	RecordOptionAdd    = 0 //添加权限
-	RecordOptionDelete = 1 //删除权限
-	RecordOptionEdit   = 2 //修改权限
+	RecordOptionAdd    = 0 //添加权限 [EN] Add permissions
+	RecordOptionDelete = 1 //删除权限 [EN] Delete permissions
+	RecordOptionEdit   = 2 //修改权限 [EN] Modify permissions
 )
 
-// KnowledgePermissionRecord 业务唯一所以，一个知识库，一个用户，一个组织 只能有一条
+// KnowledgePermissionRecord 业务唯一所以，一个知识库，一个用户，一个组织 只能有一条 [EN] The KnowledgePermissionRecord business is unique, so a knowledge base, a user, and an organization can only have one
 type KnowledgePermissionRecord struct {
 	Id                 uint32 `json:"id" gorm:"primary_key;type:bigint(20) auto_increment;not null;comment:'id';"` // Primary Key
 	RecordId           string `gorm:"column:record_id;uniqueIndex:idx_record_id;type:varchar(64);not null;default:''" json:"recordId"`

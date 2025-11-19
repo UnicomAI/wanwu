@@ -23,8 +23,8 @@ const (
 	DefaultTopP             = 0.85
 	DefaultFrequencyPenalty = 1.1
 	DefaultTermWeight       = 1
-	InitialBufferSize       = 64 * 1024        // 初始缓冲区大小：64KB
-	MaxBufferCapacity       = 10 * 1024 * 1024 // 最大缓冲区容量：10MB
+	InitialBufferSize       = 64 * 1024        // 初始缓冲区大小：64KB [EN] Initial buffer size: 64KB
+	MaxBufferCapacity       = 10 * 1024 * 1024 // 最大缓冲区容量：10MB [EN] Maximum buffer capacity: 10MB
 	MetaValueTypeNumber     = "number"
 	MetaValueTypeTime       = "time"
 	MetaConditionEmpty      = "empty"
@@ -32,30 +32,30 @@ const (
 )
 
 type RagChatParams struct {
-	KnowledgeBase        []string              `json:"knowledgeBase"`   // 知识库名字列表
-	KnowledgeIdList      []string              `json:"knowledgeIdList"` // 知识库ID列表
+	KnowledgeBase        []string              `json:"knowledgeBase"`   // 知识库名字列表 [EN] Knowledge base name list
+	KnowledgeIdList      []string              `json:"knowledgeIdList"` // 知识库ID列表 [EN] Knowledge base ID list
 	Question             string                `json:"question"`
-	Threshold            float32               `json:"threshold"` // Score阈值
+	Threshold            float32               `json:"threshold"` // Score阈值 [EN] Score threshold
 	TopK                 int32                 `json:"topK"`
 	Stream               bool                  `json:"stream"`
-	Chichat              bool                  `json:"chichat"` // 当知识库召回结果为空时是否使用默认话术（兜底），默认为true
+	Chichat              bool                  `json:"chichat"` // 当知识库召回结果为空时是否使用默认话术（兜底），默认为true [EN] Whether to use the default speech technique (covering the bottom) when the knowledge base recall result is empty, the default is true
 	RerankModelId        string                `json:"rerank_model_id"`
 	CustomModelInfo      *CustomModelInfo      `json:"custom_model_info"`
 	History              []*HistoryItem        `json:"history"`
 	MaxHistory           int32                 `json:"max_history"`
-	RewriteQuery         bool                  `json:"rewrite_query"`   // 是否query改写
-	RerankMod            string                `json:"rerank_mod"`      // rerank_model:重排序模式，weighted_score：权重搜索
-	RetrieveMethod       string                `json:"retrieve_method"` // hybrid_search:混合搜索， semantic_search:向量搜索， full_text_search：文本搜索
-	Weight               *WeightParams         `json:"weights"`         // 权重搜索下的权重配置
+	RewriteQuery         bool                  `json:"rewrite_query"`   // 是否query改写 [EN] Whether to rewrite query
+	RerankMod            string                `json:"rerank_mod"`      // rerank_model:重排序模式，weighted_score：权重搜索 [EN] rerank_model: reranking mode, weighted_score: weighted search
+	RetrieveMethod       string                `json:"retrieve_method"` // hybrid_search:混合搜索， semantic_search:向量搜索， full_text_search：文本搜索 [EN] hybrid_search: hybrid search, semantic_search: vector search, full_text_search: text search
+	Weight               *WeightParams         `json:"weights"`         // 权重搜索下的权重配置 [EN] Weight configuration under weight search
 	Temperature          float32               `json:"temperature"`
-	TopP                 float32               `json:"top_p"`                         // 多样性
-	RepetitionPenalty    float32               `json:"repetition_penalty"`            // 重复惩罚/频率惩罚
-	ReturnMeta           bool                  `json:"return_meta"`                   // 是否返回元数据
-	AutoCitation         bool                  `json:"auto_citation"`                 // 是否自动角标
-	TermWeight           float32               `json:"term_weight_coefficient"`       // 关键词系数
-	MetaFilter           bool                  `json:"metadata_filtering"`            // 元数据过滤开关
-	MetaFilterConditions []*MetadataFilterItem `json:"metadata_filtering_conditions"` // 元数据过滤条件
-	UseGraph             bool                  `json:"use_graph"`                     // 是否启动知识图谱查询
+	TopP                 float32               `json:"top_p"`                         // 多样性 [EN] Diversity
+	RepetitionPenalty    float32               `json:"repetition_penalty"`            // 重复惩罚/频率惩罚 [EN] Repetition Penalty/Frequency Penalty
+	ReturnMeta           bool                  `json:"return_meta"`                   // 是否返回元数据 [EN] Whether to return metadata
+	AutoCitation         bool                  `json:"auto_citation"`                 // 是否自动角标 [EN] Whether to auto-mark
+	TermWeight           float32               `json:"term_weight_coefficient"`       // 关键词系数 [EN] keyword coefficient
+	MetaFilter           bool                  `json:"metadata_filtering"`            // 元数据过滤开关 [EN] Metadata filter switch
+	MetaFilterConditions []*MetadataFilterItem `json:"metadata_filtering_conditions"` // 元数据过滤条件 [EN] Metadata filters
+	UseGraph             bool                  `json:"use_graph"`                     // 是否启动知识图谱查询 [EN] Whether to start knowledge graph query
 }
 
 type MetadataFilterItem struct {
@@ -65,15 +65,15 @@ type MetadataFilterItem struct {
 }
 
 type MetaItem struct {
-	MetaName           string      `json:"meta_name"`           // 元数据名称
-	MetaType           string      `json:"meta_type"`           // 元数据类型
-	ComparisonOperator string      `json:"comparison_operator"` // 比较运算符
-	Value              interface{} `json:"value,omitempty"`     // 用于过滤的条件值
+	MetaName           string      `json:"meta_name"`           // 元数据名称 [EN] metadata name
+	MetaType           string      `json:"meta_type"`           // 元数据类型 [EN] metadata type
+	ComparisonOperator string      `json:"comparison_operator"` // 比较运算符 [EN] comparison operator
+	Value              interface{} `json:"value,omitempty"`     // 用于过滤的条件值 [EN] condition value for filtering
 }
 
 type WeightParams struct {
-	VectorWeight float32 `json:"vector_weight"` //语义权重
-	TextWeight   float32 `json:"text_weight"`   //关键字权重
+	VectorWeight float32 `json:"vector_weight"` //语义权重 [EN] semantic weight
+	TextWeight   float32 `json:"text_weight"`   //关键字权重 [EN] keyword weight
 }
 
 type CustomModelInfo struct {
@@ -105,17 +105,17 @@ func RagStreamChat(ctx context.Context, userId string, req *RagChatParams) (<-ch
 	}
 	ret := make(chan string, 1024)
 	go func() {
-		// 确保通道最终被关闭
+		// 确保通道最终被关闭 [EN] Ensure the channel is eventually closed
 		defer close(ret)
 
-		// 捕获 panic 并记录日志（不重新抛出，避免崩溃）
+		// 捕获 panic 并记录日志（不重新抛出，避免崩溃） [EN] Catch panic and log (do not rethrow to avoid crash)
 		defer func() {
 			if r := recover(); r != nil {
 				log.Errorf("RagStreamChat panic: %v", r)
 			}
 		}()
 
-		//1.开启超时监控
+		//1.开启超时监控 [EN] 1. Turn on timeout monitoring
 		if params.Timeout == 0 {
 			params.Timeout = time.Minute * 10
 		}
@@ -129,7 +129,7 @@ func RagStreamChat(ctx context.Context, userId string, req *RagChatParams) (<-ch
 			ret <- errMsg
 			return
 		}
-		defer resp.Body.Close() // 确保响应体关闭
+		defer resp.Body.Close() // 确保响应体关闭 [EN] Make sure the response body is closed
 
 		if resp.StatusCode != http.StatusOK {
 			errMsg := fmt.Sprintf("error: 调用下游服务异常: %s", resp.Status)
@@ -139,7 +139,7 @@ func RagStreamChat(ctx context.Context, userId string, req *RagChatParams) (<-ch
 		}
 		scan := bufio.NewScanner(resp.Body)
 
-		//设置初始缓冲区为 64KB，最大允许 10MB
+		//设置初始缓冲区为 64KB，最大允许 10MB [EN] Set initial buffer to 64KB, maximum allowed is 10MB
 		buf := make([]byte, InitialBufferSize)
 		scan.Buffer(buf, MaxBufferCapacity)
 
@@ -172,9 +172,9 @@ func buildHttpParams(userId string, req *RagChatParams) (*http_client.HttpReques
 	}, nil
 }
 
-// BuildChatConsultParams 构造rag 会话参数
+// BuildChatConsultParams 构造rag 会话参数 [EN] BuildChatConsultParams constructs rag session parameters
 func BuildChatConsultParams(req *rag_service.ChatRagReq, rag *model.RagInfo, knowledgeInfoList *knowledgeBase_service.KnowledgeDetailSelectListResp, knowledgeIds []string) (*RagChatParams, error) {
-	// 知识库参数
+	// 知识库参数 [EN] Knowledge base parameters
 	ragChatParams := &RagChatParams{}
 	knowledgeConfig := rag.KnowledgeBaseConfig
 	ragChatParams.MaxHistory = int32(knowledgeConfig.MaxHistory)
@@ -197,17 +197,17 @@ func BuildChatConsultParams(req *rag_service.ChatRagReq, rag *model.RagInfo, kno
 	if rag.KnowledgeBaseConfig.TermWeightEnable {
 		ragChatParams.TermWeight = float32(rag.KnowledgeBaseConfig.TermWeight)
 	}
-	// RAG属性参数
+	// RAG属性参数 [EN] RAG attribute parameters
 	ragChatParams.Question = req.Question
 	ragChatParams.Stream = true
 	ragChatParams.Chichat = true
 	ragChatParams.History = make([]*HistoryItem, 0)
 	ragChatParams.RewriteQuery = true
 	ragChatParams.ReturnMeta = true
-	//自动角标
+	//自动角标 [EN] Automatic corner mark
 	ragChatParams.AutoCitation = true
 
-	// 模型参数
+	// 模型参数 [EN] Model parameters
 	ragChatParams.CustomModelInfo = &CustomModelInfo{LlmModelID: rag.ModelConfig.ModelId}
 	modelConfigStr := rag.ModelConfig.Config
 	modelConfig := ModelConfig{}
@@ -246,7 +246,7 @@ func BuildChatConsultParams(req *rag_service.ChatRagReq, rag *model.RagInfo, kno
 	return ragChatParams, nil
 }
 
-// 构建历史参数
+// 构建历史参数 [EN] Build history parameters
 func buildHistory(historyList []*rag_service.HistoryItem) []*HistoryItem {
 	var retList = make([]*HistoryItem, 0)
 	if len(historyList) == 0 {
@@ -270,26 +270,26 @@ func buildRagMetaParams(rag *model.RagInfo, knowledgeIDToName map[string]string)
 			return false, nil, errors.New("rag meta params unmarshal fail: " + err.Error())
 		}
 	}
-	filterEnable := false // 标记是否有启用的元数据过滤
+	filterEnable := false // 标记是否有启用的元数据过滤 [EN] Whether the tag has metadata filtering enabled
 	var metaFilterConditions []*MetadataFilterItem
 	for _, k := range perKbConfig {
-		// 检查元数据过滤参数是否有效
+		// 检查元数据过滤参数是否有效 [EN] Check if metadata filtering parameters are valid
 		filterParams := k.RagMetaFilter
 		if !isValidFilterParams(k.RagMetaFilter) {
 			continue
 		}
-		// 校验合法值
+		// 校验合法值 [EN] Verify legal value
 		if k.RagMetaFilter.FilterLogicType == "" {
 			return false, nil, errors.New("rag meta FilterLogicType is empty")
 		}
-		// 标记元数据过滤生效
+		// 标记元数据过滤生效 [EN] Tag metadata filtering takes effect
 		filterEnable = true
-		// 构建元数据过滤条件
+		// 构建元数据过滤条件 [EN] Build metadata filters
 		metaItems, err := buildRagMetaItems(k.KnowledgeId, filterParams.FilterItems)
 		if err != nil {
 			return false, nil, err
 		}
-		// 添加过滤项到结果
+		// 添加过滤项到结果 [EN] Add filter items to results
 		metaFilterConditions = append(metaFilterConditions, &MetadataFilterItem{
 			FilterKnowledgeName: knowledgeIDToName[k.KnowledgeId],
 			LogicalOperator:     filterParams.FilterLogicType,
@@ -306,15 +306,15 @@ func isValidFilterParams(params *rag_service.RagMetaFilter) bool {
 		len(params.FilterItems) > 0
 }
 
-// 构建元数据项列表
+// 构建元数据项列表 [EN] Build a list of metadata items
 func buildRagMetaItems(knowledgeID string, params []*rag_service.RagMetaFilterItem) ([]*MetaItem, error) {
 	var metaItems []*MetaItem
 	for _, param := range params {
-		// 基础参数校验
+		// 基础参数校验 [EN] Basic parameter verification
 		if err := validateMetaFilterParam(knowledgeID, param); err != nil {
 			return nil, err
 		}
-		// 转换参数值
+		// 转换参数值 [EN] Conversion parameter value
 		ragValue, err := convertValue(param.Value, param.Type)
 		if err != nil {
 			log.Errorf("kbId: %s, convert value failed: %v", knowledgeID, err)
@@ -334,7 +334,7 @@ func convertValue(value, valueType string) (interface{}, error) {
 	if len(value) == 0 {
 		return nil, nil
 	}
-	// 根据类型转换value
+	// 根据类型转换value [EN] Convert value according to type
 	if valueType == MetaValueTypeNumber {
 		ragValue, err := strconv.Atoi(value)
 		if err != nil {
@@ -354,16 +354,16 @@ func convertValue(value, valueType string) (interface{}, error) {
 	return value, nil
 }
 
-// 校验元数据过滤参数
+// 校验元数据过滤参数 [EN] Verify metadata filter parameters
 func validateMetaFilterParam(knowledgeID string, param *rag_service.RagMetaFilterItem) error {
-	// 检查关键参数是否为空
+	// 检查关键参数是否为空 [EN] Check if key parameter is empty
 	if param.Key == "" || param.Type == "" || param.Condition == "" {
 		errMsg := "key/type/condition cannot be empty"
 		log.Errorf("kbId: %s, %s", knowledgeID, errMsg)
 		return errors.New(errMsg)
 	}
 
-	// 检查空条件与值的匹配性
+	// 检查空条件与值的匹配性 [EN] Check the null condition for matching with the value
 	if param.Condition == MetaConditionEmpty || param.Condition == MetaConditionNotEmpty {
 		if param.Value != "" {
 			errMsg := "condition is empty/non-empty, value should be empty"
@@ -381,7 +381,7 @@ func validateMetaFilterParam(knowledgeID string, param *rag_service.RagMetaFilte
 	return nil
 }
 
-// buildRerankId 构造重排序模型id
+// buildRerankId 构造重排序模型id [EN] buildRerankId constructs the reranking model id
 func buildRerankId(priorityType int32, rerankId string) string {
 	if priorityType == 1 {
 		return ""
@@ -389,20 +389,20 @@ func buildRerankId(priorityType int32, rerankId string) string {
 	return rerankId
 }
 
-// buildRetrieveMethod 构造检索方式
+// buildRetrieveMethod 构造检索方式 [EN] buildRetrieveMethod constructs the retrieval method
 func buildRetrieveMethod(matchType string) string {
 	switch matchType {
 	case "vector":
-		return "semantic_search" // 向量检索
+		return "semantic_search" // 向量检索 [EN] vector search
 	case "text":
-		return "full_text_search" // 全文检索
+		return "full_text_search" // 全文检索 [EN] Full text search
 	case "mix":
-		return "hybrid_search" // 混合检索
+		return "hybrid_search" // 混合检索 [EN] Hybrid search
 	}
 	return ""
 }
 
-// buildRerankMod 构造重排序模式
+// buildRerankMod 构造重排序模式 [EN] buildRerankMod constructs reranking mode
 func buildRerankMod(priorityType int32) string {
 	if priorityType == 1 {
 		return "weighted_score"
@@ -410,7 +410,7 @@ func buildRerankMod(priorityType int32) string {
 	return "rerank_model"
 }
 
-// buildWeight 构造权重信息
+// buildWeight 构造权重信息 [EN] buildWeight constructs weight information
 func buildWeight(knowConfig model.KnowledgeBaseConfig) *WeightParams {
 	if knowConfig.PriorityMatch != 1 {
 		return nil

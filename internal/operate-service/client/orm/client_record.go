@@ -15,12 +15,12 @@ import (
 )
 
 func (c *Client) AddClientRecord(ctx context.Context, clientId string) *err_code.Status {
-	// 检查数据库中是否已存在该clientId的记录
+	// 检查数据库中是否已存在该clientId的记录 [EN] Check whether a record with this clientId already exists in the database
 	existingRecord := &model.ClientRecord{}
 	nowTs := time.Now().UnixMilli()
 	if err := sqlopt.WithClientID(clientId).Apply(c.db).WithContext(ctx).First(existingRecord).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// 记录不存在，创建新记录
+			// 记录不存在，创建新记录 [EN] The record does not exist, create a new record
 			if err := sqlopt.WithClientID(clientId).Apply(c.db).WithContext(ctx).Create(&model.ClientRecord{
 				ClientId:  clientId,
 				UpdatedAt: nowTs,
@@ -28,11 +28,11 @@ func (c *Client) AddClientRecord(ctx context.Context, clientId string) *err_code
 				return toErrStatus("ope_client_record_create", err.Error())
 			}
 		} else {
-			// 其他数据库错误
+			// 其他数据库错误 [EN] Other database errors
 			return toErrStatus("ope_client_record_create", err.Error())
 		}
 	} else {
-		// 记录已存在，更新updated_at字段
+		// 记录已存在，更新updated_at字段 [EN] The record already exists, update the updated_at field
 		if err := c.db.WithContext(ctx).Model(existingRecord).Update("updated_at", nowTs).Error; err != nil {
 			return toErrStatus("ope_client_record_create", err.Error())
 		}
@@ -88,7 +88,7 @@ func statisticCumulativeClientOverview(ctx context.Context, db *gorm.DB, endDate
 		return nil, err
 	}
 	endTs = endTs + 24*time.Hour.Milliseconds()
-	// 查询累计client（与时间段无关，所有endTs之前的client总数）
+	// 查询累计client（与时间段无关，所有endTs之前的client总数） [EN] Query the cumulative clients (regardless of the time period, the total number of clients before all endTs)
 	var totalCount int64
 	if err := db.WithContext(ctx).
 		Model(&model.ClientRecord{}).
@@ -101,7 +101,7 @@ func statisticCumulativeClientOverview(ctx context.Context, db *gorm.DB, endDate
 	}, nil
 }
 
-// 统计新增client
+// 统计新增client [EN] Statistics new client
 func statisticNewClientOverview(ctx context.Context, db *gorm.DB, startDate, endDate string) (*ClientOverviewItem, error) {
 	prevPeriod, currPeriod, err := util.PreviousDateRange(startDate, endDate)
 	if err != nil {
@@ -131,7 +131,7 @@ func statisticNewClient(ctx context.Context, db *gorm.DB, startDate, endDate str
 		return 0, err
 	}
 	endTs = endTs + 24*time.Hour.Milliseconds()
-	// 查询新增client（创建时间在指定时间段内）
+	// 查询新增client（创建时间在指定时间段内） [EN] Query new clients (created within the specified time period)
 	var newCount int64
 	if err := db.WithContext(ctx).
 		Model(&model.ClientRecord{}).
@@ -142,7 +142,7 @@ func statisticNewClient(ctx context.Context, db *gorm.DB, startDate, endDate str
 	return newCount, nil
 }
 
-// 统计日均活跃client
+// 统计日均活跃client [EN] Statistics of daily active clients
 func statisticActiveClientOverview(ctx context.Context, db *gorm.DB, startDate, endDate string) (*ClientOverviewItem, error) {
 	prevPeriod, currPeriod, err := util.PreviousDateRange(startDate, endDate)
 	if err != nil {
@@ -163,7 +163,7 @@ func statisticActiveClientOverview(ctx context.Context, db *gorm.DB, startDate, 
 }
 
 func statisticActiveClient(ctx context.Context, db *gorm.DB, startDate, endDate string) (float32, error) {
-	// 如果时间范围包含今天，则需要先更新今天的活跃用户统计数据
+	// 如果时间范围包含今天，则需要先更新今天的活跃用户统计数据 [EN] If the time range includes today, you need to update today's active user statistics first
 	startTs, err := util.Date2Time(startDate)
 	if err != nil {
 		return 0, err
@@ -179,7 +179,7 @@ func statisticActiveClient(ctx context.Context, db *gorm.DB, startDate, endDate 
 			return 0, err
 		}
 	}
-	// 查询活跃client（最后操作时间在指定时间段内）
+	// 查询活跃client（最后操作时间在指定时间段内） [EN] Query active clients (last operation time is within the specified time period)
 	var activeClient model.ClientDailyStats
 	if err := sqlopt.SQLOptions(
 		sqlopt.StartDate(startDate),
@@ -198,7 +198,7 @@ func updateActiveDailyStats(ctx context.Context, db *gorm.DB, date string) error
 		return err
 	}
 	endTs := startTs + 24*time.Hour.Milliseconds()
-	// 查询活跃client（更新时间在指定时间段内）
+	// 查询活跃client（更新时间在指定时间段内） [EN] Query active clients (update time is within the specified time period)
 	var activeCount int64
 	if err := db.WithContext(ctx).
 		Model(&model.ClientRecord{}).
@@ -206,11 +206,11 @@ func updateActiveDailyStats(ctx context.Context, db *gorm.DB, date string) error
 		Count(&activeCount).Error; err != nil {
 		return fmt.Errorf("count active client err: %v", err)
 	}
-	// 更新或插入某一天的活跃统计记录
+	// 更新或插入某一天的活跃统计记录 [EN] Update or insert active statistics records for a certain day
 	var existingRecord model.ClientDailyStats
 	if err := db.WithContext(ctx).Where("date=?", date).First(&existingRecord).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// 记录不存在，创建新记录
+			// 记录不存在，创建新记录 [EN] The record does not exist, create a new record
 			if err := db.WithContext(ctx).Create(&model.ClientDailyStats{
 				Date:     date,
 				DauCount: int32(activeCount),
@@ -218,11 +218,11 @@ func updateActiveDailyStats(ctx context.Context, db *gorm.DB, date string) error
 				return fmt.Errorf("create client daily stats err: %v", err)
 			}
 		} else {
-			// 其他数据库错误
+			// 其他数据库错误 [EN] Other database errors
 			return err
 		}
 	} else {
-		// 记录已存在，更新dau_count字段
+		// 记录已存在，更新dau_count字段 [EN] The record already exists, update the dau_count field
 		if err := db.WithContext(ctx).Model(&existingRecord).Updates(map[string]interface{}{
 			"dau_count": int32(activeCount),
 		}).Error; err != nil {
@@ -232,13 +232,13 @@ func updateActiveDailyStats(ctx context.Context, db *gorm.DB, date string) error
 	return nil
 }
 
-// 计算环比
+// 计算环比 [EN] Calculate month-on-month
 func calculatePoP(current, previous float32) float32 {
 	if previous == 0 {
 		if current == 0 {
 			return 0
 		}
-		return 100 // 避免除以零的错误
+		return 100 // 避免除以零的错误 [EN] Avoid divide-by-zero errors
 	}
 	value, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", ((current-previous)/previous)*100), 64)
 	return float32(value)

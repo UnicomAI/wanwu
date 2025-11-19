@@ -1,19 +1,19 @@
-# 使用 Ubuntu 22.04 ARM64 镜像 与源码镜像保持一致
+# 使用 Ubuntu 22.04 ARM64 镜像 与源码镜像保持一致 [EN] Use Ubuntu 22.04 ARM64 image to be consistent with the source image
 FROM --platform=linux/arm64/v8 ubuntu:22.04
 
-# 设置工作目录
+# 设置工作目录 [EN] Set working directory
 WORKDIR /model_extend
 
-# 1. 创建目录结构
+# 1. 创建目录结构 [EN] 1. Create directory structure
 RUN mkdir -p /model_extend/build /opt /usr/share/fonts/Fonts
 
-# 2. 复制本地文件
+# 2. 复制本地文件 [EN] 2. Copy local files
 COPY ./build /model_extend/build
 COPY ./opt /opt
 COPY ./rag_start.sh /model_extend/rag_start.sh
 COPY ./Fonts /usr/share/fonts/Fonts
 
-# 3. 安装 Python 3.10 和 LibreOffice
+# 3. 安装 Python 3.10 和 LibreOffice [EN] 3. Install Python 3.10 and LibreOffice
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     python3.10 \
@@ -27,8 +27,8 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# 4. 设置脚本权限
+# 4. 设置脚本权限 [EN] 4. Set script permissions
 RUN chmod +x /model_extend/rag_start.sh
 
-# 5. 容器启动命令
+# 5. 容器启动命令 [EN] 5. Container startup command
 CMD ["/bin/bash", "/model_extend/rag_start.sh"]

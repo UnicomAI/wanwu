@@ -48,11 +48,11 @@ def parse_doc(file_url, sentence_size, overlap_size):
         "overlap_size": overlap_size,
         "separators":[
             "\n\n", "\n", " ", ",",
-            "\u200b",  # 零宽空格
-            "\uff0c",  # 全角逗号
-            "\u3001",  # 顿号
-            "\uff0e",  # 全角句号
-            "\u3002",  # 句号
+            "\u200b",  # 零宽空格 [EN] zero width space
+            "\uff0c",  # 全角逗号 [EN] Full-width comma
+            "\u3001",  # 顿号 [EN] comma
+            "\uff0e",  # 全角句号 [EN] full-width period
+            "\u3002",  # 句号 [EN] period
             ".", "",
         ]
     })
@@ -88,17 +88,17 @@ def req_chat_doc():
     file_url = data.get("upload_file_url")
     sentence_size = SENTENCE_SIZE
     overlap_size = OVERLAP_SIZE
-    # 统一处理为列表
+    # 统一处理为列表 [EN] unified processing into a list
     file_urls = [file_url] if isinstance(file_url, str) else file_url
     all_docs = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-        # 创建解析任务
+        # 创建解析任务 [EN] Create a parsing task
         print('走到解析任务这里',flush=True)
         future_to_url = {
             executor.submit(parse_doc, url, sentence_size, overlap_size): url
             for url in file_urls
         }
-        # 收集解析结果
+        # 收集解析结果 [EN] Collect analysis results
         for future in concurrent.futures.as_completed(future_to_url):
             print('开始解析',flush=True)
             url = future_to_url[future]
@@ -113,7 +113,7 @@ def req_chat_doc():
         return jsonify({"error": "No document content parsed."}), 400
 
 
-    # 构建文档列表
+    # 构建文档列表 [EN] Build a document list
     doc_list = [
         {
             "snippet": doc.get("text"),
@@ -121,7 +121,7 @@ def req_chat_doc():
         } for doc in all_docs
     ]
 
-    # 构建提示词
+    # 构建提示词 [EN] Build prompt words
     prompt = build_docqa_prompt_from_search_list(query, doc_list)
     json_str = json.dumps({"prompt":prompt},ensure_ascii=False)
 

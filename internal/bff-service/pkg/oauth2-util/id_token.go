@@ -9,8 +9,8 @@ import (
 const IDTokenTimeout = int64(60 * 30 * 24) // 1day
 
 type idTokenClaims struct {
-	UserID   string `json:"userId"`   // 用户ID
-	UserName string `json:"userName"` // 用户名称
+	UserID   string `json:"userId"`   // 用户ID [EN] User ID
+	UserName string `json:"userName"` // 用户名称 [EN] Username
 	jwt.StandardClaims
 }
 
@@ -24,10 +24,10 @@ func GenerateIDToken(userID, userName, clientID string, timeout int64) (string, 
 		UserName: userName,
 		StandardClaims: jwt.StandardClaims{
 			Issuer:    _issuer, // oidc root path
-			Subject:   userID,  // 用途，目前固定user
+			Subject:   userID,  // 用途，目前固定user [EN] Purpose, currently fixed user
 			Audience:  clientID,
-			NotBefore: nowTime,           // 生效时间
-			ExpiresAt: nowTime + timeout, // 过期时间
+			NotBefore: nowTime,           // 生效时间 [EN] Effective time
+			ExpiresAt: nowTime + timeout, // 过期时间 [EN] Expiration time
 		},
 	})
 	token.Header["kid"] = _kid

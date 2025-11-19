@@ -150,7 +150,7 @@ func WithUserID(userID string) SQLOption {
 	})
 }
 
-// WithPermit 权限查询条件
+// WithPermit 权限查询条件 [EN] WithPermit permission query conditions
 func WithPermit(orgID, userID string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if len(orgID) > 0 {
@@ -225,7 +225,7 @@ func WithNameOrValue(name, value string) SQLOption {
 func WithNameOrAliasLike(name string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if len(name) > 0 {
-			// 使用 OR 条件组合模糊查询
+			// 使用 OR 条件组合模糊查询 [EN] Combine fuzzy queries using OR conditions
 			return db.Where("name LIKE ? OR alias LIKE ?", "%"+name+"%", "%"+name+"%")
 		}
 		return db

@@ -20,10 +20,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 定义校验函数类型
+// 定义校验函数类型 [EN] Define check function type
 type ModelValidator func(ctx *gin.Context, modelInfo *model_service.ModelInfo) error
 
-// 校验器注册表
+// 校验器注册表 [EN] Validator registry
 var validators = sync.OnceValue(func() map[string]ModelValidator {
 	return map[string]ModelValidator{
 		mp.ModelTypeLLM:       ValidateLLMModel,
@@ -35,7 +35,7 @@ var validators = sync.OnceValue(func() map[string]ModelValidator {
 	}
 })
 
-// 统一校验入口
+// 统一校验入口 [EN] Unified verification entrance
 func ValidateModel(ctx *gin.Context, modelInfo *model_service.ModelInfo) error {
 	validator, exists := validators()[strings.ToLower(modelInfo.ModelType)]
 	if !exists {
@@ -66,7 +66,7 @@ func ValidateLLMModel(ctx *gin.Context, modelInfo *model_service.ModelInfo) erro
 		Stream: &stream,
 	}
 
-	toolCallFlag := false // ToolCall 校验标识
+	toolCallFlag := false // ToolCall 校验标识 [EN] ToolCall verification ID
 
 	var result map[string]interface{}
 	err = json.Unmarshal([]byte(modelInfo.ProviderConfig), &result)
@@ -74,7 +74,7 @@ func ValidateLLMModel(ctx *gin.Context, modelInfo *model_service.ModelInfo) erro
 		return err
 	}
 
-	//Function call 支持校验
+	//Function call 支持校验 [EN] Function call supports verification
 	fc, ok := result["functionCalling"].(string)
 	if ok && mp_common.FCType(fc) == mp_common.FCTypeToolCall {
 		toolCallFlag = true
@@ -94,8 +94,8 @@ func ValidateLLMModel(ctx *gin.Context, modelInfo *model_service.ModelInfo) erro
 		req.Tools = tools
 	}
 
-	// VisionSupport 支持校验
-	visionSupportFlag := false // VisionSupport 校验标识
+	// VisionSupport 支持校验 [EN] VisionSupport supports verification
+	visionSupportFlag := false // VisionSupport 校验标识 [EN] VisionSupport verification flag
 	vs, ok := result["visionSupport"].(string)
 	if ok && mp_common.VSType(vs) == mp_common.VSTypeSupport {
 		visionSupportFlag = true
@@ -232,27 +232,27 @@ func ValidateOcrModel(ctx *gin.Context, modelInfo *model_service.ModelInfo) erro
 	}
 	defer file.Close()
 
-	// 创建内存缓冲区
+	// 创建内存缓冲区 [EN] Create memory buffer
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	// 创建表单文件字段
+	// 创建表单文件字段 [EN] Create form file fields
 	part, err := writer.CreateFormFile("file", file.Name())
 	if err != nil {
 		return fmt.Errorf("create form file failed: %v", err)
 	}
 
-	// 复制文件内容
+	// 复制文件内容 [EN] Copy file contents
 	if _, err := io.Copy(part, file); err != nil {
 		return fmt.Errorf("copy file content failed: %v", err)
 	}
 	writer.Close()
 
-	// 模拟HTTP请求
+	// 模拟HTTP请求 [EN] Simulate HTTP requests
 	mockReq, _ := http.NewRequest("POST", "", body)
 	mockReq.Header.Set("Content-Type", writer.FormDataContentType())
 	ctx.Request = mockReq
-	// 获取FileHeader对象
+	// 获取FileHeader对象 [EN] Get FileHeader object
 	_, fileH, err := ctx.Request.FormFile("file")
 	if err != nil {
 		return fmt.Errorf("get file header failed: %v", err)
@@ -291,27 +291,27 @@ func ValidatePdfParserModel(ctx *gin.Context, modelInfo *model_service.ModelInfo
 	}
 	defer file.Close()
 
-	// 创建内存缓冲区
+	// 创建内存缓冲区 [EN] Create memory buffer
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	// 创建表单文件字段
+	// 创建表单文件字段 [EN] Create form file fields
 	part, err := writer.CreateFormFile("file", file.Name())
 	if err != nil {
 		return fmt.Errorf("create form file failed: %v", err)
 	}
 
-	// 复制文件内容
+	// 复制文件内容 [EN] Copy file contents
 	if _, err := io.Copy(part, file); err != nil {
 		return fmt.Errorf("copy file content failed: %v", err)
 	}
 	writer.Close()
 
-	// 模拟HTTP请求
+	// 模拟HTTP请求 [EN] Simulate HTTP requests
 	mockReq, _ := http.NewRequest("POST", "", body)
 	mockReq.Header.Set("Content-Type", writer.FormDataContentType())
 	ctx.Request = mockReq
-	// 获取FileHeader对象
+	// 获取FileHeader对象 [EN] Get FileHeader object
 	_, fileH, err := ctx.Request.FormFile("file")
 	if err != nil {
 		return fmt.Errorf("get file header failed: %v", err)
@@ -347,14 +347,14 @@ func ValidateGuideModel(ctx *gin.Context, modelInfo *model_service.ModelInfo) er
 		return fmt.Errorf("invalid provider")
 	}
 	// mock  request
-	// 读取图片文件
+	// 读取图片文件 [EN] Read image files
 	imageFile := config.Cfg().Model.PngTestFilePath
 	imageBytes, err := os.ReadFile(imageFile)
 	if err != nil {
 		return fmt.Errorf("ReadFile file failed: %v", err)
 	}
 
-	// 转换为base64字符串
+	// 转换为base64字符串 [EN] Convert to base64 string
 	imageBase64 := base64.StdEncoding.EncodeToString(imageBytes)
 	height, width := 931, 144
 	req := &mp_common.GuiReq{

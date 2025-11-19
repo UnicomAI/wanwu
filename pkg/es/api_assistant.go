@@ -37,7 +37,7 @@ func Assistant() *client {
 func InitESIndexTemplate(ctx context.Context) error {
 	templateName := "conversation_detail_infos_template"
 
-	// 检查模板是否已存在
+	// 检查模板是否已存在 [EN] Check if the template already exists
 	exists, err := Assistant().IndexTemplateExists(ctx, templateName)
 	if err != nil {
 		return fmt.Errorf("检查ES索引模板失败: %v", err)
@@ -48,7 +48,7 @@ func InitESIndexTemplate(ctx context.Context) error {
 		return nil
 	}
 
-	// 创建索引模板
+	// 创建索引模板 [EN] Create index template
 	template := `{
 		"index_patterns": [
 			"conversation_detail_infos_*"

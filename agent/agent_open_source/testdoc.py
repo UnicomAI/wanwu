@@ -1,14 +1,14 @@
 import requests
 import json
 
-# 修改为你的服务地址
+# 修改为你的服务地址 [EN] Change it to your service address
 URL = "http://172.17.0.1:1991/doc_pra"
 
-# 构造测试数据
+# 构造测试数据 [EN] Construct test data
 payload = {
     "query": "请总结文档中的主要内容。",
     "file_url": [
-        "https://192.168.0.21:8081/minio/download/api/public/tmpt7cc25tv.txt"  # 替换为真实可访问的文档 URL
+        "https://192.168.0.21:8081/minio/download/api/public/tmpt7cc25tv.txt"  # 替换为真实可访问的文档 URL [EN] Replaced with a real accessible document URL
     ]
 }
 

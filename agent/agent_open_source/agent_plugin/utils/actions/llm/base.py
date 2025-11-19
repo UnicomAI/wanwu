@@ -139,7 +139,7 @@ class BaseChatModel(ABC):
 
         # Note: the preprocessor's behavior could change if it receives function_choice="none"
         # messages = self._preprocess_messages(messages, lang=lang, generate_cfg=generate_cfg)
-        # print(f"messages的类型为：{type(messages)}")
+        # print(f"messages的类型为：{type(messages)}") [EN] print(f"The type of messages is: {type(messages)}")
 
 
         if not fncall_mode:

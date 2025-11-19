@@ -172,7 +172,7 @@ func UnPublishAgentScopeWorkFlow(ctx *gin.Context, userId, orgId, workflowID str
 	if err != nil {
 		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_apps_unpublish", err.Error())
 	}
-	// 声明局部结构体类型
+	// 声明局部结构体类型 [EN] Declare local structure type
 	type unpublishWorkFlowResp struct {
 		Code    int    `json:"code"`
 		Message string `json:"msg"`

@@ -7,11 +7,11 @@ from langchain_community.document_loaders import TextLoader
 import os
 import nltk
 current_file_path = os.path.abspath(__file__)
-# 获取当前文件所在的目录
+# 获取当前文件所在的目录 [EN] Get the directory where the current file is located
 current_dir = os.path.dirname(current_file_path)
-# 添加项目根目录到 sys.path
+# 添加项目根目录到 sys.path [EN] Add project root directory to sys.path
 # sys.path.append(root_dir)
-# 拼接nltk_data文件夹的路径
+# 拼接nltk_data文件夹的路径 [EN] Splice the path to the nltk_data folder
 nltk_data_path = os.path.join(current_dir, 'nltk_data')
 nltk.data.path.append(nltk_data_path)
 # import minio_utils
@@ -32,14 +32,14 @@ def table_convert_html(table):
         # return cell is None or str(cell).strip() == ''
 
     def get_colspan(row, col_idx, processed_cells, row_idx):
-        # 计算当前单元格的跨列数
+        # 计算当前单元格的跨列数 [EN] Calculate the number of columns spanned by the current cell
         if (row_idx, col_idx) in processed_cells:
-            return 0  # 跳过已处理的单元格
-        # 计算当前单元格的跨列数
+            return 0  # 跳过已处理的单元格 [EN] Skip processed cells
+        # 计算当前单元格的跨列数 [EN] Calculate the number of columns spanned by the current cell
         colspan = 1
         for i in range(col_idx + 1, len(row)):
             if is_empty(row[i]) and (row_idx, i) not in processed_cells:
-                processed_cells.add((row_idx, i))  # 标记已处理
+                processed_cells.add((row_idx, i))  # 标记已处理 [EN] Flag processed
                 colspan += 1
             else:
                 break
@@ -47,59 +47,59 @@ def table_convert_html(table):
 
     def get_rowspan(rows, row_idx, col_idx, processed_cells):
         if (row_idx, col_idx) in processed_cells:
-            return 0  # 跳过已处理的单元格
+            return 0  # 跳过已处理的单元格 [EN] Skip processed cells
         rowspan = 1
         for i in range(row_idx + 1, len(rows)):
             if is_empty(rows[i][col_idx]) and (i, col_idx) not in processed_cells:
-                processed_cells.add((i, col_idx))  # 标记已处理
+                processed_cells.add((i, col_idx))  # 标记已处理 [EN] Flag processed
                 rowspan += 1
             else:
                 break
         return rowspan
 
-    # 开始构建 HTML 表格
+    # 开始构建 HTML 表格 [EN] Start building an HTML table
     html = "<table border='1'>\n"
-    processed_cells = set()  # 记录已处理的单元格位置 (row_idx, col_idx)
+    processed_cells = set()  # 记录已处理的单元格位置 (row_idx, col_idx) [EN] Record the processed cell position (row_idx, col_idx)
     for row_idx, row in enumerate(table):
         html += "<tr>"
         row_text = "<tr>"
         col_idx = 0
         while col_idx < len(row):
             if (row_idx, col_idx) in processed_cells:
-                col_idx += 1  # 跳过已处理的单元格，避免死循环
+                col_idx += 1  # 跳过已处理的单元格，避免死循环 [EN] Skip processed cells to avoid infinite loops
                 continue
             cell = row[col_idx]
 
             if is_empty(cell):
                 col_idx += 1
-                continue  # 跳过空单元格
+                continue  # 跳过空单元格 [EN] Skip empty cells
 
-            # 获取跨列数
+            # 获取跨列数 [EN] Get the number of spanned columns
             colspan = get_colspan(row, col_idx, processed_cells, row_idx)
 
-            # 获取跨行数
+            # 获取跨行数 [EN] Get the number of spanned rows
             rowspan = get_rowspan(table, row_idx, col_idx, processed_cells)
 
-            # 添加单元格
+            # 添加单元格 [EN] Add cell
             if colspan > 1 or rowspan > 1:
                 html += f"<td colspan='{colspan}' rowspan='{rowspan}'>{cell}</td>"
                 row_text += f"<td colspan='{colspan}' rowspan='{rowspan}'>{cell}</td>"
             else:
                 html += f"<td>{cell}</td>"
                 row_text += f"<td>{cell}</td>"
-            # 把除首行外的前两列的内容所谓embedding索引
+            # 把除首行外的前两列的内容所谓embedding索引 [EN] The contents of the first two columns except the first row are called embedding indexes
             # if row_idx > 0 and col_idx < 2 and str(cell).strip() != '':
-            #     # 对于表格中没有行分割线的表：通过 换行符切割索引
+            #     # 对于表格中没有行分割线的表：通过 换行符切割索引 [EN] # For tables without row dividing lines in the table: cut the index by newline character
             #     if len(table) <= 2 and "\n" in str(cell):
             #         cell_list = str(cell).split("\n")
             #         embedding_content.extend(cell_list)
             #     else:
             #         embedding_content.append(cell)
-            # 标记已经处理过的单元格
+            # 标记已经处理过的单元格 [EN] Mark cells that have been processed
             for i in range(rowspan):
                 for j in range(colspan):
                     processed_cells.add((row_idx + i, col_idx + j))
-            # 跳过已经处理过的跨列单元格
+            # 跳过已经处理过的跨列单元格 [EN] Skip already processed cross-column cells
             col_idx += colspan
 
         html += "</tr>\n"
@@ -107,7 +107,7 @@ def table_convert_html(table):
         # if row_idx > 0:
         #     embedding_content.append(row_text)
 
-    # 结束 HTML 表格
+    # 结束 HTML 表格 [EN] End HTML table
     html += "</table>\n"
     # print(json.dumps(embedding_content,ensure_ascii=False))
     return html
@@ -127,9 +127,9 @@ class PPTXLoader(TextLoader):
                         text += t + '\n'
                     elif shape.has_table:
                         one_table_data = []
-                        for row in shape.table.rows:  # 读每行
+                        for row in shape.table.rows:  # 读每行 [EN] read each line
                             row_data = []
-                            for cell in row.cells:  # 读一行中的所有单元格
+                            for cell in row.cells:  # 读一行中的所有单元格 [EN] Read all cells in a row
                                 if cell.text != "":
                                     row_data.append(cell.text)
                                 else:
@@ -137,7 +137,7 @@ class PPTXLoader(TextLoader):
                                 # cell.text = cell.text if cell.text != "" else ""
                                 # c = cell.text
                                 # row_data.append(c)
-                            one_table_data.append(row_data)  # 把每一行存入表
+                            one_table_data.append(row_data)  # 把每一行存入表 [EN] Store each row in the table
 
                         print("one_table_data=%s" % one_table_data)
                         table_html = table_convert_html(one_table_data)

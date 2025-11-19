@@ -27,10 +27,10 @@ type CreateSystemCustomTabReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	OrgId  string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`   // 租户ID
-	UserId string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"` // 用户ID
-	Mode   string `protobuf:"bytes,3,opt,name=mode,proto3" json:"mode,omitempty"`     // 模式
-	Tab    *Tab   `protobuf:"bytes,4,opt,name=tab,proto3" json:"tab,omitempty"`       // 标签页信息
+	OrgId  string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`   // 租户ID [EN] Tenant ID
+	UserId string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"` // 用户ID [EN] User ID
+	Mode   string `protobuf:"bytes,3,opt,name=mode,proto3" json:"mode,omitempty"`     // 模式 [EN] model
+	Tab    *Tab   `protobuf:"bytes,4,opt,name=tab,proto3" json:"tab,omitempty"`       // 标签页信息 [EN] Tab information
 }
 
 func (x *CreateSystemCustomTabReq) Reset() {
@@ -98,10 +98,10 @@ type CreateSystemCustomLoginReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	OrgId  string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`   // 租户ID
-	UserId string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"` // 用户ID
+	OrgId  string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`   // 租户ID [EN] Tenant ID
+	UserId string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"` // 用户ID [EN] User ID
 	Mode   string `protobuf:"bytes,3,opt,name=mode,proto3" json:"mode,omitempty"`
-	Login  *Login `protobuf:"bytes,4,opt,name=login,proto3" json:"login,omitempty"` // 登录页
+	Login  *Login `protobuf:"bytes,4,opt,name=login,proto3" json:"login,omitempty"` // 登录页 [EN] Login page
 }
 
 func (x *CreateSystemCustomLoginReq) Reset() {
@@ -169,10 +169,10 @@ type CreateSystemCustomHomeReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	OrgId  string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`   // 租户ID
-	UserId string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"` // 用户ID
+	OrgId  string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`   // 租户ID [EN] Tenant ID
+	UserId string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"` // 用户ID [EN] User ID
 	Mode   string `protobuf:"bytes,3,opt,name=mode,proto3" json:"mode,omitempty"`
-	Home   *Home  `protobuf:"bytes,4,opt,name=home,proto3" json:"home,omitempty"` // 标题
+	Home   *Home  `protobuf:"bytes,4,opt,name=home,proto3" json:"home,omitempty"` // 标题 [EN] title
 }
 
 func (x *CreateSystemCustomHomeReq) Reset() {
@@ -240,7 +240,7 @@ type GetSystemCustomReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Mode string `protobuf:"bytes,1,opt,name=mode,proto3" json:"mode,omitempty"` // 模式
+	Mode string `protobuf:"bytes,1,opt,name=mode,proto3" json:"mode,omitempty"` // 模式 [EN] model
 }
 
 func (x *GetSystemCustomReq) Reset() {
@@ -287,9 +287,9 @@ type SystemCustom struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Login *Login `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"` // 登录页
+	Login *Login `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"` // 登录页 [EN] Login page
 	Tab   *Tab   `protobuf:"bytes,2,opt,name=tab,proto3" json:"tab,omitempty"`     // logo
-	Home  *Home  `protobuf:"bytes,3,opt,name=home,proto3" json:"home,omitempty"`   // 标题
+	Home  *Home  `protobuf:"bytes,3,opt,name=home,proto3" json:"home,omitempty"`   // 标题 [EN] title
 }
 
 func (x *SystemCustom) Reset() {
@@ -350,8 +350,8 @@ type Tab struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TabLogoPath string `protobuf:"bytes,1,opt,name=tabLogoPath,proto3" json:"tabLogoPath,omitempty"` // 标签页logo路径
-	TabTitle    string `protobuf:"bytes,2,opt,name=tabTitle,proto3" json:"tabTitle,omitempty"`       // 标签页标题
+	TabLogoPath string `protobuf:"bytes,1,opt,name=tabLogoPath,proto3" json:"tabLogoPath,omitempty"` // 标签页logo路径 [EN] Tab logo path
+	TabTitle    string `protobuf:"bytes,2,opt,name=tabTitle,proto3" json:"tabTitle,omitempty"`       // 标签页标题 [EN] Tab title
 }
 
 func (x *Tab) Reset() {
@@ -405,10 +405,10 @@ type Login struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	LoginBgPath      string `protobuf:"bytes,1,opt,name=loginBgPath,proto3" json:"loginBgPath,omitempty"`           // 登录页背景图
-	LoginLogo        string `protobuf:"bytes,2,opt,name=loginLogo,proto3" json:"loginLogo,omitempty"`               // 登录页logo路径
-	LoginWelcomeText string `protobuf:"bytes,3,opt,name=loginWelcomeText,proto3" json:"loginWelcomeText,omitempty"` // 登录页欢迎词
-	LoginButtonColor string `protobuf:"bytes,4,opt,name=loginButtonColor,proto3" json:"loginButtonColor,omitempty"` // 登录按钮颜色
+	LoginBgPath      string `protobuf:"bytes,1,opt,name=loginBgPath,proto3" json:"loginBgPath,omitempty"`           // 登录页背景图 [EN] Login page background image
+	LoginLogo        string `protobuf:"bytes,2,opt,name=loginLogo,proto3" json:"loginLogo,omitempty"`               // 登录页logo路径 [EN] Login page logo path
+	LoginWelcomeText string `protobuf:"bytes,3,opt,name=loginWelcomeText,proto3" json:"loginWelcomeText,omitempty"` // 登录页欢迎词 [EN] Login page welcome message
+	LoginButtonColor string `protobuf:"bytes,4,opt,name=loginButtonColor,proto3" json:"loginButtonColor,omitempty"` // 登录按钮颜色 [EN] Login button color
 }
 
 func (x *Login) Reset() {
@@ -476,9 +476,9 @@ type Home struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	HomeLogoPath string `protobuf:"bytes,1,opt,name=homeLogoPath,proto3" json:"homeLogoPath,omitempty"` // 平台logo路径
-	HomeName     string `protobuf:"bytes,2,opt,name=homeName,proto3" json:"homeName,omitempty"`         // 平台名称
-	HomeBgColor  string `protobuf:"bytes,3,opt,name=homeBgColor,proto3" json:"homeBgColor,omitempty"`   // 平台背景颜色
+	HomeLogoPath string `protobuf:"bytes,1,opt,name=homeLogoPath,proto3" json:"homeLogoPath,omitempty"` // 平台logo路径 [EN] Platform logo path
+	HomeName     string `protobuf:"bytes,2,opt,name=homeName,proto3" json:"homeName,omitempty"`         // 平台名称 [EN] Platform name
+	HomeBgColor  string `protobuf:"bytes,3,opt,name=homeBgColor,proto3" json:"homeBgColor,omitempty"`   // 平台背景颜色 [EN] Platform background color
 }
 
 func (x *Home) Reset() {
@@ -696,9 +696,9 @@ type ClientOverViewInfo struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Cumulative *ClientOverviewItem `protobuf:"bytes,1,opt,name=cumulative,proto3" json:"cumulative,omitempty"` // 累计
-	New        *ClientOverviewItem `protobuf:"bytes,2,opt,name=new,proto3" json:"new,omitempty"`               // 新增
-	Active     *ClientOverviewItem `protobuf:"bytes,3,opt,name=active,proto3" json:"active,omitempty"`         // 日活
+	Cumulative *ClientOverviewItem `protobuf:"bytes,1,opt,name=cumulative,proto3" json:"cumulative,omitempty"` // 累计 [EN] Grand total
+	New        *ClientOverviewItem `protobuf:"bytes,2,opt,name=new,proto3" json:"new,omitempty"`               // 新增 [EN] New
+	Active     *ClientOverviewItem `protobuf:"bytes,3,opt,name=active,proto3" json:"active,omitempty"`         // 日活 [EN] Daily activity
 }
 
 func (x *ClientOverViewInfo) Reset() {

@@ -9,7 +9,7 @@ import (
 )
 
 func (c *Client) CreateAssistantWorkflow(ctx context.Context, workflow *model.AssistantWorkflow) *err_code.Status {
-	// 检查是否已存在
+	// 检查是否已存在 [EN] Check if it already exists
 	var count int64
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithAssistantID(workflow.AssistantId),
@@ -22,7 +22,7 @@ func (c *Client) CreateAssistantWorkflow(ctx context.Context, workflow *model.As
 		return toErrStatus("assistant_workflow_create", "workflow already exists")
 	}
 
-	// 创建Workflow
+	// 创建Workflow [EN] Create Workflow
 	err := c.db.WithContext(ctx).Create(workflow).Error
 	if err != nil {
 		return toErrStatus("assistant_workflow_create", err.Error())

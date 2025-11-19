@@ -127,7 +127,7 @@ func AppUrlConversionStream(ctx *gin.Context, req request.UrlConversionStreamReq
 	if err != nil {
 		return err
 	}
-	// 2. 流式返回结果
+	// 2. 流式返回结果 [EN] 2. Streaming return results
 	_ = sse_util.NewSSEWriter(ctx, fmt.Sprintf("[Agent] %v conversation %v recv", appUrlInfo.AppId, req.ConversationId), sse_util.DONE_MSG).
 		WriteStream(chatCh, nil, buildAgentChatRespLineProcessor(), nil)
 	return nil
@@ -140,15 +140,15 @@ func getAppUrlInfoAndCheck(ctx *gin.Context, suffix string) (*app_service.AppUrl
 	if err != nil {
 		return nil, err
 	}
-	// 验证 Status 开关
+	// 验证 Status 开关 [EN] Verify Status switch
 	if !appUrlInfo.Status {
 		return nil, grpc_util.ErrorStatus(err_code.Code_AppUrlStatus)
 	}
-	// 验证 expiredAt 是否已过期
+	// 验证 expiredAt 是否已过期 [EN] Verify expiredAt has expired
 	if appUrlInfo.ExpiredAt != 0 && time.Now().After(time.Unix(appUrlInfo.ExpiredAt/1000, 0)) {
 		return nil, grpc_util.ErrorStatus(err_code.Code_AppUrlExpired)
 	}
-	// 设置UserID、OrgID（通过http调用工作流接口header需要传递）
+	// 设置UserID、OrgID（通过http调用工作流接口header需要传递） [EN] Set UserID and OrgID (the header needs to be passed when calling the workflow interface through http)
 	ctx.Set(gin_util.USER_ID, appUrlInfo.UserId)
 	ctx.Set(gin_util.X_ORG_ID, appUrlInfo.OrgId)
 	return appUrlInfo, nil

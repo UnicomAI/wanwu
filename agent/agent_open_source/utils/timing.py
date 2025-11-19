@@ -38,7 +38,7 @@ def advanced_timing_decorator(task_name: Optional[str] = None,
                 getattr(func_logger, log_level.lower(), func_logger.info)(log_msg)
                 raise
 
-            # 如果返回值是生成器，则包装之以记录流式处理的统计数据
+            # 如果返回值是生成器，则包装之以记录流式处理的统计数据 [EN] If the return value is a generator, wrap it to record streaming statistics
             if inspect.isgenerator(result):
                 def generator_wrapper():
                     item_count = 0
@@ -62,7 +62,7 @@ def advanced_timing_decorator(task_name: Optional[str] = None,
                         getattr(func_logger, log_level.lower(), func_logger.info)(log_msg)
                 return generator_wrapper()
             else:
-                # 非生成器函数：直接记录总耗时
+                # 非生成器函数：直接记录总耗时 [EN] Non-generator function: directly record the total time taken
                 total_time = time.perf_counter() - start_time
                 # log_msg = ""
                 log_msg = f"任务 [{original_name}]"
@@ -74,7 +74,7 @@ def advanced_timing_decorator(task_name: Optional[str] = None,
         return wrapper
     return decorator
 
-# 预设的不同日志级别的装饰器
+# 预设的不同日志级别的装饰器 [EN] Preset decorators for different log levels
 def advanced_timing_debug(task_name: Optional[str] = None, include_args: bool = False) -> Callable:
     return advanced_timing_decorator(task_name, 'DEBUG', include_args)
 
@@ -84,9 +84,9 @@ def advanced_timing_info(task_name: Optional[str] = None, include_args: bool = F
 def advanced_timing_warning(task_name: Optional[str] = None, include_args: bool = False) -> Callable:
     return advanced_timing_decorator(task_name, 'WARNING', include_args)
 
-# 使用示例
+# 使用示例 [EN] Usage example
 if __name__ == "__main__":
-    # 配置日志输出
+    # 配置日志输出 [EN] Configure log output
     logging.basicConfig(level=logging.DEBUG, format='%(levelname)s:%(name)s:%(message)s')
     
     @advanced_timing_decorator("普通函数示例")
@@ -100,10 +100,10 @@ if __name__ == "__main__":
             time.sleep(0.1)
             yield i
     
-    # 测试普通函数
+    # 测试普通函数 [EN] Test normal functions
     result = normal_function(1, 2)
     logger.debug("普通函数结果: %s", result)
     
-    # 测试流式生成器函数
+    # 测试流式生成器函数 [EN] Test streaming generator functions
     for item in stream_function():
         logger.debug("流式处理项目: %s", item)

@@ -39,7 +39,7 @@ type RagDocSegmentResp struct {
 }
 
 type SegmentResult struct {
-	SuccessCount int `json:"success_count"` // 分段成功导入数量
+	SuccessCount int `json:"success_count"` // 分段成功导入数量 [EN] Number of successful segments imported
 }
 
 type RagUpdateParams struct {
@@ -63,13 +63,13 @@ type KnowledgeHitParams struct {
 	Threshold            float64               `json:"threshold"`
 	TopK                 int32                 `json:"topK"`
 	RerankModelId        string                `json:"rerank_model_id"`               // rerankId
-	RerankMod            string                `json:"rerank_mod"`                    // rerank_model:重排序模式，weighted_score：权重搜索
-	RetrieveMethod       string                `json:"retrieve_method"`               // hybrid_search:混合搜索， semantic_search:向量搜索， full_text_search：文本搜索
-	Weight               *WeightParams         `json:"weights"`                       // 权重搜索下的权重配置
-	TermWeight           float32               `json:"term_weight_coefficient"`       // 关键词系数
-	MetaFilter           bool                  `json:"metadata_filtering"`            // 元数据过滤开关
-	MetaFilterConditions []*MetadataFilterItem `json:"metadata_filtering_conditions"` // 元数据过滤条件
-	UseGraph             bool                  `json:"use_graph"`                     // 是否使用知识图谱
+	RerankMod            string                `json:"rerank_mod"`                    // rerank_model:重排序模式，weighted_score：权重搜索 [EN] rerank_model: reranking mode, weighted_score: weighted search
+	RetrieveMethod       string                `json:"retrieve_method"`               // hybrid_search:混合搜索， semantic_search:向量搜索， full_text_search：文本搜索 [EN] hybrid_search: hybrid search, semantic_search: vector search, full_text_search: text search
+	Weight               *WeightParams         `json:"weights"`                       // 权重搜索下的权重配置 [EN] Weight configuration under weight search
+	TermWeight           float32               `json:"term_weight_coefficient"`       // 关键词系数 [EN] keyword coefficient
+	MetaFilter           bool                  `json:"metadata_filtering"`            // 元数据过滤开关 [EN] Metadata filter switch
+	MetaFilterConditions []*MetadataFilterItem `json:"metadata_filtering_conditions"` // 元数据过滤条件 [EN] Metadata filters
+	UseGraph             bool                  `json:"use_graph"`                     // 是否使用知识图谱 [EN] Whether to use knowledge graph
 }
 
 type MetadataFilterItem struct {
@@ -79,15 +79,15 @@ type MetadataFilterItem struct {
 }
 
 type MetaItem struct {
-	MetaName           string      `json:"meta_name"`           // 元数据名称
-	MetaType           string      `json:"meta_type"`           // 元数据类型
-	ComparisonOperator string      `json:"comparison_operator"` // 比较运算符
-	Value              interface{} `json:"value,omitempty"`     // 用于过滤的条件值
+	MetaName           string      `json:"meta_name"`           // 元数据名称 [EN] metadata name
+	MetaType           string      `json:"meta_type"`           // 元数据类型 [EN] metadata type
+	ComparisonOperator string      `json:"comparison_operator"` // 比较运算符 [EN] comparison operator
+	Value              interface{} `json:"value,omitempty"`     // 用于过滤的条件值 [EN] condition value for filtering
 }
 
 type WeightParams struct {
-	VectorWeight float32 `json:"vector_weight"` //语义权重
-	TextWeight   float32 `json:"text_weight"`   //关键字权重
+	VectorWeight float32 `json:"vector_weight"` //语义权重 [EN] semantic weight
+	TextWeight   float32 `json:"text_weight"`   //关键字权重 [EN] keyword weight
 }
 
 type RagKnowledgeHitResp struct {
@@ -110,7 +110,7 @@ type ChunkSearchList struct {
 	MetaData         interface{}     `json:"meta_data"`
 	ChildContentList []*ChildContent `json:"child_content_list"`
 	ChildScore       []float64       `json:"child_score"`
-	ContentType      string          `json:"content_type"` // graph：知识图谱（文本）, text：文档分段（文本）, community_report：社区报告（markdown）
+	ContentType      string          `json:"content_type"` // graph：知识图谱（文本）, text：文档分段（文本）, community_report：社区报告（markdown） [EN] graph: knowledge graph (text), text: document segmentation (text), community_report: community report (markdown)
 }
 
 type ChildContent struct {
@@ -119,17 +119,17 @@ type ChildContent struct {
 }
 
 type RagBatchDeleteMetaParams struct {
-	UserId        string   `json:"userId"`        // 用户id
-	KnowledgeBase string   `json:"knowledgeBase"` // 知识库名称
-	KnowledgeId   string   `json:"kb_id"`         // 知识库id
-	Keys          []string `json:"keys"`          // 删除的元数据key列表
+	UserId        string   `json:"userId"`        // 用户id [EN] user id
+	KnowledgeBase string   `json:"knowledgeBase"` // 知识库名称 [EN] Knowledge base name
+	KnowledgeId   string   `json:"kb_id"`         // 知识库id [EN] knowledge base id
+	Keys          []string `json:"keys"`          // 删除的元数据key列表 [EN] List of deleted metadata keys
 }
 
 type RagBatchUpdateMetaKeyParams struct {
-	UserId        string            `json:"userId"`        // 用户id
-	KnowledgeBase string            `json:"knowledgeBase"` // 知识库名称
-	KnowledgeId   string            `json:"kb_id"`         // 知识库id
-	Mappings      []*RagMetaMapKeys `json:"mappings"`      // 元数据key映射列表
+	UserId        string            `json:"userId"`        // 用户id [EN] user id
+	KnowledgeBase string            `json:"knowledgeBase"` // 知识库名称 [EN] Knowledge base name
+	KnowledgeId   string            `json:"kb_id"`         // 知识库id [EN] knowledge base id
+	Mappings      []*RagMetaMapKeys `json:"mappings"`      // 元数据key映射列表 [EN] Metadata key mapping list
 }
 
 type RagMetaMapKeys struct {
@@ -138,9 +138,9 @@ type RagMetaMapKeys struct {
 }
 
 type RagKnowledgeGraphParams struct {
-	UserId        string `json:"userId"`        // 用户id
-	KnowledgeBase string `json:"knowledgeBase"` // 知识库名称
-	KnowledgeId   string `json:"kb_id"`         // 知识库id
+	UserId        string `json:"userId"`        // 用户id [EN] user id
+	KnowledgeBase string `json:"knowledgeBase"` // 知识库名称 [EN] Knowledge base name
+	KnowledgeId   string `json:"kb_id"`         // 知识库id [EN] knowledge base id
 }
 
 type RagKnowledgeGraphResp struct {
@@ -149,7 +149,7 @@ type RagKnowledgeGraphResp struct {
 	Data    interface{} `json:"data"`
 }
 
-// RagKnowledgeCreate rag创建知识库
+// RagKnowledgeCreate rag创建知识库 [EN] RagKnowledgeCreate rag creates a knowledge base
 func RagKnowledgeCreate(ctx context.Context, ragCreateParams *RagCreateParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.InitKnowledgeUri
@@ -179,7 +179,7 @@ func RagKnowledgeCreate(ctx context.Context, ragCreateParams *RagCreateParams) e
 	return nil
 }
 
-// RagCreateKnowledgeReport 创建知识库社区报告
+// RagCreateKnowledgeReport 创建知识库社区报告 [EN] RagCreateKnowledgeReport creates a knowledge base community report
 func RagCreateKnowledgeReport(ctx context.Context, ragImportDocParams *RagImportDocParams) error {
 	ragImportDocParams.MessageType = RagCommunityReport
 	return mq.SendMessage(&RagOperationParams{
@@ -189,7 +189,7 @@ func RagCreateKnowledgeReport(ctx context.Context, ragImportDocParams *RagImport
 	}, config.GetConfig().Kafka.KnowledgeGraphTopic)
 }
 
-// RagKnowledgeUpdate rag更新知识库
+// RagKnowledgeUpdate rag更新知识库 [EN] RagKnowledgeUpdate rag updates the knowledge base
 func RagKnowledgeUpdate(ctx context.Context, ragUpdateParams *RagUpdateParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.UpdateKnowledgeUri
@@ -218,7 +218,7 @@ func RagKnowledgeUpdate(ctx context.Context, ragUpdateParams *RagUpdateParams) e
 	return nil
 }
 
-// RagKnowledgeDelete rag更新知识库删除
+// RagKnowledgeDelete rag更新知识库删除 [EN] RagKnowledgeDelete rag update knowledge base delete
 func RagKnowledgeDelete(ctx context.Context, ragDeleteParams *RagDeleteParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.DeleteKnowledgeUri
@@ -250,7 +250,7 @@ func RagKnowledgeDelete(ctx context.Context, ragDeleteParams *RagDeleteParams) e
 	return nil
 }
 
-// RagKnowledgeHit rag命中测试
+// RagKnowledgeHit rag命中测试 [EN] RagKnowledgeHit rag hit test
 func RagKnowledgeHit(ctx context.Context, knowledgeHitParams *KnowledgeHitParams) (*RagKnowledgeHitResp, error) {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.ProxyPoint + ragServer.KnowledgeHitUri
@@ -335,7 +335,7 @@ func RagBatchUpdateMeta(ctx context.Context, ragUpdateParams *RagBatchUpdateMeta
 	return nil
 }
 
-// RagKnowledgeGraph rag知识图谱
+// RagKnowledgeGraph rag知识图谱 [EN] RagKnowledgeGraph rag knowledge graph
 func RagKnowledgeGraph(ctx context.Context, knowledgeGraphParams *RagKnowledgeGraphParams) (*RagKnowledgeGraphResp, error) {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.KnowledgeGraphUri

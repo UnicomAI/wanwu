@@ -9,11 +9,11 @@ func (req *MCPIDReq) Check() error {
 }
 
 type MCPCreate struct {
-	Avatar      Avatar `json:"avatar"`                     // 图标
-	MCPSquareID string `json:"mcpSquareId"`                // 广场mcpId(非空表示来源于广场)
-	Name        string `json:"name" validate:"required"`   // 名称
-	Desc        string `json:"desc" validate:"required"`   // 描述
-	From        string `json:"from" validate:"required"`   // 来源
+	Avatar      Avatar `json:"avatar"`                     // 图标 [EN] icon
+	MCPSquareID string `json:"mcpSquareId"`                // 广场mcpId(非空表示来源于广场) [EN] Square mcpId (non-empty means it comes from square)
+	Name        string `json:"name" validate:"required"`   // 名称 [EN] name
+	Desc        string `json:"desc" validate:"required"`   // 描述 [EN] describe
+	From        string `json:"from" validate:"required"`   // 来源 [EN] source
 	SSEURL      string `json:"sseUrl" validate:"required"` // SSE URL
 }
 
@@ -22,11 +22,11 @@ func (req *MCPCreate) Check() error {
 }
 
 type MCPUpdate struct {
-	Avatar Avatar `json:"avatar"` // 图标
+	Avatar Avatar `json:"avatar"` // 图标 [EN] icon
 	MCPID  string `json:"mcpId" validate:"required"`
-	Name   string `json:"name" validate:"required"`   // 名称
-	Desc   string `json:"desc" validate:"required"`   // 描述
-	From   string `json:"from" validate:"required"`   // 来源
+	Name   string `json:"name" validate:"required"`   // 名称 [EN] name
+	Desc   string `json:"desc" validate:"required"`   // 描述 [EN] describe
+	From   string `json:"from" validate:"required"`   // 来源 [EN] source
 	SSEURL string `json:"sseUrl" validate:"required"` // SSE URL
 }
 

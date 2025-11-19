@@ -8,57 +8,57 @@ option go_package = "github.com/UnicomAI/wanwu/api/proto/safety-service";
 
 service SafetyService {
   // --- safety ---
-  // 敏感词表相关
-  // 创建敏感词表
+  // 敏感词表相关 [EN] Sensitive vocabulary related
+  // 创建敏感词表 [EN] Create a sensitive word list
   rpc CreateSensitiveWordTable(CreateSensitiveWordTableReq) returns (CreateSensitiveWordTableResp) {}
-  // 编辑敏感词表
+  // 编辑敏感词表 [EN] Edit sensitive word list
   rpc UpdateSensitiveWordTable(UpdateSensitiveWordTableReq) returns (google.protobuf.Empty) {}
-  // 编辑敏感词表回复设置
+  // 编辑敏感词表回复设置 [EN] Edit sensitive word list reply settings
   rpc UpdateSensitiveWordTableReply(UpdateSensitiveWordTableReplyReq) returns (google.protobuf.Empty) {}
-  // 删除敏感词表
+  // 删除敏感词表 [EN] Delete sensitive word list
   rpc DeleteSensitiveWordTable(DeleteSensitiveWordTableReq) returns (google.protobuf.Empty) {}
-  // 获取敏感词表列表
+  // 获取敏感词表列表 [EN] Get a list of sensitive words
   rpc GetSensitiveWordTableList(GetSensitiveWordTableListReq) returns (SensitiveWordTables) {}
-  // 通过敏感词表id列表获取敏感词表信息
+  // 通过敏感词表id列表获取敏感词表信息 [EN] Obtain sensitive word list information through the sensitive word list id list
   rpc GetSensitiveWordTableListByIDs(GetSensitiveWordTableListByIDsReq) returns (SensitiveWordTables){}
-  // 通过敏感词表id获取敏感词表信息
+  // 通过敏感词表id获取敏感词表信息 [EN] Obtain sensitive word list information through sensitive word list id
   rpc GetSensitiveWordTableByID(GetSensitiveWordTableByIDReq) returns (SensitiveWordTable){}
 
-  // 敏感词相关
-  // 上传敏感词
+  // 敏感词相关 [EN] Sensitive word related
+  // 上传敏感词 [EN] Upload sensitive words
   rpc UploadSensitiveVocabulary(UploadSensitiveVocabularyReq) returns (google.protobuf.Empty) {}
-  // 删除敏感词
+  // 删除敏感词 [EN] Delete sensitive words
   rpc DeleteSensitiveVocabulary(DeleteSensitiveVocabularyReq) returns (google.protobuf.Empty) {}
-  // 获取敏感词列表
+  // 获取敏感词列表 [EN] Get a list of sensitive words
   rpc GetSensitiveVocabularyList(GetSensitiveVocabularyListReq) returns (SensitiveWordVocabularyResp) {}
-  // 获取多个敏感词表详细数据(带敏感词)
+  // 获取多个敏感词表详细数据(带敏感词) [EN] Obtain detailed data of multiple sensitive word lists (with sensitive words)
   rpc GetSensitiveWordTableListWithWordsByIDs(GetSensitiveWordTableListByIDsReq) returns (SensitiveWordTableListWithWords) {}
 }
 
 message CreateSensitiveWordTableReq {
   string orgId = 1;
   string userId = 2;
-  string tableName = 3; // 敏感词表名
-  string remark = 4; // 备注
+  string tableName = 3; // 敏感词表名 [EN] Sensitive word list name
+  string remark = 4; // 备注 [EN] Remark
 }
 
 message UpdateSensitiveWordTableReq {
   string orgId = 1;
   string userId = 2;
-  string tableId = 3; // 敏感词表id
+  string tableId = 3; // 敏感词表id [EN] Sensitive word list id
   string tableName = 4;
-  string remark = 5; // 备注
+  string remark = 5; // 备注 [EN] Remark
 }
 
 message UpdateSensitiveWordTableReplyReq {
   string orgId = 1;
   string userId = 2;
-  string tableId = 3; // 敏感词表id
-  string Reply = 4; // 回复设置
+  string tableId = 3; // 敏感词表id [EN] Sensitive word list id
+  string Reply = 4; // 回复设置 [EN] Reply settings
 }
 
 message DeleteSensitiveWordTableReq {
-  string tableId = 1; // 敏感词表id
+  string tableId = 1; // 敏感词表id [EN] Sensitive word list id
 }
 
 message GetSensitiveWordTableListReq {
@@ -69,36 +69,36 @@ message GetSensitiveWordTableListReq {
 message UploadSensitiveVocabularyReq {
   string orgId = 1;
   string userId = 2;
-  string importType = 3; // 上传类型
-  string word = 4; // 敏感词
-  string sensitiveType = 5; // 敏感词类型
-  string tableId = 6; // 敏感词表id
-  string filePath = 7; // 文件路径
+  string importType = 3; // 上传类型 [EN] Upload type
+  string word = 4; // 敏感词 [EN] Sensitive words
+  string sensitiveType = 5; // 敏感词类型 [EN] Sensitive word type
+  string tableId = 6; // 敏感词表id [EN] Sensitive word list id
+  string filePath = 7; // 文件路径 [EN] file path
 }
 
 message DeleteSensitiveVocabularyReq {
-  string tableId = 1; // 敏感词表id
-  string wordId = 2; // 敏感词id
+  string tableId = 1; // 敏感词表id [EN] Sensitive word list id
+  string wordId = 2; // 敏感词id [EN] Sensitive word id
 }
 
 message GetSensitiveVocabularyListReq {
   string orgId = 1;
   string userId = 2;
-  string tableId = 3; // 敏感词表id
+  string tableId = 3; // 敏感词表id [EN] Sensitive word list id
   int32 pageNo = 4;
   int32 pageSize = 5;
 }
 
 message GetSensitiveWordTableListByIDsReq {
-  repeated string tableIds = 1; // 敏感词表id
+  repeated string tableIds = 1; // 敏感词表id [EN] Sensitive word list id
 }
 
 message GetSensitiveWordTableByIDReq {
-  string tableId = 1; // 敏感词表id
+  string tableId = 1; // 敏感词表id [EN] Sensitive word list id
 }
 
 message CreateSensitiveWordTableResp {
-  string tableId = 1; // 敏感词表id
+  string tableId = 1; // 敏感词表id [EN] Sensitive word list id
 }
 
 message SensitiveWordTables {
@@ -124,12 +124,12 @@ message SensitiveWordVocabularyResp {
 
 message SensitiveWordVocabulary {
   string wordId = 1;
-  string word = 2; // 敏感词
-  string sensitiveType = 3; // 敏感词类型
+  string word = 2; // 敏感词 [EN] Sensitive words
+  string sensitiveType = 3; // 敏感词类型 [EN] Sensitive word type
 }
 
 message SensitiveWordTableListWithWords {
-  repeated SensitiveWordTableWithWords details = 1; // 敏感词表带version数据
+  repeated SensitiveWordTableWithWords details = 1; // 敏感词表带version数据 [EN] Sensitive word table with version data
 }
 
 message SensitiveWordTableWithWords {

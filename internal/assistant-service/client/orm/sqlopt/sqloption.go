@@ -54,23 +54,23 @@ func WithUserId(userId string) SQLOption {
 func DataPerm(userId, orgId string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if userId != "" && orgId == "" {
-			//数据权限：所有org内本人，userId传有效值，orgId不传有效值
+			//数据权限：所有org内本人，userId传有效值，orgId不传有效值 [EN] Data permissions: For all individuals in the org, valid values ​​are passed for userId, and no valid values ​​are passed for orgId.
 			return SQLOptions(
 				WithUserId(userId),
 			).Apply(db)
 		} else if userId != "" && orgId != "" {
-			//数据权限：本org内本人，userId和orgId都需要传有效值
+			//数据权限：本org内本人，userId和orgId都需要传有效值 [EN] Data permissions: The person in this org, userId and orgId all need to pass valid values.
 			return SQLOptions(
 				WithUserId(userId),
 				WithOrgID(orgId),
 			).Apply(db)
 		} else if userId == "" && orgId != "" {
-			//数据权限：本org内全部，userId不传有效值，orgId传有效值
+			//数据权限：本org内全部，userId不传有效值，orgId传有效值 [EN] Data permissions: All in this org, userId does not pass a valid value, orgId passes a valid value
 			return SQLOptions(
 				WithOrgID(orgId),
 			).Apply(db)
 		} else {
-			//数据权限：全部
+			//数据权限：全部 [EN] Data permissions: All
 			return db
 		}
 	})

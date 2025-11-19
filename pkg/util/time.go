@@ -21,10 +21,10 @@ func InitTimeLocal() error {
 	return nil
 }
 
-// WeekStartTime 某周的开始时间(周一0点)，-1上周，0本周，1下周
+// WeekStartTime 某周的开始时间(周一0点)，-1上周，0本周，1下周 [EN] WeekStartTime The start time of a certain week (0 o'clock on Monday), -1 last week, 0 this week, 1 next week
 func WeekStartTime(t time.Time, week int) time.Time {
 	offset := time.Monday - t.Weekday()
-	if offset > 0 { // 周日特殊处理
+	if offset > 0 { // 周日特殊处理 [EN] Special treatment on Sunday
 		offset = -6
 	}
 	y, m, d := t.Date()
@@ -57,7 +57,7 @@ func Str2Date(timeStr string) (int64, error) {
 }
 
 func Time2Date(ts int64) string {
-	return time.UnixMilli(ts).In(UTC8).Format(dateFormat) // 输出示例: 2025-05-09
+	return time.UnixMilli(ts).In(UTC8).Format(dateFormat) // 输出示例: 2025-05-09 [EN] Output example: 2025-05-09
 }
 
 func Date2Time(date string) (int64, error) {
@@ -68,7 +68,7 @@ func Date2Time(date string) (int64, error) {
 	return t.UnixMilli(), nil
 }
 
-// DateRange 返回[startTs, endTs]闭区间日期列表
+// DateRange 返回[startTs, endTs]闭区间日期列表 [EN] DateRange returns [startTs, endTs] closed interval date list
 func DateRange(startTs, endTs int64) []string {
 	if startTs > endTs {
 		return nil
@@ -86,9 +86,9 @@ func DateRange(startTs, endTs int64) []string {
 	return ret
 }
 
-// 返回上一个周期和当前周期闭区间日期列表
+// 返回上一个周期和当前周期闭区间日期列表 [EN] Returns a list of dates in the closed range of the previous period and the current period
 func PreviousDateRange(startDate, endDate string) ([]string, []string, error) {
-	// 1. 解析输入日期
+	// 1. 解析输入日期 [EN] 1. Parse input date
 	startAt, err := Date2Time(startDate)
 	if err != nil {
 		return nil, nil, err
@@ -100,10 +100,10 @@ func PreviousDateRange(startDate, endDate string) ([]string, []string, error) {
 	if startAt > endAt {
 		return nil, nil, fmt.Errorf("startDate %v greater than endDate %v", startDate, endDate)
 	}
-	// 2. 计算上一周期时间戳区间（前后区间日期无重叠）
+	// 2. 计算上一周期时间戳区间（前后区间日期无重叠） [EN] 2. Calculate the timestamp interval of the previous period (there is no overlap in the dates of the previous and subsequent intervals)
 	deltaDura := endAt - startAt + 24*time.Hour.Milliseconds()
 	pervStartTs := startAt - deltaDura
 	pervEndTs := endAt - deltaDura
-	// 3. 计算上一个周期，当前周期
+	// 3. 计算上一个周期，当前周期 [EN] 3. Calculate the previous period and current period
 	return DateRange(pervStartTs, pervEndTs), DateRange(startAt, endAt), nil
 }

@@ -10,11 +10,11 @@ import (
 
 type LLM struct {
 	ApiKey          string `json:"apiKey"`                                              // ApiKey
-	EndpointUrl     string `json:"endpointUrl"`                                         // 推理url
-	FunctionCalling string `json:"functionCalling" validate:"oneof=noSupport toolCall"` // 函数调用是否支持
-	VisionSupport   string `json:"visionSupport" validate:"oneof=noSupport support"`    // 视觉支持
-	MaxTokens       *int   `json:"maxTokens"`                                           // 模型回答最大tokens
-	ContextSize     *int   `json:"contextSize"`                                         // 上下文长度
+	EndpointUrl     string `json:"endpointUrl"`                                         // 推理url [EN] inference url
+	FunctionCalling string `json:"functionCalling" validate:"oneof=noSupport toolCall"` // 函数调用是否支持 [EN] Does function call support
+	VisionSupport   string `json:"visionSupport" validate:"oneof=noSupport support"`    // 视觉支持 [EN] visual support
+	MaxTokens       *int   `json:"maxTokens"`                                           // 模型回答最大tokens [EN] The model answers the maximum tokens
+	ContextSize     *int   `json:"contextSize"`                                         // 上下文长度 [EN] context length
 }
 
 func (cfg *LLM) Tags() []mp_common.Tag {

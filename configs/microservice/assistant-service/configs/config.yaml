@@ -74,7 +74,7 @@ minio:
   password: Wanwu123456
   bucket: agent-prod
 
-# 智能体相关接口
+# 智能体相关接口 [EN] Agent-related interfaces
 assistant:
   sse-url: "http://agent-wanwu:7258/agent"
   max_pic_num: 6

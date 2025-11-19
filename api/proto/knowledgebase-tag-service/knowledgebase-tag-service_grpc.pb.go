@@ -32,17 +32,17 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KnowledgeBaseTagServiceClient interface {
-	// 获取知识库标签列表
+	// 获取知识库标签列表 [EN] Get a list of knowledge base tags
 	SelectKnowledgeTagList(ctx context.Context, in *KnowledgeTagSelectReq, opts ...grpc.CallOption) (*KnowledgeTagSelectListResp, error)
-	// 新增知识库标签
+	// 新增知识库标签 [EN] Add new knowledge base tag
 	CreateKnowledgeTag(ctx context.Context, in *CreateKnowledgeTagReq, opts ...grpc.CallOption) (*CreateKnowledgeTagResp, error)
-	// 修改知识库标签
+	// 修改知识库标签 [EN] Modify knowledge base tags
 	UpdateKnowledgeTag(ctx context.Context, in *UpdateKnowledgeTagReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除知识库标签
+	// 删除知识库标签 [EN] Delete knowledge base tag
 	DeleteKnowledgeTag(ctx context.Context, in *DeleteKnowledgeTagReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 修改知识库标签
+	// 修改知识库标签 [EN] Modify knowledge base tags
 	BindKnowledgeTag(ctx context.Context, in *BindKnowledgeTagReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 修改知识库标签
+	// 修改知识库标签 [EN] Modify knowledge base tags
 	TagBindCount(ctx context.Context, in *TagBindCountReq, opts ...grpc.CallOption) (*TagBindCountResp, error)
 }
 
@@ -118,17 +118,17 @@ func (c *knowledgeBaseTagServiceClient) TagBindCount(ctx context.Context, in *Ta
 // All implementations must embed UnimplementedKnowledgeBaseTagServiceServer
 // for forward compatibility.
 type KnowledgeBaseTagServiceServer interface {
-	// 获取知识库标签列表
+	// 获取知识库标签列表 [EN] Get a list of knowledge base tags
 	SelectKnowledgeTagList(context.Context, *KnowledgeTagSelectReq) (*KnowledgeTagSelectListResp, error)
-	// 新增知识库标签
+	// 新增知识库标签 [EN] Add new knowledge base tag
 	CreateKnowledgeTag(context.Context, *CreateKnowledgeTagReq) (*CreateKnowledgeTagResp, error)
-	// 修改知识库标签
+	// 修改知识库标签 [EN] Modify knowledge base tags
 	UpdateKnowledgeTag(context.Context, *UpdateKnowledgeTagReq) (*emptypb.Empty, error)
-	// 删除知识库标签
+	// 删除知识库标签 [EN] Delete knowledge base tag
 	DeleteKnowledgeTag(context.Context, *DeleteKnowledgeTagReq) (*emptypb.Empty, error)
-	// 修改知识库标签
+	// 修改知识库标签 [EN] Modify knowledge base tags
 	BindKnowledgeTag(context.Context, *BindKnowledgeTagReq) (*emptypb.Empty, error)
-	// 修改知识库标签
+	// 修改知识库标签 [EN] Modify knowledge base tags
 	TagBindCount(context.Context, *TagBindCountReq) (*TagBindCountResp, error)
 	mustEmbedUnimplementedKnowledgeBaseTagServiceServer()
 }

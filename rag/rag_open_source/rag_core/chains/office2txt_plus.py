@@ -6,12 +6,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 
 def extract_text_from_doc(doc_file_path, output_file_path):
-    # 仅支持ms office 2007及以后保存的.doc文档\
-    # 安装依赖：apt-get install catdoc
+    # 仅支持ms office 2007及以后保存的.doc文档\ [EN] Only supports .doc documents saved in MS Office 2007 and later\
+    # 安装依赖：apt-get install catdoc [EN] Install dependencies: apt-get install catdoc
     full_text = os.popen("catdoc -s='utf-8' -d='utf-8' " + doc_file_path).read()
     with open(output_file_path, "w", encoding='utf-8') as file:
         file.write(full_text)
-    # print(f"PDF文件 {doc_file_path} 已成功处理。")
+    # print(f"PDF文件 {doc_file_path} 已成功处理。") [EN] print(f"PDF file {doc_file_path} has been successfully processed.")
 
 def extract_text_from_pdf(pdf_file_path, output_file_path):
     full_text = ''
@@ -22,10 +22,10 @@ def extract_text_from_pdf(pdf_file_path, output_file_path):
     
     with open(output_file_path, "w", encoding='utf-8') as file:
         file.write(full_text)
-    # print(f"PDF文件 {pdf_file_path} 已成功处理。")
+    # print(f"PDF文件 {pdf_file_path} 已成功处理。") [EN] print(f"PDF file {pdf_file_path} has been successfully processed.")
 
 def extract_text_from_pptx(ppt_file_path, output_file_path):
-    # 安装依赖：pip install python-pptx
+    # 安装依赖：pip install python-pptx [EN] Install dependencies: pip install python-pptx
     try:
         prs = Presentation(ppt_file_path)
     except Exception as e:
@@ -47,7 +47,7 @@ def extract_text_from_pptx(ppt_file_path, output_file_path):
                     
     with open(output_file_path, "w", encoding='utf-8') as file:
         file.write(full_text)
-    # print(f"PPT文件 {ppt_file_path} 已成功处理。")
+    # print(f"PPT文件 {ppt_file_path} 已成功处理。") [EN] print(f"PPT file {ppt_file_path} has been successfully processed.")
 
 def process_file(file_path, output_folder, file_format, progress):
     output_file_path = os.path.join(output_folder, os.path.basename(file_path).replace(file_format, '.txt'))

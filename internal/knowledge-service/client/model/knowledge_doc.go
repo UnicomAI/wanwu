@@ -3,18 +3,18 @@ package model
 type GraphStatus int
 
 const (
-	DocWaitingForUpload = -2 //文档待上传
-	DocInit             = 0  //文档待处理
-	DocSuccess          = 1  //文档处理完成
-	DocProcessing       = 3  //文档处理中
-	DocFail             = 5  //文档待处理
+	DocWaitingForUpload = -2 //文档待上传 [EN] Document to be uploaded
+	DocInit             = 0  //文档待处理 [EN] Document pending
+	DocSuccess          = 1  //文档处理完成 [EN] Document processing completed
+	DocProcessing       = 3  //文档处理中 [EN] Document processing
+	DocFail             = 5  //文档待处理 [EN] Document pending
 
-	GraphInit          GraphStatus = 0   //图谱未处理
-	GraphSuccess       GraphStatus = 100 //图谱生成成功
-	GraphChunkFail     GraphStatus = 101 //图谱生成chunk文本失败
-	GraphExtractFail   GraphStatus = 102 //图谱生成提取失败
-	GraphStoreFail     GraphStatus = 103 //图谱持久化存储失败
-	GraphProcessing    GraphStatus = 110 //图谱开始解析
+	GraphInit          GraphStatus = 0   //图谱未处理 [EN] The spectrum is not processed
+	GraphSuccess       GraphStatus = 100 //图谱生成成功 [EN] Map generated successfully
+	GraphChunkFail     GraphStatus = 101 //图谱生成chunk文本失败 [EN] Failed to generate chunk text from graph
+	GraphExtractFail   GraphStatus = 102 //图谱生成提取失败 [EN] Failed to generate and extract the map
+	GraphStoreFail     GraphStatus = 103 //图谱持久化存储失败 [EN] Graph persistence storage failed
+	GraphProcessing    GraphStatus = 110 //图谱开始解析 [EN] The graph begins to be parsed
 	GraphInterruptFail GraphStatus = 119
 )
 
@@ -46,7 +46,7 @@ func SuccessGraphStatus(status int) bool {
 	return GraphStatus(status) == GraphSuccess
 }
 
-// BuildGraphShowStatus 报告展示状态 0:待处理，1.解析中，2.解析成功，3.解析失败
+// BuildGraphShowStatus 报告展示状态 0:待处理，1.解析中，2.解析成功，3.解析失败 [EN] BuildGraphShowStatus report display status 0: pending, 1. parsing, 2. parsing successful, 3. parsing failed
 func BuildGraphShowStatus(status GraphStatus) (int, string) {
 	switch status {
 	case GraphInit:
@@ -59,7 +59,7 @@ func BuildGraphShowStatus(status GraphStatus) (int, string) {
 	return 3, buildErrorMessage(status)
 }
 
-// todo 多语言没有处理
+// todo 多语言没有处理 [EN] todo multi-language is not processed
 func buildErrorMessage(status GraphStatus) string {
 	switch status {
 	case GraphChunkFail:

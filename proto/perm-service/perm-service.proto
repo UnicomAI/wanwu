@@ -5,9 +5,9 @@ package perm_service;
 option go_package = "github.com/UnicomAI/wanwu/api/proto/perm-service";
 
 service PermService {
-  // 检查用户状态
+  // 检查用户状态 [EN] Check user status
   rpc CheckUserEnable(CheckUserEnableReq) returns (CheckUserEnableResp) {}
-  // 检查用户权限
+  // 检查用户权限 [EN] Check user permissions
   rpc CheckUserPerm(CheckUserPermReq) returns (CheckUserPermResp) {}
 }
 

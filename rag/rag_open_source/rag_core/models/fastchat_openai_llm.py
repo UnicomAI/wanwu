@@ -89,7 +89,7 @@ class FastChatOpenAILLM(RemoteRpcModel, LLM, ABC):
         print(f"+++++++++++++++++++++++++++++++++++")
         return completion.choices[0].message.content
 
-    # 将历史对话数组转换为文本格式
+    # 将历史对话数组转换为文本格式 [EN] Convert historical conversation array to text format
     def build_message_list(self, query) -> Collection[Dict[str, str]]:
         build_message_list: Collection[Dict[str, str]] = []
         history = self.history[-self.history_len:] if self.history_len > 0 else []

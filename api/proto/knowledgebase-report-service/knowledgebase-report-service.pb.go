@@ -89,13 +89,13 @@ type GetReportResp struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Total         int32         `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`                // 社区报告数量
-	CreatedAt     string        `protobuf:"bytes,2,opt,name=createdAt,proto3" json:"createdAt,omitempty"`         // 生成时间
-	Status        int32         `protobuf:"varint,3,opt,name=status,proto3" json:"status,omitempty"`              // 状态：0.未生成(-) 1.生成中 2.已生成 3.生成失败
-	CanGenerate   bool          `protobuf:"varint,4,opt,name=canGenerate,proto3" json:"canGenerate,omitempty"`    // 是否可生成：true.可生成 false.不可生成
-	CanAddReport  bool          `protobuf:"varint,5,opt,name=canAddReport,proto3" json:"canAddReport,omitempty"`  // 是否可新增社区报告：true.可新增 false.不可新增
-	GenerateLabel string        `protobuf:"bytes,6,opt,name=generateLabel,proto3" json:"generateLabel,omitempty"` // 生成社区报告按钮文案: 生成/重新生成
-	List          []*ReportInfo `protobuf:"bytes,7,rep,name=list,proto3" json:"list,omitempty"`                   // 社区报告列表
+	Total         int32         `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`                // 社区报告数量 [EN] Number of community reports
+	CreatedAt     string        `protobuf:"bytes,2,opt,name=createdAt,proto3" json:"createdAt,omitempty"`         // 生成时间 [EN] Generation time
+	Status        int32         `protobuf:"varint,3,opt,name=status,proto3" json:"status,omitempty"`              // 状态：0.未生成(-) 1.生成中 2.已生成 3.生成失败 [EN] Status: 0. Not generated (-) 1. Generating 2. Generated 3. Generation failed
+	CanGenerate   bool          `protobuf:"varint,4,opt,name=canGenerate,proto3" json:"canGenerate,omitempty"`    // 是否可生成：true.可生成 false.不可生成 [EN] Whether it can be generated: true. Can be generated. False. Cannot be generated.
+	CanAddReport  bool          `protobuf:"varint,5,opt,name=canAddReport,proto3" json:"canAddReport,omitempty"`  // 是否可新增社区报告：true.可新增 false.不可新增 [EN] Whether community reports can be added: true. Can be added. False. Cannot be added.
+	GenerateLabel string        `protobuf:"bytes,6,opt,name=generateLabel,proto3" json:"generateLabel,omitempty"` // 生成社区报告按钮文案: 生成/重新生成 [EN] Generate community report button copy: Generate/Regenerate
+	List          []*ReportInfo `protobuf:"bytes,7,rep,name=list,proto3" json:"list,omitempty"`                   // 社区报告列表 [EN] Community Report List
 }
 
 func (x *GetReportResp) Reset() {

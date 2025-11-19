@@ -7,24 +7,24 @@ import "google/protobuf/empty.proto";
 option go_package = "gitlab.ai-yuanjing.cn/ai-platform-private/backend-used-bff/common-api/api/proto/knowledgebase-tag-service";
 
 service KnowledgeBaseTagService {
-  // 获取知识库标签列表
+  // 获取知识库标签列表 [EN] Get a list of knowledge base tags
   rpc SelectKnowledgeTagList(KnowledgeTagSelectReq) returns (KnowledgeTagSelectListResp) {}
-  // 新增知识库标签
+  // 新增知识库标签 [EN] Add new knowledge base tag
   rpc CreateKnowledgeTag(CreateKnowledgeTagReq) returns (CreateKnowledgeTagResp) {}
-  // 修改知识库标签
+  // 修改知识库标签 [EN] Modify knowledge base tags
   rpc UpdateKnowledgeTag(UpdateKnowledgeTagReq) returns (google.protobuf.Empty) {}
-  // 删除知识库标签
+  // 删除知识库标签 [EN] Delete knowledge base tag
   rpc DeleteKnowledgeTag(DeleteKnowledgeTagReq) returns (google.protobuf.Empty) {}
-  // 修改知识库标签
+  // 修改知识库标签 [EN] Modify knowledge base tags
   rpc BindKnowledgeTag(BindKnowledgeTagReq) returns (google.protobuf.Empty) {}
-  // 修改知识库标签
+  // 修改知识库标签 [EN] Modify knowledge base tags
   rpc TagBindCount(TagBindCountReq) returns (TagBindCountResp) {}
 }
 
 message KnowledgeTagSelectReq {
   string userId = 1;
   string orgId = 2;
-  string tagName = 3; //知识库标签名称，支持模糊搜索
+  string tagName = 3; //知识库标签名称，支持模糊搜索 [EN] Knowledge base tag name, supports fuzzy search
   string knowledgeId = 4;
 }
 
@@ -33,9 +33,9 @@ message KnowledgeTagSelectListResp {
 }
 
 message KnowledgeTagInfo {
-  string tagId = 1;//知识库标签id
-  string tagName = 2; //知识库标签名称
-  bool selected = 3; //是否用户已经设置了
+  string tagId = 1;//知识库标签id [EN] Knowledge base tag id
+  string tagName = 2; //知识库标签名称 [EN] Knowledge base tag name
+  bool selected = 3; //是否用户已经设置了 [EN] Whether the user has set
 }
 
 message CreateKnowledgeTagReq{

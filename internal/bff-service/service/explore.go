@@ -47,7 +47,7 @@ func GetExplorationAppList(ctx *gin.Context, userId, orgId string, req request.G
 	sort.SliceStable(apps, func(i, j int) bool {
 		return apps[i].CreatedAt > apps[j].CreatedAt
 	})
-	// 填充作者信息
+	// 填充作者信息 [EN] Fill in author information
 	var userIds []string
 	for _, app := range apps {
 		userIds = append(userIds, app.User.UserId)
@@ -98,7 +98,7 @@ func AddAppHistoryRecord(ctx *gin.Context, userId, appId, appType string) error 
 // --- internal ---
 
 func explorerationFilterRag(ctx *gin.Context, explorationApp []*app_service.ExplorationAppInfo, name string) ([]*response.ExplorationAppInfo, error) {
-	// 首先收集所有rag类型的appId
+	// 首先收集所有rag类型的appId [EN] First collect the appIds of all rag types
 	var ids []string
 	for _, info := range explorationApp {
 		if info.AppType == constant.AppTypeRag {
@@ -108,7 +108,7 @@ func explorerationFilterRag(ctx *gin.Context, explorationApp []*app_service.Expl
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	// 获取rag详情
+	// 获取rag详情 [EN] Get rag details
 	ragList, err := rag.GetRagByIds(ctx.Request.Context(), &rag_service.GetRagByIdsReq{RagIdList: ids})
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func explorerationFilterRag(ctx *gin.Context, explorationApp []*app_service.Expl
 			}
 		}
 	}
-	// 如果name不为空，过滤结果
+	// 如果name不为空，过滤结果 [EN] If name is not empty, filter the results
 	if name != "" {
 		var filteredList []*response.ExplorationAppInfo
 		for _, ret := range retAppList {
@@ -154,7 +154,7 @@ func explorerationFilterRag(ctx *gin.Context, explorationApp []*app_service.Expl
 }
 
 func explorerationFilterAgent(ctx *gin.Context, apps []*app_service.ExplorationAppInfo, name string) ([]*response.ExplorationAppInfo, error) {
-	// 首先收集所有agent类型的appId
+	// 首先收集所有agent类型的appId [EN] First collect the appIds of all agent types
 	var ids []string
 	for _, info := range apps {
 		if info.AppType == constant.AppTypeAgent {
@@ -164,7 +164,7 @@ func explorerationFilterAgent(ctx *gin.Context, apps []*app_service.ExplorationA
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	// 获取agent详情
+	// 获取agent详情 [EN] Get agent details
 	agentList, err := assistant.GetAssistantByIds(ctx.Request.Context(), &assistant_service.GetAssistantByIdsReq{AssistantIdList: ids})
 	if err != nil {
 		return nil, err
@@ -196,7 +196,7 @@ func explorerationFilterAgent(ctx *gin.Context, apps []*app_service.ExplorationA
 			}
 		}
 	}
-	// 如果name不为空，过滤结果
+	// 如果name不为空，过滤结果 [EN] If name is not empty, filter the results
 	if name != "" {
 		var filteredList []*response.ExplorationAppInfo
 		for _, ret := range retAppList {
@@ -210,7 +210,7 @@ func explorerationFilterAgent(ctx *gin.Context, apps []*app_service.ExplorationA
 }
 
 func explorerationFilterWorkFlow(ctx *gin.Context, apps []*app_service.ExplorationAppInfo, name string) ([]*response.ExplorationAppInfo, error) {
-	// 首先收集所有agent类型的appId
+	// 首先收集所有agent类型的appId [EN] First collect the appIds of all agent types
 	var ids []string
 	for _, info := range apps {
 		if info.AppType == constant.AppTypeWorkflow {
@@ -220,7 +220,7 @@ func explorerationFilterWorkFlow(ctx *gin.Context, apps []*app_service.Explorati
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	// 获取工作流详情
+	// 获取工作流详情 [EN] Get workflow details
 	workFlowList, err := ListWorkflowByIDs(ctx, name, ids)
 	if err != nil {
 		return nil, err
@@ -257,7 +257,7 @@ func explorerationFilterWorkFlow(ctx *gin.Context, apps []*app_service.Explorati
 }
 
 // func explorerationFilterAgentScopeWorkFlow(ctx *gin.Context, apps []*app_service.ExplorationAppInfo, name string) ([]*response.ExplorationAppInfo, error) {
-// 	// 获取工作流详情
+// 	// 获取工作流详情 [EN] // Get workflow details
 // 	workFlowList, err := ListAgentScopeWorkFlowInternal(ctx)
 // 	if err != nil {
 // 		return nil, err
@@ -284,7 +284,7 @@ func explorerationFilterWorkFlow(ctx *gin.Context, apps []*app_service.Explorati
 // 			}
 // 		}
 // 	}
-// 	// 如果name不为空，过滤结果
+// 	// 如果name不为空，过滤结果 [EN] // If name is not empty, filter the results
 // 	if name != "" {
 // 		var filteredList []*response.ExplorationAppInfo
 // 		for _, ret := range retAppList {

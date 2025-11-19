@@ -47,47 +47,47 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KnowledgeBaseDocServiceClient interface {
-	// 获取文档列表
+	// 获取文档列表 [EN] Get document list
 	GetDocList(ctx context.Context, in *GetDocListReq, opts ...grpc.CallOption) (*GetDocListResp, error)
-	// 获取文档详情
+	// 获取文档详情 [EN] Get document details
 	GetDocDetail(ctx context.Context, in *GetDocDetailReq, opts ...grpc.CallOption) (*DocInfo, error)
-	// 上传文档
+	// 上传文档 [EN] Upload documents
 	ImportDoc(ctx context.Context, in *ImportDocReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 更新文档状态
+	// 更新文档状态 [EN] Update document status
 	UpdateDocStatus(ctx context.Context, in *UpdateDocStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 更新文档元数据
+	// 更新文档元数据 [EN] Update document metadata
 	UpdateDocMetaData(ctx context.Context, in *UpdateDocMetaDataReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 批量更新文档元数据
+	// 批量更新文档元数据 [EN] Update document metadata in batches
 	BatchUpdateDocMetaData(ctx context.Context, in *BatchUpdateDocMetaDataReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 初始化文档状态
+	// 初始化文档状态 [EN] Initialize document status
 	InitDocStatus(ctx context.Context, in *InitDocStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除文档
+	// 删除文档 [EN] Delete document
 	DeleteDoc(ctx context.Context, in *DeleteDocReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取知识库异步上传任务提示
+	// 获取知识库异步上传任务提示 [EN] Get knowledge base asynchronous upload task prompts
 	GetDocCategoryUploadTip(ctx context.Context, in *DocImportTipReq, opts ...grpc.CallOption) (*DocImportTipResp, error)
-	// 获取知识库文档切分结果
+	// 获取知识库文档切分结果 [EN] Get knowledge base document segmentation results
 	GetDocSegmentList(ctx context.Context, in *DocSegmentListReq, opts ...grpc.CallOption) (*DocSegmentListResp, error)
-	// 更新文档切片状态
+	// 更新文档切片状态 [EN] Update document slice status
 	UpdateDocSegmentStatus(ctx context.Context, in *UpdateDocSegmentStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// url上传功能-解析url
+	// url上传功能-解析url [EN] URL upload function-parse url
 	AnalysisDocUrl(ctx context.Context, in *AnalysisUrlDocReq, opts ...grpc.CallOption) (*AnalysisUrlDocResp, error)
-	// 更新文档元数据标签
+	// 更新文档元数据标签 [EN] Update document metadata tags
 	UpdateDocSegmentLabels(ctx context.Context, in *DocSegmentLabelsReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 新增文档分片
+	// 新增文档分片 [EN] Add document shards
 	CreateDocSegment(ctx context.Context, in *CreateDocSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 批量新增文档分片
+	// 批量新增文档分片 [EN] Add document shards in batches
 	BatchCreateDocSegment(ctx context.Context, in *BatchCreateDocSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除文档分片
+	// 删除文档分片 [EN] Delete document fragments
 	DeleteDocSegment(ctx context.Context, in *DeleteDocSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 更新文档分片
+	// 更新文档分片 [EN] Update document shards
 	UpdateDocSegment(ctx context.Context, in *UpdateDocSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取文档子分段列表
+	// 获取文档子分段列表 [EN] Get a list of document subsections
 	GetDocChildSegmentList(ctx context.Context, in *GetDocChildSegmentListReq, opts ...grpc.CallOption) (*GetDocChildSegmentListResp, error)
-	// 新增文档子分片
+	// 新增文档子分片 [EN] Add new document sub-shard
 	CreateDocChildSegment(ctx context.Context, in *CreateDocChildSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除文档子分片
+	// 删除文档子分片 [EN] Delete document subshard
 	DeleteDocChildSegment(ctx context.Context, in *DeleteDocChildSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 更新文档子分片
+	// 更新文档子分片 [EN] Update document subshard
 	UpdateDocChildSegment(ctx context.Context, in *UpdateDocChildSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -313,47 +313,47 @@ func (c *knowledgeBaseDocServiceClient) UpdateDocChildSegment(ctx context.Contex
 // All implementations must embed UnimplementedKnowledgeBaseDocServiceServer
 // for forward compatibility.
 type KnowledgeBaseDocServiceServer interface {
-	// 获取文档列表
+	// 获取文档列表 [EN] Get document list
 	GetDocList(context.Context, *GetDocListReq) (*GetDocListResp, error)
-	// 获取文档详情
+	// 获取文档详情 [EN] Get document details
 	GetDocDetail(context.Context, *GetDocDetailReq) (*DocInfo, error)
-	// 上传文档
+	// 上传文档 [EN] Upload documents
 	ImportDoc(context.Context, *ImportDocReq) (*emptypb.Empty, error)
-	// 更新文档状态
+	// 更新文档状态 [EN] Update document status
 	UpdateDocStatus(context.Context, *UpdateDocStatusReq) (*emptypb.Empty, error)
-	// 更新文档元数据
+	// 更新文档元数据 [EN] Update document metadata
 	UpdateDocMetaData(context.Context, *UpdateDocMetaDataReq) (*emptypb.Empty, error)
-	// 批量更新文档元数据
+	// 批量更新文档元数据 [EN] Update document metadata in batches
 	BatchUpdateDocMetaData(context.Context, *BatchUpdateDocMetaDataReq) (*emptypb.Empty, error)
-	// 初始化文档状态
+	// 初始化文档状态 [EN] Initialize document status
 	InitDocStatus(context.Context, *InitDocStatusReq) (*emptypb.Empty, error)
-	// 删除文档
+	// 删除文档 [EN] Delete document
 	DeleteDoc(context.Context, *DeleteDocReq) (*emptypb.Empty, error)
-	// 获取知识库异步上传任务提示
+	// 获取知识库异步上传任务提示 [EN] Get knowledge base asynchronous upload task prompts
 	GetDocCategoryUploadTip(context.Context, *DocImportTipReq) (*DocImportTipResp, error)
-	// 获取知识库文档切分结果
+	// 获取知识库文档切分结果 [EN] Get knowledge base document segmentation results
 	GetDocSegmentList(context.Context, *DocSegmentListReq) (*DocSegmentListResp, error)
-	// 更新文档切片状态
+	// 更新文档切片状态 [EN] Update document slice status
 	UpdateDocSegmentStatus(context.Context, *UpdateDocSegmentStatusReq) (*emptypb.Empty, error)
-	// url上传功能-解析url
+	// url上传功能-解析url [EN] URL upload function-parse url
 	AnalysisDocUrl(context.Context, *AnalysisUrlDocReq) (*AnalysisUrlDocResp, error)
-	// 更新文档元数据标签
+	// 更新文档元数据标签 [EN] Update document metadata tags
 	UpdateDocSegmentLabels(context.Context, *DocSegmentLabelsReq) (*emptypb.Empty, error)
-	// 新增文档分片
+	// 新增文档分片 [EN] Add document shards
 	CreateDocSegment(context.Context, *CreateDocSegmentReq) (*emptypb.Empty, error)
-	// 批量新增文档分片
+	// 批量新增文档分片 [EN] Add document shards in batches
 	BatchCreateDocSegment(context.Context, *BatchCreateDocSegmentReq) (*emptypb.Empty, error)
-	// 删除文档分片
+	// 删除文档分片 [EN] Delete document fragments
 	DeleteDocSegment(context.Context, *DeleteDocSegmentReq) (*emptypb.Empty, error)
-	// 更新文档分片
+	// 更新文档分片 [EN] Update document shards
 	UpdateDocSegment(context.Context, *UpdateDocSegmentReq) (*emptypb.Empty, error)
-	// 获取文档子分段列表
+	// 获取文档子分段列表 [EN] Get a list of document subsections
 	GetDocChildSegmentList(context.Context, *GetDocChildSegmentListReq) (*GetDocChildSegmentListResp, error)
-	// 新增文档子分片
+	// 新增文档子分片 [EN] Add new document sub-shard
 	CreateDocChildSegment(context.Context, *CreateDocChildSegmentReq) (*emptypb.Empty, error)
-	// 删除文档子分片
+	// 删除文档子分片 [EN] Delete document subshard
 	DeleteDocChildSegment(context.Context, *DeleteDocChildSegmentReq) (*emptypb.Empty, error)
-	// 更新文档子分片
+	// 更新文档子分片 [EN] Update document subshard
 	UpdateDocChildSegment(context.Context, *UpdateDocChildSegmentReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedKnowledgeBaseDocServiceServer()
 }

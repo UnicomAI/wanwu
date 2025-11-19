@@ -28,8 +28,8 @@ type CreateSensitiveWordTableReq struct {
 
 	OrgId     string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	UserId    string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`
-	TableName string `protobuf:"bytes,3,opt,name=tableName,proto3" json:"tableName,omitempty"` // 敏感词表名
-	Remark    string `protobuf:"bytes,4,opt,name=remark,proto3" json:"remark,omitempty"`       // 备注
+	TableName string `protobuf:"bytes,3,opt,name=tableName,proto3" json:"tableName,omitempty"` // 敏感词表名 [EN] Sensitive word list name
+	Remark    string `protobuf:"bytes,4,opt,name=remark,proto3" json:"remark,omitempty"`       // 备注 [EN] Remark
 }
 
 func (x *CreateSensitiveWordTableReq) Reset() {
@@ -99,9 +99,9 @@ type UpdateSensitiveWordTableReq struct {
 
 	OrgId     string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	UserId    string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`
-	TableId   string `protobuf:"bytes,3,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id
+	TableId   string `protobuf:"bytes,3,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id [EN] Sensitive word list id
 	TableName string `protobuf:"bytes,4,opt,name=tableName,proto3" json:"tableName,omitempty"`
-	Remark    string `protobuf:"bytes,5,opt,name=remark,proto3" json:"remark,omitempty"` // 备注
+	Remark    string `protobuf:"bytes,5,opt,name=remark,proto3" json:"remark,omitempty"` // 备注 [EN] Remark
 }
 
 func (x *UpdateSensitiveWordTableReq) Reset() {
@@ -178,8 +178,8 @@ type UpdateSensitiveWordTableReplyReq struct {
 
 	OrgId   string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	UserId  string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`
-	TableId string `protobuf:"bytes,3,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id
-	Reply   string `protobuf:"bytes,4,opt,name=Reply,proto3" json:"Reply,omitempty"`     // 回复设置
+	TableId string `protobuf:"bytes,3,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id [EN] Sensitive word list id
+	Reply   string `protobuf:"bytes,4,opt,name=Reply,proto3" json:"Reply,omitempty"`     // 回复设置 [EN] Reply settings
 }
 
 func (x *UpdateSensitiveWordTableReplyReq) Reset() {
@@ -247,7 +247,7 @@ type DeleteSensitiveWordTableReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TableId string `protobuf:"bytes,1,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id
+	TableId string `protobuf:"bytes,1,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id [EN] Sensitive word list id
 }
 
 func (x *DeleteSensitiveWordTableReq) Reset() {
@@ -351,11 +351,11 @@ type UploadSensitiveVocabularyReq struct {
 
 	OrgId         string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	UserId        string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`
-	ImportType    string `protobuf:"bytes,3,opt,name=importType,proto3" json:"importType,omitempty"`       // 上传类型
-	Word          string `protobuf:"bytes,4,opt,name=word,proto3" json:"word,omitempty"`                   // 敏感词
-	SensitiveType string `protobuf:"bytes,5,opt,name=sensitiveType,proto3" json:"sensitiveType,omitempty"` // 敏感词类型
-	TableId       string `protobuf:"bytes,6,opt,name=tableId,proto3" json:"tableId,omitempty"`             // 敏感词表id
-	FilePath      string `protobuf:"bytes,7,opt,name=filePath,proto3" json:"filePath,omitempty"`           // 文件路径
+	ImportType    string `protobuf:"bytes,3,opt,name=importType,proto3" json:"importType,omitempty"`       // 上传类型 [EN] Upload type
+	Word          string `protobuf:"bytes,4,opt,name=word,proto3" json:"word,omitempty"`                   // 敏感词 [EN] Sensitive words
+	SensitiveType string `protobuf:"bytes,5,opt,name=sensitiveType,proto3" json:"sensitiveType,omitempty"` // 敏感词类型 [EN] Sensitive word type
+	TableId       string `protobuf:"bytes,6,opt,name=tableId,proto3" json:"tableId,omitempty"`             // 敏感词表id [EN] Sensitive word list id
+	FilePath      string `protobuf:"bytes,7,opt,name=filePath,proto3" json:"filePath,omitempty"`           // 文件路径 [EN] file path
 }
 
 func (x *UploadSensitiveVocabularyReq) Reset() {
@@ -444,8 +444,8 @@ type DeleteSensitiveVocabularyReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TableId string `protobuf:"bytes,1,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id
-	WordId  string `protobuf:"bytes,2,opt,name=wordId,proto3" json:"wordId,omitempty"`   // 敏感词id
+	TableId string `protobuf:"bytes,1,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id [EN] Sensitive word list id
+	WordId  string `protobuf:"bytes,2,opt,name=wordId,proto3" json:"wordId,omitempty"`   // 敏感词id [EN] Sensitive word id
 }
 
 func (x *DeleteSensitiveVocabularyReq) Reset() {
@@ -501,7 +501,7 @@ type GetSensitiveVocabularyListReq struct {
 
 	OrgId    string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	UserId   string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`
-	TableId  string `protobuf:"bytes,3,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id
+	TableId  string `protobuf:"bytes,3,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id [EN] Sensitive word list id
 	PageNo   int32  `protobuf:"varint,4,opt,name=pageNo,proto3" json:"pageNo,omitempty"`
 	PageSize int32  `protobuf:"varint,5,opt,name=pageSize,proto3" json:"pageSize,omitempty"`
 }
@@ -578,7 +578,7 @@ type GetSensitiveWordTableListByIDsReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TableIds []string `protobuf:"bytes,1,rep,name=tableIds,proto3" json:"tableIds,omitempty"` // 敏感词表id
+	TableIds []string `protobuf:"bytes,1,rep,name=tableIds,proto3" json:"tableIds,omitempty"` // 敏感词表id [EN] Sensitive word list id
 }
 
 func (x *GetSensitiveWordTableListByIDsReq) Reset() {
@@ -625,7 +625,7 @@ type GetSensitiveWordTableByIDReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TableId string `protobuf:"bytes,1,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id
+	TableId string `protobuf:"bytes,1,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id [EN] Sensitive word list id
 }
 
 func (x *GetSensitiveWordTableByIDReq) Reset() {
@@ -672,7 +672,7 @@ type CreateSensitiveWordTableResp struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TableId string `protobuf:"bytes,1,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id
+	TableId string `protobuf:"bytes,1,opt,name=tableId,proto3" json:"tableId,omitempty"` // 敏感词表id [EN] Sensitive word list id
 }
 
 func (x *CreateSensitiveWordTableResp) Reset() {
@@ -933,8 +933,8 @@ type SensitiveWordVocabulary struct {
 	unknownFields protoimpl.UnknownFields
 
 	WordId        string `protobuf:"bytes,1,opt,name=wordId,proto3" json:"wordId,omitempty"`
-	Word          string `protobuf:"bytes,2,opt,name=word,proto3" json:"word,omitempty"`                   // 敏感词
-	SensitiveType string `protobuf:"bytes,3,opt,name=sensitiveType,proto3" json:"sensitiveType,omitempty"` // 敏感词类型
+	Word          string `protobuf:"bytes,2,opt,name=word,proto3" json:"word,omitempty"`                   // 敏感词 [EN] Sensitive words
+	SensitiveType string `protobuf:"bytes,3,opt,name=sensitiveType,proto3" json:"sensitiveType,omitempty"` // 敏感词类型 [EN] Sensitive word type
 }
 
 func (x *SensitiveWordVocabulary) Reset() {
@@ -995,7 +995,7 @@ type SensitiveWordTableListWithWords struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Details []*SensitiveWordTableWithWords `protobuf:"bytes,1,rep,name=details,proto3" json:"details,omitempty"` // 敏感词表带version数据
+	Details []*SensitiveWordTableWithWords `protobuf:"bytes,1,rep,name=details,proto3" json:"details,omitempty"` // 敏感词表带version数据 [EN] Sensitive word table with version data
 }
 
 func (x *SensitiveWordTableListWithWords) Reset() {

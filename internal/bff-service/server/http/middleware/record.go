@@ -37,7 +37,7 @@ func requestFullPath(ctx *gin.Context) string {
 }
 
 func getFieldValue(ctx *gin.Context, fieldName string) string {
-	//尝试从query中获取field
+	//尝试从query中获取field [EN] Try to get field from query
 	value := ctx.Query(fieldName)
 	if len(value) > 0 {
 		return value
@@ -45,18 +45,18 @@ func getFieldValue(ctx *gin.Context, fieldName string) string {
 	if binding.MIMEJSON != ctx.ContentType() {
 		return ""
 	}
-	//获取原始数据
+	//获取原始数据 [EN] Get raw data
 	body, err := requestBody(ctx)
 	if err != nil || len(body) == 0 {
 		return ""
 	}
-	//构造参数对应map
+	//构造参数对应map [EN] Construction parameters correspond to map
 	paramsMap := make(map[string]interface{})
 	err = json.Unmarshal([]byte(body), &paramsMap)
 	if err != nil {
 		return ""
 	}
-	//获取对应filed的值
+	//获取对应filed的值 [EN] Get the value of the corresponding field
 	fieldValue := paramsMap[fieldName]
 	if fieldValue == nil {
 		return ""

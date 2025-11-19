@@ -1,7 +1,7 @@
 import argparse
 
 import gunicorn_server
-from run import app  # 替换为你的Flask应用导入路径
+from run import app  # 替换为你的Flask应用导入路径 [EN] Replace with your Flask application import path
 
 
 def main():
@@ -13,7 +13,7 @@ def main():
     parser.add_argument('--debug', action='store_true', help='调试模式')
     args = parser.parse_args()
 
-    # 记录日志
+    # 记录日志 [EN] logging
     log_file = f"run_logs_{args.port}.log"
     print(f"正在启动Flask应用，端口号为{args.port}...")
     print(f"日志将输出到 {log_file}")

@@ -14,7 +14,7 @@ var (
 	_trans ut.Translator
 )
 
-// InitValidator validator中文本地化
+// InitValidator validator中文本地化 [EN] InitValidator validator Chinese localization
 func InitValidator() error {
 	_v = validator.New()
 	_trans, _ = ut.New(zh.New(), zh.New()).GetTranslator("zh")

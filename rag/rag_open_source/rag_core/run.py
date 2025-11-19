@@ -24,13 +24,13 @@ from know_sse import get_query_dict_cache, query_rewrite
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from logging_config import setup_logging
 from settings import MONGO_URL, USE_DATA_FLYWHEEL
-# 定义路径
+# 定义路径 [EN] define path
 paths = ["./parser_data"]
-# 遍历路径列表
+# 遍历路径列表 [EN] Traverse a list of paths
 for path in paths:
-    # 检查路径是否存在
+    # 检查路径是否存在 [EN] Check if the path exists
     if not os.path.exists(path):
-        # 如果不存在，则创建目录
+        # 如果不存在，则创建目录 [EN] Create the directory if it does not exist
         os.makedirs(path)
         print(f"目录 {path} 已创建。")
     else:
@@ -46,13 +46,13 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.config['JSON_AS_ASCII'] = False
 app.config['JSONIFY_MIMETYPE'] = 'application/json;charset=utf-8'
-# 初始化 MongoDB 客户端
+# 初始化 MongoDB 客户端 [EN] Initialize the MongoDB client
 client = MongoClient(MONGO_URL, 0, connectTimeoutMS=5000, serverSelectionTimeoutMS=3000)
 collection = client['rag']['rag_user_logs']
 redis_client = redis_utils.get_redis_connection()
 chunk_label_redis_client = redis_utils.get_redis_connection(redis_db=5)
 
-@app.route('/rag/init-knowledge-base', methods=['POST'])  # 初始化 done
+@app.route('/rag/init-knowledge-base', methods=['POST'])  # 初始化 done [EN] initialization done
 def init_kb():
     logger.info('---------------初始化知识库---------------')
     try:
@@ -83,9 +83,9 @@ def init_kb():
     return response
 
 
-# # ************************* 同步上传 API 接口，关闭不使用 ******************************
+# # ************************* 同步上传 API 接口，关闭不使用 ****************************** [EN] # ************************* Synchronous upload API interface, close and not in use ****************************
 
-@app.route("/rag/add-knowledge-temp", methods=["POST", "GET"])  # 添加单个文件
+@app.route("/rag/add-knowledge-temp", methods=["POST", "GET"])  # 添加单个文件 [EN] Add a single file
 def add_konwledge_temp():
     logger.info('---------------上传文件---------------')
     response_info = {
@@ -114,7 +114,7 @@ def add_konwledge_temp():
             response.headers['Access-Control-Allow-Origin'] = '*'
             return response
 
-        # 保存上传文件
+        # 保存上传文件 [EN] Save uploaded file
         files = [file]
 
         logger.info(repr(files))
@@ -137,12 +137,12 @@ def add_konwledge_temp():
     return response
 
 
-# @app.route("/rag/batch-add-knowledge", methods=["POST","GET"]) #添加多个文件
+# @app.route("/rag/batch-add-knowledge", methods=["POST","GET"]) #添加多个文件 [EN] @app.route("/rag/batch-add-knowledge", methods=["POST","GET"]) #Add multiple files
 # def batch_add_konwledge():
-#     logger.info('---------------批量上传文件---------------')
+#     logger.info('---------------批量上传文件---------------') [EN] logger.info('---------------Batch upload files---------------')
 #     response_info = {
 #         'code': 0,
-#         "message": "成功"
+#         "message": "成功" [EN] "message": "success"
 #     }
 #     try:
 #         files = request.files.getlist('files')
@@ -158,7 +158,7 @@ def add_konwledge_temp():
 
 #         if files is None:
 #             response_info["code"] = 1
-#             response_info["message"] = "文件上传失败"
+#             response_info["message"] = "文件上传失败" [EN] response_info["message"] = "File upload failed"
 #             json_str = json.dumps(response_info, ensure_ascii=False)
 #             response = make_response(json_str)
 #             response.headers['Access-Control-Allow-Origin'] = '*'
@@ -180,9 +180,9 @@ def add_konwledge_temp():
 #     response.headers['Access-Control-Allow-Origin'] = '*'
 #     return response
 
-# # ************************* 同步上传 API 接口，关闭不使用 ******************************
+# # ************************* 同步上传 API 接口，关闭不使用 ****************************** [EN] # ************************* Synchronous upload API interface, close and not in use ****************************
 
-@app.route("/rag/del-knowledge-base", methods=["POST"])  # 删除知识库 done
+@app.route("/rag/del-knowledge-base", methods=["POST"])  # 删除知识库 done [EN] Delete knowledge base done
 def del_kb():
     logger.info('---------------删除知识库---------------')
     try:
@@ -197,7 +197,7 @@ def del_kb():
         assert len(kb_name) > 0 or len(kb_id) > 0
 
         result_data = kb_utils.del_konwledge_base(user_id, kb_name, kb_id=kb_id)
-        # 在批量删除文件中补充增加删除reids逻辑 begin
+        # 在批量删除文件中补充增加删除reids逻辑 begin [EN] Add deletion reids logic to the batch deletion file begin
         if USE_DATA_FLYWHEEL:
             try:
                 # redis_client = redis_utils.get_redis_connection()
@@ -208,18 +208,18 @@ def del_kb():
                 logger.warn(f"del-knowledge-base Failed to get redis connection: {err}")
                 import traceback
                 logger.error(traceback.format_exc())
-        # 在批量删除文件中补充增加删除reids逻辑 end
-        # ========== chunk labels 删除的逻辑 ==========
+        # 在批量删除文件中补充增加删除reids逻辑 end [EN] Add deletion reids logic to the batch deletion file end
+        # ========== chunk labels 删除的逻辑 ========== [EN] ========== Chunk labels deletion logic ==========
         try:
             if not kb_id:
-                kb_id = kb_utils.get_kb_name_id(user_id, kb_name)  # 获取kb_id
-            # 删除chunk_labels
+                kb_id = kb_utils.get_kb_name_id(user_id, kb_name)  # 获取kb_id [EN] Get kb_id
+            # 删除chunk_labels [EN] Delete chunk_labels
             redis_utils.delete_chunk_labels(chunk_label_redis_client, kb_id)
         except Exception as err:
             logger.error(f"del-knowledge-base Failed to delete_chunk_labels: {err}")
             import traceback
             logger.error(traceback.format_exc())
-        # ========== chunk labels 删除的逻辑 ==========
+        # ========== chunk labels 删除的逻辑 ========== [EN] ========== Chunk labels deletion logic ==========
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(result_data, ensure_ascii=False), headers)
     except Exception as e:
@@ -354,11 +354,11 @@ def updateChunkLabels():
             raise ValueError("labels must specified as an array")
 
         response_info = chunk_utils.update_chunk_labels(user_id, kb_name, file_name, chunk_id, labels, kb_id=kb_id)
-        # ======= chunk labels 更新的逻辑 ========
-        if not kb_id:  # kb_id为空，则根据kb_name获取kb_id
-            kb_id = kb_utils.get_kb_name_id(user_id, kb_name)  # 获取kb_id
+        # ======= chunk labels 更新的逻辑 ======== [EN] ======= Chunk labels update logic ========
+        if not kb_id:  # kb_id为空，则根据kb_name获取kb_id [EN] If kb_id is empty, get kb_id based on kb_name
+            kb_id = kb_utils.get_kb_name_id(user_id, kb_name)  # 获取kb_id [EN] Get kb_id
         redis_utils.update_chunk_labels(chunk_label_redis_client, kb_id, file_name, chunk_id, labels)
-        # ======= chunk labels 更新的逻辑 ========
+        # ======= chunk labels 更新的逻辑 ======== [EN] ======= Chunk labels update logic ========
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -369,7 +369,7 @@ def updateChunkLabels():
     return response
 
 
-@app.route("/rag/search-knowledge-base", methods=["POST"])  # 查询 done
+@app.route("/rag/search-knowledge-base", methods=["POST"])  # 查询 done [EN] Query done
 def search_knowledge_base():
     logger.info('---------------问题查询---------------')
     response_info = {
@@ -395,14 +395,14 @@ def search_knowledge_base():
         search_field = init_info.get('search_field', 'con')
         # if user_id == '': user_id = str(request.headers.get('X-Uid', ''))
         default_answer = init_info.get("default_answer", '根据已知信息，无法回答您的问题。')
-        # 是否开启自动引文，此参数与prompt_template互斥，当开启auto_citation时，prompt_template用户传参不生效
+        # 是否开启自动引文，此参数与prompt_template互斥，当开启auto_citation时，prompt_template用户传参不生效 [EN] Whether to enable automatic citation. This parameter is mutually exclusive with prompt_template. When auto_citation is enabled, prompt_template user-passed parameters will not take effect.
         auto_citation = init_info.get("auto_citation", False)
-        # 是否query改写
+        # 是否query改写 [EN] Whether to rewrite query
         rewrite_query = init_info.get("rewrite_query", False)
         use_graph = init_info.get("use_graph", False)
         filter_file_name_list = init_info.get("filter_file_name_list", [])
         rerank_mod = init_info.get("rerank_mod", "rerank_model")
-        # Dify开源版本问答时需指定rerank模型
+        # Dify开源版本问答时需指定rerank模型 [EN] The rerank model needs to be specified when answering questions in the open source version of Dify
         rerank_model_id = init_info.get("rerank_model_id", '')
         weights = init_info.get("weights", None)
         retrieve_method = init_info.get("retrieve_method", "hybrid_search")
@@ -414,10 +414,10 @@ def search_knowledge_base():
             metadata_filtering_conditions = []
         logger.info(repr(init_info))
 
-        # 检查 knowledge_base_info 是否为空
+        # 检查 knowledge_base_info 是否为空 [EN] Check if knowledge_base_info is empty
         if not knowledge_base_info:
             raise ValueError("knowledge_base_info cannot be empty")
-        # 检查 rerank_model_id 是否为空
+        # 检查 rerank_model_id 是否为空 [EN] Check if rerank_model_id is empty
         if rerank_mod == "rerank_model" and not rerank_model_id:
             raise ValueError("rerank_model_id cannot be empty when using model-based reranking.")
 
@@ -476,7 +476,7 @@ def search_knowledge_base():
     return response
 
 
-@app.route("/rag/list-knowledge-base", methods=["POST"])  # 查询用户下所有的知识库名称 done
+@app.route("/rag/list-knowledge-base", methods=["POST"])  # 查询用户下所有的知识库名称 done [EN] Query all knowledge base names under the user done
 def list_kb():
     logger.info('---------------查询所有知识库---------------')
     try:
@@ -498,7 +498,7 @@ def list_kb():
     return response
 
 
-@app.route("/rag/list-knowledge-file", methods=["POST"])  # 显示用户知识库下所有的文件 done
+@app.route("/rag/list-knowledge-file", methods=["POST"])  # 显示用户知识库下所有的文件 done [EN] Show all files under user knowledge base done
 def list_file():
     logger.info('---------------查询所有知识库文件---------------')
     try:
@@ -523,7 +523,7 @@ def list_file():
 
 
 
-@app.route("/rag/list-knowledge-file-download-link", methods=["POST"])  # 显示用户知识库下所有的文件 done
+@app.route("/rag/list-knowledge-file-download-link", methods=["POST"])  # 显示用户知识库下所有的文件 done [EN] Show all files under user knowledge base done
 def list_file_download_link():
     logger.info('---------------查询所有知识库文件的 download_link---------------')
     try:
@@ -546,7 +546,7 @@ def list_file_download_link():
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     return response
 
-@app.route("/rag/del-knowledge-file", methods=["POST"])  # 删除某个知识库下的单个文件 done
+@app.route("/rag/del-knowledge-file", methods=["POST"])  # 删除某个知识库下的单个文件 done [EN] Delete a single file under a knowledge base done
 def del_file():
     logger.info('---------------删除知识库文件---------------')
     try:
@@ -563,7 +563,7 @@ def del_file():
         assert len(user_id) > 0
 
         result_data = kb_utils.del_knowledge_base_files(user_id, kb_name, [file_name], kb_id=kb_id)
-        # 在批量删除文件中补充增加删除reids逻辑 begin
+        # 在批量删除文件中补充增加删除reids逻辑 begin [EN] Add deletion reids logic to the batch deletion file begin
         if USE_DATA_FLYWHEEL:
             try:
                 # redis_client = redis_utils.get_redis_connection()
@@ -574,17 +574,17 @@ def del_file():
                 logger.warn(f"del-knowledge-file Failed to get redis connection: {err}")
                 import traceback
                 logger.error(traceback.format_exc())
-        # 在批量删除文件中补充增加删除reids逻辑 end
-        # ========== chunk labels 删除的逻辑 ==========
+        # 在批量删除文件中补充增加删除reids逻辑 end [EN] Add deletion reids logic to the batch deletion file end
+        # ========== chunk labels 删除的逻辑 ========== [EN] ========== Chunk labels deletion logic ==========
         try:
-            kb_id = kb_utils.get_kb_name_id(user_id, kb_name)  # 获取kb_id
-            # 删除chunk_labels
+            kb_id = kb_utils.get_kb_name_id(user_id, kb_name)  # 获取kb_id [EN] Get kb_id
+            # 删除chunk_labels [EN] Delete chunk_labels
             redis_utils.delete_chunk_labels(chunk_label_redis_client, kb_id, file_name=file_name)
         except Exception as err:
             logger.error(f"del-knowledge-file Failed to delete_chunk_labels: {err}")
             import traceback
             logger.error(traceback.format_exc())
-        # ========== chunk labels 删除的逻辑 ==========
+        # ========== chunk labels 删除的逻辑 ========== [EN] ========== Chunk labels deletion logic ==========
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(result_data, ensure_ascii=False), headers)
 
@@ -596,7 +596,7 @@ def del_file():
     return response
 
 
-@app.route("/rag/batch_del_knowfiles", methods=["POST"])  # 删除某个知识库下的多个文件 done
+@app.route("/rag/batch_del_knowfiles", methods=["POST"])  # 删除某个知识库下的多个文件 done [EN] Delete multiple files under a knowledge base done
 def del_files():
     logger.info('---------------批量删除知识库文件---------------')
     try:
@@ -613,7 +613,7 @@ def del_files():
         assert len(user_id) > 0
 
         result_data = kb_utils.del_knowledge_base_files(user_id, kb_name, file_names, kb_id=kb_id)
-        # 在批量删除文件中补充增加删除reids逻辑 begin
+        # 在批量删除文件中补充增加删除reids逻辑 begin [EN] Add deletion reids logic to the batch deletion file begin
         if USE_DATA_FLYWHEEL:
             try:
                 # redis_client = redis_utils.get_redis_connection()
@@ -622,7 +622,7 @@ def del_files():
                 logger.info("clean flywheel cache result:%s" % json.dumps(redis_data, ensure_ascii=False))
             except Exception as err:
                 logger.warn(f"Failed to get redis connection maybe not use dataflywheel or uninstall redis: {err}")
-        # 在批量删除文件中补充增加删除reids逻辑 end
+        # 在批量删除文件中补充增加删除reids逻辑 end [EN] Add deletion reids logic to the batch deletion file end
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(result_data, ensure_ascii=False), headers)
 
@@ -634,7 +634,7 @@ def del_files():
     return response
 
 
-@app.route("/rag/check-knowledge-base", methods=["POST"])  # 查询某个知识库是否在某个用户下 done
+@app.route("/rag/check-knowledge-base", methods=["POST"])  # 查询某个知识库是否在某个用户下 done [EN] Query whether a certain knowledge base is under a certain user done
 def check_kb():
     logger.info('---------------校验知识库是否存在---------------')
     try:
@@ -687,7 +687,7 @@ def getContentList():
         file_name = data['fileName']
         page_size = data['page_size']
         search_after = data['search_after']
-        # 获取分页文件内容列表
+        # 获取分页文件内容列表 [EN] Get a list of paginated file contents
         response_info = kb_utils.get_file_content_list(user_id, kb_name, file_name, page_size, search_after, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
@@ -900,7 +900,7 @@ def updateContentStatus():
         file_name = data['fileName']
         content_id = data['content_id']
         status = data['status']
-        on_off_switch = data.get('on_off_switch', None)  # 没有传递则默认为 None
+        on_off_switch = data.get('on_off_switch', None)  # 没有传递则默认为 None [EN] Defaults to None if not passed
         response_info = kb_utils.update_content_status(user_id, kb_name, file_name, content_id, status, on_off_switch, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
@@ -968,7 +968,7 @@ def truncate_filename(filename, max_length=200):
     if len(base) + len(ext) <= max_length:
         return filename
 
-    # 从后往前截取255个字符，确保保留扩展名
+    # 从后往前截取255个字符，确保保留扩展名 [EN] Trim 255 characters from back to front, making sure to keep the extension
     truncated_base = base[-(max_length - len(ext)):]
     return truncated_base + ext
 
@@ -994,7 +994,7 @@ def doc_parser():
             return response
         parsed_url = urllib.parse.urlparse(download_link)
         file_name = parsed_url.path.split('/')[-1]
-        # 截断文件名:当文件名过长，超出系统允许的最大长度时，请从后往前截取200个字符
+        # 截断文件名:当文件名过长，超出系统允许的最大长度时，请从后往前截取200个字符 [EN] Truncate the file name: When the file name is too long and exceeds the maximum length allowed by the system, please truncate 200 characters from the back to the front.
         truncated_file_name = truncate_filename(file_name)
         logger.info("---------->truncated_file_name=%s" % truncated_file_name)
         # file_path = os.path.join(parser_data_path, user_id, kb_name)
@@ -1057,12 +1057,12 @@ def user_feedback():
     try:
         init_info = json.loads(request.get_data())
         msg_id = init_info.get("msg_id", "")
-        action = init_info.get("action", "")  # like:点赞；stomp：点踩; cancel：取消
-        answer = init_info.get("answer", "") # 答案
-        error_type = init_info.get("error_type", "") #all_error:全部错误; part_error:部分错误; other:其他
-        other_reason = init_info.get("other_reason", "") # 其他原因说明
-        source = init_info.get("source", "") # 调用来源: ChatConsult 或 Agent 值为空可能API调用
-        # 是否开启数据飞轮
+        action = init_info.get("action", "")  # like:点赞；stomp：点踩; cancel：取消 [EN] like: like; stomp: click; cancel: cancel
+        answer = init_info.get("answer", "") # 答案 [EN] Answer
+        error_type = init_info.get("error_type", "") #all_error:全部错误; part_error:部分错误; other:其他 [EN] all_error: all errors; part_error: partial errors; other: other
+        other_reason = init_info.get("other_reason", "") # 其他原因说明 [EN] Other reasons
+        source = init_info.get("source", "") # 调用来源: ChatConsult 或 Agent 值为空可能API调用 [EN] Call source: ChatConsult or Agent. If the value is empty, it may be an API call.
+        # 是否开启数据飞轮 [EN] Whether to enable data flywheel
         data_flywheel = init_info.get("data_flywheel", False)
         if msg_id and action:
             u_condition = {'id': msg_id}
@@ -1144,17 +1144,17 @@ def proper_noun():
         init_info = json.loads(request.get_data())
         msg_id = int(init_info.get("id", "-1"))
         # user_id = init_info.get("user_id", "")
-        action = init_info.get("action", "")  # add：新增；delete:删除; update:修改
-        name = init_info.get("name", "")  # 专名词
-        alias = init_info.get("alias", [])  # 别名词表
-        # apply_type = init_info.get("apply_type", [])  # 作用域：user 或 knowledgebase 或 user + knowledgebase
-        # knowledge_base = init_info.get("knowledge_base_list", []) # 若作用域为knowledgebase需传 知识库名称列表
+        action = init_info.get("action", "")  # add：新增；delete:删除; update:修改 [EN] add: add; delete: delete; update: modify
+        name = init_info.get("name", "")  # 专名词 [EN] proper noun
+        alias = init_info.get("alias", [])  # 别名词表 [EN] alias list
+        # apply_type = init_info.get("apply_type", [])  # 作用域：user 或 knowledgebase 或 user + knowledgebase [EN] apply_type = init_info.get("apply_type", []) # Scope: user or knowledgebase or user + knowledgebase
+        # knowledge_base = init_info.get("knowledge_base_list", []) # 若作用域为knowledgebase需传 知识库名称列表 [EN] knowledge_base = init_info.get("knowledge_base_list", []) # If the scope is knowledgebase, a list of knowledge base names needs to be passed
         knowledge_base_info = init_info.get("knowledge_base_info", {})
-        if knowledge_base_info:  # 整理格式
+        if knowledge_base_info:  # 整理格式 [EN] Format
             for user_id, kb_info_list in knowledge_base_info.items():
                 knowledge_base_info[user_id] = [kb_info['kb_id'] if kb_info.get('kb_id') else kb_utils.get_kb_name_id(user_id, kb_info['kb_name']) for kb_info in kb_info_list]
         logger.info(f"edit knowledge_base_info:{knowledge_base_info}")
-        if msg_id and action and knowledge_base_info:  # 注意 knowledge_base 里是 kb_ids
+        if msg_id and action and knowledge_base_info:  # 注意 knowledge_base 里是 kb_ids [EN] Note that knowledge_base contains kb_ids
             for user_id, knowledge_base in knowledge_base_info.items():
                 try:
                     # redis_client = redis_utils.get_redis_connection()
@@ -1279,7 +1279,7 @@ def getReportsList():
         kb_id = data.get("kb_id", "")
         page_size = data['page_size']
         search_after = data['search_after']
-        # 获取分页文件内容列表
+        # 获取分页文件内容列表 [EN] Get a list of paginated file contents
         response_info = graph_utils.get_community_report_list(user_id, kb_name, page_size, search_after, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)

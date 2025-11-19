@@ -90,8 +90,8 @@ type GetSquareMCPListReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	OrgId    string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`       // (暂无)
-	UserId   string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`     // (暂无)
+	OrgId    string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`       // (暂无) [EN] (None yet)
+	UserId   string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`     // (暂无) [EN] (None yet)
 	Category string `protobuf:"bytes,3,opt,name=category,proto3" json:"category,omitempty"` // all | data | create | search | ...
 	Name     string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
 }
@@ -618,8 +618,8 @@ type GetMCPToolListReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	McpId  string `protobuf:"bytes,1,opt,name=mcpId,proto3" json:"mcpId,omitempty"`   // mcpId优先
-	SseUrl string `protobuf:"bytes,2,opt,name=sseUrl,proto3" json:"sseUrl,omitempty"` // mcpId为空取sseUrl
+	McpId  string `protobuf:"bytes,1,opt,name=mcpId,proto3" json:"mcpId,omitempty"`   // mcpId优先 [EN] mcpId takes priority
+	SseUrl string `protobuf:"bytes,2,opt,name=sseUrl,proto3" json:"sseUrl,omitempty"` // mcpId为空取sseUrl [EN] If mcpId is empty, take sseUrl
 }
 
 func (x *GetMCPToolListReq) Reset() {
@@ -767,8 +767,8 @@ type MCPAvatar struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FileName string `protobuf:"bytes,1,opt,name=fileName,proto3" json:"fileName,omitempty"` // 文件名
-	Data     []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`         // 文件二进制数据
+	FileName string `protobuf:"bytes,1,opt,name=fileName,proto3" json:"fileName,omitempty"` // 文件名 [EN] file name
+	Data     []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`         // 文件二进制数据 [EN] file binary data
 }
 
 func (x *MCPAvatar) Reset() {
@@ -1122,11 +1122,11 @@ type SquareMCPIntro struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Summary  string `protobuf:"bytes,1,opt,name=summary,proto3" json:"summary,omitempty"`   // 使用概述
-	Feature  string `protobuf:"bytes,2,opt,name=feature,proto3" json:"feature,omitempty"`   // 特性说明
-	Scenario string `protobuf:"bytes,3,opt,name=scenario,proto3" json:"scenario,omitempty"` // 应用场景
-	Manual   string `protobuf:"bytes,4,opt,name=manual,proto3" json:"manual,omitempty"`     // 使用说明
-	Detail   string `protobuf:"bytes,5,opt,name=detail,proto3" json:"detail,omitempty"`     // 详情
+	Summary  string `protobuf:"bytes,1,opt,name=summary,proto3" json:"summary,omitempty"`   // 使用概述 [EN] Usage overview
+	Feature  string `protobuf:"bytes,2,opt,name=feature,proto3" json:"feature,omitempty"`   // 特性说明 [EN] Feature description
+	Scenario string `protobuf:"bytes,3,opt,name=scenario,proto3" json:"scenario,omitempty"` // 应用场景 [EN] Application scenarios
+	Manual   string `protobuf:"bytes,4,opt,name=manual,proto3" json:"manual,omitempty"`     // 使用说明 [EN] Instructions for use
+	Detail   string `protobuf:"bytes,5,opt,name=detail,proto3" json:"detail,omitempty"`     // 详情 [EN] Details
 }
 
 func (x *SquareMCPIntro) Reset() {

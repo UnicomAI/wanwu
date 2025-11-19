@@ -72,7 +72,7 @@ func GetCustomTool(ctx *gin.Context, userID, orgID string, customToolId string) 
 }
 
 func DeleteCustomTool(ctx *gin.Context, userID, orgID string, req request.CustomToolIDReq) error {
-	// 删除智能体AssistantCustom中记录
+	// 删除智能体AssistantCustom中记录 [EN] Delete the record in the agent AssistantCustom
 	_, err := assistant.AssistantToolDeleteByToolId(ctx.Request.Context(), &assistant_service.AssistantToolDeleteByToolIdReq{
 		ToolId:   req.CustomToolID,
 		ToolType: constant.ToolTypeCustom,

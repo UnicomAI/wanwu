@@ -133,7 +133,7 @@ func (c *Client) CheckSameAssistantName(ctx context.Context, userID, orgID, name
 			return toErrStatus("assistant_get_by_name", err.Error())
 		}
 
-		// 存在同名智能体
+		// 存在同名智能体 [EN] An agent with the same name exists
 		if count > 0 {
 			return toErrStatus("assistant_same_name", name)
 		}
@@ -142,10 +142,10 @@ func (c *Client) CheckSameAssistantName(ctx context.Context, userID, orgID, name
 }
 
 func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, workflows []*model.AssistantWorkflow, mcps []*model.AssistantMCP, customTools []*model.AssistantTool) (uint32, *err_code.Status) {
-	// 智能体名称前缀
+	// 智能体名称前缀 [EN] Agent name prefix
 	prefix := assistant.Name + "_"
 
-	// 查询所有以“原名称_”为前缀的名称
+	// 查询所有以“原名称_”为前缀的名称 [EN] Query all names prefixed with "original name_"
 	var existingNames []string
 	err := c.db.WithContext(ctx).Model(&model.Assistant{}).
 		Where("name LIKE ?", prefix+"%").
@@ -155,7 +155,7 @@ func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, 
 		return 0, toErrStatus("assistant_copy", err.Error())
 	}
 
-	// 解析名称
+	// 解析名称 [EN] Parse name
 	maxNum := 0
 	for _, name := range existingNames {
 		numStr := strings.TrimPrefix(name, prefix)
@@ -168,12 +168,12 @@ func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, 
 		}
 	}
 
-	// 生成新名称
+	// 生成新名称 [EN] Generate new name
 	newName := prefix + strconv.Itoa(maxNum+1)
 
 	var newAssistantId uint32
 	return newAssistantId, c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		// 复制并保存新智能体
+		// 复制并保存新智能体 [EN] Copy and save the new agent
 		newAssistant := *assistant
 		newAssistant.ID = 0
 		newAssistant.Name = newName
@@ -182,7 +182,7 @@ func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, 
 		}
 		newAssistantId = newAssistant.ID
 
-		// 复制并保存新智能体工作流
+		// 复制并保存新智能体工作流 [EN] Copy and save the new agent workflow
 		for _, workflow := range workflows {
 			workflow.ID = 0
 			workflow.AssistantId = newAssistantId
@@ -191,7 +191,7 @@ func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, 
 			}
 		}
 
-		// 复制并保存新智能体MCP
+		// 复制并保存新智能体MCP [EN] Copy and save the new agent MCP
 		for _, mcp := range mcps {
 			mcp.ID = 0
 			mcp.AssistantId = newAssistantId
@@ -200,7 +200,7 @@ func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, 
 			}
 		}
 
-		// 复制并保存新智能体自定义工具
+		// 复制并保存新智能体自定义工具 [EN] Copy and save the new agent customizer
 		for _, tool := range customTools {
 			tool.ID = 0
 			tool.AssistantId = newAssistantId

@@ -28,12 +28,12 @@ type AppBrief struct {
 	OrgId      string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	UserId     string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`
 	AppId      string `protobuf:"bytes,3,opt,name=appId,proto3" json:"appId,omitempty"`
-	AppType    string `protobuf:"bytes,4,opt,name=appType,proto3" json:"appType,omitempty"`       // 应用类型 agent,rag,workflow
-	AvatarPath string `protobuf:"bytes,5,opt,name=avatarPath,proto3" json:"avatarPath,omitempty"` // 图标minio object path
+	AppType    string `protobuf:"bytes,4,opt,name=appType,proto3" json:"appType,omitempty"`       // 应用类型 agent,rag,workflow [EN] Application type agent,rag,workflow
+	AvatarPath string `protobuf:"bytes,5,opt,name=avatarPath,proto3" json:"avatarPath,omitempty"` // 图标minio object path [EN] iconminio object path
 	Name       string `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
 	Desc       string `protobuf:"bytes,7,opt,name=desc,proto3" json:"desc,omitempty"`
-	CreatedAt  int64  `protobuf:"varint,8,opt,name=createdAt,proto3" json:"createdAt,omitempty"` // 创建时间，毫秒时间戳
-	UpdatedAt  int64  `protobuf:"varint,9,opt,name=updatedAt,proto3" json:"updatedAt,omitempty"` // 更新时间，毫秒时间戳
+	CreatedAt  int64  `protobuf:"varint,8,opt,name=createdAt,proto3" json:"createdAt,omitempty"` // 创建时间，毫秒时间戳 [EN] Creation time, millisecond timestamp
+	UpdatedAt  int64  `protobuf:"varint,9,opt,name=updatedAt,proto3" json:"updatedAt,omitempty"` // 更新时间，毫秒时间戳 [EN] Update time, millisecond timestamp
 }
 
 func (x *AppBrief) Reset() {
@@ -341,7 +341,7 @@ type ToolActionInputSchema struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Type       string                                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"` // 固定 object
+	Type       string                                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"` // 固定 object [EN] Fixed object
 	Properties map[string]*ToolActionInputSchemaValue `protobuf:"bytes,2,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	Required   []string                               `protobuf:"bytes,3,rep,name=required,proto3" json:"required,omitempty"`
 }

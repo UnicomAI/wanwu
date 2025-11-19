@@ -14,14 +14,14 @@ import (
 )
 
 func ListTools(ctx context.Context, sseUrl string) ([]*protocol.Tool, error) {
-	// 创建 SSE 传输客户端
+	// 创建 SSE 传输客户端 [EN] Create an SSE transport client
 	transportClient, err := transport.NewSSEClientTransport(sseUrl,
 		transport.WithSSEClientOptionReceiveTimeout(time.Minute*2),
 		transport.WithSSEClientOptionLogger(log.Log()),
 		transport.WithSSEClientOptionHTTPClient(&http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true, // 跳过证书验证
+					InsecureSkipVerify: true, // 跳过证书验证 [EN] Skip certificate verification
 				},
 			},
 		}))
@@ -29,14 +29,14 @@ func ListTools(ctx context.Context, sseUrl string) ([]*protocol.Tool, error) {
 		return nil, fmt.Errorf("mcp list tools (%v) init transport err: %v", sseUrl, err)
 	}
 
-	// 初始化 MCP 客户端
+	// 初始化 MCP 客户端 [EN] Initialize MCP client
 	mcpClient, err := client.NewClient(transportClient)
 	if err != nil {
 		return nil, fmt.Errorf("mcp list tools (%v) init client err: %v", sseUrl, err)
 	}
 	defer mcpClient.Close()
 
-	// 获取可用工具列表
+	// 获取可用工具列表 [EN] Get a list of available tools
 	resp, err := mcpClient.ListTools(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("mcp list tools (%v) err: %v", sseUrl, err)

@@ -22,10 +22,10 @@ var md = goldmark.New(
 // markdown->html
 func Md2html(markdown []byte) (string, error) {
 	var buf bytes.Buffer
-	// 转换为 HTML
+	// 转换为 HTML [EN] Convert to HTML
 	if err := md.Convert(markdown, &buf); err != nil {
 		return "", err
 	}
-	// 输出 HTML
+	// 输出 HTML [EN] Output HTML
 	return buf.String(), nil
 }

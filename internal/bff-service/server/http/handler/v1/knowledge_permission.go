@@ -10,12 +10,12 @@ import (
 // SelectKnowledgeOrg
 //
 //	@Tags			knowledge.permission
-//	@Summary		知识库组织列表
-//	@Description	知识库组织列表
+//	@Summary		知识库组织列表 [EN] @Summary Knowledge base organization list
+//	@Description	知识库组织列表 [EN] @Description Knowledge base organization list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	query		request.KnowledgeOrgSelectReq	true	"知识库组织列表请求参数"
+//	@Param			data	query		request.KnowledgeOrgSelectReq	true	"知识库组织列表请求参数" [EN] @Param data query request.KnowledgeOrgSelectReq true "Knowledge base organization list request parameters"
 //	@Success		200		{object}	response.Response{data=response.KnowOrgInfo}
 //	@Router			/knowledge/org [get]
 func SelectKnowledgeOrg(ctx *gin.Context) {
@@ -31,12 +31,12 @@ func SelectKnowledgeOrg(ctx *gin.Context) {
 // SelectKnowledgeUserPermit
 //
 //	@Tags			knowledge.permission
-//	@Summary		知识库用户权限列表
-//	@Description	知识库用户权限列表
+//	@Summary		知识库用户权限列表 [EN] @Summary Knowledge base user permission list
+//	@Description	知识库用户权限列表 [EN] @Description Knowledge base user permission list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	query		request.KnowledgeUserSelectReq	true	"知识库用户权限列表请求参数"
+//	@Param			data	query		request.KnowledgeUserSelectReq	true	"知识库用户权限列表请求参数" [EN] @Param data query request.KnowledgeUserSelectReq true "Knowledge base user permission list request parameters"
 //	@Success		200		{object}	response.Response{data=response.KnowledgeUserPermissionResp}
 //	@Router			/knowledge/user [get]
 func SelectKnowledgeUserPermit(ctx *gin.Context) {
@@ -52,12 +52,12 @@ func SelectKnowledgeUserPermit(ctx *gin.Context) {
 // SelectKnowledgeUserNoPermit
 //
 //	@Tags			knowledge.permission
-//	@Summary		没有知识库用户列表
-//	@Description	没有知识库用户列表
+//	@Summary		没有知识库用户列表 [EN] @Summary There is no list of knowledge base users
+//	@Description	没有知识库用户列表 [EN] @Description There is no knowledge base user list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	query		request.KnowledgeUserNoPermitSelectReq	true	"没有知识库用户列表请求参数"
+//	@Param			data	query		request.KnowledgeUserNoPermitSelectReq	true	"没有知识库用户列表请求参数" [EN] @Param data query request.KnowledgeUserNoPermitSelectReq true "There is no knowledge base user list request parameter"
 //	@Success		200		{object}	response.Response{data=response.KnowOrgUserInfoResp}
 //	@Router			/knowledge/user/no/permit [get]
 func SelectKnowledgeUserNoPermit(ctx *gin.Context) {
@@ -73,12 +73,12 @@ func SelectKnowledgeUserNoPermit(ctx *gin.Context) {
 // AddKnowledgeUser
 //
 //	@Tags			knowledge.permission
-//	@Summary		增加知识库用户
-//	@Description	增加知识库用户
+//	@Summary		增加知识库用户 [EN] @Summary Add knowledge base users
+//	@Description	增加知识库用户 [EN] @Description Add knowledge base users
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.KnowledgeUserAddReq	true	"增加知识库用户请求参数"
+//	@Param			data	body		request.KnowledgeUserAddReq	true	"增加知识库用户请求参数" [EN] @Param data body request.KnowledgeUserAddReq true "Add knowledge base user request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/knowledge/user/add [post]
 func AddKnowledgeUser(ctx *gin.Context) {
@@ -94,12 +94,12 @@ func AddKnowledgeUser(ctx *gin.Context) {
 // EditKnowledgeUser
 //
 //	@Tags			knowledge.permission
-//	@Summary		修改知识库用户
-//	@Description	修改知识库用户
+//	@Summary		修改知识库用户 [EN] @Summary Modify knowledge base user
+//	@Description	修改知识库用户 [EN] @Description Modify knowledge base user
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.KnowledgeUserEditReq	true	"修改知识库用户请求参数"
+//	@Param			data	body		request.KnowledgeUserEditReq	true	"修改知识库用户请求参数" [EN] @Param data body request.KnowledgeUserEditReq true "Modify knowledge base user request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/knowledge/user/edit [post]
 func EditKnowledgeUser(ctx *gin.Context) {
@@ -115,12 +115,12 @@ func EditKnowledgeUser(ctx *gin.Context) {
 // DeleteKnowledgeUser
 //
 //	@Tags			knowledge.permission
-//	@Summary		删除知识库用户
-//	@Description	删除知识库用户
+//	@Summary		删除知识库用户 [EN] @Summary Delete knowledge base user
+//	@Description	删除知识库用户 [EN] @Description Delete knowledge base user
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.KnowledgeUserDeleteReq	true	"删除知识库用户请求参数"
+//	@Param			data	body		request.KnowledgeUserDeleteReq	true	"删除知识库用户请求参数" [EN] @Param data body request.KnowledgeUserDeleteReq true "Delete knowledge base user request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/knowledge/user/delete [delete]
 func DeleteKnowledgeUser(ctx *gin.Context) {
@@ -136,12 +136,12 @@ func DeleteKnowledgeUser(ctx *gin.Context) {
 // TransferKnowledgeUserAdmin
 //
 //	@Tags			knowledge.permission
-//	@Summary		转让管理员权限
-//	@Description	转让管理员权限
+//	@Summary		转让管理员权限 [EN] @Summary Transfer administrator rights
+//	@Description	转让管理员权限 [EN] @Description Transfer administrator rights
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.KnowledgeTransferUserAdminReq	true	"转让管理员权限请求参数"
+//	@Param			data	body		request.KnowledgeTransferUserAdminReq	true	"转让管理员权限请求参数" [EN] @Param data body request.KnowledgeTransferUserAdminReq true "Transfer administrator permissions request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/knowledge/user/admin/transfer [post]
 func TransferKnowledgeUserAdmin(ctx *gin.Context) {

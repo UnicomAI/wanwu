@@ -12,7 +12,7 @@ import (
 
 func (c *Client) CreateCustomTool(ctx context.Context, customTool *model.CustomTool) *err_code.Status {
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		// 检查是否已存在相同的记录
+		// 检查是否已存在相同的记录 [EN] Check if the same record already exists
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithName(customTool.Name),
 			sqlopt.WithOrgID(customTool.OrgID),
@@ -22,7 +22,7 @@ func (c *Client) CreateCustomTool(ctx context.Context, customTool *model.CustomT
 		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return toErrStatus("mcp_create_custom_tool_err", err.Error())
 		}
-		// 创建
+		// 创建 [EN] create
 		if err := tx.Create(customTool).Error; err != nil {
 			return toErrStatus("mcp_create_custom_tool_err", err.Error())
 		}
@@ -64,7 +64,7 @@ func (c *Client) ListCustomToolsByCustomToolIDs(ctx context.Context, ids []uint3
 
 func (c *Client) UpdateCustomTool(ctx context.Context, customTool *model.CustomTool) *err_code.Status {
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		// 检查是否已存在相同的记录
+		// 检查是否已存在相同的记录 [EN] Check if the same record already exists
 		if customTool.ToolSquareId == "" {
 			var dbCustomToolInfo model.CustomTool
 			if err := sqlopt.SQLOptions(
@@ -128,7 +128,7 @@ func (c *Client) GetBuiltinTool(ctx context.Context, builtinTool *model.BuiltinT
 
 func (c *Client) UpdateBuiltinTool(ctx context.Context, builtinTool *model.BuiltinTool) *err_code.Status {
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		// 检查记录是否存在
+		// 检查记录是否存在 [EN] Check if the record exists
 		var dbBuiltinToolInfo model.BuiltinTool
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithID(builtinTool.ID),
@@ -150,7 +150,7 @@ func (c *Client) UpdateBuiltinTool(ctx context.Context, builtinTool *model.Built
 
 func (c *Client) CreateBuiltinTool(ctx context.Context, builtinTool *model.BuiltinTool) *err_code.Status {
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		// 检查是否已存在相同的记录
+		// 检查是否已存在相同的记录 [EN] Check if the same record already exists
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithToolSquareID(builtinTool.ToolSquareId),
 			sqlopt.WithOrgID(builtinTool.OrgID),
@@ -160,7 +160,7 @@ func (c *Client) CreateBuiltinTool(ctx context.Context, builtinTool *model.Built
 		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return toErrStatus("mcp_create_builtin_tool_err", err.Error())
 		}
-		// 创建
+		// 创建 [EN] create
 		if err := tx.Create(builtinTool).Error; err != nil {
 			return toErrStatus("mcp_create_builtin_tool_err", err.Error())
 		}

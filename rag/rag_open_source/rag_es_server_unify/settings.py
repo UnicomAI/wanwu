@@ -3,14 +3,14 @@ from config.config_parser import Config
 
 config = Config('./config/config.ini')
 
-#索引前缀
-INDEX_NAME_PREFIX = config.get('DEFAULT', 'INDEX_NAME_PREFIX')  # 测试环境索引前缀
-SNIPPET_INDEX_NAME_PREFIX = config.get('DEFAULT', 'SNIPPET_INDEX_NAME_PREFIX')  # 老的ES snippet 测试环境索引前缀
-KBNAME_MAPPING_INDEX = config.get('DEFAULT', 'KBNAME_MAPPING_INDEX')  # userid 的所有 kb_name映射表
+#索引前缀 [EN] index prefix
+INDEX_NAME_PREFIX = config.get('DEFAULT', 'INDEX_NAME_PREFIX')  # 测试环境索引前缀 [EN] Test environment index prefix
+SNIPPET_INDEX_NAME_PREFIX = config.get('DEFAULT', 'SNIPPET_INDEX_NAME_PREFIX')  # 老的ES snippet 测试环境索引前缀 [EN] Old ES snippet test environment index prefix
+KBNAME_MAPPING_INDEX = config.get('DEFAULT', 'KBNAME_MAPPING_INDEX')  # userid 的所有 kb_name映射表 [EN] All kb_name mapping tables of userid
 
-#日志名称
-APP_NAME = config.get('DEFAULT', 'APP_NAME')  # 应用名称
-LOGGER_NAME = config.get('DEFAULT', 'LOGGER_NAME')  # 日志器名称
+#日志名称 [EN] Log name
+APP_NAME = config.get('DEFAULT', 'APP_NAME')  # 应用名称 [EN] Application name
+LOGGER_NAME = config.get('DEFAULT', 'LOGGER_NAME')  # 日志器名称 [EN] Logger name
 
 # embedding
 EMBEDDING_BATCH_SIZE = os.getenv("EMBEDDING_BATCH_SIZE", 10)

@@ -105,7 +105,7 @@ func (s *Service) GetMCPByMCPIdList(ctx context.Context, req *mcp_service.GetMCP
 	var serverToolInfos []*mcp_service.MCPServerInfo
 
 	if len(req.McpIdList) != 0 {
-		// 转换为uint32列表
+		// 转换为uint32列表 [EN] Convert to uint32 list
 		mcpIdList := make([]uint32, 0, len(req.McpIdList))
 		for _, mcpId := range req.McpIdList {
 			mcpIdList = append(mcpIdList, util.MustU32(mcpId))
@@ -121,7 +121,7 @@ func (s *Service) GetMCPByMCPIdList(ctx context.Context, req *mcp_service.GetMCP
 	}
 
 	if len(req.McpServerIdList) != 0 {
-		// 查询MCP Server 列表
+		// 查询MCP Server 列表 [EN] Query MCP Server list
 		mcpServerList, err := s.cli.ListMCPServerByIdList(ctx, req.McpServerIdList)
 		if err != nil {
 			return nil, errStatus(errs.Code_MCPGetMCPServerListErr, err)
@@ -176,7 +176,7 @@ func buildCustomMCPDetail(mcp *model.MCPClient) *mcp_service.CustomMCPDetail {
 	if mcp.McpSquareId != "" {
 		mcpSquareInfo, exist := config.Cfg().MCP(mcp.McpSquareId)
 		if !exist {
-			// 广场MCP不存在，则将McpSquareId置空
+			// 广场MCP不存在，则将McpSquareId置空 [EN] If the square MCP does not exist, leave McpSquareId blank.
 			ret.Info.McpSquareId = ""
 		} else {
 			ret.Info.AvatarPath = mcpSquareInfo.AvatarPath

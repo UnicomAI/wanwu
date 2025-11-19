@@ -31,7 +31,7 @@ app_name = os.getenv("LOG_FILE")
 logger = setup_logging(app_name,logger_name)
 logger.info(logger_name+'---------LOG_FILE：'+repr(app_name))
 
-# Kafka配置
+# Kafka配置 [EN] Kafka configuration
 KAFKA_TOPIC = 'url-batch-a-prod'
 GROUP_ID = 'my-group-dev2'
 
@@ -48,8 +48,8 @@ def md5(string):
 def clean_text(text):
     """清除文本中的特殊字符和多余的空白，以及HTML标签。"""
     patterns = [
-        r'\xa0+', r'\u3000', r'\t+', r'\r+', r'\n+',   # 清除特殊空白字符和多行换行符
-        r'<[/]?b>|&gt;|&lt;'                        # 清除HTML标签
+        r'\xa0+', r'\u3000', r'\t+', r'\r+', r'\n+',   # 清除特殊空白字符和多行换行符 [EN] Clear special whitespace characters and multiline newlines
+        r'<[/]?b>|&gt;|&lt;'                        # 清除HTML标签 [EN] Clear HTML tags
     ]
     for pattern in patterns:
         text = re.sub(pattern, '', text)
@@ -76,7 +76,7 @@ def kafkal():
                                  value_deserializer=lambda x:x.decode('utf-8'))
 
         for message in consumer:
-            #初始化用户知识库路径
+            #初始化用户知识库路径 [EN] Initialize user knowledge base path
             logger.info('收到kafka消息：'+repr(message.value))
             message_value = json.loads(message.value)
             
@@ -114,14 +114,14 @@ def url_ana(url, task_id):
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         encoding = chardet.detect(response.content)['encoding']
-        response.encoding = encoding if encoding else 'utf-8'# 设置编码，确保中文显示正常
+        response.encoding = encoding if encoding else 'utf-8'# 设置编码，确保中文显示正常 [EN] Set the encoding to ensure that Chinese display is normal
         soup = BeautifulSoup(response.content, 'html.parser')
         a = clean_text(soup.get_text())
         logger.info(f"正常解析出的内容是: {a}")
         b = ''
         title_tag = soup.find('title')
         logger.info("title is:"+title_tag.text)
-        #logger.info(f"原来标题是: {title_tag.text}")
+        #logger.info(f"原来标题是: {title_tag.text}") [EN] logger.info(f"The original title is: {title_tag.text}")
         c = title_tag.text
         b = c.replace('|', '_').replace(':', '_').replace(' ', '_')
         
@@ -150,7 +150,7 @@ def url_ana(url, task_id):
         
         response_data = {  
             "file_name": '',
-            "old_name":url,# 添加原始name和文件名到响应数据中  
+            "old_name":url,# 添加原始name和文件名到响应数据中 [EN] Add original name and file name to response data  
             "response_info": {
                 "code": 1,
                 "message": "该网站不支持抓取解析"                

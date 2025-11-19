@@ -81,7 +81,7 @@ func (w *wrapper) NewSub(subTag, name string, permLevel route.PermLevel, isNavi,
 	if subTag == "" || strings.Contains(subTag, ".") {
 		log.Panicf("wrapper %v subTag %v cannot be empty or contain '.'", w.tag, subTag)
 	}
-	// check tag 不能与同级的其他sub.tag相同
+	// check tag 不能与同级的其他sub.tag相同 [EN] check tag cannot be the same as other sub.tags at the same level
 	var tag string
 	if w.tag == "" {
 		tag = subTag
@@ -93,23 +93,23 @@ func (w *wrapper) NewSub(subTag, name string, permLevel route.PermLevel, isNavi,
 			log.Panicf("wrapper %v sub %v already exist", w.tag, tag)
 		}
 	}
-	// check isNavi 上级是false，下级必须是false
+	// check isNavi 上级是false，下级必须是false [EN] check isNavi The upper level is false, the lower level must be false
 	if !w.isNavi && isNavi {
 		log.Panicf("wrapper %v is not navi but sub %v is navi", w.tag, tag)
 	}
-	// check permLevel 不能低于上级
+	// check permLevel 不能低于上级 [EN] check permLevel cannot be lower than the upper level
 	if permLevel < w.permLevel {
 		log.Panicf("wrapper %v sub %v permLevel %v cannot less than %v", w.tag, tag, permLevel, w.permLevel)
 	}
-	// check canCheck 上级是true，下级必须是true
+	// check canCheck 上级是true，下级必须是true [EN] check canCheck The upper level is true, the lower level must be true
 	if w.canCheck && !canCheck {
 		log.Panicf("wrapper %v can check but sub %v cannot", w.tag, tag)
 	}
-	// canCheck是true，permLevel必须大于等于PermNeedCheck
+	// canCheck是true，permLevel必须大于等于PermNeedCheck [EN] canCheck is true, permLevel must be greater than or equal to PermNeedCheck
 	if canCheck && permLevel < route.PermNeedCheck {
 		log.Panicf("wrapper %v sub %v must need perm", w.tag, tag)
 	}
-	// permLevel小于PermNeedCheck，canCheck必须是false
+	// permLevel小于PermNeedCheck，canCheck必须是false [EN] permLevel is less than PermNeedCheck, canCheck must be false
 	if permLevel < route.PermNeedCheck && canCheck {
 		log.Panicf("wrapper %v sub %v must cannot check", w.tag, tag)
 	}

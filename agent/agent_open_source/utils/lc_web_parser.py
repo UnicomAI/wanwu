@@ -5,14 +5,14 @@ import logging
 import functools
 from typing import List, Dict, Optional
 
-# 如需使用 BeautifulSoup，请保留
+# 如需使用 BeautifulSoup，请保留 [EN] To use BeautifulSoup, please keep
 import bs4
 
-# 如需使用 langchain 的 RecursiveCharacterTextSplitter，请保留
+# 如需使用 langchain 的 RecursiveCharacterTextSplitter，请保留 [EN] To use langchain's RecursiveCharacterTextSplitter, please keep
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-# 自定义引用：如果这些类/函数确实存在，请保留正确的 import
-# 如果不在同一目录，需要修改导入路径
+# 自定义引用：如果这些类/函数确实存在，请保留正确的 import [EN] Custom references: If these classes/functions do exist, keep the correct import
+# 如果不在同一目录，需要修改导入路径 [EN] If it is not in the same directory, you need to modify the import path
 from utils.custom_web_loader import CustomWebLoader
 from utils.timing import advanced_timing_decorator
 
@@ -28,21 +28,21 @@ def clean_text(text: str) -> str:
     清除文本中的特殊字符、多余空白以及部分 HTML 标签。
     """
     patterns = [
-        r'\xa0+',      # 清除不间断空白字符
-        r'\u3000',     # 清除中文全角空格
-        r'\t+',        # 清除制表符
-        r'\r+',        # 清除回车符
-        r'\n+',        # 清除连续换行符
-        r'<[/]?b>',    # 清除 <b> 和 </b> 标签
-        r'&gt;',       # 清除 HTML 实体字符 >
-        r'&lt;'        # 清除 HTML 实体字符 <
+        r'\xa0+',      # 清除不间断空白字符 [EN] Clear non-breaking whitespace characters
+        r'\u3000',     # 清除中文全角空格 [EN] Clear Chinese full-width spaces
+        r'\t+',        # 清除制表符 [EN] Clear tabs
+        r'\r+',        # 清除回车符 [EN] Clear carriage returns
+        r'\n+',        # 清除连续换行符 [EN] Clear consecutive newlines
+        r'<[/]?b>',    # 清除 <b> 和 </b> 标签 [EN] Clear <b> and </b> tags
+        r'&gt;',       # 清除 HTML 实体字符 > [EN] Clear HTML entity characters >
+        r'&lt;'        # 清除 HTML 实体字符 < [EN] Clear HTML entity characters <
     ]
     for pattern in patterns:
         text = re.sub(pattern, '', text)
     return text.strip()
 
 ###########################################################
-#          主函数：async_crawl_and_parse_webpage
+#          主函数：async_crawl_and_parse_webpage [EN] Main function: async_crawl_and_parse_webpage
 ###########################################################
 # @advanced_timing_decorator()
 async def async_crawl_and_parse_webpage(
@@ -63,11 +63,11 @@ async def async_crawl_and_parse_webpage(
             "\n",
             " ",
             ",",
-            "\u200b",  # 零宽空格
-            "\uff0c",  # 全角逗号
-            "\u3001",  # 顿号
-            "\uff0e",  # 全角句号
-            "\u3002",  # 句号
+            "\u200b",  # 零宽空格 [EN] zero width space
+            "\uff0c",  # 全角逗号 [EN] Full-width comma
+            "\u3001",  # 顿号 [EN] comma
+            "\uff0e",  # 全角句号 [EN] full-width period
+            "\u3002",  # 句号 [EN] period
             ".",
             "",
         ]
@@ -89,15 +89,15 @@ async def async_crawl_and_parse_webpage(
 
     start_time = datetime.datetime.now()
 
-    # 使用 asyncio.wait_for 包裹网络爬取过程，一旦超时会抛出 asyncio.TimeoutError
+    # 使用 asyncio.wait_for 包裹网络爬取过程，一旦超时会抛出 asyncio.TimeoutError [EN] Use asyncio.wait_for to wrap the web crawling process, and asyncio.TimeoutError will be thrown once it times out.
     try:
         docs = await asyncio.wait_for(gather_docs(), timeout=time_out)
     except asyncio.TimeoutError:
-        # 超时日志记录
+        # 超时日志记录 [EN] Timeout logging
         logger.error(f"解析【超时】:{query[:QUERY_SHORT]} ---> 超过{time_out}秒未完成，返回空列表 ---> {url}")
         return []
 
-    # 初始化 RecursiveCharacterTextSplitter
+    # 初始化 RecursiveCharacterTextSplitter [EN] Initialize RecursiveCharacterTextSplitter
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=sentence_size,
         chunk_overlap=overlap_size,
@@ -133,11 +133,11 @@ async def async_crawl_and_parse_webpage(
     return results
 
 ###########################################################
-#                 异步示例调用 (main)
+#                 异步示例调用 (main) [EN] Asynchronous example call (main)
 ###########################################################
 if __name__ == "__main__":
     async def main():
-        # 几个示例网址，实际只会用最后一次赋值生效
+        # 几个示例网址，实际只会用最后一次赋值生效 [EN] Several example URLs will actually only take effect with the last assignment.
         url = "https://xueqiu.com/S/00700?md5__1038=n4%2BxRD9DuiDQKxx0x0HwbDyADgYkbDclpr0hoD"
         # url = "https://www.weather.com.cn/weathern/101010100.shtml"
         # url = "https://news.qq.com/rain/a/20250206A09CH400"
@@ -152,13 +152,13 @@ if __name__ == "__main__":
         item = {"link": url, "title": "123"}
         query = "今天北京天气"
 
-        # 设置超时时间 time_out=2 秒
+        # 设置超时时间 time_out=2 秒 [EN] Set timeout time_out=2 seconds
         docs_list = await async_crawl_and_parse_webpage(
             bing_single_item=item,
             query=query,
             sentence_size=1000,
             overlap_size=0,
-            time_out=10  # 2 秒超时
+            time_out=10  # 2 秒超时 [EN] 2 seconds timeout
         )
         if not docs_list:
             print("处理失败：未能获取到网页内容或处理超时，返回空列表。")
@@ -169,5 +169,5 @@ if __name__ == "__main__":
                 print(doc)
                 print("=" * 40)
 
-    # 运行异步 main
+    # 运行异步 main [EN] Run asynchronous main
     asyncio.run(main())

@@ -35,31 +35,31 @@ def extract_text_from_xml(input_xml_path):
     参数:
     - input_xml_path: str，输入的 XML 文件路径
     """
-    # 获取输入文件的目录和文件名（不含扩展名）
+    # 获取输入文件的目录和文件名（不含扩展名） [EN] Get the directory and file name of the input file (without extension)
     base_name = os.path.splitext(input_xml_path)[0]
-    # 生成输出的 TXT 文件路径
+    # 生成输出的 TXT 文件路径 [EN] Generate output TXT file path
     output_txt_path = base_name + '.txt'
 
-    # 解析 XML 文件
+    # 解析 XML 文件 [EN] Parse XML files
     tree = ET.parse(input_xml_path)
     root = tree.getroot()
 
-    # 存储提取的文本
+    # 存储提取的文本 [EN] Store extracted text
     text_contents = set()
 
-    # 递归地遍历 XML 树，并提取文本内容
+    # 递归地遍历 XML 树，并提取文本内容 [EN] Recursively traverse the XML tree and extract the text content
     def recurse_extract_text(element):
-        # 收集当前元素的文本内容（如果有）
+        # 收集当前元素的文本内容（如果有） [EN] Collects the text content of the current element (if any)
         if element.text and element.text.strip():
             text_contents.add(element.text.strip())
-        # 递归地处理子元素
+        # 递归地处理子元素 [EN] Process child elements recursively
         for child in element:
             recurse_extract_text(child)
     
-    # 开始递归遍历
+    # 开始递归遍历 [EN] Start recursive traversal
     recurse_extract_text(root)
 
-    # 将文本内容写入 TXT 文件
+    # 将文本内容写入 TXT 文件 [EN] Write text content to TXT file
     with open(output_txt_path, 'w', encoding='utf-8') as f:
         for text in sorted(text_contents):
             f.write(text + '\n')
@@ -79,7 +79,7 @@ def extract_text_from_xml(input_xml_path):
 
 
 # def tree(filepath, ignore_dir_names=None, ignore_file_names=None):
-#     """返回两个列表，第一个列表为 filepath 下全部文件的完整路径, 第二个为对应的文件名"""
+#     """返回两个列表，第一个列表为 filepath 下全部文件的完整路径, 第二个为对应的文件名""" [EN] """Returns two lists. The first list is the full path of all files under filepath, and the second is the corresponding file name"""
 #     if ignore_dir_names is None:
 #         ignore_dir_names = []
 #     if ignore_file_names is None:
@@ -87,7 +87,7 @@ def extract_text_from_xml(input_xml_path):
 #     ret_list = []
 #     if isinstance(filepath, str):
 #         if not os.path.exists(filepath):
-#             print("路径不存在")
+#             print("路径不存在") [EN] print("Path does not exist")
 #             return None, None
 #         elif os.path.isfile(filepath) and os.path.basename(filepath) not in ignore_file_names:
 #             return [filepath], [os.path.basename(filepath)]

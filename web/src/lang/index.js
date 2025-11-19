@@ -21,7 +21,7 @@ const messages = {
     },
 }
 const i18n = new VueI18n({
-    locale: localStorage.getItem('locale') || ZH, // 目前默认中文，语言类型存储到 localstorage 里
+    locale: localStorage.getItem('locale') || 'en', // Default to English, language type stored in localStorage
     messages
 })
 

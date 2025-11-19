@@ -9,7 +9,7 @@ option go_package = "github.com/UnicomAI/wanwu/api/proto/assistant-service";
 
 service AssistantService {
   // --- assistant ---
-  rpc GetAssistantByIds(GetAssistantByIdsReq) returns (AppBriefList) {}   // 根据智能体id集合获取智能体列表
+  rpc GetAssistantByIds(GetAssistantByIdsReq) returns (AppBriefList) {}   // 根据智能体id集合获取智能体列表 [EN] Get the list of agents based on the agent id set
   rpc AssistantCreate(AssistantCreateReq) returns (AssistantCreateResp) {}
   rpc AssistantUpdate(AssistantUpdateReq) returns (google.protobuf.Empty) {}
   rpc AssistantConfigUpdate(AssistantConfigUpdateReq) returns (google.protobuf.Empty) {}
@@ -93,9 +93,9 @@ message AssistantConfigUpdateReq {
   string instructions = 2;
   string prologue = 3;
   repeated string recommendQuestion = 4;
-  common.AppModelConfig modelConfig = 5;                  // 模型配置
-  AssistantKnowledgeBaseConfig knowledgeBaseConfig = 6;         // 知识库
-  common.AppModelConfig rerankConfig = 7;                         // Rerank模型
+  common.AppModelConfig modelConfig = 5;                  // 模型配置 [EN] Model configuration
+  AssistantKnowledgeBaseConfig knowledgeBaseConfig = 6;         // 知识库 [EN] knowledge base
+  common.AppModelConfig rerankConfig = 7;                         // Rerank模型 [EN] Rerank model
   Identity identity = 9;
   AssistantSafetyConfig safetyConfig = 10;
   AssistantVisionConfig visionConfig = 11;
@@ -122,16 +122,16 @@ message AssistantDeleteReq {
 }
 
 message AssistantKnowledgeBaseConfig {
-  repeated string knowledgeBaseIds = 1;   // 知识库信息
-  int32 maxHistory = 2;                           // 最长上下文
-  float threshold = 3;                            // 过滤阈值
+  repeated string knowledgeBaseIds = 1;   // 知识库信息 [EN] Knowledge base information
+  int32 maxHistory = 2;                           // 最长上下文 [EN] longest context
+  float threshold = 3;                            // 过滤阈值 [EN] filter threshold
   int32 topK = 4;                                 // topK
-  string matchType = 5; //matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
-  float keywordPriority = 6;// 关键词权重
-  int32 priorityMatch = 7;// 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1
-  float semanticsPriority = 8;// 语义权重
-  float termWeight = 9; // 关键词系数
-  bool termWeightEnable = 10; // 关键词系数开关
+  string matchType = 5; //matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本） [EN] matchType: vector (vector search), text (text search), mix (mixed search: vector + text)
+  float keywordPriority = 6;// 关键词权重 [EN] Keyword weight
+  int32 priorityMatch = 7;// 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1 [EN] Weight matching. This is only set to 1 after selecting the weight setting in mixed search mode.
+  float semanticsPriority = 8;// 语义权重 [EN] semantic weight
+  float termWeight = 9; // 关键词系数 [EN] keyword coefficient
+  bool termWeightEnable = 10; // 关键词系数开关 [EN] Keyword coefficient switch
   repeated AppKnowledgeBase appKnowledgeBaseList = 11;
   bool useGraph = 12;
 }
@@ -139,14 +139,14 @@ message AssistantKnowledgeBaseConfig {
 message AppKnowledgeBase {
   string knowledgeBaseId = 1;
   string knowledgeBaseName = 2;
-  int32 graphSwitch = 3; // 知识图谱开关
+  int32 graphSwitch = 3; // 知识图谱开关 [EN] Knowledge graph switch
   MetaDataFilterParams metaDataFilterParams = 4;
 }
 
 message MetaDataFilterParams {
-  bool filterEnable = 1; // 元数据过滤开关
-  string filterLogicType = 2;// 元数据逻辑条件：and/or
-  repeated MetaFilterParams metaFilterParams = 3;// 元数据过滤参数列表
+  bool filterEnable = 1; // 元数据过滤开关 [EN] Metadata filter switch
+  string filterLogicType = 2;// 元数据逻辑条件：and/or [EN] Metadata logical conditions: and/or
+  repeated MetaFilterParams metaFilterParams = 3;// 元数据过滤参数列表 [EN] Metadata filter parameter list
 }
 
 message MetaFilterParams {
@@ -175,9 +175,9 @@ message AssistantInfo {
   string prologue = 4;
   string instructions = 5;
   repeated string recommendQuestion = 6;
-  common.AppModelConfig modelConfig = 7;                 // 模型配置
-  AssistantKnowledgeBaseConfig knowledgeBaseConfig = 8;  // 知识库
-  common.AppModelConfig rerankConfig = 9;                // Rerank模型
+  common.AppModelConfig modelConfig = 7;                 // 模型配置 [EN] Model configuration
+  AssistantKnowledgeBaseConfig knowledgeBaseConfig = 8;  // 知识库 [EN] knowledge base
+  common.AppModelConfig rerankConfig = 9;                // Rerank模型 [EN] Rerank model
   int32 scope = 11;
   repeated AssistantWorkFlowInfos workFlowInfos = 12;
   repeated AssistantMCPInfos mcpInfos = 13;

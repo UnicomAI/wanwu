@@ -1,50 +1,50 @@
-# 阶段 1：构建环境
+# 阶段 1：构建环境 [EN] Phase 1: Build the environment
 FROM python:3.12-slim AS builder
 
-# 设置工作目录
+# 设置工作目录 [EN] Set working directory
 WORKDIR /agent/agent_open_source
 
-# 复制 requirements.txt 文件
+# 复制 requirements.txt 文件 [EN] Copy the requirements.txt file
 COPY /agent/agent_open_source/requirements.txt .
 
-# 安装系统依赖和Python依赖
+# 安装系统依赖和Python依赖 [EN] Install system dependencies and Python dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends lsof vim build-essential wget unzip && \
     pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple && \
     pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt && \
-    # 使用nltk官方源直接下载stopwords资源
+    # 使用nltk官方源直接下载stopwords资源 [EN] Use nltk official source to directly download stopwords resources
     mkdir -p /root/nltk_data/corpora && \
     wget -O /root/nltk_data/corpora/stopwords.zip https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/stopwords.zip && \
-    # 验证并解压
+    # 验证并解压 [EN] Verify and unzip
     test -f /root/nltk_data/corpora/stopwords.zip || (echo "nltk stopwords download failed" && exit 1) && \
     unzip /root/nltk_data/corpora/stopwords.zip -d /root/nltk_data/corpora/ && \
     apt-get purge -y --auto-remove build-essential wget unzip && \
     rm -rf /var/lib/apt/lists/* /root/.cache/pip
 
-# 阶段 2：最终镜像
+# 阶段 2：最终镜像 [EN] Phase 2: Final image
 FROM python:3.12-slim
 
-# 设置工作目录
+# 设置工作目录 [EN] Set working directory
 WORKDIR /agent/agent_open_source
 
-# 设置NLTK_DATA环境变量
+# 设置NLTK_DATA环境变量 [EN] Set NLTK_DATA environment variable
 ENV NLTK_DATA=/root/nltk_data
 
-# 安装最小运行时依赖
+# 安装最小运行时依赖 [EN] Install minimal runtime dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends lsof vim && \
     pip uninstall -y gunicorn && \
     pip install --no-cache-dir gunicorn && \
     rm -rf /var/lib/apt/lists/* /root/.cache/pip
 
-# 复制构建环境中的依赖和项目代码
+# 复制构建环境中的依赖和项目代码 [EN] Copy dependencies and project code in the build environment
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-# 复制nltk数据目录
+# 复制nltk数据目录 [EN] Copy the nltk data directory
 COPY --from=builder /root/nltk_data /root/nltk_data
 
-# 暴露所需端口
+# 暴露所需端口 [EN] Expose required ports
 EXPOSE 1991-1992 7258 15001-15003
 
-# 设置容器启动命令
+# 设置容器启动命令 [EN] Set container startup command
 USER root
 CMD ["/bin/bash", "-c", "./start_all.sh"]

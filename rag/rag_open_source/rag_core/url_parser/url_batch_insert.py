@@ -19,11 +19,11 @@ app_name = os.getenv("LOG_FILE")
 logger = setup_logging(app_name,logger_name)
 logger.info(logger_name+'---------LOG_FILE：'+repr(app_name))
 
-# Kafka配置
+# Kafka配置 [EN] Kafka configuration
 KAFKA_TOPIC = 'url-batch-i-prod'
 GROUP_ID = 'my-group-dev2'
 
-# Minio配置
+# Minio配置 [EN] Minio configuration
 MINIO_URL = 'http://localhost:15000/upload'
 MINIO_BUCKET_NAME = 'rag-doc'
 
@@ -43,7 +43,7 @@ def kafkal():
                                  value_deserializer=lambda x:x.decode('utf-8'))
         
         for message in consumer:
-            #初始化用户知识库路径
+            #初始化用户知识库路径 [EN] Initialize user knowledge base path
             logger.info('收到kafka消息：'+repr(message.value))
             message_value = json.loads(message.value)
             
@@ -77,7 +77,7 @@ def kafkal():
                 continue
                 
 
-#解析出内容入库
+#解析出内容入库 [EN] Parse out the content and store it in the database
 
 # def url_insert(task_id,kb_name,user_id,overlap_size,sentence_size,file_name,separators,is_enhanced):
 def url_insert(task_id, file_name, **kwargs):

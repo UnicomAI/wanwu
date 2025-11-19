@@ -353,7 +353,7 @@ FN_STOP_WORDS = [FN_RESULT, FN_EXIT]
 
 FN_CALL_TEMPLATE_INFO_ZH = """# 工具
 
-## 你拥有如下工具：
+## 你拥有如下工具： [EN] # You have the following tools:
 
 {tool_descs}"""
 

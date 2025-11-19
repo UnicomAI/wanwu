@@ -18,52 +18,52 @@ service OperateService {
 }
 
 message CreateSystemCustomTabReq {
-    string orgId = 1; // 租户ID
-    string userId = 2; // 用户ID
-    string mode = 3; // 模式
-    Tab tab = 4; // 标签页信息
+    string orgId = 1; // 租户ID [EN] Tenant ID
+    string userId = 2; // 用户ID [EN] User ID
+    string mode = 3; // 模式 [EN] model
+    Tab tab = 4; // 标签页信息 [EN] Tab information
 }
 
 message CreateSystemCustomLoginReq {
-    string orgId = 1; // 租户ID
-    string userId = 2; // 用户ID
+    string orgId = 1; // 租户ID [EN] Tenant ID
+    string userId = 2; // 用户ID [EN] User ID
     string mode = 3;
-    Login login = 4; // 登录页
+    Login login = 4; // 登录页 [EN] Login page
 }
 
 message CreateSystemCustomHomeReq {
-    string orgId = 1; // 租户ID
-    string userId = 2; // 用户ID
+    string orgId = 1; // 租户ID [EN] Tenant ID
+    string userId = 2; // 用户ID [EN] User ID
     string mode = 3;
-    Home home = 4; // 标题
+    Home home = 4; // 标题 [EN] title
 }
 
 message GetSystemCustomReq {
-    string mode = 1; // 模式
+    string mode = 1; // 模式 [EN] model
 }
 
 message SystemCustom {
-    Login login = 1; // 登录页
+    Login login = 1; // 登录页 [EN] Login page
     Tab tab = 2; // logo
-    Home home = 3; // 标题
+    Home home = 3; // 标题 [EN] title
 }
 
 message Tab {
-    string tabLogoPath = 1; // 标签页logo路径
-    string tabTitle = 2; // 标签页标题
+    string tabLogoPath = 1; // 标签页logo路径 [EN] Tab logo path
+    string tabTitle = 2; // 标签页标题 [EN] Tab title
 }
 
 message Login {
-    string loginBgPath = 1; // 登录页背景图
-    string loginLogo = 2; // 登录页logo路径
-    string loginWelcomeText = 3; // 登录页欢迎词
-    string loginButtonColor = 4; // 登录按钮颜色
+    string loginBgPath = 1; // 登录页背景图 [EN] Login page background image
+    string loginLogo = 2; // 登录页logo路径 [EN] Login page logo path
+    string loginWelcomeText = 3; // 登录页欢迎词 [EN] Login page welcome message
+    string loginButtonColor = 4; // 登录按钮颜色 [EN] Login button color
 }
 
 message Home {
-    string homeLogoPath = 1; // 平台logo路径
-    string homeName = 2; // 平台名称
-    string homeBgColor = 3; // 平台背景颜色
+    string homeLogoPath = 1; // 平台logo路径 [EN] Platform logo path
+    string homeName = 2; // 平台名称 [EN] Platform name
+    string homeBgColor = 3; // 平台背景颜色 [EN] Platform background color
 }
 
 message AddClientRecordReq {
@@ -81,9 +81,9 @@ message ClientStatistic{
 }
 
 message ClientOverViewInfo{
-    ClientOverviewItem cumulative = 1; // 累计
-    ClientOverviewItem new = 2; // 新增
-    ClientOverviewItem active = 3; // 日活
+    ClientOverviewItem cumulative = 1; // 累计 [EN] Grand total
+    ClientOverviewItem new = 2; // 新增 [EN] New
+    ClientOverviewItem active = 3; // 日活 [EN] Daily activity
 }
 
 message ClientOverviewItem {

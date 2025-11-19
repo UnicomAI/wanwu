@@ -1,7 +1,7 @@
 
 import json
 import logging  
-from utils.model_tools import req_unicom_llm_chat  #导入第三方工具模型
+from utils.model_tools import req_unicom_llm_chat  #导入第三方工具模型 [EN] Import third-party tool models
 from utils.actions.agents import Assistant,ReActChat
 from utils.actions.tools.base import BaseTool, register_tool
 from utils.actions.llm import get_chat_model
@@ -28,7 +28,7 @@ SECRET_KEY = config["ACTION"]['SECRET_KEY']
 
 
 def action_infer(query,plugin_list,function_calls_list,action_type = "qwen_agent",history = []):
-    # 从request中获取query
+    # 从request中获取query [EN] Get query from request
     llm = get_chat_model({
         # Use the model service provided by DashScope:
         'model': 'unicom-72b-chat-ali-v2',
@@ -64,7 +64,7 @@ def action_infer(query,plugin_list,function_calls_list,action_type = "qwen_agent
         
         print(f"plugin_list:{len(plugin_list)}")
         for i in range(0,len(plugin_list)):
-            # print(f"当前的plugin_list为：{plugin_list[i]}")
+            # print(f"当前的plugin_list为：{plugin_list[i]}") [EN] print(f"The current plugin_list is: {plugin_list[i]}")
             api_schema = plugin_list[i]['api_schema']
             # print(f"api_schema:{api_schema}")
             if 'api_auth' in plugin_list[i]:
@@ -80,7 +80,7 @@ def action_infer(query,plugin_list,function_calls_list,action_type = "qwen_agent
             api_cfg = openapi_schema_convert(api_schema,api_auth)
             if api_cfg:
                 plugin_cfg = api_cfg
-                # 注册function
+                # 注册function [EN] Register function
                 fn_list = add_openapi_plugin_to_additional_tool(plugin_cfg, [])
                 function_list.extend(fn_list)
         
@@ -130,16 +130,16 @@ def list_all_files(directory):
     return all_files
 
 
-###批量配置action
+###批量配置action [EN] ##Batch configuration action
 def actions_config(act_filepaths):
     configurations = []
     for i in range(0,len(act_filepaths)):
         if ".yaml" in act_filepaths[i] or ".yml" in act_filepaths[i]:
             with open(act_filepaths[i], 'r', encoding='utf-8') as yaml_file:
                 api_schema = yaml.safe_load(yaml_file)
-                ##保存为json字符串格式
+                ##保存为json字符串格式 [EN] #Save as json string format
                 api_schema = json.dumps(api_schema)
-                ##json解析为字典格式
+                ##json解析为字典格式 [EN] #json parsed into dictionary format
                 api_schema = json.loads(api_schema)
                 #print(api_schema)
                 #result = LLMActions(api_schema, api_auth)
@@ -157,22 +157,22 @@ if __name__ == '__main__':
     func_list = list_all_files('function_files')
     func_tools = actions_config(func_list)
     function_names = [func["function_name"] for func in func_tools]
-    # query = "北京雍和宫附近有哪些书店，那里今天的天气如何"
-    # query = "北京今天天气如何"
-    # query = "北京清友园附近的咖啡店"
-    # query = "宁夏大学招生专业"
-    # query = "宁夏大学附近的书店"
-    # query = "请推荐北京西城区的火锅店"
-    # query = "请推荐长沙雨花区的臭豆腐店和他们在哪里"
-    # query = "北京颐和园地理位置"
+    # query = "北京雍和宫附近有哪些书店，那里今天的天气如何" [EN] query = "What bookstores are near the Lama Temple in Beijing and what is the weather there today?"
+    # query = "北京今天天气如何" [EN] query = "How is the weather in Beijing today?"
+    # query = "北京清友园附近的咖啡店" [EN] query = "Coffee shops near Qingyouyuan in Beijing"
+    # query = "宁夏大学招生专业" [EN] query = "Ningxia University Admissions Major"
+    # query = "宁夏大学附近的书店" [EN] query = "Bookstores near Ningxia University"
+    # query = "请推荐北京西城区的火锅店" [EN] query = "Please recommend a hot pot restaurant in Xicheng District, Beijing"
+    # query = "请推荐长沙雨花区的臭豆腐店和他们在哪里" [EN] query = "Please recommend stinky tofu shops in Yuhua District, Changsha and where they are"
+    # query = "北京颐和园地理位置" [EN] query = "The location of the Summer Palace in Beijing"
     query = "帮我查询2024年5月份的销量"
-    # query = "8.15日的一张飞机票"
-    # query = "帮我生成一个关于人工智能发展历史的思维导图"
+    # query = "8.15日的一张飞机票" [EN] query = "A plane ticket on August 15th"
+    # query = "帮我生成一个关于人工智能发展历史的思维导图" [EN] query = "Help me generate a mind map about the history of artificial intelligence development"
     
     # action_types = ['qwen_agent','modelscope_agent','yanjing_function_call']
     # action_types = ['yuanjing_function_call']
     action_types = ['qwen_agent']
-    # tools = [{"api_schema": {"info": {"description": "根据指定的地点POI，推荐附近的美食。", "title": "recommendation_v2_1 API", "version": "1.0.0"}, "openapi": "3.0.0", "paths": {"/run_for_bigmodel/07ee0365-3aa3-42c1-8ee3-f906e691d584/recommendation_v2_1": {"post": {"description": "根据指定的地点POI，推荐附近的美食。, ", "operationId": "action_recommendation_v2_1", "parameters": [{"in": "header", "name": "content-type", "required": True, "schema": {"example": "application/json", "type": "string"}}], "requestBody": {"content": {"application/json": {"schema": {"properties": {"food": {"description": "美食名称，例如烤鸭、咖啡馆、盐水鸭等。", "type": "string"}, "poi": {"description": "地点名称，例如中国、广州市、海淀区、和平街道等名称。", "type": "string"}}, "required": ["poi", "food"], "type": "object"}}}}, "responses": {"200": {"content": {"application/json": {"schema": {"type": "object"}}}, "description": "成功获取查询结果"}, "default": {"content": {"application/json": {"schema": {"type": "object"}}}, "description": "请求失败时的错误信息"}}, "summary": "recommendation"}}}, "servers": [{"url": "https://maas.ai-yuanjing.com/plugin/api"}]}}]
+    # tools = [{"api_schema": {"info": {"description": "根据指定的地点POI，推荐附近的美食。", "title": "recommendation_v2_1 API", "version": "1.0.0"}, "openapi": "3.0.0", "paths": {"/run_for_bigmodel/07ee0365-3aa3-42c1-8ee3-f906e691d584/recommendation_v2_1": {"post": {"description": "根据指定的地点POI，推荐附近的美食。, ", "operationId": "action_recommendation_v2_1", "parameters": [{"in": "header", "name": "content-type", "required": True, "schema": {"example": "application/json", "type": "string"}}], "requestBody": {"content": {"application/json": {"schema": {"properties": {"food": {"description": "美食名称，例如烤鸭、咖啡馆、盐水鸭等。", "type": "string"}, "poi": {"description": "地点名称，例如中国、广州市、海淀区、和平街道等名称。", "type": "string"}}, "required": ["poi", "food"], "type": "object"}}}}, "responses": {"200": {"content": {"application/json": {"schema": {"type": "object"}}}, "description": "成功获取查询结果"}, "default": {"content": {"application/json": {"schema": {"type": "object"}}}, "description": "请求失败时的错误信息"}}, "summary": "recommendation"}}}, "servers": [{"url": "https://maas.ai-yuanjing.com/plugin/api"}]}}] [EN] tools = [{"api_schema": {"info": {"description": "Recommend nearby food based on the specified location POI.", "title": "recommendation_v2_1 API", "version": "1.0.0"}, "openapi": "3.0.0", "paths": {"/run_for_bigmodel/07ee0365-3aa3-42c1-8ee3-f906e691d584/recommendation_v2_1": {"post": {"description": "Recommend nearby food based on the specified location POI., ", "operationId": "action_recommendation_v2_1", "parameters": [{"in": "header", "name": "content-type", "required": True, "schema": {"example": "application/json", "type": "string"}}], "requestBody": {"content": {"application/json": {"schema": {"properties": {"food": {"description": "Name of food, such as roast duck, cafe, salted duck, etc.", "type": "string"}, "poi": {"description": "Place name, such as China, Guangzhou City, Haidian District, Heping Street, etc.", "type": "string"}}, "required": ["poi", "food"], "type": "object"}}}}, "responses": {"200": {"content": {"application/json": {"schema": {"type": "object"}}}, "description": "Successfully obtained query results"}, "default": {"content": {"application/json": {"schema": {"type": "object"}}}, "description": "Error message when the request fails"}}, "summary": "recommendation"}}}, "servers": [{"url": "https://maas.ai-yuanjing.com/plugin/api"}]}}]
     
     
     '''
@@ -403,7 +403,7 @@ if __name__ == '__main__':
     #             # print(datajson)
     #             incremental_content = datajson["data"]["choices"][0]["message"]["content"]
     #             content += incremental_content
-    # print(f"模型输出结果为：\n{content}")
+    # print(f"模型输出结果为：\n{content}") [EN] print(f"The model output result is:\n{content}")
 
 
 

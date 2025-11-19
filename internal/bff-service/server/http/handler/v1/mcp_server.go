@@ -10,11 +10,11 @@ import (
 // CreateMCPServer
 //
 //	@Tags			mcp.server
-//	@Summary		创建MCP Server
-//	@Description	创建MCP Server
+//	@Summary		创建MCP Server [EN] @Summary Create MCP Server
+//	@Description	创建MCP Server [EN] @Description Create MCP Server
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.MCPServerCreateReq	true	"MCP Server信息"
+//	@Param			data	body		request.MCPServerCreateReq	true	"MCP Server信息" [EN] @Param data body request.MCPServerCreateReq true "MCP Server information"
 //	@Success		200		{object}	response.Response{data=response.MCPServerCreateResp}
 //	@Router			/mcp/server [post]
 func CreateMCPServer(ctx *gin.Context) {
@@ -29,11 +29,11 @@ func CreateMCPServer(ctx *gin.Context) {
 // UpdateMCPServer
 //
 //	@Tags			mcp.server
-//	@Summary		更新MCP Server
-//	@Description	更新MCP Server
+//	@Summary		更新MCP Server [EN] @Summary Update MCP Server
+//	@Description	更新MCP Server [EN] @Description Update MCP Server
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.MCPServerUpdateReq	true	"MCP Server信息"
+//	@Param			data	body		request.MCPServerUpdateReq	true	"MCP Server信息" [EN] @Param data body request.MCPServerUpdateReq true "MCP Server information"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/mcp/server [put]
 func UpdateMCPServer(ctx *gin.Context) {
@@ -47,8 +47,8 @@ func UpdateMCPServer(ctx *gin.Context) {
 // GetMCPServer
 //
 //	@Tags			mcp.server
-//	@Summary		获取MCP Server详情
-//	@Description	获取MCP Server详情
+//	@Summary		获取MCP Server详情 [EN] @Summary Get MCP Server details
+//	@Description	获取MCP Server详情 [EN] @Description Get MCP Server details
 //	@Accept			json
 //	@Produce		json
 //	@Param			mcpServerId	query		string	true	"mcpServerId"
@@ -62,8 +62,8 @@ func GetMCPServer(ctx *gin.Context) {
 // DeleteMCPServer
 //
 //	@Tags			mcp.server
-//	@Summary		删除MCP Server
-//	@Description	删除MCP Server
+//	@Summary		删除MCP Server [EN] @Summary Delete MCP Server
+//	@Description	删除MCP Server [EN] @Description Delete MCP Server
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.MCPServerIDReq	true	"mcpServerId"
@@ -81,11 +81,11 @@ func DeleteMCPServer(ctx *gin.Context) {
 // GetMCPServerList
 //
 //	@Tags			mcp.server
-//	@Summary		获取MCP Server列表
-//	@Description	获取MCP Server列表
+//	@Summary		获取MCP Server列表 [EN] @Summary Get the MCP Server list
+//	@Description	获取MCP Server列表 [EN] @Description Get MCP Server list
 //	@Accept			json
 //	@Produce		json
-//	@Param			name	query		string	false	"mcp server名称"
+//	@Param			name	query		string	false	"mcp server名称" [EN] @Param name query string false "mcp server name"
 //	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.MCPServerInfo}}
 //	@Router			/mcp/server/list [get]
 func GetMCPServerList(ctx *gin.Context) {
@@ -96,11 +96,11 @@ func GetMCPServerList(ctx *gin.Context) {
 // CreateMCPServerTool
 //
 //	@Tags			mcp.server
-//	@Summary		创建MCP Server工具
-//	@Description	创建MCP Server工具
+//	@Summary		创建MCP Server工具 [EN] @Summary Create MCP Server tool
+//	@Description	创建MCP Server工具 [EN] @Description Create MCP Server tool
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.MCPServerToolCreateReq	true	"MCP Server工具信息"
+//	@Param			data	body		request.MCPServerToolCreateReq	true	"MCP Server工具信息" [EN] @Param data body request.MCPServerToolCreateReq true "MCP Server tool information"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/mcp/server/tool [post]
 func CreateMCPServerTool(ctx *gin.Context) {
@@ -114,11 +114,11 @@ func CreateMCPServerTool(ctx *gin.Context) {
 // UpdateMCPServerTool
 //
 //	@Tags			mcp.server
-//	@Summary		更新MCP Server工具
-//	@Description	更新MCP Server工具
+//	@Summary		更新MCP Server工具 [EN] @Summary Update MCP Server tools
+//	@Description	更新MCP Server工具 [EN] @Description Update MCP Server tool
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.MCPServerToolUpdateReq	true	"MCP Server工具信息"
+//	@Param			data	body		request.MCPServerToolUpdateReq	true	"MCP Server工具信息" [EN] @Param data body request.MCPServerToolUpdateReq true "MCP Server tool information"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/mcp/server/tool [put]
 func UpdateMCPServerTool(ctx *gin.Context) {
@@ -132,8 +132,8 @@ func UpdateMCPServerTool(ctx *gin.Context) {
 // DeleteMCPServerTool
 //
 //	@Tags			mcp.server
-//	@Summary		删除MCP Server工具
-//	@Description	删除MCP Server工具
+//	@Summary		删除MCP Server工具 [EN] @Summary Delete MCP Server tool
+//	@Description	删除MCP Server工具 [EN] @Description Delete MCP Server tool
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.MCPServerToolIDReq	true	"mcpServerToolId"
@@ -151,11 +151,11 @@ func DeleteMCPServerTool(ctx *gin.Context) {
 // CreateMCPServerOpenAPITool
 //
 //	@Tags			tool
-//	@Summary		创建openapi工具
-//	@Description	创建openapi工具
+//	@Summary		创建openapi工具 [EN] @Summary Create openapi tool
+//	@Description	创建openapi工具 [EN] @Description Create openapi tool
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.MCPServerOpenAPIToolCreate	true	"openapi工具信息"
+//	@Param			data	body		request.MCPServerOpenAPIToolCreate	true	"openapi工具信息" [EN] @Param data body request.MCPServerOpenAPIToolCreate true "openapi tool information"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/mcp/server/tool/openapi [post]
 func CreateMCPServerOpenAPITool(ctx *gin.Context) {

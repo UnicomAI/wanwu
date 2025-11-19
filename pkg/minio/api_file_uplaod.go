@@ -139,13 +139,13 @@ func (c *client) createBucketIfAbsent(ctx context.Context, bucketName string) (b
 	}
 
 	if !exists {
-		// 创建存储桶
+		// 创建存储桶 [EN] Create bucket
 		err = c.cli.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
 		if err != nil {
 			log.Errorf("create bucket %s error %s", BucketFileUpload, err)
 			return false, err
 		}
-		// 设置存储桶策略以公开访问。
+		// 设置存储桶策略以公开访问。 [EN] Set bucket policy for public access.
 		policy := `{
     "Version": "2012-10-17",
     "Statement": [
@@ -185,7 +185,7 @@ func (c *client) createBucketIfAbsent(ctx context.Context, bucketName string) (b
         }
     ]
 }`
-		// 设置存储桶策略。
+		// 设置存储桶策略。 [EN] Set bucket policy.
 		err = c.cli.SetBucketPolicy(ctx, bucketName, policy)
 		if err != nil {
 			return false, err

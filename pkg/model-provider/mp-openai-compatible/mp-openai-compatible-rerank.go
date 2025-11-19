@@ -9,8 +9,8 @@ import (
 
 type Rerank struct {
 	ApiKey      string `json:"apiKey"`      // ApiKey
-	EndpointUrl string `json:"endpointUrl"` // 推理url
-	ContextSize *int   `json:"contextSize"` // 上下文长度
+	EndpointUrl string `json:"endpointUrl"` // 推理url [EN] inference url
+	ContextSize *int   `json:"contextSize"` // 上下文长度 [EN] context length
 }
 
 func (cfg *Rerank) Tags() []mp_common.Tag {

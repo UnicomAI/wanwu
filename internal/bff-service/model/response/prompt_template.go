@@ -5,9 +5,9 @@ import "github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 type PromptTemplateDetail struct {
 	TemplateId string `json:"templateId" validate:"required"`
 	request.AppBriefConfig
-	Category string `json:"category"` // 模板分类
-	Author   string `json:"author"`   // 作者
-	Prompt   string `json:"prompt"`   // 提示词
+	Category string `json:"category"` // 模板分类 [EN] Template classification
+	Author   string `json:"author"`   // 作者 [EN] author
+	Prompt   string `json:"prompt"`   // 提示词 [EN] prompt word
 }
 
 type PromptIDData struct {

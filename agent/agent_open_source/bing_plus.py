@@ -26,7 +26,7 @@ import pytz
 import concurrent.futures
 import traceback
 
-# 允许在现有事件循环中嵌套使用 asyncio
+# 允许在现有事件循环中嵌套使用 asyncio [EN] Allows nested use of asyncio within existing event loops
 nest_asyncio.apply()
 
 import logging
@@ -60,8 +60,8 @@ token_manager = AccessTokenManager()
 def clean_text(text):
     """清除文本中的特殊字符和多余的空白，以及HTML标签。"""
     patterns = [
-        r'\xa0+', r'\u3000', r'\t+', r'\r+', r'\n+',   # 清除特殊空白字符和多行换行符
-        r'<[/]?b>|&gt;|&lt;'                        # 清除HTML标签
+        r'\xa0+', r'\u3000', r'\t+', r'\r+', r'\n+',   # 清除特殊空白字符和多行换行符 [EN] Clear special whitespace characters and multiline newlines
+        r'<[/]?b>|&gt;|&lt;'                        # 清除HTML标签 [EN] Clear HTML tags
     ]
     for pattern in patterns:
         text = re.sub(pattern, '', text)
@@ -70,7 +70,7 @@ def clean_text(text):
 def clean_list(data_list, black_domains=None):
     """对列表中的每个元素进行清理，并跳过包含指定黑名单网站的链接。"""
     if black_domains is None:
-        # 如果没有传入黑名单网站列表，则默认使用 bendibao.com （天气预报不准确）
+        # 如果没有传入黑名单网站列表，则默认使用 bendibao.com （天气预报不准确） [EN] If no blacklist website list is passed in, bendibao.com is used by default (the weather forecast is inaccurate)
         
         black_domains = ["bendibao.com"]
 
@@ -85,7 +85,7 @@ def clean_list(data_list, black_domains=None):
             "dateLastCrawled": item.get("dateLastCrawled", "")
         }
         for item in data_list
-        # 跳过 link 中包含任意黑名单域名的元素
+        # 跳过 link 中包含任意黑名单域名的元素 [EN] Skip elements in links containing any blacklisted domain name
         if not any(domain in item.get("link", "") for domain in black_domains)
     ]
 
@@ -93,7 +93,7 @@ def clean_list(data_list, black_domains=None):
 
 
 
-# 主流程：step1：Bing 搜索
+# 主流程：step1：Bing 搜索 [EN] Main process: step1: Bing search
 @advanced_timing_decorator(task_name="bing_cleaned_search")
 def bing_cleaned_search(query, result_len=BING_RESULT_LEN, days_limit=-1,setLang ="zh-hans"):
     """
@@ -108,57 +108,57 @@ def bing_cleaned_search(query, result_len=BING_RESULT_LEN, days_limit=-1,setLang
     list: 根据查询条件和筛选天数返回的搜索结果列表。
     """
 
-    # 检查是否设置了 Bing 搜索相关的环境变量
+    # 检查是否设置了 Bing 搜索相关的环境变量 [EN] Check whether Bing search related environment variables are set
     if not (BING_SEARCH_URL and BING_SUBSCRIPTION_KEY):
-        # 如果没有设置相关环境变量，则返回一个提示信息
+        # 如果没有设置相关环境变量，则返回一个提示信息 [EN] If the relevant environment variables are not set, a prompt message will be returned.
         return [{"type":"SE",
                  "snippet": "please set BING_SUBSCRIPTION_KEY and BING_SEARCH_URL in os ENV",
                  "title": "env info is not found",
                  "link": "https://python.langchain.com/en/latest/modules/agents/tools/examples/bing_search.html"}]
     
-    # 初始化 Bing 搜索器对象
+    # 初始化 Bing 搜索器对象 [EN] Initialize the Bing searcher object
     bing_searcher = BingSearchAPIWrapper(bing_subscription_key=BING_SUBSCRIPTION_KEY,
                                          bing_search_url=BING_SEARCH_URL)
 
-    # 获取 Bing 搜索结果 
+    # 获取 Bing 搜索结果 [EN] Get Bing search results 
     bing_result = bing_searcher.results(query, result_len)
     
 #     print(len(bing_result))    
 #     print(json.dumps(bing_result,ensure_ascii=False))
 
-    # 如果 days_limit =-1，表示不进行日期筛选，直接返回清理后的搜索结果
+    # 如果 days_limit =-1，表示不进行日期筛选，直接返回清理后的搜索结果 [EN] If days_limit =-1, it means no date filtering is performed and the cleaned search results are returned directly.
     if days_limit == -1:
         return clean_list(bing_result)[:result_len]
 
-    # 获取东八区（中国标准时间）时区
+    # 获取东八区（中国标准时间）时区 [EN] Get the time zone of East Eighth District (China Standard Time)
     tz = pytz.timezone('Asia/Shanghai')
 
-    # 获取当前的东八区时间
+    # 获取当前的东八区时间 [EN] Get the current Dongba District time
     today = datetime.datetime.now(tz)
 
-    # 计算指定天数之前的日期，作为筛选的截止日期
+    # 计算指定天数之前的日期，作为筛选的截止日期 [EN] Calculate the date before the specified number of days as the cut-off date for filtering
     cutoff_date = today - datetime.timedelta(days=days_limit)
 
-    # 筛选符合条件的搜索结果（包括发布日期为空或者在指定天数内的结果）
+    # 筛选符合条件的搜索结果（包括发布日期为空或者在指定天数内的结果） [EN] Filter search results that match the criteria (including results with a blank publication date or within a specified number of days)
     recent_articles = []
     
     for item in bing_result:
-        # 获取发布日期字段，如果不存在则返回空字符串
+        # 获取发布日期字段，如果不存在则返回空字符串 [EN] Gets the publication date field, returning an empty string if it does not exist
         date_published_str = item.get('datePublished', '')  
         
         if not date_published_str:
-            # 如果 datePublished 为空或缺失，则将此条目加入筛选结果
+            # 如果 datePublished 为空或缺失，则将此条目加入筛选结果 [EN] If datePublished is empty or missing, add this entry to the filter results
             recent_articles.append(item)
         else:
             try:
-                # 将发布日期字符串解析为 datetime 对象，并转换为东八区时间
+                # 将发布日期字符串解析为 datetime 对象，并转换为东八区时间 [EN] Parse the release date string into a datetime object and convert it to East Eighth District time
                 published_date = datetime.datetime.strptime(date_published_str, "%Y-%m-%d").replace(tzinfo=pytz.UTC).astimezone(tz)
                 
-                # 如果发布日期在指定的天数范围内，则将该条目加入筛选结果
+                # 如果发布日期在指定的天数范围内，则将该条目加入筛选结果 [EN] If the release date is within the specified number of days, add the entry to the filter results
                 if published_date > cutoff_date:
                     recent_articles.append(item)
             except ValueError:
-                # 如果日期格式不正确，打印警告并将该条目包含在筛选结果中
+                # 如果日期格式不正确，打印警告并将该条目包含在筛选结果中 [EN] If the date format is incorrect, print a warning and include the entry in the filter results
                 print(f"Warning: Invalid date format for {date_published_str}, including it in results.")
                 recent_articles.append(item)
    
@@ -166,7 +166,7 @@ def bing_cleaned_search(query, result_len=BING_RESULT_LEN, days_limit=-1,setLang
     # print(len(recent_articles))
     # print(json.dumps(recent_articles,ensure_ascii=False))
 
-    # 清理并返回筛选后的搜索结果，限制结果数量为 result_len
+    # 清理并返回筛选后的搜索结果，限制结果数量为 result_len [EN] Clean and return filtered search results, limiting the number of results to result_len
     return clean_list(recent_articles)[:result_len]
 
 @advanced_timing_decorator(task_name="build_bing_query")
@@ -211,11 +211,11 @@ async def req_url_parser(bing_single_item, query, sentence_size, time_out, is_go
                 docs = result_dict.get("docs", [])
                 elapsed_time = (datetime.datetime.now() - start_time).total_seconds()
                 if not docs:
-                    # logger.info(f"解析为空:{query[:QUERY_SHORT]}  ---> 耗时: {elapsed_time}s ---> {bing_single_item['link']}")
+                    # logger.info(f"解析为空:{query[:QUERY_SHORT]}  ---> 耗时: {elapsed_time}s ---> {bing_single_item['link']}") [EN] logger.info(f"Resolved as empty: {query[:QUERY_SHORT]} ---> Time consuming: {elapsed_time}s ---> {bing_single_item['link']}")
                     return []
 
                 logger.info(f"解析【正常】:{query[:QUERY_SHORT]}  ---> 耗时: {elapsed_time}s ---> 个数：{len(docs)}---> {bing_single_item['link']}")
-                # logger.info(f"解析【正常】:{docs}")
+                # logger.info(f"解析【正常】:{docs}") [EN] logger.info(f"Parse [normal]:{docs}")
 
                 updated_data_list = [
                     {
@@ -234,7 +234,7 @@ async def req_url_parser(bing_single_item, query, sentence_size, time_out, is_go
             logger.error(f"Client error during request: {e}")
         except asyncio.TimeoutError:
             elapsed_time = (datetime.datetime.now() - start_time).total_seconds()
-            # logger.info(f"解析超时:{query[:QUERY_SHORT]}  ---> 耗时: {elapsed_time}s ---> {bing_single_item['link']}")
+            # logger.info(f"解析超时:{query[:QUERY_SHORT]}  ---> 耗时: {elapsed_time}s ---> {bing_single_item['link']}") [EN] logger.info(f"Parse timeout: {query[:QUERY_SHORT]} ---> Time consuming: {elapsed_time}s ---> {bing_single_item['link']}")
         except Exception as e:
             pass
             # logger.error(f"Unexpected error during request: {e}")
@@ -246,12 +246,12 @@ async def process_url_with_fallback(bing_single_item, query, sentence_size, time
         try:
             return await req_url_parser(bing_single_item, query, sentence_size, time_out, is_google)
         except asyncio.CancelledError:
-            return []  # 任务被取消，返回空列表
+            return []  # 任务被取消，返回空列表 [EN] The task is canceled and an empty list is returned.
         except Exception as e:
             logger.error(f"解析器任务出错: {e}")
             return []
 
-    # 创建多个并行任务
+    # 创建多个并行任务 [EN] Create multiple parallel tasks
     tasks = [
         #asyncio.create_task(fetch_parser(0)),
         #asyncio.create_task(fetch_parser(1)),
@@ -270,31 +270,31 @@ async def process_url_with_fallback(bing_single_item, query, sentence_size, time
 
     try:
         while tasks:
-            # 等待最先完成的任务
+            # 等待最先完成的任务 [EN] Wait for the first task to complete
             done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
 
             success_flag = False
             for task in done:
                 result = await task
-                if result:  # 如果该任务返回了有效结果
-                    # 取消所有其他未完成的任务
+                if result:  # 如果该任务返回了有效结果 [EN] If the task returns valid results
+                    # 取消所有其他未完成的任务 [EN] Cancel all other outstanding tasks
                     for p in pending:
                         p.cancel()
                     
-                    await asyncio.gather(*pending, return_exceptions=True)  # 确保任务完全终止
+                    await asyncio.gather(*pending, return_exceptions=True)  # 确保任务完全终止 [EN] Make sure the task is completely terminated
                     
-                    return result  # 只返回第一个成功的结果
+                    return result  # 只返回第一个成功的结果 [EN] Only return the first successful result
 
-            # 如果 `done` 任务都返回了空数据，则继续等待剩余任务
+            # 如果 `done` 任务都返回了空数据，则继续等待剩余任务 [EN] If all `done` tasks return empty data, continue to wait for the remaining tasks.
             tasks = list(pending)
 
     finally:
-        # 确保所有任务都被取消，避免资源泄露
+        # 确保所有任务都被取消，避免资源泄露 [EN] Ensure all tasks are canceled to avoid resource leakage
         for task in tasks:
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
 
-    return bing_single_item  # 如果所有任务都失败，返回 bing原始结果
+    return bing_single_item  # 如果所有任务都失败，返回 bing原始结果 [EN] If all tasks fail, return the original result of bing
     # return []
 
 
@@ -317,23 +317,23 @@ async def process_urls(hybrid_search_list, query, sentence_size, time_out, targe
                     if success_count >= target_success:
                         logger.info(f"目标已达成，成功获取 {success_count} 个结果，开始取消剩余任务。")
 
-                        # 取消所有未完成的任务
+                        # 取消所有未完成的任务 [EN] Cancel all unfinished tasks
                         for task in tasks:
                             if not task.done():
                                 task.cancel()
                         
-                        break  # 立即退出循环
+                        break  # 立即退出循环 [EN] Exit the loop now
             except asyncio.CancelledError:
                 logger.info("process_urls 任务被取消")
-                return aggregated_results  # 确保返回已有结果
+                return aggregated_results  # 确保返回已有结果 [EN] Make sure to return existing results
             except Exception as e:
-                # logger.error(f"任务执行出错: {e}")
+                # logger.error(f"任务执行出错: {e}") [EN] logger.error(f"Task execution error: {e}")
                 pass
 
     finally:
         for task in tasks:
             task.cancel()
-        await asyncio.sleep(0)  # 让出控制权，确保取消生效
+        await asyncio.sleep(0)  # 让出控制权，确保取消生效 [EN] Give up control and ensure cancellation takes effect
         await asyncio.gather(*tasks, return_exceptions=True)
 
     return aggregated_results
@@ -341,7 +341,7 @@ async def process_urls(hybrid_search_list, query, sentence_size, time_out, targe
 
 
 
-# 定义并发查询函数
+# 定义并发查询函数 [EN] Define concurrent query functions
 @advanced_timing_decorator(task_name="handle_sub_query")
 def handle_sub_query(
     search_url,
@@ -363,11 +363,11 @@ def handle_sub_query(
     logger.info(f"search_url打印出来: {search_url}")
     logger.info(f"search_key打印出来: {search_key}")
 
-    #---- 调用bing original api查询
+    #---- 调用bing original api查询 [EN] ---- Call bing original api query
     hybrid_search_list = hybrid_clean_search(sub_query, search_url,search_key,result_len=result_len)  
     # bing_search_list = bing_cleaned_search(sub_query,result_len = result_len )
     
-    #---- url内容抓取解析
+    #---- url内容抓取解析 [EN] ---- URL content capture and analysis
     start_time = datetime.datetime.now()
     sub_results = asyncio.run(process_urls(hybrid_search_list, sub_query, sentence_size, time_out, bing_target_success))
     # sub_results = asyncio.run(process_urls_batch(hybrid_search_list, sub_query, sentence_size, time_out,batch_size))
@@ -379,15 +379,15 @@ def handle_sub_query(
 
     if sub_results:
         if isConcurrent:
-            # 并发调用时，将sub_query后面增加箭头，目的是优化给LLM的prompt 
+            # 并发调用时，将sub_query后面增加箭头，目的是优化给LLM的prompt [EN] When calling concurrently, add an arrow after sub_query to optimize the prompt to LLM. 
             for sub_result in sub_results:
                 sub_result["sub_query"] = sub_query + "-> "
     else:   
-        # 如果URL解析接口为空，使用搜索引擎原始结果
+        # 如果URL解析接口为空，使用搜索引擎原始结果 [EN] If the URL parsing interface is empty, the original search engine results will be used.
         sub_results.extend(hybrid_search_list)
     
     if is_rerank:        
-        # 使用新的重排序函数
+        # 使用新的重排序函数 [EN] Use new reorder function
         sub_aggregated_results = hybrid_rerank_results(sub_query,search_rerank_id, sub_results, top_k, threshold)
         return sub_aggregated_results,hybrid_search_list
 
@@ -441,10 +441,10 @@ def req_bing_multiquery(
                 aggregated_results.extend(result)
                 aggregated_origin_results.extend(origin_result)
             except Exception as e:
-                # 打印异常的详细信息
+                # 打印异常的详细信息 [EN] Print exception details
                 logger.info(f"An exception occurred during concurrent execution: {e}")
                 traceback.print_exc()
-                # 抛出异常以确保调用者知道发生了错误
+                # 抛出异常以确保调用者知道发生了错误 [EN] Throw an exception to ensure the caller knows an error has occurred
                 raise
     
     return aggregated_results,aggregated_origin_results
@@ -455,14 +455,14 @@ def combine_search_list(search_list):
     for item in search_list:
         link = item['link']
         if link in combined_dict:
-            # 合并snippet，使用换行符连接
+            # 合并snippet，使用换行符连接 [EN] Merge snippets, use newlines to connect
             combined_dict[link]['snippet'] += '\n' + item['snippet']
             
         else:
-            # 初始化字典项，复制当前元素以避免修改原数据
+            # 初始化字典项，复制当前元素以避免修改原数据 [EN] Initialize dictionary items, copying current elements to avoid modifying the original data
             combined_dict[link] = item.copy()
 
-    # 将合并后的字典转换回列表形式
+    # 将合并后的字典转换回列表形式 [EN] Convert the merged dictionary back to list form
     combined_list = list(combined_dict.values())
     return combined_list
 
@@ -476,13 +476,13 @@ def hybrid_clean_search(
     bocha_weight=BOCHA_WEIGHT,
     setLang ="zh-hans"
     ):
-    # 创建一个线程池，对联网查询结果进行emb和bm25两路并发排序
+    # 创建一个线程池，对联网查询结果进行emb和bm25两路并发排序 [EN] Create a thread pool to perform emb and bm25 concurrent sorting on network query results.
     bing_search_list=[]
     bocha_search_list=[]
 
     
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        # 准备两个任务的参数
+        # 准备两个任务的参数 [EN] Prepare parameters for two tasks
 
         try:
             if bing_weight==1.0:
@@ -508,10 +508,10 @@ def hybrid_clean_search(
             return hybrid_search_list
                 
         except Exception as e:
-            # 打印异常的详细信息
+            # 打印异常的详细信息 [EN] Print exception details
             logger.info(f"An exception occurred during concurrent execution: {e}")
             traceback.print_exc()
-            # 抛出异常以确保调用者知道发生了错误
+            # 抛出异常以确保调用者知道发生了错误 [EN] Throw an exception to ensure the caller knows an error has occurred
             raise
         
 
@@ -520,7 +520,7 @@ def get_bing_multi_lang_query(sub_query_list_cn,sub_query_list_en,days_limit=-1,
     prompt =''
     aggregated_results = []
     
-    #----bing query改写
+    #----bing query改写 [EN] ----Bing query rewritten
     start_time = datetime.datetime.now()    
    
     
@@ -582,14 +582,14 @@ def deduplicate_by_title(search_list):
     for item in search_list:
         title = item['title']
         if title in combined_dict:
-            # 如果标题已存在，比较snippet长度，保留较长的那个
+            # 如果标题已存在，比较snippet长度，保留较长的那个 [EN] If the title already exists, compare the snippet lengths and keep the longer one.
             if len(item['snippet']) > len(combined_dict[title]['snippet']):
                 combined_dict[title] = item.copy()
         else:
-            # 初始化字典项，复制当前元素以避免修改原数据
+            # 初始化字典项，复制当前元素以避免修改原数据 [EN] Initialize dictionary items, copying current elements to avoid modifying the original data
             combined_dict[title] = item.copy()
 
-    # 将合并后的字典转换回列表形式
+    # 将合并后的字典转换回列表形式 [EN] Convert the merged dictionary back to list form
     combined_list = list(combined_dict.values())
     final_length = len(combined_list)
     
@@ -602,7 +602,7 @@ def get_bing_multi_search_result(query,bing_top_k,bing_time_out,bing_target_succ
     prompt =''
     aggregated_results = []
     
-    #----bing query改写
+    #----bing query改写 [EN] ----Bing query rewritten
     start_time = datetime.datetime.now()    
     sub_query_list = build_bing_query(query)
 
@@ -615,7 +615,7 @@ def get_bing_multi_search_result(query,bing_top_k,bing_time_out,bing_target_succ
 
     sub_query_num =len(sub_query_list)
 
-    # 控制多个子查询时total_top_k:  =sub_query_num * top_k_ration * BING_TOP_K
+    # 控制多个子查询时total_top_k:  =sub_query_num * top_k_ration * BING_TOP_K [EN] When controlling multiple subqueries total_top_k: =sub_query_num * top_k_ration * BING_TOP_K
     if sub_query_num <= 3:
         top_k_ration = 1
     elif sub_query_num <= 6:
@@ -644,51 +644,51 @@ def get_bing_multi_search_result(query,bing_top_k,bing_time_out,bing_target_succ
     
     logger.info(f"aggregated_results 是什么: {aggregated_results}")
     
-    #----准备提示词
+    #----准备提示词 [EN] ----Prepare prompt words
     prompt = build_bing_prompt_from_search_list(query,aggregated_results,auto_citation,model)    
 
     logger.info(f"prompt是:{prompt}")
     return prompt,aggregated_results
 async def async_search(query, bing_top_k,bing_time_out,bing_target_success,bing_result_len,model,search_url,search_key,search_rerank_id,days_limit=-1, auto_citation=False):
-    # 假设 get_bing_multi_search_result 是同步的，需要运行在线程池中
+    # 假设 get_bing_multi_search_result 是同步的，需要运行在线程池中 [EN] Assume get_bing_multi_search_result is synchronous and needs to run in the thread pool
     loop = asyncio.get_running_loop()
     result = await loop.run_in_executor(
-        None,  # 默认线程池
-        get_bing_multi_search_result,  # 同步函数
-        query,  # 参数1
+        None,  # 默认线程池 [EN] Default thread pool
+        get_bing_multi_search_result,  # 同步函数 [EN] Synchronous function
+        query,  # 参数1 [EN] Parameter 1
         bing_top_k,
         bing_time_out,
         bing_target_success,
         bing_result_len,
-        model,  # 参数2
+        model,  # 参数2 [EN] Parameter 2
         search_url,
         search_key,
         search_rerank_id,
-        days_limit,  # 参数2
-        auto_citation# 参数3
+        days_limit,  # 参数2 [EN] Parameter 2
+        auto_citation# 参数3 [EN] Parameter 3
     )
     return result
     
 
-# 启动任务并返回任务对象
+# 启动任务并返回任务对象 [EN] Start the task and return the task object
 def start_async_search(loop, query,bing_top_k,bing_time_out,bing_target_success,bing_result_len,model,days_limit, auto_citation,search_url,search_key,search_rerank_id):
     task = loop.create_task(async_search(query, bing_top_k,bing_time_out,bing_target_success,bing_result_len,model,search_url,search_key,search_rerank_id,days_limit, auto_citation))
-    # print("异步任务已启动，不会阻塞后续代码")
+    # print("异步任务已启动，不会阻塞后续代码") [EN] print("The asynchronous task has been started and will not block subsequent code")
     return task
 
-# 用于运行异步函数的示例
+# 用于运行异步函数的示例 [EN] Example for running an asynchronous function
 if __name__ == "__main__":
     query = "明天北京天气怎么样啊"
 
     
     query = "今天北京天气"
     
-    # query = "今年的举重世锦赛将在哪里举办？"
-    # query = "邓紫棋举办过多少场演唱会？"
-    # query = "腾讯美股股价"
-    # query = "阿里美股股价"
-    # query = "百度美股股价"
-    # query = "2024中非论坛为什么不在非常举办，而是在北京"
+    # query = "今年的举重世锦赛将在哪里举办？" [EN] query = "Where will this year's World Weightlifting Championships be held?"
+    # query = "邓紫棋举办过多少场演唱会？" [EN] query = "How many concerts has Deng Ziqi held?"
+    # query = "腾讯美股股价" [EN] query = "Tencent US stock price"
+    # query = "阿里美股股价" [EN] query = "Alibaba US stock price"
+    # query = "百度美股股价" [EN] query = "Baidu US stock price"
+    # query = "2024中非论坛为什么不在非常举办，而是在北京" [EN] query = "Why is the 2024 China-Africa Forum not held in Beijing, but in Beijing?"
 
     result = build_bing_query(query)
     print(result)

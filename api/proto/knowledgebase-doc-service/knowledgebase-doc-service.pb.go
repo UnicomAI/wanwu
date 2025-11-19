@@ -33,7 +33,7 @@ type GetDocListReq struct {
 	PageNum     int32  `protobuf:"varint,5,opt,name=pageNum,proto3" json:"pageNum,omitempty"`
 	UserId      string `protobuf:"bytes,6,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId       string `protobuf:"bytes,7,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	DocTag      string `protobuf:"bytes,8,opt,name=docTag,proto3" json:"docTag,omitempty"` //文档标签
+	DocTag      string `protobuf:"bytes,8,opt,name=docTag,proto3" json:"docTag,omitempty"` //文档标签 [EN] Document tag
 }
 
 func (x *GetDocListReq) Reset() {
@@ -271,10 +271,10 @@ type KnowledgeInfo struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	KnowledgeId     string `protobuf:"bytes,1,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`          //知识库id
-	KnowledgeName   string `protobuf:"bytes,2,opt,name=knowledgeName,proto3" json:"knowledgeName,omitempty"`      //知识库名称
-	GraphSwitch     int32  `protobuf:"varint,3,opt,name=graphSwitch,proto3" json:"graphSwitch,omitempty"`         //知识库图谱开关
-	ShowGraphReport bool   `protobuf:"varint,4,opt,name=showGraphReport,proto3" json:"showGraphReport,omitempty"` //是否展示知识图谱和社区报告
+	KnowledgeId     string `protobuf:"bytes,1,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`          //知识库id [EN] knowledge base id
+	KnowledgeName   string `protobuf:"bytes,2,opt,name=knowledgeName,proto3" json:"knowledgeName,omitempty"`      //知识库名称 [EN] Knowledge base name
+	GraphSwitch     int32  `protobuf:"varint,3,opt,name=graphSwitch,proto3" json:"graphSwitch,omitempty"`         //知识库图谱开关 [EN] Knowledge base graph switch
+	ShowGraphReport bool   `protobuf:"varint,4,opt,name=showGraphReport,proto3" json:"showGraphReport,omitempty"` //是否展示知识图谱和社区报告 [EN] Whether to display knowledge graphs and community reports
 }
 
 func (x *KnowledgeInfo) Reset() {
@@ -344,14 +344,14 @@ type ImportDocReq struct {
 
 	UserId          string         `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId           string         `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	KnowledgeId     string         `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`          //知识库id
-	DocImportType   int32          `protobuf:"varint,4,opt,name=docImportType,proto3" json:"docImportType,omitempty"`     //文档导入类型，0：文件上传，1：url上传，2.批量url上传
-	DocInfoList     []*DocFileInfo `protobuf:"bytes,5,rep,name=docInfoList,proto3" json:"docInfoList,omitempty"`          //上传文档列表
-	DocSegment      *DocSegment    `protobuf:"bytes,6,opt,name=docSegment,proto3" json:"docSegment,omitempty"`            //分段信息配置
-	DocAnalyzer     []string       `protobuf:"bytes,7,rep,name=docAnalyzer,proto3" json:"docAnalyzer,omitempty"`          //文档解析类型
-	OcrModelId      string         `protobuf:"bytes,8,opt,name=ocrModelId,proto3" json:"ocrModelId,omitempty"`            //ocr模型id
-	DocPreprocess   []string       `protobuf:"bytes,9,rep,name=docPreprocess,proto3" json:"docPreprocess,omitempty"`      //文本预处理规则
-	DocMetaDataList []*DocMetaData `protobuf:"bytes,10,rep,name=docMetaDataList,proto3" json:"docMetaDataList,omitempty"` // 元数据列表
+	KnowledgeId     string         `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`          //知识库id [EN] knowledge base id
+	DocImportType   int32          `protobuf:"varint,4,opt,name=docImportType,proto3" json:"docImportType,omitempty"`     //文档导入类型，0：文件上传，1：url上传，2.批量url上传 [EN] Document import type, 0: file upload, 1: url upload, 2. batch url upload
+	DocInfoList     []*DocFileInfo `protobuf:"bytes,5,rep,name=docInfoList,proto3" json:"docInfoList,omitempty"`          //上传文档列表 [EN] Upload document list
+	DocSegment      *DocSegment    `protobuf:"bytes,6,opt,name=docSegment,proto3" json:"docSegment,omitempty"`            //分段信息配置 [EN] Segment information configuration
+	DocAnalyzer     []string       `protobuf:"bytes,7,rep,name=docAnalyzer,proto3" json:"docAnalyzer,omitempty"`          //文档解析类型 [EN] Document parsing type
+	OcrModelId      string         `protobuf:"bytes,8,opt,name=ocrModelId,proto3" json:"ocrModelId,omitempty"`            //ocr模型id [EN] ocr model id
+	DocPreprocess   []string       `protobuf:"bytes,9,rep,name=docPreprocess,proto3" json:"docPreprocess,omitempty"`      //文本预处理规则 [EN] Text preprocessing rules
+	DocMetaDataList []*DocMetaData `protobuf:"bytes,10,rep,name=docMetaDataList,proto3" json:"docMetaDataList,omitempty"` // 元数据列表 [EN] metadata list
 }
 
 func (x *ImportDocReq) Reset() {
@@ -462,9 +462,9 @@ type DocMetaData struct {
 	unknownFields protoimpl.UnknownFields
 
 	Key       string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`             //key
-	Value     string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`         //常量
-	ValueType string `protobuf:"bytes,3,opt,name=valueType,proto3" json:"valueType,omitempty"` //常量类型
-	Rule      string `protobuf:"bytes,4,opt,name=rule,proto3" json:"rule,omitempty"`           //正则表达式
+	Value     string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`         //常量 [EN] constant
+	ValueType string `protobuf:"bytes,3,opt,name=valueType,proto3" json:"valueType,omitempty"` //常量类型 [EN] constant type
+	Rule      string `protobuf:"bytes,4,opt,name=rule,proto3" json:"rule,omitempty"`           //正则表达式 [EN] regular expression
 }
 
 func (x *DocMetaData) Reset() {
@@ -532,9 +532,9 @@ type UpdateDocStatusReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	DocId        string      `protobuf:"bytes,1,opt,name=docId,proto3" json:"docId,omitempty"`               //文档id
-	Status       int32       `protobuf:"varint,2,opt,name=status,proto3" json:"status,omitempty"`            //文档状态
-	MetaDataList []*MetaData `protobuf:"bytes,3,rep,name=metaDataList,proto3" json:"metaDataList,omitempty"` //文档元数据信息
+	DocId        string      `protobuf:"bytes,1,opt,name=docId,proto3" json:"docId,omitempty"`               //文档id [EN] document id
+	Status       int32       `protobuf:"varint,2,opt,name=status,proto3" json:"status,omitempty"`            //文档状态 [EN] Document status
+	MetaDataList []*MetaData `protobuf:"bytes,3,rep,name=metaDataList,proto3" json:"metaDataList,omitempty"` //文档元数据信息 [EN] Document metadata information
 }
 
 func (x *UpdateDocStatusReq) Reset() {
@@ -597,9 +597,9 @@ type UpdateDocMetaDataReq struct {
 
 	OrgId        string      `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	UserId       string      `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`
-	DocId        string      `protobuf:"bytes,3,opt,name=docId,proto3" json:"docId,omitempty"`               //文档id
-	MetaDataList []*MetaData `protobuf:"bytes,4,rep,name=metaDataList,proto3" json:"metaDataList,omitempty"` //文档元数据信息
-	KnowledgeId  string      `protobuf:"bytes,5,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`   //知识库id
+	DocId        string      `protobuf:"bytes,3,opt,name=docId,proto3" json:"docId,omitempty"`               //文档id [EN] document id
+	MetaDataList []*MetaData `protobuf:"bytes,4,rep,name=metaDataList,proto3" json:"metaDataList,omitempty"` //文档元数据信息 [EN] Document metadata information
+	KnowledgeId  string      `protobuf:"bytes,5,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`   //知识库id [EN] knowledge base id
 }
 
 func (x *UpdateDocMetaDataReq) Reset() {
@@ -676,10 +676,10 @@ type BatchUpdateDocMetaDataReq struct {
 
 	OrgId        string      `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	UserId       string      `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`
-	DocId        string      `protobuf:"bytes,3,opt,name=docId,proto3" json:"docId,omitempty"`               //文档id
-	MetaDataList []*MetaData `protobuf:"bytes,4,rep,name=metaDataList,proto3" json:"metaDataList,omitempty"` //文档元数据信息
-	KnowledgeId  string      `protobuf:"bytes,5,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`   //知识库id
-	CreateMeta   bool        `protobuf:"varint,6,opt,name=createMeta,proto3" json:"createMeta,omitempty"`    //文档没设置过对应key则创建元数据
+	DocId        string      `protobuf:"bytes,3,opt,name=docId,proto3" json:"docId,omitempty"`               //文档id [EN] document id
+	MetaDataList []*MetaData `protobuf:"bytes,4,rep,name=metaDataList,proto3" json:"metaDataList,omitempty"` //文档元数据信息 [EN] Document metadata information
+	KnowledgeId  string      `protobuf:"bytes,5,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`   //知识库id [EN] knowledge base id
+	CreateMeta   bool        `protobuf:"varint,6,opt,name=createMeta,proto3" json:"createMeta,omitempty"`    //文档没设置过对应key则创建元数据 [EN] If the document does not have a corresponding key set, metadata will be created.
 }
 
 func (x *BatchUpdateDocMetaDataReq) Reset() {
@@ -761,12 +761,12 @@ type MetaData struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MetaId    string `protobuf:"bytes,1,opt,name=metaId,proto3" json:"metaId,omitempty"`       // 元数据id
+	MetaId    string `protobuf:"bytes,1,opt,name=metaId,proto3" json:"metaId,omitempty"`       // 元数据id [EN] metadata id
 	Key       string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`             // key
-	Value     string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`         // 确定值
+	Value     string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`         // 确定值 [EN] Determine value
 	ValueType string `protobuf:"bytes,4,opt,name=valueType,proto3" json:"valueType,omitempty"` // string, number, time
-	Option    string `protobuf:"bytes,5,opt,name=option,proto3" json:"option,omitempty"`       // option:add(新增)、update(更新)、delete(删除),update 和delete 的时候metaId 不能为空
-	Rule      string `protobuf:"bytes,6,opt,name=rule,proto3" json:"rule,omitempty"`           // 正则表达式
+	Option    string `protobuf:"bytes,5,opt,name=option,proto3" json:"option,omitempty"`       // option:add(新增)、update(更新)、delete(删除),update 和delete 的时候metaId 不能为空 [EN] option: add (new), update (update), delete (delete), metaId cannot be empty when updating and deleting.
+	Rule      string `protobuf:"bytes,6,opt,name=rule,proto3" json:"rule,omitempty"`           // 正则表达式 [EN] regular expression
 }
 
 func (x *MetaData) Reset() {
@@ -966,11 +966,11 @@ type DocFileInfo struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	DocName string `protobuf:"bytes,1,opt,name=docName,proto3" json:"docName,omitempty"`  //文档名称
-	DocUrl  string `protobuf:"bytes,2,opt,name=docUrl,proto3" json:"docUrl,omitempty"`    //文档url
-	DocType string `protobuf:"bytes,3,opt,name=docType,proto3" json:"docType,omitempty"`  // 文档类型
-	DocId   string `protobuf:"bytes,4,opt,name=docId,proto3" json:"docId,omitempty"`      //文档id
-	DocSize int64  `protobuf:"varint,5,opt,name=docSize,proto3" json:"docSize,omitempty"` //文档大小
+	DocName string `protobuf:"bytes,1,opt,name=docName,proto3" json:"docName,omitempty"`  //文档名称 [EN] file name
+	DocUrl  string `protobuf:"bytes,2,opt,name=docUrl,proto3" json:"docUrl,omitempty"`    //文档url [EN] Document url
+	DocType string `protobuf:"bytes,3,opt,name=docType,proto3" json:"docType,omitempty"`  // 文档类型 [EN] Document type
+	DocId   string `protobuf:"bytes,4,opt,name=docId,proto3" json:"docId,omitempty"`      //文档id [EN] document id
+	DocSize int64  `protobuf:"varint,5,opt,name=docSize,proto3" json:"docSize,omitempty"` //文档大小 [EN] Document size
 }
 
 func (x *DocFileInfo) Reset() {
@@ -1045,13 +1045,13 @@ type DocSegment struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	SegmentType    string   `protobuf:"bytes,1,opt,name=SegmentType,proto3" json:"SegmentType,omitempty"`        //分段方式 0：自定分段；1：自定义分段
-	Splitter       []string `protobuf:"bytes,2,rep,name=Splitter,proto3" json:"Splitter,omitempty"`              // 分隔符（只有自定义分段必填）
-	MaxSplitter    int32    `protobuf:"varint,3,opt,name=MaxSplitter,proto3" json:"MaxSplitter,omitempty"`       // 可分隔最大值（只有自定义分段必填）
-	Overlap        float32  `protobuf:"fixed32,4,opt,name=Overlap,proto3" json:"Overlap,omitempty"`              // 可重叠值（只有自定义分段必填）
-	SegmentMethod  string   `protobuf:"bytes,5,opt,name=segmentMethod,proto3" json:"segmentMethod,omitempty"`    //分段方法 0：通用分段；1：父子分段
-	SubSplitter    []string `protobuf:"bytes,6,rep,name=subSplitter,proto3" json:"subSplitter,omitempty"`        // 分隔符（只有父子分段必填）
-	SubMaxSplitter int32    `protobuf:"varint,7,opt,name=subMaxSplitter,proto3" json:"subMaxSplitter,omitempty"` // 可分隔最大值（只有父子分段必填）
+	SegmentType    string   `protobuf:"bytes,1,opt,name=SegmentType,proto3" json:"SegmentType,omitempty"`        //分段方式 0：自定分段；1：自定义分段 [EN] Segmentation mode 0: Customized segmentation; 1: Customized segmentation
+	Splitter       []string `protobuf:"bytes,2,rep,name=Splitter,proto3" json:"Splitter,omitempty"`              // 分隔符（只有自定义分段必填） [EN] Delimiter (required only for custom segments)
+	MaxSplitter    int32    `protobuf:"varint,3,opt,name=MaxSplitter,proto3" json:"MaxSplitter,omitempty"`       // 可分隔最大值（只有自定义分段必填） [EN] Maximum separable value (required only for custom segments)
+	Overlap        float32  `protobuf:"fixed32,4,opt,name=Overlap,proto3" json:"Overlap,omitempty"`              // 可重叠值（只有自定义分段必填） [EN] Overlapping values ​​(required only for custom segments)
+	SegmentMethod  string   `protobuf:"bytes,5,opt,name=segmentMethod,proto3" json:"segmentMethod,omitempty"`    //分段方法 0：通用分段；1：父子分段 [EN] Segmentation method 0: Universal segmentation; 1: Parent-child segmentation
+	SubSplitter    []string `protobuf:"bytes,6,rep,name=subSplitter,proto3" json:"subSplitter,omitempty"`        // 分隔符（只有父子分段必填） [EN] Delimiter (required only for parent-child segments)
+	SubMaxSplitter int32    `protobuf:"varint,7,opt,name=subMaxSplitter,proto3" json:"subMaxSplitter,omitempty"` // 可分隔最大值（只有父子分段必填） [EN] Maximum separable value (required only for parent-child segments)
 }
 
 func (x *DocSegment) Reset() {
@@ -1282,8 +1282,8 @@ type DocSegmentListResp struct {
 	CreatedAt           string            `protobuf:"bytes,6,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
 	SegType             string            `protobuf:"bytes,7,opt,name=segType,proto3" json:"segType,omitempty"`
 	Splitter            string            `protobuf:"bytes,8,opt,name=splitter,proto3" json:"splitter,omitempty"`
-	MetaDataList        []*MetaData       `protobuf:"bytes,9,rep,name=metaDataList,proto3" json:"metaDataList,omitempty"`                //文档元数据信息
-	SegmentImportStatus string            `protobuf:"bytes,10,opt,name=segmentImportStatus,proto3" json:"segmentImportStatus,omitempty"` //文档分段导入状态
+	MetaDataList        []*MetaData       `protobuf:"bytes,9,rep,name=metaDataList,proto3" json:"metaDataList,omitempty"`                //文档元数据信息 [EN] Document metadata information
+	SegmentImportStatus string            `protobuf:"bytes,10,opt,name=segmentImportStatus,proto3" json:"segmentImportStatus,omitempty"` //文档分段导入状态 [EN] Document segment import status
 	SegmentMethod       string            `protobuf:"bytes,11,opt,name=segmentMethod,proto3" json:"segmentMethod,omitempty"`
 }
 
@@ -1407,8 +1407,8 @@ type SegmentContent struct {
 	ContentId  string   `protobuf:"bytes,4,opt,name=contentId,proto3" json:"contentId,omitempty"`
 	ContentNum int32    `protobuf:"varint,5,opt,name=contentNum,proto3" json:"contentNum,omitempty"`
 	Labels     []string `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty"`
-	IsParent   bool     `protobuf:"varint,7,opt,name=isParent,proto3" json:"isParent,omitempty"` // 父子分段/通用分段
-	ChildNum   int32    `protobuf:"varint,8,opt,name=childNum,proto3" json:"childNum,omitempty"` // 子分段数量
+	IsParent   bool     `protobuf:"varint,7,opt,name=isParent,proto3" json:"isParent,omitempty"` // 父子分段/通用分段 [EN] Parent-child segmentation/universal segmentation
+	ChildNum   int32    `protobuf:"varint,8,opt,name=childNum,proto3" json:"childNum,omitempty"` // 子分段数量 [EN] Number of subsegments
 }
 
 func (x *SegmentContent) Reset() {
@@ -1507,15 +1507,15 @@ type DocInfo struct {
 	DocId         string `protobuf:"bytes,1,opt,name=docId,proto3" json:"docId,omitempty"`
 	DocName       string `protobuf:"bytes,2,opt,name=docName,proto3" json:"docName,omitempty"`
 	DocSize       int64  `protobuf:"varint,3,opt,name=docSize,proto3" json:"docSize,omitempty"`
-	DocType       string `protobuf:"bytes,4,opt,name=docType,proto3" json:"docType,omitempty"` //文档名称
+	DocType       string `protobuf:"bytes,4,opt,name=docType,proto3" json:"docType,omitempty"` //文档名称 [EN] file name
 	KnowledgeId   string `protobuf:"bytes,5,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`
 	UploadTime    string `protobuf:"bytes,6,opt,name=uploadTime,proto3" json:"uploadTime,omitempty"`
 	Status        int32  `protobuf:"varint,7,opt,name=status,proto3" json:"status,omitempty"`
 	ErrorMsg      string `protobuf:"bytes,8,opt,name=errorMsg,proto3" json:"errorMsg,omitempty"`
-	SegmentMethod string `protobuf:"bytes,9,opt,name=segmentMethod,proto3" json:"segmentMethod,omitempty"` //分段方式 0：通用分段，1：父子分段
+	SegmentMethod string `protobuf:"bytes,9,opt,name=segmentMethod,proto3" json:"segmentMethod,omitempty"` //分段方式 0：通用分段，1：父子分段 [EN] Segmentation mode 0: universal segmentation, 1: parent-child segmentation
 	UserId        string `protobuf:"bytes,10,opt,name=userId,proto3" json:"userId,omitempty"`
-	GraphStatus   int32  `protobuf:"varint,11,opt,name=graphStatus,proto3" json:"graphStatus,omitempty"` //0:待处理，1.解析中，2.解析成功，3.解析失败
-	GraphErrMsg   string `protobuf:"bytes,12,opt,name=graphErrMsg,proto3" json:"graphErrMsg,omitempty"`  //错误信息
+	GraphStatus   int32  `protobuf:"varint,11,opt,name=graphStatus,proto3" json:"graphStatus,omitempty"` //0:待处理，1.解析中，2.解析成功，3.解析失败 [EN] 0: Pending, 1. Parsing, 2. Parsing successful, 3. Parsing failed
+	GraphErrMsg   string `protobuf:"bytes,12,opt,name=graphErrMsg,proto3" json:"graphErrMsg,omitempty"`  //错误信息 [EN] error message
 }
 
 func (x *DocInfo) Reset() {
@@ -2636,9 +2636,9 @@ type DeleteDocChildSegmentReq struct {
 	UserId        string  `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId         string  `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	DocId         string  `protobuf:"bytes,3,opt,name=docId,proto3" json:"docId,omitempty"`
-	ParentChunkId string  `protobuf:"bytes,4,opt,name=parentChunkId,proto3" json:"parentChunkId,omitempty"`       //父分段id
-	ParentChunkNo int32   `protobuf:"varint,5,opt,name=parentChunkNo,proto3" json:"parentChunkNo,omitempty"`      //父分段编号
-	ChildChunkNo  []int32 `protobuf:"varint,6,rep,packed,name=childChunkNo,proto3" json:"childChunkNo,omitempty"` //子分段编号列表
+	ParentChunkId string  `protobuf:"bytes,4,opt,name=parentChunkId,proto3" json:"parentChunkId,omitempty"`       //父分段id [EN] parent segment id
+	ParentChunkNo int32   `protobuf:"varint,5,opt,name=parentChunkNo,proto3" json:"parentChunkNo,omitempty"`      //父分段编号 [EN] Parent segment number
+	ChildChunkNo  []int32 `protobuf:"varint,6,rep,packed,name=childChunkNo,proto3" json:"childChunkNo,omitempty"` //子分段编号列表 [EN] List of subsegment numbers
 }
 
 func (x *DeleteDocChildSegmentReq) Reset() {
@@ -2723,9 +2723,9 @@ type UpdateDocChildSegmentReq struct {
 	UserId        string      `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId         string      `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	DocId         string      `protobuf:"bytes,3,opt,name=docId,proto3" json:"docId,omitempty"`
-	ParentChunkId string      `protobuf:"bytes,4,opt,name=parentChunkId,proto3" json:"parentChunkId,omitempty"`  //父分段id
-	ParentChunkNo int32       `protobuf:"varint,5,opt,name=parentChunkNo,proto3" json:"parentChunkNo,omitempty"` //父分段编号
-	ChildChunk    *ChildChunk `protobuf:"bytes,6,opt,name=childChunk,proto3" json:"childChunk,omitempty"`        //子分段编号
+	ParentChunkId string      `protobuf:"bytes,4,opt,name=parentChunkId,proto3" json:"parentChunkId,omitempty"`  //父分段id [EN] parent segment id
+	ParentChunkNo int32       `protobuf:"varint,5,opt,name=parentChunkNo,proto3" json:"parentChunkNo,omitempty"` //父分段编号 [EN] Parent segment number
+	ChildChunk    *ChildChunk `protobuf:"bytes,6,opt,name=childChunk,proto3" json:"childChunk,omitempty"`        //子分段编号 [EN] subsegment number
 }
 
 func (x *UpdateDocChildSegmentReq) Reset() {

@@ -124,8 +124,8 @@ func Embeddings(ctx context.Context, provider, apiKey, url string, req map[strin
 	}
 
 	request := resty.New().
-		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验
-		SetTimeout(0).                                             // 关闭请求超时
+		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验 [EN] Turn off certificate verification
+		SetTimeout(0).                                             // 关闭请求超时 [EN] Close request timeout
 		R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").

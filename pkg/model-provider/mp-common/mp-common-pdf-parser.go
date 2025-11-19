@@ -124,15 +124,15 @@ func PdfParser(ctx *gin.Context, provider, apiKey, url string, req *PdfParserReq
 	}
 	defer file.Close()
 	request := resty.New().
-		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验
-		SetTimeout(0).                                             // 关闭请求超时
+		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验 [EN] Turn off certificate verification
+		SetTimeout(0).                                             // 关闭请求超时 [EN] Close request timeout
 		R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "multipart/form-data").
 		SetHeader("Accept", "application/json").
 		SetFileReader("file", req.Files.Filename, file).
 		SetMultipartFormData(map[string]string{
-			"file_name": req.FileName, // 👈 这里添加 file_name 字段
+			"file_name": req.FileName, // 👈 这里添加 file_name 字段 [EN] 👈 Add file_name field here
 		}).
 		SetDoNotParseResponse(true)
 	for _, header := range headers {

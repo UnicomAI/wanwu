@@ -1,8 +1,8 @@
 package request
 
 type DeleteAppSpaceAppRequest struct {
-	AppId   string `json:"appId" validate:"required"`   // 应用ID
-	AppType string `json:"appType" validate:"required"` // 应用类型
+	AppId   string `json:"appId" validate:"required"`   // 应用ID [EN] Application ID
+	AppType string `json:"appType" validate:"required"` // 应用类型 [EN] Application type
 }
 
 func (req DeleteAppSpaceAppRequest) Check() error {
@@ -15,9 +15,9 @@ type GetAppSpaceAppListRequest struct {
 }
 
 type PublishAppRequest struct {
-	AppId       string `json:"appId"`       // 应用ID
-	AppType     string `json:"appType"`     // 应用类型
-	PublishType string `json:"publishType"` // 发布类型(public:系统公开发布,organization:组织公开发布,private:私密发布)
+	AppId       string `json:"appId"`       // 应用ID [EN] Application ID
+	AppType     string `json:"appType"`     // 应用类型 [EN] Application type
+	PublishType string `json:"publishType"` // 发布类型(public:系统公开发布,organization:组织公开发布,private:私密发布) [EN] Release type (public: system public release, organization: organization public release, private: private release)
 }
 
 func (req PublishAppRequest) Check() error {
@@ -25,8 +25,8 @@ func (req PublishAppRequest) Check() error {
 }
 
 type UnPublishAppRequest struct {
-	AppId   string `json:"appId"`   // 应用ID
-	AppType string `json:"appType"` // 应用类型
+	AppId   string `json:"appId"`   // 应用ID [EN] Application ID
+	AppType string `json:"appType"` // 应用类型 [EN] Application type
 }
 
 func (req UnPublishAppRequest) Check() error {
@@ -34,8 +34,8 @@ func (req UnPublishAppRequest) Check() error {
 }
 
 type GetApiBaseUrlRequest struct {
-	AppId   string `form:"appId" json:"appId" validate:"required"`     // 应用ID
-	AppType string `form:"appType" json:"appType" validate:"required"` // 应用类型
+	AppId   string `form:"appId" json:"appId" validate:"required"`     // 应用ID [EN] Application ID
+	AppType string `form:"appType" json:"appType" validate:"required"` // 应用类型 [EN] Application type
 }
 
 func (req GetApiBaseUrlRequest) Check() error {

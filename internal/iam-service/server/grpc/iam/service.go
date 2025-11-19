@@ -32,7 +32,7 @@ func (s *Service) InitData() error {
 	var topOrgID, adminRoleID, adminUserID uint32
 	var err error
 	var status *errs.Status
-	// 系统内置唯一顶级组织（挂载全部一级组织）
+	// 系统内置唯一顶级组织（挂载全部一级组织） [EN] The only top-level organization built into the system (all first-level organizations are mounted)
 	if topOrgID, err = s.cli.GetTopOrg(ctx); err == gorm.ErrRecordNotFound {
 		if topOrgID, status = s.cli.CreateOrg(ctx, &model.Org{
 			Status: true,
@@ -45,13 +45,13 @@ func (s *Service) InitData() error {
 	}
 	config.InitTopOrgID(topOrgID)
 	log.Infof("system top org: %v", config.TopOrgID())
-	// 系统顶级组织内置管理员角色
+	// 系统顶级组织内置管理员角色 [EN] Built-in administrator role for top-level organizations in the system
 	if adminRoleID, err = s.cli.GetAdminRole(ctx); err != nil {
 		return err
 	}
 	config.InitAdminRoleID(adminRoleID)
 	log.Infof("system admin role: %v", config.AdminRoleID())
-	// 系统内置管理员
+	// 系统内置管理员 [EN] System built-in administrator
 	if adminUserID, err = s.cli.GetAdminUser(ctx); err == gorm.ErrRecordNotFound {
 		if adminUserID, status = s.cli.CreateUser(ctx, &model.User{
 			IsAdmin:  true,
@@ -116,6 +116,6 @@ func toOffset(req iReq) int32 {
 }
 
 type iReq interface {
-	GetPageNo() int32 // 从1开始
+	GetPageNo() int32 // 从1开始 [EN] Start from 1
 	GetPageSize() int32
 }

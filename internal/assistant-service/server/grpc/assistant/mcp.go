@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// AssistantMCPCreate 添加mcp
+// AssistantMCPCreate 添加mcp [EN] AssistantMCPCreate add mcp
 func (s *Service) AssistantMCPCreate(ctx context.Context, req *assistant_service.AssistantMCPCreateReq) (*emptypb.Empty, error) {
 	assistantId := util.MustU32(req.AssistantId)
 
@@ -20,7 +20,7 @@ func (s *Service) AssistantMCPCreate(ctx context.Context, req *assistant_service
 	return &emptypb.Empty{}, nil
 }
 
-// AssistantMCPDelete 删除mcp
+// AssistantMCPDelete 删除mcp [EN] AssistantMCPDelete delete mcp
 func (s *Service) AssistantMCPDelete(ctx context.Context, req *assistant_service.AssistantMCPDeleteReq) (*emptypb.Empty, error) {
 	assistantId := util.MustU32(req.AssistantId)
 
@@ -30,7 +30,7 @@ func (s *Service) AssistantMCPDelete(ctx context.Context, req *assistant_service
 	return &emptypb.Empty{}, nil
 }
 
-// AssistantMCPDeleteByMCPId 删除mcp
+// AssistantMCPDeleteByMCPId 删除mcp [EN] AssistantMCPDeleteByMCPId delete mcp
 func (s *Service) AssistantMCPDeleteByMCPId(ctx context.Context, req *assistant_service.AssistantMCPDeleteByMCPIdReq) (*emptypb.Empty, error) {
 	if status := s.cli.DeleteAssistantMCPByMCPId(ctx, req.McpId, req.McpType); status != nil {
 		return nil, errStatus(errs.Code_AssistantMCPErr, status)
@@ -38,7 +38,7 @@ func (s *Service) AssistantMCPDeleteByMCPId(ctx context.Context, req *assistant_
 	return &emptypb.Empty{}, nil
 }
 
-// AssistantMCPEnableSwitch mcp开关
+// AssistantMCPEnableSwitch mcp开关 [EN] AssistantMCPEnableSwitch mcp switch
 func (s *Service) AssistantMCPEnableSwitch(ctx context.Context, req *assistant_service.AssistantMCPEnableSwitchReq) (*emptypb.Empty, error) {
 	assistantId := util.MustU32(req.AssistantId)
 

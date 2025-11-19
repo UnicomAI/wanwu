@@ -32,17 +32,17 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KnowledgeBaseReportServiceClient interface {
-	// 获取知识库社区报告
+	// 获取知识库社区报告 [EN] Get the Knowledge Base Community Report
 	GetKnowledgeReport(ctx context.Context, in *GetReportReq, opts ...grpc.CallOption) (*GetReportResp, error)
-	// 生成知识库社区报告
+	// 生成知识库社区报告 [EN] Generate Knowledge Base Community Report
 	GenerateKnowledgeReport(ctx context.Context, in *ReportIdentity, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除知识库社区报告
+	// 删除知识库社区报告 [EN] Delete a knowledge base community report
 	DeleteKnowledgeReport(ctx context.Context, in *DeleteReportReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 更新知识库社区报告
+	// 更新知识库社区报告 [EN] Update Knowledge Base Community Report
 	UpdateKnowledgeReport(ctx context.Context, in *UpdateReportReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 单条新增知识库社区报告
+	// 单条新增知识库社区报告 [EN] Add a single new knowledge base community report
 	AddKnowledgeReport(ctx context.Context, in *AddReportReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 批量新增知识库社区报告
+	// 批量新增知识库社区报告 [EN] Add knowledge base community reports in batches
 	BatchAddKnowledgeReport(ctx context.Context, in *BatchAddKnowledgeReportReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -118,17 +118,17 @@ func (c *knowledgeBaseReportServiceClient) BatchAddKnowledgeReport(ctx context.C
 // All implementations must embed UnimplementedKnowledgeBaseReportServiceServer
 // for forward compatibility.
 type KnowledgeBaseReportServiceServer interface {
-	// 获取知识库社区报告
+	// 获取知识库社区报告 [EN] Get the Knowledge Base Community Report
 	GetKnowledgeReport(context.Context, *GetReportReq) (*GetReportResp, error)
-	// 生成知识库社区报告
+	// 生成知识库社区报告 [EN] Generate Knowledge Base Community Report
 	GenerateKnowledgeReport(context.Context, *ReportIdentity) (*emptypb.Empty, error)
-	// 删除知识库社区报告
+	// 删除知识库社区报告 [EN] Delete a knowledge base community report
 	DeleteKnowledgeReport(context.Context, *DeleteReportReq) (*emptypb.Empty, error)
-	// 更新知识库社区报告
+	// 更新知识库社区报告 [EN] Update Knowledge Base Community Report
 	UpdateKnowledgeReport(context.Context, *UpdateReportReq) (*emptypb.Empty, error)
-	// 单条新增知识库社区报告
+	// 单条新增知识库社区报告 [EN] Add a single new knowledge base community report
 	AddKnowledgeReport(context.Context, *AddReportReq) (*emptypb.Empty, error)
-	// 批量新增知识库社区报告
+	// 批量新增知识库社区报告 [EN] Add knowledge base community reports in batches
 	BatchAddKnowledgeReport(context.Context, *BatchAddKnowledgeReportReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedKnowledgeBaseReportServiceServer()
 }

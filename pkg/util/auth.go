@@ -7,7 +7,7 @@ import (
 	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
 )
 
-// api 鉴权
+// api 鉴权 [EN] api authentication
 const (
 	AuthTypeNone             = "none"
 	AuthTypeAPIKeyQuery      = "api_key_query"
@@ -19,10 +19,10 @@ const (
 )
 
 type ApiAuthWebRequest struct {
-	AuthType           string `json:"authType" validate:"required,oneof='none' 'api_key_query' 'api_key_header'"` // 鉴权类型 None 或 请求头 或 查询参数
-	ApiKeyHeaderPrefix string `json:"apiKeyHeaderPrefix" validate:"omitempty,oneof='basic' 'bearer' 'custom'"`    // 鉴权头部前缀
-	ApiKeyHeader       string `json:"apiKeyHeader"`                                                               // HTTP头部名称
-	ApiKeyQueryParam   string `json:"apiKeyQueryParam"`                                                           // 查询参数名称
+	AuthType           string `json:"authType" validate:"required,oneof='none' 'api_key_query' 'api_key_header'"` // 鉴权类型 None 或 请求头 或 查询参数 [EN] Authentication type None or request header or query parameter
+	ApiKeyHeaderPrefix string `json:"apiKeyHeaderPrefix" validate:"omitempty,oneof='basic' 'bearer' 'custom'"`    // 鉴权头部前缀 [EN] Authentication header prefix
+	ApiKeyHeader       string `json:"apiKeyHeader"`                                                               // HTTP头部名称 [EN] HTTP header name
+	ApiKeyQueryParam   string `json:"apiKeyQueryParam"`                                                           // 查询参数名称 [EN] Query parameter name
 	ApiKeyValue        string `json:"apiKeyValue"`                                                                // apiKey
 }
 

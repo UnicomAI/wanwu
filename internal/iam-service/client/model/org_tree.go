@@ -9,7 +9,7 @@ import (
 type OrgNode struct {
 	id       uint32
 	parentID uint32
-	roleID   uint32 // 当前org内置管理员角色
+	roleID   uint32 // 当前org内置管理员角色 [EN] The current org built-in administrator role
 	name     string
 	status   bool
 	parent   *OrgNode

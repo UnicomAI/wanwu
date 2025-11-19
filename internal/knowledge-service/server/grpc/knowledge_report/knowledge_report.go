@@ -21,22 +21,22 @@ const (
 )
 
 func (s *Service) GetKnowledgeReport(ctx context.Context, req *knowledgebase_report_service.GetReportReq) (*knowledgebase_report_service.GetReportResp, error) {
-	//查询知识库信息
+	//查询知识库信息 [EN] Query knowledge base information
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeInfo.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 错误(%v) 参数(%v)", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeBaseSelectFailed)
 	}
-	// 查询知识图谱状态
+	// 查询知识图谱状态 [EN] Query knowledge graph status
 	graphSuccess, err := getGraphStatus(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	// 没有成功生成的知识图谱
+	// 没有成功生成的知识图谱 [EN] No knowledge graph generated successfully
 	if !graphSuccess {
 		return &knowledgebase_report_service.GetReportResp{}, nil
 	}
-	// 判断报告状态
+	// 判断报告状态 [EN] Determine report status
 	switch knowledge.ReportStatus {
 	case model.ReportInit:
 		return &knowledgebase_report_service.GetReportResp{CanGenerate: true}, nil
@@ -50,7 +50,7 @@ func (s *Service) GetKnowledgeReport(ctx context.Context, req *knowledgebase_rep
 	case model.ReportSuccess:
 		return handleSuccessReport(ctx, knowledge, req)
 
-	default: // 生成失败状态
+	default: // 生成失败状态 [EN] Generate failure status
 		if model.ErrorReportStatus(knowledge.ReportStatus) {
 			return &knowledgebase_report_service.GetReportResp{
 				Status:        ReportFailed,
@@ -71,7 +71,7 @@ func (s *Service) GenerateKnowledgeReport(ctx context.Context, req *knowledgebas
 }
 
 func (s *Service) DeleteKnowledgeReport(ctx context.Context, req *knowledgebase_report_service.DeleteReportReq) (*emptypb.Empty, error) {
-	//查询知识库信息
+	//查询知识库信息 [EN] Query knowledge base information
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeInfo.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 错误(%v) 参数(%v)", err, req)
@@ -90,7 +90,7 @@ func (s *Service) DeleteKnowledgeReport(ctx context.Context, req *knowledgebase_
 }
 
 func (s *Service) UpdateKnowledgeReport(ctx context.Context, req *knowledgebase_report_service.UpdateReportReq) (*emptypb.Empty, error) {
-	//查询知识库信息
+	//查询知识库信息 [EN] Query knowledge base information
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeInfo.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 错误(%v) 参数(%v)", err, req)
@@ -113,7 +113,7 @@ func (s *Service) UpdateKnowledgeReport(ctx context.Context, req *knowledgebase_
 }
 
 func (s *Service) AddKnowledgeReport(ctx context.Context, req *knowledgebase_report_service.AddReportReq) (*emptypb.Empty, error) {
-	//查询知识库信息
+	//查询知识库信息 [EN] Query knowledge base information
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeInfo.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 错误(%v) 参数(%v)", err, req)
@@ -154,13 +154,13 @@ func handleSuccessReport(ctx context.Context, knowledge *model.KnowledgeBase, re
 }
 
 func getGraphStatus(ctx context.Context, req *knowledgebase_report_service.GetReportReq) (bool, error) {
-	//获取文档列表
+	//获取文档列表 [EN] Get document list
 	list, err := orm.GetDocListByKnowledgeId(ctx, "", "", req.KnowledgeInfo.KnowledgeId)
 	if err != nil {
 		log.Errorf("获取知识库列表失败(%v)  参数(%v)", err, req)
 		return false, util.ErrCode(errs.Code_KnowledgeBaseSelectFailed)
 	}
-	//判断是否有成功的知识图谱
+	//判断是否有成功的知识图谱 [EN] Determine whether there is a successful knowledge graph
 	graphSuccess := false
 	if len(list) > 0 {
 		for _, doc := range list {

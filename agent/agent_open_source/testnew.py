@@ -5,12 +5,12 @@ url = "http://172.17.0.1:7258/agent"
 
 question = "京东下场发展外卖最近情况是什么"
 question = "帮我搜索评分较高的西安凉皮店铺"
-#question = " 半监督学习种类较多，其中应用较广的是？"
-#question = "联通股价咋样啊最近"
-#question='北京故宫附近的川菜馆'
-#question='什么是智能体agent'
-#question='帮我写个冒泡排序代码'
-#question = "北京天气怎么样"
+#question = " 半监督学习种类较多，其中应用较广的是？" [EN] question = "There are many types of semi-supervised learning, which one is the most widely used?"
+#question = "联通股价咋样啊最近" [EN] question = "How is China Unicom's stock price doing recently?"
+#question='北京故宫附近的川菜馆' [EN] question='Sichuan restaurant near the Forbidden City in Beijing'
+#question='什么是智能体agent' [EN] question='What is an intelligent agent'
+#question='帮我写个冒泡排序代码' [EN] question='Help me write a bubble sort code'
+#question = "北京天气怎么样" [EN] question = "How is the weather in Beijing?"
 question = '上传的这篇文章写的什么总结一下'
 
 

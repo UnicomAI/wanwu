@@ -68,7 +68,7 @@ func Operation2ProtocolTool(operation *openapi3.Operation) *protocol.Tool {
 			Properties: make(map[string]*protocol.Property),
 		},
 	}
-	// 处理description，保证非空
+	// 处理description，保证非空 [EN] Process description and ensure it is not empty
 	if ret.Description == "" {
 		if operation.Summary != "" {
 			ret.Description = operation.Summary
@@ -76,7 +76,7 @@ func Operation2ProtocolTool(operation *openapi3.Operation) *protocol.Tool {
 			ret.Description = operation.OperationID
 		}
 	}
-	// 解析路径参数、查询参数、header 参数等
+	// 解析路径参数、查询参数、header 参数等 [EN] Parse path parameters, query parameters, header parameters, etc.
 	if operation.Parameters != nil {
 		properties, requireds := Parameters2ProtocolProperties(operation.Parameters)
 		for field, property := range properties {
@@ -84,7 +84,7 @@ func Operation2ProtocolTool(operation *openapi3.Operation) *protocol.Tool {
 		}
 		ret.InputSchema.Required = append(ret.InputSchema.Required, requireds...)
 	}
-	// 解析请求体
+	// 解析请求体 [EN] Parse request body
 	if operation.RequestBody != nil && operation.RequestBody.Value != nil {
 		for _, mediaType := range operation.RequestBody.Value.Content {
 			if mediaType.Schema != nil && mediaType.Schema.Value != nil {
@@ -179,7 +179,7 @@ func SchemaProperties2ProtocolProperties(properties openapi3.Schemas) map[string
 	return rets
 }
 
-// ParameterType2ProtocolDataType 获取参数类型
+// ParameterType2ProtocolDataType 获取参数类型 [EN] ParameterType2ProtocolDataType gets parameter type
 func ParameterType2ProtocolDataType(param *openapi3.Parameter) protocol.DataType {
 	if param.Schema != nil && param.Schema.Value != nil {
 		return SchemaType2ProtocolDataType(param.Schema.Value)
@@ -187,10 +187,10 @@ func ParameterType2ProtocolDataType(param *openapi3.Parameter) protocol.DataType
 	return protocol.String
 }
 
-// SchemaType2ProtocolDataType 获取 schema 的类型
+// SchemaType2ProtocolDataType 获取 schema 的类型 [EN] SchemaType2ProtocolDataType gets the type of schema
 func SchemaType2ProtocolDataType(schema *openapi3.Schema) protocol.DataType {
 	if schema.Type != nil {
-		// 检查类型切片中的具体类型
+		// 检查类型切片中的具体类型 [EN] Check for concrete types in type slices
 		if schema.Type.Is("object") {
 			return protocol.ObjectT
 		} else if schema.Type.Is("array") {
@@ -205,7 +205,7 @@ func SchemaType2ProtocolDataType(schema *openapi3.Schema) protocol.DataType {
 			return protocol.Boolean
 		}
 
-		// 如果有多个类型，返回第一个
+		// 如果有多个类型，返回第一个 [EN] If there are multiple types, return the first one
 		if len(*schema.Type) > 0 {
 			return protocol.DataType((*schema.Type)[0])
 		}

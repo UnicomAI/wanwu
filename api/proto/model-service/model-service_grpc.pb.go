@@ -35,23 +35,23 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ModelServiceClient interface {
-	// 模型导入(默认启用
+	// 模型导入(默认启用 [EN] Model import (enabled by default
 	ImportModel(ctx context.Context, in *ModelInfo, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 导入模型更新
+	// 导入模型更新 [EN] Import model updates
 	UpdateModel(ctx context.Context, in *ModelInfo, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 导入模型删除
+	// 导入模型删除 [EN] Import model delete
 	DeleteModel(ctx context.Context, in *DeleteModelReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// ‌查询单个模型‌
+	// ‌查询单个模型‌ [EN] ‌Query a single model‌
 	GetModel(ctx context.Context, in *GetModelReq, opts ...grpc.CallOption) (*ModelInfo, error)
-	// 导入模型列表展示
+	// 导入模型列表展示 [EN] Imported model list display
 	ListModels(ctx context.Context, in *ListModelsReq, opts ...grpc.CallOption) (*ModelInfos, error)
-	// 模型启用/关闭
+	// 模型启用/关闭 [EN] Model enable/disable
 	ChangeModelStatus(ctx context.Context, in *ModelStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 根据模型ID查询
+	// 根据模型ID查询 [EN] Query based on model ID
 	GetModelById(ctx context.Context, in *GetModelByIdReq, opts ...grpc.CallOption) (*ModelInfo, error)
-	// llm/rerank/embedding模型列表展示
+	// llm/rerank/embedding模型列表展示 [EN] llm/rerank/embedding model list display
 	ListTypeModels(ctx context.Context, in *ListTypeModelsReq, opts ...grpc.CallOption) (*ModelInfos, error)
-	// 根据模型ID列表查询
+	// 根据模型ID列表查询 [EN] Query based on model ID list
 	GetModelByIds(ctx context.Context, in *GetModelByIdsReq, opts ...grpc.CallOption) (*ModelInfos, error)
 }
 
@@ -157,23 +157,23 @@ func (c *modelServiceClient) GetModelByIds(ctx context.Context, in *GetModelById
 // All implementations must embed UnimplementedModelServiceServer
 // for forward compatibility.
 type ModelServiceServer interface {
-	// 模型导入(默认启用
+	// 模型导入(默认启用 [EN] Model import (enabled by default
 	ImportModel(context.Context, *ModelInfo) (*emptypb.Empty, error)
-	// 导入模型更新
+	// 导入模型更新 [EN] Import model updates
 	UpdateModel(context.Context, *ModelInfo) (*emptypb.Empty, error)
-	// 导入模型删除
+	// 导入模型删除 [EN] Import model delete
 	DeleteModel(context.Context, *DeleteModelReq) (*emptypb.Empty, error)
-	// ‌查询单个模型‌
+	// ‌查询单个模型‌ [EN] ‌Query a single model‌
 	GetModel(context.Context, *GetModelReq) (*ModelInfo, error)
-	// 导入模型列表展示
+	// 导入模型列表展示 [EN] Imported model list display
 	ListModels(context.Context, *ListModelsReq) (*ModelInfos, error)
-	// 模型启用/关闭
+	// 模型启用/关闭 [EN] Model enable/disable
 	ChangeModelStatus(context.Context, *ModelStatusReq) (*emptypb.Empty, error)
-	// 根据模型ID查询
+	// 根据模型ID查询 [EN] Query based on model ID
 	GetModelById(context.Context, *GetModelByIdReq) (*ModelInfo, error)
-	// llm/rerank/embedding模型列表展示
+	// llm/rerank/embedding模型列表展示 [EN] llm/rerank/embedding model list display
 	ListTypeModels(context.Context, *ListTypeModelsReq) (*ModelInfos, error)
-	// 根据模型ID列表查询
+	// 根据模型ID列表查询 [EN] Query based on model ID list
 	GetModelByIds(context.Context, *GetModelByIdsReq) (*ModelInfos, error)
 	mustEmbedUnimplementedModelServiceServer()
 }

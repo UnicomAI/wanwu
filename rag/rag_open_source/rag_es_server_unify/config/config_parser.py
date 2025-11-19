@@ -26,7 +26,7 @@ class Config:
 
     def getboolean(self, section, option):
         """获取布尔值配置项"""
-        # 将配置文件中的字符串转换为布尔值
+        # 将配置文件中的字符串转换为布尔值 [EN] Convert string in config file to boolean
         value = self.config.get(section, option)
         if value.lower() in ('yes', 'true', '1'):
             return True
@@ -37,25 +37,25 @@ class Config:
 
     def getlist(self, section, option):
         """获取布尔值配置项"""
-        # 将配置文件中的字符串转换为布尔值
+        # 将配置文件中的字符串转换为布尔值 [EN] Convert string in config file to boolean
         value = self.config.get(section, option)
         return eval(value)
 
 
-# 使用示例
+# 使用示例 [EN] Usage example
 if __name__ == "__main__":
     config = Config('config.ini')
 
-    # 获取字符串配置
+    # 获取字符串配置 [EN] Get string configuration
     server = config.get('DEFAULT', 'Server')
     print(f"Server: {server}")
 
-    # 获取数据库配置
+    # 获取数据库配置 [EN] Get database configuration
     db_host = config.get('Database', 'Host')
     db_port = config.getint('Database', 'Port')
     print(f"Database Host: {db_host}, Port: {db_port}")
 
-    # 获取API配置
+    # 获取API配置 [EN] Get API configuration
     api_key = config.get('API', 'Key')
     api_endpoint = config.get('API', 'Endpoint')
     print(f"API Key: {api_key}, Endpoint: {api_endpoint}")

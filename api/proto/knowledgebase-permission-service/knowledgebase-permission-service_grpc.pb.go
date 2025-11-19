@@ -32,17 +32,17 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KnowledgeBasePermissionServiceClient interface {
-	// 查询知识库用户权限
+	// 查询知识库用户权限 [EN] Query knowledge base user permissions
 	SelectKnowledgeUserPermission(ctx context.Context, in *KnowledgeUserPermissionReq, opts ...grpc.CallOption) (*KnowledgeUserPermissionResp, error)
-	// 校验知识库用户权限,此组织下的userId 需要拥有的权限大于等于 permissionType
+	// 校验知识库用户权限,此组织下的userId 需要拥有的权限大于等于 permissionType [EN] Verify knowledge base user permissions. The userId under this organization needs to have permissions greater than or equal to permissionType
 	CheckKnowledgeUserPermission(ctx context.Context, in *CheckKnowledgeUserPermissionReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 增加知识库用户
+	// 增加知识库用户 [EN] Add knowledge base users
 	AddKnowledgeUser(ctx context.Context, in *AddKnowledgeUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 修改知识库用户
+	// 修改知识库用户 [EN] Modify knowledge base user
 	EditKnowledgeUser(ctx context.Context, in *EditKnowledgeUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除知识库用户
+	// 删除知识库用户 [EN] Delete knowledge base user
 	DeleteKnowledgeUser(ctx context.Context, in *DeleteKnowledgeUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 转让知识库管理员权限
+	// 转让知识库管理员权限 [EN] Transfer knowledge base administrator privileges
 	TransferKnowledgeAdminUser(ctx context.Context, in *TransferKnowledgeAdminUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -118,17 +118,17 @@ func (c *knowledgeBasePermissionServiceClient) TransferKnowledgeAdminUser(ctx co
 // All implementations must embed UnimplementedKnowledgeBasePermissionServiceServer
 // for forward compatibility.
 type KnowledgeBasePermissionServiceServer interface {
-	// 查询知识库用户权限
+	// 查询知识库用户权限 [EN] Query knowledge base user permissions
 	SelectKnowledgeUserPermission(context.Context, *KnowledgeUserPermissionReq) (*KnowledgeUserPermissionResp, error)
-	// 校验知识库用户权限,此组织下的userId 需要拥有的权限大于等于 permissionType
+	// 校验知识库用户权限,此组织下的userId 需要拥有的权限大于等于 permissionType [EN] Verify knowledge base user permissions. The userId under this organization needs to have permissions greater than or equal to permissionType
 	CheckKnowledgeUserPermission(context.Context, *CheckKnowledgeUserPermissionReq) (*emptypb.Empty, error)
-	// 增加知识库用户
+	// 增加知识库用户 [EN] Add knowledge base users
 	AddKnowledgeUser(context.Context, *AddKnowledgeUserReq) (*emptypb.Empty, error)
-	// 修改知识库用户
+	// 修改知识库用户 [EN] Modify knowledge base user
 	EditKnowledgeUser(context.Context, *EditKnowledgeUserReq) (*emptypb.Empty, error)
-	// 删除知识库用户
+	// 删除知识库用户 [EN] Delete knowledge base user
 	DeleteKnowledgeUser(context.Context, *DeleteKnowledgeUserReq) (*emptypb.Empty, error)
-	// 转让知识库管理员权限
+	// 转让知识库管理员权限 [EN] Transfer knowledge base administrator privileges
 	TransferKnowledgeAdminUser(context.Context, *TransferKnowledgeAdminUserReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedKnowledgeBasePermissionServiceServer()
 }

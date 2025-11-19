@@ -1,4 +1,4 @@
-// @Author wangxm 8/13/星期三 15:20:00
+// @Author wangxm 8/13/星期三 15:20:00 [EN] @Author wangxm 8/13/Wednesday 15:20:00
 package assistant
 
 import (

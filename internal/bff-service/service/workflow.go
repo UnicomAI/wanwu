@@ -39,7 +39,7 @@ func ListLlmModelsByWorkflow(ctx *gin.Context, userId, orgId, modelT string) (*r
 	}, nil
 }
 
-// ListWorkflow userID/orgID数据隔离，用于【工作流】
+// ListWorkflow userID/orgID数据隔离，用于【工作流】 [EN] ListWorkflow userID/orgID data isolation, used for [workflow]
 func ListWorkflow(ctx *gin.Context, orgID, name, appType string) (*response.CozeWorkflowListData, error) {
 	switch appType {
 	case constant.AppTypeWorkflow:
@@ -74,12 +74,12 @@ func ListWorkflow(ctx *gin.Context, orgID, name, appType string) (*response.Coze
 	return ret.Data, nil
 }
 
-// ListWorkflowByIDs 无userID或orgID隔离，用于【智能体选工作流】【应用广场】业务流程中
+// ListWorkflowByIDs 无userID或orgID隔离，用于【智能体选工作流】【应用广场】业务流程中 [EN] ListWorkflowByIDs has no userID or orgID isolation and is used in the [Intelligent Body Selection Workflow] [Application Square] business process
 func ListWorkflowByIDs(ctx *gin.Context, name string, workflowIDs []string) (*response.CozeWorkflowListData, error) {
 	var ids []string
 	for _, workflowID := range workflowIDs {
 		if _, err := util.I64(workflowID); err == nil {
-			// AgentScope Workflow ID为uuid，将这部分脏数据过滤掉；Coze Workflow ID可转为数字
+			// AgentScope Workflow ID为uuid，将这部分脏数据过滤掉；Coze Workflow ID可转为数字 [EN] AgentScope Workflow ID is uuid, filter out this part of dirty data; Coze Workflow ID can be converted to numbers
 			ids = append(ids, workflowID)
 		}
 	}
@@ -209,7 +209,7 @@ func ExportWorkflow(ctx *gin.Context, orgID, workflowID string) ([]byte, error) 
 		WorkflowDesc: ret.Data.WorkflowDesc,
 		Schema:       ret.Data.Schema,
 	}
-	// 将结构体序列化为 JSON 字节
+	// 将结构体序列化为 JSON 字节 [EN] Serialize struct to JSON bytes
 	jsonData, err := json.Marshal(exportData)
 	if err != nil {
 		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_export", fmt.Sprintf("export workflow unmarshal err:%v", err.Error()))
@@ -235,14 +235,14 @@ func ImportWorkflow(ctx *gin.Context, orgID, appType string) (*response.CozeWork
 	if err := json.Unmarshal(fileBytes, &rawData); err != nil {
 		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_import_file", fmt.Sprintf("schema unmarshal failed: %v", err))
 	}
-	// 校验name和desc
+	// 校验name和desc [EN] Verify name and desc
 	if rawData.Name == "" || rawData.Desc == "" {
 		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_import_file", "name or desc is empty")
 	}
 	switch appType {
 	case constant.AppTypeChatflow:
 		appType = "3"
-	// 默认工作流模式
+	// 默认工作流模式 [EN] Default workflow mode
 	default:
 		appType = "0"
 	}
@@ -277,7 +277,7 @@ func ImportWorkflow(ctx *gin.Context, orgID, appType string) (*response.CozeWork
 type workflowImportData struct {
 	Name   string `json:"name"`
 	Desc   string `json:"desc"`
-	Schema string `json:"schema"` // 存储为JSON字符串
+	Schema string `json:"schema"` // 存储为JSON字符串 [EN] Store as JSON string
 }
 
 func workflowHttpReqHeader(ctx *gin.Context) map[string]string {

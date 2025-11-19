@@ -3,13 +3,13 @@ package model
 type ReportStatus int
 
 const (
-	ReportInit          ReportStatus = 0   //社区报告未处理
-	ReportSuccess       ReportStatus = 120 //社区报告生成成功
-	ReportLoadFail      ReportStatus = 121 //社区报告加载失败
-	ReportExtractFail   ReportStatus = 122 //社区报告生成失败
-	ReportStoreFail     ReportStatus = 123 //社区报告持久化存储失败
-	ReportProcessing    ReportStatus = 130 //社区报告生成中
-	ReportInterruptFail ReportStatus = 139 //社区报告处理中断
+	ReportInit          ReportStatus = 0   //社区报告未处理 [EN] Community report not processed
+	ReportSuccess       ReportStatus = 120 //社区报告生成成功 [EN] Community report generated successfully
+	ReportLoadFail      ReportStatus = 121 //社区报告加载失败 [EN] Community report failed to load
+	ReportExtractFail   ReportStatus = 122 //社区报告生成失败 [EN] Community report generation failed
+	ReportStoreFail     ReportStatus = 123 //社区报告持久化存储失败 [EN] Community reports persistent storage failure
+	ReportProcessing    ReportStatus = 130 //社区报告生成中 [EN] Community report is being generated
+	ReportInterruptFail ReportStatus = 139 //社区报告处理中断 [EN] Community report processing outage
 )
 
 type KnowledgeBase struct {

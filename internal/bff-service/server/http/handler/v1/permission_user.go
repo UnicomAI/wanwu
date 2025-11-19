@@ -12,12 +12,12 @@ import (
 // CreateUser
 //
 //	@Tags			permission.user
-//	@Summary		创建用户
-//	@Description	创建用户，同时加入X-Org-Id组织；在系统视角下创建用户，不加入任何组织，也不能分配角色
+//	@Summary		创建用户 [EN] @Summary Create user
+//	@Description	创建用户，同时加入X-Org-Id组织；在系统视角下创建用户，不加入任何组织，也不能分配角色 [EN] @Description Create a user and join the X-Org-Id organization at the same time; create a user from the system perspective, do not join any organization, and cannot assign roles.
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.UserCreate	true	"用户信息"
+//	@Param			data	body		request.UserCreate	true	"用户信息" [EN] @Param data body request.UserCreate true "User information"
 //	@Success		200		{object}	response.Response{data=response.UserID}
 //	@Router			/user [post]
 func CreateUser(ctx *gin.Context) {
@@ -36,12 +36,12 @@ func CreateUser(ctx *gin.Context) {
 // ChangeUser
 //
 //	@Tags			permission.user
-//	@Summary		编辑用户
-//	@Description	编辑X-Org-Id组织的用户；在系统视角下编辑用户，不能分配角色
+//	@Summary		编辑用户 [EN] @Summary Edit user
+//	@Description	编辑X-Org-Id组织的用户；在系统视角下编辑用户，不能分配角色 [EN] @Description Edit the user of the X-Org-Id organization; editing the user from the system perspective cannot assign roles
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.UserUpdate	true	"用户信息"
+//	@Param			data	body		request.UserUpdate	true	"用户信息" [EN] @Param data body request.UserUpdate true "User information"
 //	@Success		200		{object}	response.Response
 //	@Router			/user [put]
 func ChangeUser(ctx *gin.Context) {
@@ -60,12 +60,12 @@ func ChangeUser(ctx *gin.Context) {
 // DeleteUser
 //
 //	@Tags			permission.user
-//	@Summary		删除用户
-//	@Description	从X-Org-Id组织将用户移除；在系统视角下为删除用户
+//	@Summary		删除用户 [EN] @Summary Delete user
+//	@Description	从X-Org-Id组织将用户移除；在系统视角下为删除用户 [EN] @Description Remove the user from the X-Org-Id organization; delete the user from the system perspective
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.UserID	true	"用户ID"
+//	@Param			data	body		request.UserID	true	"用户ID" [EN] @Param data body request.UserID true "User ID"
 //	@Success		200		{object}	response.Response
 //	@Router			/user [delete]
 func DeleteUser(ctx *gin.Context) {
@@ -95,14 +95,14 @@ func DeleteUser(ctx *gin.Context) {
 // GetUserList
 //
 //	@Tags			permission.user
-//	@Summary		获取用户列表
-//	@Description	获取X-Org-Id组织的用户列表；在系统视角下获取系统内全部用户列表
+//	@Summary		获取用户列表 [EN] @Summary Get the user list
+//	@Description	获取X-Org-Id组织的用户列表；在系统视角下获取系统内全部用户列表 [EN] @Description Get the user list of the X-Org-Id organization; get the list of all users in the system from the system perspective
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			name		query		string	false	"用户名(模糊查询)"
-//	@Param			pageNo		query		int		true	"页面编号，从1开始"
-//	@Param			pageSize	query		int		true	"单页数量，从1开始"
+//	@Param			name		query		string	false	"用户名(模糊查询)" [EN] @Param name query string false "Username (fuzzy query)"
+//	@Param			pageNo		query		int		true	"页面编号，从1开始" [EN] @Param pageNo query int true "Page number, starting from 1"
+//	@Param			pageSize	query		int		true	"单页数量，从1开始" [EN] @Param pageSize query int true "Number of single pages, starting from 1"
 //	@Success		200			{object}	response.Response{data=response.PageResult{list=[]response.UserInfo}}
 //	@Router			/user/list [get]
 func GetUserList(ctx *gin.Context) {
@@ -113,11 +113,11 @@ func GetUserList(ctx *gin.Context) {
 // ChangeUserStatus
 //
 //	@Tags		permission.user
-//	@Summary	修改用户状态
+//	@Summary	修改用户状态 [EN] @Summary Modify user status
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		data	body		request.UserStatus	true	"用户信息"
+//	@Param		data	body		request.UserStatus	true	"用户信息" [EN] @Param data body request.UserStatus true "User information"
 //	@Success	200		{object}	response.Response
 //	@Router		/user/status [put]
 func ChangeUserStatus(ctx *gin.Context) {
@@ -136,11 +136,11 @@ func ChangeUserStatus(ctx *gin.Context) {
 // ChangeUserPassword
 //
 //	@Tags		permission.user
-//	@Summary	修改用户密码（by 个人）
+//	@Summary	修改用户密码（by 个人） [EN] @Summary Modify user password (by individual)
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		data	body		request.UserPassword	true	"用户信息"
+//	@Param		data	body		request.UserPassword	true	"用户信息" [EN] @Param data body request.UserPassword true "User information"
 //	@Success	200		{object}	response.Response
 //	@Router		/user/password [put]
 func ChangeUserPassword(ctx *gin.Context) {
@@ -159,11 +159,11 @@ func ChangeUserPassword(ctx *gin.Context) {
 // AdminChangeUserPassword
 //
 //	@Tags		permission.user
-//	@Summary	重置用户密码（by 管理员）
+//	@Summary	重置用户密码（by 管理员） [EN] @Summary Reset user password (by administrator)
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		data	body		request.UserPasswordByAdmin	true	"用户信息"
+//	@Param		data	body		request.UserPasswordByAdmin	true	"用户信息" [EN] @Param data body request.UserPasswordByAdmin true "User information"
 //	@Success	200		{object}	response.Response
 //	@Router		/user/admin/password [put]
 func AdminChangeUserPassword(ctx *gin.Context) {
@@ -182,12 +182,12 @@ func AdminChangeUserPassword(ctx *gin.Context) {
 // GetOrgUserNotSelect
 //
 //	@Tags			permission.user
-//	@Summary		获取不在组织中用户列表（用于下拉选择）
-//	@Description	获取非X-Org-Id组织的用户列表
+//	@Summary		获取不在组织中用户列表（用于下拉选择） [EN] @Summary Get the list of users who are not in the organization (for drop-down selection)
+//	@Description	获取非X-Org-Id组织的用户列表 [EN] @Description Get the user list of non-X-Org-Id organizations
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			name	query		string	false	"用户名(模糊查询)"
+//	@Param			name	query		string	false	"用户名(模糊查询)" [EN] @Param name query string false "Username (fuzzy query)"
 //	@Success		200		{object}	response.Response{data=response.Select}
 //	@Router			/org/other/select [get]
 func GetOrgUserNotSelect(ctx *gin.Context) {
@@ -198,8 +198,8 @@ func GetOrgUserNotSelect(ctx *gin.Context) {
 // GetRoleSelect
 //
 //	@Tags			permission.user
-//	@Summary		获取组织角色列表（用于下拉选择）
-//	@Description	获取X-Org-Id组织的角色列表
+//	@Summary		获取组织角色列表（用于下拉选择） [EN] @Summary Get the list of organizational roles (for drop-down selection)
+//	@Description	获取X-Org-Id组织的角色列表 [EN] @Description Get the role list of the X-Org-Id organization
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
@@ -213,12 +213,12 @@ func GetRoleSelect(ctx *gin.Context) {
 // AddOrgUser
 //
 //	@Tags			permission.user
-//	@Summary		邀请用户加入组织
-//	@Description	增加X-Org-Id组织的用户
+//	@Summary		邀请用户加入组织 [EN] @Summary Invite users to join the organization
+//	@Description	增加X-Org-Id组织的用户 [EN] @Description Add users of X-Org-Id organization
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.OrgUserAdd	true	"用户-角色"
+//	@Param			data	body		request.OrgUserAdd	true	"用户-角色" [EN] @Param data body request.OrgUserAdd true "User-role"
 //	@Success		200		{object}	response.Response
 //	@Router			/org/user [post]
 func AddOrgUser(ctx *gin.Context) {

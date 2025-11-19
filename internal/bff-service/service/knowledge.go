@@ -24,7 +24,7 @@ import (
 
 var knowHttp = http_client.CreateDefault()
 
-// SelectKnowledgeList 查询知识库列表，主要根据userId 查询用户所有知识库
+// SelectKnowledgeList 查询知识库列表，主要根据userId 查询用户所有知识库 [EN] SelectKnowledgeList queries the knowledge base list, mainly querying all user knowledge bases based on userId.
 func SelectKnowledgeList(ctx *gin.Context, userId, orgId string, req *request.KnowledgeSelectReq) (*response.KnowledgeListResp, error) {
 	resp, err := knowledgeBase.SelectKnowledgeList(ctx.Request.Context(), &knowledgebase_service.KnowledgeSelectReq{
 		UserId:    userId,
@@ -38,7 +38,7 @@ func SelectKnowledgeList(ctx *gin.Context, userId, orgId string, req *request.Kn
 	return buildKnowledgeInfoList(ctx, resp), nil
 }
 
-// RagSearchKnowledgeBase 查询知识库列表（命中测试）
+// RagSearchKnowledgeBase 查询知识库列表（命中测试） [EN] RagSearchKnowledgeBase queries the knowledge base list (hit test)
 func RagSearchKnowledgeBase(ctx *gin.Context, req *request.RagSearchKnowledgeBaseReq) ([]byte, int) {
 	list, err := selectKnowledgeListByIdList(ctx, &request.KnowledgeBatchSelectReq{UserId: req.UserId, KnowledgeIdList: req.KnowledgeIdList})
 	if err != nil {
@@ -48,11 +48,11 @@ func RagSearchKnowledgeBase(ctx *gin.Context, req *request.RagSearchKnowledgeBas
 		return response.CommonRagKnowledgeError(errors.New("no knowledge permit"))
 	}
 	req.KnowledgeUser = buildUserKnowledgeList(list)
-	// 构建 rag 请求
+	// 构建 rag 请求 [EN] Build rag request
 	return requestRagSearchKnowledgeBase(ctx, req)
 }
 
-// KnowledgeStreamSearch 知识库流式问答
+// KnowledgeStreamSearch 知识库流式问答 [EN] KnowledgeStreamSearch Knowledge base streaming Q&A
 func KnowledgeStreamSearch(ctx *gin.Context, req *request.RagKnowledgeChatReq) error {
 	list, err := selectKnowledgeListByIdList(ctx, &request.KnowledgeBatchSelectReq{UserId: req.UserId, KnowledgeIdList: req.KnowledgeIdList})
 	if err != nil {
@@ -62,11 +62,11 @@ func KnowledgeStreamSearch(ctx *gin.Context, req *request.RagKnowledgeChatReq) e
 		return errors.New("no knowledge permit")
 	}
 	req.KnowledgeUser = buildUserKnowledgeList(list)
-	// 构建 rag 请求
+	// 构建 rag 请求 [EN] Build rag request
 	return requestRagKnowledgeStreamChat(ctx, req)
 }
 
-// SelectKnowledgeInfoByName 根据知识库名称查询知识库信息
+// SelectKnowledgeInfoByName 根据知识库名称查询知识库信息 [EN] SelectKnowledgeInfoByName Query knowledge base information based on the knowledge base name
 func SelectKnowledgeInfoByName(ctx *gin.Context, userId, orgId string, r *request.SearchKnowledgeInfoReq) (interface{}, error) {
 	resp, err := knowledgeBase.SelectKnowledgeDetailByName(ctx.Request.Context(), &knowledgebase_service.KnowledgeDetailSelectReq{
 		UserId:        userId,
@@ -81,7 +81,7 @@ func SelectKnowledgeInfoByName(ctx *gin.Context, userId, orgId string, r *reques
 	}, nil
 }
 
-// GetDeployInfo 查询部署信息
+// GetDeployInfo 查询部署信息 [EN] GetDeployInfo Query deployment information
 func GetDeployInfo(ctx *gin.Context) (interface{}, error) {
 	cfgServer := config.Cfg().Server
 	return map[string]string{
@@ -89,7 +89,7 @@ func GetDeployInfo(ctx *gin.Context) (interface{}, error) {
 	}, nil
 }
 
-// CreateKnowledge 创建知识库
+// CreateKnowledge 创建知识库 [EN] CreateKnowledge Create a knowledge base
 func CreateKnowledge(ctx *gin.Context, userId, orgId string, r *request.CreateKnowledgeReq) (*response.CreateKnowledgeResp, error) {
 	var llmModelId, schemaUrl string
 	if r.KnowledgeGraph.Switch {
@@ -116,7 +116,7 @@ func CreateKnowledge(ctx *gin.Context, userId, orgId string, r *request.CreateKn
 	return &response.CreateKnowledgeResp{KnowledgeId: resp.KnowledgeId}, nil
 }
 
-// UpdateKnowledge 更新知识库
+// UpdateKnowledge 更新知识库 [EN] UpdateKnowledge Update knowledge base
 func UpdateKnowledge(ctx *gin.Context, userId, orgId string, r *request.UpdateKnowledgeReq) error {
 	_, err := knowledgeBase.UpdateKnowledge(ctx.Request.Context(), &knowledgebase_service.UpdateKnowledgeReq{
 		KnowledgeId: r.KnowledgeId,
@@ -128,7 +128,7 @@ func UpdateKnowledge(ctx *gin.Context, userId, orgId string, r *request.UpdateKn
 	return err
 }
 
-// DeleteKnowledge 删除知识库
+// DeleteKnowledge 删除知识库 [EN] DeleteKnowledge Delete knowledge base
 func DeleteKnowledge(ctx *gin.Context, userId, orgId string, r *request.DeleteKnowledge) (interface{}, error) {
 	resp, err := knowledgeBase.DeleteKnowledge(ctx.Request.Context(), &knowledgebase_service.DeleteKnowledgeReq{
 		KnowledgeId: r.KnowledgeId,
@@ -141,7 +141,7 @@ func DeleteKnowledge(ctx *gin.Context, userId, orgId string, r *request.DeleteKn
 	return resp, nil
 }
 
-// KnowledgeHit 知识库命中
+// KnowledgeHit 知识库命中 [EN] KnowledgeHit knowledge base hit
 func KnowledgeHit(ctx *gin.Context, userId, orgId string, r *request.KnowledgeHitReq) (*response.KnowledgeHitResp, error) {
 	matchParams := r.KnowledgeMatchParams
 	resp, err := knowledgeBase.KnowledgeHit(ctx.Request.Context(), &knowledgebase_service.KnowledgeHitReq{
@@ -180,7 +180,7 @@ func GetKnowledgeMetaSelect(ctx *gin.Context, userId, orgId string, r *request.G
 	return buildKnowledgeMetaList(metaList.MetaList), nil
 }
 
-// GetKnowledgeMetaValueList 获取文档元数据列表
+// GetKnowledgeMetaValueList 获取文档元数据列表 [EN] GetKnowledgeMetaValueList Gets the document metadata list
 func GetKnowledgeMetaValueList(ctx *gin.Context, userId, orgId string, r *request.KnowledgeMetaValueListReq) (*response.KnowledgeMetaValueListResp, error) {
 	resp, err := knowledgeBase.GetKnowledgeMetaValueList(ctx.Request.Context(), &knowledgebase_service.KnowledgeMetaValueListReq{
 		UserId:    userId,
@@ -193,7 +193,7 @@ func GetKnowledgeMetaValueList(ctx *gin.Context, userId, orgId string, r *reques
 	return buildKnowledgeMetaValueRespList(resp), nil
 }
 
-// UpdateKnowledgeMetaValue 更新知识库元数据值
+// UpdateKnowledgeMetaValue 更新知识库元数据值 [EN] UpdateKnowledgeMetaValue updates the knowledge base metadata value
 func UpdateKnowledgeMetaValue(ctx *gin.Context, userId, orgId string, r *request.UpdateMetaValueReq) error {
 	_, err := knowledgeBase.UpdateKnowledgeMetaValue(ctx.Request.Context(), &knowledgebase_service.UpdateKnowledgeMetaValueReq{
 		UserId:          userId,
@@ -216,7 +216,7 @@ func UpdateKnowledgeStatus(ctx *gin.Context, r *request.CallbackUpdateKnowledgeS
 	return err
 }
 
-// GetKnowledgeGraph 查询知识图谱详情
+// GetKnowledgeGraph 查询知识图谱详情 [EN] GetKnowledgeGraph Query knowledge graph details
 func GetKnowledgeGraph(ctx *gin.Context, userId, orgId string, req *request.KnowledgeGraphReq) (*response.KnowledgeGraphResp, error) {
 	resp, err := knowledgeBase.GetKnowledgeGraph(ctx.Request.Context(), &knowledgebase_service.KnowledgeGraphReq{
 		UserId:      userId,
@@ -254,7 +254,7 @@ func buildUserKnowledgeList(knowledgeList *response.KnowledgeListResp) map[strin
 	return retMap
 }
 
-// selectKnowledgeListByIdList 查询知识库列表，主要根据userId 查询用户所有知识库
+// selectKnowledgeListByIdList 查询知识库列表，主要根据userId 查询用户所有知识库 [EN] selectKnowledgeListByIdList queries the knowledge base list, mainly querying all user knowledge bases based on userId
 func selectKnowledgeListByIdList(ctx *gin.Context, req *request.KnowledgeBatchSelectReq) (*response.KnowledgeListResp, error) {
 	resp, err := knowledgeBase.SelectKnowledgeListByIdList(ctx.Request.Context(), &knowledgebase_service.BatchKnowledgeSelectReq{
 		UserId:          req.UserId,
@@ -266,7 +266,7 @@ func selectKnowledgeListByIdList(ctx *gin.Context, req *request.KnowledgeBatchSe
 	return buildKnowledgeInfoList(ctx, resp), nil
 }
 
-// buildKnowledgeMetaList 构造知识库元数据列表
+// buildKnowledgeMetaList 构造知识库元数据列表 [EN] buildKnowledgeMetaList constructs a knowledge base metadata list
 func buildKnowledgeMetaList(metaList []*knowledgebase_service.KnowledgeMetaData) *response.GetKnowledgeMetaSelectResp {
 	var retMetaList []*response.KnowledgeMetaItem
 	for _, meta := range metaList {
@@ -279,7 +279,7 @@ func buildKnowledgeMetaList(metaList []*knowledgebase_service.KnowledgeMetaData)
 	return &response.GetKnowledgeMetaSelectResp{MetaList: retMetaList}
 }
 
-// buildKnowledgeListReq 构造命中测试 - 知识库列表参数
+// buildKnowledgeListReq 构造命中测试 - 知识库列表参数 [EN] buildKnowledgeListReq construct hit test - knowledge base list parameter
 func buildKnowledgeListReq(r *request.KnowledgeHitReq) []*knowledgebase_service.KnowledgeParams {
 	var knowledgeList []*knowledgebase_service.KnowledgeParams
 	for _, k := range r.KnowledgeList {
@@ -295,7 +295,7 @@ func buildKnowledgeListReq(r *request.KnowledgeHitReq) []*knowledgebase_service.
 	return knowledgeList
 }
 
-// buildKnowledgeInfoList 构造知识库列表结果
+// buildKnowledgeInfoList 构造知识库列表结果 [EN] buildKnowledgeInfoList constructs the knowledge base list results
 func buildKnowledgeInfoList(ctx *gin.Context, knowledgeListResp *knowledgebase_service.KnowledgeSelectListResp) *response.KnowledgeListResp {
 	if knowledgeListResp == nil || len(knowledgeListResp.KnowledgeList) == 0 {
 		return &response.KnowledgeListResp{}
@@ -318,7 +318,7 @@ func buildKnowledgeInfoList(ctx *gin.Context, knowledgeListResp *knowledgebase_s
 			CreateAt:         knowledge.CreatedAt,
 			PermissionType:   knowledge.PermissionType,
 			CreateUserId:     knowledge.CreateUserId,
-			Share:            share, //数量大于1才是分享，因为权限记录中有一条是记录创建者权限
+			Share:            share, //数量大于1才是分享，因为权限记录中有一条是记录创建者权限 [EN] Sharing is only possible if the number is greater than 1, because one of the permission records is the permission of the record creator.
 			RagName:          knowledge.RagName,
 			GraphSwitch:      knowledge.GraphSwitch,
 		})
@@ -330,7 +330,7 @@ func buildKnowledgeInfoList(ctx *gin.Context, knowledgeListResp *knowledgebase_s
 func buildShareOrgName(share bool, orgName string) string {
 	if share {
 		if strings.Contains(orgName, "---") {
-			// "--- 系统 ---" => "系统"
+			// "--- 系统 ---" => "系统" [EN] "--- System ---" => "System"
 			return strings.TrimSpace(strings.Trim(orgName, "---"))
 		}
 		return orgName
@@ -338,7 +338,7 @@ func buildShareOrgName(share bool, orgName string) string {
 	return ""
 }
 
-// buildOtherOrgInfoMap 构造刨除当前组织的组织信息
+// buildOtherOrgInfoMap 构造刨除当前组织的组织信息 [EN] The buildOtherOrgInfoMap structure deletes the organization information of the current organization.
 func buildOtherOrgInfoMap(ctx *gin.Context, knowledgeListResp *knowledgebase_service.KnowledgeSelectListResp) map[string]string {
 	var shareOrgIdList []string
 	for _, knowledge := range knowledgeListResp.KnowledgeList {
@@ -363,7 +363,7 @@ func buildOtherOrgInfoMap(ctx *gin.Context, knowledgeListResp *knowledgebase_ser
 	return dataMap
 }
 
-// buildTagList 构造知识库标签列表
+// buildTagList 构造知识库标签列表 [EN] buildTagList constructs a knowledge base tag list
 func buildTagList(tagList []*knowledgebase_service.KnowledgeTagInfo) []*response.KnowledgeTag {
 	var retTagList = make([]*response.KnowledgeTag, 0)
 	if len(tagList) > 0 {
@@ -378,7 +378,7 @@ func buildTagList(tagList []*knowledgebase_service.KnowledgeTagInfo) []*response
 	return retTagList
 }
 
-// buildKnowledgeHitResp 构造知识库命中返回
+// buildKnowledgeHitResp 构造知识库命中返回 [EN] buildKnowledgeHitResp constructs knowledge base hit return
 func buildKnowledgeHitResp(resp *knowledgebase_service.KnowledgeHitResp) *response.KnowledgeHitResp {
 	var searchList = make([]*response.ChunkSearchList, 0)
 	if len(resp.SearchList) > 0 {
@@ -456,7 +456,7 @@ func buildKnowledgeMetaValueReqList(req []*request.DocMetaData) []*knowledgebase
 	return metaList
 }
 
-// requestRagSearchKnowledgeBase 请求rag
+// requestRagSearchKnowledgeBase 请求rag [EN] requestRagSearchKnowledgeBase request rag
 func requestRagSearchKnowledgeBase(ctx context.Context, req *request.RagSearchKnowledgeBaseReq) ([]byte, int) {
 	url := config.Cfg().RagKnowledgeConfig.Endpoint + config.Cfg().RagKnowledgeConfig.SearchKnowledgeBaseUri
 	paramsByte, err := json.Marshal(req)
@@ -485,7 +485,7 @@ func requestRagKnowledgeStreamChat(ctx *gin.Context, req *request.RagKnowledgeCh
 		log.Errorf("build http params fail %s", err.Error())
 		return err
 	}
-	// 捕获 panic 并记录日志（不重新抛出，避免崩溃）
+	// 捕获 panic 并记录日志（不重新抛出，避免崩溃） [EN] Catch panic and log (do not rethrow to avoid crash)
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("RagStreamChat panic: %v", r)
@@ -498,7 +498,7 @@ func requestRagKnowledgeStreamChat(ctx *gin.Context, req *request.RagKnowledgeCh
 		log.Errorf(errMsg)
 		return err
 	}
-	// 检查响应状态
+	// 检查响应状态 [EN] Check response status
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("error: 调用下游服务异常: %s", resp.Status)
 	}
@@ -507,7 +507,7 @@ func requestRagKnowledgeStreamChat(ctx *gin.Context, req *request.RagKnowledgeCh
 		if err != nil {
 			log.Errorf("error: 响应体关闭异常: %v", err)
 		}
-	}(resp.Body) // 确保响应体关闭
+	}(resp.Body) // 确保响应体关闭 [EN] Make sure the response body is closed
 
 	if resp.StatusCode != http.StatusOK {
 		errMsg := fmt.Sprintf("error: 调用下游服务异常: %s", resp.Status)

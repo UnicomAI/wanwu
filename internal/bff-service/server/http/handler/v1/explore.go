@@ -10,11 +10,11 @@ import (
 // GetExplorationAppList
 //
 //	@Tags			exploration
-//	@Summary		获取应用广场应用
-//	@Description	获取应用广场应用
+//	@Summary		获取应用广场应用 [EN] @Summary Get the application square application
+//	@Description	获取应用广场应用 [EN] @Description Get the application square application
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	query		request.GetExplorationAppListRequest	true	"获取应用广场应用参数"
+//	@Param			data	query		request.GetExplorationAppListRequest	true	"获取应用广场应用参数" [EN] @Param data query request.GetExplorationAppListRequest true "Get application square application parameters"
 //	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.ExplorationAppInfo}}
 //	@Router			/exploration/app/list [get]
 func GetExplorationAppList(ctx *gin.Context) {
@@ -29,11 +29,11 @@ func GetExplorationAppList(ctx *gin.Context) {
 // ChangeExplorationAppFavorite
 //
 //	@Tags			exploration
-//	@Summary		更改App收藏状态
-//	@Description	更改App收藏状态
+//	@Summary		更改App收藏状态 [EN] @Summary Change App collection status
+//	@Description	更改App收藏状态 [EN] @Description Change App collection status
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.ChangeExplorationAppFavoriteRequest	true	"更改App收藏状态参数"
+//	@Param			data	body		request.ChangeExplorationAppFavoriteRequest	true	"更改App收藏状态参数" [EN] @Param data body request.ChangeExplorationAppFavoriteRequest true "Change App Favorite Status Parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/exploration/app/favorite [post]
 func ChangeExplorationAppFavorite(ctx *gin.Context) {

@@ -10,11 +10,11 @@ import (
 // CreateMCP
 //
 //	@Tags			mcp
-//	@Summary		创建自定义MCP
-//	@Description	创建自定义MCP
+//	@Summary		创建自定义MCP [EN] @Summary Create a custom MCP
+//	@Description	创建自定义MCP [EN] @Description Create a custom MCP
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.MCPCreate	true	"自定义MCP信息"
+//	@Param			data	body		request.MCPCreate	true	"自定义MCP信息" [EN] @Param data body request.MCPCreate true "Customized MCP information"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/mcp [post]
 func CreateMCP(ctx *gin.Context) {
@@ -28,11 +28,11 @@ func CreateMCP(ctx *gin.Context) {
 // UpdateMCP
 //
 //	@Tags			mcp
-//	@Summary		修改自定义MCP
-//	@Description	修改自定义MCP
+//	@Summary		修改自定义MCP [EN] @Summary Modify custom MCP
+//	@Description	修改自定义MCP [EN] @Description Modify custom MCP
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.MCPUpdate	true	"自定义MCP信息"
+//	@Param			data	body		request.MCPUpdate	true	"自定义MCP信息" [EN] @Param data body request.MCCPupdate true "Customized MCP information"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/mcp [put]
 func UpdateMCP(ctx *gin.Context) {
@@ -46,8 +46,8 @@ func UpdateMCP(ctx *gin.Context) {
 // GetMCP
 //
 //	@Tags			mcp
-//	@Summary		获取自定义MCP详情
-//	@Description	获取自定义MCP详情
+//	@Summary		获取自定义MCP详情 [EN] @Summary Get custom MCP details
+//	@Description	获取自定义MCP详情 [EN] @Description Get custom MCP details
 //	@Accept			json
 //	@Produce		json
 //	@Param			mcpId	query		string	true	"mcpId"
@@ -61,8 +61,8 @@ func GetMCP(ctx *gin.Context) {
 // DeleteMCP
 //
 //	@Tags			mcp
-//	@Summary		删除自定义MCP
-//	@Description	删除自定义MCP
+//	@Summary		删除自定义MCP [EN] @Summary Delete custom MCP
+//	@Description	删除自定义MCP [EN] @Description Delete custom MCP
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.MCPIDReq	true	"mcpId"
@@ -79,11 +79,11 @@ func DeleteMCP(ctx *gin.Context) {
 // GetMCPList
 //
 //	@Tags			mcp
-//	@Summary		获取自定义MCP列表
-//	@Description	获取自定义MCP列表
+//	@Summary		获取自定义MCP列表 [EN] @Summary Get a custom MCP list
+//	@Description	获取自定义MCP列表 [EN] @Description Get custom MCP list
 //	@Accept			json
 //	@Produce		json
-//	@Param			name	query		string	false	"mcp名称"
+//	@Param			name	query		string	false	"mcp名称" [EN] @Param name query string false "mcp name"
 //	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.MCPInfo}}
 //	@Router			/mcp/list [get]
 func GetMCPList(ctx *gin.Context) {
@@ -94,12 +94,12 @@ func GetMCPList(ctx *gin.Context) {
 // GetMCPTools
 //
 //	@Tags			mcp
-//	@Summary		获取MCP Tool列表
-//	@Description	获取MCP Tool列表
+//	@Summary		获取MCP Tool列表 [EN] @Summary Get the MCP Tool list
+//	@Description	获取MCP Tool列表 [EN] @Description Get the MCP Tool list
 //	@Accept			json
 //	@Produce		json
-//	@Param			mcpId		query		string	false	"mcpId(和serverUrl传一个)"
-//	@Param			serverUrl	query		string	false	"serverUrl,就是sseUrl(和mcpId传一个)"
+//	@Param			mcpId		query		string	false	"mcpId(和serverUrl传一个)" [EN] @Param mcpId query string false "mcpId (pass the same one as serverUrl)"
+//	@Param			serverUrl	query		string	false	"serverUrl,就是sseUrl(和mcpId传一个)" [EN] @Param serverUrl query string false "serverUrl, which is sseUrl (pass the same as mcpId)"
 //	@Success		200			{object}	response.Response{data=response.MCPToolList}
 //	@Router			/mcp/tool/list [get]
 func GetMCPTools(ctx *gin.Context) {
@@ -110,11 +110,11 @@ func GetMCPTools(ctx *gin.Context) {
 // GetMCPSelect
 //
 //	@Tags			mcp
-//	@Summary		获取自定义MCP列表（用于下拉选择）
-//	@Description	获取自定义MCP列表（用于下拉选择）
+//	@Summary		获取自定义MCP列表（用于下拉选择） [EN] @Summary Get a custom MCP list (for drop-down selection)
+//	@Description	获取自定义MCP列表（用于下拉选择） [EN] @Description Get a custom MCP list (for drop-down selection)
 //	@Accept			json
 //	@Produce		json
-//	@Param			name	query		string	false	"mcp名称"
+//	@Param			name	query		string	false	"mcp名称" [EN] @Param name query string false "mcp name"
 //	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.MCPSelect}}
 //	@Router			/mcp/select [get]
 func GetMCPSelect(ctx *gin.Context) {
@@ -125,11 +125,11 @@ func GetMCPSelect(ctx *gin.Context) {
 // GetMCPActionList
 //
 //	@Tags			mcp
-//	@Summary		获取MCP Action列表
-//	@Description	获取MCP Action列表
+//	@Summary		获取MCP Action列表 [EN] @Summary Get the MCP Action list
+//	@Description	获取MCP Action列表 [EN] @Description Get MCP Action list
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	query		request.MCPActionListReq	true	"mcp信息"
+//	@Param			data	query		request.MCPActionListReq	true	"mcp信息" [EN] @Param data query request.MCPActionListReq true "mcp information"
 //	@Success		200		{object}	response.Response{data=response.MCPActionList}
 //	@Router			/mcp/action/list [get]
 func GetMCPActionList(ctx *gin.Context) {

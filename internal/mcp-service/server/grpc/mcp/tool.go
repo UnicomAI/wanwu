@@ -15,7 +15,7 @@ import (
 )
 
 func (s *Service) GetToolByIdList(ctx context.Context, req *mcp_service.GetToolByToolIdListReq) (*mcp_service.GetToolByToolIdListResp, error) {
-	// 内置工具
+	// 内置工具 [EN] Built-in tools
 	var toolSquareInfo []*mcp_service.ToolSquareInfo
 	for _, toolCfg := range config.Cfg().Tools {
 		for _, builtInTool := range req.BuiltInToolIdList {
@@ -24,7 +24,7 @@ func (s *Service) GetToolByIdList(ctx context.Context, req *mcp_service.GetToolB
 			}
 		}
 	}
-	// 自定义工具
+	// 自定义工具 [EN] Custom tools
 	var ids []uint32
 	for _, idStr := range req.CustomToolIdList {
 		id := util.MustU32(idStr)
@@ -83,7 +83,7 @@ func (s *Service) GetToolSelect(ctx context.Context, req *mcp_service.GetToolSel
 		})
 	}
 	// search builtin tools
-	// 先把该用户所有已配置apikey内置工具查出来，构造成map<ToolSquareId, *model.CustomTool>，然后通过ToolSquareId查询apikey
+	// 先把该用户所有已配置apikey内置工具查出来，构造成map<ToolSquareId, *model.CustomTool>，然后通过ToolSquareId查询apikey [EN] First, find out all the configured apikey built-in tools for this user, construct it into map<ToolSquareId, *model.CustomTool>, and then query the apikey through ToolSquareId
 	builtinTools, err := s.cli.ListBuiltinTools(ctx, req.Identity.OrgId, req.Identity.UserId)
 	if err != nil {
 		return nil, errStatus(errs.Code_MCPGetCustomToolListErr, err)
@@ -105,7 +105,7 @@ func (s *Service) GetToolSelect(ctx context.Context, req *mcp_service.GetToolSel
 			NeedApiKeyInput: toolCfg.NeedApiKeyInput,
 			AvatarPath:      toolCfg.AvatarPath,
 		}
-		// 从map中查询内置工具
+		// 从map中查询内置工具 [EN] Query built-in tools from map
 		if tool, ok := builtinToolMap[toolCfg.ToolSquareId]; ok {
 			apiAuth := &common.ApiAuthWebRequest{}
 			if err := json.Unmarshal([]byte(tool.AuthJSON), apiAuth); err != nil {

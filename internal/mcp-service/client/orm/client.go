@@ -29,7 +29,7 @@ func NewClient(ctx context.Context, db *gorm.DB) (*Client, error) {
 	); err != nil {
 		return nil, err
 	}
-	// 迁移数据
+	// 迁移数据 [EN] Migrate data
 	if err := initCustomToolAuthJson(db); err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func NewClient(ctx context.Context, db *gorm.DB) (*Client, error) {
 
 func initCustomToolAuthJson(dbClient *gorm.DB) error {
 	var customToolBaseList []model.CustomTool
-	//数据量不会太大直接getAll
+	//数据量不会太大直接getAll [EN] The amount of data will not be too large, just getAll
 	err := dbClient.Model(&model.CustomTool{}).
 		Where("tool_square_id = '' OR tool_square_id IS NULL").
 		Where("auth_json = '' OR auth_json IS NULL").
@@ -75,7 +75,7 @@ func initCustomToolAuthJson(dbClient *gorm.DB) error {
 		}
 	}
 
-	// 清理脏数据
+	// 清理脏数据 [EN] Clean dirty data
 	err = dbClient.Model(&model.CustomTool{}).
 		Where("tool_square_id != ''").Delete(&model.CustomTool{}).Error
 	if err != nil {

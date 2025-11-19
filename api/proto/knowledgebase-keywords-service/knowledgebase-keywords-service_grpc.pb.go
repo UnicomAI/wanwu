@@ -31,15 +31,15 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KnowledgeBaseKeywordsServiceClient interface {
-	// 查询知识库关键词列表
+	// 查询知识库关键词列表 [EN] Query the knowledge base keyword list
 	GetKnowledgeKeywordsList(ctx context.Context, in *GetKnowledgeKeywordsListReq, opts ...grpc.CallOption) (*GetKnowledgeKeywordsListResp, error)
-	// 查询知识库关键词详情
+	// 查询知识库关键词详情 [EN] Query knowledge base keyword details
 	GetKnowledgeKeywordsDetail(ctx context.Context, in *GetKnowledgeKeywordsDetailReq, opts ...grpc.CallOption) (*GetKnowledgeKeywordsDetailResp, error)
-	// 新增知识库关键词
+	// 新增知识库关键词 [EN] Add new knowledge base keywords
 	CreateKnowledgeKeywords(ctx context.Context, in *CreateKnowledgeKeywordsReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 编辑知识库关键词
+	// 编辑知识库关键词 [EN] Edit knowledge base keywords
 	UpdateKnowledgeKeywords(ctx context.Context, in *UpdateKnowledgeKeywordsReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除知识库关键词
+	// 删除知识库关键词 [EN] Delete knowledge base keywords
 	DeleteKnowledgeKeywords(ctx context.Context, in *DeleteKnowledgeKeywordsReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -105,15 +105,15 @@ func (c *knowledgeBaseKeywordsServiceClient) DeleteKnowledgeKeywords(ctx context
 // All implementations must embed UnimplementedKnowledgeBaseKeywordsServiceServer
 // for forward compatibility.
 type KnowledgeBaseKeywordsServiceServer interface {
-	// 查询知识库关键词列表
+	// 查询知识库关键词列表 [EN] Query the knowledge base keyword list
 	GetKnowledgeKeywordsList(context.Context, *GetKnowledgeKeywordsListReq) (*GetKnowledgeKeywordsListResp, error)
-	// 查询知识库关键词详情
+	// 查询知识库关键词详情 [EN] Query knowledge base keyword details
 	GetKnowledgeKeywordsDetail(context.Context, *GetKnowledgeKeywordsDetailReq) (*GetKnowledgeKeywordsDetailResp, error)
-	// 新增知识库关键词
+	// 新增知识库关键词 [EN] Add new knowledge base keywords
 	CreateKnowledgeKeywords(context.Context, *CreateKnowledgeKeywordsReq) (*emptypb.Empty, error)
-	// 编辑知识库关键词
+	// 编辑知识库关键词 [EN] Edit knowledge base keywords
 	UpdateKnowledgeKeywords(context.Context, *UpdateKnowledgeKeywordsReq) (*emptypb.Empty, error)
-	// 删除知识库关键词
+	// 删除知识库关键词 [EN] Delete knowledge base keywords
 	DeleteKnowledgeKeywords(context.Context, *DeleteKnowledgeKeywordsReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedKnowledgeBaseKeywordsServiceServer()
 }

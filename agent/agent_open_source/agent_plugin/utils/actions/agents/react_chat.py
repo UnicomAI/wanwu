@@ -125,7 +125,7 @@ class ReActChat(FnCallAgent):
         action_code = 0
         qa_type = 20
         thought_inference = ""
-        param_des = []  ###保存不同调用模型对应的参数描述，便于识别哪些参数缺失，从而调用大模型进行对话跟踪
+        param_des = []  ###保存不同调用模型对应的参数描述，便于识别哪些参数缺失，从而调用大模型进行对话跟踪 [EN] ##Save the parameter descriptions corresponding to different calling models to facilitate identifying which parameters are missing, so as to call the large model for dialogue tracking
         function_items =  []
         functions_total_lists = []
         param_pattern = r"参数 (\w+):"
@@ -135,7 +135,7 @@ class ReActChat(FnCallAgent):
         first_index = 0
         
         try:
-            ####1、yuanjing_function_call模型输出格式与其他架构不一致，需单独处理------直接调用
+            ####1、yuanjing_function_call模型输出格式与其他架构不一致，需单独处理------直接调用 [EN] ###1. The output format of the yuanjing_function_call model is inconsistent with other architectures and needs to be processed separately------directly called
             logger.info(f"self.action_type:{self.action_type}")
             # logger.info(f"self.system_message:{self.system_message}")
             query = messages[-1]['content']
@@ -166,13 +166,13 @@ class ReActChat(FnCallAgent):
                                 thought = res["data"]["choices"][0]["message"]["content"]
                                 action_input = res["data"]["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"]
                                 action_input = json.loads(action_input)
-                                ###获取详细的参数描述
+                                ###获取详细的参数描述 [EN] ##Get detailed parameter description
                                 index_function = function_calls_names.index(action)
                                 param_descriptions = "\n".join([f"参数 {key}: {value.get('description', '无描述')}" for key,value in self.function_calls_list[index_function].get('function', {}).get('parameters', {}).get('properties', {}).items() if key in self.function_calls_list[index_function].get('function', {}).get('required')])
                                 matches = re.findall(param_pattern, param_descriptions)
                                 param_des.append(param_descriptions)
                                 logger.info(f"yuanjing_function_call：【{action}】的必填参数描述为：{param_des}")
-                                ###判断function_call参数识别是否缺失
+                                ###判断function_call参数识别是否缺失 [EN] ##Determine whether function_call parameter recognition is missing
                                 keys_identify = [key for key in action_input.keys()]
                                 
                                 if "<tool>" not in total_result and action:
@@ -209,11 +209,11 @@ class ReActChat(FnCallAgent):
 
                                     输出要求
 
-                                    ## 答案中不要出现"根据您提供的信息"、"根据提供的信息"、"根据参考信息"等之类的话术。
-                                    ## 请不要使用markdown格式。
-                                    ## 回答请简洁、准确地告诉用户缺失哪些参数以及需要输入的参数要求
+                                    ## 答案中不要出现"根据您提供的信息"、"根据提供的信息"、"根据参考信息"等之类的话术。 [EN] # Do not use words such as "based on the information you provided", "based on the information provided", "based on reference information", etc. in the answer.
+                                    ## 请不要使用markdown格式。 [EN] # Please do not use markdown format.
+                                    ## 回答请简洁、准确地告诉用户缺失哪些参数以及需要输入的参数要求 [EN] # Please answer concisely and accurately tell the user which parameters are missing and the parameter requirements that need to be entered.
                                     '''   
-                                    ###调用大模型进行回答
+                                    ###调用大模型进行回答 [EN] ##Call the large model to answer
                                     messages = []
                                     subjson = {}
                                     subjson["role"] = "user"
@@ -229,7 +229,7 @@ class ReActChat(FnCallAgent):
                                 action_output = "function识别为NONE"
 
                         else:
-                            ###判断是否是对问题的进一步追问
+                            ###判断是否是对问题的进一步追问 [EN] ##Determine whether it is a further inquiry into the question
                             content =  res["data"]["choices"][0]["message"]["content"]
                             time_add1  = time.time()
                             is_add = is_answer_additional_remarks(query,content)
@@ -258,18 +258,18 @@ class ReActChat(FnCallAgent):
             else:
                 text_messages = self._prepend_react_prompt(messages, lang=lang)
                 # logger.info(f"text_messages：{text_messages}")
-                ###定义插件名称
+                ###定义插件名称 [EN] ##Define plugin name
                 function_calls_names = [item['function_name'] for item in self.function_calls_list]
                 function_items.extend(function_calls_names)
                 function_items.extend(self.function_list)
                 logger.info(f"function_items:{function_items}")
 
-                ###定义插件详细列表
+                ###定义插件详细列表 [EN] ##Define detailed list of plugins
                 functions = [f for f in self.function_map.values()]
                 functions_total_lists.extend(functions)
                 functions_total_lists.extend(self.function_calls_list)
 
-                ###定义模型循环次数
+                ###定义模型循环次数 [EN] ##Define model cycle times
                 self.extra_generate_cfg['lang'] = lang
                 num_llm_calls_available = MAX_LLM_CALL_PER_RUN  
                 
@@ -294,11 +294,11 @@ class ReActChat(FnCallAgent):
                                 res=res.decode()
                             response += res
                             if "<TOOL>" in response.upper():
-                                # logger.info(f"-----deepseek截断提取：stop_token效果------")
+                                # logger.info(f"-----deepseek截断提取：stop_token效果------") [EN] logger.info(f"-----deepseek truncation extraction: stop_token effect------")
                                 response_new = re.sub('<TOOL>.*?</TOOL>', '', response, flags=re.DOTALL)
                                 if "</TOOL>" in response and ("ACTION INPUT" in response_new.upper() and "}" in response_new.upper()):
                                     break
-                            # ####如果直接是答案行，则无需校验，直接输出结果
+                            # ####如果直接是答案行，则无需校验，直接输出结果 [EN] ####If it is directly the answer line, no verification is needed and the result is output directly.
                             # elif "Final Answer" in response:
                             #     if first_index == 0 and "Final Answer:" in response:
                             #         final_answer_pos = response.upper().index("Final Answer:")
@@ -311,11 +311,11 @@ class ReActChat(FnCallAgent):
                             #               "qa_type": qa_type, "action_output": f"{res}"}
                             #     result = json.dumps(result, ensure_ascii=False)
                             #     yield [Message(role=ASSISTANT, content=res)]
-                            #     # logger.info(f"action最终的输出结果为：{result}")
+                            #     # logger.info(f"action最终的输出结果为：{result}") [EN] # logger.info(f"The final output result of action is: {result}")
                             #     first_index += 1
 
                             else:
-                                # logger.info(f"-----非 deepseek截断提取：stop_token效果------")
+                                # logger.info(f"-----非 deepseek截断提取：stop_token效果------") [EN] logger.info(f"-----Non-deepseek truncation extraction: stop_token effect------")
                                 if "OBSERVATION" in response.upper() or ("ACTION INPUT" in response.upper() and "}" in response.upper()):
                                     break
                         
@@ -323,7 +323,7 @@ class ReActChat(FnCallAgent):
                     time_output = time_output2 - time_output1
                     logger.info(f"第{t}次提取response的响应时间为:{time_output}")
 
-                    ####大模型报错，直接退出
+                    ####大模型报错，直接退出 [EN] ###Large model reports an error, exit directly
                     if not response:
                         result = {"action_code": 1,"description":f"调用大模型报错：{output_stream.text}","func_names":[],"func_params":[],"thought_inference":"","qa_type":None,"action_output":f"调用大模型报错：{output_stream.text}"}
                         result = json.dumps(result, ensure_ascii=False)
@@ -338,41 +338,41 @@ class ReActChat(FnCallAgent):
                         response = re.sub('<THINK>.*?</THINK>', '', response, flags=re.DOTALL)
 
                     logger.info(f"第{t}次调用的response:\n{response}\n")
-                    ###剔除思考过程后提取工具调用结果
+                    ###剔除思考过程后提取工具调用结果 [EN] ##Extract tool call results after eliminating the thinking process
                     response = re.sub('<tool>.*?</tool>', '', response, flags=re.DOTALL)
                     response = re.sub('<think>.*?</think>', '', response, flags=re.DOTALL | re.IGNORECASE)
-                    ##结构化提取大模型识别的参数：兼容元景模型及ds模型（输出内容不一致）
+                    ##结构化提取大模型识别的参数：兼容元景模型及ds模型（输出内容不一致） [EN] #Structured extraction of parameters for large model recognition: compatible with Yuanjing model and ds model (output content is inconsistent)
                     counts = {
                         "OBSERVATION": response.upper().count("OBSERVATION") + response.upper().count("OBSERVATION:"),
                         "ACTION": response.upper().count("ACTION") + response.upper().count("ACTION:")
                     }
                     num = counts["OBSERVATION"] if counts["OBSERVATION"] else counts["ACTION"]
                     logger.info(f"需要调用call的次数为：{num}")
-                    #logger.info(f"处理了的response:{response}")
+                    #logger.info(f"处理了的response:{response}") [EN] logger.info(f"Processed response:{response}")
                     action_results = find_tools(response,num) 
                     action = action_results['func_name']
                     action_input = action_results['func_params']
                     thought = action_results['final_result']
                     
                     
-                    #######判断提取的参数个数是否完整及有效
-                    ###1、识别提取出的参数
+                    #######判断提取的参数个数是否完整及有效 [EN] ###### Determine whether the number of extracted parameters is complete and valid
+                    ###1、识别提取出的参数 [EN] ##1. Identify the extracted parameters
                     if action and (action_input and all(str(v).strip() not in Invalid_character for v in action_input)):
                         keys_identify = [key for key in action_input[-1].keys()]
                     logger.info(f"keys_identify：{keys_identify}")
 
-                    ####2、识别原始API的参数名称及参数描述
+                    ####2、识别原始API的参数名称及参数描述 [EN] ###2. Identify the parameter names and parameter descriptions of the original API
                     if action and all(item in function_items for item in action_results['func_name']):
                         if self.action_type == "modelscope_agent":   
                             function_to_call = parse_tool_selection_response(action_results['func_name'][0],functions_total_lists)
                         else:
                             function_to_call = action[-1]
                             
-                        #####插件的索引位置及提取
+                        #####插件的索引位置及提取 [EN] #### Index location and extraction of plug-in
                         if  function_to_call and function_to_call not  in function_calls_names :
                             selected_function = next((f for f in functions if f.name == function_to_call), None)
                             param_descriptions = "\n".join([f"参数 {param['name']}: {param.get('description', '无描述')}" for param in selected_function.parameters if "value" not in param and param.get('required')==True])
-                        ####function_to_call的索引位置及提取
+                        ####function_to_call的索引位置及提取 [EN] ###Index position and extraction of function_to_call
                         else:
                             index_function = function_calls_names.index(function_to_call)
                             param_descriptions = "\n".join([f"参数 {key}: {value.get('description', '无描述')}" for key,value in self.function_calls_list[index_function].get('parameters', {}).get('properties', {}).items() if key in self.function_calls_list[index_function].get('required')])
@@ -381,8 +381,8 @@ class ReActChat(FnCallAgent):
                         matches = re.findall(param_pattern, param_descriptions)
                         logger.info(f"对应的必填参数名称为：{matches}")  
                         
-                    #####3、比较原始及识别出的action及action_input的差异：兼容元景与ds返回格式  
-                    ####1) 有效调用环节：输出包含Action且参数不为空时，才需进一步比较差异，否则直接走输出环节
+                    #####3、比较原始及识别出的action及action_input的差异：兼容元景与ds返回格式 [EN] ####3. Compare the difference between original and recognized action and action_input: compatible with Yuanjing and ds return formats  
+                    ####1) 有效调用环节：输出包含Action且参数不为空时，才需进一步比较差异，否则直接走输出环节 [EN] ###1) Effective calling link: Only when the output contains Action and the parameters are not empty, further differences need to be compared, otherwise the output link will be used directly.
                     if ("Action:" in response or "Action" in response ) and action_results['func_name']:
                         if not all(item in function_items for item in action_results['func_name']):
                             action_results['action_code'] = 1
@@ -397,7 +397,7 @@ class ReActChat(FnCallAgent):
                             action_results['action_code'] = 0
                             action_results['description'] = "必填参数提取成功"
                         elif  self.action_type == "action_agent" and action_results['action_code'] == 2 :
-                            ####qwen_agent 允许react多反思一步
+                            ####qwen_agent 允许react多反思一步 [EN] ###qwen_agent allows react to reflect one more step
                             count_qs += 1
                             if count_qs< 3:
                                 observation = f"\nObservation: 【{action[-1]}】的必填参数描述为：{param_des},请思考下一步的action，请注意在识别参数时需按照用户提供的信息来确定参数，不要随意发挥\n"
@@ -405,11 +405,11 @@ class ReActChat(FnCallAgent):
                                 thought_inference += action_result
                                 text_messages[-1].content += action_result
                                 continue
-                    ####输出环节：共计三种情形
-                    ###1）大模型自身就能回答
-                    ###2）调用插件后的结果能回答用户问题
-                    ###3）调用插件后的结果不能回答用户问题，但是是对用户问题的进一步补充（用户问题不清晰时生效）
-                    ###4）无法回答时，code返回1
+                    ####输出环节：共计三种情形 [EN] ###Output link: three situations in total
+                    ###1）大模型自身就能回答 [EN] ##1) The large model can answer by itself
+                    ###2）调用插件后的结果能回答用户问题 [EN] ##2) The result after calling the plug-in can answer user questions
+                    ###3）调用插件后的结果不能回答用户问题，但是是对用户问题的进一步补充（用户问题不清晰时生效） [EN] ##3) The result after calling the plug-in cannot answer the user's question, but is a further supplement to the user's question (effective when the user's question is unclear)
+                    ###4）无法回答时，code返回1 [EN] ##4) When unable to answer, code returns 1
                     else:
                         if t == 1:
                             action_results['action_code'] = 1
@@ -430,7 +430,7 @@ class ReActChat(FnCallAgent):
                         final_result = can_answer_text
                         
                         if "Final Answer" in can_answer_text or "Final Answer:" in can_answer_text:
-                            ###剔除think的思考过程
+                            ###剔除think的思考过程 [EN] ##Eliminate the thinking process of think
                             can_answer_text = re.sub('<tool>.*?</tool>', '', can_answer_text, flags=re.DOTALL)
                             final_result = can_answer_text.split("Final Answer:", 1)[1].strip() if "Final Answer:" in can_answer_text else can_answer_text.split("Final Answer", 1)[1].strip()
                             
@@ -441,7 +441,7 @@ class ReActChat(FnCallAgent):
                             action_results['final_result'] = action_results['final_result']if action_results['final_result'] else final_result
                             
                         else:
-                            ###判断是否是对问题的进一步追问
+                            ###判断是否是对问题的进一步追问 [EN] ##Determine whether it is a further inquiry into the question
                             time_add1  = time.time()
                             # is_add = is_answer_additional_remarks(query,action_results['final_result'],model_name = self.model_name,model_url = self.model_url)
                             is_add = is_answer_additional_remarks(query, final_result,model_name=self.model_name, model_url=self.model_url)
@@ -462,14 +462,14 @@ class ReActChat(FnCallAgent):
                                 action_results['description'] = "action答案无法全面准确的回答问题" if not action_results['description'] else action_results['description']
                     logger.info(f"action_results:{action_results}") 
 
-                    ####完成参数提取，启动函数调用   
-                    ###1、整合action及入参 【特别地，modelscope_agent的流程为：ACTION提取、ACTION_INPUT提取、call调用三步；非modelscope_agent流程为两步：ACTION+ACTION_INPUT提取、call调用】
+                    ####完成参数提取，启动函数调用 [EN] ###Complete parameter extraction and start function call   
+                    ###1、整合action及入参 【特别地，modelscope_agent的流程为：ACTION提取、ACTION_INPUT提取、call调用三步；非modelscope_agent流程为两步：ACTION+ACTION_INPUT提取、call调用】 [EN] ##1. Integrate action and input parameters [Specifically, the process of modelscope_agent is: ACTION extraction, ACTION_INPUT extraction, and call invocation in three steps; the non-modelscope_agent process is in two steps: ACTION+ACTION_INPUT extraction, call invocation]
                     if action and action_results['action_code'] in [0,2]:
                         func_names.extend(action)
                         func_params.extend(action_input)
                     logger.info(f"func_names:{func_names}，func_params：{func_params}")
                     
-                    ###2、完成ACTION提取，开始流式输出
+                    ###2、完成ACTION提取，开始流式输出 [EN] ##2. Complete ACTION extraction and start streaming output.
                     if "<tool>" not in total_result and action:
                         total_result += "<tool>"  
                         if t == 1:
@@ -481,7 +481,7 @@ class ReActChat(FnCallAgent):
                         yield [Message(role=ASSISTANT, content=f"工具名：{action[0]}")]
                     
                     
-                    ###3、modelscope_agent需特殊处理，提取ACTION_INPUT
+                    ###3、modelscope_agent需特殊处理，提取ACTION_INPUT [EN] ##3. modelscope_agent requires special processing to extract ACTION_INPUT
                     if self.action_type == "modelscope_agent" and func_names:
                         if t<=1: 
                             param_prompt = f'''
@@ -498,18 +498,18 @@ class ReActChat(FnCallAgent):
                             Final Answer: the final answer to the original input question
                             '''
                             text_messages[-1].content = param_prompt
-                            ###移除识别出来的action及参数
+                            ###移除识别出来的action及参数 [EN] ##Remove the identified actions and parameters
                             func_names.pop()
                             # func_params.pop()
                             continue
                     
-                    ###4、完成ACTION_INPUT提取，开始流式输出
+                    ###4、完成ACTION_INPUT提取，开始流式输出 [EN] ##4. Complete ACTION_INPUT extraction and start streaming output
                     if action and action_input:
                         yield [Message(role=ASSISTANT, content=f"\n\n```请求参数：\n{action_input[0]}\n```\n\n")]
                         
 
-                    ###5、识别ACTION的类型，如为function_call，则标识为qa_type为21，如为action，则标识为qa_type为20，
-                    ###function_call无需用走call调用，直接返回ACTION和ACTION_INPUT
+                    ###5、识别ACTION的类型，如为function_call，则标识为qa_type为21，如为action，则标识为qa_type为20， [EN] ##5. Identify the type of ACTION. If it is function_call, it will be identified as qa_type is 21. If it is action, it will be identified as qa_type is 20.
+                    ###function_call无需用走call调用，直接返回ACTION和ACTION_INPUT [EN] ##function_call does not need to be called, it directly returns ACTION and ACTION_INPUT
                     if action_results['func_name'] and all(param in function_calls_names for param in action_results['func_name']) and action_results['action_code'] == 0:
                         qa_type = 21
                         action_result = action_results['final_result'] + f"\nAction: {action_results['func_name']}\nAction Input: {action_results['func_params']}\nObservation:\n"
@@ -518,14 +518,14 @@ class ReActChat(FnCallAgent):
                     logger.info(f"当前识别出的qa_type:{qa_type}")
                     
                     
-                    ###6、继续调用函数或者输出结果
-                    ####1）not action时，表名输出结果
-                    ###2）action时，表明继续执行_call_tool
+                    ###6、继续调用函数或者输出结果 [EN] ##6. Continue to call functions or output results.
+                    ####1）not action时，表名输出结果 [EN] ###1) When not action, the table name output result
+                    ###2）action时，表明继续执行_call_tool [EN] ##2) Action indicates that _call_tool will continue to be executed.
                     if action_results['action_code'] == 0:
                         logger.info(f"当前识别出的action:{action}  action_code :{action_results['action_code']}")
                         if not action:
                             logger.info(f"------输出最终结果------")
-                            ###输出action结束符号
+                            ###输出action结束符号 [EN] ##Output action end symbol
                             yield [Message(role=ASSISTANT, content=f"</tool>\n")]
                             text_messages[-1].content += "\n请保证语义通顺"
                             start_pattern = "Use the following format"
@@ -543,7 +543,7 @@ class ReActChat(FnCallAgent):
                             if qa_type == 20:
                                 logger.info(f"第{t}次调用_call_tool:开始执行_call_tool")
                                 action = action[-1]
-                                action_input = action_input[-1] if action_input else {}   ###存在插件无需必填参数的情况
+                                action_input = action_input[-1] if action_input else {}   ###存在插件无需必填参数的情况 [EN] ##There are cases where the plug-in does not require required parameters.
                                 is_use_api_output = "TRUE" in str(action_input.get("is_use_api_output", "false")).upper()
                                 api_stream = action_input.get("stream",False)
                                 logger.info(f"_call_tool的入参为：action:{action}，action_input:{action_input}\n")
@@ -564,7 +564,7 @@ class ReActChat(FnCallAgent):
                                     action_code = 0 if observation else 1
                                     logger.info(f"action_output type:{type(action_output)}  observation type:{type(observation)}")
                                     try:
-                                        ####正常流式输出
+                                        ####正常流式输出 [EN] ###Normal streaming output
                                         logger.info(f"----流式API返回成功----")
                                         for line in observation.iter_lines(decode_unicode=True):
                                         # for line in observation:
@@ -574,7 +574,7 @@ class ReActChat(FnCallAgent):
                                         break
 
                                     except Exception as e:
-                                        ####API内部服务异常
+                                        ####API内部服务异常 [EN] ###API internal service exception
                                         logger.info(f"----流式API返回异常----")
                                         observation = json.loads(observation)
                                         plugin_result = observation["description"]
@@ -666,11 +666,11 @@ class ReActChat(FnCallAgent):
 
                                     输出要求
 
-                                    ## 答案中不要出现"根据您提供的信息"、"根据提供的信息"、"根据参考信息"等之类的话术。
-                                    ## 请不要使用markdown格式。
-                                    ## 回答请简洁、准确地告诉用户缺失哪些参数以及需要输入的参数要求
+                                    ## 答案中不要出现"根据您提供的信息"、"根据提供的信息"、"根据参考信息"等之类的话术。 [EN] # Do not use words such as "based on the information you provided", "based on the information provided", "based on reference information", etc. in the answer.
+                                    ## 请不要使用markdown格式。 [EN] # Please do not use markdown format.
+                                    ## 回答请简洁、准确地告诉用户缺失哪些参数以及需要输入的参数要求 [EN] # Please answer concisely and accurately tell the user which parameters are missing and the parameter requirements that need to be entered.
                                     '''  
-                        ###调用大模型进行回答
+                        ###调用大模型进行回答 [EN] ##Call the large model to answer
                         messages = []
                         subjson = {}
                         subjson["role"] = "user"
@@ -706,7 +706,7 @@ class ReActChat(FnCallAgent):
         if self.action_type == "modelscope_agent":
             for f in self.function_map.values():
                 function = f.function
-                # logger.info(f"当前解析的function为：{function}")
+                # logger.info(f"当前解析的function为：{function}") [EN] logger.info(f"The currently parsed function is: {function}")
                 name = function.get('name', None)
                 name_for_human = function.get('name_for_human', name)
                 name_for_model = function.get('name_for_model', name)
@@ -742,7 +742,7 @@ class ReActChat(FnCallAgent):
                                      args_format=args_format).rstrip())
 
             for fn in self.function_calls_list:
-                # logger.info(f"当前的function_list为：{fn}")
+                # logger.info(f"当前的function_list为：{fn}") [EN] logger.info(f"The current function_list is: {fn}")
                 name = fn.get('function_name', None)
                 name_for_human = fn.get('name_for_human', name)
                 name_for_model = fn.get('name_for_model', name)
@@ -772,7 +772,7 @@ class ReActChat(FnCallAgent):
         return text_messages
     
 def find_tools(text: str,num: int) -> Tuple[bool, str, str, str]:
-    ###适配非deepseek模型输出
+    ###适配非deepseek模型输出 [EN] ##Adapt non-deepseek model output
     if "Action:" in text or "Final Answer:" in text:
         special_func_token = 'Action:'
         special_args_token = '\nAction Input:'
@@ -783,7 +783,7 @@ def find_tools(text: str,num: int) -> Tuple[bool, str, str, str]:
         special_args_token = '"Action Input":'
         special_obs_token = '\nObservation:'
         special_final_token = '\nFinal Answer:'
-    ####适配deepseek模型输出
+    ####适配deepseek模型输出 [EN] ###Adapt deepseek model output
     else:
         special_func_token = 'Action'
         special_args_token = 'Action Input'
@@ -806,13 +806,13 @@ def find_tools(text: str,num: int) -> Tuple[bool, str, str, str]:
     description = ""
     Invalid_character = ["无","{}","","NONE","[]","未知"]
 
-    #####兼容deepseek的输出格式
-    text = text.replace("https//", "https://")  ###适配大模型的链接输出
+    #####兼容deepseek的输出格式 [EN] ####Output format compatible with deepseek
+    text = text.replace("https//", "https://")  ###适配大模型的链接输出 [EN] ##Adapt the link output of large models
     text = text.replace("https://192.168.0.218081","https://192.168.0.21:8081")
     text = text.replace("http//", "http://")
     text = text.replace("minio-wanwu9000","minio-wanwu:9000")
 
-    ###适配deepseek系列模型的action及参数输出格式
+    ###适配deepseek系列模型的action及参数输出格式 [EN] ##Adapt the action and parameter output format of deepseek series models
     if special_args_token not in text and special_obs_token not in text:
         logger.info(f"-----当前text无{special_args_token}、{special_obs_token}----")
         if special_final_token in text:
@@ -859,12 +859,12 @@ def find_tools(text: str,num: int) -> Tuple[bool, str, str, str]:
             func_args = text[j + len(special_args_token):k].strip()
             logger.info(f"处理前的func_name:{func_name}")
             logger.info(f"处理前的func_args:{func_args}")
-            ###正则化提取function_name(剔除所有的标点符号和空白字符)
+            ###正则化提取function_name(剔除所有的标点符号和空白字符) [EN] ##Regularize extraction function_name (remove all punctuation marks and whitespace characters)
             #pattern_funcname = r'[\W\s]+'
             #func_name = re.sub(pattern_funcname, '', func_name)
             func_name = re.sub(r'^[",]+|[",]+$', '', func_name)
             logger.info(f"正则化之后的func_name:{func_name}")
-            ###正则化提取function_args(提取{}之间的内容)
+            ###正则化提取function_args(提取{}之间的内容) [EN] ##Regularization extraction function_args (extract the content between {})
             func_args = func_args.replace("'", '"')
             pattern = r'[\s\S]*({.*?})[\s\S]*'
             match = re.search(pattern, func_args)
@@ -909,17 +909,17 @@ def parse_tool_selection_response(response_text: str, functions: List[OpenAPIPlu
         通过检测纯文本响应中的关键词来解析工具选择的大模型回答。
         如果响应文本中包含某个工具的名称，则认为该工具被选中。
         """
-        # 将响应文本转换为小写，以便进行不区分大小写的匹配
+        # 将响应文本转换为小写，以便进行不区分大小写的匹配 [EN] Convert response text to lowercase for case-insensitive matching
         response_text_lower = response_text.lower()
         for function in functions:
-            # 同样地，将工具名称转换为小写进行匹配
+            # 同样地，将工具名称转换为小写进行匹配 [EN] Likewise, convert tool names to lowercase for matching
             if isinstance(function, OpenAPIPluginTool):
                 if function.name.lower() in response_text_lower:
-                    return function.name  # 返回匹配到的第一个工具名称
+                    return function.name  # 返回匹配到的第一个工具名称 [EN] Returns the first matching tool name
                 
             else:
                 if function['function_name'].lower() in response_text_lower:
                     return function['function_name']
 
-        # 如果没有找到任何匹配的工具名称，返回 None 或者默认值
+        # 如果没有找到任何匹配的工具名称，返回 None 或者默认值 [EN] If no matching tool name is found, returns None or the default value
         return None    

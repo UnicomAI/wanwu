@@ -52,7 +52,7 @@ func GetTagsByContentSize(size *int) []Tag {
 	var tags []Tag
 	if size != nil && *size > 0 {
 		kValue := *size / 1024
-		// 格式化为"XK"字符串并添加到tags列表
+		// 格式化为"XK"字符串并添加到tags列表 [EN] Format to "XK" string and add to tags list
 		tags = append(tags, Tag{
 			Text: fmt.Sprintf("%dK", kValue),
 		})
@@ -100,36 +100,36 @@ type LLMReq struct {
 	Tools          []OpenAITool          `json:"tools,omitempty"`
 
 	// custom
-	Thinking            *Thinking      `json:"thinking,omitempty"` // 控制模型是否开启深度思考模式。
+	Thinking            *Thinking      `json:"thinking,omitempty"` // 控制模型是否开启深度思考模式。 [EN] Controls whether the model turns on deep thinking mode.
 	EnableThinking      *bool          `json:"enable_thinking,omitempty"`
-	MaxCompletionTokens *int           `json:"max_completion_tokens,omitempty"` // 控制模型输出的最大长度[0,64k]
-	LogitBias           map[string]int `json:"logit_bias,omitempty"`            // 调整指定 token 在模型输出内容中出现的概率
-	ToolChoice          interface{}    `json:"tool_choice,omitempty"`           // 强制指定工具调用的策略
+	MaxCompletionTokens *int           `json:"max_completion_tokens,omitempty"` // 控制模型输出的最大长度[0,64k] [EN] Controls the maximum length of model output [0,64k]
+	LogitBias           map[string]int `json:"logit_bias,omitempty"`            // 调整指定 token 在模型输出内容中出现的概率 [EN] Adjust the probability of the specified token appearing in the model output content
+	ToolChoice          interface{}    `json:"tool_choice,omitempty"`           // 强制指定工具调用的策略 [EN] Force the policy to be called by the specified tool
 	TopP                *float64       `json:"top_p,omitempty"`
 	TopK                *int           `json:"top_k,omitempty"`
 	MinP                *float64       `json:"min_p,omitempty"`
-	ParallelToolCalls   *bool          `json:"parallel_tool_calls,omitempty"` // 是否开启并行工具调用
-	StreamOptions       *StreamOptions `json:"stream_options,omitempty"`      //当启用流式输出时，可通过将本参数设置为{"include_usage": true}，在输出的最后一行显示所使用的Token数。
+	ParallelToolCalls   *bool          `json:"parallel_tool_calls,omitempty"` // 是否开启并行工具调用 [EN] Whether to enable parallel tool calls
+	StreamOptions       *StreamOptions `json:"stream_options,omitempty"`      //当启用流式输出时，可通过将本参数设置为{"include_usage": true}，在输出的最后一行显示所使用的Token数。 [EN] When streaming output is enabled, the number of tokens used can be displayed in the last line of the output by setting this parameter to {"include_usage": true}.
 
-	PresencePenalty   *float64 `json:"presence_penalty,omitempty"`   // 控制模型生成文本时的内容重复度
-	FrequencyPenalty  *float64 `json:"frequency_penalty,omitempty"`  // 频率惩罚系数
-	RepetitionPenalty *float64 `json:"repetition_penalty,omitempty"` // 模型生成时连续序列中的重复度
+	PresencePenalty   *float64 `json:"presence_penalty,omitempty"`   // 控制模型生成文本时的内容重复度 [EN] Control the content duplication when the model generates text
+	FrequencyPenalty  *float64 `json:"frequency_penalty,omitempty"`  // 频率惩罚系数 [EN] frequency penalty coefficient
+	RepetitionPenalty *float64 `json:"repetition_penalty,omitempty"` // 模型生成时连续序列中的重复度 [EN] The degree of repetition in the continuous sequence when the model is generated
 
-	Seed           *int  `json:"seed,omitempty"`         // 种子
-	Logprobs       *bool `json:"logprobs,omitempty"`     // 是否返回输出 Token 的对数概率
-	TopLogprobs    *int  `json:"top_logprobs,omitempty"` // 指定在每一步生成时，返回模型最大概率的候选 Token 个数
+	Seed           *int  `json:"seed,omitempty"`         // 种子 [EN] seed
+	Logprobs       *bool `json:"logprobs,omitempty"`     // 是否返回输出 Token 的对数概率 [EN] Whether to return the logarithmic probability of the output Token
+	TopLogprobs    *int  `json:"top_logprobs,omitempty"` // 指定在每一步生成时，返回模型最大概率的候选 Token 个数 [EN] Specify the number of candidate Tokens with the highest probability of returning to the model at each step of generation.
 	N              *int  `json:"n,omitempty"`
-	ThinkingBudget *int  `json:"thinking_budget,omitempty"` // 思考过程的最大长度，只在enable_thinking为true时生效
+	ThinkingBudget *int  `json:"thinking_budget,omitempty"` // 思考过程的最大长度，只在enable_thinking为true时生效 [EN] The maximum length of the thinking process, only takes effect when enable_thinking is true
 
-	WebSearch *WebSearch `json:"web_search,omitempty"` //搜索增强
+	WebSearch *WebSearch `json:"web_search,omitempty"` //搜索增强 [EN] Search enhancement
 	User      *string    `json:"user,omitempty"`
 	// Yuanjing
 	DoSample  *bool      `json:"do_sample,omitempty"`
-	ExtraBody *ExtraBody `json:"extra_body,omitempty"` // 扩展参数
+	ExtraBody *ExtraBody `json:"extra_body,omitempty"` // 扩展参数 [EN] Extended parameters
 }
 
 type OpenAIReqMsg struct {
-	Role             MsgRole       `json:"role"` // "system" | "user" | "assistant" | "function(已弃用)"
+	Role             MsgRole       `json:"role"` // "system" | "user" | "assistant" | "function(已弃用)" [EN] "system" | "user" | "assistant" | "function(deprecated)"
 	Content          interface{}   `json:"content"`
 	ToolCallId       *string       `json:"tool_call_id,omitempty"`
 	ReasoningContent *string       `json:"reasoning_content,omitempty"`
@@ -139,7 +139,7 @@ type OpenAIReqMsg struct {
 }
 
 type ExtraBody struct {
-	ApiOption string `json:"api_option"` // 选择指定功能。 1）math：拍照答题；2）ocr：多模态OCR；3）general：通用场景。   默认会根据prompt进行意图判断
+	ApiOption string `json:"api_option"` // 选择指定功能。 1）math：拍照答题；2）ocr：多模态OCR；3）general：通用场景。   默认会根据prompt进行意图判断 [EN] Select the specified function. 1) math: take photos to answer questions; 2) ocr: multi-modal OCR; 3) general: general scenarios.   By default, the intent will be judged based on the prompt.
 }
 
 func (req *LLMReq) Data() (map[string]interface{}, error) {
@@ -167,7 +167,7 @@ type WebSearch struct {
 }
 
 type OpenAIMsg struct {
-	Role             MsgRole       `json:"role"` // "system" | "user" | "assistant" | "function(已弃用)"
+	Role             MsgRole       `json:"role"` // "system" | "user" | "assistant" | "function(已弃用)" [EN] "system" | "user" | "assistant" | "function(deprecated)"
 	Content          string        `json:"content"`
 	ToolCallId       *string       `json:"tool_call_id,omitempty"`
 	ReasoningContent *string       `json:"reasoning_content,omitempty"`
@@ -221,31 +221,31 @@ func (req *LLMReq) Check() error { return nil }
 // --- openapi response ---
 
 type LLMResp struct {
-	ID                string             `json:"id"`                               // 唯一标识
-	Object            string             `json:"object"`                           // 固定为 "chat.completion"
-	Created           int                `json:"created"`                          // 时间戳（秒）
-	Model             string             `json:"model" validate:"required"`        // 使用的模型
-	Choices           []OpenAIRespChoice `json:"choices" validate:"required,dive"` // 生成结果列表
-	Usage             OpenAIRespUsage    `json:"usage"`                            // token 使用统计
-	ServiceTier       *string            `json:"service_tier"`                     // （火山）指定是否使用TPM保障包。生效对象为购买了保障包推理接入点
+	ID                string             `json:"id"`                               // 唯一标识 [EN] unique identifier
+	Object            string             `json:"object"`                           // 固定为 "chat.completion" [EN] Fixed to "chat.completion"
+	Created           int                `json:"created"`                          // 时间戳（秒） [EN] Timestamp (seconds)
+	Model             string             `json:"model" validate:"required"`        // 使用的模型 [EN] Model used
+	Choices           []OpenAIRespChoice `json:"choices" validate:"required,dive"` // 生成结果列表 [EN] Generate result list
+	Usage             OpenAIRespUsage    `json:"usage"`                            // token 使用统计 [EN] Token usage statistics
+	ServiceTier       *string            `json:"service_tier"`                     // （火山）指定是否使用TPM保障包。生效对象为购买了保障包推理接入点 [EN] (Volcano) Specifies whether to use TPM assurance package. The effective object is the inference access point that purchased the guarantee package.
 	SystemFingerprint *string            `json:"system_fingerprint"`
 	Code              *int               `json:"code,omitempty"`
-	ImgId             *string            `json:"img_id,omitempty"` // 视觉模型返回图片id
+	ImgId             *string            `json:"img_id,omitempty"` // 视觉模型返回图片id [EN] The visual model returns the image id
 }
 
-// OpenAIRespUsage 结构体表示 token 消耗
+// OpenAIRespUsage 结构体表示 token 消耗 [EN] The OpenAIRespUsage structure represents token consumption
 type OpenAIRespUsage struct {
-	CompletionTokens int `json:"completion_tokens"` // 输出 token 数
-	PromptTokens     int `json:"prompt_tokens"`     // 输入 token 数
-	TotalTokens      int `json:"total_tokens"`      // 总 token 数
+	CompletionTokens int `json:"completion_tokens"` // 输出 token 数 [EN] Output token number
+	PromptTokens     int `json:"prompt_tokens"`     // 输入 token 数 [EN] Enter the number of tokens
+	TotalTokens      int `json:"total_tokens"`      // 总 token 数 [EN] Total number of tokens
 }
 
-// OpenAIRespChoice 结构体表示单个生成选项
+// OpenAIRespChoice 结构体表示单个生成选项 [EN] The OpenAIRespChoice structure represents a single build option
 type OpenAIRespChoice struct {
-	Index        int         `json:"index"`             // 选项索引
-	Message      *OpenAIMsg  `json:"message,omitempty"` // 非流式生成的消息
-	Delta        *OpenAIMsg  `json:"delta,omitempty"`   // 流式生成的消息
-	FinishReason string      `json:"finish_reason"`     // 停止原因
+	Index        int         `json:"index"`             // 选项索引 [EN] Option index
+	Message      *OpenAIMsg  `json:"message,omitempty"` // 非流式生成的消息 [EN] Non-streaming generated messages
+	Delta        *OpenAIMsg  `json:"delta,omitempty"`   // 流式生成的消息 [EN] Streaming generated messages
+	FinishReason string      `json:"finish_reason"`     // 停止原因 [EN] Stop reason
 	Logprobs     interface{} `json:"logprobs"`
 }
 
@@ -395,8 +395,8 @@ func chatCompletionsUnary(ctx context.Context, provider, apiKey, url string, req
 	}
 
 	request := resty.New().
-		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验
-		SetTimeout(0).                                             // 关闭请求超时
+		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验 [EN] Turn off certificate verification
+		SetTimeout(0).                                             // 关闭请求超时 [EN] Close request timeout
 		R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").
@@ -436,7 +436,7 @@ func chatCompletionsStream(ctx context.Context, provider, apiKey, url string, re
 		defer util.PrintPanicStack()
 		defer close(ret)
 		request := resty.New().
-			SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验
+			SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验 [EN] Turn off certificate verification
 			R().
 			SetContext(ctx).
 			SetHeader("Content-Type", "application/json").

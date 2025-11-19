@@ -86,20 +86,20 @@ func (f FileDocImportService) ImportDoc(ctx context.Context, importTask *model.K
 	return retList, nil
 }
 
-// checkOneFile 单个文件校验
+// checkOneFile 单个文件校验 [EN] checkOneFile single file check
 func checkOneFile(ctx context.Context, importTask *model.KnowledgeImportTask, doc *model.DocInfo, fileTypeMap map[string]bool) (bool, string) {
-	//1.文件类型校验
+	//1.文件类型校验 [EN] 1. File type verification
 	if !fileTypeMap[doc.DocType] {
 		log.Errorf("文件%s格式%s不支持", doc.DocName, doc.DocType)
 		return false, util.KnowledgeImportFileFormatErr
 	}
-	//2.文件大小校验
+	//2.文件大小校验 [EN] 2. File size verification
 	err := checkSingleFileSize(doc)
 	if err != nil {
 		log.Errorf("文件 '%s' 大小超过限制(%v)", doc.DocName, err)
 		return false, util.KnowledgeImportFileSizeErr
 	}
-	//3.文档重名校验
+	//3.文档重名校验 [EN] 3. Document duplicate name verification
 	err = orm.CheckKnowledgeDocSameName(ctx, importTask.UserId, importTask.KnowledgeId, doc.DocName, "")
 	if err != nil {
 		log.Errorf("文件 '%s' 判断文档重名失败(%v)", doc.DocName, err)
@@ -108,7 +108,7 @@ func checkOneFile(ctx context.Context, importTask *model.KnowledgeImportTask, do
 	return true, ""
 }
 
-// 校验单个文件大小限制
+// 校验单个文件大小限制 [EN] Verify single file size limit
 func checkSingleFileSize(doc *model.DocInfo) error {
 	limitConfig := config.GetConfig().UsageLimit
 	var fileLimit int64
@@ -145,7 +145,7 @@ func checkOneTypeFile(fileLimit int64, fileSize int64, fileName string, fileType
 	return nil
 }
 
-// checkCompressedFile 校验是否是压缩文件
+// checkCompressedFile 校验是否是压缩文件 [EN] checkCompressedFile checks whether it is a compressed file
 func checkCompressedFile(doc *model.DocInfo) (bool, error) {
 	compressedFileTypeList := strings.Split(config.GetConfig().UsageLimit.CompressedFileType, ";")
 	limitSize := config.GetConfig().UsageLimit.CompressedSizeLimit
@@ -161,7 +161,7 @@ func checkCompressedFile(doc *model.DocInfo) (bool, error) {
 	return false, nil
 }
 
-// buildDocList 构造文档列表
+// buildDocList 构造文档列表 [EN] buildDocList constructs a document list
 func buildDocList(ctx context.Context, isCompress bool, file *model.DocInfo) ([]*model.DocInfo, error) {
 	var docList []*model.DocInfo
 	if !isCompress {
@@ -173,7 +173,7 @@ func buildDocList(ctx context.Context, isCompress bool, file *model.DocInfo) ([]
 		docList = append(docList, file)
 		return docList, nil
 	}
-	//执行文件解压
+	//执行文件解压 [EN] Execute file decompression
 	list, err := file_extract.DoFileExtract(ctx, file)
 	if err != nil {
 		return nil, err

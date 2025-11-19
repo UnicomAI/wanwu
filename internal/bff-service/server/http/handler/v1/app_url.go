@@ -10,12 +10,12 @@ import (
 // AppUrlCreate
 //
 //	@Tags			app.url
-//	@Summary		创建应用Url
-//	@Description	创建应用Url
+//	@Summary		创建应用Url [EN] @Summary Create application Url
+//	@Description	创建应用Url [EN] @Description Create application Url
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data					body		request.AppUrlCreateRequest	true	"应用Url基本信息"
+//	@Param			data					body		request.AppUrlCreateRequest	true	"应用Url基本信息" [EN] @Param data body request.AppUrlCreateRequest true "Basic information of application Url"
 //	@Success		200						{object}	response.Response
 //	@Router			/appspace/app/openurl	[post]
 func AppUrlCreate(ctx *gin.Context) {
@@ -30,12 +30,12 @@ func AppUrlCreate(ctx *gin.Context) {
 // AppUrlDelete
 //
 //	@Tags			app.url
-//	@Summary		删除应用Url
-//	@Description	删除应用Url
+//	@Summary		删除应用Url [EN] @Summary Delete application Url
+//	@Description	删除应用Url [EN] @Description Delete application Url
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data					body		request.AppUrlIdRequest	true	"应用UrlId"
+//	@Param			data					body		request.AppUrlIdRequest	true	"应用UrlId" [EN] @Param data body request.AppUrlIdRequest true "AppUrlId"
 //	@Success		200						{object}	response.Response
 //	@Router			/appspace/app/openurl	[delete]
 func AppUrlDelete(ctx *gin.Context) {
@@ -50,12 +50,12 @@ func AppUrlDelete(ctx *gin.Context) {
 // AppUrlUpdate
 //
 //	@Tags			app.url
-//	@Summary		编辑应用Url
-//	@Description	编辑应用Url
+//	@Summary		编辑应用Url [EN] @Summary Edit application Url
+//	@Description	编辑应用Url [EN] @Description Edit application Url
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data					body		request.AppUrlUpdateRequest	true	"应用Url基本信息"
+//	@Param			data					body		request.AppUrlUpdateRequest	true	"应用Url基本信息" [EN] @Param data body request.AppUrlUpdateRequest true "Basic information of application Url"
 //	@Success		200						{object}	response.Response
 //	@Router			/appspace/app/openurl	[put]
 func AppUrlUpdate(ctx *gin.Context) {
@@ -70,12 +70,12 @@ func AppUrlUpdate(ctx *gin.Context) {
 // GetAppUrlList
 //
 //	@Tags			app.url
-//	@Summary		获取应用Url列表
-//	@Description	获取应用Url列表
+//	@Summary		获取应用Url列表 [EN] @Summary Get the application URL list
+//	@Description	获取应用Url列表 [EN] @Description Get the application URL list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data						query		request.AppUrlListRequest	true	"应用id和type"
+//	@Param			data						query		request.AppUrlListRequest	true	"应用id和type" [EN] @Param data query request.AppUrlListRequest true "Application id and type"
 //	@Success		200							{object}	response.Response{data=response.ListResult{list=[]response.AppUrlInfo}}
 //	@Router			/appspace/app/openurl/list 	[get]
 func GetAppUrlList(ctx *gin.Context) {
@@ -90,12 +90,12 @@ func GetAppUrlList(ctx *gin.Context) {
 // AppUrlStatusSwitch
 //
 //	@Tags			app.url
-//	@Summary		启用/停用应用Url
-//	@Description	启用/停用应用Url
+//	@Summary		启用/停用应用Url [EN] @Summary Enable/disable application Url
+//	@Description	启用/停用应用Url [EN] @Description Enable/disable application Url
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data							body		request.AppUrlStatusRequest	true	"应用UrlId"
+//	@Param			data							body		request.AppUrlStatusRequest	true	"应用UrlId" [EN] @Param data body request.AppUrlStatusRequest true "AppUrlId"
 //	@Success		200								{object}	response.Response
 //	@Router			/appspace/app/openurl/status 	[put]
 func AppUrlStatusSwitch(ctx *gin.Context) {

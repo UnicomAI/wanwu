@@ -48,11 +48,11 @@ class UnicomLLM(BaseChatModel):
     def _chat_no_stream(self, messages: List[Dict],model_name,model_url, **kwargs):
 
         messages = [msg.model_dump() for msg in messages]
-        # logger.info(f"调用大模型的prompt为：{messages}")
+        # logger.info(f"调用大模型的prompt为：{messages}") [EN] logger.info(f"The prompt to call the large model is: {messages}")
         # logger.debug(f'*{pformat(messages, indent=2)}*')
         try:
             response = req_unicom_llm_chat(messages=messages,  model_name=model_name, model_url = model_url,stream=False,do_sample=False)
-            # logger.info(f"\n\n调用大模型的结果为：{response.text}\n\n")
+            # logger.info(f"\n\n调用大模型的结果为：{response.text}\n\n") [EN] logger.info(f"\n\nThe result of calling the large model is: {response.text}\n\n")
             # content = response.json()['data']['choices'][0]['message']['content']
             content = response.content
             return [Message(ASSISTANT, content)]
@@ -68,12 +68,12 @@ class UnicomLLM(BaseChatModel):
         generate_cfg: dict,
     ) -> Iterator[List[Message]]:
         messages = [msg.model_dump() for msg in messages]
-        # logger.info(f"\n\n调用大模型的prompt为：{messages}\n\n")
-        # print(f"\n\n调用大模型的prompt为：{messages}\n\n")
+        # logger.info(f"\n\n调用大模型的prompt为：{messages}\n\n") [EN] logger.info(f"\n\nThe prompt to call the large model is: {messages}\n\n")
+        # print(f"\n\n调用大模型的prompt为：{messages}\n\n") [EN] print(f"\n\nThe prompt to call the large model is: {messages}\n\n")
         # logger.debug(f'*{pformat(messages, indent=2)}*')
         try:
             response = req_unicom_llm_chat(messages=messages,model_name=model_name, model_url = model_url,stream=True,do_sample=False)
-            # logger.info(f"\n\n调用大模型的结果为：{response.text}\n\n")
+            # logger.info(f"\n\n调用大模型的结果为：{response.text}\n\n") [EN] logger.info(f"\n\nThe result of calling the large model is: {response.text}\n\n")
             # for chunk in response.iter_lines():
             #    yield [Message(ASSISTANT, chunk)]
             
@@ -213,14 +213,14 @@ class UnicomLLM(BaseChatModel):
             raise NotImplementedError('Please use stream=True with delta_stream=False, because delta_stream=True'
                                       ' is not implemented for function calling due to some technical reasons.')
         parallel_function_calls = generate_cfg.get('parallel_function_calls', False)
-        # print(f"原始的messages为：{messages}")
+        # print(f"原始的messages为：{messages}") [EN] print(f"The original messages are: {messages}")
         # messages = self._prepend_fncall_system(
         #     messages=messages,
         #     functions=functions,
         #     lang=lang,
         #     parallel_function_calls=parallel_function_calls,
         # )
-        # print(f"配置后的messages为：{messages}")
+        # print(f"配置后的messages为：{messages}") [EN] print(f"The configured messages are: {messages}")
 
 
         fn_choice = generate_cfg.get('function_choice', 'auto')
@@ -443,7 +443,7 @@ FN_STOP_WORDS = [FN_RESULT, FN_EXIT]
 
 FN_CALL_TEMPLATE_INFO_ZH = """# 工具
 
-## 你拥有如下工具：
+## 你拥有如下工具： [EN] # You have the following tools:
 
 {tool_descs}"""
 

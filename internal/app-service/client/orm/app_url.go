@@ -18,7 +18,7 @@ func (c *Client) CreateAppUrl(ctx context.Context, appUrl *model.AppUrl) *err_co
 	).Apply(c.db.WithContext(ctx)).Model(&model.AppUrl{}).Count(&count).Error; err != nil {
 		return toErrStatus("app_url_get_by_name", appUrl.Name, err.Error())
 	}
-	// 存在同名智能体Url
+	// 存在同名智能体Url [EN] There is an agent Url with the same name
 	if count > 0 {
 		return toErrStatus("app_url_same_name", appUrl.Name)
 	}
@@ -49,7 +49,7 @@ func (c *Client) UpdateAppUrl(ctx context.Context, appUrl *model.AppUrl) *err_co
 	).Apply(c.db.WithContext(ctx)).Where("id != ?", appUrl.ID).Model(&model.AppUrl{}).Count(&count).Error; err != nil {
 		return toErrStatus("app_url_get_by_name", appUrl.Name, err.Error())
 	}
-	// 存在同名智能体Url
+	// 存在同名智能体Url [EN] There is an agent Url with the same name
 	if count > 0 {
 		return toErrStatus("app_url_same_name", appUrl.Name)
 	}

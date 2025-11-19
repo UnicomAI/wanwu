@@ -21,11 +21,11 @@ var (
 	configFile string
 	isVersion  bool
 
-	buildTime    string //编译时间
-	buildVersion string //编译版本
-	gitCommitID  string //git的commit id
-	gitBranch    string //git branch
-	builder      string //构建者
+	buildTime    string // 编译时间 [EN] Build time
+	buildVersion string // 编译版本 [EN] Build version
+	gitCommitID  string // git的commit id [EN] Git commit ID
+	gitBranch    string // git branch [EN] Git branch
+	builder      string // 构建者 [EN] Builder
 )
 
 func main() {

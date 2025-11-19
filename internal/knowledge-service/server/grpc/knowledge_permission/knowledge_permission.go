@@ -87,7 +87,7 @@ func (s *Service) DeleteKnowledgeUser(ctx context.Context, req *knowledgebase_pe
 
 func (s *Service) TransferKnowledgeAdminUser(ctx context.Context, req *knowledgebase_permission_service.TransferKnowledgeAdminUserReq) (*emptypb.Empty, error) {
 	editList, addList := buildKnowledgePermissionTransferList(req)
-	//理论上这个操作应该加知识库维度的分布式锁
+	//理论上这个操作应该加知识库维度的分布式锁 [EN] In theory, this operation should add a distributed lock in the knowledge base dimension.
 	err := db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
 		if len(editList) > 0 {
 			if err := orm.BatchEditKnowledgePermission(tx, editList); err != nil {
@@ -108,27 +108,27 @@ func (s *Service) TransferKnowledgeAdminUser(ctx context.Context, req *knowledge
 	return &emptypb.Empty{}, nil
 }
 
-// checkKnowledgePermission 检查用户操作权限
+// checkKnowledgePermission 检查用户操作权限 [EN] checkKnowledgePermission Check user operation permissions
 func checkKnowledgePermission(ctx context.Context, userId, orgId, knowledgeId string, operation *model.KnowledgePermission) error {
 	permission, err := orm.SelectUserKnowledgePermission(ctx, userId, orgId, knowledgeId)
 	if err != nil {
 		log.Errorf(fmt.Sprintf("DeleteKnowledgeUser 删除失败(%v)  参数(userId %s orgId %s knowledgeId %s)", err, userId, orgId, knowledgeId))
 		return util.ErrCode(errs.Code_KnowledgePermissionDeny)
 	}
-	//系统管理员可以操作
+	//系统管理员可以操作 [EN] System administrators can operate
 	if permission.PermissionType == model.PermissionTypeSystem {
 		return nil
 	}
-	//授权管理员只能操作普通用户
+	//授权管理员只能操作普通用户 [EN] Authorized administrators can only operate ordinary users
 	if permission.PermissionType == model.PermissionTypeGrant && operation.PermissionType < model.PermissionTypeGrant {
 		return nil
 	}
 
-	//剩下的都没有权限
+	//剩下的都没有权限 [EN] The rest have no permissions
 	return util.ErrCode(errs.Code_KnowledgePermissionDeny)
 }
 
-// buildKnowledgePermissionResp 构建知识库权限列表,查询返回数据
+// buildKnowledgePermissionResp 构建知识库权限列表,查询返回数据 [EN] buildKnowledgePermissionResp builds the knowledge base permission list and queries the returned data
 func buildKnowledgePermissionResp(knowledgePermissionList []*model.KnowledgePermission) *knowledgebase_permission_service.KnowledgeUserPermissionResp {
 	var knowledgeUserInfoList []*knowledgebase_permission_service.KnowledgeUserInfo
 	for _, knowledgePermission := range knowledgePermissionList {
@@ -144,7 +144,7 @@ func buildKnowledgePermissionResp(knowledgePermissionList []*model.KnowledgePerm
 	}
 }
 
-// buildKnowledgePermissionList 构建知识库权限列表
+// buildKnowledgePermissionList 构建知识库权限列表 [EN] buildKnowledgePermissionList build knowledge base permission list
 func buildKnowledgePermissionList(req *knowledgebase_permission_service.AddKnowledgeUserReq) []*model.KnowledgePermission {
 	var dataList []*model.KnowledgePermission
 	milli := time.Now().UnixMilli()
@@ -164,7 +164,7 @@ func buildKnowledgePermissionList(req *knowledgebase_permission_service.AddKnowl
 	return dataList
 }
 
-// buildKnowledgePermissionEditList 构建知识库权限列表
+// buildKnowledgePermissionEditList 构建知识库权限列表 [EN] buildKnowledgePermissionEditList Build knowledge base permission list
 func buildKnowledgePermissionEditList(req *knowledgebase_permission_service.EditKnowledgeUserReq) (editList []*model.KnowledgePermission) {
 	editList = append(editList, &model.KnowledgePermission{
 		PermissionId:   req.KnowledgeUser.PermissionId,
@@ -175,7 +175,7 @@ func buildKnowledgePermissionEditList(req *knowledgebase_permission_service.Edit
 	return editList
 }
 
-// buildKnowledgePermissionTransferList 构建知识库权限转让列表
+// buildKnowledgePermissionTransferList 构建知识库权限转让列表 [EN] buildKnowledgePermissionTransferList Build knowledge base permission transfer list
 func buildKnowledgePermissionTransferList(req *knowledgebase_permission_service.TransferKnowledgeAdminUserReq) (editList, addList []*model.KnowledgePermission) {
 	editList = append(editList, &model.KnowledgePermission{
 		PermissionId:   req.PermissionId,
@@ -183,7 +183,7 @@ func buildKnowledgePermissionTransferList(req *knowledgebase_permission_service.
 		GrantUserId:    req.UserId,
 		GrantOrgId:     req.OrgId,
 	})
-	//正常此处是新增
+	//正常此处是新增 [EN] Normally, this is a new addition
 	milli := time.Now().UnixMilli()
 	addList = append(addList, &model.KnowledgePermission{
 		PermissionId:   generator.GetGenerator().NewID(),

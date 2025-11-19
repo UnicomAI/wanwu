@@ -327,10 +327,10 @@ type UpdateRagConfigReq struct {
 	unknownFields protoimpl.UnknownFields
 
 	RagId               string                  `protobuf:"bytes,1,opt,name=ragId,proto3" json:"ragId,omitempty"`
-	ModelConfig         *common.AppModelConfig  `protobuf:"bytes,2,opt,name=modelConfig,proto3" json:"modelConfig,omitempty"`                 // 模型
-	RerankConfig        *common.AppModelConfig  `protobuf:"bytes,3,opt,name=rerankConfig,proto3" json:"rerankConfig,omitempty"`               // Rerank模型
-	KnowledgeBaseConfig *RagKnowledgeBaseConfig `protobuf:"bytes,4,opt,name=knowledgeBaseConfig,proto3" json:"knowledgeBaseConfig,omitempty"` // 知识库
-	SensitiveConfig     *RagSensitiveConfig     `protobuf:"bytes,5,opt,name=sensitiveConfig,proto3" json:"sensitiveConfig,omitempty"`         // 安全护栏
+	ModelConfig         *common.AppModelConfig  `protobuf:"bytes,2,opt,name=modelConfig,proto3" json:"modelConfig,omitempty"`                 // 模型 [EN] Model
+	RerankConfig        *common.AppModelConfig  `protobuf:"bytes,3,opt,name=rerankConfig,proto3" json:"rerankConfig,omitempty"`               // Rerank模型 [EN] Rerank model
+	KnowledgeBaseConfig *RagKnowledgeBaseConfig `protobuf:"bytes,4,opt,name=knowledgeBaseConfig,proto3" json:"knowledgeBaseConfig,omitempty"` // 知识库 [EN] knowledge base
+	SensitiveConfig     *RagSensitiveConfig     `protobuf:"bytes,5,opt,name=sensitiveConfig,proto3" json:"sensitiveConfig,omitempty"`         // 安全护栏 [EN] safety guardrail
 }
 
 func (x *UpdateRagConfigReq) Reset() {
@@ -509,10 +509,10 @@ type RagInfo struct {
 
 	RagId               string                  `protobuf:"bytes,1,opt,name=ragId,proto3" json:"ragId,omitempty"`
 	BriefConfig         *common.AppBriefConfig  `protobuf:"bytes,2,opt,name=briefConfig,proto3" json:"briefConfig,omitempty"`
-	ModelConfig         *common.AppModelConfig  `protobuf:"bytes,3,opt,name=modelConfig,proto3" json:"modelConfig,omitempty"`                 // 模型
-	RerankConfig        *common.AppModelConfig  `protobuf:"bytes,4,opt,name=rerankConfig,proto3" json:"rerankConfig,omitempty"`               // Rerank模型
-	KnowledgeBaseConfig *RagKnowledgeBaseConfig `protobuf:"bytes,5,opt,name=knowledgeBaseConfig,proto3" json:"knowledgeBaseConfig,omitempty"` // 知识库
-	SensitiveConfig     *RagSensitiveConfig     `protobuf:"bytes,6,opt,name=sensitiveConfig,proto3" json:"sensitiveConfig,omitempty"`         // 安全护栏
+	ModelConfig         *common.AppModelConfig  `protobuf:"bytes,3,opt,name=modelConfig,proto3" json:"modelConfig,omitempty"`                 // 模型 [EN] Model
+	RerankConfig        *common.AppModelConfig  `protobuf:"bytes,4,opt,name=rerankConfig,proto3" json:"rerankConfig,omitempty"`               // Rerank模型 [EN] Rerank model
+	KnowledgeBaseConfig *RagKnowledgeBaseConfig `protobuf:"bytes,5,opt,name=knowledgeBaseConfig,proto3" json:"knowledgeBaseConfig,omitempty"` // 知识库 [EN] knowledge base
+	SensitiveConfig     *RagSensitiveConfig     `protobuf:"bytes,6,opt,name=sensitiveConfig,proto3" json:"sensitiveConfig,omitempty"`         // 安全护栏 [EN] safety guardrail
 	Identity            *Identity               `protobuf:"bytes,7,opt,name=identity,proto3" json:"identity,omitempty"`
 }
 
@@ -948,16 +948,16 @@ type RagGlobalConfig struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MaxHistory        int32   `protobuf:"varint,1,opt,name=maxHistory,proto3" json:"maxHistory,omitempty"`                // 最长上下文
-	Threshold         float32 `protobuf:"fixed32,2,opt,name=threshold,proto3" json:"threshold,omitempty"`                 // 过滤阈值
+	MaxHistory        int32   `protobuf:"varint,1,opt,name=maxHistory,proto3" json:"maxHistory,omitempty"`                // 最长上下文 [EN] longest context
+	Threshold         float32 `protobuf:"fixed32,2,opt,name=threshold,proto3" json:"threshold,omitempty"`                 // 过滤阈值 [EN] filter threshold
 	TopK              int32   `protobuf:"varint,3,opt,name=topK,proto3" json:"topK,omitempty"`                            // topK
-	MatchType         string  `protobuf:"bytes,4,opt,name=matchType,proto3" json:"matchType,omitempty"`                   //matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
-	KeywordPriority   float32 `protobuf:"fixed32,5,opt,name=keywordPriority,proto3" json:"keywordPriority,omitempty"`     // 关键词权重
-	PriorityMatch     int32   `protobuf:"varint,6,opt,name=priorityMatch,proto3" json:"priorityMatch,omitempty"`          // 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1
-	SemanticsPriority float32 `protobuf:"fixed32,7,opt,name=semanticsPriority,proto3" json:"semanticsPriority,omitempty"` // 语义权重
-	TermWeight        float32 `protobuf:"fixed32,8,opt,name=termWeight,proto3" json:"termWeight,omitempty"`               // 关键词系数，默认为1
-	TermWeightEnable  bool    `protobuf:"varint,9,opt,name=termWeightEnable,proto3" json:"termWeightEnable,omitempty"`    // 关键词系数开关
-	UseGraph          bool    `protobuf:"varint,10,opt,name=useGraph,proto3" json:"useGraph,omitempty"`                   // 知识图谱开关
+	MatchType         string  `protobuf:"bytes,4,opt,name=matchType,proto3" json:"matchType,omitempty"`                   //matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本） [EN] matchType: vector (vector search), text (text search), mix (mixed search: vector + text)
+	KeywordPriority   float32 `protobuf:"fixed32,5,opt,name=keywordPriority,proto3" json:"keywordPriority,omitempty"`     // 关键词权重 [EN] Keyword weight
+	PriorityMatch     int32   `protobuf:"varint,6,opt,name=priorityMatch,proto3" json:"priorityMatch,omitempty"`          // 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1 [EN] Weight matching. This is only set to 1 after selecting the weight setting in mixed search mode.
+	SemanticsPriority float32 `protobuf:"fixed32,7,opt,name=semanticsPriority,proto3" json:"semanticsPriority,omitempty"` // 语义权重 [EN] semantic weight
+	TermWeight        float32 `protobuf:"fixed32,8,opt,name=termWeight,proto3" json:"termWeight,omitempty"`               // 关键词系数，默认为1 [EN] Keyword coefficient, default is 1
+	TermWeightEnable  bool    `protobuf:"varint,9,opt,name=termWeightEnable,proto3" json:"termWeightEnable,omitempty"`    // 关键词系数开关 [EN] Keyword coefficient switch
+	UseGraph          bool    `protobuf:"varint,10,opt,name=useGraph,proto3" json:"useGraph,omitempty"`                   // 知识图谱开关 [EN] Knowledge graph switch
 }
 
 func (x *RagGlobalConfig) Reset() {
@@ -1067,8 +1067,8 @@ type RagSensitiveConfig struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Enable   bool     `protobuf:"varint,1,opt,name=enable,proto3" json:"enable,omitempty"`    // 是否启用安全护栏
-	TableIds []string `protobuf:"bytes,2,rep,name=tableIds,proto3" json:"tableIds,omitempty"` // 敏感词表id
+	Enable   bool     `protobuf:"varint,1,opt,name=enable,proto3" json:"enable,omitempty"`    // 是否启用安全护栏 [EN] Whether to enable safety guardrails
+	TableIds []string `protobuf:"bytes,2,rep,name=tableIds,proto3" json:"tableIds,omitempty"` // 敏感词表id [EN] Sensitive word list id
 }
 
 func (x *RagSensitiveConfig) Reset() {

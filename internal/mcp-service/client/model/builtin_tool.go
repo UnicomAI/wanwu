@@ -1,6 +1,6 @@
 package model
 
-// BuiltinTool 自定义工具
+// BuiltinTool 自定义工具 [EN] BuiltinTool custom tools
 type BuiltinTool struct {
 	ID           uint32 `gorm:"column:id;primary_key;type:bigint(20) auto_increment;not null;comment:'id'"`
 	ToolSquareId string `gorm:"column:tool_square_id;index:idx_custom_tool_square_id;not null;comment:'自定义工具id'"`

@@ -51,7 +51,7 @@ type IGui interface {
 	Gui(ctx context.Context, req mp_common.IGuiReq, headers ...mp_common.Header) (mp_common.IGuiResp, error)
 }
 
-// ToModelTags ILLM、IEmbedding或IRerank 的 标签列表
+// ToModelTags ILLM、IEmbedding或IRerank 的 标签列表 [EN] ToModelTags tag list for ILLM, IEmbedding or IRerank
 func ToModelTags(provider, modelType, cfg string) ([]mp_common.Tag, error) {
 	if cfg == "" {
 		return nil, nil
@@ -208,12 +208,12 @@ func ToModelTags(provider, modelType, cfg string) ([]mp_common.Tag, error) {
 	return tags, nil
 }
 
-// ToModelConfig 返回ILLM、IEmbedding或IRerank
+// ToModelConfig 返回ILLM、IEmbedding或IRerank [EN] ToModelConfig returns ILLM, IEmbedding or IRerank
 func ToModelConfig(provider, modelType, cfg string) (interface{}, error) {
 	if cfg == "" {
 		return nil, nil
 	}
-	var ret interface{} // 前端需要的结构体
+	var ret interface{} // 前端需要的结构体 [EN] Structure required by the front end
 	switch provider {
 	case ProviderOpenAICompatible:
 		switch modelType {

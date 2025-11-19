@@ -7,15 +7,15 @@ import "google/protobuf/empty.proto";
 option go_package = "gitlab.ai-yuanjing.cn/ai-platform-private/backend-used-bff/common-api/api/proto/knowledgebase-keywords-service";
 
 service KnowledgeBaseKeywordsService {
-  // 查询知识库关键词列表
+  // 查询知识库关键词列表 [EN] Query the knowledge base keyword list
   rpc GetKnowledgeKeywordsList(GetKnowledgeKeywordsListReq) returns (GetKnowledgeKeywordsListResp) {}
-  // 查询知识库关键词详情
+  // 查询知识库关键词详情 [EN] Query knowledge base keyword details
   rpc GetKnowledgeKeywordsDetail(GetKnowledgeKeywordsDetailReq) returns (GetKnowledgeKeywordsDetailResp) {}
-  // 新增知识库关键词
+  // 新增知识库关键词 [EN] Add new knowledge base keywords
   rpc CreateKnowledgeKeywords(CreateKnowledgeKeywordsReq) returns (google.protobuf.Empty) {}
-  // 编辑知识库关键词
+  // 编辑知识库关键词 [EN] Edit knowledge base keywords
   rpc UpdateKnowledgeKeywords(UpdateKnowledgeKeywordsReq) returns (google.protobuf.Empty) {}
-  // 删除知识库关键词
+  // 删除知识库关键词 [EN] Delete knowledge base keywords
   rpc DeleteKnowledgeKeywords(DeleteKnowledgeKeywordsReq) returns (google.protobuf.Empty) {}
 }
 
@@ -27,7 +27,7 @@ message Identity {
 message GetKnowledgeKeywordsListReq{
   int32 pageSize = 1;
   int32 pageNum = 2;
-  string name = 3; // 用于搜索【问题中的关键词】/【文档中的词语】
+  string name = 3; // 用于搜索【问题中的关键词】/【文档中的词语】 [EN] Used to search for [keywords in the question]/[words in the document]
   Identity identity = 4;
 }
 

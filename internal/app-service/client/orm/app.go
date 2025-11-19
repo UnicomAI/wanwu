@@ -41,7 +41,7 @@ func (c *Client) PublishApp(ctx context.Context, userId, orgId, appId, appType, 
 
 func (c *Client) UnPublishApp(ctx context.Context, appId, appType, userId string) *errs.Status {
 	err := c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// 取消发布的时候删除其他用户的ApiKey
+		// 取消发布的时候删除其他用户的ApiKey [EN] Delete other users' ApiKeys when unpublishing
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithAppID(appId),
 			sqlopt.WithAppType(appType),
@@ -145,7 +145,7 @@ func (c *Client) RecordAppHistory(ctx context.Context, userId, appId, appType st
 	return nil
 }
 
-// 不包括apiKey
+// 不包括apiKey [EN] Does not include apiKey
 func deleteAppRelatedDataByUnPublish(tx *gorm.DB, appId, appType string) error {
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithAppID(appId),

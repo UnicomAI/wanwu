@@ -8,23 +8,23 @@ import "proto/common/common.proto";
 option go_package = "github.com/UnicomAI/wanwu/api/proto/rag-service";
 
 service RagService {
-  // 流式对话
+  // 流式对话 [EN] streaming conversation
   rpc ChatRag(ChatRagReq) returns (stream ChatRagResp) {}
-  // 创建 rag
+  // 创建 rag [EN] Create a rag
   rpc CreateRag(CreateRagReq) returns (CreateRagResp) {}
-  // 更新 rag 基本信息
+  // 更新 rag 基本信息 [EN] Update rag basic information
   rpc UpdateRag(UpdateRagReq) returns (google.protobuf.Empty) {}
-  // 更新 rag 配置信息
+  // 更新 rag 配置信息 [EN] Update rag configuration information
   rpc UpdateRagConfig(UpdateRagConfigReq) returns (google.protobuf.Empty) {}
-  // 删除 rag
+  // 删除 rag [EN] Delete rag
   rpc DeleteRag(RagDeleteReq) returns (google.protobuf.Empty) {}
-  // 获取 rag
+  // 获取 rag [EN] Get rag
   rpc GetRagDetail(RagDetailReq) returns (RagInfo) {}
-  // 获取 rag 列表
+  // 获取 rag 列表 [EN] Get rag list
   rpc ListRag(RagListReq) returns (RagListResp) {}
-  // 根据 ragIds 获取 rag 列表
+  // 根据 ragIds 获取 rag 列表 [EN] Get the rag list based on ragIds
   rpc GetRagByIds(GetRagByIdsReq) returns (AppBriefList) {}
-  // 复制 rag
+  // 复制 rag [EN] Copy rag
   rpc CopyRag(CopyRagReq) returns (CreateRagResp) {}
 }
 message Identity {
@@ -57,10 +57,10 @@ message UpdateRagReq{
 
 message UpdateRagConfigReq{
   string ragId = 1;
-  common.AppModelConfig modelConfig = 2;                  // 模型
-  common.AppModelConfig rerankConfig = 3;                 // Rerank模型
-  RagKnowledgeBaseConfig knowledgeBaseConfig = 4;         // 知识库
-  RagSensitiveConfig sensitiveConfig = 5;                 // 安全护栏
+  common.AppModelConfig modelConfig = 2;                  // 模型 [EN] Model
+  common.AppModelConfig rerankConfig = 3;                 // Rerank模型 [EN] Rerank model
+  RagKnowledgeBaseConfig knowledgeBaseConfig = 4;         // 知识库 [EN] knowledge base
+  RagSensitiveConfig sensitiveConfig = 5;                 // 安全护栏 [EN] safety guardrail
 }
 
 message CreateRagReq {
@@ -75,10 +75,10 @@ message CreateRagResp {
 message RagInfo {
   string ragId = 1;
   common.AppBriefConfig briefConfig = 2;
-  common.AppModelConfig modelConfig = 3;                  // 模型
-  common.AppModelConfig rerankConfig = 4;                 // Rerank模型
-  RagKnowledgeBaseConfig knowledgeBaseConfig = 5;         // 知识库
-  RagSensitiveConfig sensitiveConfig = 6; // 安全护栏
+  common.AppModelConfig modelConfig = 3;                  // 模型 [EN] Model
+  common.AppModelConfig rerankConfig = 4;                 // Rerank模型 [EN] Rerank model
+  RagKnowledgeBaseConfig knowledgeBaseConfig = 5;         // 知识库 [EN] knowledge base
+  RagSensitiveConfig sensitiveConfig = 6; // 安全护栏 [EN] safety guardrail
   Identity identity = 7;
 }
 
@@ -115,21 +115,21 @@ message RagMetaFilterItem{
 }
 
 message RagGlobalConfig{
-  int32 maxHistory = 1;                           // 最长上下文
-  float threshold = 2;                            // 过滤阈值
+  int32 maxHistory = 1;                           // 最长上下文 [EN] longest context
+  float threshold = 2;                            // 过滤阈值 [EN] filter threshold
   int32 topK = 3;                                 // topK
-  string matchType = 4; //matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
-  float keywordPriority = 5;// 关键词权重
-  int32 priorityMatch = 6;// 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1
-  float semanticsPriority = 7;// 语义权重
-  float termWeight = 8; // 关键词系数，默认为1
-  bool termWeightEnable = 9; // 关键词系数开关
-  bool useGraph = 10; // 知识图谱开关
+  string matchType = 4; //matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本） [EN] matchType: vector (vector search), text (text search), mix (mixed search: vector + text)
+  float keywordPriority = 5;// 关键词权重 [EN] Keyword weight
+  int32 priorityMatch = 6;// 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1 [EN] Weight matching. This is only set to 1 after selecting the weight setting in mixed search mode.
+  float semanticsPriority = 7;// 语义权重 [EN] semantic weight
+  float termWeight = 8; // 关键词系数，默认为1 [EN] Keyword coefficient, default is 1
+  bool termWeightEnable = 9; // 关键词系数开关 [EN] Keyword coefficient switch
+  bool useGraph = 10; // 知识图谱开关 [EN] Knowledge graph switch
 }
 
 message RagSensitiveConfig{
-  bool enable = 1; // 是否启用安全护栏
-  repeated string tableIds = 2; // 敏感词表id
+  bool enable = 1; // 是否启用安全护栏 [EN] Whether to enable safety guardrails
+  repeated string tableIds = 2; // 敏感词表id [EN] Sensitive word list id
 }
 
 message RagListReq {

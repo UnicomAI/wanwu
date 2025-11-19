@@ -35,7 +35,7 @@ type KnowledgeGraph struct {
 	GraphSchemaFileName   string `json:"graphSchemaFileName"`
 }
 
-// GetDocList 查询知识库文件列表
+// GetDocList 查询知识库文件列表 [EN] GetDocList queries the knowledge base file list
 func GetDocList(ctx context.Context, userId, orgId, knowledgeId, name, tag string,
 	statusList []int, pageSize int32, pageNum int32) ([]*model.KnowledgeDoc, int64, error) {
 	tx := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId),
@@ -60,7 +60,7 @@ func GetDocList(ctx context.Context, userId, orgId, knowledgeId, name, tag strin
 	return docList, total, nil
 }
 
-// GetDocDetail 查询知识库文件详情
+// GetDocDetail 查询知识库文件详情 [EN] GetDocDetail Query knowledge base file details
 func GetDocDetail(ctx context.Context, userId, orgId, docId string) (*model.KnowledgeDoc, error) {
 	var doc = model.KnowledgeDoc{}
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId),
@@ -72,7 +72,7 @@ func GetDocDetail(ctx context.Context, userId, orgId, docId string) (*model.Know
 	return &doc, nil
 }
 
-// GetDocListByKnowledgeIdNoDeleteCheck 根据知识库id查询知识库文件列表
+// GetDocListByKnowledgeIdNoDeleteCheck 根据知识库id查询知识库文件列表 [EN] GetDocListByKnowledgeIdNoDeleteCheck Query the knowledge base file list based on the knowledge base id
 func GetDocListByKnowledgeIdNoDeleteCheck(ctx context.Context, userId, orgId string, knowledgeId string) ([]*model.KnowledgeDoc, error) {
 	var docList []*model.KnowledgeDoc
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithKnowledgeID(knowledgeId)).
@@ -83,7 +83,7 @@ func GetDocListByKnowledgeIdNoDeleteCheck(ctx context.Context, userId, orgId str
 	return docList, nil
 }
 
-// GetDocListByKnowledgeId 根据知识库id查询知识库文件列表
+// GetDocListByKnowledgeId 根据知识库id查询知识库文件列表 [EN] GetDocListByKnowledgeId Query the knowledge base file list based on the knowledge base id
 func GetDocListByKnowledgeId(ctx context.Context, userId, orgId string, knowledgeId string) ([]*model.KnowledgeDoc, error) {
 	var docList []*model.KnowledgeDoc
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithKnowledgeID(knowledgeId), sqlopt.WithDelete(0)).
@@ -94,7 +94,7 @@ func GetDocListByKnowledgeId(ctx context.Context, userId, orgId string, knowledg
 	return docList, nil
 }
 
-// GetDocListByIdListNoDeleteCheck 查询知识库文件列表
+// GetDocListByIdListNoDeleteCheck 查询知识库文件列表 [EN] GetDocListByIdListNoDeleteCheck Query the knowledge base file list
 func GetDocListByIdListNoDeleteCheck(ctx context.Context, userId, orgId string, idList []uint32) ([]*model.KnowledgeDoc, error) {
 	var docList []*model.KnowledgeDoc
 	err := sqlopt.SQLOptions(sqlopt.WithPermit("", userId), sqlopt.WithIDs(idList)).
@@ -105,7 +105,7 @@ func GetDocListByIdListNoDeleteCheck(ctx context.Context, userId, orgId string, 
 	return docList, nil
 }
 
-// CheckKnowledgeDocSameName 知识库文档同名校验
+// CheckKnowledgeDocSameName 知识库文档同名校验 [EN] CheckKnowledgeDocSameName Knowledge base document same name verification
 func CheckKnowledgeDocSameName(ctx context.Context, userId string, knowledgeId string, docName string, docUrl string) error {
 	var count int64
 	var docUrlMd5 = ""
@@ -130,7 +130,7 @@ func CheckKnowledgeDocSameName(ctx context.Context, userId string, knowledgeId s
 	return nil
 }
 
-// SelectDocByDocIdList 查询知识库文档信息
+// SelectDocByDocIdList 查询知识库文档信息 [EN] SelectDocByDocIdList queries knowledge base document information
 func SelectDocByDocIdList(ctx context.Context, docIdList []string, userId, orgId string) ([]*model.KnowledgeDoc, error) {
 	var docList []*model.KnowledgeDoc
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithDocIDs(docIdList)).
@@ -160,7 +160,7 @@ func buildKnowledgeDocMeta(doc *model.KnowledgeDoc, importTask *model.KnowledgeI
 	}, nil
 }
 
-// CreateKnowledgeDoc 创建知识库文件
+// CreateKnowledgeDoc 创建知识库文件 [EN] CreateKnowledgeDoc creates a knowledge base document
 func CreateKnowledgeDoc(ctx context.Context, doc *model.KnowledgeDoc, importTask *model.KnowledgeImportTask) error {
 	knowledge, err := SelectKnowledgeById(ctx, doc.KnowledgeId, "", "")
 	if err != nil {
@@ -191,7 +191,7 @@ func CreateKnowledgeDoc(ctx context.Context, doc *model.KnowledgeDoc, importTask
 
 	_, objectName, _ := service.SplitFilePath(doc.FilePath)
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		//1.插入数据
+		//1.插入数据 [EN] 1. Insert data
 		err = createKnowledgeDoc(tx, doc)
 		if err != nil {
 			return err
@@ -200,13 +200,13 @@ func CreateKnowledgeDoc(ctx context.Context, doc *model.KnowledgeDoc, importTask
 		if err != nil {
 			log.Errorf("buildAndCreateMetaData error %s", err.Error())
 		}
-		//非初始话状态的不需要rag 导入，因为有可能直接失败了
+		//非初始话状态的不需要rag 导入，因为有可能直接失败了 [EN] There is no need to import rag in non-initial state, because it may fail directly.
 		if doc.Status != model.DocInit {
 			return nil
 		}
-		//构造知识库图谱
+		//构造知识库图谱 [EN] Constructing a knowledge base graph
 		knowledgeGraph := BuildKnowledgeGraph(knowledge.KnowledgeGraph)
-		//2.rag文档导入
+		//2.rag文档导入 [EN] 2.rag document import
 		return service.RagImportDoc(ctx, &service.RagImportDocParams{
 			DocId:                 doc.DocId,
 			KnowledgeName:         knowledge.RagName,
@@ -233,7 +233,7 @@ func CreateKnowledgeDoc(ctx context.Context, doc *model.KnowledgeDoc, importTask
 	})
 }
 
-// BuildKnowledgeGraph 知识图谱构造
+// BuildKnowledgeGraph 知识图谱构造 [EN] BuildKnowledgeGraph knowledge graph construction
 func BuildKnowledgeGraph(knowledgeGraph string) *KnowledgeGraph {
 	if len(knowledgeGraph) > 0 {
 		graph := knowledgebase_service.KnowledgeGraph{}
@@ -257,7 +257,7 @@ func BuildKnowledgeGraph(knowledgeGraph string) *KnowledgeGraph {
 	}
 }
 
-// 子rag chunk的配置
+// 子rag chunk的配置 [EN] Configuration of sub-rag chunk
 func buildSubRagChunkConfig(config *model.SegmentConfig) *service.RagChunkConfig {
 	if config.SegmentMethod == model.ParentSegmentMethod {
 		return &service.RagChunkConfig{
@@ -281,7 +281,7 @@ func normalizeList(list []string) []string {
 }
 
 func buildAndCreateMetaData(tx *gorm.DB, importTask *model.KnowledgeImportTask, doc *model.KnowledgeDoc) ([]*service.RagMetaDataParams, error) {
-	// 从importTask反序列化meta
+	// 从importTask反序列化meta [EN] Deserialize meta from importTask
 	if len(importTask.MetaData) == 0 {
 		return nil, nil
 	}
@@ -294,13 +294,13 @@ func buildAndCreateMetaData(tx *gorm.DB, importTask *model.KnowledgeImportTask, 
 	var metaList []*model.KnowledgeDocMeta
 	var ragMetaList []*service.RagMetaDataParams
 	for _, importMeta := range importMetaData.DocMetaDataList {
-		// 构造meta数据库结构
+		// 构造meta数据库结构 [EN] Construct meta database structure
 		meta, err := buildKnowledgeDocMeta(doc, importTask, importMeta)
 		if err != nil {
 			return nil, err
 		}
 		metaList = append(metaList, meta)
-		// 构造rag参数
+		// 构造rag参数 [EN] Construct rag parameters
 		ragValue, err := convertMetaValue(meta)
 		if err != nil {
 			return nil, err
@@ -313,7 +313,7 @@ func buildAndCreateMetaData(tx *gorm.DB, importTask *model.KnowledgeImportTask, 
 			Rule:      meta.Rule,
 		})
 	}
-	// 批量插入meta数据库
+	// 批量插入meta数据库 [EN] Batch insert into meta database
 	err = createBatchKnowledgeDocMeta(tx, metaList)
 	if err != nil {
 		return nil, err
@@ -325,7 +325,7 @@ func convertMetaValue(meta *model.KnowledgeDocMeta) (interface{}, error) {
 	if len(meta.Value) == 0 {
 		return nil, nil
 	}
-	// 根据类型转换value
+	// 根据类型转换value [EN] Convert value according to type
 	if meta.ValueType == MetaValueTypeNumber {
 		ragValue, err := strconv.Atoi(meta.Value)
 		if err != nil {
@@ -345,7 +345,7 @@ func convertMetaValue(meta *model.KnowledgeDocMeta) (interface{}, error) {
 	return meta.Value, nil
 }
 
-// CreateKnowledgeUrlDoc 创建知识库url文件
+// CreateKnowledgeUrlDoc 创建知识库url文件 [EN] CreateKnowledgeUrlDoc creates a knowledge base url file
 func CreateKnowledgeUrlDoc(ctx context.Context, doc *model.KnowledgeDoc, importTask *model.KnowledgeImportTask) error {
 	knowledge, err := SelectKnowledgeById(ctx, doc.KnowledgeId, doc.UserId, doc.OrgId)
 	if err != nil {
@@ -370,7 +370,7 @@ func CreateKnowledgeUrlDoc(ctx context.Context, doc *model.KnowledgeDoc, importT
 		return err
 	}
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		//1.逻辑删除数据
+		//1.逻辑删除数据 [EN] 1. Logically delete data
 		err = createKnowledgeDoc(tx, doc)
 		if err != nil {
 			return err
@@ -379,11 +379,11 @@ func CreateKnowledgeUrlDoc(ctx context.Context, doc *model.KnowledgeDoc, importT
 		if err != nil {
 			log.Errorf("buildAndCreateMetaData error %s", err.Error())
 		}
-		//非初始话状态的不需要rag 导入，因为有可能直接失败了
+		//非初始话状态的不需要rag 导入，因为有可能直接失败了 [EN] There is no need to import rag in non-initial state, because it may fail directly.
 		if doc.Status != model.DocInit {
 			return nil
 		}
-		//2.rag url文档导入
+		//2.rag url文档导入 [EN] 2.rag url document import
 		err = service.RagImportUrlDoc(ctx, &service.RagImportUrlDocParams{
 			TaskId:            doc.DocId,
 			FileName:          doc.Name,
@@ -402,9 +402,9 @@ func CreateKnowledgeUrlDoc(ctx context.Context, doc *model.KnowledgeDoc, importT
 		if err != nil {
 			return err
 		}
-		//3.rag 文档开始导入操作
+		//3.rag 文档开始导入操作 [EN] 3.rag document starts importing operation
 		var fileName = service.RebuildFileName(doc.DocId, doc.FileType, doc.Name)
-		//构造知识库图谱
+		//构造知识库图谱 [EN] Constructing a knowledge base graph
 		knowledgeGraph := BuildKnowledgeGraph(knowledge.KnowledgeGraph)
 		return service.RagImportDoc(ctx, &service.RagImportDocParams{
 			DocId:                 doc.DocId,
@@ -432,16 +432,16 @@ func CreateKnowledgeUrlDoc(ctx context.Context, doc *model.KnowledgeDoc, importT
 	})
 }
 
-// UpdateDocStatusDocId 更新文档状态
+// UpdateDocStatusDocId 更新文档状态 [EN] UpdateDocStatusDocId Update document status
 func UpdateDocStatusDocId(ctx context.Context, docId string, status int, metaList []*model.KnowledgeDocMeta) error {
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		//更新文档状态
+		//更新文档状态 [EN] Update document status
 		var updateParams, metaUpdate = buildUpdateParams(status)
 		err := tx.Model(&model.KnowledgeDoc{}).Where("doc_id = ?", docId).Updates(updateParams).Error
 		if err != nil {
 			return err
 		}
-		//更新文档元数据
+		//更新文档元数据 [EN] Update document metadata
 		if metaUpdate && len(metaList) > 0 {
 			err := UpdateDocStatusMetaData(ctx, metaList)
 			if err != nil {
@@ -452,7 +452,7 @@ func UpdateDocStatusDocId(ctx context.Context, docId string, status int, metaLis
 	})
 }
 
-// InitDocStatus 初始化文档状态
+// InitDocStatus 初始化文档状态 [EN] InitDocStatus initializes the document status
 func InitDocStatus(ctx context.Context, userId, orgId string) error {
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
 		err := stopDocProcess(tx)
@@ -471,20 +471,20 @@ func InitDocStatus(ctx context.Context, userId, orgId string) error {
 	})
 }
 
-// DeleteDocByIdList 删除文档
+// DeleteDocByIdList 删除文档 [EN] DeleteDocByIdList deletes documents
 func DeleteDocByIdList(ctx context.Context, idList []uint32, resultDocList []*model.KnowledgeDoc) error {
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		//1.逻辑删除数据
+		//1.逻辑删除数据 [EN] 1. Logically delete data
 		err := logicDeleteDocByIdList(tx, idList)
 		if err != nil {
 			return err
 		}
 		err = DeleteKnowledgeFileInfo(tx, resultDocList[0].KnowledgeId, buildDocInfoList(resultDocList))
-		//2.更新知识库条数
+		//2.更新知识库条数 [EN] 2. Update the number of knowledge base items
 		if err != nil {
 			return err
 		}
-		//3.异步执行删除数据
+		//3.异步执行删除数据 [EN] 3. Execute deletion of data asynchronously
 		return async_task.SubmitTask(ctx, async_task.DocDeleteTaskType, &async_task.DocDeleteParams{
 			DocIdList: idList,
 		})
@@ -501,12 +501,12 @@ func buildDocInfoList(docList []*model.KnowledgeDoc) []*model.DocInfo {
 	return retList
 }
 
-// ExecuteDeleteDocByIdList 执行删除
+// ExecuteDeleteDocByIdList 执行删除 [EN] ExecuteDeleteDocByIdList executes deletion
 func ExecuteDeleteDocByIdList(tx *gorm.DB, idList []uint32) error {
 	return tx.Unscoped().Where("id IN ?", idList).Delete(&model.KnowledgeDoc{}).Error
 }
 
-// logicDeleteDocByIdList 逻辑删除
+// logicDeleteDocByIdList 逻辑删除 [EN] logicDeleteDocByIdList logical deletion
 func logicDeleteDocByIdList(tx *gorm.DB, idList []uint32) error {
 	var updateParams = map[string]interface{}{
 		"deleted": 1,
@@ -514,18 +514,18 @@ func logicDeleteDocByIdList(tx *gorm.DB, idList []uint32) error {
 	return tx.Model(&model.KnowledgeDoc{}).Where("id IN ?", idList).Updates(updateParams).Error
 }
 
-// createKnowledgeDoc 插入数据
+// createKnowledgeDoc 插入数据 [EN] createKnowledgeDoc inserts data
 func createKnowledgeDoc(tx *gorm.DB, knowledgeDoc *model.KnowledgeDoc) error {
 	return tx.Model(&model.KnowledgeDoc{}).Create(knowledgeDoc).Error
 }
 
 func buildUpdateParams(status int) (map[string]interface{}, bool) {
-	if model.InGraphStatus(status) { //图谱状态
+	if model.InGraphStatus(status) { //图谱状态 [EN] Map status
 		return map[string]interface{}{
 			"graph_status": model.GraphStatus(status),
 		}, false
 	}
-	//更新文档状态
+	//更新文档状态 [EN] Update document status
 	return map[string]interface{}{
 		"status":    status,
 		"error_msg": util.BuildDocErrMessage(status),
@@ -533,35 +533,35 @@ func buildUpdateParams(status int) (map[string]interface{}, bool) {
 }
 
 func stopDocProcess(tx *gorm.DB) error {
-	// 获取所有分析中状态的文档并更新状态
+	// 获取所有分析中状态的文档并更新状态 [EN] Get all documents with status under analysis and update the status
 	updateDoc := map[string]interface{}{
 		"status":    5,
 		"error_msg": "know_doc_parsing_interrupted",
 	}
-	//会锁表风险极高
+	//会锁表风险极高 [EN] The risk of table locking is extremely high
 	return sqlopt.SQLOptions(sqlopt.WithStatusList(util.BuildAnalyzingStatus())).
 		Apply(tx, &model.KnowledgeDoc{}).Updates(updateDoc).Error
 }
 
 func stopDocGraphProcess(tx *gorm.DB) error {
-	// 获取所有分析中状态的文档并更新状态
+	// 获取所有分析中状态的文档并更新状态 [EN] Get all documents with status under analysis and update the status
 	updateDoc := map[string]interface{}{
 		"graph_status": model.GraphInterruptFail,
 	}
-	//会锁表风险极高
+	//会锁表风险极高 [EN] The risk of table locking is extremely high
 	return tx.Model(&model.KnowledgeDoc{}).Where("graph_status = ?", model.GraphProcessing).Updates(updateDoc).Error
 }
 
 func stopKnowledgeReport(tx *gorm.DB) error {
-	// 获取所有分析中状态的文档并更新状态
+	// 获取所有分析中状态的文档并更新状态 [EN] Get all documents with status under analysis and update the status
 	updateKnowledgeMap := map[string]interface{}{
 		"report_status": model.ReportInterruptFail,
 	}
-	//会锁表风险极高
+	//会锁表风险极高 [EN] The risk of table locking is extremely high
 	return tx.Model(&model.KnowledgeBase{}).Where("report_status = ?", model.ReportProcessing).Updates(updateKnowledgeMap).Error
 }
 
-// SelectGraphStatus 查询知识图谱状态
+// SelectGraphStatus 查询知识图谱状态 [EN] SelectGraphStatus Query the status of the knowledge graph
 func SelectGraphStatus(ctx context.Context, knowledgeId string, userId, orgId string) ([]*model.KnowledgeDoc, error) {
 	var docList []*model.KnowledgeDoc
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithKnowledgeID(knowledgeId)).

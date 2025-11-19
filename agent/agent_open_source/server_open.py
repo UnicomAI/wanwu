@@ -41,7 +41,7 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s] [%(name)s] %(message)s',
     handlers=[
         logging.FileHandler(f"{log_dir}/server.log", encoding='utf-8'),
-        logging.StreamHandler()  # 输出到控制台
+        logging.StreamHandler()  # 输出到控制台 [EN] output to console
     ]
 )
 
@@ -76,7 +76,7 @@ def agent_start():
 
             data = request.get_json()
             logger.info('入参是request_params: '+ json.dumps(data, ensure_ascii=False))
-            #基本参数
+            #基本参数 [EN] Basic parameters
             question = data.get("input")
             stream = data.get("stream",True)
             history = data.get("history",[])
@@ -89,7 +89,7 @@ def agent_start():
             tools_name = data.get("tools_name",[]) 
 
 
-            #大模型参数
+            #大模型参数 [EN] Large model parameters
             model = data.get("model")
             model_url = data.get("model_url")
             system_role = data.get("system_role",'')
@@ -105,7 +105,7 @@ def agent_start():
             max_tokens = data.get("max_tokens",1024)
             enable_thinking = data.get("enable_thinking",False)
 
-            #搜索参数
+            #搜索参数 [EN] Search parameters
             auto_citation = data.get("auto_citation",False)
             use_search = data.get("use_search",False)
             need_search_list = data.get("need_search_list",True)
@@ -115,18 +115,18 @@ def agent_start():
 
 
 
-            #代码解释器参数
+            #代码解释器参数 [EN] code interpreter parameters
             use_code = data.get("use_code",False)
             file_name = data.get("file_name")
             upload_file_url = data.get("upload_file_url",[])
 
 
-            #rag参数
+            #rag参数 [EN] rag parameters
             chitchat = data.get("chitchat",False)
             kn_params = data.get("kn_params",{})
             use_know = data.get("use_know",False)
 
-            #其他插件参数
+            #其他插件参数 [EN] Other plug-in parameters
             plugin_list = data.get("plugin_list",[])
             
             
@@ -165,11 +165,11 @@ def agent_start():
                 if response:
                     messages.append({"role": "assistant", "content": response})
 
-            # 限制只保留最近5轮（即10条消息）
+            # 限制只保留最近5轮（即10条消息） [EN] Limit to keep only the last 5 rounds (i.e. 10 messages)
             history = history[-10:]
             messages = messages[-10:]
 
-            # 追加本轮用户输入
+            # 追加本轮用户输入 [EN] Add user input for this round
             
             
             
@@ -243,7 +243,7 @@ def agent_start():
                 use_graph = kn_params.get('use_graph',False)
 
 
-#如果是多模态模型，则进入多模态模式
+#如果是多模态模型，则进入多模态模式 [EN] If it is a multimodal model, enter multimodal mode
             if is_vision:
                 logger.info(f"to_vision model answer")
                 client = OpenAI(api_key='aaaaa',
@@ -254,7 +254,7 @@ def agent_start():
                     image_contents = []
                     for url in urls:
                         logger.info(f"minio_file_is {upload_file_url}")
-                        #把图片文件下载到本地
+                        #把图片文件下载到本地 [EN] Download image files to local
                         path = urlparse(url).path  # "/bucket/yourfile.jpg"
                         filename = os.path.basename(path)  # "yourfile.jpg"
                         local_path = "/agent/agent_open_source/file/"+filename
@@ -292,8 +292,8 @@ def agent_start():
                     model="YuanjingVL",
                     messages=messages,
                     stream=True,
-                    extra_body={  # 模型其他参数，非必传
-                        "api_option": "general",  # general:通用；ocr：多模态ocr；math：拍照答题
+                    extra_body={  # 模型其他参数，非必传 [EN] Other parameters of the model, not required
+                        "api_option": "general",  # general:通用；ocr：多模态ocr；math：拍照答题 [EN] general: general; ocr: multi-modal ocr; math: taking pictures to answer questions
                     }
                 )
                 answer = {
@@ -344,7 +344,7 @@ def agent_start():
                             "search_list": [],
                             "qa_type": 20
                         }
-                            # 处理 AIMessage 内容
+                            # 处理 AIMessage 内容 [EN] Processing AIMessage content
                         if isinstance(item, AIMessage) and item.content:
                             token_usage = getattr(item, "response_metadata", {}).get("token_usage", {})
 
@@ -369,14 +369,14 @@ def agent_start():
                             yield f"data:{json.dumps(answer, ensure_ascii=False)}\n\n"
 
 
-                        # 是 ToolMessage
+                        # 是 ToolMessage [EN] isToolMessage
                         elif isinstance(item, ToolMessage) and item.content:
                             text1 = f"```请求结果：\n{item.content}\n```\n\n</tool>"
                             answer["response"] = text1
                             yield f"data:{json.dumps(answer, ensure_ascii=False)}\n\n"
 
 
-                    # 最后一条，标记完成
+                    # 最后一条，标记完成 [EN] The last one is marked complete
                     answer["finish"] = 1
                     answer["usage"] = {
                         "prompt_tokens": 0,
@@ -442,7 +442,7 @@ def agent_start():
 
 
             used_rag = False
-            #如果传参有知识库 则先走rag
+            #如果传参有知识库 则先走rag [EN] If there is a knowledge base for passing parameters, go to rag first
             if use_know:
                 print('进入rag问题是:',question)
                 
@@ -483,7 +483,7 @@ def agent_start():
                     "X-uid": userId
                 }
                 logger.info('rag:'+json.dumps(payload))
-                # 发送POST请求
+                # 发送POST请求 [EN] Send POST request
                 response = requests.post(url, headers=headers, data=json.dumps(payload),stream=True,verify=False)
                 if response.status_code == 200:
                     first_line_checked = False
@@ -532,7 +532,7 @@ def agent_start():
             if not used_rag:               
                 if use_search == True:
                     logger.info(f"走搜索")
-                    #调用网络搜索 透传搜索出来的search_list和回答 结果直接返回                
+                    #调用网络搜索 透传搜索出来的search_list和回答 结果直接返回 [EN] Call network search, transparently transmit the searched search_list and answers, and return the results directly                
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
 
@@ -600,7 +600,7 @@ def agent_start():
                                 print('大模型输出是:',chunk)
                                 answer['response'] = chunk.content
                                 assistant_reply += chunk.content
-                                answer["search_list"] = bing_search_list  # 仅第一条输出
+                                answer["search_list"] = bing_search_list  # 仅第一条输出 [EN] Only the first output
 
 
                                 if hasattr(chunk, "response_metadata"):
@@ -643,7 +643,7 @@ def agent_start():
                         loop.close()
                     return
 
-                #如果配置工具则action直接回答
+                #如果配置工具则action直接回答 [EN] If the tool is configured, the action will answer directly
                 if plugin_list:
                     action_url = "http://localhost:1992/agent/action"
                     headers = {

@@ -29,7 +29,7 @@ def make_request(url: str, data: dict):
             response_info['code'] = final_response['code']
             response_info['message'] = final_response['message']
             return response_info
-        # ======== 正常返回 =======
+        # ======== 正常返回 ======= [EN] ======== Normal return =======
         return final_response
     except Exception as e:
         response_info['code'] = 1
@@ -39,9 +39,9 @@ def make_request(url: str, data: dict):
 def generate_chunks_bacth(chunks: list, batch_size=1000):
     """ 将chunks 按chunk_current_num分组并生成批次数据，每个list的长度为batch_size"""
     batch_data = []
-    # 使用defaultdict来聚合数据
+    # 使用defaultdict来聚合数据 [EN] Use defaultdict to aggregate data
     aggregated_data = defaultdict(list)
-    # 遍历列表，按照chunk_current_num字段聚合
+    # 遍历列表，按照chunk_current_num字段聚合 [EN] Traverse the list and aggregate according to the chunk_current_num field
     temp_num = 0
     for item in chunks:
         temp_num += 1
@@ -49,7 +49,7 @@ def generate_chunks_bacth(chunks: list, batch_size=1000):
             item['meta_data']['chunk_current_num'] = temp_num // 100
         chunk_current_num = item['meta_data']['chunk_current_num']
         aggregated_data[chunk_current_num].append(item)
-    # 将聚合后的数据转换为普通字典，以便查看
+    # 将聚合后的数据转换为普通字典，以便查看 [EN] Convert aggregated data to a normal dictionary for viewing
     aggregated_data = dict(aggregated_data)
     print(aggregated_data)
     for key, value in aggregated_data.items():
@@ -57,7 +57,7 @@ def generate_chunks_bacth(chunks: list, batch_size=1000):
         if len(batch_data) >= batch_size:
             yield batch_data
             batch_data = []
-    # 最后一个batch
+    # 最后一个batch [EN] The last batch
     if batch_data:
         yield batch_data
 
@@ -270,7 +270,7 @@ def add_milvus(user_id, kb_name, sub_chunk, add_file_name, add_file_path, kb_id=
     success_count = 0
     fail_count = 0
     error_reason = []
-    # sub_chunk 批次生成器,按 按chunk_current_num分组并生成批次数据
+    # sub_chunk 批次生成器,按 按chunk_current_num分组并生成批次数据 [EN] sub_chunk batch generator, group by chunk_current_num and generate batch data
     chunk_gen = generate_chunks_bacth(sub_chunk, batch_size=batch_size)
     for batch in chunk_gen:
         insert_data = {}
@@ -307,7 +307,7 @@ def add_milvus(user_id, kb_name, sub_chunk, add_file_name, add_file_path, kb_id=
                 logger.error(repr(add_file_name) + repr(batch_count) + '批量写入milvus请求失败')
                 fail_count = fail_count + 1
                 if str(response.text) not in error_reason: error_reason.append(str(response.text))
-                # ========= 报错直接返回结束 =======
+                # ========= 报错直接返回结束 ======= [EN] ========= Report an error and return directly to the end =======
                 response_info['code'] = 1
                 response_info['message'] = '部分文件添加milvus失败: ' + '/t'.join(error_reason)
                 return response_info
@@ -317,7 +317,7 @@ def add_milvus(user_id, kb_name, sub_chunk, add_file_name, add_file_path, kb_id=
                 fail_count = fail_count + 1
                 if str(result_data['message']) not in error_reason: error_reason.append(str(result_data['message']))
                 logger.error(repr(add_file_name) + repr(batch_count) + '批量写入milvus请求失败')
-                # ========= 报错直接返回结束 =======
+                # ========= 报错直接返回结束 ======= [EN] ========= Report an error and return directly to the end =======
                 response_info['code'] = 1
                 response_info['message'] = '部分文件添加milvus失败: ' + '/t'.join(error_reason)
                 return response_info
@@ -329,13 +329,13 @@ def add_milvus(user_id, kb_name, sub_chunk, add_file_name, add_file_path, kb_id=
             logger.error(repr(add_file_name) + repr(batch_count) + '批量写入milvus请求异常：' + repr(e))
             fail_count = fail_count + 1
             if repr(e) not in error_reason: error_reason.append(repr(e))
-            # ========= 报错直接返回结束 =======
+            # ========= 报错直接返回结束 ======= [EN] ========= Report an error and return directly to the end =======
             response_info['code'] = 1
             response_info['message'] = '部分文件添加milvus失败: ' + '/t'.join(error_reason)
             return response_info
 
 
-    # print('add_milvus方法调用接口批量建库，总批次:%s次，成功:%s次,失败:%s次' % (batch_count, success_count, fail_count))
+    # print('add_milvus方法调用接口批量建库，总批次:%s次，成功:%s次,失败:%s次' % (batch_count, success_count, fail_count)) [EN] print('add_milvus method calls interface to build database in batches, total batch: %s times, success: %s times, failure: %s times' % (batch_count, success_count, fail_count))
     logger.info('add_milvus方法调用接口批量建库')
     logger.info('总批次：' + repr(batch_count))
     logger.info('成功：' + repr(success_count))
@@ -565,7 +565,7 @@ def update_milvus_content_status(user_id: str, kb_name: str, file_name: str, con
         根据content_id更新知识库文件片段状态
     """
     url = MILVUS_BASE_URL + '/rag/kn/update_content_status'
-    if on_off_switch in [True, False]:  # 前端传递了 on_off_switch 参数
+    if on_off_switch in [True, False]:  # 前端传递了 on_off_switch 参数 [EN] The front end is passed the on_off_switch parameter
         data = {
             'userId': user_id,
             'kb_name': kb_name,
@@ -633,20 +633,20 @@ def get_milvus_content_status(user_id: str, kb_name: str, content_id_list: list)
         获取文本分块状态用于进行检索后过滤。
     """
     response_info = {'code': 0, "message": "成功"}
-    # url = "http://localhost:30041/rag/kn/get_useful_content_status"  # 临时地址
+    # url = "http://localhost:30041/rag/kn/get_useful_content_status"  # 临时地址 [EN] url = "http://localhost:30041/rag/kn/get_useful_content_status" # Temporary address
     url = MILVUS_BASE_URL + '/rag/kn/get_useful_content_status'
     headers = {'Content-Type': 'application/json'}
     data = {'userId': user_id, 'kb_name': kb_name, 'content_id_list': content_id_list}
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'), timeout=TIME_OUT)
-        if response.status_code != 200:  # 抛出报错
+        if response.status_code != 200:  # 抛出报错 [EN] Throw an error
             err = str(response.text)
             raise RuntimeError(f"{kb_name}-{content_id_list},Error get_milvus_content_status: {err}")
         final_response = json.loads(response.text)
-        if final_response['code'] == 0:  # 正常获取到了结果
+        if final_response['code'] == 0:  # 正常获取到了结果 [EN] The results were obtained normally
             res_list = final_response['data']["useful_content_id_list"]
             return res_list
-        else:  # 抛出报错
+        else:  # 抛出报错 [EN] Throw an error
             raise RuntimeError(
                 f"{kb_name}-{content_id_list},Error get_milvus_content_status: {final_response}")
     except Exception as e:
@@ -662,14 +662,14 @@ def get_milvus_kb_name_id(user_id: str, kb_name: str):
     data = {'userId': user_id, 'kb_name': kb_name}
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'), timeout=TIME_OUT)
-        if response.status_code != 200:  # 抛出报错
+        if response.status_code != 200:  # 抛出报错 [EN] Throw an error
             err = str(response.text)
             raise RuntimeError(f"{kb_name}-,Error get_kb_name_id: {err}")
         final_response = json.loads(response.text)
-        if final_response['code'] == 0:  # 正常获取到了结果
+        if final_response['code'] == 0:  # 正常获取到了结果 [EN] The results were obtained normally
             kb_id = final_response['data']["kb_id"]
             return kb_id
-        else:  # 抛出报错
+        else:  # 抛出报错 [EN] Throw an error
             raise RuntimeError(
                 f"{kb_name},Error get_kb_name_id: {final_response}")
     except Exception as e:
@@ -686,13 +686,13 @@ def update_milvus_kb_name(user_id: str, old_kb_name: str, new_kb_name: str):
     data = {'userId': user_id, 'old_kb_name': old_kb_name, 'new_kb_name': new_kb_name}
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'), timeout=TIME_OUT)
-        if response.status_code != 200:  # 抛出报错
+        if response.status_code != 200:  # 抛出报错 [EN] Throw an error
             err = str(response.text)
             return {'code': 1, "message": f"{err}"}
         final_response = json.loads(response.text)
-        if final_response['code'] == 0:  # 正常获取到了结果
+        if final_response['code'] == 0:  # 正常获取到了结果 [EN] The results were obtained normally
             return response_info
-        else:  # 抛出报错
+        else:  # 抛出报错 [EN] Throw an error
             return final_response
     except Exception as e:
         return {'code': 1, "message": f"{e}"}
@@ -710,7 +710,7 @@ def get_extend_content_item(user_id, kb_name, knowledge_item, extend_num=1):
     extend_content = ""
     for item in content_list:
         extend_content += item["content"]
-    # ====== 正常返回 =====
+    # ====== 正常返回 ===== [EN] ====== Normal return =====
     knowledge_item["extend_content"] = extend_content
     return knowledge_item
 

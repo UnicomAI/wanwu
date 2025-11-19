@@ -8,7 +8,7 @@ import requests
 
 
 def split_chunks(excel_file_path_label):
-    # 选择指定的工作表
+    # 选择指定的工作表 [EN] Select the specified worksheet
     sub_doc = []
     docs = []
     

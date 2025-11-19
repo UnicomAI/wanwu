@@ -10,12 +10,12 @@ import (
 // DeleteAppSapceApp
 //
 //	@Tags			app
-//	@Summary		刪除应用
-//	@Description	刪除智能体、工作流、文本问答等应用
+//	@Summary		刪除应用 [EN] @Summary Delete app
+//	@Description	刪除智能体、工作流、文本问答等应用 [EN] @Description Delete applications such as agents, workflows, and text Q&A
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.DeleteAppSpaceAppRequest	true	"删除应用空间App参数"
+//	@Param			data	body		request.DeleteAppSpaceAppRequest	true	"删除应用空间App参数" [EN] @Param data body request.DeleteAppSpaceAppRequest true "Delete application space App parameters"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/appspace/app [delete]
 func DeleteAppSapceApp(ctx *gin.Context) {
@@ -30,13 +30,13 @@ func DeleteAppSapceApp(ctx *gin.Context) {
 // GetAppSpaceAppList
 //
 //	@Tags			app
-//	@Summary		获取应用列表
-//	@Description	获取智能体、工作流、文本问答等应用
+//	@Summary		获取应用列表 [EN] @Summary Get the application list
+//	@Description	获取智能体、工作流、文本问答等应用 [EN] @Description Get applications such as agents, workflows, and text question and answer
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			name	query		string	false	"应用名(模糊查询)"
-//	@Param			appType	query		string	false	"应用类型 Enums(agent,workflow,rag,chatflow)"
+//	@Param			name	query		string	false	"应用名(模糊查询)" [EN] @Param name query string false "Application name (fuzzy query)"
+//	@Param			appType	query		string	false	"应用类型 Enums(agent,workflow,rag,chatflow)" [EN] @Param appType query string false "Application type Enums(agent,workflow,rag,chatflow)"
 //	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.AppBriefInfo}}
 //	@Router			/appspace/app/list [get]
 func GetAppSpaceAppList(ctx *gin.Context) {
@@ -51,12 +51,12 @@ func GetAppSpaceAppList(ctx *gin.Context) {
 // PublishApp
 //
 //	@Tags			app
-//	@Summary		发布应用
-//	@Description	发布应用
+//	@Summary		发布应用 [EN] @Summary Publish the app
+//	@Description	发布应用 [EN] @Description publish application
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.PublishAppRequest	true	"发布应用参数"
+//	@Param			data	body		request.PublishAppRequest	true	"发布应用参数" [EN] @Param data body request.PublishAppRequest true "Publish application parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/appspace/app/publish [post]
 func PublishApp(ctx *gin.Context) {
@@ -71,12 +71,12 @@ func PublishApp(ctx *gin.Context) {
 // UnPublishApp
 //
 //	@Tags			app
-//	@Summary		取消发布应用
-//	@Description	取消发布应用
+//	@Summary		取消发布应用 [EN] @Summary Unpublish app
+//	@Description	取消发布应用 [EN] @Description Unpublish application
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.UnPublishAppRequest	true	"取消发布应用参数"
+//	@Param			data	body		request.UnPublishAppRequest	true	"取消发布应用参数" [EN] @Param data body request.UnPublishAppRequest true "Unpublish application parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/appspace/app/publish [delete]
 func UnPublishApp(ctx *gin.Context) {

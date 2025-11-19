@@ -140,9 +140,9 @@ usage-limit:
   pptx-size-limit: 209715200
   html-size-limit: 209715200
   compressed-size-limit: 209715200
-  # 文件大小限制30MB
+  # 文件大小限制30MB [EN] File size limit 30MB
   file-size-limit: 30
-  #上传接口并发限制
+  #上传接口并发限制 [EN] Upload interface concurrency limit
   upload-concurrent-limit: 100
 
 knowledge-doc-config:

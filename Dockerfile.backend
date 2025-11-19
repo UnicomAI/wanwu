@@ -1,6 +1,6 @@
 ARG WANWU_ARCH
 
-# --- 第一阶段：构建阶段 ---
+# --- 第一阶段：构建阶段 --- [EN] ---Phase 1: Construction phase ---
 FROM --platform=linux/$WANWU_ARCH golang:1.24.6-bookworm AS builder
 ARG WANWU_ARCH
 WORKDIR /app
@@ -16,7 +16,7 @@ RUN make build-assistant-$WANWU_ARCH
 RUN make build-app-$WANWU_ARCH
 RUN make build-operate-$WANWU_ARCH
 
-# --- 第二阶段：运行阶段 ---
+# --- 第二阶段：运行阶段 --- [EN] --- The second stage: operation stage ---
 FROM --platform=linux/$WANWU_ARCH golang:1.24-alpine
 ARG WANWU_ARCH
 WORKDIR /app

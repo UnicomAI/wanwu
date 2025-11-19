@@ -225,9 +225,9 @@ type KnowledgeHitReq struct {
 
 	OrgId                string                `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	UserId               string                `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`
-	Question             string                `protobuf:"bytes,3,opt,name=question,proto3" json:"question,omitempty"`                         //问题
-	KnowledgeList        []*KnowledgeParams    `protobuf:"bytes,4,rep,name=knowledgeList,proto3" json:"knowledgeList,omitempty"`               //知识库参数列表
-	KnowledgeMatchParams *KnowledgeMatchParams `protobuf:"bytes,5,opt,name=knowledgeMatchParams,proto3" json:"knowledgeMatchParams,omitempty"` //模型匹配方式
+	Question             string                `protobuf:"bytes,3,opt,name=question,proto3" json:"question,omitempty"`                         //问题 [EN] question
+	KnowledgeList        []*KnowledgeParams    `protobuf:"bytes,4,rep,name=knowledgeList,proto3" json:"knowledgeList,omitempty"`               //知识库参数列表 [EN] Knowledge base parameter list
+	KnowledgeMatchParams *KnowledgeMatchParams `protobuf:"bytes,5,opt,name=knowledgeMatchParams,proto3" json:"knowledgeMatchParams,omitempty"` //模型匹配方式 [EN] Model matching method
 }
 
 func (x *KnowledgeHitReq) Reset() {
@@ -302,16 +302,16 @@ type KnowledgeMatchParams struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MatchType         string  `protobuf:"bytes,1,opt,name=matchType,proto3" json:"matchType,omitempty"`                   //matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
-	RerankModelId     string  `protobuf:"bytes,2,opt,name=rerankModelId,proto3" json:"rerankModelId,omitempty"`           //rerank模型id
-	PriorityMatch     int32   `protobuf:"varint,3,opt,name=priorityMatch,proto3" json:"priorityMatch,omitempty"`          // 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1
-	SemanticsPriority float32 `protobuf:"fixed32,4,opt,name=semanticsPriority,proto3" json:"semanticsPriority,omitempty"` // 语义权重
-	KeywordPriority   float32 `protobuf:"fixed32,5,opt,name=keywordPriority,proto3" json:"keywordPriority,omitempty"`     // 关键词权重
-	TopK              int32   `protobuf:"varint,6,opt,name=topK,proto3" json:"topK,omitempty"`                            //topK 获取最高的几行
-	Score             float32 `protobuf:"fixed32,7,opt,name=score,proto3" json:"score,omitempty"`                         //score 过滤分数阈值
-	TermWeight        float32 `protobuf:"fixed32,8,opt,name=termWeight,proto3" json:"termWeight,omitempty"`               // 关键词系数
-	TermWeightEnable  bool    `protobuf:"varint,9,opt,name=termWeightEnable,proto3" json:"termWeightEnable,omitempty"`    // 关键词系数开关
-	UseGraph          bool    `protobuf:"varint,10,opt,name=useGraph,proto3" json:"useGraph,omitempty"`                   // 是否使用知识图谱
+	MatchType         string  `protobuf:"bytes,1,opt,name=matchType,proto3" json:"matchType,omitempty"`                   //matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本） [EN] matchType: vector (vector search), text (text search), mix (mixed search: vector + text)
+	RerankModelId     string  `protobuf:"bytes,2,opt,name=rerankModelId,proto3" json:"rerankModelId,omitempty"`           //rerank模型id [EN] rerank model id
+	PriorityMatch     int32   `protobuf:"varint,3,opt,name=priorityMatch,proto3" json:"priorityMatch,omitempty"`          // 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1 [EN] Weight matching. This is only set to 1 after selecting the weight setting in mixed search mode.
+	SemanticsPriority float32 `protobuf:"fixed32,4,opt,name=semanticsPriority,proto3" json:"semanticsPriority,omitempty"` // 语义权重 [EN] semantic weight
+	KeywordPriority   float32 `protobuf:"fixed32,5,opt,name=keywordPriority,proto3" json:"keywordPriority,omitempty"`     // 关键词权重 [EN] Keyword weight
+	TopK              int32   `protobuf:"varint,6,opt,name=topK,proto3" json:"topK,omitempty"`                            //topK 获取最高的几行 [EN] topK gets the highest rows
+	Score             float32 `protobuf:"fixed32,7,opt,name=score,proto3" json:"score,omitempty"`                         //score 过滤分数阈值 [EN] score filter score threshold
+	TermWeight        float32 `protobuf:"fixed32,8,opt,name=termWeight,proto3" json:"termWeight,omitempty"`               // 关键词系数 [EN] keyword coefficient
+	TermWeightEnable  bool    `protobuf:"varint,9,opt,name=termWeightEnable,proto3" json:"termWeightEnable,omitempty"`    // 关键词系数开关 [EN] Keyword coefficient switch
+	UseGraph          bool    `protobuf:"varint,10,opt,name=useGraph,proto3" json:"useGraph,omitempty"`                   // 是否使用知识图谱 [EN] Whether to use knowledge graph
 }
 
 func (x *KnowledgeMatchParams) Reset() {
@@ -421,8 +421,8 @@ type KnowledgeParams struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	KnowledgeId          string                `protobuf:"bytes,1,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`                   // 知识库id
-	MetaDataFilterParams *MetaDataFilterParams `protobuf:"bytes,2,opt,name=metaDataFilterParams,proto3" json:"metaDataFilterParams,omitempty"` // 元数据过滤参数
+	KnowledgeId          string                `protobuf:"bytes,1,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`                   // 知识库id [EN] knowledge base id
+	MetaDataFilterParams *MetaDataFilterParams `protobuf:"bytes,2,opt,name=metaDataFilterParams,proto3" json:"metaDataFilterParams,omitempty"` // 元数据过滤参数 [EN] Metadata filter parameters
 }
 
 func (x *KnowledgeParams) Reset() {
@@ -476,9 +476,9 @@ type MetaDataFilterParams struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FilterEnable     bool                `protobuf:"varint,1,opt,name=filterEnable,proto3" json:"filterEnable,omitempty"`        // 元数据过滤开关
-	FilterLogicType  string              `protobuf:"bytes,2,opt,name=filterLogicType,proto3" json:"filterLogicType,omitempty"`   // 元数据过滤逻辑类型
-	MetaFilterParams []*MetaFilterParams `protobuf:"bytes,3,rep,name=metaFilterParams,proto3" json:"metaFilterParams,omitempty"` // 元数据过滤参数
+	FilterEnable     bool                `protobuf:"varint,1,opt,name=filterEnable,proto3" json:"filterEnable,omitempty"`        // 元数据过滤开关 [EN] Metadata filter switch
+	FilterLogicType  string              `protobuf:"bytes,2,opt,name=filterLogicType,proto3" json:"filterLogicType,omitempty"`   // 元数据过滤逻辑类型 [EN] Metadata filtering logic type
+	MetaFilterParams []*MetaFilterParams `protobuf:"bytes,3,rep,name=metaFilterParams,proto3" json:"metaFilterParams,omitempty"` // 元数据过滤参数 [EN] Metadata filter parameters
 }
 
 func (x *MetaDataFilterParams) Reset() {
@@ -539,10 +539,10 @@ type MetaFilterParams struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Key       string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`             // 元数据key
-	Type      string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`           // 元数据类型
-	Value     string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`         // 元数据值
-	Condition string `protobuf:"bytes,4,opt,name=condition,proto3" json:"condition,omitempty"` // 元数据过滤条件
+	Key       string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`             // 元数据key [EN] Metadata key
+	Type      string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`           // 元数据类型 [EN] metadata type
+	Value     string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`         // 元数据值 [EN] metadata value
+	Condition string `protobuf:"bytes,4,opt,name=condition,proto3" json:"condition,omitempty"` // 元数据过滤条件 [EN] Metadata filters
 }
 
 func (x *MetaFilterParams) Reset() {
@@ -615,7 +615,7 @@ type CreateKnowledgeReq struct {
 	Name               string              `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Description        string              `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 	EmbeddingModelInfo *EmbeddingModelInfo `protobuf:"bytes,5,opt,name=embeddingModelInfo,proto3" json:"embeddingModelInfo,omitempty"`
-	KnowledgeGraph     *KnowledgeGraph     `protobuf:"bytes,6,opt,name=knowledgeGraph,proto3" json:"knowledgeGraph,omitempty"` //知识图谱配置
+	KnowledgeGraph     *KnowledgeGraph     `protobuf:"bytes,6,opt,name=knowledgeGraph,proto3" json:"knowledgeGraph,omitempty"` //知识图谱配置 [EN] Knowledge graph configuration
 }
 
 func (x *CreateKnowledgeReq) Reset() {
@@ -744,9 +744,9 @@ type KnowledgeGraph struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Switch     bool   `protobuf:"varint,1,opt,name=switch,proto3" json:"switch,omitempty"`        //知识图谱开关
-	LlmModelId string `protobuf:"bytes,2,opt,name=llmModelId,proto3" json:"llmModelId,omitempty"` //大模型id
-	SchemaUrl  string `protobuf:"bytes,3,opt,name=schemaUrl,proto3" json:"schemaUrl,omitempty"`   //知识图谱schema文件地址
+	Switch     bool   `protobuf:"varint,1,opt,name=switch,proto3" json:"switch,omitempty"`        //知识图谱开关 [EN] Knowledge graph switch
+	LlmModelId string `protobuf:"bytes,2,opt,name=llmModelId,proto3" json:"llmModelId,omitempty"` //大模型id [EN] Large model id
+	SchemaUrl  string `protobuf:"bytes,3,opt,name=schemaUrl,proto3" json:"schemaUrl,omitempty"`   //知识图谱schema文件地址 [EN] Knowledge graph schema file address
 }
 
 func (x *KnowledgeGraph) Reset() {
@@ -856,8 +856,8 @@ type KnowledgeSelectReq struct {
 
 	UserId    string   `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId     string   `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	Name      string   `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`           //知识库名称，支持模糊搜索
-	TagIdList []string `protobuf:"bytes,4,rep,name=tagIdList,proto3" json:"tagIdList,omitempty"` //知识库id 列表
+	Name      string   `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`           //知识库名称，支持模糊搜索 [EN] Knowledge base name, supports fuzzy search
+	TagIdList []string `protobuf:"bytes,4,rep,name=tagIdList,proto3" json:"tagIdList,omitempty"` //知识库id 列表 [EN] Knowledge base id list
 }
 
 func (x *KnowledgeSelectReq) Reset() {
@@ -927,7 +927,7 @@ type BatchKnowledgeSelectReq struct {
 
 	UserId          string   `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId           string   `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	KnowledgeIdList []string `protobuf:"bytes,3,rep,name=knowledgeIdList,proto3" json:"knowledgeIdList,omitempty"` //知识库id列表
+	KnowledgeIdList []string `protobuf:"bytes,3,rep,name=knowledgeIdList,proto3" json:"knowledgeIdList,omitempty"` //知识库id列表 [EN] Knowledge base id list
 }
 
 func (x *BatchKnowledgeSelectReq) Reset() {
@@ -988,7 +988,7 @@ type KnowledgeSelectListResp struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	KnowledgeList []*KnowledgeInfo `protobuf:"bytes,1,rep,name=knowledgeList,proto3" json:"knowledgeList,omitempty"` //知识库列表
+	KnowledgeList []*KnowledgeInfo `protobuf:"bytes,1,rep,name=knowledgeList,proto3" json:"knowledgeList,omitempty"` //知识库列表 [EN] Knowledge base list
 }
 
 func (x *KnowledgeSelectListResp) Reset() {
@@ -1037,8 +1037,8 @@ type KnowledgeDetailSelectReq struct {
 
 	UserId        string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId         string `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	KnowledgeId   string `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`     //知识库id
-	KnowledgeName string `protobuf:"bytes,4,opt,name=knowledgeName,proto3" json:"knowledgeName,omitempty"` // 知识库名称
+	KnowledgeId   string `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`     //知识库id [EN] knowledge base id
+	KnowledgeName string `protobuf:"bytes,4,opt,name=knowledgeName,proto3" json:"knowledgeName,omitempty"` // 知识库名称 [EN] Knowledge base name
 }
 
 func (x *KnowledgeDetailSelectReq) Reset() {
@@ -1108,7 +1108,7 @@ type KnowledgeDetailSelectListReq struct {
 
 	UserId       string   `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId        string   `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	KnowledgeIds []string `protobuf:"bytes,3,rep,name=knowledgeIds,proto3" json:"knowledgeIds,omitempty"` //知识库id列表
+	KnowledgeIds []string `protobuf:"bytes,3,rep,name=knowledgeIds,proto3" json:"knowledgeIds,omitempty"` //知识库id列表 [EN] Knowledge base id list
 }
 
 func (x *KnowledgeDetailSelectListReq) Reset() {
@@ -1169,7 +1169,7 @@ type KnowledgeDetailSelectListResp struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	List  []*KnowledgeInfo `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"` // 知识库详情列表
+	List  []*KnowledgeInfo `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"` // 知识库详情列表 [EN] Knowledge base details list
 	Total int32            `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
 }
 
@@ -1219,25 +1219,25 @@ func (x *KnowledgeDetailSelectListResp) GetTotal() int32 {
 	return 0
 }
 
-// 知识库信息
+// 知识库信息 [EN] Knowledge base information
 type KnowledgeInfo struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	KnowledgeId          string              `protobuf:"bytes,1,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"` //知识库id
-	Name                 string              `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`               //知识库名称
+	KnowledgeId          string              `protobuf:"bytes,1,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"` //知识库id [EN] knowledge base id
+	Name                 string              `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`               //知识库名称 [EN] Knowledge base name
 	DocCount             int32               `protobuf:"varint,3,opt,name=docCount,proto3" json:"docCount,omitempty"`
 	Description          string              `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 	EmbeddingModelInfo   *EmbeddingModelInfo `protobuf:"bytes,5,opt,name=embeddingModelInfo,proto3" json:"embeddingModelInfo,omitempty"`
 	KnowledgeTagInfoList []*KnowledgeTagInfo `protobuf:"bytes,6,rep,name=knowledgeTagInfoList,proto3" json:"knowledgeTagInfoList,omitempty"`
 	CreatedAt            string              `protobuf:"bytes,7,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
-	PermissionType       int32               `protobuf:"varint,8,opt,name=permissionType,proto3" json:"permissionType,omitempty"` // 权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限
-	CreateUserId         string              `protobuf:"bytes,9,opt,name=createUserId,proto3" json:"createUserId,omitempty"`      //创建者id
-	CreateOrgId          string              `protobuf:"bytes,10,opt,name=createOrgId,proto3" json:"createOrgId,omitempty"`       //创建者组织id
-	ShareCount           int32               `protobuf:"varint,11,opt,name=shareCount,proto3" json:"shareCount,omitempty"`        //共享数量
-	RagName              string              `protobuf:"bytes,12,opt,name=ragName,proto3" json:"ragName,omitempty"`               //传给rag的知识库名称
-	GraphSwitch          int32               `protobuf:"varint,13,opt,name=graphSwitch,proto3" json:"graphSwitch,omitempty"`      //知识图谱开关
+	PermissionType       int32               `protobuf:"varint,8,opt,name=permissionType,proto3" json:"permissionType,omitempty"` // 权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限 [EN] Permission type: 0: View permission; 10: Edit permission; 20: Authorization permission. The reason for discontinuous values ​​prevents intermediate permissions in the future. The current logic is Authorization permission > Edit permission > View permission.
+	CreateUserId         string              `protobuf:"bytes,9,opt,name=createUserId,proto3" json:"createUserId,omitempty"`      //创建者id [EN] creator id
+	CreateOrgId          string              `protobuf:"bytes,10,opt,name=createOrgId,proto3" json:"createOrgId,omitempty"`       //创建者组织id [EN] Creator organization id
+	ShareCount           int32               `protobuf:"varint,11,opt,name=shareCount,proto3" json:"shareCount,omitempty"`        //共享数量 [EN] Number of shares
+	RagName              string              `protobuf:"bytes,12,opt,name=ragName,proto3" json:"ragName,omitempty"`               //传给rag的知识库名称 [EN] The name of the knowledge base passed to rag
+	GraphSwitch          int32               `protobuf:"varint,13,opt,name=graphSwitch,proto3" json:"graphSwitch,omitempty"`      //知识图谱开关 [EN] Knowledge graph switch
 }
 
 func (x *KnowledgeInfo) Reset() {
@@ -1368,8 +1368,8 @@ type KnowledgeTagInfo struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TagId   string `protobuf:"bytes,1,opt,name=tagId,proto3" json:"tagId,omitempty"`     //知识库标签id
-	TagName string `protobuf:"bytes,2,opt,name=tagName,proto3" json:"tagName,omitempty"` //知识库标签名称
+	TagId   string `protobuf:"bytes,1,opt,name=tagId,proto3" json:"tagId,omitempty"`     //知识库标签id [EN] Knowledge base tag id
+	TagName string `protobuf:"bytes,2,opt,name=tagName,proto3" json:"tagName,omitempty"` //知识库标签名称 [EN] Knowledge base tag name
 }
 
 func (x *KnowledgeTagInfo) Reset() {
@@ -1570,7 +1570,7 @@ type KnowledgeSearchInfo struct {
 	KnowledgeName    string          `protobuf:"bytes,3,opt,name=knowledgeName,proto3" json:"knowledgeName,omitempty"`
 	ChildContentList []*ChildContent `protobuf:"bytes,4,rep,name=childContentList,proto3" json:"childContentList,omitempty"`
 	ChildScore       []float32       `protobuf:"fixed32,5,rep,packed,name=childScore,proto3" json:"childScore,omitempty"`
-	ContentType      string          `protobuf:"bytes,6,opt,name=contentType,proto3" json:"contentType,omitempty"` // graph：知识图谱（文本）, text：文档分段（文本）, community_report：社区报告（markdown）
+	ContentType      string          `protobuf:"bytes,6,opt,name=contentType,proto3" json:"contentType,omitempty"` // graph：知识图谱（文本）, text：文档分段（文本）, community_report：社区报告（markdown） [EN] graph: knowledge graph (text), text: document segmentation (text), community_report: community report (markdown)
 }
 
 func (x *KnowledgeSearchInfo) Reset() {

@@ -9,7 +9,7 @@ import (
 )
 
 func registerTool(apiV1 *gin.RouterGroup) {
-	// 自定义工具
+	// 自定义工具 [EN] Custom tools
 	mid.Sub("tool").Reg(apiV1, "/tool/custom", http.MethodPost, v1.CreateCustomTool, "创建自定义工具")
 	mid.Sub("tool").Reg(apiV1, "/tool/custom", http.MethodGet, v1.GetCustomTool, "获取自定义工具详情")
 	mid.Sub("tool").Reg(apiV1, "/tool/custom", http.MethodDelete, v1.DeleteCustomTool, "删除自定义工具")
@@ -17,12 +17,12 @@ func registerTool(apiV1 *gin.RouterGroup) {
 	mid.Sub("tool").Reg(apiV1, "/tool/custom/list", http.MethodGet, v1.GetCustomToolList, "获取自定义工具列表")
 	mid.Sub("tool").Reg(apiV1, "/tool/custom/schema", http.MethodPost, v1.GetCustomToolActions, "获取可用API列表（根据Schema）")
 
-	// 内置工具
+	// 内置工具 [EN] Built-in tools
 	mid.Sub("tool").Reg(apiV1, "/tool/square", http.MethodGet, v1.GetToolSquareDetail, "获取内置工具详情")
 	mid.Sub("tool").Reg(apiV1, "/tool/square/list", http.MethodGet, v1.GetToolSquareList, "获取内置工具列表")
 	mid.Sub("tool").Reg(apiV1, "/tool/builtin", http.MethodPost, v1.UpdateToolSquareAPIKey, "修改内置工具")
 
-	// 自定义工具与内置工具
+	// 自定义工具与内置工具 [EN] Custom vs. built-in tools
 	mid.Sub("tool").Reg(apiV1, "/tool/select", http.MethodGet, v1.GetToolSelect, "智能体工具下拉列表（自定义与内置）")
 	mid.Sub("tool").Reg(apiV1, "/tool/action/list", http.MethodGet, v1.GetToolActionList, "智能体工具action下拉列表（自定义与内置）")
 	mid.Sub("tool").Reg(apiV1, "/tool/action/detail", http.MethodGet, v1.GetToolActionDetail, "智能体工具action详情（自定义与内置）")
@@ -46,7 +46,7 @@ func registerTool(apiV1 *gin.RouterGroup) {
 	mid.Sub("tool").Reg(apiV1, "/mcp/server/tool", http.MethodDelete, v1.DeleteMCPServerTool, "删除MCP服务工具")
 	mid.Sub("tool").Reg(apiV1, "/mcp/server/tool/openapi", http.MethodPost, v1.CreateMCPServerOpenAPITool, "创建openapi工具")
 
-	// 自定义MCP与MCP Server
+	// 自定义MCP与MCP Server [EN] Custom MCP and MCP Server
 	mid.Sub("tool").Reg(apiV1, "/mcp/select", http.MethodGet, v1.GetMCPSelect, "智能体mcp下拉列表")
 	mid.Sub("tool").Reg(apiV1, "/mcp/action/list", http.MethodGet, v1.GetMCPActionList, "获取MCP Tool列表")
 

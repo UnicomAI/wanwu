@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 @app.route('/callback/v1/model/:<model_id>', methods=['GET'])
 def get_model(model_id):
-    # 根据 model_id 返回不同类型的模型
+    # 根据 model_id 返回不同类型的模型 [EN] Return different types of models based on model_id
     if model_id == "11111":
         data = {
             "modelId": model_id,
