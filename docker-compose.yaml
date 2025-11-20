@@ -8,8 +8,8 @@ services:
     container_name: ${WANWU_MYSQL_HOST}
     networks:
       - ${WANWU_DOCKER_NETWORK}
-    # ports:
-    #   - 3306:3306
+    ports:
+      - 3306:3306
     volumes:
       - wanwu_mysql_data:/var/lib/mysql
       - ./configs/middleware/mysql/initdb.d:/docker-entrypoint-initdb.d
