@@ -91,7 +91,10 @@ export default {
         {name: this.$t('tempSquare.safety_inspection'), key: 'safety_inspection'},
         {name: this.$t('tempSquare.incident_investigation'), key: 'incident_investigation'},
         {name: this.$t('tempSquare.compliance'), key: 'compliance'},
+        {name: this.$t('tempSquare.corrective_actions'), key: 'corrective_actions'},
         {name: this.$t('tempSquare.training'), key: 'training'},
+        {name: this.$t('tempSquare.audit'), key: 'audit'},
+        {name: this.$t('tempSquare.reporting'), key: 'reporting'},
       ]
     };
   },

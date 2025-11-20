@@ -504,6 +504,9 @@ services:
       start_period: 10s
   
   operate-service:
+    depends_on:
+      mysql:
+        condition: service_healthy
     restart: always
     image: ${WANWU_BACKEND_IMAGE}
     container_name: operate-service
@@ -745,6 +748,8 @@ services:
       - 8081:8081
     volumes:
       - ${WANWU_PROJECT_DIR}/nginx/log:/var/log/nginx
+      # Mount translated workflow JavaScript file to replace Chinese text with English
+      - ./project/nginx/workflow-static-overrides/js/index~0.1aa44a47.js:/usr/share/nginx/html/workflow/static/js/index~0.1aa44a47.js:ro
     healthcheck:
       test: ["CMD-SHELL", "timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/8081' || exit 1"]
       interval: 15s

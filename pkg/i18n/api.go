@@ -67,26 +67,29 @@ func ByKey(lang Lang, key string, args []string) string {
 }
 
 func ByCodeOrKey(lang Lang, code err_code.Code, key string, args []string) string {
-	if _i18n != nil {
-		var textCfg *textConfig
-		if key != "" {
-			textCfg = _i18n.Keys[key]
-		} else if code != 0 {
-			if codeKeys, ok := _i18n.CodeKeys[code]; ok {
-				if key != "" {
+	// Defensive nil check to prevent panic
+	if _i18n == nil {
+		return fmt.Sprintf("[i18n not initialized] lang(%v) err_code(%v) text_key(%v) args: %v", lang, code, key, args)
+	}
+	
+	var textCfg *textConfig
+	if key != "" {
+		textCfg = _i18n.Keys[key]
+	} else if code != 0 {
+		if codeKeys, ok := _i18n.CodeKeys[code]; ok {
+			if key != "" {
+				textCfg = codeKeys[key]
+			} else if len(codeKeys) == 1 {
+				for key := range codeKeys {
 					textCfg = codeKeys[key]
-				} else if len(codeKeys) == 1 {
-					for key := range codeKeys {
-						textCfg = codeKeys[key]
-					}
-				} else {
-					textCfg = codeKeys[""]
 				}
+			} else {
+				textCfg = codeKeys[""]
 			}
 		}
-		if textCfg != nil {
-			return textCfg.langMsg(lang, _i18n.DefaultLang, args)
-		}
+	}
+	if textCfg != nil {
+		return textCfg.langMsg(lang, _i18n.DefaultLang, args)
 	}
 	return fmt.Sprintf("[i18n] lang(%v) err_code(%v) text_key(%v) args: %v", lang, code, key, args)
 }

@@ -76,13 +76,13 @@ export default {
       typeRadio: 'all',
       typeList: [
         {name: this.$t('tool.square.all'), key: 'all'},
-        {name: this.$t('tool.square.gov'), key: 'gov'},
-        {name: this.$t('tool.square.industry'), key: 'industry'},
-        {name: this.$t('tool.square.edu'), key: 'edu'},
-        {name: this.$t('tool.square.medical'), key: 'medical'},
-        {name: this.$t('tool.square.data'), key: 'data'},
-        {name: this.$t('tool.square.creator'), key: 'create'},
-        {name: this.$t('tool.square.search'), key: 'search'},
+        {name: this.$t('tool.square.incident_investigation'), key: 'incident_investigation'},
+        {name: this.$t('tool.square.compliance'), key: 'compliance'},
+        {name: this.$t('tool.square.corrective_actions'), key: 'corrective_actions'},
+        {name: this.$t('tool.square.training'), key: 'training'},
+        {name: this.$t('tool.square.audit'), key: 'audit'},
+        {name: this.$t('tool.square.reporting'), key: 'reporting'},
+        {name: this.$t('tool.square.safety_inspection'), key: 'safety_inspection'},
       ]
     };
   },

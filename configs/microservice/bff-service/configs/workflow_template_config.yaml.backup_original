@@ -1,0 +1,517 @@
+workflows:
+  - templateId: "story_picture_gen"
+    category: "create"
+    avatar: ""
+    name: "绘本故事配图生成工具"
+    schemaPath: "story_picture_gen/story_picture_gen.json"
+    desc: "智能生成绘本故事配图的创作工具"
+    author: "中国联通"
+    summary: "工作流先接收作者的故事文本，补充绘本风格与目标读者信息，通过大模型提取关键场景和角色并生成图像描述词，调用 MCP 服务生成场景图像 URL，经文本处理在故事中标记配图位置并关联 URL，最后组合文本与图像生成绘本 PDF，输出绘本内容。"
+    feature: |
+      - 开始：接收作者 “故事文本”（如 “小兔子发现彩色花，蝴蝶飞来…”）。
+      - 补充信息：补充 “绘本风格”（如水彩风）、“目标读者”（3-6 岁）。
+      - 生成图像描述：提取关键场景 / 角色，生成图像描述词（如 “卡通小兔子站在紫色花旁，蝴蝶飞舞”）。
+      - 文生图工具：调用`Text_to_image`，生成场景图像并返回 URL。
+      - 文本处理：在故事中标记配图位置（如`[配图：小兔子与花]`），关联图像 URL。
+      - 文档生成：组合文本与图像，生成绘本 PDF。
+      - 结束：输出绘本内容。
+    scenario: "教育创作、儿童读物制作、故事绘本生成"
+    note: "导入模版后需要设置：大模型节点的模型、MCP节点的MCP服务"
+
+  - templateId: "intelligent_customer_service"
+    category: "industry"
+    avatar: ""
+    name: "智能客服系统"
+    schemaPath: "Intelligent_customer_service/Intelligent_customer_service.json"
+    desc: "多场景智能客服问答解决方案"
+    author: "中国联通"
+    summary: "工作流先接收用户查询输入，经意图识别区分咨询产品、查询订单、投诉建议等意图，分别调用对应知识库或大模型处理，再通过变量聚合合并各分支输出，最终返回统一回复给用户。"
+    feature: |
+      - 开始：接收用户查询输入。
+      - 意图识别：识别用户意图（如咨询产品、查询订单、投诉建议），基于预定义意图列表和示例。
+      - 产品知识库：根据咨询产品意图检索相关产品手册知识库，返回相关信息。
+      - 订单知识库：根据查询订单意图检索相关订单数据库，返回相关信息。
+      - 投诉回复生成：针对投诉建议，生成人性化回复，结合上下文处理复杂情绪。
+      - 产品咨询回复：根据产品知识库信息总结回答用户问题。
+      - 订单查询回复：根据订单知识库信息总结回答用户问题。
+      - 变量聚合：合并各分支输出，确保下游只有一个统一变量引用，避免空值。
+      - 结束：返回最终回复给用户，模式为返回文本或变量。
+    scenario: "电商客服、企业服务、客户支持"
+    note: "导入模版后需要设置：大模型节点的模型、意图识别节点的模型、知识库节点的知识库"
+
+  - templateId: "tourism_attraction_recommend"
+    category: "tourism"
+    avatar: ""
+    name: "文旅景点推荐引擎"
+    schemaPath: "tourism_attraction_recommend/tourism_attraction_recommend.json"
+    desc: "个性化文旅景点智能推荐系统"
+    author: "中国联通"
+    summary: "工作流先接收用户的景点推荐需求，由大模型提取需求参数，分别调用知识库获取景点基本信息和 MCP 工具获取实时天气，再通过大模型生成个性化推荐理由，最后返回包含景点、理由和天气的推荐结果。"
+    feature: |
+      - 开始：接收用户推荐需求（如 “推荐适合家庭的景点”）。
+      - 提取需求参数：提取用户需求中的参数，作为下游节点输入。
+      - 检索景点信息：检索文旅知识库，返回景点基本信息。
+      - 获取实时天气：调用天气 MCP 工具，获取实时天气信息。
+      - 生成推荐理由：根据用户问题生成个性化推荐理由。
+      - 结束：返回推荐结果（文本模式），包含景点、理由和天气。
+    scenario: "旅游规划、景点推荐、出行服务"
+    note: "导入模版后需要设置：大模型节点的模型、知识库节点的知识库、MCP节点的MCP服务"
+
+  - templateId: "data_report_gen"
+    category: "data"
+    avatar: ""
+    name: "数据报告生成"
+    schemaPath: "data_report_gen/data_report_gen.json"
+    desc: "自动化数据报告生成与分析工具"
+    author: "中国联通"
+    summary: "工作流先接收数据源，解析文件内容后，执行数据清洗与统计计算得到结构化数据，通过大模型分析数据生成报告文本，再将报告生成为 PDF 文档，最终输出数据报告。"
+    feature: |
+      - 开始：输入数据源（如文件）。
+      - 文档解析：解析输入文件的内容，供下游分析。
+      - 数据处理：执行自定义数据清洗、统计计算，返回结构化数据。
+      - 分析生成：分析数据，生成报告文本（如趋势分析、见解）。
+      - 生成文档：将报告生成为 PDF 文档。
+      - 结束：输出数据报告。
+    scenario: "数据分析、商业报告、统计汇总"
+    note: "导入模版后需要设置：大模型节点的模型"
+
+  - templateId: "policy_assistant"
+    category: "gov"
+    avatar: ""
+    name: "政策查询与解读助手"
+    schemaPath: "policy_assistant/policy_assistant.json"
+    desc: "政策文件智能查询与通俗化解读工具"
+    author: "中国联通"
+    summary: "工作流先接收用户政策查询，通过大模型提取关键参数，由选择器判断 “目标地区” 和 “查询关键词” 是否齐全，不全则提示用户补充输入，再汇总地区信息，生成包含地区的知识库查询，检索匹配的政策原文片段后，经大模型用通俗语言解读，最后输出解读结果。"
+    feature: |
+      - 开始：接收用户初始查询（如 “居住证办理政策”）。
+      - 提取关键参数：提取用户查询中的关键信息，供后续节点使用。
+      - 判断信息齐全：检查 “目标地区” 和 “查询关键词” 是否完整。
+      - 补充地区信息：当缺少目标地区时，提示用户补充（如 “请告知所在城市 / 区县”）。
+      - 汇总地区信息：整合目标地区信息，确保有效。
+      - 生成查询语句：拼接用户问题与地区信息，形成知识库查询。
+      - 检索政策文档：从本地政策库中查找匹配的原文片段（如《居住证管理办法》）。
+      - 解读政策内容：结合知识库信息，用通俗语言解读（如办理材料及时限）。
+      - 结束：以文本形式输出最终解读内容。
+    scenario: "政务服务、政策咨询、法规解读"
+    note: "导入模版后需要设置：大模型节点的模型、知识库节点的知识库"
+
+  - templateId: "edu_tutoring_assistant"
+    category: "edu"
+    avatar: ""
+    name: "教育智能辅导助手"
+    schemaPath: "edu_tutoring_assistant/edu_tutoring_assistant.json"
+    desc: "多学科智能学习辅导系统"
+    author: "中国联通"
+    summary: "工作流先接收学生的问题文本或上传的文档，识别其意图为概念解释、习题解答或文档总结，再分别处理：概念解释需检索知识库后经大模型生成答案，习题解答直接通过大模型生成解题步骤，文档总结先解析文档提取文本再由大模型生成要点，最后返回答案或总结。"
+    feature: |
+      - 开始：接收学生 “问题文本” 或上传的文档。
+      - 识别意图：识别意图（概念解释、习题解答、文档总结）。
+      - 检索知识库：针对概念解释，检索教育知识库（如教材知识点）。
+      - 生成解题步骤：针对习题解答，使用大模型生成解题步骤。
+      - 解析文档：解析上传的文档（如 PDF），提取文本内容。
+      - 生成文档要点：对解析后的文本进行总结，生成要点。
+      - 生成概念答案：基于自身训练知识回答用户概念解释问题。
+      - 结束：返回答案或总结（文本模式）。
+    scenario: "在线教育、课后辅导、学习支持"
+    note: "导入模版后需要设置：大模型节点的模型、意图识别节点的模型、知识库节点的知识库"
+
+  - templateId: "content_creation"
+    category: "create"
+    avatar: ""
+    name: "多语言内容创作助手"
+    schemaPath: "content_creation/content_creation.json"
+    desc: "智能化多语言内容创作平台"
+    author: "中国联通"
+    summary: "工作流先接收创作主题或草稿，通过大模型生成内容大纲，再将大纲拆分为段落数组，循环处理每个段落并由大模型细化，最后返回完整文章。"
+    feature: |
+      - 开始：接收创作主题或草稿（文本）。
+      - 生成大纲：生成内容大纲（JSON 格式）。
+      - 拆分段落：将大纲拆分为段落数组。
+      - 循环处理：循环处理每个段落，调用细化段落节点。
+      - 细化段落：细化每个段落的内容。
+      - 结束：返回完整文章（文本模式）。
+    scenario: "内容创作、文案写作、多语言编辑"
+    note: "导入模版后需要设置：大模型节点的模型"
+
+  - templateId: "smart_contract_review"
+    category: "industry"
+    avatar: ""
+    name: "智能合同审核系统"
+    schemaPath: "smart_contract_review/smart_contract_review.json"
+    desc: "专业化合同合规与风险智能审核工具"
+    author: "中国联通"
+    summary: "工作流先接收用户上传的合同文档，解析提取文本内容、条款段落及关键信息，处理文本后识别审核需求类型，若为合规性检查则检索企业合规库并由大模型总结结果，若为风险条款识别则由大模型分析风险并生成建议，最终提供审核意见给用户。"
+    feature: |
+      - 开始：接收用户上传的合同文档（PDF/Word）。
+      - 文档解析：提取合同文本内容，拆分条款段落，标记关键信息（如金额、时效）。
+      - 文本处理：合并用户问题和用户材料内容，作为知识库检索 query。
+      - 意图识别：识别审核需求类型（合规性检查 / 风险条款识别）。
+      - 合规检索：检索企业合规库（如行业法规、内部标准），匹配条款合规性。
+      - 风险分析：分析条款潜在风险（如歧义表述、不利责任），生成修改建议。
+      - 合规总结：分析总结企业合规库查询结果。
+      - 结束：提供审核意见给用户。
+    scenario: "企业法务、合同审核、合规检查"
+    note: "导入模版后需要设置：大模型节点的模型、意图识别节点的模型、知识库节点的知识库"
+
+  - templateId: "essay_correct"
+    category: "edu"
+    avatar: ""
+    name: "K12作文批改"
+    schemaPath: "essay_correct/essay_correct.json"
+    desc: "智能化作文批改与写作指导工具"
+    author: "中国联通"
+    summary: "工作流先接收学生作文文本，通过大模型生成点评、评分与改进建议，经文本处理将点评与原文拼接为批改报告，最后返回报告文本。"
+    feature: |
+      - 开始：接收学生作文文本。
+      - 生成点评评分：生成点评、评分与改进建议。
+      - 拼接报告：将点评与原文拼接为一份批改报告。
+      - 结束：返回报告文本。
+    scenario: "语文教学、写作训练、作文评估"
+    note: "导入模版后需要设置：大模型节点的模型"
+
+  - templateId: "xiaohongshu_title"
+    category: "create"
+    avatar: ""
+    name: "小红书爆款标题"
+    schemaPath: "xiaohongshu_title/xiaohongshu_title.json"
+    desc: "小红书平台专属标题创意生成器"
+    author: "中国联通"
+    summary: "工作流先接收产品关键词，通过大模型生成 10 条带 emoji 的小红书风格标题，经文本处理拼接为有序列表字符串，最后返回列表文本。"
+    feature: |
+      - 开始：接收产品关键词。
+      - 生成标题：生成 10 条带 emoji 的小红书风格标题。
+      - 拼接列表：拼接为有序列表字符串。
+      - 结束：返回列表文本。
+    scenario: "社交媒体营销、内容创作、电商推广"
+    note: "导入模版后需要设置：大模型节点的模型"
+
+  - templateId: "exa_research"
+    category: "search"
+    avatar: ""
+    name: "exa搜索助手"
+    schemaPath: "exa_research/exa_research.json"
+    desc: "学术研究智能搜索与论文生成工具"
+    author: "中国联通"
+    summary: "工作流先接收研究主题，调用 exa-Search 返回权威资料摘要，通过大模型整合成带引用的小论文，最后返回论文文本。"
+    feature: |
+      - 开始：接收研究主题。
+      - 获取资料摘要：调用 exa-Search 返回权威资料摘要。
+      - 整合生成论文：整合写成带引用的小论文。
+      - 结束：返回论文文本。
+    scenario: "学术研究、论文写作、资料收集"
+    note: "导入模版后需要设置：大模型节点的模型、MCP节点的MCP服务"
+
+  - templateId: "github_repo_overview"
+    category: "search"
+    avatar: ""
+    name: "GitHub仓库速览"
+    schemaPath: "github_repo_overview/github_repo_overview.json"
+    desc: "GitHub仓库信息快速查询与分析工具"
+    author: "中国联通"
+    summary: "工作流先接收仓库名，调用 GitHub-MCP 获取 readme 与 star 数，经文本处理截取 readme 前 1000 字符并拼接 star，最后返回速览文本。"
+    feature: |
+      - 开始：接收仓库名。
+      - 获取仓库信息：调用 GitHub-MCP 获取 仓库信息。
+      - 处理速览内容：从json中提取仓库信息。
+      - 结束：返回速览文本。
+    scenario: "开发调研、项目评估、技术选型"
+    note: "导入模版后需要设置：MCP节点的MCP服务"
+
+  - templateId: "poster_text2img"
+    category: "create"
+    avatar: ""
+    name: "文生图海报"
+    schemaPath: "poster_text2img/poster_text2img.json"
+    desc: "智能化文生图海报创意设计工具"
+    author: "中国联通"
+    summary: "工作流先接收活动主题与口号，通过大模型生成英文高阶 StableDiffusion 提示词，调用豆包文生图MCP生成海报 URL，最后返回 URL。"
+    feature: |
+      - 开始：接收活动主题 + 口号。
+      - 生成提示词：生成英文高阶 StableDiffusion 提示词。
+      - 生成海报：调用豆包文生图MCP工具生成海报URL
+      - 结束：返回 URL。
+    scenario: "活动宣传、平面设计、创意制作"
+    note: "导入模版后需要设置：大模型节点的模型、MCP节点的MCP服务"
+
+  - templateId: "mindmap_kw"
+    category: "create"
+    avatar: ""
+    name: "关键词思维导图"
+    schemaPath: "mindmap_kw/mindmap_kw.json"
+    desc: "智能化思维导图生成与可视化工具"
+    author: "中国联通"
+    summary: "工作流先接收主题关键词，通过大模型生成层级化 JSON 大纲，调用 antvis-MCP 生成思维导图 URL，最后返回 URL。"
+    feature: |
+      - 开始：接收主题关键词。
+      - 生成 JSON 大纲：生成层级化 JSON 大纲。
+      - 生成思维导图：调用 antvis-MCP 生成思维导图 URL。
+      - 结束：返回 URL。
+    scenario: "思维整理、知识管理、项目规划"
+    note: "导入模版后需要设置：大模型节点的模型、MCP节点的MCP服务"
+
+  - templateId: "city_weather_compare"
+    category: "tourism"
+    avatar: ""
+    name: "城市天气对比"
+    schemaPath: "city_weather_compare/city_weather_compare.json"
+    desc: "多城市天气数据对比分析工具"
+    author: "中国联通"
+    summary: "工作流先接收两个城市名，分别调用心知天气当前天气 API 获取天气数据，通过大模型对比温度、湿度并生成出行建议，最后返回建议文本。"
+    feature: |
+      - 开始：接收两个城市名。
+      - 获取天气 1：调用心知天气当前天气 API（城市 1）。
+      - 获取天气 2：调用心知天气当前天气 API（城市 2）。
+      - 生成建议：对比温度 / 湿度并生成出行建议。
+      - 结束：返回建议文本。
+    scenario: "出行规划、差旅安排、活动策划"
+    note: "导入模版后需要设置：大模型节点的模型、心知天气api key"
+
+  - templateId: "pdf_paper_summary"
+    category: "edu"
+    avatar: ""
+    name: "PDF论文摘要"
+    schemaPath: "pdf_paper_summary/pdf_paper_summary.json"
+    desc: "学术论文智能摘要生成工具"
+    author: "中国联通"
+    summary: "工作流先接收论文 PDF，提取正文文本，通过大模型生成三段式中文摘要，最后返回摘要文本。"
+    feature: |
+      - 开始：接收论文 PDF。
+      - 提取论文文本：提取正文文本。
+      - 生成中文摘要：生成三段式中文摘要。
+      - 结束：返回摘要文本。
+    scenario: "学术研究、文献阅读、知识管理"
+    note: "导入模版后需要设置：大模型节点的模型"
+
+  - templateId: "earnings_chart"
+    category: "industry"
+    avatar: ""
+    name: "企业财报图表"
+    schemaPath: "earnings_chart/earnings_chart.json"
+    desc: "企业财报数据可视化分析工具"
+    author: "中国联通"
+    summary: "工作流先接收财报 PDF，通过 Python 提取营收与利润数据，调用 antvis-MCP 生成柱状图 URL，最后返回图表 URL。"
+    feature: |
+      - 开始：接收财报 PDF。
+      - 提取财务数据：Python 提取营收与利润数据。
+      - 生成柱状图：调用 antvis-MCP 生成柱状图 URL。
+      - 结束：返回图表 URL。
+    scenario: "财务分析、投资研究、企业评估"
+    note: "导入模版后需要设置：MCP节点的MCP服务"
+
+  - templateId: "ip_location"
+    category: "data"
+    avatar: ""
+    name: "IP地理位置查询"
+    schemaPath: "ip_location/ip_location.json"
+    desc: "IP地址精准定位查询服务"
+    author: "中国联通"
+    summary: "工作流先接收 IP 地址，调用高德 IP 定位 API，经json反序列化，拼接 “省 - 市 - 运营商” 字符串，最后返回该字符串。"
+    feature: |
+      - 开始：接收 IP 地址。
+      - 获取定位信息：调用高德 IP 定位 API。
+      - 输出转换：把输出string转换成json对象
+      - 拼接位置信息：拼接 “省 - 市 - 运营商” 字符串。
+      - 结束：返回字符串。
+    scenario: "网络服务、位置服务、数据分析"
+    note: "导入模版后需要设置：高德api key"
+
+  - templateId: "gaokao_recommend"
+    category: "edu"
+    avatar: ""
+    name: "高考志愿推荐"
+    schemaPath: "gaokao_recommend/gaokao_recommend.json"
+    desc: "高考志愿填报智能推荐系统"
+    author: "中国联通"
+    summary: "工作流先接收分数、省份与兴趣，检索高校往年分数线，通过大模型生成冲稳保推荐清单，最后返回清单。"
+    feature: |
+      - 开始：接收分数 + 省份 + 兴趣。
+      - 检索分数线：检索高校往年分数线。
+      - 生成推荐清单：生成冲稳保推荐清单。
+      - 结束：返回清单。
+    scenario: "高考咨询、升学规划、教育服务"
+    note: "导入模版后需要设置：大模型节点的模型、知识库节点的知识库"
+
+  - templateId: "sql_to_nl"
+    category: "data"
+    avatar: ""
+    name: "SQL转自然语言"
+    schemaPath: "sql_to_nl/sql_to_nl.json"
+    desc: "SQL语句智能解释与转译工具"
+    author: "中国联通"
+    summary: "工作流先接收 SQL 语句，通过大模型生成中文解释，拼接 “SQL - 解释” 对照，最后返回文本。"
+    feature: |
+      - 开始：接收 SQL 语句。
+      - 生成中文解释：生成中文解释。
+      - 拼接对照文本：拼接 “SQL - 解释” 对照。
+      - 结束：返回文本。
+    scenario: "数据分析、数据库管理、技术培训"
+    note: "导入模版后需要设置：大模型节点的模型"
+
+  - templateId: "scenic_route_plan"
+    category: "tourism"
+    avatar: ""
+    name: "景区线路规划"
+    schemaPath: "scenic_route_plan/scenic_route_plan.json"
+    desc: "智能景区旅游路线规划工具"
+    author: "中国联通"
+    summary: "工作流先接收起点、终点与交通方式，调用高德路径规划 MCP，通过大模型生成带景点提示的路线文案，最后返回文案。"
+    feature: |
+      - 调用高德路径规划服务
+      - 生成带景点提示的路线文案
+      - 支持多种交通方式
+      - 提供实用出行建议
+      - 提升旅游体验
+    scenario: "旅游规划、景区导航、出行服务"
+    note: "导入模版后需要设置：大模型节点的模型、MCP节点的MCP服务"
+
+  - templateId: "json_to_csv"
+    category: "data"
+    avatar: ""
+    name: "JSON转CSV"
+    schemaPath: "json_to_csv/json_to_csv.json"
+    desc: "数据格式快速转换工具"
+    author: "中国联通"
+    summary: "工作流先接收 JSON 数组文本，通过 Python 转为 CSV 格式字符串，添加表头说明，最后返回 CSV 文本。"
+    feature: |
+      - 开始：接收 JSON 数组文本。
+      - 转换格式：Python 转为 CSV 格式字符串。
+      - 添加表头：添加表头说明。
+      - 结束：返回 CSV 文本。
+    scenario: "数据处理、格式转换、数据导出"
+    note: "无需额外设置"
+
+  - templateId: "museum_guide"
+    category: "tourism"
+    avatar: ""
+    name: "博物馆讲解词"
+    schemaPath: "museum_guide/museum_guide.json"
+    desc: "文物知识智能讲解词生成工具"
+    author: "中国联通"
+    summary: "工作流先接收文物名称，检索博物馆资料库，通过大模型生成 2 分钟讲解稿，最后返回讲解稿。"
+    feature: |
+      - 开始：接收文物名称。
+      - 检索文物资料：检索博物馆资料库。
+      - 生成讲解稿：生成 2 分钟讲解稿。
+      - 结束：返回讲解稿。
+    scenario: "博物馆导览、文化传播、教育服务"
+    note: "导入模版后需要设置：大模型节点的模型、知识库节点的知识库"
+
+  - templateId: "log_anomaly"
+    category: "data"
+    avatar: ""
+    name: "日志异常检测"
+    schemaPath: "log_anomaly/log_anomaly.json"
+    desc: "系统日志智能分析与异常检测工具"
+    author: "中国联通"
+    summary: "工作流先接收日志文本块，通过 Python 统计 ERROR 出现频率，通过大模型生成异常摘要与可能原因，最后返回摘要。"
+    feature: |
+      - Python统计ERROR频率
+      - 智能分析异常原因
+      - 生成详细异常摘要
+      - 提供处理建议
+      - 提升系统运维效率
+    scenario: "系统运维、故障排查、性能监控"
+    note: "导入模版后需要设置：大模型节点的模型"
+
+  - templateId: "meeting_minutes"
+    category: "industry"
+    avatar: ""
+    name: "智能会议纪要"
+    schemaPath: "meeting_minutes/meeting_minutes.json"
+    desc: "会议内容智能整理与纪要生成工具"
+    author: "中国联通"
+    summary: "工作流先接收会议纪要文件，提取纯文本，通过大模型生成 “决议 - 待办” 结构纪要，最后返回纪要。"
+    feature: |
+      - 自动提取会议文本内容
+      - 生成结构化会议纪要
+      - 清晰标注决议和待办事项
+      - 提升会议效率
+      - 支持多种会议类型
+    scenario: "办公自动化、会议管理、项目管理"
+    note: "导入模版后需要设置：大模型节点的模型"
+
+  - templateId: "policy_summary"
+    category: "gov"
+    avatar: ""
+    name: "政策文件智能摘要"
+    schemaPath: "policy_summary/policy_summary.json"
+    desc: "政策文件智能摘要生成工具"
+    author: "中国联通"
+    summary: "工作流先接收用户上传的政策文件（PDF/Word），提取正文文本，通过大模型生成 500 字以内通俗摘要，最后返回摘要文本。"
+    feature: |
+      - 自动提取政策正文内容
+      - 生成500字以内通俗摘要
+      - 保持政策核心信息
+      - 提升政策理解效率
+      - 支持多种政策类型
+    scenario: "政策解读、政务公开、信息服务"
+    note: "导入模版后需要设置：大模型节点的模型"
+
+  - templateId: "citizen_intent_classify"
+    category: "gov"
+    avatar: ""
+    name: "市民诉求智能分类"
+    schemaPath: "citizen_intent_classify/citizen_intent_classify.json"
+    desc: "市民诉求智能识别与分类工具"
+    author: "中国联通"
+    summary: "工作流先接收用户输入文本，识别 “咨询 / 投诉 / 求助 / 建议” 四类意图，在原文前加类别标签，最后返回带标签文本。"
+    feature: |
+      - 识别四类诉求意图（咨询/投诉/求助/建议）
+      - 自动添加分类标签
+      - 提升诉求处理效率
+      - 支持多种表达方式
+      - 返回标准化分类结果
+    scenario: "政务服务、市民热线、诉求处理"
+    note: "导入模版后需要设置：意图识别节点的模型"
+
+  - templateId: "policy_compliance_check"
+    category: "gov"
+    avatar: ""
+    name: "政策文件合规审查"
+    schemaPath: "policy_compliance_check/policy_compliance_check.json"
+    desc: "政策文件合规性智能审查系统"
+    author: "中国联通"
+    summary: "工作流先接收待审查政策文件，提取正文文本，检索上位法规与合规要点，通过大模型指出潜在冲突并给出修改建议，最后返回审查报告。"
+    feature: |
+      - 检索上位法规和合规要点
+      - 识别潜在政策冲突
+      - 提供专业修改建议
+      - 生成详细审查报告
+      - 提升政策制定质量
+    scenario: "政策制定、合规审查、法规管理"
+    note: "导入模版后需要设置：大模型节点的模型、知识库节点的知识库"
+
+  - templateId: "hotnews_analyzer"
+    category: "search"
+    avatar: ""
+    name: "实时热搜分析器"
+    schemaPath: "hotnews_analyzer/hotnews_analyzer.json"
+    desc: "多平台热搜数据智能分析工具"
+    author: "中国联通"
+    summary: "工作流先接收用户关注的平台列表，通过多个MCP服务分别获取36kr、抖音、今日头条的实时热搜榜单，由大模型基于热搜数据生成行业趋势摘要及情感洞察，最终返回趋势报告，支持文本或JSON格式。"
+    feature: |
+      - 接收平台列表：接收用户输入关注平台列表（如36kr、抖音、今日头条）。
+      - 36kr热搜获取：调用36kr社媒服务，获取实时热搜榜单。
+      - 抖音热搜获取：调用抖音社媒服务，获取实时热搜榜单。
+      - 头条热搜获取：调用今日头条社媒服务，获取实时热搜榜单。
+      - 生成趋势洞察：基于热搜数据生成行业趋势摘要及情感洞察。
+      - 返回趋势报告：返回趋势报告，支持文本或JSON格式。
+    scenario: "舆情监测、市场分析、趋势预测"
+    note: "导入模版后需要设置：大模型节点的模型、MCP节点的MCP服务"
+
+  - templateId: "map_poi_search"
+    category: "search"
+    avatar: ""
+    name: "地图POI搜索助手"
+    schemaPath: "map_poi_search/map_poi_search.json"
+    desc: "智能地图POI搜索与推荐系统"
+    author: "中国联通"
+    summary: "工作流先接收用户输入的关键词及城市，调用 Maps 文本搜索 MCP 获取 POI 列表，由大模型生成推荐语、距离排序及营业时间提醒，最后返回结构化推荐列表。"
+    feature: |
+      - 开始：接收用户输入关键词（如 “星巴克”）及城市。
+      - 搜索 POI：调用高德地图关键词搜索，返回 POI 列表。
+      - 生成推荐：基于 POI 信息生成推荐语、距离排序及营业时间提醒。
+      - 结束：返回结构化推荐列表，支持卡片渲染。
+    scenario: "位置服务、出行导航、商业推荐"
+    note: "导入模版后需要设置：大模型节点的模型、MCP节点的MCP服务"

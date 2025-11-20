@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  # Override nginx to mount local frontend for hot-reload
+  nginx:
+    volumes:
+      - ./web/dist:/usr/share/nginx/html/aibase:ro
+      - ${WANWU_PROJECT_DIR}/nginx/log:/var/log/nginx
+    # Add a label to indicate this is dev mode
+    labels:
+      - "dev.mode=frontend-hotreload"
