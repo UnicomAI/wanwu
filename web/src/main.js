@@ -34,8 +34,9 @@ Vue.prototype.$copy = function copy(text){
 
 Vue.config.productionTip = false
 
-// Force English locale
-if (!localStorage.getItem('locale')) {
+// Force English locale - override Chinese if set
+const currentLocale = localStorage.getItem('locale')
+if (!currentLocale || currentLocale === 'zh') {
   localStorage.setItem('locale', 'en')
 }
 

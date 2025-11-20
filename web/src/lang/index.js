@@ -20,8 +20,14 @@ const messages = {
         ...enLocale
     },
 }
+// Force English as default - initialize localStorage if not set or if set to Chinese
+const savedLocale = localStorage.getItem('locale')
+if (!savedLocale || savedLocale === 'zh') {
+    localStorage.setItem('locale', 'en')
+}
+
 const i18n = new VueI18n({
-    locale: localStorage.getItem('locale') || 'en', // Default to English, language type stored in localStorage
+    locale: 'en', // Always default to English
     messages
 })
 

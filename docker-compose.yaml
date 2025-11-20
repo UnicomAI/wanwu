@@ -13,18 +13,28 @@ services:
     volumes:
       - wanwu_mysql_data:/var/lib/mysql
       - ./configs/middleware/mysql/initdb.d:/docker-entrypoint-initdb.d
+      - ./configs/middleware/mysql/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
     environment:
       MYSQL_ROOT_PASSWORD: ${WANWU_MYSQL_PASSWORD}
       TZ: Asia/Shanghai
     command:
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_bin
+      --max-connections=50
+      --innodb-buffer-pool-size=256M
+      --skip-name-resolve
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -u root -p$$MYSQL_ROOT_PASSWORD | grep 'mysqld is alive'"]
-      interval: 15s
-      timeout: 5s
-      retries: 99
-      start_period: 10s
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
   
   mysql-setup:
     depends_on:
