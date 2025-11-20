@@ -10,13 +10,13 @@ import (
 )
 
 var sensitiveTypeMapping = map[string]string{
-	"涉政":   "Political",
-	"辱骂":   "Revile",
-	"涉黄":   "Pornography",
-	"暴恐":   "ViolentTerror",
-	"违禁":   "Illegal",
-	"信息安全": "InformationSecurity",
-	"其他":   "Other",
+	"Political":         "Political",
+	"Revile":            "Revile",
+	"Pornography":       "Pornography",
+	"ViolentTerror":     "ViolentTerror",
+	"Illegal":           "Illegal",
+	"InformationSecurity": "InformationSecurity",
+	"Other":             "Other",
 }
 
 type SensitiveRawData struct {

@@ -29,13 +29,13 @@ type ModelInfo struct {
 	UserId         string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId          string `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	ModelId        string `protobuf:"bytes,3,opt,name=modelId,proto3" json:"modelId,omitempty"`
-	Provider       string `protobuf:"bytes,4,opt,name=provider,proto3" json:"provider,omitempty"`           // 模型供应商 [EN] model supplier
-	ModelType      string `protobuf:"bytes,5,opt,name=modelType,proto3" json:"modelType,omitempty"`         // 模型类型 [EN] Model type
-	Model          string `protobuf:"bytes,6,opt,name=model,proto3" json:"model,omitempty"`                 // 模型名称 [EN] Model name
-	DisplayName    string `protobuf:"bytes,7,opt,name=displayName,proto3" json:"displayName,omitempty"`     // 模型显示名称 [EN] Model display name
-	ModelIconPath  string `protobuf:"bytes,8,opt,name=modelIconPath,proto3" json:"modelIconPath,omitempty"` // 模型图标路径 [EN] Model icon path
-	PublishDate    string `protobuf:"bytes,9,opt,name=publishDate,proto3" json:"publishDate,omitempty"`     // 模型发布时间 [EN] Model release time
-	IsActive       bool   `protobuf:"varint,10,opt,name=isActive,proto3" json:"isActive,omitempty"`         // 启用状态（true: 启用，false: 禁用） [EN] Enabled status (true: enabled, false: disabled)
+	Provider       string `protobuf:"bytes,4,opt,name=provider,proto3" json:"provider,omitempty"`           // model supplier
+	ModelType      string `protobuf:"bytes,5,opt,name=modelType,proto3" json:"modelType,omitempty"`         // Model type
+	Model          string `protobuf:"bytes,6,opt,name=model,proto3" json:"model,omitempty"`                 // Model name
+	DisplayName    string `protobuf:"bytes,7,opt,name=displayName,proto3" json:"displayName,omitempty"`     // Model display name
+	ModelIconPath  string `protobuf:"bytes,8,opt,name=modelIconPath,proto3" json:"modelIconPath,omitempty"` // Model icon path
+	PublishDate    string `protobuf:"bytes,9,opt,name=publishDate,proto3" json:"publishDate,omitempty"`     // Model release time
+	IsActive       bool   `protobuf:"varint,10,opt,name=isActive,proto3" json:"isActive,omitempty"`         // Enabled status (true: enabled, false: disabled)
 	ProviderConfig string `protobuf:"bytes,11,opt,name=providerConfig,proto3" json:"providerConfig,omitempty"`
 	CreatedAt      int64  `protobuf:"varint,12,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
 	UpdatedAt      int64  `protobuf:"varint,13,opt,name=updatedAt,proto3" json:"updatedAt,omitempty"`
@@ -358,12 +358,12 @@ type ListModelsReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ModelType   string `protobuf:"bytes,1,opt,name=modelType,proto3" json:"modelType,omitempty"` // 模型类型 [EN] Model type
-	Provider    string `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"`   // 模型供应商 [EN] model supplier
-	IsActive    bool   `protobuf:"varint,3,opt,name=isActive,proto3" json:"isActive,omitempty"`  // 启用状态（true: 启用，false: 禁用） [EN] Enabled status (true: enabled, false: disabled)
+	ModelType   string `protobuf:"bytes,1,opt,name=modelType,proto3" json:"modelType,omitempty"` // Model type
+	Provider    string `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"`   // model supplier
+	IsActive    bool   `protobuf:"varint,3,opt,name=isActive,proto3" json:"isActive,omitempty"`  // Enabled status (true: enabled, false: disabled)
 	UserId      string `protobuf:"bytes,4,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId       string `protobuf:"bytes,5,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	DisplayName string `protobuf:"bytes,6,opt,name=displayName,proto3" json:"displayName,omitempty"` // 模型显示名称 [EN] Model display name
+	DisplayName string `protobuf:"bytes,6,opt,name=displayName,proto3" json:"displayName,omitempty"` // Model display name
 }
 
 func (x *ListModelsReq) Reset() {
@@ -446,7 +446,7 @@ type ModelStatusReq struct {
 	unknownFields protoimpl.UnknownFields
 
 	ModelId  string `protobuf:"bytes,1,opt,name=modelId,proto3" json:"modelId,omitempty"`
-	IsActive bool   `protobuf:"varint,2,opt,name=isActive,proto3" json:"isActive,omitempty"` // 启用状态（true: 启用，false: 禁用） [EN] Enabled status (true: enabled, false: disabled)
+	IsActive bool   `protobuf:"varint,2,opt,name=isActive,proto3" json:"isActive,omitempty"` // Enabled status (true: enabled, false: disabled)
 	UserId   string `protobuf:"bytes,3,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId    string `protobuf:"bytes,4,opt,name=orgId,proto3" json:"orgId,omitempty"`
 }
@@ -644,7 +644,7 @@ type ListTypeModelsReq struct {
 
 	UserId    string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId     string `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	ModelType string `protobuf:"bytes,3,opt,name=modelType,proto3" json:"modelType,omitempty"` // 模型类型 [EN] Model type
+	ModelType string `protobuf:"bytes,3,opt,name=modelType,proto3" json:"modelType,omitempty"` // Model type
 }
 
 func (x *ListTypeModelsReq) Reset() {

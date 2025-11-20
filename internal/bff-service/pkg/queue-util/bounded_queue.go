@@ -12,7 +12,7 @@ type BoundedQueue struct {
 // NewBoundedQueue creates a bounded queue, the capacity must be a positive integer
 func NewBoundedQueue(cap int) *BoundedQueue {
 	if cap <= 0 {
-		panic("队列容量必须为正整数")
+		panic("Queue capacity must be a positive integer")
 	}
 	return &BoundedQueue{
 		items: make([]string, cap),

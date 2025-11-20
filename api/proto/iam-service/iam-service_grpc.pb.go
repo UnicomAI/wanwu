@@ -73,33 +73,33 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type IAMServiceClient interface {
-	// 获取用户列表（用于下拉选择，不在组织中的用户） [EN] Get a list of users (for drop-down selection, users not in the organization)
+	// Get a list of users (for drop-down selection, users not in the organization)
 	GetUserSelectNotInOrg(ctx context.Context, in *GetUserSelectNotInOrgReq, opts ...grpc.CallOption) (*Select, error)
-	// 获取用户列表 by userIDs [EN] Get user list by userIDs
+	// Get user list by userIDs
 	GetUserSelectByUserIDs(ctx context.Context, in *GetUserSelectByUserIDsReq, opts ...grpc.CallOption) (*Select, error)
-	// 获取用户列表 [EN] Get user list
+	// Get user list
 	GetUserList(ctx context.Context, in *GetUserListReq, opts ...grpc.CallOption) (*GetUserListResp, error)
-	// 获取用户 [EN] Get user
+	// Get user
 	GetUserInfo(ctx context.Context, in *GetUserInfoReq, opts ...grpc.CallOption) (*UserInfo, error)
-	// 创建用户 [EN] Create user
+	// Create user
 	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*IDName, error)
-	// 编辑用户 [EN] Edit user
+	// Edit user
 	UpdateUser(ctx context.Context, in *UpdateUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除用户 [EN] Delete user
+	// Delete user
 	DeleteUser(ctx context.Context, in *DeleteUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 修改用户状态 [EN] Modify user status
+	// Modify user status
 	ChangeUserStatus(ctx context.Context, in *ChangeUserStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 更新用户密码 [EN] Update user password
+	// Update user password
 	UpdateUserPassword(ctx context.Context, in *UpdateUserPasswordReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 重置用户密码 [EN] Reset user password
+	// Reset user password
 	ResetUserPassword(ctx context.Context, in *ResetUserPasswordReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取用户权限 [EN] Get user permissions
+	// Get user permissions
 	GetUserPermission(ctx context.Context, in *GetUserPermissionReq, opts ...grpc.CallOption) (*UserPermission, error)
-	// 修改用户语言 [EN] Modify user language
+	// Modify user language
 	ChangeUserLanguage(ctx context.Context, in *ChangeUserLanguageReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 上传用户头像 [EN] Upload user avatar
+	// Upload user avatar
 	UpdateUserAvatar(ctx context.Context, in *UpdateUserAvatarReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取组织列表（用于下拉选择） [EN] Get list of organizations (for drop-down selection)
+	// Get list of organizations (for drop-down selection)
 	GetOrgSelect(ctx context.Context, in *GetOrgSelectReq, opts ...grpc.CallOption) (*Select, error)
 	// 获取组织列表 [EN] Get list of organizations
 	GetOrgList(ctx context.Context, in *GetOrgListReq, opts ...grpc.CallOption) (*GetOrgListResp, error)
@@ -654,33 +654,33 @@ func (c *iAMServiceClient) GetOauthApp(ctx context.Context, in *GetOauthAppReq, 
 // All implementations must embed UnimplementedIAMServiceServer
 // for forward compatibility.
 type IAMServiceServer interface {
-	// 获取用户列表（用于下拉选择，不在组织中的用户） [EN] Get a list of users (for drop-down selection, users not in the organization)
+	// Get a list of users (for drop-down selection, users not in the organization)
 	GetUserSelectNotInOrg(context.Context, *GetUserSelectNotInOrgReq) (*Select, error)
-	// 获取用户列表 by userIDs [EN] Get user list by userIDs
+	// Get user list by userIDs
 	GetUserSelectByUserIDs(context.Context, *GetUserSelectByUserIDsReq) (*Select, error)
-	// 获取用户列表 [EN] Get user list
+	// Get user list
 	GetUserList(context.Context, *GetUserListReq) (*GetUserListResp, error)
-	// 获取用户 [EN] Get user
+	// Get user
 	GetUserInfo(context.Context, *GetUserInfoReq) (*UserInfo, error)
-	// 创建用户 [EN] Create user
+	// Create user
 	CreateUser(context.Context, *CreateUserReq) (*IDName, error)
-	// 编辑用户 [EN] Edit user
+	// Edit user
 	UpdateUser(context.Context, *UpdateUserReq) (*emptypb.Empty, error)
-	// 删除用户 [EN] Delete user
+	// Delete user
 	DeleteUser(context.Context, *DeleteUserReq) (*emptypb.Empty, error)
-	// 修改用户状态 [EN] Modify user status
+	// Modify user status
 	ChangeUserStatus(context.Context, *ChangeUserStatusReq) (*emptypb.Empty, error)
-	// 更新用户密码 [EN] Update user password
+	// Update user password
 	UpdateUserPassword(context.Context, *UpdateUserPasswordReq) (*emptypb.Empty, error)
-	// 重置用户密码 [EN] Reset user password
+	// Reset user password
 	ResetUserPassword(context.Context, *ResetUserPasswordReq) (*emptypb.Empty, error)
-	// 获取用户权限 [EN] Get user permissions
+	// Get user permissions
 	GetUserPermission(context.Context, *GetUserPermissionReq) (*UserPermission, error)
-	// 修改用户语言 [EN] Modify user language
+	// Modify user language
 	ChangeUserLanguage(context.Context, *ChangeUserLanguageReq) (*emptypb.Empty, error)
-	// 上传用户头像 [EN] Upload user avatar
+	// Upload user avatar
 	UpdateUserAvatar(context.Context, *UpdateUserAvatarReq) (*emptypb.Empty, error)
-	// 获取组织列表（用于下拉选择） [EN] Get list of organizations (for drop-down selection)
+	// Get list of organizations (for drop-down selection)
 	GetOrgSelect(context.Context, *GetOrgSelectReq) (*Select, error)
 	// 获取组织列表 [EN] Get list of organizations
 	GetOrgList(context.Context, *GetOrgListReq) (*GetOrgListResp, error)

@@ -46,7 +46,7 @@ func (t *DocImportTask) InitTask() error {
 
 func (t *DocImportTask) SubmitTask(ctx context.Context, params interface{}) (err error) {
 	if params == nil {
-		return errors.New("参数不能为空")
+		return errors.New("Parameters cannot be empty")
 	}
 	paramStr, err := json.Marshal(params)
 	if err != nil {

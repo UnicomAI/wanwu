@@ -3069,7 +3069,7 @@ type GetCaptchaReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"` // 客户端key [EN] client key
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"` // client key
 }
 
 func (x *GetCaptchaReq) Reset() {
@@ -3116,8 +3116,8 @@ type GetCaptchaResp struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"` // 客户端key [EN] client key
-	B64 string `protobuf:"bytes,2,opt,name=b64,proto3" json:"b64,omitempty"` // 验证码png图片base64字符串 [EN] Verification code png picture base64 string
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"` // client key
+	B64 string `protobuf:"bytes,2,opt,name=b64,proto3" json:"b64,omitempty"` // Verification code png picture base64 string
 }
 
 func (x *GetCaptchaResp) Reset() {
@@ -3171,11 +3171,11 @@ type LoginReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	UserName string `protobuf:"bytes,1,opt,name=userName,proto3" json:"userName,omitempty"` // 用户名 [EN] username
-	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"` // 密码 [EN] password
-	Key      string `protobuf:"bytes,3,opt,name=key,proto3" json:"key,omitempty"`           // 客户端key [EN] client key
-	Code     string `protobuf:"bytes,4,opt,name=code,proto3" json:"code,omitempty"`         // 验证码 [EN] Verification code
-	Language string `protobuf:"bytes,5,opt,name=language,proto3" json:"language,omitempty"` //用户语言 [EN] User language
+	UserName string `protobuf:"bytes,1,opt,name=userName,proto3" json:"userName,omitempty"` // username
+	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"` // password
+	Key      string `protobuf:"bytes,3,opt,name=key,proto3" json:"key,omitempty"`           // client key
+	Code     string `protobuf:"bytes,4,opt,name=code,proto3" json:"code,omitempty"`         // Verification code
+	Language string `protobuf:"bytes,5,opt,name=language,proto3" json:"language,omitempty"` // User language
 }
 
 func (x *LoginReq) Reset() {
@@ -3305,10 +3305,10 @@ type LoginByEmailReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	UserName string `protobuf:"bytes,1,opt,name=userName,proto3" json:"userName,omitempty"` // 用户名 [EN] username
-	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"` // 密码 [EN] password
-	Key      string `protobuf:"bytes,3,opt,name=key,proto3" json:"key,omitempty"`           // 客户端key [EN] client key
-	Code     string `protobuf:"bytes,4,opt,name=code,proto3" json:"code,omitempty"`         // 验证码 [EN] Verification code
+	UserName string `protobuf:"bytes,1,opt,name=userName,proto3" json:"userName,omitempty"` // username
+	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"` // password
+	Key      string `protobuf:"bytes,3,opt,name=key,proto3" json:"key,omitempty"`           // client key
+	Code     string `protobuf:"bytes,4,opt,name=code,proto3" json:"code,omitempty"`         // Verification code
 }
 
 func (x *LoginByEmailReq) Reset() {
@@ -3489,7 +3489,7 @@ type LoginEmailCheckReq struct {
 	UserId   string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	Email    string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	Code     string `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
-	Language string `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"` //用户语言 [EN] User language
+	Language string `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"` // User language
 }
 
 func (x *LoginEmailCheckReq) Reset() {
@@ -3562,7 +3562,7 @@ type ChangeUserPasswordByEmailReq struct {
 	NewPassword string `protobuf:"bytes,3,opt,name=newPassword,proto3" json:"newPassword,omitempty"`
 	Email       string `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
 	Code        string `protobuf:"bytes,5,opt,name=code,proto3" json:"code,omitempty"`
-	Language    string `protobuf:"bytes,6,opt,name=language,proto3" json:"language,omitempty"` //用户语言 [EN] User language
+	Language    string `protobuf:"bytes,6,opt,name=language,proto3" json:"language,omitempty"` // User language
 }
 
 func (x *ChangeUserPasswordByEmailReq) Reset() {

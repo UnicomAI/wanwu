@@ -38,8 +38,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SafetyServiceClient interface {
 	// --- safety ---
-	// 敏感词表相关 [EN] Sensitive vocabulary related
-	// 创建敏感词表 [EN] Create a sensitive word list
+	// Sensitive vocabulary related
+	// Create a sensitive word list
 	CreateSensitiveWordTable(ctx context.Context, in *CreateSensitiveWordTableReq, opts ...grpc.CallOption) (*CreateSensitiveWordTableResp, error)
 	// 编辑敏感词表 [EN] Edit sensitive word list
 	UpdateSensitiveWordTable(ctx context.Context, in *UpdateSensitiveWordTableReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -187,8 +187,8 @@ func (c *safetyServiceClient) GetSensitiveWordTableListWithWordsByIDs(ctx contex
 // for forward compatibility.
 type SafetyServiceServer interface {
 	// --- safety ---
-	// 敏感词表相关 [EN] Sensitive vocabulary related
-	// 创建敏感词表 [EN] Create a sensitive word list
+	// Sensitive vocabulary related
+	// Create a sensitive word list
 	CreateSensitiveWordTable(context.Context, *CreateSensitiveWordTableReq) (*CreateSensitiveWordTableResp, error)
 	// 编辑敏感词表 [EN] Edit sensitive word list
 	UpdateSensitiveWordTable(context.Context, *UpdateSensitiveWordTableReq) (*emptypb.Empty, error)

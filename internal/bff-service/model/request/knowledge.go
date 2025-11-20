@@ -217,14 +217,14 @@ type MetaItem struct {
 func (c *UpdateMetaValueReq) Check() error {
 	for _, v := range c.MetaValueList {
 		if v.Option == "" {
-			return errors.New("option为空")
+			return errors.New("option is empty")
 		}
 	}
 	return nil
 }
 func (c *CreateKnowledgeReq) Check() error {
 	if !util.IsAlphanumeric(c.Name) {
-		errMsg := fmt.Sprintf("知识库名称只能包含中文、数字、小写英文，符号之只能包含下划线和减号 参数(%v)", c.Name)
+		errMsg := fmt.Sprintf("Knowledge base name can only contain Chinese, numbers, lowercase English, symbols can only contain underscores and hyphens (%v)", c.Name)
 		return errors.New(errMsg)
 	}
 	if c.KnowledgeGraph == nil {

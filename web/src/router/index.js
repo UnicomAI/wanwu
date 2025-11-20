@@ -47,7 +47,7 @@ const constantRoutes = [
         path: '/webChat/:id',
         component:resolve =>require(['@/views/agent'],resolve),
     },
-    /* 暂 when 去掉Template广场公网 of Link */
+    /* Temporarily remove Template Square public link */
     /*{
         path: '/public/templateSquare',
         component:resolve =>require(['@/views/templateSquare'],resolve),
@@ -284,7 +284,7 @@ const hasPermission = (perm, route) => {
         return true
     }
 }
-// 把HasPermission of Routerestart组合
+// Combine HasPermission of Router restart
 const filterAsyncRoutes = (routes, perm) => {
     const res = []
 
@@ -315,13 +315,13 @@ let router = new VueRouter({
 })
 
 export const replaceRouter = (permission) => {
-    // Create新 of  Router 实例
+    // Create new Router instance
     const newRouter = new VueRouter({
         ...baseConfig,
-        routes: filterAsyncRoutes(constantRoutes, permission), // Use新 of RouteConfiguration
+        routes: filterAsyncRoutes(constantRoutes, permission), // Use new RouteConfiguration
     })
 
-    // Replace现Has of Route器
+    // Replace existing Router
     router.matcher = newRouter.matcher
 }
 
