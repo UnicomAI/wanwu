@@ -88,16 +88,10 @@ export default {
       typeRadio: 'all',
       typeList: [
         {name: this.$t('tempSquare.all'), key: 'all'},
-        {name: this.$t('tempSquare.learn'), key: 'learn'},
-        {name: this.$t('tempSquare.media'), key: 'media'},
-        {name: this.$t('tempSquare.role'), key: 'role'},
-        {name: this.$t('tempSquare.work'), key: 'work'},
-        {name: this.$t('tempSquare.emotion'), key: 'emotion'},
-        {name: this.$t('tempSquare.legal'), key: 'legal'},
-        {name: this.$t('tempSquare.life'), key: 'life'},
-        {name: this.$t('tempSquare.health'), key: 'health'},
-        {name: this.$t('tempSquare.email'), key: 'email'},
-        {name: this.$t('tempSquare.text'), key: 'copy'},
+        {name: this.$t('tempSquare.safety_inspection'), key: 'safety_inspection'},
+        {name: this.$t('tempSquare.incident_investigation'), key: 'incident_investigation'},
+        {name: this.$t('tempSquare.compliance'), key: 'compliance'},
+        {name: this.$t('tempSquare.training'), key: 'training'},
       ]
     };
   },

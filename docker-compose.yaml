@@ -589,6 +589,10 @@ services:
       MINIO_USER: ${WANWU_MINIO_USER}
       MINIO_PASSWORD: ${WANWU_MINIO_PASSWORD}
       JWT_SIGNING_KEY: ${WANWU_BFF_JWT_SIGNING_KEY}
+      # Language settings - force English
+      LANG: en_US.UTF-8
+      LANGUAGE: en_US:en
+      LC_ALL: en_US.UTF-8
       # --- 以下env用于workflow-wanwu适配 --- [EN] --- The following env is used for workflow-wanwu adaptation ---
       WANWU_EXTERNAL_ENDPOINT: ${WANWU_EXTERNAL_ENDPOINT}
       WANWU_EXTERNAL_SCHEME: ${WANWU_EXTERNAL_SCHEME}
@@ -617,7 +621,7 @@ services:
       CODE_RUNNER_TIMEOUT_SECONDS:
       CODE_RUNNER_MEMORY_LIMIT_MB:
     working_dir: /app
-    command: ./bin/workflow-wanwu
+    command: /app/bin/workflow-wanwu
   
   rag:
     depends_on:

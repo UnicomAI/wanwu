@@ -21,7 +21,7 @@
               filterable 
               style="width:100%;"
               @visible-change="visibleChange($event)"
-            >
+            > 
               <el-option
                 v-for="item in knowledgeOptions"
                 :key="item.knowledgeId"
