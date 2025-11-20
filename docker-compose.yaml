@@ -578,6 +578,7 @@ services:
     #   - 8999:8999
     volumes:
       - ${WANWU_PROJECT_DIR}/workflow-wanwu/log:/app/log
+      - ./configs/microservice/workflow-wanwu/schema.sql:/app/configs/schema.sql
     environment:
       DB_NAME: ${WANWU_DB_NAME}
       DB_MYSQL_ADDRESS: ${WANWU_MYSQL_ADDRESS}

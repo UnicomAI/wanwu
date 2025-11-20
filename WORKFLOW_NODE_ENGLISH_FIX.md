@@ -27,58 +27,37 @@ Created SQL script to update existing workflows in the database.
 docker exec -i mysql-wanwu mysql -u root -p'Wanwu123456' < scripts/update_workflow_nodes_in_db.sql
 ```
 
-## Remaining Issue
+## Complete Solution ✅
 
-The workflow service still generates new workflows with Chinese node titles because this is hardcoded in the binary. There are three possible solutions:
+The issue has been **fully resolved** through a multi-layered approach:
 
-### Option 1: Modify Workflow Service Source Code (Recommended)
-If you have access to the workflow service source code:
+### 1. Database Triggers ✅
+MySQL triggers automatically convert Chinese node titles to English for INSERT and UPDATE operations on the `workflow_draft` table. These triggers are already active in the database.
 
-1. Find the node creation code in the workflow service
-2. Change the default titles from Chinese to English
-3. Rebuild the Docker image
+**Status**: Active and working
 
-### Option 2: Use a Database Trigger
-Create a MySQL trigger that automatically replaces Chinese node titles with English when a new workflow is created:
+### 2. Schema Template Fix ✅ (Root Cause)
+The Chinese text was coming from `/app/configs/schema.sql` inside the workflow-wanwu container. This file contains the default workflow template that's used when creating new workflows.
 
-```sql
-USE opencoze;
+**Solution Implemented**:
+- Extracted the `schema.sql` file from the container
+- Replaced all Chinese node titles and descriptions with English:
+  - "开始" → "Start"
+  - "结束" → "End"
+  - Updated descriptions to English
+- Saved the English version to `configs/microservice/workflow-wanwu/schema.sql`
+- Added volume mount in `docker-compose.yaml` to persist the fix:
+  ```yaml
+  volumes:
+    - ./configs/microservice/workflow-wanwu/schema.sql:/app/configs/schema.sql
+  ```
 
-DELIMITER $$
+**Status**: Permanently fixed - The English schema.sql is now mounted into the container and will persist across restarts.
 
-CREATE TRIGGER workflow_draft_english_nodes
-BEFORE INSERT ON workflow_draft
-FOR EACH ROW
-BEGIN
-    SET NEW.canvas = REPLACE(
-        REPLACE(NEW.canvas, 
-            '"title":"开始"', 
-            '"title":"Start"'
-        ),
-        '"description":"工作流的起始节点，用于设定启动工作流需要的信息"',
-        '"description":"The starting node of the workflow, used to set the information needed to start the workflow"'
-    );
-    
-    SET NEW.canvas = REPLACE(
-        REPLACE(NEW.canvas, 
-            '"title":"结束"', 
-            '"title":"End"'
-        ),
-        '"description":"工作流的最终节点，用于返回工作流运行后的结果信息"',
-        '"description":"The final node of the workflow, used to return the result information after the workflow runs"'
-    );
-END$$
+### 3. Existing Workflows Update ✅
+All existing workflows in the database have been updated using the SQL script.
 
-DELIMITER ;
-```
-
-### Option 3: Frontend Patch
-Modify the frontend code to replace Chinese text with English when displaying workflows.
-
-## Recommended Next Steps
-
-1. **Immediate Fix**: Implement the database trigger (Option 2)
-2. **Long-term Fix**: Contact the workflow service maintainers or modify the source code (Option 1)
+**Status**: Complete
 
 ## Files Created
 
