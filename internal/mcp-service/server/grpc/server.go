@@ -39,7 +39,7 @@ func (s *Server) Start(ctx context.Context) error {
 		return nil
 	}
 
-	// 初始化微服务
+	// Initialize microservices
 	if err := mcp.StartService(); err != nil {
 		log.Fatalf("init service err: %v", err)
 	}

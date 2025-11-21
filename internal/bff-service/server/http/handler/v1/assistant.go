@@ -10,12 +10,12 @@ import (
 // AssistantCreate
 //
 //	@Tags			agent
-//	@Summary		创建智能体
-//	@Description	创建智能体，填写基本信息，创建完成为草稿状态
+//	@Summary Create an agent
+//	@Description Create an agent, fill in the basic information, and the creation will be in draft state
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AppBriefConfig	true	"智能体基本信息"
+//	@Param data body request.AppBriefConfig true "Basic information of the agent"
 //	@Success		200		{object}	response.Response{data=response.AssistantCreateResp}
 //	@Router			/assistant [post]
 func AssistantCreate(ctx *gin.Context) {
@@ -31,12 +31,12 @@ func AssistantCreate(ctx *gin.Context) {
 // AssistantUpdate
 //
 //	@Tags			agent
-//	@Summary		修改智能体基本信息
-//	@Description	修改智能体基本信息，名称，头像，简介
+//	@Summary Modify the basic information of the agent
+//	@Description Modify the basic information of the agent, name, avatar, and introduction
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantBrief	true	"智能体基本信息参数"
+//	@Param data body request.AssistantBrief true "Basic information parameters of the agent"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant [put]
 func AssistantUpdate(ctx *gin.Context) {
@@ -52,12 +52,12 @@ func AssistantUpdate(ctx *gin.Context) {
 // AssistantConfigUpdate
 //
 //	@Tags			agent
-//	@Summary		修改智能体配置信息
-//	@Description	修改智能体配置信息，模型配置，知识库配置等等
+//	@Summary Modify agent configuration information
+//	@Description Modify agent configuration information, model configuration, knowledge base configuration, etc.
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantConfig	true	"智能体配置信息参数"
+//	@Param data body request.AssistantConfig true "Agent configuration information parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/config [put]
 func AssistantConfigUpdate(ctx *gin.Context) {
@@ -73,12 +73,12 @@ func AssistantConfigUpdate(ctx *gin.Context) {
 // GetAssistantInfo
 //
 //	@Tags			agent
-//	@Summary		查看发布后智能体详情
-//	@Description	查看发布后智能体详情
+//	@Summary View the details of the agent after release
+//	@Description View the details of the agent after release
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			assistantId	query		string	true	"智能体id"
+//	@Param assistantId query string true "agent id"
 //	@Success		200			{object}	response.Response{data=response.Assistant}
 //	@Router			/assistant [get]
 func GetAssistantInfo(ctx *gin.Context) {
@@ -94,12 +94,12 @@ func GetAssistantInfo(ctx *gin.Context) {
 // GetAssistantDraftInfo
 //
 //	@Tags			agent
-//	@Summary		查看草稿智能体详情
-//	@Description	查看草稿智能体详情
+//	@Summary View draft agent details
+//	@Description View draft agent details
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			assistantId	query		string	true	"智能体id"
+//	@Param assistantId query string true "agent id"
 //	@Success		200			{object}	response.Response{data=response.Assistant}
 //	@Router			/assistant/draft [get]
 func GetAssistantDraftInfo(ctx *gin.Context) {
@@ -115,12 +115,12 @@ func GetAssistantDraftInfo(ctx *gin.Context) {
 // AssistantCopy
 //
 //	@Tags			agent
-//	@Summary		复制智能体
-//	@Description	复制智能体，创建一个新的智能体，基本信息和配置都和原智能体一致
+//	@Summary Copy the agent
+//	@Description Copy the agent and create a new agent. The basic information and configuration are the same as the original agent.
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantIdRequest	true	"智能体id"
+//	@Param data body request.AssistantIdRequest true "Agent ID"
 //	@Success		200		{object}	response.Response{data=response.AssistantCreateResp}
 //	@Router			/assistant/copy [post]
 func AssistantCopy(ctx *gin.Context) {
@@ -136,12 +136,12 @@ func AssistantCopy(ctx *gin.Context) {
 // AssistantWorkFlowCreate
 //
 //	@Tags			agent
-//	@Summary		添加工作流
-//	@Description	为智能体绑定已发布的工作流
+//	@Summary Add workflow
+//	@Description binds the published workflow to the agent
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantWorkFlowAddRequest	true	"工作流新增参数"
+//	@Param data body request.AssistantWorkFlowAddRequest true "Add parameters to workflow"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/tool/workflow [post]
 func AssistantWorkFlowCreate(ctx *gin.Context) {
@@ -157,12 +157,12 @@ func AssistantWorkFlowCreate(ctx *gin.Context) {
 // AssistantWorkFlowDelete
 //
 //	@Tags			agent
-//	@Summary		删除工作流
-//	@Description	为智能体解绑工作流
+//	@Summary Delete workflow
+//	@Description unbinds the workflow for the agent
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantWorkFlowDelRequest	true	"工作流id,智能体id"
+//	@Param data body request.AssistantWorkFlowDelRequest true "workflow id, agent id"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/tool/workflow [delete]
 func AssistantWorkFlowDelete(ctx *gin.Context) {
@@ -178,12 +178,12 @@ func AssistantWorkFlowDelete(ctx *gin.Context) {
 // AssistantWorkFlowEnableSwitch
 //
 //	@Tags			agent
-//	@Summary		启用/停用工作流
-//	@Description	修改智能体绑定的工作流的启用状态
+//	@Summary Enable/disable workflow
+//	@Description Modifies the enabled status of the workflow bound to the agent
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantWorkFlowToolEnableRequest	true	"工作流id,智能体id,开关"
+//	@Param data body request.AssistantWorkFlowToolEnableRequest true "workflow id, agent id, switch"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/tool/workflow/switch [put]
 func AssistantWorkFlowEnableSwitch(ctx *gin.Context) {
@@ -199,12 +199,12 @@ func AssistantWorkFlowEnableSwitch(ctx *gin.Context) {
 // AssistantMCPCreate
 //
 //	@Tags			agent
-//	@Summary		添加mcp工具
-//	@Description	为智能体绑定已发布的mcp工具
+//	@Summary Add mcp tool
+//	@Description Binds the published mcp tool to the agent
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantMCPToolAddRequest	true	"mcp工具id、mcp类型、智能体id"
+//	@Param data body request.AssistantMCPToolAddRequest true "mcp tool id, mcp type, agent id"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/tool/mcp [post]
 func AssistantMCPCreate(ctx *gin.Context) {
@@ -220,12 +220,12 @@ func AssistantMCPCreate(ctx *gin.Context) {
 // AssistantMCPDelete
 //
 //	@Tags			agent
-//	@Summary		删除mcp
-//	@Description	为智能体解绑mcp
+//	@Summary delete mcp
+//	@Description Unbind mcp for the agent
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantMCPToolDelRequest	true	"mcp工具id、mcp类型、智能体id"
+//	@Param data body request.AssistantMCPToolDelRequest true "mcp tool id, mcp type, agent id"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/tool/mcp [delete]
 func AssistantMCPDelete(ctx *gin.Context) {
@@ -241,12 +241,12 @@ func AssistantMCPDelete(ctx *gin.Context) {
 // AssistantMCPEnableSwitch
 //
 //	@Tags			agent
-//	@Summary		启用/停用 MCP
-//	@Description	修改智能体绑定的MCP的启用状态
+//	@Summary Enable/disable MCP
+//	@Description Modifies the enabled status of the MCP bound to the agent
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantMCPToolEnableRequest	true	"mcp工具id、mcp类型、智能体id、enable"
+//	@Param data body request.AssistantMCPToolEnableRequest true "mcp tool id, mcp type, agent id, enable"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/tool/mcp/switch [put]
 func AssistantMCPEnableSwitch(ctx *gin.Context) {
@@ -262,12 +262,12 @@ func AssistantMCPEnableSwitch(ctx *gin.Context) {
 // AssistantToolCreate
 //
 //	@Tags			agent
-//	@Summary		添加自定义、内建工具
-//	@Description	为智能体绑定自定义、内建工具
+//	@Summary Add custom, built-in tools
+//	@Description Bind custom, built-in tools to the agent
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantToolAddRequest	true	"自定义、内建工具新增参数"
+//	@Param data body request.AssistantToolAddRequest true "Customized, built-in tool added parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/tool [post]
 func AssistantToolCreate(ctx *gin.Context) {
@@ -283,12 +283,12 @@ func AssistantToolCreate(ctx *gin.Context) {
 // AssistantToolDelete
 //
 //	@Tags			agent
-//	@Summary		删除自定义、内建工具
-//	@Description	为智能体解绑自定义、内建工具
+//	@Summary Delete custom and built-in tools
+//	@Description Unbundles custom and built-in tools for the agent
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantToolDelRequest	true	"智能体id与自定义、内建工具id"
+//	@Param data body request.AssistantToolDelRequest true "Agent id and custom and built-in tool id"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/tool [delete]
 func AssistantToolDelete(ctx *gin.Context) {
@@ -304,12 +304,12 @@ func AssistantToolDelete(ctx *gin.Context) {
 // AssistantToolEnableSwitch
 //
 //	@Tags			agent
-//	@Summary		启用/停用自定义、内建工具
-//	@Description	修改智能体绑定的自定义、内建工具的启用状态
+//	@Summary Enable/disable custom and built-in tools
+//	@Description Modifies the customization of intelligent agent binding and the enabled status of built-in tools
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantToolEnableRequest	true	"智能体id与自定义、内建工具id"
+//	@Param data body request.AssistantToolEnableRequest true "Agent id and custom and built-in tool id"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/tool/switch [put]
 func AssistantToolEnableSwitch(ctx *gin.Context) {
@@ -325,12 +325,12 @@ func AssistantToolEnableSwitch(ctx *gin.Context) {
 // AssistantToolConfig
 //
 //	@Tags			agent
-//	@Summary		配置智能体工具
-//	@Description	配置智能体工具，包括自定义工具和内置工具
+//	@Summary Configure the agent tool
+//	@Description Configure agent tools, including custom tools and built-in tools
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.AssistantToolConfigRequest	true	"智能体工具配置参数"
+//	@Param data body request.AssistantToolConfigRequest true "Agent tool configuration parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/tool/config [put]
 func AssistantToolConfig(ctx *gin.Context) {
@@ -346,12 +346,12 @@ func AssistantToolConfig(ctx *gin.Context) {
 // ConversationCreate
 //
 //	@Tags			agent
-//	@Summary		创建智能体对话
-//	@Description	创建智能体对话
+//	@Summary Create agent dialogue
+//	@Description Create an agent dialogue
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.ConversationCreateRequest	true	"智能体对话创建参数"
+//	@Param data body request.ConversationCreateRequest true "Agent conversation creation parameters"
 //	@Success		200		{object}	response.Response{data=response.ConversationCreateResp}
 //	@Router			/assistant/conversation [post]
 func ConversationCreate(ctx *gin.Context) {
@@ -367,12 +367,12 @@ func ConversationCreate(ctx *gin.Context) {
 // ConversationDelete
 //
 //	@Tags			agent
-//	@Summary		删除智能体对话
-//	@Description	删除智能体对话
+//	@Summary Delete agent dialogue
+//	@Description Delete agent dialogue
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.ConversationIdRequest	true	"智能体对话的id"
+//	@Param data body request.ConversationIdRequest true "ID of the agent conversation"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/conversation [delete]
 func ConversationDelete(ctx *gin.Context) {
@@ -388,14 +388,14 @@ func ConversationDelete(ctx *gin.Context) {
 // GetConversationList
 //
 //	@Tags			agent
-//	@Summary		智能体对话列表
-//	@Description	智能体对话列表
+//	@Summary Agent dialogue list
+//	@Description Agent dialogue list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			assistantId	query		string	true	"智能体id"
-//	@Param			pageNo		query		int		true	"页面编号，从1开始"
-//	@Param			pageSize	query		int		true	"单页数量，从1开始"
+//	@Param assistantId query string true "agent id"
+//	@Param pageNo query int true "Page number, starting from 1"
+//	@Param pageSize query int true "Number of single pages, starting from 1"
 //	@Success		200			{object}	response.Response{data=response.PageResult{list=[]response.ConversationInfo}}
 //	@Router			/assistant/conversation/list [get]
 func GetConversationList(ctx *gin.Context) {
@@ -411,14 +411,14 @@ func GetConversationList(ctx *gin.Context) {
 // GetConversationDetailList
 //
 //	@Tags			agent
-//	@Summary		智能体对话详情历史列表
-//	@Description	智能体对话详情历史列表
+//	@Summary Agent conversation details history list
+//	@Description Agent conversation details history list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			conversationId	query		string	true	"智能体对话id"
-//	@Param			pageNo			query		int		true	"页面编号，从1开始"
-//	@Param			pageSize		query		int		true	"单页数量，从1开始"
+//	@Param conversationId query string true "agent conversation id"
+//	@Param pageNo query int true "Page number, starting from 1"
+//	@Param pageSize query int true "Number of single pages, starting from 1"
 //	@Success		200				{object}	response.Response{data=response.PageResult{list=[]response.ConversationDetailInfo}}
 //	@Router			/assistant/conversation/detail [get]
 func GetConversationDetailList(ctx *gin.Context) {
@@ -434,12 +434,12 @@ func GetConversationDetailList(ctx *gin.Context) {
 // AssistantConversionStream
 //
 //	@Tags			agent
-//	@Summary		智能体流式问答
-//	@Description	智能体流式问答
+//	@Summary Agent Streaming Q&A
+//	@Description Agent Streaming Q&A
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.ConversionStreamRequest	true	"智能体流式问答参数"
+//	@Param data body request.ConversionStreamRequest true "Agent streaming question and answer parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/assistant/stream [post]
 func AssistantConversionStream(ctx *gin.Context) {

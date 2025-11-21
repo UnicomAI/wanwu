@@ -33,12 +33,12 @@ func jwtUserAuth(ctx *gin.Context, token string) {
 		return
 	}
 	if claims.Subject != jwt_util.SUBJECT_USER {
-		gin_util.ResponseDetail(ctx, httpStatus, codes.Code(err_code.Code_BFFJWT), nil, "token subject错误")
+		gin_util.ResponseDetail(ctx, httpStatus, codes.Code(err_code.Code_BFFJWT), nil, "token subject error")
 		ctx.Abort()
 		return
 	}
 
-	// 生成新的token
+	// Generate new token
 	if claims.BufferTime <= time.Now().Unix() {
 		newClaims, newToken, _ := jwt_util.GenerateToken(claims.UserID, jwt_util.UserTokenTimeout)
 		ctx.Header("new-token", newToken)
@@ -48,7 +48,7 @@ func jwtUserAuth(ctx *gin.Context, token string) {
 	ctx.Next()
 }
 
-// 从Header Authorization中获取Token
+// Get Token from Header Authorization
 func getJWTToken(c *gin.Context) (token string, err error) {
 	authorization := c.Request.Header.Get("Authorization")
 	if authorization != "" {

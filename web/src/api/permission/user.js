@@ -1,7 +1,7 @@
 import service from "@/utils/request"
 import {USER_API} from "@/utils/requestConstants"
 
-// 获取用户列表
+// GetUserList
 export const fetchUserList = (params) => {
     return service({
         url: `${USER_API}/user/list`,
@@ -10,14 +10,14 @@ export const fetchUserList = (params) => {
     })
 }
 
-// 获取角色列表用户
+// GetRoleListUser
 export const fetchRoleList = () => {
     return service({
         url: `${USER_API}/role/select`,
         method: "get",
     })
 }
-// 创建用户
+// CreateUser
 export const createUser = (data) => {
     return service({
         url: `${USER_API}/user`,
@@ -25,7 +25,7 @@ export const createUser = (data) => {
         data,
     })
 }
-// 编辑用户
+// EditUser
 export const editUser = (data) => {
     return service({
         url: `${USER_API}/user`,
@@ -33,7 +33,7 @@ export const editUser = (data) => {
         data,
     })
 }
-// 删除用户
+// DeleteUser
 export const deleteUser = (data) => {
     return service({
         url: `${USER_API}/user`,
@@ -41,7 +41,7 @@ export const deleteUser = (data) => {
         data,
     })
 }
-// 修改用户状态
+// ModifyUserStatus
 export const changeUserStatus = (data) => {
     return service({
         url: `${USER_API}/user/status`,
@@ -49,7 +49,7 @@ export const changeUserStatus = (data) => {
         data,
     })
 }
-// 获取邀请用户时的用户列表
+// Get list of users available for invitation
 export const fetchInviteUser = (params) => {
     return service({
         url: `${USER_API}/org/other/select`,
@@ -57,7 +57,7 @@ export const fetchInviteUser = (params) => {
         params,
     })
 }
-// 邀请用户
+// Invite user
 export const inviteUser = (data) => {
     return service({
         url: `${USER_API}/org/user`,

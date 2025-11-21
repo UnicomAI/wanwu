@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// 打印等级 Panic > Error > Warn > Info > Debug
+// Print level Panic > Error > Warn > Info > Debug
 
 var accessSLog *zap.SugaredLogger
 

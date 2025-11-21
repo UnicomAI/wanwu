@@ -7,68 +7,68 @@ import "google/protobuf/empty.proto";
 option go_package = "gitlab.ai-yuanjing.cn/ai-platform-private/backend-used-bff/common-api/api/proto/knowledgebase-permission-service";
 
 service KnowledgeBasePermissionService {
-  // 查询知识库用户权限
+  // 查询知识库用户权限 [EN] Query knowledge base user permissions
   rpc SelectKnowledgeUserPermission(KnowledgeUserPermissionReq) returns (KnowledgeUserPermissionResp) {}
-  // 校验知识库用户权限,此组织下的userId 需要拥有的权限大于等于 permissionType
+  // 校验知识库用户权限,此组织下的userId 需要拥有的权限大于等于 permissionType [EN] Verify knowledge base user permissions. The userId under this organization needs to have permissions greater than or equal to permissionType
   rpc CheckKnowledgeUserPermission(CheckKnowledgeUserPermissionReq) returns (google.protobuf.Empty) {}
-  // 增加知识库用户
+  // 增加知识库用户 [EN] Add knowledge base users
   rpc AddKnowledgeUser(AddKnowledgeUserReq) returns (google.protobuf.Empty) {}
-  // 修改知识库用户
+  // 修改知识库用户 [EN] Modify knowledge base user
   rpc EditKnowledgeUser(EditKnowledgeUserReq) returns (google.protobuf.Empty) {}
-  // 删除知识库用户
+  // 删除知识库用户 [EN] Delete knowledge base user
   rpc DeleteKnowledgeUser(DeleteKnowledgeUserReq) returns (google.protobuf.Empty) {}
-  // 转让知识库管理员权限
+  // 转让知识库管理员权限 [EN] Transfer knowledge base administrator privileges
   rpc TransferKnowledgeAdminUser(TransferKnowledgeAdminUserReq) returns (google.protobuf.Empty) {}
 }
 
 message KnowledgeUserPermissionReq {
   string userId = 1;
   string orgId = 2;
-  string knowledgeId = 3; //知识库id
+  string knowledgeId = 3; //知识库id [EN] knowledge base id
 }
 
 message CheckKnowledgeUserPermissionReq {
   string userId = 1;
   string orgId = 2;
-  string knowledgeId = 3; //知识库id
-  int32 permissionType = 4; //权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限
+  string knowledgeId = 3; //知识库id [EN] knowledge base id
+  int32 permissionType = 4; //权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限 [EN] Permission type: 0: View permission; 10: Edit permission; 20: Authorization permission. The reason for discontinuous values ​​prevents intermediate permissions in the future. The current logic is Authorization permission > Edit permission > View permission.
 }
 
 message AddKnowledgeUserReq {
   string userId = 1;
   string orgId = 2;
-  string knowledgeId = 3; //知识库id
-  int32 permissionType = 4; //权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限
-  repeated KnowledgeUserInfo knowledgeUserList = 5; //知识库用户信息
+  string knowledgeId = 3; //知识库id [EN] knowledge base id
+  int32 permissionType = 4; //权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限 [EN] Permission type: 0: View permission; 10: Edit permission; 20: Authorization permission. The reason for discontinuous values ​​prevents intermediate permissions in the future. The current logic is Authorization permission > Edit permission > View permission.
+  repeated KnowledgeUserInfo knowledgeUserList = 5; //知识库用户信息 [EN] Knowledge base user information
 }
 
 message KnowledgeUserInfo {
   string userId = 1;
   string orgId = 2;
-  int32 permissionType = 3; // 权限类型: -1 删除此用户权限；0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限
-  string permissionId = 4; //权限id 编辑删除才有用
+  int32 permissionType = 3; // 权限类型: -1 删除此用户权限；0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限 [EN] Permission type: -1 Delete this user permission; 0: View permission; 10: Edit permission; 20: Authorization permission, the reason of discontinuous values ​​prevents subsequent intermediate permissions, the current logic is Authorization permission>Edit permission>View permission
+  string permissionId = 4; //权限id 编辑删除才有用 [EN] Permission id is only useful for editing and deleting
 }
 
 message EditKnowledgeUserReq {
   string userId = 1;
   string orgId = 2;
-  string knowledgeId = 3; //知识库id
-  KnowledgeUserInfo knowledgeUser = 4; //知识库用户信息
+  string knowledgeId = 3; //知识库id [EN] knowledge base id
+  KnowledgeUserInfo knowledgeUser = 4; //知识库用户信息 [EN] Knowledge base user information
 }
 
 message DeleteKnowledgeUserReq {
   string userId = 1;
   string orgId = 2;
-  string knowledgeId = 3; //知识库id
-  string permissionId = 4; //权限id 编辑删除才有用
+  string knowledgeId = 3; //知识库id [EN] knowledge base id
+  string permissionId = 4; //权限id 编辑删除才有用 [EN] Permission id is only useful for editing and deleting
 }
 
 message TransferKnowledgeAdminUserReq{
   string userId = 1;
   string orgId = 2;
-  string knowledgeId = 3; //知识库id
-  string permissionId = 4; //权限id
-  KnowledgeUserInfo knowledgeUser = 5; //知识库用户信息
+  string knowledgeId = 3; //知识库id [EN] knowledge base id
+  string permissionId = 4; //权限id [EN] permission id
+  KnowledgeUserInfo knowledgeUser = 5; //知识库用户信息 [EN] Knowledge base user information
 }
 
 message KnowledgeUserPermissionResp {

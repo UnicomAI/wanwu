@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// SelectKnowledgePermissionById 查询用户知识库权限
+// SelectKnowledgePermissionById Query user knowledge base permissions
 func SelectKnowledgePermissionById(ctx context.Context, permissionId string) (*model.KnowledgePermission, error) {
 	var permission = model.KnowledgePermission{}
 	err := sqlopt.SQLOptions(sqlopt.WithPermissionId(permissionId)).
@@ -24,7 +24,7 @@ func SelectKnowledgePermissionById(ctx context.Context, permissionId string) (*m
 	return &permission, nil
 }
 
-// SelectKnowledgeIdByPermission 查询用户有权限的知识库id
+// SelectKnowledgeIdByPermission queries the knowledge base id that the user has permission to
 func SelectKnowledgeIdByPermission(ctx context.Context, userId, orgId string, permission int) ([]*model.KnowledgePermission, error) {
 	var knowledgePermissionList []*model.KnowledgePermission
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithOverKnowledgePermission(permission)).
@@ -35,7 +35,7 @@ func SelectKnowledgeIdByPermission(ctx context.Context, userId, orgId string, pe
 	return knowledgePermissionList, nil
 }
 
-// SelectUserKnowledgePermissionList 查询用户知识库权限
+// SelectUserKnowledgePermissionList Query user knowledge base permissions
 func SelectUserKnowledgePermissionList(ctx context.Context, knowledgeId string) ([]*model.KnowledgePermission, error) {
 	var permissionList []*model.KnowledgePermission
 	err := sqlopt.SQLOptions(sqlopt.WithKnowledgeID(knowledgeId)).
@@ -46,7 +46,7 @@ func SelectUserKnowledgePermissionList(ctx context.Context, knowledgeId string) 
 	return permissionList, nil
 }
 
-// SelectUserKnowledgePermission 查询用户知识库权限
+// SelectUserKnowledgePermission Query user knowledge base permissions
 func SelectUserKnowledgePermission(ctx context.Context, userId, orgId string, knowledgeId string) (*model.KnowledgePermission, error) {
 	var permission = model.KnowledgePermission{}
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithKnowledgeID(knowledgeId)).
@@ -57,7 +57,7 @@ func SelectUserKnowledgePermission(ctx context.Context, userId, orgId string, kn
 	return &permission, nil
 }
 
-// CreateKnowledgeIdPermission 创建知识库权限,有可能在事务中的一部分，所以方法第一个入参为db
+// CreateKnowledgeIdPermission creates the knowledge base permission, which may be part of the transaction, so the first parameter of the method is db
 func CreateKnowledgeIdPermission(db *gorm.DB, permission *model.KnowledgePermission) error {
 	err := db.Model(&model.KnowledgePermission{}).Create(permission).Error
 	if err != nil {
@@ -70,7 +70,7 @@ func CreateKnowledgeIdPermission(db *gorm.DB, permission *model.KnowledgePermiss
 	return recordKnowledgePermission(db, permission, model.PermissionTypeNone, permission.PermissionType)
 }
 
-// BatchCreateKnowledgeIdPermission 批量创建知识库权限,有可能在事务中的一部分，所以方法第一个入参为db
+// BatchCreateKnowledgeIdPermission batch creates knowledge base permissions, which may be part of the transaction, so the first parameter of the method is db
 func BatchCreateKnowledgeIdPermission(db *gorm.DB, permission []*model.KnowledgePermission) error {
 	if len(permission) == 0 {
 		return nil
@@ -116,7 +116,7 @@ func BatchEditKnowledgePermission(db *gorm.DB, permissionList []*model.Knowledge
 	return nil
 }
 
-// DeleteKnowledgeIdPermission 删除知识库权限,有可能在事务中的一部分，所以方法第一个入参为db
+// DeleteKnowledgeIdPermission deletes the knowledge base permission, which may be part of the transaction, so the first parameter of the method is db
 func DeleteKnowledgeIdPermission(db *gorm.DB, knowledgeId string, permissionIdList []string) error {
 	var permissionList []*model.KnowledgePermission
 	if err := db.Model(&model.KnowledgePermission{}).Where("knowledge_id = ?", knowledgeId).
@@ -132,10 +132,10 @@ func DeleteKnowledgeIdPermission(db *gorm.DB, knowledgeId string, permissionIdLi
 	return batchDeletePermissionByIdList(db, knowledgeId, permissionList)
 }
 
-// DeleteKnowledgePermissionById 删除知识库权限,有可能在事务中的一部分，所以方法第一个入参为db
+// DeleteKnowledgePermissionById deletes the knowledge base permission, which may be part of the transaction, so the first parameter of the method is db
 func DeleteKnowledgePermissionById(ctx context.Context, permission *model.KnowledgePermission) error {
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		// 删除
+		// delete
 		if err := tx.Unscoped().Where("permission_id = ?", permission.PermissionId).
 			Delete(&model.KnowledgePermission{}).Error; err != nil {
 			return err
@@ -150,7 +150,7 @@ func DeleteKnowledgePermissionById(ctx context.Context, permission *model.Knowle
 	})
 }
 
-// processKnowledgeShareCount 处理知识库分享数量
+// processKnowledgeShareCount processes the number of knowledge base shares
 func processKnowledgeShareCount(tx *gorm.DB, knowledgeId string) error {
 	var totalCount int64
 	err := sqlopt.SQLOptions(sqlopt.WithKnowledgeID(knowledgeId)).
@@ -161,7 +161,7 @@ func processKnowledgeShareCount(tx *gorm.DB, knowledgeId string) error {
 	return UpdateKnowledgeShareCount(tx, knowledgeId, totalCount)
 }
 
-// AsyncDeletePermissionByKnowledgeId 删除知识库权限,有可能在事务中的一部分，所以方法第一个入参为db
+// AsyncDeletePermissionByKnowledgeId deletes the knowledge base permission, which may be part of the transaction, so the first parameter of the method is db
 func AsyncDeletePermissionByKnowledgeId(knowledgeId string) error {
 	go func() {
 		err := pageDeletePermission(knowledgeId)
@@ -172,11 +172,11 @@ func AsyncDeletePermissionByKnowledgeId(knowledgeId string) error {
 	return nil
 }
 
-// pageDeletePermission 分页删除知识库权限
+// pageDeletePermission Delete knowledge base permissions by page
 func pageDeletePermission(knowledgeId string) (err error) {
 	var limit = 30
 	var lastPermissionId = "000"
-	//最多处理30w数据，理论上一个书知识库关系应该少于30w
+	//It can process up to 300,000 data. In theory, a book knowledge base relationship should be less than 300,000.
 	for i := 0; i < 10000; i++ {
 		var permissionList []*model.KnowledgePermission
 		if err = db.GetHandle(context.Background()).Model(&model.KnowledgePermission{}).
@@ -212,12 +212,12 @@ func buildPermissionMap(db *gorm.DB, permissionList []*model.KnowledgePermission
 	return permissionMap, nil
 }
 
-// recordKnowledgePermission 记录知识库权限操作，外层保证事务
+// recordKnowledgePermission records knowledge base permission operations, and the outer layer guarantees transactions
 func recordKnowledgePermission(db *gorm.DB, permission *model.KnowledgePermission, fromPermissionType, toPermissionType int) error {
 	return db.Model(&model.KnowledgePermissionRecord{}).Create(buildPermissionRecord(permission, fromPermissionType, toPermissionType)).Error
 }
 
-// batchRecordKnowledgePermission 记录知识库权限操作，外层保证事务
+// batchRecordKnowledgePermission records knowledge base permission operations, and the outer layer guarantees transactions
 func batchRecordKnowledgePermission(db *gorm.DB, permission []*model.KnowledgePermission) error {
 	var permissionRecord []*model.KnowledgePermissionRecord
 	for _, knowledgePermission := range permission {
@@ -230,7 +230,7 @@ func batchDeletePermissionByIdList(db *gorm.DB, knowledgeId string, permissionLi
 	permissionIdList := lo.Map(permissionList, func(item *model.KnowledgePermission, index int) string {
 		return item.PermissionId
 	})
-	// 删除
+	// delete
 	if err := db.Unscoped().Where("knowledge_id = ?", knowledgeId).
 		Where("permission_id IN ?", permissionIdList).
 		Delete(&model.KnowledgePermission{}).Error; err != nil {
@@ -239,7 +239,7 @@ func batchDeletePermissionByIdList(db *gorm.DB, knowledgeId string, permissionLi
 	return batchDeleteRecordKnowledgePermission(db, permissionList)
 }
 
-// batchDeleteRecordKnowledgePermission 记录知识库权限操作，外层保证事务
+// batchDeleteRecordKnowledgePermission records knowledge base permission operations, and the outer layer guarantees transactions
 func batchDeleteRecordKnowledgePermission(db *gorm.DB, permission []*model.KnowledgePermission) error {
 	var permissionRecord []*model.KnowledgePermissionRecord
 	for _, knowledgePermission := range permission {

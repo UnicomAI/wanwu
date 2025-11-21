@@ -32,11 +32,11 @@ type RagOperationParams struct {
 }
 
 type RagMetaDataParams struct {
-	MetaId    string      `json:"meta_id"`    // 元数据id
+	MetaId    string      `json:"meta_id"`    // metadata id
 	Key       string      `json:"key"`        // key
-	Value     interface{} `json:"value"`      // 常量
-	ValueType string      `json:"value_type"` // 常量类型
-	Rule      string      `json:"rule"`       // 正则表达式
+	Value     interface{} `json:"value"`      // constant
+	ValueType string      `json:"value_type"` // constant type
+	Rule      string      `json:"rule"`       // regular expression
 }
 
 type RagChunkConfig struct {
@@ -45,9 +45,9 @@ type RagChunkConfig struct {
 }
 
 type RagImportDocParams struct {
-	DocId                 string               `json:"id"`         //文档id
-	KnowledgeName         string               `json:"categoryId"` //知识库名称
-	CategoryId            string               `json:"kb_id"`      //知识库id
+	DocId                 string               `json:"id"`         //document id
+	KnowledgeName         string               `json:"categoryId"` //Knowledge base name
+	CategoryId            string               `json:"kb_id"`      //knowledge base id
 	IsEnhanced            string               `json:"is_enhanced"`
 	UserId                string               `json:"userId"`
 	Overlap               float32              `json:"overlap" `
@@ -118,12 +118,12 @@ type MetaData struct {
 }
 
 type RagDocSegmentLabelsParams struct {
-	UserId        string   `json:"userId"`        // 发起请求的用户ID
-	KnowledgeBase string   `json:"knowledgeBase"` // 知识库的名称
-	KnowledgeId   string   `json:"kb_id"`         // 知识库的唯一ID
-	FileName      string   `json:"fileName"`      // 与chunk关联的文件名
-	ContentId     string   `json:"chunk_id"`      // 要更新标签的chunk的唯一ID
-	Labels        []string `json:"labels"`        // 需要为该chunk关联的标签列表
+	UserId        string   `json:"userId"`        // The user ID that initiated the request
+	KnowledgeBase string   `json:"knowledgeBase"` // The name of the knowledge base
+	KnowledgeId   string   `json:"kb_id"`         // The unique ID of the knowledge base
+	FileName      string   `json:"fileName"`      // The file name associated with the chunk
+	ContentId     string   `json:"chunk_id"`      // The unique ID of the chunk whose label is to be updated
+	Labels        []string `json:"labels"`        // List of tags that need to be associated with this chunk
 }
 
 type UpdateChunkItem struct {
@@ -181,7 +181,7 @@ func (sa *DocUrlRespSafeArray) Len() int {
 	return len(sa.data)
 }
 
-// RagImportDoc 导入具体文档
+// RagImportDoc imports specific documents
 func RagImportDoc(ctx context.Context, ragImportDocParams *RagImportDocParams) error {
 	return mq.SendMessage(&RagOperationParams{
 		Operation: "add",
@@ -190,7 +190,7 @@ func RagImportDoc(ctx context.Context, ragImportDocParams *RagImportDocParams) e
 	}, config.GetConfig().Kafka.Topic)
 }
 
-// RagBuildKnowledgeGraph 构建知识库图谱
+// RagBuildKnowledgeGraph builds a knowledge base graph
 func RagBuildKnowledgeGraph(ctx context.Context, ragImportDocParams *RagImportDocParams) error {
 	return mq.SendMessage(&RagOperationParams{
 		Operation: "add",
@@ -199,7 +199,7 @@ func RagBuildKnowledgeGraph(ctx context.Context, ragImportDocParams *RagImportDo
 	}, config.GetConfig().Kafka.KnowledgeGraphTopic)
 }
 
-// RagImportUrlDoc 导入url文档
+// RagImportUrlDoc import url document
 func RagImportUrlDoc(ctx context.Context, ragImportDocParams *RagImportUrlDocParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.UrlImportEndpoint + ragServer.DocUrlImportUri
@@ -231,7 +231,7 @@ func RagImportUrlDoc(ctx context.Context, ragImportDocParams *RagImportUrlDocPar
 	return nil
 }
 
-// RagDeleteDoc 删除具体文档
+// RagDeleteDoc deletes specific documents
 func RagDeleteDoc(ctx context.Context, ragDeleteDocParams *RagDeleteDocParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.DocDeleteUri
@@ -263,7 +263,7 @@ func RagDeleteDoc(ctx context.Context, ragDeleteDocParams *RagDeleteDocParams) e
 	return nil
 }
 
-// RagDocMeta 更新文档元数据
+// RagDocMeta updates document metadata
 func RagDocMeta(ctx context.Context, ragDocTagParams *RagDocMetaParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.DocTagUri
@@ -292,7 +292,7 @@ func RagDocMeta(ctx context.Context, ragDocTagParams *RagDocMetaParams) error {
 	return nil
 }
 
-// BatchRagDocMeta 更新文档元数据
+// BatchRagDocMeta updates document metadata
 func BatchRagDocMeta(ctx context.Context, batchRagDocTagParams *BatchRagDocMetaParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.UpdateFileMetasUri
@@ -345,7 +345,7 @@ func BatchRagDocUrlAnalysis(ctx context.Context, urlList []string) ([]*DocUrlRes
 	return resultArray.data, nil
 }
 
-// RagDocUrlAnalysis 文档url解析
+// RagDocUrlAnalysis document url analysis
 func RagDocUrlAnalysis(ctx context.Context, docUrlParams *DocUrlParams) (*DocUrlResp, error) {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.UrlAnalysisEndpoint + ragServer.DocUrlAnalysisUri
@@ -378,7 +378,7 @@ func RagDocUrlAnalysis(ctx context.Context, docUrlParams *DocUrlParams) (*DocUrl
 	return resp, nil
 }
 
-// RagDocSegmentLabels 更新文档切片标签
+// RagDocSegmentLabels updates document slice labels
 func RagDocSegmentLabels(ctx context.Context, ragDocSegLabelsParams *RagDocSegmentLabelsParams) error {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.DocSegmentUpdateLabelsUri
@@ -407,7 +407,7 @@ func RagDocSegmentLabels(ctx context.Context, ragDocSegLabelsParams *RagDocSegme
 	return nil
 }
 
-// RebuildSplitType 转换分段方法
+// RebuildSplitType conversion split method
 func RebuildSplitType(segmentMethod string) string {
 	if segmentMethod == model.ParentSegmentMethod {
 		return SplitTypeParent
@@ -425,7 +425,7 @@ func RebuildChildChunkConfig(segmentMethod string, subMaxSplitter int, subSplitt
 	}
 }
 
-// RebuildSegmentType 转换分段类型
+// RebuildSegmentType Convert segment type
 func RebuildSegmentType(segmentType string, segmentMethod string) string {
 	if segmentMethod == model.ParentSegmentMethod {
 		return SplitByDesign

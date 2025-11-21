@@ -1,20 +1,20 @@
-# 使用 rag-base 镜像作为基础镜像
+# 使用 rag-base 镜像作为基础镜像 [EN] Use rag-base image as base image
 FROM crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/rag-base:v1.1.1-20251114
 
-# 设置工作目录
+# 设置工作目录 [EN] Set working directory
 WORKDIR /model_extend
 
-# 1. 创建目录结构
+# 1. 创建目录结构 [EN] 1. Create directory structure
 RUN mkdir -p /model_extend/
 
-# 2. 复制本地文件
+# 2. 复制本地文件 [EN] 2. Copy local files
 COPY ./rag/rag_open_source/rag_core /model_extend/rag_core
 COPY ./rag/rag_open_source/minio_project /model_extend/minio_project
 COPY ./rag/rag_open_source/rag_es_server_unify /model_extend/rag_es_server_unify
 COPY ./rag/rag_open_source/start.sh /model_extend/start.sh
 
-# 4. 设置脚本权限
+# 4. 设置脚本权限 [EN] 4. Set script permissions
 RUN chmod +x /model_extend/start.sh
 
-# 5. 容器启动命令
+# 5. 容器启动命令 [EN] 5. Container startup command
 CMD ["/bin/bash", "/model_extend/start.sh"]

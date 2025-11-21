@@ -38,12 +38,12 @@
             ></i>
           </div>
           <div class="node-status-content" v-else>
-            <!--错误提示-->
+            <!--ErrorTip-->
             <div
               class="params node-message"
               v-if="nodeData.node_status === 'failed'"
             >
-              错误信息: <pre v-html="nodeData.res_inputs"></pre>
+              ErrorInformation: <pre v-html="nodeData.res_inputs"></pre>
             </div>
             <!--正常输出-->
             <div v-else>
@@ -64,7 +64,7 @@
         </div>
       </div>
     </div>
-    <el-empty class="noData" v-if="isInit" description="点击左侧 '运行' 按钮，开始运行工作流"></el-empty>
+    <el-empty class="noData" v-if="isInit" description="click左侧 '运row' Button，start运rowWorkflow"></el-empty>
   </div>
 </template>
 
@@ -79,11 +79,11 @@ export default {
     return {
       workflowId: '',
       statusObj: {
-        success: "成功",
-        failed: "失败",
-        init: "等待",
-        loading: "运行中",
-        running_skip: "未运行",
+        success: "Success",
+        failed: "Failed",
+        init: "waiting",
+        loading: "Running",
+        running_skip: "not运row",
       },
       isInit: true,
       nodeData: {
@@ -99,7 +99,7 @@ export default {
   methods: {
     preCopy(val) {
       this.$copy(JSON.stringify(val));
-      this.$message.success("内容已复制到粘贴板");
+      this.$message.success("Content copied to clipboard");
     },
     async doDebug(data) {
       this.nodeData.node_status = 'loading'

@@ -10,11 +10,11 @@ import (
 // GetKnowledgeTagSelect
 //
 //	@Tags			knowledge.tag
-//	@Summary		查询知识库标签列表
-//	@Description	查询知识库标签列表
+//	@Summary Query the knowledge base tag list
+//	@Description Query the knowledge base tag list
 //	@Security		JWT
 //	@Accept			json
-//	@Param			data	query	request.KnowledgeTagSelectReq	true	"查询知识库请求参数"
+//	@Param data query request.KnowledgeTagSelectReq true "Query knowledge base request parameters"
 //	@Produce		json
 //	@Success		200	{object}	response.Response{data=response.KnowledgeTagListResp}
 //	@Router			/knowledge/tag [get]
@@ -31,11 +31,11 @@ func GetKnowledgeTagSelect(ctx *gin.Context) {
 // SelectKnowledgeTagBindCount
 //
 //	@Tags			knowledge.tag
-//	@Summary		查询标签绑定知识库数量
-//	@Description	查询标签绑定知识库数量
+//	@Summary Query the number of tag binding knowledge bases
+//	@Description Query the number of tag binding knowledge bases
 //	@Security		JWT
 //	@Accept			json
-//	@Param			data	query	request.KnowledgeTagBindCountReq	true	"查询tag绑定数量参数请求参数"
+//	@Param data query request.KnowledgeTagBindCountReq true "Query tag binding number parameter request parameter"
 //	@Produce		json
 //	@Success		200	{object}	response.Response{data=response.KnowledgeTagListResp}
 //	@Router			/knowledge/tag/bind/count [get]
@@ -52,12 +52,12 @@ func SelectKnowledgeTagBindCount(ctx *gin.Context) {
 // CreateKnowledgeTag
 //
 //	@Tags			knowledge.tag
-//	@Summary		创建知识库标签
-//	@Description	创建知识库标签
+//	@Summary Create knowledge base tags
+//	@Description creates a knowledge base tag
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CreateKnowledgeTagReq	true	"创建知识库标签请求参数"
+//	@Param data body request.CreateKnowledgeTagReq true "Create knowledge base tag request parameters"
 //	@Success		200		{object}	response.Response{data=response.CreateKnowledgeTagResp}
 //	@Router			/knowledge/tag [post]
 func CreateKnowledgeTag(ctx *gin.Context) {
@@ -73,12 +73,12 @@ func CreateKnowledgeTag(ctx *gin.Context) {
 // UpdateKnowledgeTag
 //
 //	@Tags			knowledge.tag
-//	@Summary		修改知识库标签
-//	@Description	修改知识库标签
+//	@Summary Modify knowledge base tags
+//	@Description Modify knowledge base tags
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.UpdateKnowledgeTagReq	true	"修改知识库标签请求参数"
+//	@Param data body request.UpdateKnowledgeTagReq true "Modify knowledge base tag request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/knowledge/tag [put]
 func UpdateKnowledgeTag(ctx *gin.Context) {
@@ -94,12 +94,12 @@ func UpdateKnowledgeTag(ctx *gin.Context) {
 // DeleteKnowledgeTag
 //
 //	@Tags			knowledge.tag
-//	@Summary		删除知识库标签
-//	@Description	删除知识库标签
+//	@Summary Remove knowledge base tag
+//	@Description Delete knowledge base tag
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.DeleteKnowledgeTagReq	true	"删除知识库标签请求参数"
+//	@Param data body request.DeleteKnowledgeTagReq true "Delete knowledge base tag request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/knowledge/tag [delete]
 func DeleteKnowledgeTag(ctx *gin.Context) {
@@ -115,12 +115,12 @@ func DeleteKnowledgeTag(ctx *gin.Context) {
 // BindKnowledgeTag
 //
 //	@Tags			knowledge.tag
-//	@Summary		绑定知识库标签
-//	@Description	绑定知识库标签
+//	@Summary binds knowledge base tags
+//	@Description binds knowledge base tags
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.BindKnowledgeTagReq	true	"绑定知识库标签请求参数"
+//	@Param data body request.BindKnowledgeTagReq true "Bind knowledge base tag request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/knowledge/tag/bind [post]
 func BindKnowledgeTag(ctx *gin.Context) {

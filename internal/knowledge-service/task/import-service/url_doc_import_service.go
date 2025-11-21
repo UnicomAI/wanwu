@@ -35,7 +35,7 @@ func (f UrlDocImportService) AnalyzeDoc(ctx context.Context, importTask *model.K
 func (f UrlDocImportService) CheckDoc(ctx context.Context, importTask *model.KnowledgeImportTask, docList []*model.DocInfo) ([]*CheckFileResult, error) {
 	var resultList []*CheckFileResult
 	for _, docInfo := range docList {
-		//文档重名校验
+		//Document duplicate name verification
 		checkResult, checkMessage := checkUrlFile(ctx, importTask.UserId, importTask.KnowledgeId, docInfo.DocUrl)
 		var status = model.DocInit
 		if !checkResult {
@@ -81,7 +81,7 @@ func checkUrlFile(ctx context.Context, userId string, knowledgeId string, docUrl
 func buildKnowledgeUrlDoc(importTask *model.KnowledgeImportTask, docInfo *CheckFileResult) *model.KnowledgeDoc {
 	var fileSize = docInfo.DocInfo.DocSize
 	if docInfo.DocInfo.DocSize == 0 {
-		fileSize = 10 // 10b,经bff转换后为0.01kb
+		fileSize = 10 // 10b, 0.01kb after bff conversion
 	}
 	return &model.KnowledgeDoc{
 		DocId:        generator.GetGenerator().NewID(),

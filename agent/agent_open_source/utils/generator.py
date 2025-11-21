@@ -20,7 +20,7 @@ QUERY_SHORT=10
 
 logger = logging.getLogger(__name__)
 
-# 创建 RedisClient 实例
+# Create a RedisClient instance
 #redis_client = RedisClient()
 
 config = configparser.ConfigParser()
@@ -29,7 +29,7 @@ config.read('config.ini',encoding='utf-8')
 Default_HISTORY_NUMS = int(config["AGENTS"]["Default_HISTORY_NUMS"])
 
 # def create_error_response(msg):
-#     """构造错误响应的函数，并设置状态码"""
+#     """Construct an error response function and set the status code"""
 #     return Response(json.dumps({'code': 2, 'msg': msg, 'response': ''},ensure_ascii=False), status=400, mimetype='application/json')
 def create_error_response(msg):
     """构造错误响应的函数，并设置状态码"""
@@ -75,7 +75,7 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
     else:
         history_tmp = []
     
-    # 定义全局变量，流式结束原因：0（生成中），1（正常结束），2（非正常结束，输出超过最大长度）
+    # Define global variables, reasons for streaming end: 0 (generating), 1 (normal end), 2 (abnormal end, output exceeds the maximum length)
     finish_reason = 0
 
     # llm_sucess_flag = []
@@ -133,9 +133,9 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
         
 
         if isinstance(response, requests.models.Response):
-            # http服务方式的 response，来自语言或编码模型
+            # HTTP service response, from language or encoding model
             # for line in response.iter_lines(decode_unicode=True):
-            # logger.info(f"{request_id} {query[:QUERY_SHORT]} ---> 原始大模型llm_response:\n{response.text}" ) 
+            # logger.info(f"{request_id} {query[:QUERY_SHORT]} ---> Original large model llm_response:\n{response.text}" )
             
             try:
                 for i, line in enumerate(response.iter_lines(decode_unicode=True)):
@@ -203,14 +203,14 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
     
                         else:
                             if datajson['data']['choices'][0]['finish_reason']=="stop":  
-                                # 正常结束
+                                # End normally
                                 finish_reason = 1
                             if datajson['data']['choices'][0]['finish_reason']=="length":
-                                # 长度被截断
+                                # length truncated
                                 finish_reason = 2
 
                             if datajson['data']['choices'][0]['finish_reason']=="sensitive_cancel":
-                                # 敏感词
+                                # Sensitive words
                                 finish_reason = 4
 
 
@@ -228,7 +228,7 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
                                 subjson["upload_file_url"] = upload_file_url
                                 # subjson["prompt"] = prompt
                                 # print(datajson['data']['choices'][0]['finish_reason'])
-                            # 如果是代码解释器类型 且 代码解释器反馈结果（datajson）中的gen_file_url_list不为空时，新加一段关于生成文件的markdown话术
+                            # If it is a code interpreter type and the gen_file_url_list in the code interpreter feedback result (datajson) is not empty, add a new markdown phrase about the generated file.
                                 # print(gen_file_url_list)
                                 if qa_type == 4 and len(gen_file_url_list)>0:    
                                     gen_file_url = gen_file_url_list[0]["output_file_url"]
@@ -241,7 +241,7 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
                                         complete_content = complete_content + "\n 已处理好的文件如下：\n" +  file_markdown_format
                                         incremental_content = incremental_content  + "\n 已处理好的文件如下：\n" +  file_markdown_format
                             
-                                # 在加入对话历史前将引文脚本和思考过程标签清空                                                              
+                                # Clear citation script and thought process tags before adding to conversation history
                                 subjson["response"] = clean_response_content(complete_content)
                                 subjson["gen_file_url_list"] = gen_file_url_list
                                 subjson["qa_type"] = qa_type
@@ -261,7 +261,7 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
                                     # memory_rewrite_query = {"role": "user", "content":rewrite_query}
                                     # memory_rewrite_query_response= {"role": "assistant", "content":subjson["response"]}
 
-                                    #prompt不透传给用户，只存云端
+                                    #The prompt is not transmitted transparently to the user and is only stored in the cloud.
                                     memory_rewrite_query = copy.deepcopy(subjson)                                    
                                     memory_rewrite_query["prompt"] = prompt
 
@@ -306,9 +306,9 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
                 msg_error = "当前服务端系统故障，我们将尽快解决，请您稍后重试~"
                 error_dict = extract_json(str(e))
                 msg_error = error_dict.get("msg", msg_error)
-                # 记录日志
+                # logging
                 logger.info(f"{request_id} {query[:QUERY_SHORT]}--->{msg_error}--->具体报错：{str(e)}")
-                # 生成返回结果
+                # Generate return results
                 result = {
                     "code": 0,
                     "agent_id": agent_id,
@@ -372,7 +372,7 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
                 logger.info(f"{request_id} {query[:QUERY_SHORT]}--->stream response end")
 
         else:
-            # langchain sdk返回结果
+            # langchain sdk returns results
             try:
                 for i,line in enumerate(response):   
                     if i==0 and request_begin_time :
@@ -380,7 +380,7 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
                         first_token_delay = first_token_time - request_begin_time
                         logger.info(f"{request_id} {query[:QUERY_SHORT]}--->Fisrt token delay:{first_token_delay}")
 
-                    ###区分function_call的输出
+                    ###Distinguish the output of function_call
                     if line.response_metadata.get("finish_reason", "") == "tool_calls":
                         incremental_content = f"<mcp>\n\n\n```mcp tools\n" + json.dumps(line.tool_calls,ensure_ascii= False) + "\n```\n\n"
                     elif line.type == "tool":
@@ -406,7 +406,7 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
                             "thought_inference":"",
                             "history": [],
                             "finish": finish_reason,
-                            "usage": {}, # 流式过程不必赋值
+                            "usage": {}, # Streaming process does not require assignment
                             "model": model
                         }
 
@@ -425,14 +425,14 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
                     else:
 
                         if line.response_metadata.get("finish_reason") == "stop":  
-                            # 正常结束
+                            # End normally
                             finish_reason = 1
                         if line.response_metadata.get("finish_reason") in ["length","content_filter"]:
-                            # 长度被截断
+                            # length truncated
                             finish_reason = 2
 
                         # if line.response_metadata.get("finish_reason") =="sensitive_cancel":
-                        #     # 长度被截断
+                        #     # Length is truncated
                         #     finish_reason = 4
 
                         
@@ -448,7 +448,7 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
                             # subjson["prompt"] = prompt
                             # print(datajson['data']['choices'][0]['finish_reason'])
                             # print(gen_file_url_list)    
-                            # # 在加入对话历史前将引文脚本和思考过程标签清空                                                              
+                            # # Clear the quote script and thought process tags before adding them to the conversation history
                             subjson["response"] = clean_response_content(complete_content)
                             subjson["gen_file_url_list"] = gen_file_url_list
                             subjson["qa_type"] = qa_type
@@ -515,10 +515,10 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
                 msg_error = "当前服务端系统故障，我们将尽快解决，请您稍后重试~"
                 error_dict = extract_json(str(e))
                 msg_error = error_dict.get("msg", msg_error)
-                # 记录日志
+                # logging
                 logger.info(f"{request_id} {query[:QUERY_SHORT]}--->{msg_error}--->具体报错：{str(e)}")
 
-                # 生成返回结果
+                # Generate return results
                 result = {
                     "code": 0,
                     "agent_id": agent_id,
@@ -583,9 +583,9 @@ def generate_stream_response(query, rewrite_query, prompt, response, qa_type, hi
 
     # end if response
     
-    # LLM模型输出为空    
+    # LLM model output is empty
     elif non_llm_response or non_llm_response=="":
-        #非语言模型的消息，模拟流式结果
+        #Messages from non-linguistic models, simulating streaming results
         try:
             finish_reason = 1
             if qa_type in [qa_types["ACTION"],qa_types["FUNC_CALL"]] :
@@ -705,13 +705,13 @@ def generate_non_stream_response(query, rewrite_query, prompt, llm_response, qa_
     :param non_llm_response: 非来自大模型的 response，目前仅用于文生图场景
     """
 
-    # 直接在历史记录中添加新的项
+    # Add new items directly to history
     history_tmp = history[-Default_HISTORY_NUMS:].copy() if history else []
     subjson = {}
 
     logger.info(f"llm_response:{llm_response}")
 
-    # **1. 处理 AIMessage 响应**
+    # **1. Processing AIMessage response**
     if isinstance(llm_response, AIMessage):
         if qa_type in [qa_types["ACTION"], qa_types["FUNC_CALL"]]:
             thought_inference = f"{thought_inference}\n{llm_response.content}"
@@ -769,7 +769,7 @@ def generate_non_stream_response(query, rewrite_query, prompt, llm_response, qa_
 
         return JsonResponse(result, json_dumps_params={'ensure_ascii': False})
 
-    # **2. 处理非 LLM 响应**
+    # **2. Handling non-LLM responses**
     elif non_llm_response or non_llm_response == '':
         if qa_type in [qa_types["ACTION"], qa_types["FUNC_CALL"]]:
             thought_inference = f"{thought_inference}\n{non_llm_response}"
@@ -822,7 +822,7 @@ def generate_non_stream_response(query, rewrite_query, prompt, llm_response, qa_
 
         return JsonResponse(result, json_dumps_params={'ensure_ascii': False})
 
-    # **3. 处理 HTTP 异常**
+    # **3. Handling HTTP exceptions**
     else:
         msg_error = "当前大模型服务繁忙或不可用，请稍后重试~"
         

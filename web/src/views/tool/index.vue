@@ -39,7 +39,7 @@ export default {
         const {type} = this.$route.query || {}
         this.tabActive = type
       },
-      // 深度观察监听
+      // 深度ObserveListen
       deep: true
     }
   },

@@ -10,7 +10,7 @@ Vue.use(VueI18n)
 
 const messages = {
     zh: {
-        language: '简体中文',
+        language: 'Simplified Chinese',
         ...zh,
         ...zhLocale
     },
@@ -20,10 +20,16 @@ const messages = {
         ...enLocale
     },
 }
+// Force English as default - initialize localStorage if not set or if set to Chinese
+const savedLocale = localStorage.getItem('locale')
+if (!savedLocale || savedLocale === 'zh') {
+    localStorage.setItem('locale', 'en')
+}
+
 const i18n = new VueI18n({
-    locale: localStorage.getItem('locale') || ZH, // 目前默认中文，语言类型存储到 localstorage 里
+    locale: 'en', // Always default to English
     messages
 })
 
-// 导出 messages 给切换语言的时候用
+// Export messages for language switching
 export { i18n, messages }

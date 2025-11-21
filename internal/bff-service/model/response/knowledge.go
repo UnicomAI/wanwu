@@ -14,10 +14,10 @@ type CreateKnowledgeResp struct {
 }
 
 type KnowledgeHitResp struct {
-	Prompt     string             `json:"prompt"`     //提示词列表
-	SearchList []*ChunkSearchList `json:"searchList"` //种种结果
-	Score      []float64          `json:"score"`      //打分信息
-	UseGraph   bool               `json:"useGraph"`   //是否使用知识图谱
+	Prompt     string             `json:"prompt"`     //Prompt word list
+	SearchList []*ChunkSearchList `json:"searchList"` //Various results
+	Score      []float64          `json:"score"`      //Rating information
+	UseGraph   bool               `json:"useGraph"`   //Whether to use knowledge graph
 }
 
 type RagKnowledgeResp struct {
@@ -39,19 +39,19 @@ type EmbeddingModelInfo struct {
 }
 
 type KnowledgeInfo struct {
-	KnowledgeId        string              `json:"knowledgeId"`        //知识库id
-	Name               string              `json:"name"`               //知识库名称
-	OrgName            string              `json:"orgName"`            //知识库所属名称
-	Description        string              `json:"description"`        //知识库描述
-	DocCount           int                 `json:"docCount"`           //文档数量
-	EmbeddingModelInfo *EmbeddingModelInfo `json:"embeddingModelInfo"` //embedding模型信息
-	KnowledgeTagList   []*KnowledgeTag     `json:"knowledgeTagList"`   //知识库标签列表
+	KnowledgeId        string              `json:"knowledgeId"`        //knowledge base id
+	Name               string              `json:"name"`               //Knowledge base name
+	OrgName            string              `json:"orgName"`            //Knowledge base name
+	Description        string              `json:"description"`        //Knowledge base description
+	DocCount           int                 `json:"docCount"`           //Number of documents
+	EmbeddingModelInfo *EmbeddingModelInfo `json:"embeddingModelInfo"` //embedding model information
+	KnowledgeTagList   []*KnowledgeTag     `json:"knowledgeTagList"`   //Knowledge base tag list
 	CreateUserId       string              `json:"createUserId"`
-	CreateAt           string              `json:"createAt"`       //创建时间
-	PermissionType     int32               `json:"permissionType"` //权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限
-	Share              bool                `json:"share"`          //是分享，还是私有
-	RagName            string              `json:"ragName"`        //rag名称
-	GraphSwitch        int32               `json:"graphSwitch"`    //图谱开关
+	CreateAt           string              `json:"createAt"`       //creation time
+	PermissionType     int32               `json:"permissionType"` //Permission type: 0: View permission; 10: Edit permission; 20: Authorization permission. The reason for discontinuous values ​​prevents intermediate permissions in the future. The current logic is Authorization permission > Edit permission > View permission.
+	Share              bool                `json:"share"`          //Is it shared or private?
+	RagName            string              `json:"ragName"`        //rag name
+	GraphSwitch        int32               `json:"graphSwitch"`    //Map switch
 }
 
 type KnowledgeMetaData struct {
@@ -65,7 +65,7 @@ type ChunkSearchList struct {
 	KnowledgeName    string          `json:"knowledgeName"`
 	ChildContentList []*ChildContent `json:"childContentList"`
 	ChildScore       []float64       `json:"childScore"`
-	ContentType      string          `json:"contentType"` // graph：知识图谱（文本）, text：文档分段（文本）, community_report：社区报告（markdown）
+	ContentType      string          `json:"contentType"` // graph: knowledge graph (text), text: document segmentation (text), community_report: community report (markdown)
 }
 
 type ChildContent struct {
@@ -81,7 +81,7 @@ type KnowledgeMetaItem struct {
 	MetaId        string `json:"metaId"`
 	MetaKey       string `json:"metaKey"`
 	MetaValueType string `json:"metaValueType"`
-	MetaValue     string `json:"metaValue"` // 确定值
+	MetaValue     string `json:"metaValue"` // Determine value
 }
 
 type KnowledgeMetaValueListResp struct {
@@ -91,16 +91,16 @@ type KnowledgeMetaValueListResp struct {
 type KnowledgeMetaValues struct {
 	MetaId        string   `json:"metaId"`
 	MetaKey       string   `json:"metaKey"`
-	MetaValue     []string `json:"metaValue"` // 确定值
+	MetaValue     []string `json:"metaValue"` // Determine value
 	MetaValueType string   `json:"metaValueType"`
 }
 
 type KnowledgeGraphResp struct {
-	ProcessingCount int32                 `json:"processingCount"` //处理中
-	SuccessCount    int32                 `json:"successCount"`    //成功数量
-	FailCount       int32                 `json:"failCount"`       //失败数量
-	Total           int32                 `json:"total"`           //总数
-	Graph           *KnowledgeGraphSchema `json:"graph"`           //知识图谱节点、边
+	ProcessingCount int32                 `json:"processingCount"` //Processing
+	SuccessCount    int32                 `json:"successCount"`    //number of successes
+	FailCount       int32                 `json:"failCount"`       //Number of failures
+	Total           int32                 `json:"total"`           //total
+	Graph           *KnowledgeGraphSchema `json:"graph"`           //Knowledge graph nodes and edges
 }
 
 type KnowledgeGraphSchema struct {

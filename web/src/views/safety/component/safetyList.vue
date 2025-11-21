@@ -8,7 +8,7 @@
             <img class="create-img" src="@/assets/imgs/create_icon.png" alt="" />
             <div class="create-filter"></div>
           </div>
-          <span>创建敏感词表</span>
+          <span>CreateSensitive Word Table</span>
         </div>
       </div>
       <template v-if="listData && listData.length">
@@ -97,7 +97,7 @@ export default {
       this.$emit('reloadData');
     },
     deleteItem(tableId){
-      this.$confirm('确定要删除当前词表？', this.$t('knowledgeManage.tip'), {
+      this.$confirm('ConfirmtoDeletecurrent词table？', this.$t('knowledgeManage.tip'), {
         confirmButtonText: this.$t('common.confirm.confirm'),
         cancelButtonText: this.$t('common.confirm.cancel'),
         type: "warning",

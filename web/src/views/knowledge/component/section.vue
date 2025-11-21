@@ -34,7 +34,7 @@
         <el-descriptions-item :label="$t('knowledgeManage.markSplit')">{{
           String(res.splitter).replace(/\n/g, '\\n')
         }}</el-descriptions-item>
-        <el-descriptions-item label="元数据">
+        <el-descriptions-item label="Metadata">
           <template v-if="metaDataList && metaDataList.length > 0">
             <span
                 v-for="(item, index) in metaDataList.slice(0, 3)"
@@ -47,10 +47,10 @@
               <span class="metaItem">...</span>
             </el-tooltip>
           </template>
-          <span v-else>无数据</span>
+          <span v-else>No data</span>
           <span class="el-icon-edit-outline editIcon" @click="showDatabase(metaDataList || [])" v-if="metaDataList && [10,20,30].includes(permissionType)"></span>
         </el-descriptions-item>
-        <el-descriptions-item label="元数据规则">
+        <el-descriptions-item label="Metadata Rules">
           <template v-if="metaRuleList && metaRuleList.length > 0">
             <span v-for="(item, index) in metaRuleList.slice(0, 3)" :key="index" class="metaItem">
               {{ item.metaKey }}: {{ item.metaRule }}<span v-if="index < metaRuleList.slice(0, 3).length - 1"> </span>
@@ -59,9 +59,9 @@
               <span class="metaItem">...</span>
             </el-tooltip>
           </template>
-          <span v-else>无数据</span>
+          <span v-else>No data</span>
         </el-descriptions-item>
-        <el-descriptions-item label="批量新增分段状态">
+        <el-descriptions-item label="Batch Add Segment Status">
           <span>{{res.segmentImportStatus}}</span>
         </el-descriptions-item>
       </el-descriptions>
@@ -73,7 +73,7 @@
           size="mini"
           :loading="loading.start"
           v-if="[10,20,30].includes(permissionType)"
-          >新增分段</el-button
+          >Add Segment</el-button
         >
         <el-button
           type="primary"
@@ -105,9 +105,9 @@
               <div slot="header" class="clearfix">
                 <span>
                   {{ $t('knowledgeManage.split')+":" + item.contentNum }}
-                  <span class="segment-type">#{{ item.isParent?"父子分段":"通用分段" }}</span>
+                  <span class="segment-type">#{{ item.isParent?"Parent-child Segment":"General Segment" }}</span>
                   <span class="segment-length" v-if="!item.isParent">#{{ item.content.length }}{{$t('knowledgeManage.character')}}</span>
-                  <span class="segment-child" v-if="item.childNum">#{{ item.childNum || 0 }}个子分段</span>
+                  <span class="segment-child" v-if="item.childNum">#{{ item.childNum || 0 }} child segments</span>
                 </span>
                 <div>
                   <el-switch
@@ -137,7 +137,7 @@
               <div class="tagList" v-if="[10,20,30].includes(permissionType)">
                 <span :class="['smartDate','tagList']" @click.stop="addTag(item.labels,item.contentId)" v-if="item.labels.length === 0">
                   <span class="el-icon-price-tag icon-tag"></span>
-                  创建关键词
+                  CreateKeyword
                 </span>
                 <span class="tagList-item" @click.stop="addTag(item.labels,item.contentId)" v-else>{{formattedTagNames(item.labels) }}</span>
               </div>
@@ -207,7 +207,7 @@
                 >
               </el-input>
               <div  v-if="cardObj[0]['isParent'] && [10,20,30].includes(permissionType)" style="display: flex;justify-content: flex-end;padding: 10px 0;">
-                <el-button type="primary" @click="handleSubmit"  :loading="submitLoading">保存并重新解析子分段</el-button>
+                <el-button type="primary" @click="handleSubmit"  :loading="submitLoading">Save and reparse child segments</el-button>
               </div>
               <div class="segment-list" v-if="scope.row.childContent.length > 0">
                 <el-collapse 
@@ -224,16 +224,16 @@
                       <span class="segment-badge">C-{{ index + 1 }}</span>
                       <div class="segment-actions">
                         <span v-if="!editingSegments[`${scope.row.contentId}-${index}`] && [10,20,30].includes(permissionType)" class="action-btn edit-btn" @click.stop="editSegment(scope.row, index)">
-                          <i class="el-icon-edit-outline"></i>编辑
+                          <i class="el-icon-edit-outline"></i>Edit
                         </span>
                         <span v-if="!editingSegments[`${scope.row.contentId}-${index}`] && [10,20,30].includes(permissionType)" class="action-btn delete-btn" @click.stop="deleteSegment(scope.row, index)">
-                          <i class="el-icon-delete"></i>删除
+                          <i class="el-icon-delete"></i>Delete
                         </span>
                         <span v-if="editingSegments[`${scope.row.contentId}-${index}`]" class="action-btn save-btn" @click.stop="confirmEdit(scope.row, index)">
-                          <i class="el-icon-check"></i>保存
+                          <i class="el-icon-check"></i>Save
                         </span>
                         <span v-if="editingSegments[`${scope.row.contentId}-${index}`]" class="action-btn cancel-btn" @click.stop="cancelEdit(scope.row, index)">
-                          <i class="el-icon-close"></i>取消
+                          <i class="el-icon-close"></i>Cancel
                         </span>
                       </div>
                     </template>
@@ -246,7 +246,7 @@
                           v-model="editingContent[`${scope.row.contentId}-${index}`]"
                           type="textarea"
                           :rows="3"
-                          placeholder="请输入内容"
+                          placeholder="Please enterContent"
                           class="edit-input"
                         />
                       </div>
@@ -260,8 +260,8 @@
       </div>
 
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="handleSubmit" :loading="submitLoading" v-if="!cardObj[0]['isParent']">确定</el-button>
-        <el-button type="primary" @click="createChunk(true)" v-if="cardObj[0]['isParent'] && [10,20,30].includes(permissionType)"" :disabled="submitLoading">新增子分段</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitLoading" v-if="!cardObj[0]['isParent']">Confirm</el-button>
+        <el-button type="primary" @click="createChunk(true)" v-if="cardObj[0]['isParent'] && [10,20,30].includes(permissionType)"" :disabled="submitLoading">Add Child Segment</el-button>
         <el-button type="primary" @click="handleClose" :disabled="submitLoading">{{$t('knowledgeManage.close')}}</el-button>
       </span>
     </el-dialog>
@@ -282,7 +282,7 @@ export default {
     return {
       submitLoading:false,
       oldContent:'',
-      title:'创建关键词',
+      title:'CreateKeyword',
       dialogVisible: false,
       editingSegments: {},
       editingContent: {},
@@ -381,7 +381,7 @@ export default {
       const newContent = this.editingContent[key];
       
       if (!newContent || newContent.trim() === '') {
-        this.$message.warning('内容不能为空');
+        this.$message.warning('ContentCannot be empty');
         return;
       }
       updateSegmentChild({
@@ -394,15 +394,15 @@ export default {
         parentId: row.contentId
       }).then(res => {
         if (res.code === 0) {
-          this.$message.success('更新成功');
+          this.$message.success('UpdateSuccess');
           this.handleParse();
           this.$set(this.editingSegments, key, false);
           this.$delete(this.editingContent, key);
         } else {
-          this.$message.error('更新失败');
+          this.$message.error('UpdateFailed');
         }
       }).catch(() => {
-        this.$message.error('更新失败');
+        this.$message.error('UpdateFailed');
       });
     },
     handleParse(){
@@ -414,18 +414,18 @@ export default {
       }).catch(() =>{})
     },
     deleteSegment(row, index) {
-      this.$confirm('确定要删除这个子分段吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm('ConfirmtoDelete这 child segments吗？', 'Tip', {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
         type: 'warning'
       }).then(() => {
         delSegmentChild({docId:this.obj.id,parentId:row['childContent'][index].parentId,parentChunkNo:row.contentNum,ChildChunkNoList:[row['childContent'][index].childNum]}).then(res =>{
           if(res.code === 0){
-            this.$message.success('删除成功');
+            this.$message.success('DeleteSuccess');
             this.handleParse();
           }
         }).catch(() => {
-          this.$message.error('删除失败');
+          this.$message.error('DeleteFailed');
         });
       });
     },
@@ -454,14 +454,14 @@ export default {
       const hasChanges = this.oldContent !== this.cardObj[0]['content'];
       
       if(!hasChanges){
-        this.$message.warning('无修改')
+        this.$message.warning('No changes')
         return false;
       }
       
       this.submitLoading = true;
       editSegment({content:this.cardObj[0]['content'],contentId:this.cardObj[0]['contentId'],docId:this.obj.id}).then(res =>{
         if(res.code === 0){
-          this.$message.success('操作成功');
+          this.$message.success('OperationSuccess');
             this.dialogVisible = false;
             this.submitLoading = false;
             this.getList();
@@ -481,7 +481,7 @@ export default {
     delSection(item){
       delSegment({contentId:item.contentId,docId:this.obj.id}).then(res =>{
         if(res.code === 0){
-          this.$message.success('删除成功');
+          this.$message.success('DeleteSuccess');
           this.getList();
         }
       }).catch(() =>{})

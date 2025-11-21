@@ -26,11 +26,10 @@ body,html{
   width: 100%;
   height: 100%;
   /*overflow: hidden;*/
-  /*font-family:'Microsoft YaHei', Arial, sans-serif;*/
-  font-family: 'Source Han Sans SC', 'Segoe UI';
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/*优化弹窗出现表格左移问题*/
+/* Fix Dialog appearing with Table left shift issue */
 body.el-popup-parent--hidden {
   padding-right: 0 !important;
 }
@@ -85,7 +84,7 @@ body.el-popup-parent--hidden {
   bottom: 0;
   left: 0;
 }
-/*设置乾坤创建的div高度*/
+/* Set height of div created by Qiankun */
 div[data-name]{
   height: 100%;
 }
@@ -137,7 +136,7 @@ div[data-name]{
   cursor: pointer;
 }
 
-/*默认高度自适应*/
+/* Default height auto-adapt */
 .main-content{
   height: auto;
   min-height: 100%;
@@ -146,7 +145,7 @@ div[data-name]{
   background-color: #fff;
   padding: var(--main-padding);
 }
-/*一屏显示*/
+/* Full screen display */
 .full-content{
   height: 100%;
 }

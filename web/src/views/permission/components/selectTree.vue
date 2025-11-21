@@ -76,7 +76,7 @@ export default {
     this.$refs.tree.setCheckedKeys(this.choosedValue)
   },
   methods: {
-    // 全选
+    // Select All
     handleAllChange(val){
       if (val) {
         const findChild = (data) => {
@@ -104,7 +104,7 @@ export default {
       }
       // this.$emit('handleChange', this.choosedValue)
     },
-    // 点击树形选择节点
+    // clickTree形selectNode
     handleNodeClick(node, checked) {
       const {value, label, children} = this.defaultProps
 
@@ -130,7 +130,7 @@ export default {
       }
       this.$emit('handleChange', this.choosedValue)
     },
-    // 删除单个标签
+    // DeletesingleTag
     changeValue(val) {
       this.allChecked = false
       const curObj = this.findItemByName(this.data, val)
@@ -140,7 +140,7 @@ export default {
       this.$refs.tree.setCheckedKeys([...this.choosedValue])
       // this.$emit('handleChange', this.choosedValue)
     },
-    // 递归找到符合的元素
+    // Recurse找to符合 of element
     findItemByName(items, targetName) {
       const {children, label} = this.defaultProps
       for (let i = 0; i < items.length; i++) {
@@ -157,7 +157,7 @@ export default {
         }
       }
     },
-    // 清空所有标签
+    // Empty所HasTag
     clearHandle() {
       this.allChecked = false
       this.valueName = []

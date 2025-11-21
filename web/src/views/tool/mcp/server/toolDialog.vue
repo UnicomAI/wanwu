@@ -87,19 +87,19 @@ export default {
         },
         // {
         //   value: 'agent',
-        //   name: '智能体'
+        //   name: 'Agent'
         // },
         // {
         //   value: 'workflow',
-        //   name: '工作流'
+        //   name: 'Workflow'
         // },
         // {
         //   value: 'rag',
-        //   name: '文本问答'
+        //   name: 'Text Q&A'
         // },
         // {
         //   value: 'builtin',
-        //   name: '内置工具'
+        //   name: '内置Tool'
         // },
       ]
     }

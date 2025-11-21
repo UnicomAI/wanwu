@@ -15,11 +15,11 @@ import sys
 import os
 import nltk
 current_file_path = os.path.abspath(__file__)
-# 获取当前文件所在的目录
+# Get the directory where the current file is located
 current_dir = os.path.dirname(current_file_path)
-# 添加项目根目录到 sys.path
+# Add project root directory to sys.path
 # sys.path.append(root_dir)
-# 拼接nltk_data文件夹的路径
+# Splice the path to the nltk_data folder
 nltk_data_path = os.path.join(current_dir, 'nltk_data')
 nltk.data.path.append(nltk_data_path)
 # from utils import minio_utils
@@ -29,11 +29,11 @@ app_name = os.getenv("LOG_FILE")
 logger = setup_logging(app_name,logger_name)
 logger.info(logger_name+'---------LOG_FILE：'+repr(app_name))
 ##
-# def trans_excel(filepath,sheet_name="故障清单"):
+# def trans_excel(filepath,sheet_name="Fault List"):
 #     data = pd.read_excel(filepath,sheet_name=sheet_name)
 #     with open(filepath.replace(".xlsx", ".txt"),"w") as f:
 #         for i,d in enumerate(data.values):
-#             text = str(d[2]) + "的" + str(d[3]) + "的"+ str(d[4]) + "的"+ str(d[5]) + "的"+ str(d[7]) + "的零部件" +str(d[8])+"出现"+str(d[9])+"。故障现象为" + str(d[14]) + "。根本原因为" +str(d[15])+"。它的解决方案为"+str(d[16])
+#             text = str(d[2]) + "of" + str(d[3]) + "of"+ str(d[4]) + "of"+ str(d[5]) + "of"+ str(d[7]) + "of parts" +str(d[8])+"appears"+str(d[9])+". The fault phenomenon is "+ str(d[14]) + ". The root cause is" +str(d[15])+". Its solution is "+str(d[16])
 #             f.write(text+"\n")
 #     return filepath.replace(".xlsx", ".txt")
 def trans_excel(filepath,del_columns=[]):
@@ -73,13 +73,13 @@ class ExcelLoader(TextLoader):
             for sheet_name in valid_sheet_list:
                 ws = wb[sheet_name]
                 # ws = wb.active
-                # 打印总行数
+                # Print total number of lines
                 total_rows = int(ws.max_row)
 
                 logger.info(f"=======>Total rows in '{file_name}_{sheet_name}': {total_rows}")
-                # 获取所有合并单元格的范围
+                # Get the range of all merged cells
                 merged_cells_ranges = ws.merged_cells.ranges
-                # 将合并单元格范围转换为更易于处理的格式
+                # Convert merged cell ranges to a more manageable format
                 merged_ranges = []
                 for rng in merged_cells_ranges:
                     min_row, min_col, max_row, max_col = rng.bounds
@@ -92,19 +92,19 @@ class ExcelLoader(TextLoader):
                     title = "Excel中每行信息如下:"
                 text += title + "\n"
                 for row_idx, row in enumerate(ws.iter_rows(min_row=2, max_col=len(columns), values_only=True), start=2):
-                    # 检查行是否全为空
+                    # Check if the rows are all empty
                     if all(cell is None for cell in row):
-                        continue  # 跳过空行
+                        continue  # Skip empty lines
 
 
                     for idx, cell_value in enumerate(row, start=1):
 
-                        # 检查单元格是否在合并单元格范围内
-                        column_letter = get_column_letter(idx)  # 直接使用列索引获取列字母
-                        # 检查单元格是否在合并单元格范围内
+                        # Check if cell is within merged cell range
+                        column_letter = get_column_letter(idx)  # Get column letters directly using column index
+                        # Check if cell is within merged cell range
                         cell_position = f'{column_letter}{row_idx}'
                         col_num, row_num = coordinate_from_string(cell_position)
-                        col_num_index = column_index_from_string(col_num)  # 将列字母转换为列号
+                        col_num_index = column_index_from_string(col_num)  # Convert column letters to column numbers
                         column_name = str(columns[col_num_index - 1])
                         cell_coordinate = f"{col_num}{row_num}"
                         cell = ws[cell_coordinate]
@@ -120,7 +120,7 @@ class ExcelLoader(TextLoader):
                             get_last_value = str(
                                 last_column_dict[column_name]) if column_name in last_column_dict else ""
                             text = text + column_name + ":" + get_last_value + ";"
-                            # 根据需求处理合并单元格的值
+                            # Process the values ​​of merged cells as needed
                         elif len(columns) >= col_num_index:
                             cell_process_value = '' if cell_value is None else str(cell_value).replace("\n", " ")
 
@@ -132,7 +132,7 @@ class ExcelLoader(TextLoader):
                             else:
                                 text = text + cell_process_value + ";"
                             # logger.info("========>cell_process_value=%s,text=%s" % (cell_process_value, text))
-                            # 若本单元格有值且存在跨单元格合并则缓存到历史dict中
+                            # If this cell has a value and there is a cross-cell merge, it will be cached in the historical dict.
                             if cell_value and any(min_row <= row_num <= max_row and min_col <= col_num_index <= max_col
                                                   for ((min_col, min_row), (max_col, max_row)) in merged_ranges):
                                 last_column_dict[column_name] = cell_value

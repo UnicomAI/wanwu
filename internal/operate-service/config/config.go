@@ -37,7 +37,7 @@ type MinioConfig struct {
 	Endpoint string `json:"endpoint" mapstructure:"endpoint"`
 	User     string `json:"user" mapstructure:"user"`
 	Password string `json:"password" mapstructure:"password"`
-	Bucket   string `json:"bucket" mapstructure:"bucket"` // 安全模块的 bucket
+	Bucket   string `json:"bucket" mapstructure:"bucket"` // Security module bucket
 }
 
 func LoadConfig(in string) error {

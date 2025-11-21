@@ -31,20 +31,20 @@ def init_kb():
     content_index_name = 'content_control_' + index_name
     userId = data.get("userId")
     kb_name = data.get("kb_name")
-    kb_id = data["kb_id"]  # 必须字段
-    embedding_model_id = data["embedding_model_id"]  # 必须字段
+    kb_id = data["kb_id"]  # Required fields
+    embedding_model_id = data["embedding_model_id"]  # Required fields
     enable_knowledge_graph = data.get("enable_knowledge_graph", False)
     userId_kb_names = []
     dense_dim = 1024
     try:
         judge_time1 = time.time()
 
-        es_ops.create_index_if_not_exists(content_index_name, mappings=es_mapping.cc_mappings)  # 确保 主控表 已创建
-        es_ops.create_index_if_not_exists(KBNAME_MAPPING_INDEX, mappings=es_mapping.uk_mappings)  # 确保 KBNAME_MAPPING_INDEX 已创建
+        es_ops.create_index_if_not_exists(content_index_name, mappings=es_mapping.cc_mappings)  # Make sure the master table is created
+        es_ops.create_index_if_not_exists(KBNAME_MAPPING_INDEX, mappings=es_mapping.uk_mappings)  # Make sure KBNAME_MAPPING_INDEX is created
         is_exists = es_ops.create_index_if_not_exists(index_name, mappings=es_mapping.mappings)
-        if is_exists:  # 如果之前创建过了，则查询是否有 kb_name
-            # kb_names = es_ops.get_kb_name_list(index_name) # 不使用
-            kb_names = es_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
+        if is_exists:  # If it has been created before, query whether there is kb_name
+            # kb_names = es_ops.get_kb_name_list(index_name) # Not used
+            kb_names = es_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # Get from mapping table
             logger.info(f"当前用户:{userId},共有知识库：{len(kb_names)}个，分别为{kb_names}")
             judge_time2 = time.time()
             judge_time = judge_time2 - judge_time1
@@ -62,14 +62,14 @@ def init_kb():
                 logger.info(f"--------------------------同名知识库判断时间:{s_time}---------------------------\n")
                 return jsonarr
             else:
-                # ES 需提前 init_kb 添加到 KBNAME_MAPPING_INDEX
-                # 获取当前UTC时间
+                # ES needs to be added init_kb to KBNAME_MAPPING_INDEX in advance
+                # Get the current UTC time
                 utc_now = datetime.utcnow()
-                # # 上海时区是UTC+8
+                # # Shanghai time zone is UTC+8
                 # shanghai_tz = pytz.timezone('Asia/Shanghai')
-                # # 将UTC时间转换为上海时间
+                # # Convert UTC time to Shanghai time
                 # shanghai_now = utc_now.replace(tzinfo=pytz.utc).astimezone(shanghai_tz)
-                # # 格式化上海时间为年月日时分秒
+                # # Format Shanghai time as year, month, day, hour, minute and second
                 # formatted_time = shanghai_now.strftime('%Y-%m-%d %H:%M:%S')
                 formatted_time = utc_now.strftime('%Y-%m-%d %H:%M:%S')
                 uk_data = [
@@ -78,9 +78,9 @@ def init_kb():
                      "enable_graph": enable_knowledge_graph}
                 ]
                 es_ops.bulk_add_uk_index_data(KBNAME_MAPPING_INDEX, uk_data)
-                # ====== 新建完成，需要获取一下 kb_id,看看是否新建成功 ======
+                # ====== The new creation is completed, you need to get the kb_id to see if the new creation is successful ======
                 save_kb_id = es_ops.get_uk_kb_id(userId, kb_name)
-                if save_kb_id != kb_id:  # 新建失败，返回错误
+                if save_kb_id != kb_id:  # The new creation failed and an error was returned.
                     result = {
                         "code": 1,
                         "message": "ini知识库失败，ES写入失败",
@@ -88,7 +88,7 @@ def init_kb():
                     jsonarr = json.dumps(result, ensure_ascii=False)
                     logger.info(f"当前用户:{userId},知识库:{kb_name},ini知识库的接口返回结果为：{jsonarr}")
                     return jsonarr
-                # 新建成功，返回
+                # Created successfully, return
                 logger.info(f"当前用户:{userId},知识库:{kb_name},save_kb_id:{save_kb_id}")
                 result = {
                     "code": 0,
@@ -98,25 +98,25 @@ def init_kb():
                 logger.info(f"当前用户:{userId},知识库:{kb_name},ini知识库的接口返回结果为：{jsonarr}")
                 return jsonarr
         else:
-            # ES 需提前 init_kb 添加到 KBNAME_MAPPING_INDEX
-            # 获取当前UTC时间
+            # ES needs to be added init_kb to KBNAME_MAPPING_INDEX in advance
+            # Get the current UTC time
             utc_now = datetime.utcnow()
-            # # 上海时区是UTC+8
+            # # Shanghai time zone is UTC+8
             # shanghai_tz = pytz.timezone('Asia/Shanghai')
-            # # 将UTC时间转换为上海时间
+            # # Convert UTC time to Shanghai time
             # shanghai_now = utc_now.replace(tzinfo=pytz.utc).astimezone(shanghai_tz)
-            # # 格式化上海时间为年月日时分秒
+            # # Format Shanghai time as year, month, day, hour, minute and second
             # formatted_time = shanghai_now.strftime('%Y-%m-%d %H:%M:%S')
             formatted_time = utc_now.strftime('%Y-%m-%d %H:%M:%S')
-            # ES 无需提前 init_kb kb_name,直接添加一条 kb_name 记录
+            # ES does not need to init_kb kb_name in advance, directly add a kb_name record
             uk_data = [
                 {"index_name": index_name, "userId": userId, "kb_name": kb_name,
                  "creat_time": formatted_time, "kb_id": kb_id, "embedding_model_id": embedding_model_id}
             ]
             es_ops.bulk_add_uk_index_data(KBNAME_MAPPING_INDEX, uk_data)
-            # ====== 新建完成，需要获取一下 kb_id,看看是否新建成功 ======
+            # ====== The new creation is completed, you need to get the kb_id to see if the new creation is successful ======
             save_kb_id = es_ops.get_uk_kb_id(userId, kb_name)
-            if save_kb_id != kb_id:  # 新建失败，返回错误
+            if save_kb_id != kb_id:  # The new creation failed and an error was returned.
                 result = {
                     "code": 1,
                     "message": "ini知识库失败，ES写入失败",
@@ -124,7 +124,7 @@ def init_kb():
                 jsonarr = json.dumps(result, ensure_ascii=False)
                 logger.info(f"当前用户:{userId},知识库:{kb_name},ini知识库的接口返回结果为：{jsonarr}")
                 return jsonarr
-            # 新建成功，返回
+            # Created successfully, return
             logger.info(f"当前用户:{userId},知识库:{kb_name},save_kb_id:{save_kb_id}")
             result = {
                 "code": 0,
@@ -157,34 +157,34 @@ def add_vector_data():
     embedding_model_id = es_ops.get_uk_kb_emb_model_id(userId, kb_name)
     doc_list = data.get("data")
     userId_kb_names = []
-    cc_doc_list = []  # content主控表的数据
+    cc_doc_list = []  # Content master table data
     cc_duplicate_list = []
-    if not kb_id:  # 如果没有传入 kb_id,则从映射表中获取
-        kb_id = es_ops.get_uk_kb_id(userId, kb_name)  # 从映射表中获取 kb_id ,添加往里传 kb_id
-        if not kb_id:  # 如果映射表中没有，则返回错误
+    if not kb_id:  # If kb_id is not passed in, it will be obtained from the mapping table
+        kb_id = es_ops.get_uk_kb_id(userId, kb_name)  # Get kb_id from the mapping table, add and pass kb_id in
+        if not kb_id:  # If it is not found in the mapping table, an error is returned.
             result = {
                 "code": 1,
                 "message": f"{kb_name}知识库不存在"
             }
             jsonarr = json.dumps(result, ensure_ascii=False)
             return jsonarr
-    # # **************** 校验 kb_name 是否已经初始化过 ****************
-    # userId_kb_ids = es_ops.get_uk_kb_id_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
+    # # **************** Verify whether kb_name has been initialized ******************
+    # userId_kb_ids = es_ops.get_uk_kb_id_list(KBNAME_MAPPING_INDEX, userId) # Get from the mapping table
     # if kb_id not in userId_kb_ids:
     #     result = {
     #         "code": 1,
-    #         "message": f"{kb_id}知识库不存在"
+    #         "message": f"{kb_id} knowledge base does not exist"
     #     }
     #     jsonarr = json.dumps(result, ensure_ascii=False)
-    #     logger.info(f"{userId},/rag/kn/add的接口返回结果为：{jsonarr},userId_kb_names:{userId_kb_ids}")
+    #     logger.info(f"{userId},/rag/kn/add interface return result is: {jsonarr},userId_kb_names:{userId_kb_ids}")
     #     return jsonarr
-    # # **************** 校验 kb_name 是否已经初始化过 ****************
-    # ========= 将 content 主控表数据过滤好 =============
+    # # **************** Verify whether kb_name has been initialized ******************
+    # ========= Filter the content master table data =============
     for doc in copy.deepcopy(doc_list):
         cc_str = str(doc["content"]) + doc["file_name"] + str(doc["meta_data"]["chunk_current_num"])
         if cc_str not in cc_duplicate_list:
-            doc.pop("embedding_content")  # 去掉不需要的字段
-            doc["status"] = True  # 初始化启停状态
+            doc.pop("embedding_content")  # Remove unnecessary fields
+            doc["status"] = True  # Initialize start and stop status
             if "is_parent" in doc:
                 doc["is_parent"] = True
                 doc["child_chunk_total_num"] = doc["meta_data"]["child_chunk_total_num"]
@@ -192,12 +192,12 @@ def add_vector_data():
                 doc["meta_data"].pop("child_chunk_total_num")
             cc_doc_list.append(doc)
             cc_duplicate_list.append(cc_str)
-    # ========= 将 content 主控表数据过滤好 =============
+    # ========= Filter the content master table data =============
     for doc in doc_list:
-        doc.pop("labels", None)  # 去掉不需要的字段, labels 只写content 主控表
+        doc.pop("labels", None)  # Remove unnecessary fields, labels and only write the content master table
 
     try:
-        # ========= 将 embedding_content 编码好向量 =============
+        # ========= Encode embedding_content into vector =============
         content_vector_exist = False
         mapping_properties = {}
         for batch_doc in batch_list(doc_list, batch_size=EMBEDDING_BATCH_SIZE):
@@ -205,7 +205,7 @@ def add_vector_data():
             dense_vector_dim = len(res["result"][0]["dense_vec"]) if res["result"] else 1024
             field_name = f"q_{dense_vector_dim}_content_vector"
             if dense_vector_dim == 1024:
-                # 兼容老索引，避免创建两个1024 dim的向量字段
+                # Compatible with old indexes to avoid creating two 1024 dim vector fields
                 if not mapping_properties:
                     content_vector_exist, mapping_properties = es_ops.is_field_exist(index_name, "content_vector")
                 if content_vector_exist:
@@ -216,11 +216,11 @@ def add_vector_data():
                 if len(batch_doc) != len(res["result"]):
                     raise RuntimeError(f"Error getting embeddings:{batch_doc}")
                 x[field_name] = res["result"][i]["dense_vec"]
-        # ========= 将 embedding_content 编码好向量 =============
-        es_result = es_ops.bulk_add_index_data(index_name, kb_id, doc_list)  # 注意 存储的时候传入 kb_id
+        # ========= Encode embedding_content into vector =============
+        es_result = es_ops.bulk_add_index_data(index_name, kb_id, doc_list)  # Note that kb_id is passed in when storing
         logger.info(f"{es_result}")
-        es_cc_result = es_ops.bulk_add_cc_index_data(content_index_name, kb_id, cc_doc_list)  # 注意 存储的时候传入 kb_id
-        if es_result["success"] and es_cc_result["success"]:  # bulk_add_index_data 成功了则返回
+        es_cc_result = es_ops.bulk_add_cc_index_data(content_index_name, kb_id, cc_doc_list)  # Note that kb_id is passed in when storing
+        if es_result["success"] and es_cc_result["success"]:  # bulk_add_index_data returns if successful
             result = {
                 "code": 0,
                 "message": "success"
@@ -228,7 +228,7 @@ def add_vector_data():
             jsonarr = json.dumps(result, ensure_ascii=False)
             logger.info(f"当前用户:{userId},知识库:{kb_name},add的接口返回结果为：{jsonarr}")
             return jsonarr
-        else:  # bulk_add_index_data 报错了则返回错误信息
+        else:  # If bulk_add_index_data reports an error, it will return error information.
             result = {
                 "code": 1,
                 "message": es_result.get("error", "") + es_cc_result.get("error", "")
@@ -255,8 +255,8 @@ def get_kb_info():
     userId = data.get("userId")
     kb_name = data.get("kb_name")
     try:
-        # ******** 先检查 是否有新建 index ***********
-        es_ops.create_index_if_not_exists(KBNAME_MAPPING_INDEX, mappings=es_mapping.uk_mappings)  # 确保 KBNAME_MAPPING_INDEX 已创建
+        # ******** First check whether there is a new index *************
+        es_ops.create_index_if_not_exists(KBNAME_MAPPING_INDEX, mappings=es_mapping.uk_mappings)  # Make sure KBNAME_MAPPING_INDEX is created
         kb_info = es_ops.get_uk_kb_info(userId, kb_name)
         logger.info(f"当前用户:{userId},知识库:{kb_name}, kb_info: {kb_info}")
         result = {
@@ -285,12 +285,12 @@ def list_kb_names():
     index_name = INDEX_NAME_PREFIX + data.get('userId')
     userId = data.get("userId")
     try:
-        # ******** 先检查 是否有新建 index ***********
-        es_ops.create_index_if_not_exists(KBNAME_MAPPING_INDEX, mappings=es_mapping.uk_mappings)  # 确保 KBNAME_MAPPING_INDEX 已创建
+        # ******** First check whether there is a new index *************
+        es_ops.create_index_if_not_exists(KBNAME_MAPPING_INDEX, mappings=es_mapping.uk_mappings)  # Make sure KBNAME_MAPPING_INDEX is created
         is_exists = es_ops.create_index_if_not_exists(index_name, mappings=es_mapping.mappings)
-        # ******** 先检查 是否有新建 index ***********
-        # userId_kb_names = es_ops.get_kb_name_list(index_name) # 不使用此方式
-        userId_kb_names = es_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
+        # ******** First check whether there is a new index *************
+        # userId_kb_names = es_ops.get_kb_name_list(index_name) # Do not use this method
+        userId_kb_names = es_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # Get from mapping table
         logger.info(f"/rag/kn/list_kb_names:用户{index_name}共有{len(userId_kb_names)}个知识库")
         result = {
             "code": 0,
@@ -319,13 +319,13 @@ def list_file_names():
     data = request.get_json()
     index_name = INDEX_NAME_PREFIX + data.get('userId')
     userId = data.get("userId")
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     kb_id = data.get("kb_id")
     try:
-        if not kb_id:  # 如果没有指定 kb_id，则从映射表中获取
-            kb_id = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
-        # **************** 校验 kb_name 是否已经初始化过 ****************
-        userId_kb_ids = es_ops.get_uk_kb_id_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
+        if not kb_id:  # If kb_id is not specified, it is obtained from the mapping table
+            kb_id = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
+        # **************** Verify whether kb_name has been initialized ****************
+        userId_kb_ids = es_ops.get_uk_kb_id_list(KBNAME_MAPPING_INDEX, userId)  # Get from mapping table
         if kb_id not in userId_kb_ids:
             result = {
                 "code": 1,
@@ -334,7 +334,7 @@ def list_file_names():
             jsonarr = json.dumps(result, ensure_ascii=False)
             logger.info(f"{userId},/rag/kn/list_file_names的接口返回结果为：{jsonarr},userId_kb_names:{userId_kb_ids}")
             return jsonarr
-        # **************** 校验 kb_name 是否已经初始化过 ****************
+        # **************** Verify whether kb_name has been initialized ****************
         file_names = es_ops.get_file_name_list(index_name, kb_id)
         logger.info(f"用户{index_name}的知识库{kb_id}共有{len(file_names)}个文件")
         result = {
@@ -365,12 +365,12 @@ def list_file_names_after_filtering():
     data = request.get_json()
     index_name = INDEX_NAME_PREFIX + data.get('userId')
     userId = data.get("userId")
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     kb_id = data.get("kb_id")
     filtering_conditions = data.get("filtering_conditions")
     try:
-        if not kb_id:  # 如果没有指定 kb_id，则从映射表中获取
-            kb_id = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        if not kb_id:  # If kb_id is not specified, it is obtained from the mapping table
+            kb_id = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(
             f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_id为:{kb_id}, filtering_conditions: {filtering_conditions}")
 
@@ -411,11 +411,11 @@ def list_file_download_links():
     data = request.get_json()
     index_name = INDEX_NAME_PREFIX + data.get('userId')
     userId = data.get("userId")
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     kb_id = data.get("kb_id")
     try:
-        if not kb_id:  # 如果没有指定 kb_id，则从映射表中获取
-            kb_id = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        if not kb_id:  # If kb_id is not specified, it is obtained from the mapping table
+            kb_id = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         file_names = es_ops.get_file_download_link_list(index_name, kb_id)
         logger.info(f"用户{index_name}的知识库{kb_id}共有{len(file_names)}个文件的下载链接")
         result = {
@@ -460,9 +460,9 @@ def es_knn_search():
     logger.info(f"用户:{index_name},请求查询的kb_names为:{display_kb_names},embedding_model_id:{embedding_model_id}")
     logger.info(f"用户请求的query为:{query}")
     try:
-        # ============= 先检查 kb_names 是不是都存在 =============
-        # exists_kb_names = es_ops.get_kb_name_list(index_name) # 不使用
-        exists_kb_names = es_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
+        # ============= First check if kb_names all exist =============
+        # exists_kb_names = es_ops.get_kb_name_list(index_name) # Not used
+        exists_kb_names = es_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # Get from mapping table
         filtering_conditions = {}
         for condition in metadata_filtering_conditions:
             kb_name = condition["filtering_kb_name"]
@@ -478,9 +478,9 @@ def es_knn_search():
                 jsonarr = json.dumps(result, ensure_ascii=False)
                 logger.info(f"\n向量库检索的接口返回结果为：{jsonarr}")
                 return jsonarr
-            # ======== kb_name 是存在的，则往 kb_names 里添加=======
+            # ======== kb_name exists, then add it to kb_names =======
             kb_id = es_ops.get_uk_kb_id(userId, kb_name)
-            kb_names.append(kb_id)  # 从映射表中获取 kb_id ，这是真正的名字
+            kb_names.append(kb_id)  # Get kb_id from the mapping table, which is the real name
             kb_id_2_kb_name[kb_id] = kb_name
             if kb_name in filtering_conditions:
                 condition = filtering_conditions[kb_name]
@@ -505,14 +505,14 @@ def es_knn_search():
 
         if meta_filter_file_name_list:
             filter_file_name_list = filter_file_name_list + meta_filter_file_name_list
-        # ============= 先检查 kb_names 是不是都存在 =============
-        # ============= 开始检索召回 ===============
+        # ============= First check if kb_names all exist =============
+        # ============= Start retrieval and recall ===============
         result_dict = es_ops.search_data_knn_recall(index_name, kb_names, query, top_k, min_score,
                                                     filter_file_name_list=filter_file_name_list,
                                                     embedding_model_id=embedding_model_id)
         search_list = result_dict["search_list"]
         scores = result_dict["scores"]
-        for item in search_list:  # 将 kb_id 转换为 kb_name
+        for item in search_list:  # Convert kb_id to kb_name
             item["kb_name"] = kb_id_2_kb_name[item["kb_name"]]
         result = {
             "code": 0,
@@ -543,18 +543,18 @@ def del_kb():
     data = request.get_json()
     index_name = INDEX_NAME_PREFIX + data.get('userId')
     userId = data.get("userId")
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     content_index_name = 'content_control_' + index_name
     file_index_name = 'file_control_' + index_name
     community_report_name = 'community_report_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         es_result = es_ops.delete_data_by_kbname(index_name, kb_name)
-        es_cc_result = es_ops.delete_data_by_kbname(content_index_name, kb_name)  # 主控表也需要删除
+        es_cc_result = es_ops.delete_data_by_kbname(content_index_name, kb_name)  # The master control table also needs to be deleted
         es_file_result = es_ops.delete_data_by_kbname(file_index_name, kb_name)
-        es_uk_result = es_ops.delete_uk_data_by_kbname(userId, display_kb_name)  # uid索引映射表需要删除,传display_kb_name
+        es_uk_result = es_ops.delete_uk_data_by_kbname(userId, display_kb_name)  # The uid index mapping table needs to be deleted, pass display_kb_name
         es_cr_result = es_ops.delete_data_by_kbname(community_report_name, kb_name)
-        if es_result["success"] and es_cc_result["success"] and es_uk_result["success"] and es_file_result["success"] and es_cr_result["success"]:  # delete_data_by_kbname 成功了则返回
+        if es_result["success"] and es_cc_result["success"] and es_uk_result["success"] and es_file_result["success"] and es_cr_result["success"]:  # delete_data_by_kbname returns if successful
             logger.info(f"用户{index_name},对应的{kb_name}记录删除成功")
             result = {
                 "code": 0,
@@ -592,26 +592,26 @@ def del_files():
     data = request.get_json()
     index_name = INDEX_NAME_PREFIX + data.get('userId')
     userId = data.get("userId")
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     file_names = data.get("file_names")
     content_index_name = 'content_control_' + index_name
     file_index_name = 'file_control_' + index_name
 
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
 
-        # # =============== 一步删除，不使用 ===================
+        # # =============== Delete in one step, do not use ===================
         # es_result = es_ops.delete_data_by_kbname_file_names(index_name, kb_name, file_names)
-        # # =============== 一步删除，不使用 ===================
+        # # =============== Delete in one step, do not use ===================
 
-        # ********* 单独删除，获取每一个文件状态
+        # ********* Delete individually and get the status of each file
         success = []
         failed = []
         for file in file_names:
             es_result = es_ops.delete_data_by_kbname_file_name(index_name, kb_name, file)
             es_cc_result = es_ops.delete_data_by_kbname_file_name(content_index_name, kb_name, file)
             es_file_result = es_ops.delete_data_by_kbname_file_name(file_index_name, kb_name, file)
-            if es_result["success"] and es_cc_result["success"] and es_file_result["success"]:  # delete_data_by_kbname_file_names 成功了则返回
+            if es_result["success"] and es_cc_result["success"] and es_file_result["success"]:  # delete_data_by_kbname_file_names returns if successful
                 logger.info(f"当前用户{index_name}的知识库{kb_name}删除的文档为：{file}")
                 success.append(file)
             else:
@@ -626,7 +626,7 @@ def del_files():
                     f"当前用户:{userId},知识库:{kb_name},file_names:{file_names},知识库删除的接口返回结果为：{jsonarr}")
                 return jsonarr
 
-        # ======== 没有报错，则返回成功 ========
+        # ======== If no error is reported, success will be returned ========
         failed = [file for file in file_names if file not in success]
         logger.info(f"----------当前用户:{userId},知识库{kb_name}完成{file_names}的delete--------------")
         result = {
@@ -659,13 +659,13 @@ def get_content_list():
     data = request.get_json()
     index_name = INDEX_NAME_PREFIX + data.get('userId')
     userId = data.get("userId")
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     file_name = data.get("file_name")
     page_size = data.get("page_size")
     search_after = data.get("search_after")
     content_type = data.get("content_type", "text")
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(
             f"用户:{userId},请求的kb_name为:{kb_name},file_name:{file_name},page_size:{page_size},search_after:{search_after}")
         searched_index_name = ""
@@ -707,11 +707,11 @@ def get_child_content_list():
     data = request.get_json()
     index_name = INDEX_NAME_PREFIX + data.get('userId')
     userId = data.get("userId")
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     file_name = data.get("file_name")
     chunk_id = data.get("chunk_id")
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(
             f"用户:{userId},请求的kb_name为:{kb_name},file_name:{file_name},chunk_id:{chunk_id}")
         content_result = es_ops.get_child_contents(index_name, kb_name, chunk_id)
@@ -742,7 +742,7 @@ def update_child_chunk():
     data = request.get_json()
     userId = data.get("userId")
     index_name = INDEX_NAME_PREFIX + userId
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     embedding_model_id = es_ops.get_uk_kb_emb_model_id(userId, display_kb_name)
     snippet_index_name = SNIPPET_INDEX_NAME_PREFIX + userId.replace('-', '_')
     chunk_id = data.get("chunk_id")
@@ -754,7 +754,7 @@ def update_child_chunk():
         index_update_data = {
             "embedding_content": child_content,
         }
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name}, chunk_id: {chunk_id}, "
                     f"chunk_current_num: {chunk_current_num}, child_chunk: {child_chunk}")
 
@@ -762,7 +762,7 @@ def update_child_chunk():
         dense_vector_dim = len(res["result"][0]["dense_vec"]) if res["result"] else 1024
         field_name = f"q_{dense_vector_dim}_content_vector"
         if dense_vector_dim == 1024:
-            # 兼容老索引，避免创建两个1024 dim的向量字段
+            # Compatible with old indexes to avoid creating two 1024 dim vector fields
             content_vector_exist, mapping_properties = es_ops.is_field_exist(index_name, "content_vector")
             if content_vector_exist:
                 logger.info(f"es 索引 {index_name} 字段 {field_name} 存在，回退到默认字段 content_vector")
@@ -773,7 +773,7 @@ def update_child_chunk():
             "snippet": child_content,
         }
 
-        # cc index的content id == chunk id
+        # content id of cc index == chunk id
         index_update_actions = es_ops.get_index_update_content_actions(index_name, kb_name, chunk_id, chunk_current_num,
                                                                        child_chunk_current_num, index_update_data)
 
@@ -807,14 +807,14 @@ def update_file_metas():
     data = request.get_json()
     userId = data.get("userId")
     index_name = INDEX_NAME_PREFIX + userId
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     update_datas = data.get("update_datas")
     file_index_name = 'file_control_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name}, update_datas: {update_datas}")
 
-        # 兼容老版本，没有file index的需要创建
+        # Compatible with old versions, no file index needs to be created
         es_ops.create_index_if_not_exists(file_index_name, mappings=es_mapping.mappings)
         result = meta_ops.update_file_metas(userId, kb_name, update_datas)
         json_arr = json.dumps(result, ensure_ascii=False)
@@ -838,18 +838,18 @@ def batch_delete_chunks():
     data = request.get_json()
     userId = data.get("userId")
     index_name = INDEX_NAME_PREFIX + userId
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     file_name = data.get("file_name")
     chunk_ids = data.get("chunk_ids")
     content_index_name = 'content_control_' + index_name
     snippet_index_name = SNIPPET_INDEX_NAME_PREFIX + userId.replace('-', '_')
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(
             f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, chunk_ids: {chunk_ids}")
 
         es_result = es_ops.delete_chunks_by_content_ids(index_name, kb_name, chunk_ids)
-        es_cc_result = es_ops.delete_chunks_by_content_ids(content_index_name, kb_name, chunk_ids)  # 主控表也需要删除
+        es_cc_result = es_ops.delete_chunks_by_content_ids(content_index_name, kb_name, chunk_ids)  # The master control table also needs to be deleted
         es_snippet_result = es_ops.delete_chunks_by_content_ids(snippet_index_name, kb_name, chunk_ids)
         if es_result["success"] and es_cc_result["success"] and es_snippet_result["success"]:
             logger.info(f"用户{index_name},对应的知识库{kb_name}, chunks: {chunk_ids}记录分段删除成功")
@@ -897,7 +897,7 @@ def delete_child_chunks():
     data = request.get_json()
     userId = data.get("userId")
     index_name = INDEX_NAME_PREFIX + userId
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     file_name = data.get("file_name")
     chunk_id = data.get("chunk_id")
     chunk_current_num = data.get("chunk_current_num")
@@ -905,7 +905,7 @@ def delete_child_chunks():
     snippet_index_name = SNIPPET_INDEX_NAME_PREFIX + userId.replace('-', '_')
 
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(
             f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, "
             f"chunk_id: {chunk_id}, chunk_current_num: {chunk_current_num}, "
@@ -957,13 +957,13 @@ def update_chunk_labels():
     data = request.get_json()
     userId = data.get("userId")
     index_name = INDEX_NAME_PREFIX + userId
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     file_name = data.get("file_name")
     chunk_id = data.get("chunk_id")
     labels = data.get("labels")
     content_index_name = 'content_control_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(
             f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, chunk_id: {chunk_id}, labels: {labels}")
 
@@ -993,12 +993,12 @@ def get_content_by_ids():
     data = request.get_json()
     index_name = INDEX_NAME_PREFIX + data.get('userId')
     userId = data.get("userId")
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     content_ids = data.get("content_ids")
     kb_id = data.get("kb_id")
     content_type = data.get("content_type", "text")
     try:
-        if not kb_id:  # 如果没有传入 kb_id,则从映射表中获取
+        if not kb_id:  # If kb_id is not passed in, it will be obtained from the mapping table
             kb_id = es_ops.get_uk_kb_id(userId, display_kb_name)
         logger.info(
             f"用户:{userId},请求的kb_name为:{kb_id},content_ids:{content_ids}")
@@ -1008,7 +1008,7 @@ def get_content_by_ids():
         elif content_type == "community_report":
             searched_index_name = 'community_report_' + index_name
         contents = es_ops.get_contents_by_ids(searched_index_name, kb_id, content_ids)
-        for item in contents:  # 将 kb_id 转换为 kb_name
+        for item in contents:  # Convert kb_id to kb_name
             item["kb_name"] = display_kb_name
         result = {
             "code": 0,
@@ -1040,14 +1040,14 @@ def update_content_status():
     data = request.get_json()
     index_name = INDEX_NAME_PREFIX + data.get('userId')
     userId = data.get("userId")
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     file_name = data.get("file_name")
     content_id = data.get("content_id")
     status = data.get("status")
     on_off_switch = data.get("on_off_switch", -1)
     content_index_name = 'content_control_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(
             f"用户:{userId},请求的kb_name为:{kb_name},file_name:{file_name},content_id:{content_id},status:{status},on_off_switch:{on_off_switch}")
         result = es_ops.update_cc_content_status(content_index_name, kb_name, file_name, content_id, status,
@@ -1075,11 +1075,11 @@ def get_content_status():
     data = request.get_json()
     index_name = INDEX_NAME_PREFIX + data.get('userId')
     userId = data.get("userId")
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     content_id_list = data.get("content_id_list")
     content_index_name = 'content_control_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(f"用户:{userId},请求的kb_name为:{kb_name},content_id_list:{content_id_list}")
         useful_content_id_list = es_ops.get_cc_content_status(content_index_name, kb_name, content_id_list)
         result = {'code': 0, 'message': 'success', 'data': {'useful_content_id_list': useful_content_id_list}}
@@ -1160,7 +1160,7 @@ def test():
     return Response(response, mimetype='application/json', status=200)
 
 
-# ***************** 老的 ES snippet API servers **********************
+# ******************* Old ES snippet API servers **********************
 
 @app.route('/api/v1/rag/es/bulk_add', methods=['POST'])
 def snippet_bulk_add():
@@ -1168,7 +1168,7 @@ def snippet_bulk_add():
     data = request.get_json()
     # logger.info('bulk_add request_params: '+ json.dumps(data, indent=4,ensure_ascii=False))
 
-    # index_name = data.get('index_name') 之前拼接好的，弃用
+    # index_name = data.get('index_name') spliced ​​before, deprecated
     user_id = data.get('user_id')
     user_id = user_id.replace('-', '_')
     index_name = SNIPPET_INDEX_NAME_PREFIX + user_id
@@ -1177,8 +1177,8 @@ def snippet_bulk_add():
     doc_list = data.get('doc_list')
     logger.info(f"request: bulk_add_data len:{len(doc_list)}")
     try:
-        # ========= 往里面传入的 kb_name是真正指代的 kb_id =======
-        if not kb_id:  # 如果没有传入 kb_id,则从映射表中获取
+        # ========= The kb_name passed in is the kb_id that it actually refers to =======
+        if not kb_id:  # If kb_id is not passed in, it will be obtained from the mapping table
             kb_id = es_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
         es_ops.create_index_if_not_exists(index_name, mappings=es_mapping.snippet_mappings)
         result = es_ops.snippet_bulk_add_index_data(index_name, kb_id, doc_list)
@@ -1199,13 +1199,13 @@ def add_file():
     data = request.get_json()
     user_id = data.get("user_id")
     index_name = INDEX_NAME_PREFIX + user_id
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     file_name = data.get("file_name")
     file_meta = data.get("file_meta")
     file_index_name = 'file_control_' + index_name
 
     try:
-        kb_name = es_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(user_id, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(
             f"用户:{user_id},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, file_meta: {file_meta}")
 
@@ -1232,7 +1232,7 @@ def allocate_chunks():
     data = request.get_json()
     user_id = data.get("user_id")
     index_name = INDEX_NAME_PREFIX + user_id
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     file_name = data.get("file_name")
     count = data.get("count")
     chunk_type = data.get("chunk_type", "text")
@@ -1240,7 +1240,7 @@ def allocate_chunks():
     file_index_name = 'file_control_' + index_name
     report_index_name = 'community_report_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(user_id, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(
             f"用户:{user_id},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, insert chunk count: {count}")
 
@@ -1274,13 +1274,13 @@ def allocate_child_chunks():
     data = request.get_json()
     user_id = data.get("user_id")
     index_name = INDEX_NAME_PREFIX + user_id
-    display_kb_name = data.get("kb_name")  # 显示的名字
+    display_kb_name = data.get("kb_name")  # displayed name
     file_name = data.get("file_name")
     chunk_id = data.get("chunk_id")
     count = data.get("count")
     content_index_name = 'content_control_' + index_name
     try:
-        kb_name = es_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_name = es_ops.get_uk_kb_id(user_id, display_kb_name)  # Get kb_id from the mapping table, which is the real name
         logger.info(
             f"用户:{user_id},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, insert chunk count: {count}")
 
@@ -1321,7 +1321,7 @@ def snippet_search():
     metadata_filtering_conditions = data.get("metadata_filtering_conditions", [])
     kb_id_2_kb_name = {}
     try:
-        # ========= 往里面传入的 kb_name是真正指代的 kb_id =======
+        # ========= The kb_name passed in is the kb_id that it actually refers to =======
         kb_id = es_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
         kb_id_2_kb_name[kb_id] = kb_name
 
@@ -1350,7 +1350,7 @@ def snippet_search():
         result = es_ops.search_data_text_recall(index_name, kb_id, query, top_k, min_score, search_by,
                                                 filter_file_name_list=filter_file_name_list)
         search_list = result["search_list"]
-        for item in search_list:  # 将 kb_id 转换为 kb_name
+        for item in search_list:  # Convert kb_id to kb_name
             item["kb_name"] = kb_id_2_kb_name[item["kb_name"]]
         response = json.dumps({'code': 200, 'msg': 'Success', 'result': result}, indent=4, ensure_ascii=False)
         logger.info("search response: %s", response)
@@ -1380,7 +1380,7 @@ def keyword_search():
     filter_file_name_list = data.get('filter_file_name_list', [])
     metadata_filtering_conditions = data.get('metadata_filtering_conditions', [])
     try:
-        kb_id = es_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        kb_id = es_ops.get_uk_kb_id(user_id, display_kb_name)  # Get kb_id from the mapping table, which is the real name
 
         final_conditions = []
         for condition in metadata_filtering_conditions:
@@ -1408,7 +1408,7 @@ def keyword_search():
         result = es_ops.search_data_keyword_recall(content_index_name, kb_id, keywords, top_k, min_score, search_by,
                                                    filter_file_name_list=filter_file_name_list)
         search_list = result["search_list"]
-        for item in search_list:  # 将 kb_id 转换为 kb_name
+        for item in search_list:  # Convert kb_id to kb_name
             item["kb_name"] = display_kb_name
         response = json.dumps({'code': 200, 'msg': 'Success', 'result': result}, indent=4, ensure_ascii=False)
         logger.info("search response: %s", response)
@@ -1450,11 +1450,11 @@ def snippet_rescore():
 
         def normalize_to_01(scores):
             if len(scores) == 1:
-                return [1.0]  # 单个分数归一化为1
+                return [1.0]  # Individual scores are normalized to 1
             min_score = min(scores)
             max_score = max(scores)
             if min_score == max_score:
-                return [1.0 for _ in scores]  # 所有分数相同，统一设为1
+                return [1.0 for _ in scores]  # All scores are the same and set to 1
             return [(score - min_score) / (max_score - min_score) for score in scores]
 
         bm25_normalized = normalize_to_01(bm25_scores)
@@ -1489,7 +1489,7 @@ def search_title_list():
     data = request.get_json()
     logger.info('search request_params: ' + json.dumps(data, indent=4, ensure_ascii=False))
 
-    # index_name = data.get('index_name') 之前拼接好的，弃用
+    # index_name = data.get('index_name') spliced ​​before, deprecated
     user_id = data.get('user_id')
     user_id = user_id.replace('-', '_')
     index_name = SNIPPET_INDEX_NAME_PREFIX + user_id
@@ -1499,7 +1499,7 @@ def search_title_list():
     min_score = float(data.get('min_score', 0.0))
     kb_id_2_kb_name = {}
     try:
-        # ========= 往里面传入的 kb_name是真正指代的 kb_id =======
+        # ========= The kb_name passed in is the kb_id that it actually refers to =======
         kb_id = es_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
         kb_id_2_kb_name[kb_id] = kb_name
         result = es_ops.search_text_title_list(index_name, kb_id, query, top_k, min_score)
@@ -1520,7 +1520,7 @@ def snippet_fetch_all():
     data = request.get_json()
     logger.info('fetch_all request_params: ' + json.dumps(data, indent=4, ensure_ascii=False))
 
-    # index_name = data.get('index_name') 之前拼接好的，弃用
+    # index_name = data.get('index_name') spliced ​​before, deprecated
     user_id = data.get('user_id')
     user_id = user_id.replace('-', '_')
     index_name = SNIPPET_INDEX_NAME_PREFIX + user_id
@@ -1545,14 +1545,14 @@ def snippet_delete_doc_by_kbname_title():
     data = request.get_json()
     logger.info('delete_doc_by_title request_params: ' + json.dumps(data, indent=4, ensure_ascii=False))
 
-    # index_name = data.get('index_name') 之前拼接好的，弃用
+    # index_name = data.get('index_name') spliced ​​before, deprecated
     user_id = data.get('user_id')
     user_id = user_id.replace('-', '_')
     index_name = SNIPPET_INDEX_NAME_PREFIX + user_id
     kb_name = data.get('kb_name')
     title = data.get('title')
     try:
-        # ========= 往里面传入的 kb_name是真正指代的 kb_id =======
+        # ========= The kb_name passed in is the kb_id that it actually refers to =======
         kb_id = es_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
         status = es_ops.delete_data_by_kbname_title(index_name, kb_id, title)
         response = json.dumps({'code': 200, 'msg': 'Success', 'result': status}, indent=4, ensure_ascii=False)
@@ -1572,13 +1572,13 @@ def snippet_delete_index_kb_name():
     data = request.get_json()
     logger.info('delete_index request_params: ' + json.dumps(data, indent=4, ensure_ascii=False))
 
-    # index_name = data.get('index_name') 之前拼接好的，弃用
+    # index_name = data.get('index_name') spliced ​​before, deprecated
     user_id = data.get('user_id')
     user_id = user_id.replace('-', '_')
     index_name = SNIPPET_INDEX_NAME_PREFIX + user_id
     kb_name = data.get('kb_name')
     try:
-        # ========= 往里面传入的 kb_name是真正指代的 kb_id =======
+        # ========= The kb_name passed in is the kb_id that it actually refers to =======
         kb_id = es_ops.get_uk_kb_id(data.get('user_id'), data.get('kb_name'))
         status = es_ops.delete_data_by_kbname(index_name, kb_id)
         response = json.dumps({'code': 200, 'msg': 'Success', 'result': status}, indent=4, ensure_ascii=False)
@@ -1605,19 +1605,19 @@ def add_community_reports_data():
     embedding_model_id = es_ops.get_uk_kb_emb_model_id(user_id, kb_name)
     doc_list = data.get("data")
     try:
-        if not kb_id:  # 如果没有传入 kb_id,则从映射表中获取
-            kb_id = es_ops.get_uk_kb_id(user_id, kb_name)  # 从映射表中获取 kb_id ,添加往里传 kb_id
-        if not kb_id:  # 如果映射表中没有，则返回错误
+        if not kb_id:  # If kb_id is not passed in, it will be obtained from the mapping table
+            kb_id = es_ops.get_uk_kb_id(user_id, kb_name)  # Get kb_id from the mapping table, add and pass kb_id in
+        if not kb_id:  # If it is not found in the mapping table, an error is returned.
             raise RuntimeError(f"{kb_name}知识库不存在")
 
         es_ops.create_index_if_not_exists(report_index_name, mappings=es_mapping.community_report_mappings)
         es_ops.create_index_if_not_exists(file_index_name, mappings=es_mapping.file_mappings)
 
-        # 初始化启停状态
+        # Initialize start and stop status
         for doc in doc_list:
-            doc["status"] = True  # 初始化启停状态
+            doc["status"] = True  # Initialize start and stop status
 
-        # ========= 将 embedding_content 编码好向量 =============
+        # ========= Encode embedding_content into vector =============
         for batch_doc in batch_list(doc_list, batch_size=EMBEDDING_BATCH_SIZE):
             res = es_ops.get_embs([x["embedding_content"] for x in batch_doc], embedding_model_id=embedding_model_id)
             dense_vector_dim = len(res["result"][0]["dense_vec"]) if res["result"] else 1024
@@ -1627,7 +1627,7 @@ def add_community_reports_data():
                 if len(batch_doc) != len(res["result"]):
                     raise RuntimeError(f"Error getting embeddings:{batch_doc}")
                 x[field_name] = res["result"][i]["dense_vec"]
-        es_result = es_ops.bulk_add_index_data(report_index_name, kb_id, doc_list)  # 注意 存储的时候传入 kb_id
+        es_result = es_ops.bulk_add_index_data(report_index_name, kb_id, doc_list)  # Note that kb_id is passed in when storing
         if not es_result["success"]:
             logger.info(f"当前用户:{user_id},知识库:{kb_name},add_community_report失败：{es_result}")
             raise RuntimeError(es_result.get("error", ""))
@@ -1655,16 +1655,16 @@ def del_community_reports():
     index_name = INDEX_NAME_PREFIX + data.get('userId')
     user_id = data.get("userId")
     kb_id = data.get("kb_id")
-    kb_name = data.get("kb_name")  # 显示的名字
+    kb_name = data.get("kb_name")  # displayed name
     report_index_name = 'community_report_' + index_name
     file_index_name = 'file_control_' + index_name
     clear_reports = data.get("clear_reports", False)
     content_ids = data.get("content_ids", [])
 
     try:
-        if not kb_id:  # 如果没有传入 kb_id,则从映射表中获取
-            kb_id = es_ops.get_uk_kb_id(user_id, kb_name)  # 从映射表中获取 kb_id ,添加往里传 kb_id
-        if not kb_id:  # 如果映射表中没有，则返回错误
+        if not kb_id:  # If kb_id is not passed in, it will be obtained from the mapping table
+            kb_id = es_ops.get_uk_kb_id(user_id, kb_name)  # Get kb_id from the mapping table, add and pass kb_id in
+        if not kb_id:  # If it is not found in the mapping table, an error is returned.
             raise RuntimeError(f"{kb_name}知识库不存在")
 
         es_ops.create_index_if_not_exists(report_index_name, mappings=es_mapping.community_report_mappings)
@@ -1720,21 +1720,21 @@ def search_community_reports():
     logger.info(f"用户:{index_name},请求查询的kb_names为:{display_kb_names},embedding_model_id:{embedding_model_id}")
     logger.info(f"用户请求的query为:{query}")
     try:
-        exists_kb_names = es_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # 从映射表中获取
+        exists_kb_names = es_ops.get_uk_kb_name_list(KBNAME_MAPPING_INDEX, userId)  # Get from mapping table
         for kb_name in display_kb_names:
             if kb_name not in exists_kb_names:
                 raise RuntimeError(f"用户:{index_name}里,{kb_name}知识库不存在")
-            # ======== kb_name 是存在的，则往 kb_names 里添加=======
+            # ======== kb_name exists, then add it to kb_names =======
             kb_id = es_ops.get_uk_kb_id(userId, kb_name)
-            kb_names.append(kb_id)  # 从映射表中获取 kb_id ，这是真正的名字
+            kb_names.append(kb_id)  # Get kb_id from the mapping table, which is the real name
             kb_id_2_kb_name[kb_id] = kb_name
 
-        # ============= 开始检索召回 ===============
+        # ============= Start retrieval and recall ===============
         es_ops.create_index_if_not_exists(report_index_name, mappings=es_mapping.community_report_mappings)
         result_dict = es_ops.search_data_knn_recall(report_index_name, kb_names, query, top_k, min_score, embedding_model_id=embedding_model_id)
         search_list = result_dict["search_list"]
         scores = result_dict["scores"]
-        for item in search_list:  # 将 kb_id 转换为 kb_name
+        for item in search_list:  # Convert kb_id to kb_name
             item["kb_name"] = kb_id_2_kb_name[item["kb_name"]]
         result = {
             "code": 0,
@@ -1759,8 +1759,8 @@ def search_community_reports():
         return jsonarr
 
 
-# ********************* 重启服务后，检查uk映射表索引的mappping，进行一些处理 *********************
-# es_ops.check_status() # 不使用此更新。
+# ********************* After restarting the service, check the mapping of the UK mapping table index and perform some processing *********************
+# es_ops.check_status() # Do not use this update.
 
 if __name__ == '__main__':
     app.run()  # debug=True

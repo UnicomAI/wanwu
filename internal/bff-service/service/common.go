@@ -72,9 +72,9 @@ func GetOrgSelect(ctx *gin.Context, userID string) (*response.Select, error) {
 	}, nil
 }
 
-// UploadAvatar 返回avatar在minio的objectPath
+// UploadAvatar returns the objectPath of avatar in minio
 func UploadAvatar(ctx *gin.Context, fileHeader *multipart.FileHeader) (string, error) {
-	// 校验文件类型
+	// Verify file type
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	switch ext {
 	case ".jpg", ".jpeg", ".png":
@@ -82,20 +82,20 @@ func UploadAvatar(ctx *gin.Context, fileHeader *multipart.FileHeader) (string, e
 		return "", grpc_util.ErrorStatusWithKey(err_code.Code_BFFInvalidArg, "bff_avatar_type_error")
 	}
 
-	// 读取文件内容
+	// Read file contents
 	file, err := fileHeader.Open()
 	if err != nil {
 		return "", grpc_util.ErrorStatusWithKey(err_code.Code_BFFInvalidArg, "bff_avatar_upload_error", err.Error())
 	}
 	defer file.Close()
 
-	// 读取图片到内存缓冲区
+	// Read the image into the memory buffer
 	imgBuf := new(bytes.Buffer)
 	if _, err := io.Copy(imgBuf, file); err != nil {
 		return "", grpc_util.ErrorStatusWithKey(err_code.Code_BFFInvalidArg, "bff_avatar_upload_error", err.Error())
 	}
 	fileName := fmt.Sprintf("%s%s", util.GenUUID(), ext)
-	// 生成存储路径，avatar/fileName前两位字母/fileName
+	// Generate the storage path, the first two letters of avatar/fileName/fileName
 	objectName := path.Join("avatar", fileName[:2], fileName)
 	objectPath := path.Join(minio.BucketCustom, objectName)
 
@@ -105,8 +105,8 @@ func UploadAvatar(ctx *gin.Context, fileHeader *multipart.FileHeader) (string, e
 	return objectPath, nil
 }
 
-// CacheAvatar 将avatar在minio的objectPath转为前端可访问的地址，同时在本地缓存avatar
-// 例如 custom-upload/avatar/abc/def.png => /v1/static/avatar/abc/def.png
+// CacheAvatar converts avatar's objectPath in minio to an address accessible to the front end and caches avatar locally.
+// For example custom-upload/avatar/abc/def.png => /v1/static/avatar/abc/def.png
 func CacheAvatar(ctx *gin.Context, avatarObjectPath string, isResize bool) request.Avatar {
 	avatar := request.Avatar{}
 	if avatarObjectPath == "" {
@@ -127,36 +127,36 @@ func CacheAvatar(ctx *gin.Context, avatarObjectPath string, isResize bool) reque
 	filePath := filepath.Join(avatarCacheLocalDir, objectName)
 
 	_, err := os.Stat(filePath)
-	// 1 文件存在
+	// 1 file exists
 	if err == nil {
 		avatar.Path = filepath.Join("/v1", filePath)
 		return avatar
 	}
-	// 2 系统错误
+	// 2 system error
 	if !os.IsNotExist(err) {
 		log.Errorf("cache avatar %v check %v exist err: %v", avatarObjectPath, filePath, err)
 		return avatar
 	}
-	// 3 文件不存在
-	// 3.1 创建目录
+	// 3 file does not exist
+	// 3.1 Create directory
 	if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
 		log.Errorf("cache avatar %v mkdir %v err: %v", avatarObjectPath, filepath.Dir(filePath), err)
 		return avatar
 	}
-	// 3.2 下载文件
+	// 3.2 Download files
 	b, err := minio.Custom().GetObject(ctx.Request.Context(), bucketName, objectName)
 	if err != nil {
 		log.Errorf("cache avatar %v minio download err: %v", avatarObjectPath, err)
 		return avatar
 	}
-	// 3.3 压缩图像
+	// 3.3 Compressed images
 	if isResize {
 		compressedData, err := resizeImage(b)
 		if err != nil {
 			log.Warnf("cache avatar %v compress failed, using original: %v", avatarObjectPath, err)
 			compressedData = b
 		}
-		// 3.3.1 写入压缩文件
+		// 3.3.1 Writing compressed files
 		if err := os.WriteFile(filePath, compressedData, 0644); err != nil {
 			log.Errorf("cache avatar %v write file %v err: %v", avatarObjectPath, filePath, err)
 			return avatar
@@ -164,7 +164,7 @@ func CacheAvatar(ctx *gin.Context, avatarObjectPath string, isResize bool) reque
 		avatar.Path = filepath.Join("/v1", filePath)
 		return avatar
 	}
-	// 3.4 写入原文件
+	// 3.4 Write original file
 	if err := os.WriteFile(filePath, b, 0644); err != nil {
 		log.Errorf("cache avatar %v write file %v err: %v", avatarObjectPath, filePath, err)
 		return avatar
@@ -234,7 +234,7 @@ func cacheMCPServerAvatar(ctx *gin.Context, avatarObjectPath string) request.Ava
 	return CacheAvatar(ctx, avatarObjectPath, true)
 }
 
-// 用于缓存 内置工具、MCP广场 的图片（来源于mcp-service）
+// Used to cache images of built-in tools and MCP Square (from mcp-service)
 func cacheMCPServiceAvatar(ctx *gin.Context, avatarPath string) request.Avatar {
 	avatar := request.Avatar{}
 	if avatarPath == "" {
@@ -246,29 +246,29 @@ func cacheMCPServiceAvatar(ctx *gin.Context, avatarPath string) request.Avatar {
 	filePath := filepath.Join(mcpAvatarCacheLocalDir, avatarPath)
 
 	_, err := os.Stat(filePath)
-	// 1 文件存在
+	// 1 file exists
 	if err == nil {
 		avatar.Path = filepath.Join("/v1", filePath)
 		return avatar
 	}
-	// 2 系统错误
+	// 2 system error
 	if !os.IsNotExist(err) {
 		log.Errorf("cache mcp avatar %v check %v exist err: %v", avatarPath, filePath, err)
 		return avatar
 	}
-	// 3. 文件不存在
-	// 3.1 创建目录
+	// 3. The file does not exist
+	// 3.1 Create directory
 	if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
 		log.Errorf("cache mcp avatar %v mkdir %v err: %v", avatarPath, filepath.Dir(filePath))
 		return avatar
 	}
-	// 3.2 下载文件
+	// 3.2 Download files
 	resp, err := mcp.GetMCPAvatar(ctx.Request.Context(), &mcp_service.GetMCPAvatarReq{AvatarPath: avatarPath})
 	if err != nil {
 		log.Errorf("cache mcp avatar %v download err: %v", avatarPath, err)
 		return avatar
 	}
-	// 3.3 写入文件
+	// 3.3 Writing files
 	if err := os.WriteFile(filePath, resp.Data, 0644); err != nil {
 		log.Errorf("cache mcp avatar %v write file %v err: %v", avatarPath, filePath, err)
 		return avatar
@@ -277,8 +277,8 @@ func cacheMCPServiceAvatar(ctx *gin.Context, avatarPath string) request.Avatar {
 	return avatar
 }
 
-// cacheWorkflowAvatar 将avatar http请求地址转为前端统一访问的格式，同时在本地缓存avatar
-// 例如 http://IP:port/api/static/abc/def.jpg => /v1/static/avatar/abc/def.png
+// cacheWorkflowAvatar converts the avatar http request address into a format for unified access by the front end, and caches avatar locally.
+// For example http://IP:port/api/static/abc/def.jpg => /v1/static/avatar/abc/def.png
 func cacheWorkflowAvatar(avatarURL, appType string) request.Avatar {
 	avatar := request.Avatar{}
 	switch appType {
@@ -299,47 +299,47 @@ func cacheWorkflowAvatar(avatarURL, appType string) request.Avatar {
 
 	avatar.Key = avatarURL
 
-	// 提取文件名：先去掉查询参数，再取最后一部分
+	// Extract the file name: remove the query parameters first, then take the last part
 	baseURL := avatarURL
 	if idx := strings.Index(avatarURL, "?"); idx != -1 {
 		baseURL = avatarURL[:idx]
 	}
-	// 从路径中提取文件名
+	// Extract filename from path
 	lastSlash := strings.LastIndex(baseURL, "/")
 	fileName := baseURL[lastSlash+1:]
 	filePath := filepath.Join(avatarCacheLocalDir, fileName)
-	// 检查文件是否已缓存
+	// Check if the file is cached
 	if _, err := os.Stat(filePath); err == nil {
 		avatar.Path = filepath.Join("/v1", filePath)
 		return avatar
 	}
 	var newAvatarURL string
 	if strings.Contains(avatarURL, config.Cfg().Workflow.MinioProxyPrefix) {
-		// 解析原始URL
+		// Parse original URL
 		parsedURL, err := url.Parse(avatarURL)
 		if err != nil {
 			log.Errorf("parse avatar URL %v failed: %v", avatarURL, err)
 			return avatar
 		}
-		// 去掉 /workflow/minio/presign/ 前缀
+		// Remove the /workflow/minio/presign/ prefix
 		path := parsedURL.Path
 		path = strings.TrimPrefix(path, config.Cfg().Workflow.MinioProxyPrefix)
-		// 使用 url.JoinPath 构建新URL
+		// Use url.JoinPath to build new URLs
 		newAvatarURL, err = url.JoinPath(config.Cfg().Workflow.MinioProxyEndpoint, path)
 		if err != nil {
 			log.Errorf("join path failed: %v", err)
 			avatar.Path = avatarURL
 			return avatar
 		}
-		// 添加查询参数
+		// Add query parameters
 		if parsedURL.RawQuery != "" {
 			newAvatarURL += "?" + parsedURL.RawQuery
 		}
 	} else {
-		// 直接使用原始URL（如 http://localhost:8081/api/static/icon/icon-HTTP.png）
+		// Use the original URL directly (such as http://localhost:8081/api/static/icon/icon-HTTP.png)
 		newAvatarURL = avatarURL
 	}
-	// 从HTTP URL下载文件
+	// Download files from HTTP URL
 	resp, err := http.Get(newAvatarURL)
 	if err != nil {
 		log.Errorf("cache avatar %v download err: %v", avatarURL, err)
@@ -355,19 +355,19 @@ func cacheWorkflowAvatar(avatarURL, appType string) request.Avatar {
 		log.Errorf("cache avatar %v read response err: %v", avatarURL, err)
 		return avatar
 	}
-	// 压缩图像
+	// Compress images
 	compressedData, err := resizeImage(body)
 	if err != nil {
 		log.Warnf("cache avatar %v compress failed, using original: %v", avatarURL, err)
-		// 压缩失败时使用原始数据
+		// Use original data when compression fails
 		compressedData = body
 	}
-	// 创建目录
+	// Create directory
 	if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
 		log.Errorf("cache avatar %v mkdir %v err: %v", avatarURL, filepath.Dir(filePath), err)
 		return avatar
 	}
-	// 写入文件
+	// write file
 	if err := os.WriteFile(filePath, compressedData, 0644); err != nil {
 		log.Errorf("cache avatar %v write file %v err: %v", avatarURL, filePath, err)
 		return avatar
@@ -385,9 +385,9 @@ func cachePromptAvatar(ctx *gin.Context, avatarObjectPath string) request.Avatar
 	return CacheAvatar(ctx, avatarObjectPath, true)
 }
 
-// resizeImage 压缩图像
+// resizeImage compressed image
 func resizeImage(imageData []byte) ([]byte, error) {
-	// 先解码获取图像尺寸
+	// Decode first to get the image size
 	img, _, err := image.Decode(bytes.NewReader(imageData))
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode image: %w", err)
@@ -395,11 +395,11 @@ func resizeImage(imageData []byte) ([]byte, error) {
 	bounds := img.Bounds()
 	originalWidth := bounds.Dx()
 	originalHeight := bounds.Dy()
-	// 计算等比例缩放后的尺寸
+	// Calculate the size after scaling
 	targetWidth, targetHeight := calculateResizeParameters(originalWidth, originalHeight, 200)
-	// 重新创建 reader（因为之前的读取位置已经改变）
+	// Re-create the reader (because the previous reading position has changed)
 	reader := bytes.NewReader(imageData)
-	// 压缩图像到计算后的尺寸
+	// Compress image to calculated dimensions
 	compressedData, err := imaging.Resize(reader, targetWidth, targetHeight)
 	if err != nil {
 		return nil, fmt.Errorf("image resize failed: %w", err)
@@ -407,23 +407,23 @@ func resizeImage(imageData []byte) ([]byte, error) {
 	return compressedData, nil
 }
 
-// 计算等比例缩放尺寸
+// Calculate proportional scaling dimensions
 func calculateResizeParameters(originalWidth, originalHeight, maxSize int) (int, int) {
 	if originalWidth <= maxSize && originalHeight <= maxSize {
-		// 如果原图已经小于目标尺寸，返回原尺寸
+		// If the original image is smaller than the target size, return to the original size
 		return originalWidth, originalHeight
 	}
 	var newWidth, newHeight int
 	if originalWidth > originalHeight {
-		// 宽图：以宽度为基准
+		// Wide image: based on width
 		newWidth = maxSize
 		newHeight = int(float64(originalHeight) * float64(maxSize) / float64(originalWidth))
 	} else {
-		// 高图或正方形：以高度为基准
+		// Heightmap or square: based on height
 		newHeight = maxSize
 		newWidth = int(float64(originalWidth) * float64(maxSize) / float64(originalHeight))
 	}
-	// 确保最小尺寸为1
+	// Make sure the minimum size is 1
 	if newWidth < 1 {
 		newWidth = 1
 	}
@@ -459,28 +459,28 @@ func convertStatisticChart(ctx *gin.Context, pbChart *common.StatisticChart) res
 }
 
 func writeSSE(ctx *gin.Context, resp *http.Response) error {
-	// 设置 SSE 响应头
+	// Set SSE response headers
 	ctx.Header("Content-Type", "text/event-stream")
 	ctx.Header("Cache-Control", "no-cache")
 	ctx.Header("Connection", "keep-alive")
 	ctx.Header("Access-Control-Allow-Origin", "*")
-	ctx.Header("X-Accel-Buffering", "no") // 针对 Nginx 代理
+	ctx.Header("X-Accel-Buffering", "no") // For Nginx proxy
 
-	// 使用固定缓冲区读取
-	buffer := make([]byte, 8192) // 8KB 缓冲区
+	// Read using fixed buffer
+	buffer := make([]byte, 8192) // 8KB buffer
 	reader := bufio.NewReader(resp.Body)
 
 	for {
 		select {
 		case <-ctx.Done():
-			// 客户端断开连接
+			// Client disconnects
 			return errors.New("writeSSE: ctx canceled")
 		default:
 			n, err := reader.Read(buffer)
 
 			if n > 0 {
 				if _, err := ctx.Writer.Write(buffer[:n]); err != nil {
-					// 客户端可能已断开
+					// The client may have been disconnected
 					log.Errorf("writeSSE write err: %v", err)
 					return err
 				}
@@ -489,7 +489,7 @@ func writeSSE(ctx *gin.Context, resp *http.Response) error {
 
 			if err != nil {
 				if err == io.EOF {
-					return nil // 正常结束
+					return nil // End normally
 				}
 				log.Errorf("writeSSE read err: %v", err)
 				return err

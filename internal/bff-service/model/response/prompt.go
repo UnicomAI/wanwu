@@ -6,22 +6,22 @@ import (
 )
 
 type CustomPromptIDResp struct {
-	CustomPromptID string `json:"customPromptId"` // 自定义提示词ID
+	CustomPromptID string `json:"customPromptId"` // Custom prompt word ID
 }
 
 type CustomPrompt struct {
-	CustomPromptIDResp                // 自定义提示词ID
-	Avatar             request.Avatar `json:"avatar"`   // 图标
-	Name               string         `json:"name"`     // 名称
-	Desc               string         `json:"desc"`     // 描述
-	Prompt             string         `json:"prompt"`   // 提示词
-	UpdateAt           string         `json:"updateAt"` // 更新时间
+	CustomPromptIDResp                // Custom prompt word ID
+	Avatar             request.Avatar `json:"avatar"`   // icon
+	Name               string         `json:"name"`     // name
+	Desc               string         `json:"desc"`     // describe
+	Prompt             string         `json:"prompt"`   // prompt word
+	UpdateAt           string         `json:"updateAt"` // Update time
 }
 
 type CustomPromptOpt struct {
-	Code     *int                       `json:"code"`     // 状态码
-	Message  string                     `json:"message"`  // 状态描述
-	Response string                     `json:"response"` // 响应内容
-	Finish   int                        `json:"finish"`   // 结束标志
-	Usage    *mp_common.OpenAIRespUsage `json:"usage"`    // token使用统计
+	Code     *int                       `json:"code"`     // status code
+	Message  string                     `json:"message"`  // Status description
+	Response string                     `json:"response"` // Response content
+	Finish   int                        `json:"finish"`   // end sign
+	Usage    *mp_common.OpenAIRespUsage `json:"usage"`    // Token usage statistics
 }

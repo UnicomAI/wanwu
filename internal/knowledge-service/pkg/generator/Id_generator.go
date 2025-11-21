@@ -22,7 +22,7 @@ func (c IDGenerator) LoadType() string {
 }
 
 func (c IDGenerator) Load() error {
-	node, err := snowflake.NewNode(1) // 创建节点
+	node, err := snowflake.NewNode(1) // Create node
 	if err != nil {
 		return err
 	}

@@ -200,8 +200,8 @@ export default {
     return {
       templateUrl: "",
       source: [],
-      backId: "", // 上传文档返回的id
-      batchRes: {}, // 解析结果
+      backId: "", // UploadDocumentBack of id
+      batchRes: {}, // ParseResult
       maxHeight: "",
       drawer: false,
       fileList: [],
@@ -213,7 +213,7 @@ export default {
         agin: false,
         btn: false,
       },
-      oldList: [{ value: "" }], //保存上一次url结果
+      oldList: [{ value: "" }], //Save上一次urlResult
     };
   },
   created() {
@@ -330,7 +330,7 @@ export default {
       this.loading.start = false;
       this.loading.agin = false;
     },
-    //  验证文件为空
+    //  VerifyFileIs Empty
     verifyEmpty(file) {
       if (file.size <= 0) {
         this.$message.warning(file.name + this.$t('knowledgeManage.filterFile'));
@@ -342,7 +342,7 @@ export default {
       return true;
     },
     submitVisible() {
-      //上传
+      //Upload
       // this.$refs["batUrl"].validate((valid) => {
       if (!this.fileList.length) {
         this.$message.warning(this.$t('knowledgeManage.selectFile'));
@@ -387,7 +387,7 @@ export default {
           this.$set(this.fileList[index], "loading", false);
         });
     },
-    //  验证文件格式大小
+    //  VerifyFileFormatsize
     verifyFormat(file) {
       var testmsg = file.name.substring(file.name.lastIndexOf(".") + 1);
 
@@ -472,12 +472,12 @@ export default {
     //   const blob = new Blob(["https://122.13.25.19:17776/cubm/demo.xlsx"], {
     //     type: "application/octet-stream",
     //   });
-    //   const blobUrl = window.URL.createObjectURL(blob); // 将blob对象转为一个URL
+    //   const blobUrl = window.URL.createObjectURL(blob); // 将blobObject转is一URL
     //   const link = document.createElement("a");
     //   link.href = blobUrl;
     //   link.download = "template.xlsx";
-    //   link.click(); // 启动下载
-    //   window.URL.revokeObjectURL(link.href); // 下载完毕删除a标签
+    //   link.click(); // StartDownload
+    //   window.URL.revokeObjectURL(link.href); // Download完毕DeleteaTag
     // },
   },
   computed: {},

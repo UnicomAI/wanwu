@@ -137,7 +137,7 @@ def split_child_chunks(chunks: list, child_chunk_config: dict):
 
 
 def split_chunks(filepath: str,config: SplitConfig):
-    #单个文件进行切分成块
+    #Split a single file into chunks
     docs = []
     file_name = os.path.split(filepath)[-1]
     if isinstance(filepath, str):
@@ -223,7 +223,7 @@ def split_doc(chunks, sentence_size):
                 'embedding_content': text,
                 'meta_data': copy.deepcopy(i['meta_data'])
             }
-            # 如果labels存在，则添加到chunk_dict中
+            # If labels exist, add them to chunk_dict
             if "labels" in i and i["labels"]:
                 chunk_dict["labels"] = copy.deepcopy(i["labels"])
             sub_doc.append(chunk_dict)
@@ -246,7 +246,7 @@ def split_doc(chunks, sentence_size):
                         'embedding_content': short_text,
                         'meta_data': copy.deepcopy(i['meta_data'])
                     }
-                    # 如果labels存在，则添加到chunk_dict中
+                    # If labels exist, add them to chunk_dict
                     if "labels" in i and i["labels"]:
                         chunk_dict["labels"] = copy.deepcopy(i["labels"])
                     sub_doc.append(chunk_dict)
@@ -268,7 +268,7 @@ def split_short_doc(file_path, download_link, chunks, sentence_size):
 
         embedding_chunks = chunk.get("embedding_chunks", [])
         if len(text.strip()) > 0:
-            # 对于text和table类型至少保证一条进入subchunk
+            # For text and table types, at least one entry is guaranteed to enter the subchunk.
             chunk_dict = {
                 "content": text,
                 "embedding_content": text,
@@ -276,10 +276,10 @@ def split_short_doc(file_path, download_link, chunks, sentence_size):
             }
             sub_doc.append(chunk_dict)
             if chunk_type == "table":
-                # 仅对pdf不走自定义例如走ocr解析的表格再按换行做一次切分(注意：此种切分方式会引入embedding_content为空的情况)
+                # Only do not customize the pdf, for example, use OCR to parse the table and then split it according to line breaks (note: this splitting method will introduce the situation where embedding_content is empty)
                 if len(embedding_chunks) == 0 and file_name.lower().endswith(".pdf") and text.count("\n") >= 2:
                     embedding_chunks = text.split("\n")
-            # 若有定制化构建的embedding_chunks则将此作为语义索引
+            # If there are custom-built embedding_chunks, use this as a semantic index
             for item in embedding_chunks:
                 embedding_content = item
                 if len(embedding_content.strip()) > 0 and len(embedding_content) < MAX_SENTENCE_SIZE:
@@ -419,12 +419,12 @@ def split_text_file(add_file_path: str, download_link: str, config: SplitConfig)
             chunks, sub_chunks = split_parent_child_chunks(add_file_path, config)
     else:
         if config.chunk_type == 'split_by_design':
-            # 分段方式：自定义分段
+            # Segmentation method: Custom segmentation
             status, chunks, filename = split_chunks(add_file_path, config)
             init_chunk_num(chunks)
             sub_chunks = split_doc(chunks, config.sentence_size)
         else:
-            # 分段方式：自动分段
+            # Segmentation method: automatic segmentation
             status, sub_chunks, chunks = split_file_adapter(add_file_path, download_link, config)
             if not status:
                 status, chunks, filename = split_chunks(add_file_path, config)

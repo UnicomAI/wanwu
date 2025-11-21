@@ -99,7 +99,7 @@ export default {
           { max:30, message:this.$t('list.pluginNameRules'), trigger: "change" },
           {
             validator: (rule, value, callback) => {
-              // 对其新版工作流名称规则
+              // Enforce the new workflow naming rules
               if (/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/.test(value)) {
                 callback();
               } else {

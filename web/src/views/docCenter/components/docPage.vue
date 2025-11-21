@@ -43,7 +43,7 @@ export default {
           if (docsPageContent) docsPageContent.scrollTo(0, 0)
         }
       },
-      // 深度观察监听
+      // 深度ObserveListen
       deep: true
     }
   },

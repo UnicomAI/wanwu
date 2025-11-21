@@ -3,7 +3,7 @@
     <el-container class="outer-container">
       <div class="left-nav" v-if="isShowNav">
         <div class="left-nav-container">
-          <!--不展示平台的图标-->
+          <!-- Platform logo -->
           <div style="padding: 0 15px">
             <div style="padding: 10px 0 14px; border-bottom: 1px solid #D9D9D9;" v-if="homeLogoPath">
               <img
@@ -25,7 +25,7 @@
                   <div class="left-nav-img-wrap">
                     <img class="left-menu-width left-nav-img" :src="currentNavMenu.key === item.key ? item.imgActive : item.img" alt="" />
                   </div>
-                  <div class="nav-menu-name">{{item.name}}</div>
+                  <div class="nav-menu-name">{{$t(item.name)}}</div>
                 </div>
                 <div v-if="item.key === 'line'">
                   <div style="padding: 0 18px; height: 0.5px; background: #D9D9D9;"></div>
@@ -33,7 +33,7 @@
               </div>
             </div>
           </div>
-          <!--取消整体的新建展示-->
+          <!-- Cancel overall new display -->
           <!--<div style="padding: 0 15px">
             <div style="padding: 14px 0 10px; border-top: 1px solid #D9D9D9">
               <img class="total-create" src="@/assets/imgs/totalCreate.png" alt="" @click="showCreateTotalDialog">
@@ -41,7 +41,7 @@
             </div>
           </div>-->
           <div class="nav-bottom">
-            <!--隐藏文档下载菜单-->
+            <!-- Hide document download menu -->
             <!--<div>
               <img class="left-menu-width" src="@/assets/imgs/doc.png" alt="" @click="showDocDownloadDialog" />
               <DocDownloadDialog ref="docDownloadDialog" />
@@ -103,9 +103,9 @@
         </div>
       </div>
       <div class="left-page-container" v-if="isShowNav"></div>
-      <!-- 容器 -->
+      <!-- container -->
       <el-container :class="['inner-container']">
-        <!--取消整体的菜单展示 isShowMenu 一直为 false-->
+        <!-- Cancel overall menu display, isShowMenu is always false -->
         <el-aside v-if="isShowMenu && menuList && menuList.length" class="full-menu-aside">
           <el-menu
             :default-openeds="defaultOpeneds"
@@ -113,7 +113,7 @@
             :key="menuKey"
             :class="[{'el-menu-hasOrg': currentNavMenu.key === 'workspace'}]"
           >
-            <!--组织切换-->
+            <!-- Organization switcher -->
             <div class="header__org_container" v-if="currentNavMenu.key === 'workspace'">
               <div class="header__org_wrapper">
                 <img class="head-icon" src="@/assets/imgs/head.png" alt="" />
@@ -136,9 +136,9 @@
                 </el-select>
               </div>
             </div>
-            <!--菜单渲染-->
+            <!-- Menu rendering -->
             <div v-for="(n,i) in menuList" :key="`${i}ml`">
-              <!--有下一级-->
+              <!-- Has next level -->
               <el-submenu
                 v-if="n.children && checkPerm(n.perm)"
                 :index="n.index"
@@ -146,7 +146,7 @@
               >
                 <template slot="title">
                   <img class="menu-icon" :src="activeIndex.includes(n.index) ? n.imgActive : n.img" alt="" />
-                  <span class="menu-withIcon-title">{{n.name}}</span>
+                  <span class="menu-withIcon-title">{{$t(n.name)}}</span>
                 </template>
                 <div v-for="(m,j) in n.children" v-if="checkPerm(m.perm)" :key="`${j}cl`">
                   <el-submenu
@@ -154,14 +154,14 @@
                     :index="m.index"
                     :class="['menu-indent', 'edit-popover']"
                   >
-                    <template slot="title">{{m.name}}</template>
+                    <template slot="title">{{$t(m.name)}}</template>
                     <div v-for="(p,k) in m.children" :key="`${k}pl`" v-if="checkPerm(p.perm)">
                       <el-submenu
                         v-if="p.children"
                         :index="p.index"
                         :class="['menu-indent-sub', 'edit-popover']"
                       >
-                        <template slot="title">{{p.name}}</template>
+                        <template slot="title">{{$t(p.name)}}</template>
                         <el-menu-item
                           v-for="(item, index) in p.children"
                           :key="`${index}itemEl`"
@@ -170,7 +170,7 @@
                           @click="menuClick(item)"
                           :class="['edit-popover', {'is-active': activeIndex === item.index}]"
                         >
-                          {{item.name}}
+                          {{$t(item.name)}}
                         </el-menu-item>
                       </el-submenu>
                       <el-menu-item
@@ -179,7 +179,7 @@
                         @click="menuClick(p)"
                         :class="['edit-popover', {'is-active': activeIndex === p.index}]"
                       >
-                        {{p.name}}
+                        {{$t(p.name)}}
                       </el-menu-item>
                     </div >
                   </el-submenu>
@@ -189,11 +189,11 @@
                     @click="menuClick(m)"
                     :class="['menu-indent-item', 'edit-popover', {'is-active': activeIndex === m.index}]"
                   >
-                    {{m.name}}
+                    {{$t(m.name)}}
                   </el-menu-item>
                 </div >
               </el-submenu>
-              <!--没有下一级-->
+              <!-- No next level -->
               <el-menu-item
                 :index="n.index"
                 v-if="!n.children && checkPerm(n.perm)"
@@ -201,12 +201,12 @@
                 :class="['edit-popover', {'is-active': activeIndex === n.index}]"
               >
                 <img class="menu-icon" :src="activeIndex === n.index ? n.imgActive : n.img" alt="" />
-                <span class="menu-withIcon-title">{{n.name}}</span>
+                <span class="menu-withIcon-title">{{$t(n.name)}}</span>
               </el-menu-item>
             </div>
           </el-menu>
         </el-aside>
-        <!-- 右侧内容 -->
+        <!-- Right side content -->
         <el-main>
           <div class="page-container">
             <div class="right-page-content">
@@ -273,7 +273,7 @@ export default {
             window.open('https://github.com/UnicomAI/wanwu')
           }},
           {name: this.$t('menu.about'), img: require('@/assets/imgs/about_icon.svg'), version: 'version', redirect: () => {
-            // 不展示关于弹窗
+            // Don't show about dialog
             // this.showAboutDialog()
           }}
         ],
@@ -293,7 +293,7 @@ export default {
         this.getMenuList(val.path)
         this.redirectUserInfo()
       },
-      // 深度观察监听
+      // Deep watch listener
       deep: true
     },
     orgInfo: {
@@ -315,7 +315,7 @@ export default {
     },
     permission: {
       handler(val) {
-        // 如果没修改过密码，重新向到修改密码
+        // If password not modified, redirect to modify password
         this.redirectUserInfo()
       },
       deep: true
@@ -325,27 +325,27 @@ export default {
     ...mapGetters('user', ['orgInfo', 'userInfo', 'commonInfo', 'permission']),
   },
   async created() {
-    // 判断是否展示左侧菜单
+    // Check whether to show left menu
     this.justifyIsShowNav(this.$route.path)
     // this.justifyIsShowMenu(this.$route.path)
 
-    // 设置语言
+    // Set language
     // await this.setLanguage()
 
-    // 获取菜单
+    // Get menu
     this.getCurrentMenu()
 
-    // 只有登陆状态下才查询接口，否则会一直刷新
+    // Only query interface when logged in, otherwise will keep refreshing
     if (localStorage.getItem('access_cert')) this.getPermissionInfo()
 
-    // 设置组织列表以及当前的组织
+    // Set organization list and current organization
     this.orgList = this.orgInfo.orgs || []
     this.org.orgId = this.userInfo.orgId
 
-    // 获取平台名称以及 logo 等信息
+    // Get platform name and logo information
     this.getCommonInfo()
   },
-  /* 保证容器 DIV 在 qiankun start 时一定存在 */
+  /* Ensure container DIV exists when qiankun starts */
   mounted() {
     /* start() */
   },
@@ -411,7 +411,7 @@ export default {
       this.menuList = menus
 
       if (menus && menus.length) {
-        // 切换 nav 菜单跳转有权限的第一个
+        // Switch nav menu and jump to first with permission
         const {path} = fetchPermFirPath(menus)
         this.$router.push({path})
         this.changeMenuIndex(fetchCurrentPathIndex(path, menus))
@@ -421,7 +421,7 @@ export default {
     },
     async setLanguage() {
       const langCode = localStorage.getItem('locale')
-      // 主要解决本地和线上两个 localStorage 语言不同问题，使用用户本地缓存的语言
+      // Mainly to solve local and online localStorage language difference, use user local cached language
       if (langCode) await changeLang({language: langCode})
     },
     menuClick(item){
@@ -433,11 +433,11 @@ export default {
     },
     getCurrentMenu() {
       const { path } = this.$route || {}
-      // 获取当前菜单
+      // Get current menu
       this.getMenuList(path)
     },
     getCurrentNav(path) {
-      // 获取一级路由, 如果是 appSpace 获取两级
+      // Get first level route, if appSpace get second level
       const pathArray = path.split('/') || []
       const firstLevelPath = pathArray[1] === 'appSpace'
         ? `/${pathArray[1] || ''}/${pathArray[2] || ''}`
@@ -449,14 +449,14 @@ export default {
     getMenuList(path) {
       const currentNavMenu = this.getCurrentNav(path)
       this.currentNavMenu = currentNavMenu
-      // 获取当前菜单列表
+      // Get current menu list
       const menus = currentNavMenu.children || []
       if (!menus.length) return
 
       this.menuList = menus
       this.defaultOpeneds = menus.map(item => item.index)
 
-      // 给当前 activeIndex 赋值
+      // Assign value to current activeIndex
       this.changeMenuIndex(fetchCurrentPathIndex(path, menus))
     },
     changeMenuIndex(index) {
@@ -464,21 +464,21 @@ export default {
     },
     async changeOrg(orgId) {
       this.$store.state.user.userInfo.orgId = orgId
-      // 切换组织更新权限，跳转有权限的页面；如果是用模型跳转用模型，其他跳转模型开发平台
+      // Switch organization and update permission, jump to page with permission; if model jump to model, otherwise jump to model dev platform
       await this.getPermissionInfo()
 
-      // 更新 storage 用户信息中组织 id
+      // Update stored user information organization id
       const info = JSON.parse(localStorage.getItem("access_cert"))
       info.user.userInfo.orgId = orgId
       localStorage.setItem('access_cert', JSON.stringify(info))
 
       const {path} = fetchPermFirPath()
-      // 如果当前页面 path 与第一个有权限的 path 相同，需要刷新页面以确保数据为新切换组织的
+      // If current page path is same as first permitted path, need to refresh page to ensure data is from new organization
       if (path === this.$route.path) {
         location.reload()
         return
       }
-      // 切换组织, 根据当前路径有权限的第一个路径找到对应的 menu
+      // Switch organization, get corresponding menu based on current path and first permitted path
       this.getMenuList(path)
       this.menuClick({path})
     }
@@ -580,7 +580,7 @@ export default {
         }
       }
     }
-    /*element ui 样式重写*/
+    /*element ui Style重写*/
     .inner-container {
       width: calc(100% - 80px);
       height: 100%;

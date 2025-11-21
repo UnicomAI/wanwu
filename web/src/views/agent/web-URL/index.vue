@@ -2,7 +2,7 @@
     <div class="weburl-container">
         <div class="weburl-title">
             <span class="el-icon-arrow-left goback" @click="goback"></span>
-            <span class="weburl-title-text">{{name}} - 发布配置</span>
+            <span class="weburl-title-text">{{name}} - PublishConfiguration</span>
         </div>
         <CommonLayout
         :showAside="true"
@@ -45,12 +45,12 @@ export default {
             toolList:[
                 {
                     name:'Web URL',
-                    desc:'分享链接后，可通过网页直接访问智能体应用',
+                    desc:'shareLinkafter，可By网页DirectlyAccessAgentApp',
                     type:'url'
                 },
                 {
                     name:'API',
-                    desc:'支持嵌入第三方应用系统',
+                    desc:'Supported嵌入第三方AppSystem',
                     type:'api'
                 }
             ]

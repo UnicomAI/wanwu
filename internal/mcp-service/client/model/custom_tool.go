@@ -4,7 +4,7 @@ const (
 	ApiAuthNone = "none"
 )
 
-// CustomTool 自定义工具
+// CustomToolCustom tools
 type CustomTool struct {
 	ID               uint32 `gorm:"primary_key"`
 	ToolSquareId     string `gorm:"index:idx_custom_tool_square_id"`

@@ -1,10 +1,10 @@
 package request
 
 type RoleCreate struct {
-	Name   string `json:"name" validate:"required"` // 角色名
-	Remark string `json:"remark"`                   // 备注
+	Name   string `json:"name" validate:"required"` // Character name
+	Remark string `json:"remark"`                   // Remark
 
-	Permissions []string // 权限列表
+	Permissions []string // Permission list
 }
 
 func (r *RoleCreate) Check() error {
@@ -21,7 +21,7 @@ func (r *RoleUpdate) Check() error {
 }
 
 type RoleID struct {
-	RoleID string `json:"roleId" validate:"required"` // 角色ID
+	RoleID string `json:"roleId" validate:"required"` // Role ID
 }
 
 func (r *RoleID) Check() error {

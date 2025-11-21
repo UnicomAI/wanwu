@@ -87,7 +87,7 @@ class LLamaLLM(BaseAnswer, LLM, ABC):
         reply = self.checkPoint.tokenizer.decode(output_ids, skip_special_tokens=True)
         return reply
 
-    # 将历史对话数组转换为文本格式
+    # Convert historical conversation array to text format
     def history_to_text(self, query, history):
         """
         历史对话软提示
@@ -108,7 +108,7 @@ class LLamaLLM(BaseAnswer, LLM, ABC):
                                       input_ids: torch.LongTensor):
         """
         预生成注意力掩码和 输入序列中每个位置的索引的张量
-        # TODO 没有思路
+        # TODO No idea
         :return:
         """
 
@@ -150,18 +150,18 @@ class LLamaLLM(BaseAnswer, LLM, ABC):
             "eos_token_id": self.checkPoint.tokenizer.eos_token_id,
             "logits_processor": self.logits_processor}
 
-        #  向量转换
+        #  vector conversion
         input_ids = self.encode(prompt, add_bos_token=self.state['add_bos_token'], truncation_length=self.max_new_tokens)
         # input_ids, position_ids, attention_mask = self.prepare_inputs_for_generation(input_ids=filler_input_ids)
 
 
         gen_kwargs.update({'inputs': input_ids})
-        # 注意力掩码
+        # attention mask
         # gen_kwargs.update({'attention_mask': attention_mask})
         # gen_kwargs.update({'position_ids': position_ids})
         if self.stopping_criteria is None:
             self.stopping_criteria = transformers.StoppingCriteriaList()
-        # 观测输出
+        # Observation output
         gen_kwargs.update({'stopping_criteria': self.stopping_criteria})
 
         output_ids = self.checkPoint.model.generate(**gen_kwargs)
@@ -175,7 +175,7 @@ class LLamaLLM(BaseAnswer, LLM, ABC):
                          history: List[List[str]] = [],
                          streaming: bool = False):
 
-        # TODO 需要实现chat对话模块和注意力模型，目前_call为langchain的LLM拓展的api，默认为无提示词模式，如果需要操作注意力模型，可以参考chat_glm的实现
+        # TODO needs to implement the chat dialogue module and attention model. Currently, _call is the API extended by langchain's LLM. The default is no prompt word mode. If you need to operate the attention model, you can refer to the implementation of chat_glm.
         softprompt = self.history_to_text(prompt,history=history)
         response = self._call(prompt=softprompt, stop=['\n###'])
 

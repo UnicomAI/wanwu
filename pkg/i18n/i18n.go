@@ -28,10 +28,15 @@ type textConfig struct {
 }
 
 func (cfg *textConfig) langMsg(lang, defaultLang Lang, args []string) string {
+	// Defensive nil check to prevent panic
+	if cfg == nil || cfg.Langs == nil {
+		return fmt.Sprintf("[i18n] nil config: lang(%v) args: %v", lang, args)
+	}
+	
 	var format string
 	var ok bool
 	if format, ok = cfg.Langs[lang]; !ok {
-		// 没有对应语言，则使用默认语言
+		// If there is no corresponding language, the default language will be used.
 		format = cfg.Langs[defaultLang]
 	}
 	if format != "" {

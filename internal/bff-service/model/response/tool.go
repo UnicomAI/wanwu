@@ -10,15 +10,15 @@ type CustomToolDetail struct {
 	CustomToolInfo
 	Schema        string                 `json:"schema"`        // schema
 	ApiAuth       util.ApiAuthWebRequest `json:"apiAuth"`       // apiAuth
-	ApiList       []CustomToolActionInfo `json:"apiList"`       // action列表
-	PrivacyPolicy string                 `json:"privacyPolicy"` // 隐私政策
+	ApiList       []CustomToolActionInfo `json:"apiList"`       // action list
+	PrivacyPolicy string                 `json:"privacyPolicy"` // privacy policy
 }
 
 type CustomToolInfo struct {
-	CustomToolId string         `json:"customToolId"` // 自定义工具id
-	Name         string         `json:"name"`         // 名称
-	Description  string         `json:"description"`  // 描述
-	Avatar       request.Avatar `json:"avatar"`       // 图标
+	CustomToolId string         `json:"customToolId"` // Custom tool id
+	Name         string         `json:"name"`         // name
+	Description  string         `json:"description"`  // describe
+	Avatar       request.Avatar `json:"avatar"`       // icon
 }
 
 type CustomToolActionInfo struct {
@@ -35,20 +35,20 @@ type ToolSquareDetail struct {
 }
 
 type ToolSquareInfo struct {
-	ToolSquareID string         `json:"toolSquareId"` // 广场mcpId(非空表示来源于广场)
-	Avatar       request.Avatar `json:"avatar"`       // 图标
-	Name         string         `json:"name"`         // 名称
-	Desc         string         `json:"desc"`         // 描述
-	Tags         []string       `json:"tags"`         // 标签
+	ToolSquareID string         `json:"toolSquareId"` // Square mcpId (non-empty means it comes from square)
+	Avatar       request.Avatar `json:"avatar"`       // icon
+	Name         string         `json:"name"`         // name
+	Desc         string         `json:"desc"`         // describe
+	Tags         []string       `json:"tags"`         // Label
 }
 
 type ToolSquareActions struct {
-	NeedApiKeyInput bool                   `json:"needApiKeyInput"` // 是否需要apiKey输入
+	NeedApiKeyInput bool                   `json:"needApiKeyInput"` // Whether apiKey input is required
 	APIKey          string                 `json:"apiKey"`          // apiKey
 	ApiAuth         util.ApiAuthWebRequest `json:"apiAuth"`         // apiAuth
-	Tools           []*protocol.Tool       `json:"tools"`           // action列表
-	Detail          string                 `json:"detail"`          // 详细描述
-	ActionSum       int64                  `json:"actionSum"`       // action总数
+	Tools           []*protocol.Tool       `json:"tools"`           // action list
+	Detail          string                 `json:"detail"`          // Detailed description
+	ActionSum       int64                  `json:"actionSum"`       // total number of actions
 }
 
 type ToolSelect struct {
@@ -57,21 +57,21 @@ type ToolSelect struct {
 }
 
 type ToolInfo struct {
-	ToolId          string         `json:"toolId"`                                            // 工具id
-	ToolName        string         `json:"toolName"`                                          // 工具名称
-	ToolType        string         `json:"toolType" validate:"required,oneof=custom builtin"` // 工具类型
-	Desc            string         `json:"desc"`                                              // 工具描述
-	NeedApiKeyInput bool           `json:"needApiKeyInput"`                                   // 是否需要apiKey输入
+	ToolId          string         `json:"toolId"`                                            // tool id
+	ToolName        string         `json:"toolName"`                                          // Tool name
+	ToolType        string         `json:"toolType" validate:"required,oneof=custom builtin"` // Tool type
+	Desc            string         `json:"desc"`                                              // Tool description
+	NeedApiKeyInput bool           `json:"needApiKeyInput"`                                   // Whether apiKey input is required
 	APIKey          string         `json:"apiKey"`                                            // apiKey
-	Avatar          request.Avatar `json:"avatar"`                                            // 图标
+	Avatar          request.Avatar `json:"avatar"`                                            // icon
 }
 
 type ToolActionList struct {
-	Actions []*protocol.Tool `json:"actions"` // action列表
+	Actions []*protocol.Tool `json:"actions"` // action list
 }
 
 type ToolActionDetail struct {
-	NeedApiKeyInput bool           `json:"needApiKeyInput"` // 是否需要apiKey输入
+	NeedApiKeyInput bool           `json:"needApiKeyInput"` // Whether apiKey input is required
 	APIKey          string         `json:"apiKey"`          // apiKey
-	Action          *protocol.Tool `json:"action"`          // action列表
+	Action          *protocol.Tool `json:"action"`          // action list
 }

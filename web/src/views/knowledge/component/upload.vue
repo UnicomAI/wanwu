@@ -43,7 +43,7 @@
         :label="$t('knowledgeManage.importDoc')"
         required
       >
-       <!-- rag一体机上不显示 -->
+       <!-- rag一体机上不Show -->
         <el-radio-group
           v-model="upLoadType"
           @change="handleRadioChange"
@@ -51,7 +51,7 @@
           v-if="platform !== 'YWD_RAG' && platform !== 'HW_RAG'"
         >
           <el-radio label="1">{{$t('knowledgeManage.formFile')}}</el-radio>
-          <!-- 华为一体机隐藏url上传 -->
+          <!-- 华is一体机hideurlUpload -->
           <el-radio label="2">{{$t('knowledgeManage.fromURL')}}</el-radio>
         </el-radio-group>
 
@@ -115,9 +115,9 @@
                           max="100"
                           style="width:360px;"
                         ></el-progress>
-                        <el-link type="success" :underline="false" v-if="file.showRetry === 'true'" @click="refreshFile(index)">重试</el-link>
-                        <el-link type="success" :underline="false" style="margin-left:10px;" v-if="file.showResume === 'true' && file.percentage > 0" @click="resumeFile(index)">续传</el-link>
-                        <el-link type="success" :underline="false" style="margin-left:10px;" v-if="file.showRemerge === 'true'" @click="remergeFile(index)">续传</el-link>
+                        <el-link type="success" :underline="false" v-if="file.showRetry === 'true'" @click="refreshFile(index)">Retry</el-link>
+                        <el-link type="success" :underline="false" style="margin-left:10px;" v-if="file.showResume === 'true' && file.percentage > 0" @click="resumeFile(index)">Resume</el-link>
+                        <el-link type="success" :underline="false" style="margin-left:10px;" v-if="file.showRemerge === 'true'" @click="remergeFile(index)">Resume</el-link>
                     </div>
                   </li>
                 </ul>
@@ -174,7 +174,7 @@
         :loading="urlLoading"
         >{{$t('knowledgeManage.confirmImport')}}</el-button
       >
-      <!-- url上传批量添加按钮 -->
+      <!-- urlUploadBatchAddButton -->
       <el-button
         type="primary"
         v-if="upLoadType === '2' && urlActive === 'second'"
@@ -199,7 +199,7 @@ import urlAnalysis from "./urlAnalysis.vue";
 import urlBatch from "./urlBatch.vue";
 import { getDocList,importDoc,saveImportDoc,deleteInvalid } from "@/api/knowledge";
 import uploadChunk from "@/mixins/uploadChunk";
-// 防抖函数
+// debounceFunction
 function debounce(fn, wait) {
     let timeout = null;
     return function() {
@@ -236,7 +236,7 @@ export default {
       upDisabled: true,
       urlValidate: false,
       urlLoading: false,
-      upLoadType: "1", // 1:从文档上传；2:从url上传
+      upLoadType: "1", // 1:从DocumentUpload；2:从urlUpload
       source: [],
       saveLoading:false,
       uploading: false,
@@ -314,30 +314,30 @@ export default {
             }
           });
         },10)
-        //开始切片上传(如果没有文件正在上传)
+        //Start chunk upload (if no file is uploading)
         if(this.file === null){
           this.startUpload();
-        }else{//如果上传当中有新的文件加入
+        }else{//If new file is added during upload
           if(this.file.progressStatus === 'success'){
             this.startUpload(this.fileIndex)
           }
         }
       }
     },
-    refreshFile(index){//重新上传文件
+    refreshFile(index){//Re-upload file
       this.fileList[index]['showRetry'] = 'false';
       this.fileList[index]['percentage'] = 0;
       this.startUpload(index)
     },
-    resumeFile(index){//续传文件
+    resumeFile(index){//Resume file upload
       this.fileList[index]['showResume'] = 'false';
       this.nextChunkIndex = this.uploadedChunks;
       this.processNextChunk();
     },
-    remergeFile(index){//重新上传
+    remergeFile(index){//Re-upload
       this.mergeChunks()
     },
-    //  验证文件为空
+    //  VerifyFileIs Empty
     verifyEmpty(file) {
       const isLt1GB = file.size / 1024 / 1024 / 1024 < 1;
       if (file.size <= 0) {
@@ -351,7 +351,7 @@ export default {
       }
       return true
     },
-    //  验证文件格式
+    //  VerifyFileFormat
     verifyFormat(file) {
       const nameType = ['docx','doc','pdf','xlsx','xls','txt','zip','tar.gz','csv','pptx','html']
       const fileName = file.name
@@ -379,7 +379,7 @@ export default {
         return  true
       }
     },
-    //  验证文件格式
+    //  VerifyFileFormat
     verifyRepeat(file) {
       let res = true;
       setTimeout(() => {
@@ -398,7 +398,7 @@ export default {
         return res;
       }, 50);
     },
-    // 删除已上传文件
+    // Delete uploaded file
     handleRemove(item) {
       this.fileList = this.fileList.filter((files) => files.name !== item.name);
       if(this.fileList.length === 0){
@@ -411,7 +411,7 @@ export default {
       this.$message.error(this.$t('knowledgeManage.fileLimitError'));
     },
     saveUpload() {
-      //保存成功结果
+      //SaveSuccessResult
       let ids = [];
       this.fileList.map((item) => {
         if (item.id && item.id.includes(",")) {
@@ -439,7 +439,7 @@ export default {
 
     },
     submitVisible() {
-      //上传
+      //Upload
       this.$refs["uplodForm"].validate((valid) => {
         if (valid) {
           if (!this.fileList.length) {
@@ -475,20 +475,20 @@ export default {
         formData.append("file", file.raw);
       }
       formData.append("fileType", type?type[1]:'');
-      formData.append("fileName", fileName);//合并完返回的name
+      formData.append("fileName", fileName);//合并完Back of name
       formData.append("fileOriginName", file.name);
       formData.append("categoryId", this.uplodForm.knowValue);
       formData.append("plugin", this.uplodForm.plugin);
       formData.append("batchId", this.fileUuid);
-      const cancel = axios.CancelToken.source(); //创建一个取消令牌
+      const cancel = axios.CancelToken.source(); //Create一Cancel令牌
       this.source.push(cancel);
        importDoc(formData, cancel.token).then(res =>{
           if (res.code === 0) {
             if(Array.isArray(res.data)){
-              //压缩包会返回多个id(数组格式)
+              //Compress包会Back多id(ArrayFormat)
               this.$set(this.fileList[this.fileIndex],'id',res.data.join(','))
             }else{
-              //单个文件上传会返回一个id(字符串)
+              //singleFileUpload会Back一id(String)
               this.$set(this.fileList[this.fileIndex],'id',res.data)
             }
             this.$set(this.fileList[this.fileIndex], "progressStatus", "success");
@@ -515,7 +515,7 @@ export default {
       if(this.fileList.length > 0){
         this.fileList.map(item => {
           if(item.id){
-            if(item.id.includes(',')){//rag一体机没有此逻辑
+            if(item.id.includes(',')){//RAG all-in-one machine does not have this logic
               const list = item.id.split(',')
               list.map(item =>{
                 ids.push(item)
@@ -526,7 +526,7 @@ export default {
           }
         })
         if(ids.length > 0){
-          this.deleteData({id:ids})//取消时删除文件
+          this.deleteData({id:ids})//Cancel when DeleteFile
         }
       }
       this.$refs["uplodForm"].resetFields();
@@ -547,7 +547,7 @@ export default {
        }
     },
     async getClassfyDoc() {
-      //获取文档知识分类
+      //GetDocument知识分Class
       const res = await getDocList();
       if (res && res.code === 0) {
         this.knowledgeData = res.data;
@@ -611,7 +611,7 @@ export default {
         this.reset();
       }
     },
-    // 验证url批量上传 按钮是否可点击
+    // VerifyurlBatchUpload ButtonYesNo可click
     handleSetBatchDisabled(val) {
       this.urlBatchDis = val;
     }

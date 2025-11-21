@@ -23,7 +23,7 @@ func (c ClientMinio) LoadType() string {
 
 func (c ClientMinio) Load() error {
 	minioConfig := config.GetConfig().Minio
-	//初始化知识库内部使用minio-bucket
+	//Initialize the knowledge base internally using minio-bucket
 	err := minio.InitKnowledge(context.Background(), minio.Config{
 		Endpoint: minioConfig.EndPoint,
 		User:     minioConfig.User,
@@ -32,7 +32,7 @@ func (c ClientMinio) Load() error {
 	if err != nil {
 		return err
 	}
-	//初始化对外公开bucket
+	//Initialize the public bucket
 	err = minio.InitKnowledge(context.Background(), minio.Config{
 		Endpoint: minioConfig.EndPoint,
 		User:     minioConfig.User,

@@ -17,7 +17,7 @@ export function transformGraphData(backendData, options = {}) {
     const nodeId = getNodeId(node, index)
     const nodeLabel = getNodeLabel(node, index)
 
-    // 移除后端数据中的 size 和 style.fill 属性，让 graphMap 的 defaultNode 配置生效
+    // Removeafter端Datain of  size And style.fill Property，让 graphMap  of  defaultNode Configuration生效
     const { size, style, ...nodeWithoutSizeAndStyle } = node
     const nodeStyle = style && style.fill ? { ...style, fill: undefined } : style
     const cleanedNode = nodeStyle && Object.keys(nodeStyle).length > 0 

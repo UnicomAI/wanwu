@@ -41,7 +41,7 @@ from langchain_core.messages import (
     AIMessageChunk,
 )
 #from utils.ts_tencent import ChatTencentAI
-from openai import RateLimitError  # 新的导入方式
+from openai import RateLimitError  # New import method
 
 from typing import List, Dict, Union, Any
 from openai import RateLimitError
@@ -59,7 +59,7 @@ HISTORY_TURNS_NUM =10
 
 logger = logging.getLogger(__name__)
 
-# 实例化对象
+# instantiate object
 token_manager = AccessTokenManager()
 
 #redis_client = RedisClient()
@@ -80,14 +80,14 @@ DEFAULT_TEMPERATURE = config["MODELS"]["default_llm_param_temperature"]
 def parse_error_to_dict(error) -> Dict[str, Any]:
     """将错误信息转换为字典类型"""
     try:
-        # 从错误信息中提取 JSON 部分
+        # Extract JSON part from error message
         error_str = str(error)
-        # 使用正则表达式匹配 '-' 后面的 JSON 字符串
+        # Use regular expressions to match JSON strings following '-'
         match = re.search(r'-\s*(\{.*\})', error_str)
         if match:
             json_str = match.group(1)
             return json.loads(json_str)
-        # 如果没有匹配到 JSON 格式，返回基本错误信息
+        # If no JSON format is matched, basic error information is returned.
         return {
             "error": {
                 "message": str(error),
@@ -96,7 +96,7 @@ def parse_error_to_dict(error) -> Dict[str, Any]:
             }
         }
     except Exception as e:
-        # 确保总是返回一个有效的错误字典
+        # Ensure a valid error dictionary is always returned
         return {
             "error": {
                 "message": str(error),
@@ -140,7 +140,7 @@ def req_unicom_llm_chat(messages: List,
         llm = ChatOpenAI(
             model=model_name,
             
-            temperature=0.6,  #deepseek系列模型写死
+            temperature=0.6,  #Deepseek series models are written to death
             base_url=base_url,
             api_key = token_manager.get_access_token()
         )
@@ -198,7 +198,7 @@ def req_unicom_llm_chat_plus(messages:List, stop_words = ['REASON'], model_name=
         logger.info(f"model_tools req_unicom_llm_chat_plus  \nbase_url:{base_url}  \nmodel_name:{model_name}")
         llm = ChatOpenAI(
             model=model_name,
-            temperature=0.6,  #deepseek系列模型写死
+            temperature=0.6,  #Deepseek series models are written to death
             base_url=base_url,
             api_key = token_manager.get_access_token()
         )
@@ -230,14 +230,14 @@ def req_unicom_llm_chat_plus(messages:List, stop_words = ['REASON'], model_name=
        
      
 
-# 可控版文生图
+# Controllable version of Wenshengtu
 @advanced_timing_decorator() 
 def upload_base64_to_url(image_bs64_list):
     img_url_list = []
     msg = 'success'
     try:
         for image_bs64 in image_bs64_list:       
-            file_extension = '.jpg'  # 假设我们知道文件应该是JPEG图像
+            file_extension = '.jpg'  # Assuming we know the file should be a JPEG image
             object_prefix = 'images'
             
             if bucket_type == "MINIO":
@@ -256,7 +256,7 @@ def upload_base64_to_url(image_bs64_list):
         return img_url_list,msg
     
     except Exception as e:
-        logger.info(f"Minio没有生成url: {str(e)}")  # 记录错误日志
+        logger.info(f"Minio没有生成url: {str(e)}")  # Record error log
         msg = str(e)
         return img_url_list,msg
     
@@ -293,16 +293,16 @@ def req_txt2img_plus(query,images_per_prompt=1,height=1024,width=1024):
     logger.info(f"req_txt2img_plus data: {data}")
 
     try:
-        # 获取开始时间
+        # Get start time
         start_time = time.perf_counter()
         response = requests.post(url,
                                  data=data, 
                                  headers=headers,
                                  verify=False)
-        # 计算执行时间
+        # Calculate execution time
         end_time = time.perf_counter()
         execution_time = end_time - start_time
-        # 构建日志消息
+        # Build log messages
         logger.info(f"文生图模型原始结果：{response.text}")
         logger.info(f"文生图模型耗时：{execution_time}")
         
@@ -320,14 +320,14 @@ def req_txt2img_plus(query,images_per_prompt=1,height=1024,width=1024):
             msg = response.reason
     
     except Exception as e:
-        logger.error("没有成功生成图片呢: %s", e)  # 记录错误日志
+        logger.error("没有成功生成图片呢: %s", e)  # Record error log
         msg = str(e)
     
     return img_url_list, msg
 
 
 
-# 图文问答plus
+# Picture and text question and answer plus
 @advanced_timing_decorator() 
 def unicom_vqa_stream(image_url, prompt,messages):
     # url = "https://122.13.25.19:5001/openapi/v1/qwenvl_ft"
@@ -336,11 +336,11 @@ def unicom_vqa_stream(image_url, prompt,messages):
         try:
         
             image_response = requests.get(image_url, verify=False)
-            image_response.raise_for_status()  # 确保请求成功
+            image_response.raise_for_status()  # Make sure the request is successful
         except requests.RequestException as e:
-            logger.error("Image download error: %s", e)  # 记录错误日志
+            logger.error("Image download error: %s", e)  # Record error log
             return "No answer found due to image download error"
-        # 使用获取的图片内容创建一个临时的BytesIO对象
+        # Create a temporary BytesIO object using the obtained image content
         image_file = io.BytesIO(image_response.content)
     else:
         BUCKET_NAME = config["OSS"]["BUCKET_NAME"]
@@ -349,7 +349,7 @@ def unicom_vqa_stream(image_url, prompt,messages):
         data = image_response["data"]
         image_file = io.BytesIO(data)
 
-    # 准备请求数据
+    # Prepare request data
     files = {'img': ('image.jpg', image_file, 'image/jpeg')}
     messages = json.dumps(messages,ensure_ascii=False)
 
@@ -362,7 +362,7 @@ def unicom_vqa_stream(image_url, prompt,messages):
     headers = {
             "Authorization": f"Bearer {token_manager.get_access_token()}"
             }
-    # 发送POST请求
+    # Send POST request
     logger.info(f"unicom_vqa_stream files:{files}")
     try:
         response = requests.post(url, 
@@ -399,7 +399,7 @@ def unicom_vqa_stream(image_url, prompt,messages):
             
             ################'prompt_tokens'
 
-            # content='智能' additional_kwargs={} response_metadata={} id='bece9cbc-e38f-11ef-a1b4-b64ea7f91903' usage_metadata={'input_tokens': 36, 'output_tokens': 7, 'total_tokens': 43}
+            # content='smart' additional_kwargs={} response_metadata={} id='bece9cbc-e38f-11ef-a1b4-b64ea7f91903' usage_metadata={'input_tokens': 36, 'output_tokens': 7, 'total_tokens': 43}
 
             ai_message_chunk = AIMessageChunk(content=increase_content,usage_metadata=usage_metadata,response_metadata=response_metadata)
             
@@ -407,11 +407,11 @@ def unicom_vqa_stream(image_url, prompt,messages):
 
     except requests.RequestException as e:
         logger.info(f"API error: {str(e)}")
-        logger.error("API error: %s", e)  # 记录错误日志
+        logger.error("API error: %s", e)  # Record error log
         print(e)
         return "No answer found due to API error"
 
-# 图文问答plus
+# Picture and text question and answer plus
 
 @advanced_timing_decorator()    
 def unicom_vqa_nonstream(image_url, prompt,messages):
@@ -421,11 +421,11 @@ def unicom_vqa_nonstream(image_url, prompt,messages):
     if bucket_type == "MINIO":
         try:
             image_response = requests.get(image_url, verify=False)
-            image_response.raise_for_status()  # 确保请求成功
+            image_response.raise_for_status()  # Make sure the request is successful
         except requests.RequestException as e:
-            logger.error("Image download error: %s", e)  # 记录错误日志
+            logger.error("Image download error: %s", e)  # Record error log
             return "No answer found due to image download error"
-        # 使用获取的图片内容创建一个临时的BytesIO对象
+        # Create a temporary BytesIO object using the obtained image content
         image_file = io.BytesIO(image_response.content)
     else:
         object_name = image_url.replace("/assistant-obj/","")
@@ -433,7 +433,7 @@ def unicom_vqa_nonstream(image_url, prompt,messages):
         data = image_response["data"]
         image_file = BytesIO(data)
         
-    # 准备请求数据
+    # Prepare request data
     files = {'img': ('image.jpg', image_file, 'image/jpeg')}
     messages = json.dumps(messages,ensure_ascii=False)
 
@@ -447,7 +447,7 @@ def unicom_vqa_nonstream(image_url, prompt,messages):
     headers = {
             "Authorization": f"Bearer {token_manager.get_access_token() }"
             }
-    # 发送POST请求
+    # Send POST request
     try:
         response = requests.post(url, 
                                  files=files,
@@ -472,11 +472,11 @@ def unicom_vqa_nonstream(image_url, prompt,messages):
         return res_data
     except requests.RequestException as e:
         logger.info(f"API error: {str(e)}")
-        logger.error("API error: %s", e)  # 记录错误日志
+        logger.error("API error: %s", e)  # Record error log
         print(e)
         return "No answer found due to API error"
     
-# 文生视频    
+# Vincent Video
 @advanced_timing_decorator()      
 def request_text_to_video(prompt):
     # url = "https://122.13.25.19:5001/openapi/text-to-video/v1"
@@ -557,19 +557,19 @@ def video_upload_to_MinIO(video_base64):
 
 # @advanced_timing_decorator()    
 # def generate_and_upload_video(prompt):
-#     # 第一步：生成视频
+#     # Step one: Generate video
 #     resource_id = request_text_to_video(prompt)
 
-#     # 等待5秒：视频生成需要3-5秒
+#     # Wait 5 seconds: video generation takes 3-5 seconds
 #     time.sleep(4)
 
-#     # 第二步：获取视频详细信息
+#     # Step 2: Get video details
 #     video_base64 = get_video_base64(resource_id)
 #     # print("SSS:\n",video_base64,"\nHHH")
 
 #     # if not video_details or 'video' not in video_details:
 #     #     return json.dumps({"code": 1, "message": "Failed to get video details", "url": ""})
-#     # 第三步：上传视频到 MinIO
+#     # Step 3: Upload video to MinIO
     
 #     result = video_upload_to_MinIO(video_base64)
 #     return result
@@ -577,26 +577,26 @@ def video_upload_to_MinIO(video_base64):
 
 @advanced_timing_decorator()    
 def generate_and_upload_video(prompt):
-    # 第一步：生成视频
+    # Step 1: Generate video
     resource_id = request_text_to_video(prompt)
-    # 如果没有生成成功，则返回失败信息
+    # If the generation is not successful, failure information is returned.
     if not resource_id:
         return json.dumps({"code": 1, "message": "Failed to generate video", "url": ""})
 
-    # 第二步：轮询获取视频详细信息，最长等待30秒
+    # Step 2: Poll to obtain video details, wait up to 30 seconds
     start_time = time.time()
     video_base64 = None
     while time.time() - start_time < 30:
         video_base64 = get_video_base64(resource_id)
         if video_base64:
             break
-        time.sleep(1)  # 每秒检查一次
+        time.sleep(1)  # Check every second
 
-    # 如果获取视频信息失败，则返回失败信息
+    # If the acquisition of video information fails, failure information will be returned.
     if not video_base64:
         return json.dumps({"code": 1, "message": "Failed to get video details within 10 seconds", "url": ""})
 
-    # 第三步：上传视频到 MinIO
+    # Step 3: Upload video to MinIO
     result = video_upload_to_MinIO(video_base64)
     return result
 
@@ -649,7 +649,7 @@ def req_bert_cls(query,url):
         return result_int
 
     else:
-        # 如果不是200，则抛出一个自定义异常
+        # If not 200, throw a custom exception
         raise Exception("请求失败，错误信息：" + response.text)
 
 
@@ -668,7 +668,7 @@ def req_code_interpreter(query,need_file=False,upload_file_url='',history=[]):
         "Content-Type": "application/json"
     }
 
-    # 初始请求
+    # initial request
     payload = {
         "input": query,
         "history": [],
@@ -677,7 +677,7 @@ def req_code_interpreter(query,need_file=False,upload_file_url='',history=[]):
         "upload_file_url": upload_file_url
     }
 
-    # 发起流式请求
+    # Make a streaming request
     response = requests.post(url, json=payload, headers=headers, stream=True)        
  
     return response
@@ -695,7 +695,7 @@ def file_to_base64(file_path):
 @advanced_timing_decorator()       
 def is_query_sen(query):
     # url = "http://192.168.0.217:1005/check"
-    # url配置校验，增加对私有化版本的兼容
+    # URL configuration verification to increase compatibility with privatized versions
     url = config["MODELS"]["sensitive_url"]
   
     contents = []
@@ -719,7 +719,7 @@ def is_query_sen(query):
         return response
 
     except Exception as e:
-        logger.error("is_query_sen error: %s", str(e))  # 记录错误日志
+        logger.error("is_query_sen error: %s", str(e))  # Record error log
         return None
 
 
@@ -745,7 +745,7 @@ def req_action(query,plugin_list = None,function_calls_list = None,action_type =
         return response
 
     except Exception as e:
-        logger.error("req_action error: %s", str(e))  # 记录错误日志
+        logger.error("req_action error: %s", str(e))  # Record error log
         
         return e
 
@@ -772,7 +772,7 @@ def req_choose_cls(query,userId ,kn_list,kn_topK,auto_citation = False):
             
 
     except Exception as e:
-        logger.error("is_query_sen error: %s", str(e))  # 记录错误日志
+        logger.error("is_query_sen error: %s", str(e))  # Record error log
         return e    
 
 @advanced_timing_decorator()  
@@ -921,46 +921,46 @@ def req_query_rewrite(query,history=[]):
         prompt = (
             '你是一个多轮对话query改写助手，根据对话历史，完成指代消岐，补全用户问题。我将举多个改写示例，每个示例包括对话历史，用户问题，重述问题3个部分。' +
             '\n```' +
-            '##示例1：' +
+            '##Example1：' +
             '对话历史：' + str(history1) + '\n' +
             '用户问题:\n他的这四部电影上映年份是什么时候' + '\n' +
             '重述问题:\n李安的《喜宴》、《卧虎藏龙》、《断背山》、《少年派的奇幻漂流》这四部电影上映年份是什么时候' +
             '\n' +
-            '##示例2：' +
+            '##Example2：' +
             '对话历史：' + str(history2) + '\n' +
             '用户问题:\n这部剧主角是谁' + '\n' +
             '重述问题:\n繁花这部剧的主角是谁' +
             '\n' +
-            '##示例3：' +
+            '##Example3：' +
             '对话历史：' + str(history3) + '\n' +
             '用户问题:\总裁是谁呢' + '\n' +
             '重述问题:\n联通数科的总裁是谁呢' +
             '\n' +
-            '##示例4：' +
+            '##Example4：' +
             '对话历史：' + str(history4) + '\n' +
             '用户问题:\n你提到的省份它的当地人饮食习惯是什么' + '\n' +
             '重述问题:\n广东省的当地人的饮食习惯是什么' +
-            '##示例5：' +
+            '##Example5：' +
             '对话历史：' + str(history5) + '\n' +
             '用户问题:\n他还有哪些代表作' + '\n' +
             '重述问题:\n茅盾还有哪些代表着' +
             '\n' +       
-            '##示例6：' +
+            '##Example6：' +
             '对话历史：' + str(history6) + '\n' +
             '用户问题:\n后天呢？' + '\n' +
             '重述问题:\n后天上海天气' +
             '\n' +       
-            '##示例7：' +
+            '##Example7：' +
             '对话历史：' + str(history7) + '\n' +
             '用户问题:\他的夫人是谁？' + '\n' +
             '重述问题:\n茅盾的夫人是谁' +
             '\n' +       
-            '##示例8：'+
+            '##Example8：'+
             '对话历史：' + str(history8) + '\n' +
             '用户问题:他能卖多少钱？' + '\n' +
             '重述问题:\n这只猫能卖多少钱' +
             '\n' +       
-            '##示例9：'+
+            '##Example9：'+
             '对话历史：' + str(history9) + '\n' +
             '用户问题:生成一张他的图片' + '\n' +
             '重述问题:\n生成一张刘亦菲的图片' +
@@ -981,27 +981,27 @@ def req_query_rewrite(query,history=[]):
         prompt = (
             '你是一个多轮对话query澄清助手，对于依赖上文背景但是又没有提供上文背景的query生成一个追问的话术,注意不要原样复述用户的query。' +
             '\n```' +
-            '##示例1：' +
+            '##Example1：' +
             '用户问题:\n他的这四部电影上映年份是什么时候' + '\n' +
             '重述问题:\n请问您指的是哪位导演或演员的哪四部电影？请提供更多信息，以便我能准确回答您的问题。' +
             '\n' +
-            '##示例2：' +
+            '##Example2：' +
             '用户问题:\n这部剧主角是谁' + '\n' +
             '重述问题:\n请您告诉我您指的是哪部剧，这样我才能准确地回答您的问题。' +
             '\n' +
-            '##示例3：' +
+            '##Example3：' +
             '用户问题:\总裁是谁呢' + '\n' +
             '重述问题:\n抱歉，我需要更多信息才能回答您的问题。请您告诉我您指的是哪位总裁，或者哪部剧的总裁角色，这样我才能更好地帮助您。' +
             '\n' +           
-            '##示例4：' +
+            '##Example4：' +
             '用户问题:\n他还有哪些代表作' + '\n' +
             '重述问题:\n抱歉，您指的是哪一位？请您提供更多信息，以便我能更好地回答您的问题' +
             '\n' +       
-            '##示例5：' +
+            '##Example5：' +
             '用户问题:\n后天呢？' + '\n' +
             '重述问题:\n抱歉，请您提供更多信息，以便我能更好地回答您的问题' +
             '\n' +       
-            '##示例6：' +
+            '##Example6：' +
             '用户问题:\他的夫人是谁？' + '\n' +
             '重述问题:\n您指的是哪一位的夫人？请您提供更多信息，以便我能准确回答您的问题。' +
             '\n```' +            
@@ -1026,10 +1026,10 @@ def req_query_rewrite(query,history=[]):
 @advanced_timing_decorator(task_name="is_kb_belong_to_user_v2")
 def is_kb_belong_to_user_v2(kn_list, userId):
 
-    # url = "http://192.168.0.214:7801/rag/list-knowledge-base"  #负载地址
+    # url = "http://192.168.0.214:7801/rag/list-knowledge-base" #Load address
     url = config["MODELS"]["default_list_kb_url"]
     
-    # 初始化返回值
+    # initialization return value
     code = 0
     msg = f"当前用户下不存在知识库：{kn_list}，请检查知识库名字是否正确"
     
@@ -1044,7 +1044,7 @@ def is_kb_belong_to_user_v2(kn_list, userId):
             response_json = response.json()   
             user_kb_list = response_json.get("data", {}).get("knowledge_base_names", [])
             
-            # 使用集合判断 kn_list 是否是 user_kb_list 的子集
+            # Use a set to determine whether kn_list is a subset of user_kb_list
             kn_set = set(kn_list)
             user_kb_set = set(user_kb_list)
             # print(user_kb_set)
@@ -1063,8 +1063,8 @@ def is_kb_belong_to_user_v2(kn_list, userId):
         return code, msg
     except Exception as e:
         code = -1
-        logger.error("is_kb_belong_to_user_v2 error: %s", str(e))  # 记录错误日志
-        print(f"An error occurred: {e}")  # 用于调试，可删除
+        logger.error("is_kb_belong_to_user_v2 error: %s", str(e))  # Record error log
+        print(f"An error occurred: {e}")  # Used for debugging and can be deleted
         msg = str(e)
         return code, msg
 
@@ -1077,7 +1077,7 @@ def req_kb_search_v2(question, kn_userId, kn_name, threshold, topK,auto_citation
     print("start req_kb_search...")
     prompt = ''
     search_list = []
-    # url = "http://192.168.0.214:7801/rag/search-knowledge-base"  # 负载地址
+    # url = "http://192.168.0.214:7801/rag/search-knowledge-base" # Payload address
     url = config["MODELS"]["default_search_kb_url"]
     headers = {
         "Content_type": "application/json;charset=utf-8",
@@ -1143,8 +1143,8 @@ def can_answer_question(question, search_list,model="deepseek-v3"):
      ```
      
      输出要求：
-     ## 如果无法从中得到答案，请回答 "0",并说明原因。如果可以从中得到答案，请回答"1"。
-     ## 请用json格式回答，key为TYPE和REASON。'''
+     ## If you cannot get an answer from it, please answer "0" and explain the reason. If you can get an answer from it, please answer "1".
+     ## Please answer in json format, the keys are TYPE and REASON. '''
 
     prompt = KN_USED_PROMPT_TEMPLATE.format(context=kb_result_str, question=question)
     logger.info(f"can_answer_question prompt:{prompt}")
@@ -1183,19 +1183,19 @@ def remove_intent(query,history):
         """
         你是一个query改写助手，负责移除用户query中的意图部分，只保留要纯内容部分。
 
-        ##示例1：
+        ##Example 1:
         用户问题:
         将以下这句话转为语音：2025年亚洲冬季运动会的口号是"激情在这里燃烧，梦想在这里起航"。这个口号简洁而有力地表达了赛事的精神和愿景，旨在激发运动员的热情和斗志，同时也向全世界展示亚洲冰雪运动的魅力和发展潜力。通过这一口号，组委会希望传达出对体育精神的追求、对卓越成绩的渴望以及对团结合作的重视。
         重述问题:
         2025年亚洲冬季运动会的口号是"激情在这里燃烧，梦想在这里起航"。这个口号简洁而有力地表达了赛事的精神和愿景，旨在激发运动员的热情和斗志，同时也向全世界展示亚洲冰雪运动的魅力和发展潜力。通过这一口号，组委会希望传达出对体育精神的追求、对卓越成绩的渴望以及对团结合作的重视。
 
-        ##示例2：
+        ##Example 2:
         用户问题:
         合成一段语音，玄武湖景区是中国最大的皇家园林湖泊，被誉为"金陵明珠"。
         重述问题:
         玄武湖景区是中国最大的皇家园林湖泊，被誉为"金陵明珠"。
 
-        ##示例3：
+        ##Example 3:
         用户问题:
         九天海算政务大模型是由中国移动发布的九天人工智能行业大模型的组成部分，它旨在构建一个全面、开放、高效的智能决策支持系统，以向政府决策者提供精确的策略建议。将上面这句话合成为语音。
         重述问题:
@@ -1313,14 +1313,14 @@ def upload_file_to_minio(file_path):
                 url,
                 headers=headers,
                 files={"file": f},
-                verify=False  # 建议根据需求配置 SSL 验证
+                verify=False  # It is recommended to configure SSL verification according to needs
             )
         if response.status_code == 200:
             data = response.json()
             download_link = data.get("download_link")
             return download_link
         else:
-            # print(f"上传失败，状态码：{response.status_code}")
+            # print(f"Upload failed, status code: {response.status_code}")
             logger.info(f"响应内容：{response.text}")
             return None
     except Exception as e:
@@ -1332,7 +1332,7 @@ def upload_file_to_minio(file_path):
 def req_tts_minio(text, speakerID='baker'):
     """请求 TTS 服务并上传结果到 MinIO，返回下载链接。"""
 
-    # 确保日志目录存在
+    # Make sure the log directory exists
     temp_path = "./temp"
     if not os.path.exists(temp_path):
         os.makedirs(temp_path)
@@ -1349,7 +1349,7 @@ def req_tts_minio(text, speakerID='baker'):
     else:
         download_link = upload_file_to_minio(file_path_wav)
     logger.info(f"req_tts_minio download_link : {download_link}")
-    # 清理临时文件
+    # Clean temporary files
     clean_up(file_path_pcm, file_path_wav)
     
     speech_url_list=[]    
@@ -1416,7 +1416,7 @@ def req_chat_doc(query,file_url):
         -----------
         【用户问题】{question}
         '''
-          # - 如果用户问题是"这是什么"、"文档内容"、"这个文件的内容是什么"等之类问题时，输出文档内容；
+          # - If the user's question is "what is this", "document content", "what is the content of this file", etc., output the document content;
  
     if bucket_type == "OSS":
         P_ENDPOINT = config["OSS"]["P_ENDPOINT"]
@@ -1426,7 +1426,7 @@ def req_chat_doc(query,file_url):
     sentence_size = int (config["MODELS"]["DOC_CHUNK_SIZE"])
     overlap_size = float (config["MODELS"]["DOC_OVERLAP_RATIO"])
  
-    access_token = token_manager.get_access_token()  # 获取 token
+    access_token = token_manager.get_access_token()  # Get token
   
     payload =  json.dumps({
         "url": file_url,
@@ -1437,11 +1437,11 @@ def req_chat_doc(query,file_url):
             "\n",
             " ",
             ",",
-            "\u200b",  # 零宽空格
-            "\uff0c",  # 全角逗号
-            "\u3001",  # 顿号
-            "\uff0e",  # 全角句号
-            "\u3002",  # 句号
+            "\u200b",  # zero width space
+            "\uff0c",  # Full-width comma
+            "\u3001",  # comma
+            "\uff0e",  # full-width period
+            "\u3002",  # period
             ".",
             "",
         ]
@@ -1501,12 +1501,12 @@ def req_chat_speech(query,file_url):
    
     return prompt
 
-####统计类问题、非统计类问题分类
+####Classification of statistical problems and non-statistical problems
 @advanced_timing_decorator(task_name="qa_stats_cls_by_llm")
 def qa_stats_cls_by_llm(query,model= "unicom-70b-chat"):
     begin_time = datetime.datetime.now()
     prompt = (" 你是一个用户query分类器，你的任务是判定用户问题是统计类问题还是非统计类问题。以JSON格式返回，key包括type(0表示非统计类问题，1表示统计类问题)和reason(判定理由)。 以下给你提供了一些样例，以便让你做出更准确的判断。"+
-        "\n\n"+"## 示例：" +
+        "\n\n"+"## Example：" +
         "\n用户问题:\n月份为2016-01出现了几次故障ATA？" +
         '\n判定结果:{"TYPE":1,"REASON":"该问题询问特定时间段内（2016年1月）的故障次数，涉及数据的数量或频率分析，因此属于统计类问题。"}\n' +
         "\n用户问题:\nAVIONICS VENT DEGRADE 的告警等级是？" +
@@ -1542,8 +1542,8 @@ def qa_stats_cls_by_llm(query,model= "unicom-70b-chat"):
         "\n\n请根据以上样例，对用户query进行分类。输出要求JSON格式" +              
         "\n\n当前用户query: " + query  +
         "\n\n输出要求:\n" +
-        "\n## 分类标签不要混淆了，0表示非统计类问题，1表示统计类问题。"    +
-        "\n## 用JSON格式回答，包括TYPE和REASON两个key。"      
+        "\n## 分类标签不要混淆了，0Table示Non统计类问题，1Table示统计类问题。"    +
+        "\n## 用JSONFormat回答，包括TYPE和REASON两个key。"      
              )
     
     messages = [ {"role":"user",
@@ -1551,7 +1551,7 @@ def qa_stats_cls_by_llm(query,model= "unicom-70b-chat"):
     response = req_unicom_llm_chat_plus(messages, model_name = model,stop_words=["REASON"])
     
     
-    pattern = r',\s*"?REASON.*'         # 匹配 , 或 "REASON 后面的所有内容
+    pattern = r',\s*"?REASON.*'         # Matches everything after , or "REASON
     result = re.sub(pattern, '}', response)
     result_json = extract_json(result)
     end_time = datetime.datetime.now()
@@ -1559,7 +1559,7 @@ def qa_stats_cls_by_llm(query,model= "unicom-70b-chat"):
     logger.info(f"qa_cls: {delay_time}")
     return result_json
 
-###chat_excel服务
+###chat_excel service
 
 @advanced_timing_decorator()    
 def req_chat_excel(data):
@@ -1572,7 +1572,7 @@ def req_chat_excel(data):
         return  response
     
     except requests.RequestException as e:
-        logger.error("chatexcel_server API error: %s", e)  # 记录错误日志
+        logger.error("chatexcel_server API error: %s", e)  # Record error log
         return None
     
 def req_chat_gui(data):
@@ -1585,7 +1585,7 @@ def req_chat_gui(data):
         return  response
     
     except requests.RequestException as e:
-        logger.error("req_chat_gui API error: %s", e)  # 记录错误日志
+        logger.error("req_chat_gui API error: %s", e)  # Record error log
         return None
 
 @advanced_timing_decorator()    
@@ -1599,7 +1599,7 @@ def req_chat_docs_excel(data):
         return  response
     
     except requests.RequestException as e:
-        logger.error("chatexcel_server API error: %s", e)  # 记录错误日志
+        logger.error("chatexcel_server API error: %s", e)  # Record error log
         return None
     
 
@@ -1609,7 +1609,7 @@ def intent_cls_by_llm(query,model="unicom-70b-chat"):
     begin_time = datetime.datetime.now()
     
     prompt = (" 你本身是一个大语言模型，你的训练数据是有时限性的，在训练数据之后的新知识你是没有的。现在让你充当用户query分类器，你的任务是判定是根据你自有知识回答用户的问题（相对固定的通用常识）还是需要联网查搜索引擎回答用户问题（可能随时间动态变化的知识），主要的判断的依据是用户问题是否超过了你的训练知识，如果超过了，就要走联网搜索，以免给出错误或过期的的答案。以JSON格式返回，key包括type(0表示无需联网搜索的通用常识，1表示需要走联网搜索的相对动态知识)和reason(判定理由)。 以下给你提供了一些样例，以便让你做出更准确的判断。"+
-        "\n\n"+"## 示例：" +
+        "\n\n"+"## Example：" +
         "\n用户问题:\n中国联通元景大模型的落地案例" +
         '\n判定结果:{"TYPE":1,"REASON":"中国联通元景大模型的落地案例是一个时时更新的情况。"}\n' +
         "\n用户问题:\n元景、星辰、九天，哪个大模型更好" +
@@ -1673,9 +1673,9 @@ def intent_cls_by_llm(query,model="unicom-70b-chat"):
         "\n\n请根据以上样例，对用户query进行分类。输出要求JSON格式" +              
         "\n\n当前用户query: " + query  +
         "\n\n输出要求:\n" +
-        "\n## 分类标签不要混淆了，0表示不需要联网搜索，1表示需要联网搜索。"    +
-        # "\n## reason描述要简要。"    +
-        "\n## 用JSON格式回答，包括TYPE和REASON两个key。"      
+        "\n## 分类标签不要混淆了，0Table示不Need联网Search，1Table示Need联网Search。"    +
+        # "\n## Reason description should be brief." +
+        "\n## 用JSONFormat回答，包括TYPE和REASON两个key。"      
              )
    
     messages = [ {"role":"user",
@@ -1685,7 +1685,7 @@ def intent_cls_by_llm(query,model="unicom-70b-chat"):
     response = req_unicom_llm_chat_plus(messages, model_name = model,stop_words=["REASON"])
     # print(response)
     
-    pattern = r',\s*"?REASON.*'         # 匹配 , 或 "REASON 后面的所有内容
+    pattern = r',\s*"?REASON.*'         # Matches everything after , or "REASON
     result = re.sub(pattern, '}', response)
     result_json = extract_json(result)
     
@@ -1724,8 +1724,8 @@ def intent_cls_by_memory(query,history_messages,model="unicom-70b-chat"):
      ```
      
      输出要求：
-     ## 如果完全无法从中得到答案，请回答 "0",并说明原因。如果可以从中得到答案，请回答"1"。
-     ## 请用json格式回答，key为TYPE和REASON。'''
+     ## If you cannot get an answer from it at all, please answer "0" and explain the reason. If you can get an answer from it, please answer "1".
+     ## Please answer in json format, the keys are TYPE and REASON. '''
 
     prompt = MEM_USED_PROMPT_TEMPLATE.format(context=memory_context, question=query)
     # logger.info(f"can_answer_question  prompt: {prompt}")
@@ -1738,7 +1738,7 @@ def intent_cls_by_memory(query,history_messages,model="unicom-70b-chat"):
     
     response = req_unicom_llm_chat_plus(messages, model_name = model, stop_words=["REASON"])
     
-    pattern = r',\s*"?REASON.*'        # 匹配 , 或 "REASON 后面的所有内容
+    pattern = r',\s*"?REASON.*'        # Matches everything after , or "REASON
     result = re.sub(pattern, '}', response)
     result_json = extract_json(result)
     
@@ -1774,7 +1774,7 @@ def answer_by_memory(query,history_messages,stream):
      ```
      
      输出要求：
-     ## 答案中不要出现"根据对话历史"字样。
+     ## Do not include the words "based on conversation history" in the answer.
   '''
 
     prompt = MEM_USED_PROMPT_TEMPLATE.format(context=memory_context, question=query,stream=stream)
@@ -1802,25 +1802,25 @@ if __name__ == "__main__":
     # print(get_intent_cls(query))
     # messages = [{"role":"user","content":query}]
     # print(intent_cls_by_llm(query))
-    # print(req_unicom_llm_chat2(messages,["原因"]))
+    # print(req_unicom_llm_chat2(messages,["reason"]))
 
-    # print(get_intent_cls("这是什么"))
-    # url = "https://maas-gz.ai-yuanjing.com/minio/download/api/public/abcc1e25-751f-49b7-9955-b8a3cbf57e78-2fe925ba-4341-438f-912e-8d3d3c692b9f@民法.pdf"
-    # query = "公司IT系统数据安全工作的直接责任单位是哪个部门"
+    # print(get_intent_cls("What is this"))
+    # url = "https://maas-gz.ai-yuanjing.com/minio/download/api/public/abcc1e25-751f-49b7-9955-b8a3cbf57e78-2fe925ba-4341-438f-912e-8d3d3c692b9f@civillaw.pdf"
+    # query = "Which department is directly responsible for the company's IT system data security work?"
     # req_chat_doc(query,url)
     # print(redis_client.get_value(url))
     
-    # query = "帮我合成意图语音，内容是：四川美食可多了，有麻辣火锅、宫保鸡丁、麻婆豆腐、担担面、回锅肉、夫妻肺片等，每样都让人垂涎三尺!"
+    # query = "Help me synthesize the intended speech. The content is: There are many Sichuan delicacies, including spicy hot pot, Kung Pao chicken, Mapo tofu, dandan noodles, twice-cooked pork, couple's lung slices, etc., each one is mouth-watering!"
     # print(remove_intent(query))
     
     # audio_file = "https://maas-gz.ai-yuanjing.com/minio/download/api/public/tmpuahrygol.wav"
     # print(req_asr(audio_file))
     
-#     file_path = "dy英语视频.MP4"
+#     file_path = "dyEnglish video.MP4"
     
 #     print(upload_file_to_minio(file_path))
               
-    # query = "唐朝诗仙是谁"
+    # query = "Who is the Poet of the Tang Dynasty?"
     # result = intent_cls_by_llm(query)
     # print(result)
               
@@ -1831,13 +1831,13 @@ if __name__ == "__main__":
 
 #     download_link = req_tts_minio(texts[1])
 #     if download_link:
-#         print(f"文件已上传，下载链接为：{download_link}")
+#         print(f"The file has been uploaded, the download link is: {download_link}")
 #     else:
-#         print("文件上传失败。")
+#         print("File upload failed.")
   
     #-----vqa-----
     # pic_url = "https://maas-gz.ai-yuanjing.com/minio/download/api/public/tmpoy4ovbqi.jpg"
-    # prompt = "这是什么"
+    # prompt = "What is this"
 
     # response = unicom_vqa_stream(pic_url,prompt,[])
     # for chunk in response:
@@ -1847,7 +1847,7 @@ if __name__ == "__main__":
 
 
     #-----rag-------
-    # prompt,search_list= req_kb_search_v2("2025亚冬会口号", "b5d139b5-901b-4ae0-8fd5-8c57df77476e","AsianWinterGame", threshold=0.0, topK=5)
+    # prompt,search_list= req_kb_search_v2("2025 Asian Winter Games slogan", "b5d139b5-901b-4ae0-8fd5-8c57df77476e", "AsianWinterGame", threshold=0.0, topK=5)
     # print(prompt)
     # print(search_list)
     # code,msg = is_kb_belong_to_user_v2(["susu","asan"],"731a5fee-0ab7-4431-b0d3-f6807fba5s999")
@@ -1855,18 +1855,18 @@ if __name__ == "__main__":
     # print(msg)
 
     # ----langchain LLM ----
-    # query = "她有哪些代表作"
-    # query = '赵丽颖的生日是那一天？'
+    # query = "What are her masterpieces"
+    # query = 'When is Zhao Liying's birthday? '
     
     # messages =[
-    #     {"role": "user", "content": "你是谁"}, 
-    #     {"role": "assistant", "content": "我是元景，一个人工智能聊天机器人。我由联通开发，专门设计用来帮助人们解答问题、提供信息和进行对话。如果你有任何疑问或需要帮助，都可以随时问我。"}, 
-    #     {"role": "user", "content": "赵丽颖是谁"}, 
-    #     {"role": "assistant", "content": "赵丽颖是中国著名女演员，1987年10月16日出生于河北省廊坊市，毕业于廊坊市电子信息工程学校。\n\n她在2006年因获得雅虎搜星比赛冯小刚组冠军而进入演艺圈，并随后出演了多部知名电视剧和电影，如《新还珠格格》中的晴儿，《陆贞传奇》中的陆贞等角色，这些作品使她逐渐走红并积累了大量粉丝。\n\n赵丽颖以其精湛的演技和甜美的形象赢得了观众的喜爱，成为了中国娱乐圈中备受瞩目的明星之一。除了演艺事业外，她还积极参与公益活动，展现了其社会责任感和公益精神。"},
+    #     {"role": "user", "content": "Who are you"},
+    #     {"role": "assistant", "content": "I am Yuan Jing, an artificial intelligence chatbot. I was developed by China Unicom and specially designed to help people answer questions, provide information and have conversations. If you have any questions or need help, you can always ask me."},
+    #     {"role": "user", "content": "Who is Zhao Liying"},
+    #     {"role": "assistant", "content": "Zhao Liying is a famous Chinese actress. She was born in Langfang City, Hebei Province on October 16, 1987. She graduated from Langfang Electronic Information Engineering School.\n\nShe entered the entertainment industry in 2006 when she won the championship of Feng Xiaogang's group in the Yahoo Star Search Competition, and subsequently appeared in many well-known TV series and movies, such as Qing'er in "The My Fair Princess", "Lu Zhen" "Legend" and other roles, these works have made her gradually popular and accumulated a large number of fans. \n\nZhao Liying has won the love of the audience with her superb acting skills and sweet image, and has become one of the high-profile stars in the Chinese entertainment industry. In addition to her acting career, she also actively participates in charity activities, demonstrating her sense of social responsibility and public welfare spirit.
     #     # {"role":"user","content":query},
     # ]
 
-    # messages = [{'role': 'user', 'content': '你是谁'}]
+    # messages = [{'role': 'user', 'content': 'Who are you'}]
 
     
     # result  = intent_cls_by_memory(query,messages)
@@ -1883,8 +1883,8 @@ if __name__ == "__main__":
 
     #------code------
 
-    # query =  "生成一个柱状图，纵轴数据分别为100,200,300，横轴是2022,2023,2024？"
-    # query =  "编程生成一个柱状图，纵轴数据分别为100,200,300，横轴是2022,2023,2024,保存到新文件"
+    # query = "Generate a histogram with the vertical axis data being 100, 200, 300 and the horizontal axis being 2022, 2023, 2024?"
+    # query = "Programming to generate a histogram, the vertical axis data are 100, 200, 300, the horizontal axis is 2022, 2023, 2024, save to a new file"
     # response = is_query_sen(query)
     # print(response.text)
 
@@ -1893,8 +1893,8 @@ if __name__ == "__main__":
     
    
     
-    # query =  "编写程序将图片转为黑白的。"
-    # query = "编写一个冒泡排序呈现"
+    # query = "Write a program to convert pictures to black and white."
+    # query = "Write a bubble sort presentation"
     # datajson = {}
     # response = req_code_interpreter(query,need_file=False,upload_file_url=upload_file_url)
     # for line in response.iter_lines(decode_unicode=True):
@@ -1911,7 +1911,7 @@ if __name__ == "__main__":
 
 
     
-    # query = '都是这么收费的？'
+    # query = 'Is this how much it charges? '
     # can_answer_by_messge(query,messages)
 
     # response = req_unicom_llm_chat(messages,stream=True)
@@ -1946,53 +1946,53 @@ if __name__ == "__main__":
     # print(model_name)
 #     history= [ 
 #         {
-#             "query": "南京有哪些著名的旅游景点？",
-#             "rewrite_query": "南京有哪些著名的旅游景点？",
+#             "query": "What are the famous tourist attractions in Nanjing?",
+#             "rewrite_query": "What are the famous tourist attractions in Nanjing?",
 #             "upload_file_url": "",
 #             "qa_type": 2,
-#             "response": "南京有许多著名的旅游景点，以下是一些备受游客喜爱的地方：\n\n1. **钟山风景区**：这是南京城市特色的集中体现，也是江苏和南京的著名景点。它以其独特的地理位置和丰富的自然景观而著称，同时拥有深厚的文化底蕴。钟山风景区包含中山陵景区、明孝陵景区和灵谷景区等多个核心景区，其中分布着200多处名胜史迹和纪念建筑。\n\n2. **夫子庙-秦淮风光带**：这是一个集自然风光、山水园林、庙宇学堂、街市民居和乡土人情为一体的旅游景区。它以夫子庙古建筑群为中心，以十里内秦淮河为轴线，展现了南京两千多年的历史文化积淀。在这里，游客不仅可以参观历史建筑，还能品尝地道的秦淮风味小吃。\n\n3. **牛首山文化旅游区**：作为金陵名胜，牛首山是千年文化佛教胜地。景区内的佛顶宫建筑庄严宏伟，是牛首山最精华的景点之一。此外，四周的自然风光也十分秀美，登上山顶可俯瞰迷人的景色。\n\n4. **明孝陵**：这是明太祖朱元璋与马皇后的合葬陵寝，素有"明清皇家第一陵"的美誉。尽管经历了600多年的风雨沧桑，但仍然保留了陵寝原有的格局，让游客能够深入感受到古代皇家陵寝的壮丽景观和明朝的历史文化。\n\n5. **南京总统府**：这座建筑群占地面积广阔，是中国近代建筑遗存中规模最大、保存最完整的建筑群之一。它见证了中国近代史上许多重要的事件和人物活动。\n\n6. **玄武湖景区**：作为中国最大的皇家园林湖泊，玄武湖被誉为"金陵明珠"。湖岸呈菱形，环湖的风光带非常美丽，是游客休闲的好去处。\n\n7. **栖霞山风景名胜区**：这里有"金陵第一明秀山"的美称，在明代就被列为"金陵四十八景"之一。乾隆六下江南时，曾五次驻跸于此。主要景点包括明镜湖、栖霞寺、千佛岩、舍利塔和碧云亭等。\n\n8. **南京博物院**：这是中国三大博物馆之一，占地广阔，采用"一院六馆"的格局。珍贵文物数量众多，仅次于故宫博物院，是了解南京乃至中国文化的重要场所。\n\n这些景点各具特色，无论是自然风光还是人文历史，都能给游客留下深刻的印象。",
+#             "response": "Nanjing has many famous tourist attractions. Here are some places that are popular among tourists:\n\n1. **Zhongshan Scenic Area**: This is a concentrated expression of Nanjing's urban characteristics and a famous attraction in Jiangsu and Nanjing. It is famous for its unique geographical location and rich natural landscape, and it also has a profound cultural heritage. Zhongshan Scenic Area includes many core scenic spots such as Sun Yat-sen Mausoleum Scenic Area, Ming Xiaoling Scenic Area and Linggu Scenic Area, which are home to more than 200 historical sites and commemorative buildings. \n\n2. **Confucius Temple-Qinhuai Scenic Belt**: This is a tourist attraction integrating natural scenery, landscape gardens, temples, schools, residents and local customs. With the ancient buildings of Confucius Temple as the center and the Qinhuai River within ten miles as the axis, it shows the historical and cultural accumulation of Nanjing for more than two thousand years. Here, tourists can not only visit historical buildings, but also taste authentic Qinhuai snacks. **Niushou Mountain Cultural Tourism Area**: As a scenic spot in Jinling, Niushou Mountain is a cultural Buddhist resort with thousands of years of history. The Foding Palace in the scenic area is majestic and majestic, and is one of the most important attractions in Niushou Mountain. In addition, the surrounding natural scenery is also very beautiful, and you can overlook the charming scenery when you climb to the top of the mountain \n\n4. **Ming Xiaoling Mausoleum**: This is the joint burial mausoleum of Ming Taizu Zhu Yuanzhang and Queen Ma. It is known as the "First Royal Mausoleum of the Ming and Qing Dynasties". Although it has experienced more than 600 years of vicissitudes, it still retains the original layout of the mausoleum, allowing visitors to deeply experience the magnificent landscape of the ancient royal mausoleum and the history and culture of the Ming Dynasty. \n\n5. **Nanjing Presidential Palace**: This building complex covers a vast area and is one of the largest and most well-preserved architectural complexes in modern China. It has witnessed many important events and activities in modern Chinese history. \n\n6. **Qixia Mountain Scenic Area**: This place is known as the "No. 1 Mingxiu Mountain in Jinling" and was listed as one of the "Forty-Eight Scenic Spots in Jinling" during the Ming Dynasty. During Qianlong's six visits to Jiangnan, the main attractions include Mingjing Lake, Qixia Temple, Thousand Buddha Rock, Relic Pagoda and Biyun Pavilion. \n\n8. **Nanjing Museum**: This is one of the three major museums in China. It covers a vast area and adopts the "one courtyard and six museums" layout. It has a large number of precious cultural relics, second only to the Palace Museum. It is an important place to understand Nanjing and even Chinese culture. \n\nThese attractions have their own characteristics, and they can leave a deep impression on tourists, whether it is natural scenery or human history. ",
 #             "gen_file_url_list": [
 
 #             ]
 #         },
 #     ]
-#     query = '如果我想去这个地方，当地有哪些机场和火车站？'
+#     query = 'If I want to go to this place, what are the local airports and train stations? '
 
 #     result = req_query_rewrite(query,history)
 #     print(result)
 
-    # pic_list,_ = req_txt2img_plus("生成一个柱状图，纵轴数据分别为100,200,300，横轴是2022,2023,2024？",4)
+    # pic_list,_ = req_txt2img_plus("Generate a histogram, the vertical axis data are 100, 200, 300, and the horizontal axis is 2022, 2023, 2024?", 4)
     # print(pic_list)
 
 
-    # _, search_list =search_knowledge_base("联通董事长是谁", "731a5fee-0ab7-4431-b0d3-f6807fba5ae5",["Unicom_KB_APP"], threshold=0.4, topK=5, extend=0, extendedLength=400)
+    # _, search_list =search_knowledge_base("Who is the chairman of China Unicom", "731a5fee-0ab7-4431-b0d3-f6807fba5ae5",["Unicom_KB_APP"], threshold=0.4, topK=5, extend=0, extendedLength=400)
     # print(search_list)
 
   
 
 
 
-    # 使用示例：
+    # Usage example:
     # resource_id = "20240515-18.46.38-05e3db06-a7cb-4add-8ad9-7bdf6d1f29e9.mp4"
     # video_base64 = get_video_base64(resource_id)
     # print("SSS:\n",video_base64,"\nHHH")
-    # prompt = "绘制一个视频，随风。摆动的柳树"
+    # prompt = "Draw a video, with the wind. Swinging willow tree"
     # result = generate_and_upload_video(prompt)
     # print(result)
-    # query = '柯基'
+    # query = 'Corgi'
     # result = req_txt2img_plus(query)
     # print(result)
     
     # req_unicom_llm_chat("")
     # pic_url = "https://39.101.74.2:7776/minio/download/api/public/tmpanin39zs.png"
     # pic_url = "https://39.101.74.2:7776/minio/download/api/public/tmpsx7w09dz.png"
-    # result = generate_and_upload_video_img2vid(pic_url,"生成一段视频")
+    # result = generate_and_upload_video_img2vid(pic_url,"Generate a video")
     # print(result)
 
     
-#     query = """构造参数的提示词为：选中的工具是 action_getWeatherNow，需要以下参数：
-# 参数 location: 查询的地点，可以是城市名、邮编等。
-# 请根据以下用户的问题，生成所需的参数，参数请以json格式输出：今天北京天气怎么样"""
+#     The prompt word for query = """ construction parameters is: the selected tool is action_getWeatherNow, which requires the following parameters:
+# Parameter location: The location of the query, which can be a city name, zip code, etc.
+# Please generate the required parameters based on the following user questions. Please output the parameters in json format: How is the weather in Beijing today"""
 
     # print("Messages：", messages)
     # query  = "who are you"
@@ -2005,7 +2005,7 @@ if __name__ == "__main__":
 #     print(response.headers["Content-Type"])
     # print(response.text)
     
-    # print(get_intent_cls("明天天气"))
+    # print(get_intent_cls("Tomorrow's weather"))
     # try:
     #     response_data = response.json()
     #     print("\n【unicom-34b-chat】: ", response_data['data']['choices'][0]['message']['content'])

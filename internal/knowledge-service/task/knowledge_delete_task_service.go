@@ -21,7 +21,7 @@ var knowledgeDeleteTask = &KnowledgeDeleteTask{Del: true}
 
 type KnowledgeDeleteTask struct {
 	Wg  sync.WaitGroup
-	Del bool // 是否需要自动清理
+	Del bool // Do you need automatic cleaning?
 }
 
 func init() {
@@ -68,7 +68,7 @@ func (t *KnowledgeDeleteTask) Running(ctx context.Context, taskCtx string, stop 
 			reportCh <- r.clone()
 		}()
 
-		//执行知识库删除
+		//Perform knowledge base deletion
 		systemStop, err := t.runStep(ctx, taskCtx, stop)
 		if systemStop {
 			log.Infof("system stop")
@@ -111,7 +111,7 @@ func (t *KnowledgeDeleteTask) runStep(ctx context.Context, taskCtx string, stop 
 	}
 }
 
-// deleteKnowledgeByKnowledgeId 根据知识库id 删除知识库
+// deleteKnowledgeByKnowledgeId deletes the knowledge base based on the knowledge base id
 func deleteKnowledgeByKnowledgeId(ctx context.Context, taskCtx string) Result {
 	log.Infof("KnowledgeDeleteTask execute task %s", taskCtx)
 	var params = &async_task_pkg.KnowledgeDeleteParams{}
@@ -120,19 +120,19 @@ func deleteKnowledgeByKnowledgeId(ctx context.Context, taskCtx string) Result {
 		return Result{Error: err}
 	}
 
-	//1.查询知识库信息
+	//1. Query knowledge base information
 	knowledge, err := orm.SelectKnowledgeByIdNoDeleteCheck(ctx, params.KnowledgeId, "", "")
 	if err != nil {
 		return Result{Error: err}
 	}
 
-	//2.查询所有doc详情
+	//2. Query all doc details
 	docList, err := orm.GetDocListByKnowledgeIdNoDeleteCheck(ctx, "", "", params.KnowledgeId)
 	if err != nil {
 		return Result{Error: err}
 	}
 
-	//3.事务执行删除数据
+	//3. Transaction execution deletes data
 	err = db.GetClient().DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if len(docList) > 0 {
 			err := BatchDeleteAllDoc(ctx, tx, knowledge, docList)
@@ -156,7 +156,7 @@ func deleteKnowledgeByKnowledgeId(ctx context.Context, taskCtx string) Result {
 		if err != nil {
 			return err
 		}
-		//删除相关权限
+		//Delete related permissions
 		err1 := orm.AsyncDeletePermissionByKnowledgeId(knowledge.KnowledgeId)
 		if err1 != nil {
 			log.Errorf("deleteKnowledgeIdPermission err: %s", err1)

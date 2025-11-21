@@ -19,16 +19,16 @@ import (
 var (
 	configFile   = flag.String("config", "configs/microservice/model-service/configs/config.yaml", "model-service config")
 	isVersion    bool
-	buildTime    string //编译时间
-	buildVersion string //编译版本
-	gitCommitID  string //git的commit id
-	gitBranch    string //git branch
-	builder      string //构建者
+	buildTime    string //编译时间 (build time) [EN] build time
+	buildVersion string //编译版本 (build version) [EN] build version
+	gitCommitID  string //git的commit id (git commit id) [EN] git commit id (git commit id)
+	gitBranch    string //git branch (git branch)
+	builder      string //构建者 (builder) [EN] builder
 
 )
 
 func main() {
-	//打印编译信息
+	//打印编译信息 [EN] Print compilation information
 	flag.BoolVar(&isVersion, "v", false, "编译信息")
 	flag.Parse()
 

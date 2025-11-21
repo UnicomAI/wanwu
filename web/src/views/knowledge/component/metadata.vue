@@ -6,7 +6,7 @@
       size="mini"
       @click="createMetaData"
       v-if="type !== 'create'"
-    >创建</el-button>
+    >Create</el-button>
     <div class="docMetaData" v-loading="loading">
       <div
         v-for="(item,index) in docMetaData"
@@ -19,7 +19,7 @@
             <el-tooltip
               class="item"
               effect="dark"
-              content="只能包含小写字母、数字和下划线，并且必须以小写字母开头"
+              content="Can only contain lowercase letters, numbers and underscores, and must start with a lowercase letter"
               placement="top-start"
             >
               <span class="el-icon-question question" v-if="type === 'create'"></span>
@@ -36,7 +36,7 @@
           <el-select
               v-else
               v-model="item.metaKey"
-              placeholder="请选择"
+              placeholder="Please select"
               @change="keyChange($event,item)"
           >
               <el-option
@@ -54,7 +54,7 @@
           <el-select
             v-if="type === 'create'"
             v-model="item.metaValueType"
-            placeholder="请选择"
+            placeholder="Please select"
             :disabled="Boolean(item.metaId)"
           >
             <el-option
@@ -72,7 +72,7 @@
           <span class="docItem_data_label label">value:</span>
           <el-select
             v-model="item.metadataType"
-            placeholder="请选择"
+            placeholder="Please select"
             style="margin-right:5px;"
             @change="valueChange(item)"
           >
@@ -110,7 +110,7 @@
             format="yyyy-MM-dd HH:mm:ss"
             value-format="timestamp"
             type="datetime"
-            placeholder="选择日期时间"
+            placeholder="Select Date Time"
           >
           </el-date-picker>
         </div>
@@ -187,11 +187,11 @@ export default {
       valueOptions: [
         {
           value: "value",
-          label: "确认值",
+          label: "ConfirmValue",
         },
         {
           value: "regExp",
-          label: "正则表达式",
+          label: "Regular Expression",
         },
       ],
       keyOptions:[]
@@ -232,7 +232,7 @@ export default {
     createMetaData() {
       if(this.type === 'create' && this.docMetaData.length > 0  ){
         if (this.docMetaData.some(item => item.metaKey === '' || item.metaValueType === '')) {
-            this.$message.error("元数据管理存在未填写的必填字段");
+            this.$message.error("Metadata management has unfilled required fields");
             return;
         }
       }else{
@@ -265,7 +265,7 @@ export default {
         return isMetaKeyEmpty || isMetaRuleEmpty;
       });
       if (hasEmptyField) {
-        this.$message.error("元数据管理存在未填写的必填字段");
+        this.$message.error("Metadata management has unfilled required fields");
         return false;
       }
       return true;
@@ -296,7 +296,7 @@ export default {
       }
       updateDocMeta(data).then(res =>{
         if(res.code === 0){
-            this.$message.success('操作成功')
+            this.$message.success('Operation successful')
             this.getList();
         }
       })
@@ -308,17 +308,17 @@ export default {
     metakeyBlur(item,index) {
       const regex = /^[a-z][a-z0-9_]*$/;
       if (!item.metaKey || typeof item.metaKey !== 'string' || item.metaKey.trim() === '') {
-        this.$message.warning('请输入key值')
+        this.$message.warning('Please enter key value')
         return
       }
       if (!regex.test(item.metaKey)) {
-        this.$message.warning("请输入符合标准的key值");
+        this.$message.warning("Please enter a valid key value");
         item.metaKey = '';
         return;
       }
 
       if(this.isFound()){
-        this.$message.warning("存在相同key值");
+        this.$message.warning("Key value already exists");
         item.metaKey = ''
         return;
       }
@@ -332,17 +332,17 @@ export default {
     },
     metaValueBlur(item) {
       if (!item.metaValue) {
-        this.$message.warning("请输入value值");
+        this.$message.warning("Please enter value");
         return;
       }
     },
     metaRuleBlur(item) {
       if (!item.metaRule) {
-        this.showWarning("请输入正则值",item);
+        this.showWarning("Please enter regular expression value",item);
         return;
       }
       if (!this.isValidRegex(item.metaRule)) {
-        this.showWarning("请输入合法正则值",item);
+        this.showWarning("Please enter a valid regular expression",item);
         item.metaRule = "";
         return;
       }

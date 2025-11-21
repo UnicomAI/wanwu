@@ -42,16 +42,16 @@ def upload_file_to_minio(formatted_markdown,to_format,filename):
             c.setFont("SimHei", 12)
             y = height - margin
 
-            # 设置每行最多多少个字符（估算宽度）
-            max_chars_per_line = int(max_width // 12)  # 每个中文大约占 12pt 宽度
+            # Set the maximum number of characters per line (estimated width)
+            max_chars_per_line = int(max_width // 12)  # Each Chinese character takes up approximately 12pt width
 
-            # 按照字符数手动换行
+            # Manually wrap lines according to the number of characters
             wrapped_lines = []
             for paragraph in formatted_markdown.splitlines():
                 wrapped_lines.extend(textwrap.wrap(paragraph, width=max_chars_per_line))
-                wrapped_lines.append("")  # 空行分段
+                wrapped_lines.append("")  # Empty line segmentation
 
-            # 写入 PDF
+            # Write to PDF
             for line in wrapped_lines:
                 if y < margin:
                     c.showPage()

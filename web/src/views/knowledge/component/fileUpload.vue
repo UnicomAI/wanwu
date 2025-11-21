@@ -5,7 +5,7 @@
         class="el-icon-arrow-left back"
         @click="goBack"
       ></span>
-      新增文件
+      AddFile
       <LinkIcon type="knowledge" />
     </div>
     <div class="table-box">
@@ -15,20 +15,20 @@
           class="fileStep"
           align-center
         >
-          <el-step title="文件上传"></el-step>
-          <el-step title="参数设置"></el-step>
+          <el-step title="FileUpload"></el-step>
+          <el-step title="ParameterSetting"></el-step>
         </el-steps>
 
-        <!-- 文件上传 -->
+        <!-- FileUpload -->
         <div v-if="active === 1">
           <div class="fileBtn">
             <el-radio-group
               v-model="fileType"
               @change="fileTypeChage"
             >
-              <el-radio-button label="file">从文件上传</el-radio-button>
-              <el-radio-button label="fileUrl">url文件上传</el-radio-button>
-              <el-radio-button label="url">url单条上传</el-radio-button>
+              <el-radio-button label="file">Upload from File</el-radio-button>
+              <el-radio-button label="fileUrl">Upload from URL</el-radio-button>
+              <el-radio-button label="url">Upload Single URL</el-radio-button>
             </el-radio-group>
           </div>
           <div
@@ -54,17 +54,17 @@
                       :src="require('@/assets/imgs/uploadImg.png')"
                       class="upload-img"
                     />
-                    <p class="click-text">将文件拖到此处，或<span class="clickUpload">点击上传</span></p>
+                    <p class="click-text">Drag file here, or<span class="clickUpload">click to upload</span></p>
                   </div>
                   <div class="tips">
-                    <p v-if="fileType === 'file'"><span class="red">*</span>您可单独或者批量上传以下格式的文档：pdf/docx/pptx/doc/wps/ofd文件最大为200MB，xlsx/xls/csv/txt/html/md/文件最大为20MB。zip/tar.gz格式内的文档需符合各自文件格式上传大小限制</p>
-                    <p v-if="fileType === 'file'"><span class="red">*</span>非压缩包文件，一次可传5个文件，如文件页数多，文档解析时间较长，平均3秒/页，请您耐心等待</p>
-                    <p v-if="fileType === 'fileUrl'"><span class="red">*</span>批量上传支持.xlsx格式，仅可上传1个。文档最多可添加100条url，文件不超过15mb <a
+                    <p v-if="fileType === 'file'"><span class="red">*</span>You can upload the following document formats individually or in batch: pdf/docx/pptx/doc/wps/ofdMaximum file size: 200MB，xlsx/xls/csv/txt/html/md/Maximum file size: 20MB。zip/tar.gzformat内 of Document需符合各自file format upload size limit</p>
+                    <p v-if="fileType === 'file'"><span class="red">*</span>For non-compressed files, you can upload 5 files at a time. If the file has many pages, document parsing takes longer, averaging 3 seconds/page, please be patient</p>
+                    <p v-if="fileType === 'fileUrl'"><span class="red">*</span>Batch upload supports .xlsx format, can only upload 1 file. Document can add up to 100 URLs, file size not exceeding 15mb <a
                         class="template_downLoad"
                         href="#"
                         @click.prevent.stop="downloadTemplate"
-                      >模版下载</a></p>
-                    <p v-if="fileType === 'fileUrl'"><span class="red">*</span>当前内容不自动更新</p>
+                      >Download Template</a></p>
+                    <p v-if="fileType === 'fileUrl'"><span class="red">*</span>Content will not auto-update</p>
                   </div>
                 </div>
               </el-upload>
@@ -85,7 +85,7 @@
           </div>
         </div>
 
-        <!-- 参数设置 -->
+        <!-- ParameterSetting -->
         <div
           v-else
           class="params_form"
@@ -98,7 +98,7 @@
             @submit.native.prevent
             label-position="left"
           >
-            <el-form-item label="分段设置">
+            <el-form-item label="Segmentation Settings">
               <div class="segmentList">
                 <div
                   v-for="segmentItem in segmentList"
@@ -141,7 +141,7 @@
                   : []"
                 >
                   <template #label>
-                    <span>分段标识</span>
+                    <span>Segment Identifier</span>
                     <el-tooltip
                       :content="$t('knowledgeManage.splitOptionsTips')"
                       placement="right"
@@ -161,14 +161,14 @@
                     class="button-new-tag"
                     size="small"
                     @click="showSplitterSet('splitter')"
-                  > + 分段标识设置</el-button>
+                  > + Segment Identifier Settings</el-button>
                 </el-form-item>
                 <el-form-item
                   v-if="ruleForm.docSegment.segmentType == '1'"
                   prop="docSegment.maxSplitter"
                   :rules="[
                   { required: true, message: $t('knowledgeManage.splitMax'),trigger:'blur'},
-                  { type:'number',min:200,max:4000,message:'请输入有效范围内的数值',trigger: 'blur'}
+                  { type:'number',min:200,max:4000,message:'Please enter a valid number within range',trigger: 'blur'}
                   ]"
                 >
                   <template #label>
@@ -190,7 +190,7 @@
                   prop="docSegment.overlap"
                   :rules="[
                     { required: true, message:$t('knowledgeManage.overLapNumTips'),trigger:'blur'},
-                    { type:'number',min:0,max:1,message:'请输入有效范围内的数值',trigger: 'blur'}
+                    { type:'number',min:0,max:1,message:'Please enter a valid number within range',trigger: 'blur'}
                   ]"
                 >
                   <el-input
@@ -199,7 +199,7 @@
                     :step="0.01"
                     type="number" 
                     v-model.number="ruleForm.docSegment.overlap" 
-                    placeholder="数值范围0-0.25" 
+                    placeholder="Value range: 0-0.25" 
                     ></el-input>
                 </el-form-item>
               </template>
@@ -217,7 +217,7 @@
                     ]"
                   >
                     <template #label>
-                      <span>分段标识</span>
+                      <span>Segment Identifier</span>
                       <el-tooltip
                         :content="$t('knowledgeManage.splitOptionsTips')"
                         placement="right"
@@ -237,17 +237,17 @@
                       class="button-new-tag"
                       size="small"
                       @click="showSplitterSet(item.key)"
-                    > + 分段标识设置</el-button>
+                    > + Segment Identifier Settings</el-button>
                   </el-form-item>
                   <el-form-item
                     :prop="item.maxSplitterProp"
                     :rules="[
                     { required: true, message: $t('knowledgeManage.splitMax'),trigger:'blur'},
-                    { type:'number',min:200,max:item.maxSplitterNum,message:'请输入有效范围内的数值',trigger: 'blur'}
+                    { type:'number',min:200,max:item.maxSplitterNum,message:'Please enter a valid number within range',trigger: 'blur'}
                     ]"
                   >
                     <template #label>
-                      <span>可分割最大值</span>
+                      <span>Max Segment Size</span>
                       <el-tooltip
                         :content="$t('knowledgeManage.splitMaxTips')"
                         placement="right"
@@ -260,17 +260,17 @@
                 </div>
               </template>
               <el-form-item
-                label="文本预处理规则"
+                label="Text Preprocessing Rules"
                 prop="docPreprocess"
                 v-if="ruleForm.docSegment.segmentType == '1'"
               >
                 <el-checkbox-group v-model="ruleForm.docPreprocess">
-                  <el-checkbox label="replaceSymbols">替换掉连续的空格、换行符和制表符</el-checkbox>
-                  <el-checkbox label="deleteLinks">删除所有URL和电子邮件地址</el-checkbox>
+                  <el-checkbox label="replaceSymbols">Replace consecutive spaces, newlines and tabs</el-checkbox>
+                  <el-checkbox label="deleteLinks">Delete all URLs and email addresses</el-checkbox>
                 </el-checkbox-group>
               </el-form-item>
               <el-form-item
-                label="解析方式"
+                label="Parsing Method"
                 prop="docAnalyzer"
               >
                 <el-checkbox-group
@@ -293,7 +293,7 @@
                 prop="parserModelId"
                 v-if="ruleForm.docAnalyzer.includes('ocr')||ruleForm.docAnalyzer.includes('model')"
                 :rules="[
-                    { required: true, message:'请选择模型',trigger:'blur'}
+                    { required: true, message:'Please selectModel',trigger:'blur'}
                 ]"
               >
               <template #label>
@@ -307,7 +307,7 @@
               </template>
                 <el-select
                   v-model="ruleForm.parserModelId"
-                  placeholder="请选择"
+                  placeholder="Please select"
                   class="width100"
                 >
                   <el-option
@@ -320,7 +320,7 @@
                 </el-select>
               </el-form-item>
               <el-form-item
-                label="元数据管理"
+                label="Metadata Management"
                 prop="docAnalyzer"
               >
                 <mataData
@@ -331,7 +331,7 @@
               </el-form-item>
           </el-form>
         </div>
-        <!-- 上传文件的列表 -->
+        <!-- UploadFile of List -->
         <div
           class="file-list"
           v-if="fileList.length > 0 && active === 1 "
@@ -396,25 +396,25 @@
             size="mini"
             @click="preStep"
             v-if="active === 2"
-          >上一步</el-button>
+          >Previous</el-button>
           <el-button
             type="primary"
             size="mini"
             @click="nextStep"
             v-if="active === 1"
             :loading="urlLoading"
-          >下一步</el-button>
+          >Next</el-button>
           <el-button
             type="primary"
             size="mini"
             @click="submitInfo"
             v-if="active === 2"
-          >确 定</el-button>
+          >Confirm</el-button>
           <el-button
             size="mini"
             @click="formReset"
             v-if="active === 2"
-          >重 置</el-button>
+          >Reset</el-button>
         </div>
       </div>
     </div>
@@ -470,8 +470,8 @@ export default {
     };
     return {
       validateSplitter: validateSplitter,
-      placeholderText: "搜索分隔符",
-      titleText: "创建分隔符",
+      placeholderText: "Search separator",
+      titleText: "Create separator",
       splitterValue: "",
       tableData: [],
       modelOptions: [],
@@ -486,7 +486,7 @@ export default {
       segmentType:'',
       ruleForm: {
         docAnalyzer: ["text"],
-        docMetaData: [], //元数据管理数据
+        docMetaData: [], //Metadata management data
         docPreprocess: ["replaceSymbols"], //'deleteLinks','replaceSymbols'
         docSegment: {
           segmentType: "0",
@@ -494,9 +494,9 @@ export default {
           splitter:["\n\n"],
           maxSplitter: 1024,
           overlap: 0.2,
-          segmentMethod:"0",//0是通用分段，1是父子分段
-          subMaxSplitter:200,//父子分段必填
-          // subSplitter:["！", "。", "？", "?", "!", ".", "......"]//父子分段必填
+          segmentMethod:"0",//0 is general segmentation, 1 is parent-child segmentation
+          subMaxSplitter:200,//Required for parent-child segmentation
+          // subSplitter:["！", "。", "？", "?", "!", ".", "......"]//Required for parent-child segmentation
           subSplitter:["\n"]
         },
         docInfoList: [],
@@ -530,7 +530,7 @@ export default {
           sonBlock.maxSplitterNum = parentMaxValue;
           if (this.ruleForm.docSegment.subMaxSplitter > parentMaxValue) {
             this.ruleForm.docSegment.subMaxSplitter = parentMaxValue;
-            this.$message.warning(`子分段最大值已调整为 ${parentMaxValue}，不能超过父分段的最大值`);
+            this.$message.warning(`Child segment max size adjusted to ${parentMaxValue}，cannot exceed parent segment max size`);
           }
         }
       }else if(item.level === 'son'){
@@ -538,7 +538,7 @@ export default {
         const parentMaxValue = this.ruleForm.docSegment.maxSplitter;
         if (sonMaxValue > parentMaxValue) {
           this.ruleForm.docSegment.subMaxSplitter = parentMaxValue;
-          this.$message.warning(`子分段最大值不能超过父分段的最大值 ${parentMaxValue}`);
+          this.$message.warning(`Child segment max size cannot exceed parent segment max size ${parentMaxValue}`);
         }
       }
     },
@@ -601,7 +601,7 @@ export default {
         return isMetaKeyEmpty || isMetaRuleEmpty;
       });
       if (hasEmptyField) {
-        this.$message.error("元数据管理存在未填写的必填字段");
+        this.$message.error("Metadata management has unfilled required fields");
         return false;
       }
       return true;
@@ -652,11 +652,11 @@ export default {
     },
     async delSplitterItem(item) {
       this.$confirm(
-        `删除分隔符${item.splitterName}`,
-        "确认要删除当前分隔符？",
+        `Delete separator${item.splitterName}`,
+        "Confirm deletion of current separator?",
         {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
+          confirmButtonText: "Confirm",
+          cancelButtonText: "Cancel",
           type: "warning",
         }
       )
@@ -700,7 +700,7 @@ export default {
       const fileName = "url_import_template.xlsx";
       try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error("文件不存在或服务器错误");
+        if (!response.ok) throw new Error("File does not exist or server error");
 
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
@@ -710,9 +710,9 @@ export default {
         a.download = fileName;
         a.click();
 
-        URL.revokeObjectURL(blobUrl); // 释放内存
+        URL.revokeObjectURL(blobUrl); // Release memory
       } catch (error) {
-        alert("文件下载失败，请稍后重试！");
+        alert("File download failed, please try again later!");
       }
     },
     handleLoading(val, result) {
@@ -732,7 +732,7 @@ export default {
         this.fileList.map((item) => {
           if (item.id) {
             if (item.id.includes(",")) {
-              //rag一体机没有此逻辑
+              //RAG all-in-one machine does not have this logic
               const list = item.id.split(",");
               list.map((item) => {
                 ids.push(item);
@@ -743,7 +743,7 @@ export default {
           }
         });
         if (ids.length > 0) {
-          this.deleteData({ id: ids }); //取消时删除文件
+          this.deleteData({ id: ids }); //Cancel when DeleteFile
         }
       }
       this.$refs["uplodForm"].resetFields();
@@ -755,11 +755,11 @@ export default {
       this.$emit("handleSetOpen", { isShow: false, knowValue: null });
       this.uploading = false;
     },
-    // 删除已上传文件
+    // Delete uploaded file
     handleRemove(item, index) {
       if(item.percentage < 100){
         this.fileList.splice(index,1);
-        this.cancelAllRequests();//取消所有请求
+        this.cancelAllRequests();//Cancel all requests
         return;
       }
       this.delfile({
@@ -779,7 +779,7 @@ export default {
     delfile(data) {
       delfile(data).then((res) => {
         if (res.code === 0) {
-          this.$message.success("删除成功");
+          this.$message.success("DeleteSuccess");
         }
       });
     },
@@ -795,10 +795,10 @@ export default {
       return (size / Math.pow(num, 4)).toFixed(2) + "T"; //T
     },
     fileTypeChage() {
-      // 取消所有正在进行的上传请求
+      // Cancel all ongoing upload requests
       this.cancelAllRequests();
       
-      // 重置上传相关状态
+      // Reset upload related status
       this.fileIndex = 0;
       this.file = null;
       this.resList = [];
@@ -854,7 +854,7 @@ export default {
     formReset() {
       this.ruleForm = {
         docAnalyzer: ["text"],
-        docMetaData: [], //元数据管理数据
+        docMetaData: [], //Metadata management data
         docPreprocess: ["replaceSymbols"], //'deleteLinks','replaceSymbols'
         docSegment: {
           segmentType: this.ruleForm.docSegment.segmentType,
@@ -900,11 +900,11 @@ export default {
             }
           });
         }, 10);
-        //开始切片上传(如果没有文件正在上传)
+        //Start chunk upload (if no file is uploading)
         if (this.file === null) {
           this.startUpload();
         } else {
-          //如果上传当中有新的文件加入
+          //If new file is added during upload
           if (this.file.progressStatus === "success") {
             this.startUpload(this.fileIndex);
           }
@@ -912,19 +912,19 @@ export default {
       }
     },
     refreshFile(index) {
-      //重新上传文件
+      //Re-upload file
       this.fileList[index]["showRetry"] = "false";
       this.fileList[index]["percentage"] = 0;
       this.startUpload(index);
     },
     resumeFile(index) {
-      //续传文件
+      //Resume file upload
       this.fileList[index]["showResume"] = "false";
       this.nextChunkIndex = this.uploadedChunks;
       this.processNextChunk();
     },
     remergeFile(index) {
-      //重新上传
+      //Re-upload
       this.mergeChunks();
     },
     uploadFile(fileName, oldName) {
@@ -941,7 +941,7 @@ export default {
         this.startUpload(this.fileIndex);
       }
     },
-    //  验证文件为空
+    //  VerifyFileIs Empty
     verifyEmpty(file) {
       const isLt1GB = file.size / 1024 / 1024 / 1024 < 1;
       if (file.size <= 0) {
@@ -957,7 +957,7 @@ export default {
       }
       return true;
     },
-    //  验证文件格式
+    //  VerifyFileFormat
     verifyFormat(file) {
       const nameType = [
         "pdf",
@@ -1037,7 +1037,7 @@ export default {
         return true;
       }
     },
-    //  验证文件格式
+    //  VerifyFileFormat
     verifyRepeat(file) {
       let res = true;
       setTimeout(() => {
@@ -1059,21 +1059,21 @@ export default {
       }, 50);
     },
     nextStep() {
-      //上传文件类型
+      //UploadFileType
       if (this.fileType === "file" || this.fileType === "fileUrl") {
         if (this.fileIndex < this.fileList.length) {
-          this.$message.warning("文件上传中...");
+          this.$message.warning("File uploading...");
           return false;
         }
         if (this.fileList.length === 0) {
-          this.$message.warning("请上传文件!");
+          this.$message.warning("PleaseUploadFile!");
           return false;
         }
       }
-      //url逐条上传
+      //url逐itemUpload
       if (this.fileType === "url") {
         if (this.docInfoList.length === 0) {
-          this.$message.warning("请上输入url!");
+          this.$message.warning("Please enter URL!");
           return false;
         }
       }

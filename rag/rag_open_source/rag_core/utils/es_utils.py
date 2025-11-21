@@ -22,13 +22,13 @@ def add_file(user_id, kb_name, file_name, file_meta, kb_id=""):
     try:
         response = requests.post(url, headers=headers, json=req_data, timeout=TIME_OUT)
         logger.info(repr(file_name) + '新增文件请求结果：' + repr(response.text))
-        if response.status_code != 200:  # 抛出报错
+        if response.status_code != 200:  # Throw an error
             err = str(response.text)
             return {'code': 1, "message": f"{err}"}
         final_response = json.loads(response.text)
-        if final_response['code'] == 0:  # 正常获取到了结果
+        if final_response['code'] == 0:  # The results were obtained normally
             return response_info
-        else:  # 抛出报错
+        else:  # Throw an error
             return final_response
     except Exception as e:
         return {'code': 1, "message": f"{e}"}
@@ -43,7 +43,7 @@ def allocate_chunks(user_id, kb_name, file_name, count, chunk_type="text", kb_id
     try:
         response = requests.post(url, headers=headers, json=req_data, timeout=TIME_OUT)
         logger.info(repr(file_name) + 'allocate_chunks请求结果：' + repr(response.text))
-        if response.status_code != 200:  # 抛出报错
+        if response.status_code != 200:  # Throw an error
             err = str(response.text)
             return {'code': 1, "message": f"{err}"}
         final_response = json.loads(response.text)
@@ -68,7 +68,7 @@ def allocate_child_chunks(user_id, kb_name, file_name, chunk_id, count, kb_id=""
     try:
         response = requests.post(url, headers=headers, json=req_data, timeout=TIME_OUT)
         logger.info(repr(file_name) + 'allocate_child_chunks请求结果：' + repr(response.text))
-        if response.status_code != 200:  # 抛出报错
+        if response.status_code != 200:  # Throw an error
             err = str(response.text)
             return {'code': 1, "message": f"{err}"}
         final_response = json.loads(response.text)
@@ -103,15 +103,15 @@ def add_es(user_id, kb_name, docs, file_name, kb_id=""):
                 "source_type": "RAG_KB",
                 "meta_data": doc["meta_data"]
             }
-            # 普通文档切片
+            # Ordinary document slicing
             if "text" in doc:
                 chunk_dict["snippet"] = doc["text"]
 
-            if "graph_data_text" in doc:  # 图谱数据切片
+            if "graph_data_text" in doc:  # Atlas data slices
                 chunk_dict["graph_data_text"] = doc["graph_data_text"]
                 chunk_dict["graph_data"] = doc["graph_data"]
 
-            # 图谱数据切片和社区报告
+            # Graph data slicing and community reporting
             if "chunk_type" in doc:
                 chunk_dict["chunk_type"] = doc["chunk_type"]
 
@@ -147,7 +147,7 @@ def add_es(user_id, kb_name, docs, file_name, kb_id=""):
             fail_count = fail_count + 1
             if str(e) not in error_reason: error_reason.append(str(e))
 
-    # print('add_es方法调用接口批量建库，总批次:%s次，成功:%s次,失败:%s次' % (batch_count, success_count, fail_count))
+    # print('add_es method calls interface to build database in batches, total batch: %s times, success: %s times, failure: %s times' % (batch_count, success_count, fail_count))
     logger.info('add_es方法调用接口批量建库')
     logger.info('总批次：' + repr(batch_count))
     logger.info('成功：' + repr(success_count))
@@ -245,7 +245,7 @@ def search_graph_es(user_id, kb_names, query, top_k, kb_ids=[], filter_file_name
         es_data['top_k'] = top_k
         es_data['search_by'] = "graph_data_text"
         es_data['min_score'] = 0
-        es_data['filter_file_name_list'] = filter_file_name_list[:10]  # 限制最多10个，以免掉蹦
+        es_data['filter_file_name_list'] = filter_file_name_list[:10]  # Limit to 10 at most to avoid jumping
         es_url = ES_BASE_URL + "/api/v1/rag/es/search"
         headers = {'Content-Type': 'application/json'}
         try:
@@ -394,12 +394,12 @@ def add_es_bak(user_id, kb_name, docs, file_name):
         response = requests.post(es_url, headers=headers, json=es_data, timeout=TIME_OUT)
         if response.status_code == 200:
             print("请求成功")
-            print(response.text)  # 打印API返回的JSON数据
+            print(response.text)  # Print the JSON data returned by the API
             return True
         else:
             print("请求失败")
             return False
-            print(response.text)  # 打印错误信息
+            print(response.text)  # Print error message
     except Exception as e:
         import traceback
         print("====> add_es error %s" % e)

@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SelectKnowledgeSplitterList 查询知识库分隔符列表
+// SelectKnowledgeSplitterList queries the knowledge base separator list
 func SelectKnowledgeSplitterList(ctx *gin.Context, userId, orgId string, req *request.GetKnowledgeSplitterReq) (*response.KnowledgeSplitterListResp, error) {
 	resp, err := knowledgeBaseSplitter.SelectKnowledgeSplitterList(ctx.Request.Context(), &knowledgebase_splitter_service.KnowledgeSplitterSelectReq{
 		UserId:       userId,
@@ -20,7 +20,7 @@ func SelectKnowledgeSplitterList(ctx *gin.Context, userId, orgId string, req *re
 	return buildKnowledgeSplitterList(resp), nil
 }
 
-// CreateKnowledgeSplitter 创建知识库分隔符
+// CreateKnowledgeSplitter creates a knowledge base separator
 func CreateKnowledgeSplitter(ctx *gin.Context, userId, orgId string, r *request.CreateKnowledgeSplitterReq) error {
 	_, err := knowledgeBaseSplitter.CreateKnowledgeSplitter(ctx.Request.Context(), &knowledgebase_splitter_service.CreateKnowledgeSplitterReq{
 		SplitterValue: r.SplitterValue,
@@ -31,7 +31,7 @@ func CreateKnowledgeSplitter(ctx *gin.Context, userId, orgId string, r *request.
 	return err
 }
 
-// UpdateKnowledgeSplitter 更新知识库分隔符
+// UpdateKnowledgeSplitter updates the knowledge base separator
 func UpdateKnowledgeSplitter(ctx *gin.Context, userId, orgId string, r *request.UpdateKnowledgeSplitterReq) error {
 	_, err := knowledgeBaseSplitter.UpdateKnowledgeSplitter(ctx.Request.Context(), &knowledgebase_splitter_service.UpdateKnowledgeSplitterReq{
 		SplitterName:  r.SplitterName,
@@ -43,7 +43,7 @@ func UpdateKnowledgeSplitter(ctx *gin.Context, userId, orgId string, r *request.
 	return err
 }
 
-// DeleteKnowledgeSplitter 删除知识库分隔符
+// DeleteKnowledgeSplitter deletes the knowledge base separator
 func DeleteKnowledgeSplitter(ctx *gin.Context, userId, orgId string, r *request.DeleteKnowledgeSplitterReq) error {
 	_, err := knowledgeBaseSplitter.DeleteKnowledgeSplitter(ctx.Request.Context(), &knowledgebase_splitter_service.DeleteKnowledgeSplitterReq{
 		SplitterId: r.SplitterId,
@@ -53,7 +53,7 @@ func DeleteKnowledgeSplitter(ctx *gin.Context, userId, orgId string, r *request.
 	return err
 }
 
-// buildKnowledgeSplitterList 构造知识库分隔符结果
+// buildKnowledgeSplitterList constructs the knowledge base separator result
 func buildKnowledgeSplitterList(knowledgeSplitterListResp *knowledgebase_splitter_service.KnowledgeSplitterSelectListResp) *response.KnowledgeSplitterListResp {
 	if knowledgeSplitterListResp == nil || len(knowledgeSplitterListResp.KnowledgeSplitterList) == 0 {
 		return &response.KnowledgeSplitterListResp{

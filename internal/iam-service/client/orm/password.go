@@ -36,18 +36,18 @@ func (c *Client) ResetPasswordSendEmailCode(ctx context.Context, email string) *
 	if err != nil {
 		return toErrStatus("iam_user_email_code", err.Error())
 	} else if item != nil {
-		// email发送过验证码
+		// Verification code sent via email
 		record, err := getRedisUserResetPwdByEmailRecord(item.V)
 		if err != nil {
 			return toErrStatus("iam_user_email_code", err.Error())
 		}
-		// 距离上次发送不足1min
+		// Less than 1 minute since last sent
 		if now.Sub(time.UnixMilli(record.Timestamp)) < time.Minute {
 			return toErrStatus("iam_register_by_email_send_code_frequent")
 		}
 	}
-	// email未发送过验证码 或者 距离上次发送超过1min
-	// 发送邮件
+	// The verification code has not been sent by email or it has been more than 1 minute since it was last sent.
+	// Send email
 	if err := smtp_util.SendEmail([]string{email},
 		config.Cfg().Password.Email.Template.Subject,
 		config.Cfg().Password.Email.Template.ContentType,
@@ -55,7 +55,7 @@ func (c *Client) ResetPasswordSendEmailCode(ctx context.Context, email string) *
 	); err != nil {
 		return toErrStatus("iam_register_by_email_send_code", err.Error())
 	}
-	// 记录redis
+	// Record redis
 	if err := redis.IAM().HSet(ctx, getRedisUserResetPwdByEmailKey(email), []redis.HashItem{
 		{
 			K: redisUserResetPwdByEmailField,
@@ -113,7 +113,7 @@ func (c *Client) ResetPasswordByEmail(ctx context.Context, email, password, code
 
 type redisUserResetPasswordByEmail struct {
 	Code      string `json:"code"`
-	Timestamp int64  `json:"timestamp"` //  当前验证码的创建时间
+	Timestamp int64  `json:"timestamp"` //  The creation time of the current verification code
 }
 
 func getRedisUserResetPwdByEmailKey(email string) string {

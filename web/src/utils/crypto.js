@@ -3,7 +3,7 @@ import CryptoJS from 'crypto-js/crypto-js'
 const KEY = CryptoJS.enc.Utf8.parse('f5Su3GhNMM1rndyp');
 const IV = CryptoJS.enc.Utf8.parse('sdf4ddfsFD86Vdf2');
 
-// AES加密 ：字符串 key iv  返回base64
+// AESEncrypt ：String key iv  Backbase64
 export function Encrypt(str, keyStr, ivStr) {
   let key = KEY;
   let iv = IV;
@@ -20,7 +20,7 @@ export function Encrypt(str, keyStr, ivStr) {
   return encrypted.toString();
 }
 
-// AES 解密 ：字符串 key iv  返回base64
+// AES Decrypt ：String key iv  Backbase64
 export function Decrypt(str, keyStr, ivStr) {
   let key = KEY;
   let iv = IV;

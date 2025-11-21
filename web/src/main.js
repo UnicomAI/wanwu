@@ -15,7 +15,7 @@ import {guid} from '@/utils/util'
 require('./utils/rem.js')
 
 Vue.use(ElementUi, {
-    i18n: (key, value) => i18n.t(key, value), // 根据选的语言切换 Element-ui 的语言
+    i18n: (key, value) => i18n.t(key, value), // Switch Element-ui language based on selected language
 })
 
 Vue.prototype.$config = config
@@ -23,7 +23,7 @@ Vue.prototype.$basePath = basePath
 Vue.prototype.$guid = guid
 Vue.prototype.$copy = function copy(text){
     var textareaEl = document.createElement('textarea');
-    textareaEl.setAttribute('readonly', 'readonly'); // 防止手机上弹出软键盘
+    textareaEl.setAttribute('readonly', 'readonly'); // Prevent mobile keyboard from popping up
     textareaEl.value = text;
     document.body.appendChild(textareaEl);
     textareaEl.select();
@@ -34,7 +34,13 @@ Vue.prototype.$copy = function copy(text){
 
 Vue.config.productionTip = false
 
-// 定义时间格式全局过滤器
+// Force English locale - override Chinese if set
+const currentLocale = localStorage.getItem('locale')
+if (!currentLocale || currentLocale === 'zh') {
+  localStorage.setItem('locale', 'en')
+}
+
+// Define global date format filter
 Vue.filter('dateFormat', function(daraStr, pattern = 'YYYY-MM-DD HH:mm:ss') {
   return moment(daraStr).format(pattern)
 })

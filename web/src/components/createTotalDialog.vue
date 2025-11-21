@@ -54,15 +54,15 @@ export default {
       })
     },
     showCreateIntelligent() {
-      // 显示创建智能体
+      // ShowCreateAgent
       this.$refs.createIntelligentDialog.openDialog()
     },
     showCreateTxtQues() {
-      // 显示创建文本问答
+      // ShowCreateText Q&A
       this.$refs.createTxtQuesDialog.openDialog()
     },
     showCreateWorkflow() {
-      // 显示创建工作流
+      // ShowCreateWorkflow
       this.$refs.createWorkflowDialog.openDialog()
     },
     showCreateDialog(key) {

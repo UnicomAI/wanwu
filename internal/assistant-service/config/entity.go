@@ -18,8 +18,8 @@ type AssistantConversionHistory struct {
 }
 
 type KnParams struct {
-	KnowledgeBase        []string               `json:"knowledgeBase"`   // 知识库名称列表
-	KnowledgeIdList      []string               `json:"knowledgeIdList"` // 知识库id列表
+	KnowledgeBase        []string               `json:"knowledgeBase"`   // Knowledge base name list
+	KnowledgeIdList      []string               `json:"knowledgeIdList"` // Knowledge base id list
 	RerankId             interface{}            `json:"rerank_id"`
 	Model                interface{}            `json:"model"`
 	ModelUrl             interface{}            `json:"model_url"`
@@ -30,28 +30,28 @@ type KnParams struct {
 	Threshold            float32                `json:"threshold"`
 	TopK                 int32                  `json:"topK"`
 	RewriteQuery         bool                   `json:"rewrite_query"`
-	TermWeight           float32                `json:"term_weight_coefficient"`       // 关键词系数, 默认为1
-	MetaFilter           bool                   `json:"metadata_filtering"`            // 元数据过滤开关
-	MetaFilterConditions []*MetadataFilterParam `json:"metadata_filtering_conditions"` // 元数据过滤条件
-	UseGraph             bool                   `json:"use_graph"`                     // 知识图谱开关
+	TermWeight           float32                `json:"term_weight_coefficient"`       // Keyword coefficient, default is 1
+	MetaFilter           bool                   `json:"metadata_filtering"`            // Metadata filter switch
+	MetaFilterConditions []*MetadataFilterParam `json:"metadata_filtering_conditions"` // Metadata filters
+	UseGraph             bool                   `json:"use_graph"`                     // Knowledge graph switch
 }
 
 type MetadataFilterParam struct {
 	FilterKnowledgeName string                `json:"filtering_kb_name"`
 	LogicalOperator     string                `json:"logical_operator"`
-	MetaList            []*MetadataFilterItem `json:"conditions"` // 元数据过滤列表
+	MetaList            []*MetadataFilterItem `json:"conditions"` // Metadata filter list
 }
 
 type MetadataFilterItem struct {
-	MetaName           string      `json:"meta_name"`           // 元数据名称
-	MetaType           string      `json:"meta_type"`           // 元数据类型
-	ComparisonOperator string      `json:"comparison_operator"` // 比较运算符
-	Value              interface{} `json:"value,omitempty"`     // 用于过滤的条件值
+	MetaName           string      `json:"meta_name"`           // metadata name
+	MetaType           string      `json:"meta_type"`           // metadata type
+	ComparisonOperator string      `json:"comparison_operator"` // comparison operator
+	Value              interface{} `json:"value,omitempty"`     // condition value for filtering
 }
 
 type WeightParams struct {
-	VectorWeight float32 `json:"vector_weight"` //语义权重
-	TextWeight   float32 `json:"text_weight"`   //关键字权重
+	VectorWeight float32 `json:"vector_weight"` //semantic weight
+	TextWeight   float32 `json:"text_weight"`   //keyword weight
 }
 
 type AgentSSERequest struct {
@@ -74,7 +74,7 @@ type AgentSSERequest struct {
 	McpTools       map[string]MCPToolInfo       `json:"mcp_tools,omitempty"`
 	ToolsName      []string                     `json:"tools_name,omitempty"`
 	AutoCitation   bool                         `json:"auto_citation,omitempty"`
-	ModelParams    map[string]interface{}       `json:"-"` // 用于合并动态模型参数，不直接序列化到JSON
+	ModelParams    map[string]interface{}       `json:"-"` // Used to merge dynamic model parameters, not directly serialized to JSON
 }
 
 type PluginListAlgRequest struct {

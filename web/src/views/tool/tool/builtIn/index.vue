@@ -75,7 +75,7 @@ export default {
         .catch(() => {})
     },
     handleClick(val) {
-      // 内置工具详情
+      // 内置ToolDetails
       this.$router.push({path: `/tool/detail/builtIn?toolSquareId=${val.toolSquareId}`})
     },
   },

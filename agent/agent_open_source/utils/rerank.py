@@ -45,10 +45,10 @@ def rerank_by_emb(query,search_rerank_id,raw_search_list, top_k=5, threshold = 0
     logger.info(f"输入url是: {url}")
     response = requests.get(url)
     model_name = ''
-    # 检查响应状态码
+    # Check response status code
     if response.status_code == 200:
         data = response.json()
-        # 获取 model 字段
+        # Get model fields
         model_name = data.get("data", {}).get("model")
         logger.info(f"Model:{model_name}")
     else:
@@ -72,13 +72,13 @@ def rerank_by_emb(query,search_rerank_id,raw_search_list, top_k=5, threshold = 0
     logger.info(f"data is:{data}")
     response = requests.post(url, headers=headers, data=json.dumps(data))
 
-    # 处理返回结果
+    # Process the returned results
     if response.status_code == 200:
         json_data = response.json()
         logger.info(f"json_data is:{json_data}")
         results = json_data.get("results", [])
 
-        # 按得分降序排序
+        # Sort by score in descending order
         sorted_search_list = [raw_search_list[r["index"]] for r in sorted(results, key=lambda x: -x["relevance_score"])]
     else:
         print("Request failed:", response.status_code)
@@ -88,7 +88,7 @@ def rerank_by_emb(query,search_rerank_id,raw_search_list, top_k=5, threshold = 0
 
 
 
-# 定义并发排序函数
+# Define concurrent sorting function
 @advanced_timing_decorator(task_name="execute_rerank")
 def execute_rerank(query,search_rerank_id, search_list, top_k=BING_TOP_K, threshold=BING_THRESHOLD, rerank_type = "bge"):
     if rerank_type == "bge":
@@ -98,7 +98,7 @@ def execute_rerank(query,search_rerank_id, search_list, top_k=BING_TOP_K, thresh
 
 
 
-# 新增函数：合并并重排序搜索结果
+# New function: merge and reorder search results
 @advanced_timing_decorator(task_name="hybrid_rerank_results")
 def hybrid_rerank_results(query,search_rerank_id, search_list, top_k=BING_TOP_K, threshold=BING_THRESHOLD):
     """
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     # gen_prompt = build_prompt_from_search_list(query,search_list)
     # print(gen_prompt)
 #     top_k = 10
-#     threshold = 0  # 根据实际情况调整阈值
+#     threshold = 0 #Adjust the threshold according to the actual situation
 
 
     results = hybrid_rerank_results(query, search_list)

@@ -57,7 +57,7 @@ stop-nginx:
 		down nginx
 
 # --- bff-service ---
-run-bff: # 启动bff后自动重启下nginx
+run-bff: # Automatically restart nginx after starting bff
 	docker compose -f docker-compose-develop.yaml \
 		--env-file .env.image.${WANWU_ARCH} \
 		--env-file .env \
@@ -175,7 +175,7 @@ stop-assistant:
 		down assistant-service
 
 # --- workflow ---
-run-workflow: # 启动workflow后自动重启下nginx
+run-workflow: # Automatically restart nginx after starting the workflow
 	docker compose -f docker-compose-develop.yaml \
 		--env-file .env.image.${WANWU_ARCH} \
 		--env-file .env \
@@ -215,7 +215,7 @@ stop-agent:
 		down agent
 
 # --- agentscope ---
-# run-agentscope: # 启动agentscope后自动重启下nginx
+# run-agentscope: # Automatically restart nginx after starting agentscope
 # 	docker compose -f docker-compose-develop.yaml \
 # 		--env-file .env.image.${WANWU_ARCH} \
 # 		--env-file .env \

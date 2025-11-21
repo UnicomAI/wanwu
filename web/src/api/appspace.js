@@ -1,7 +1,7 @@
 import request from "@/utils/request";
 import {USER_API} from "@/utils/requestConstants"
 
-// 生成apikey
+// Generate API key
 export const createApiKey = (data)=>{
     return request({
         url: `${USER_API}/appspace/app/key`,
@@ -9,7 +9,7 @@ export const createApiKey = (data)=>{
         data
     })
 };
-// 删除apikey
+// Delete API key
 export const delApiKey = (data)=>{
     return request({
         url: `${USER_API}/appspace/app/key`,
@@ -17,7 +17,7 @@ export const delApiKey = (data)=>{
         data
     })
 };
-// 获取apikey列表
+// Get API key list
 export const getApiKeyList = (params)=>{
     return request({
         url: `${USER_API}/appspace/app/key/list`,
@@ -25,7 +25,7 @@ export const getApiKeyList = (params)=>{
         params
     })
 };
-// 获取apikey根地址
+// Get API key base URL
 export const getApiKeyRoot = (params)=>{
     return request({
         url: `${USER_API}/appspace/app/url`,
@@ -34,7 +34,7 @@ export const getApiKeyRoot = (params)=>{
     })
 };
 
-// 获取智能体/文本问答/工作流列表
+// GetAgent/Text Q&A/WorkflowList
 export const getAppSpaceList = (params)=>{
     return request({
         url: `${USER_API}/appspace/app/list`,
@@ -43,7 +43,7 @@ export const getAppSpaceList = (params)=>{
     })
 }
 
-//发布app
+// Publish app
 export const appPublish = (data)=>{
     return request({
         url: `${USER_API}/appspace/app/publish`,
@@ -52,7 +52,7 @@ export const appPublish = (data)=>{
     })
 };
 
-// 取消发布app
+// Cancel app publication
 export const appCancelPublish = (data)=>{
     return request({
         url: `${USER_API}/appspace/app/publish`,
@@ -61,7 +61,7 @@ export const appCancelPublish = (data)=>{
     })
 };
 
-//统一删除工作室应用接口
+// Unified deletion interface for studio apps
 export const deleteApp = (data)=>{
     return request({
         url: `${USER_API}/appspace/app`,
@@ -70,7 +70,7 @@ export const deleteApp = (data)=>{
     })
 };
 
-//智能体模版
+//Agent Template
 export const agnetTemplateList = (params)=>{
     return request({
         url: `${USER_API}/assistant/template/list`,
@@ -78,7 +78,7 @@ export const agnetTemplateList = (params)=>{
         params
     })
 };
-//复制智能体
+//CopyAgent
 export const copyAgnetTemplate = (data)=>{
     return request({
         url: `${USER_API}/assistant/template`,
@@ -86,7 +86,7 @@ export const copyAgnetTemplate = (data)=>{
         data
     })
 };
-//智能体模版详情
+//Agent TemplateDetails
 export const agnetTemplateDetail = (params)=>{
     return request({
         url: `${USER_API}/assistant/template`,
@@ -94,7 +94,7 @@ export const agnetTemplateDetail = (params)=>{
         params
     })
 };
-//复制文本问答应用
+// Copy text Q&A app
 export const copyTextQues = (data)=>{
     return request({
         url: `${USER_API}/appspace/rag/copy`,
@@ -102,7 +102,7 @@ export const copyTextQues = (data)=>{
         data
     })
 };
-//复制智能体应用
+// Copy agent app
 export const copyAgentApp = (data)=>{
     return request({
         url: `${USER_API}/assistant/copy`,

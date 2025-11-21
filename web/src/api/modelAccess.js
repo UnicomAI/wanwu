@@ -1,7 +1,7 @@
 import service from "@/utils/request"
 import {USER_API} from "@/utils/requestConstants"
 
-// 获取列表
+// GetList
 export const fetchModelList = (params) => {
     return service({
         url: `${USER_API}/model/list`,
@@ -10,7 +10,7 @@ export const fetchModelList = (params) => {
     })
 }
 
-// 获取单个模型
+// GetsingleModel
 export const getModelDetail = (params) => {
     return service({
         url: `${USER_API}/model`,
@@ -19,7 +19,7 @@ export const getModelDetail = (params) => {
     })
 }
 
-// 创建
+// Create
 export const addModel = (data) => {
     return service({
         url: `${USER_API}/model`,
@@ -27,7 +27,7 @@ export const addModel = (data) => {
         data
     })
 }
-// 编辑
+// Edit
 export const editModel = (data) => {
     return service({
         url: `${USER_API}/model`,
@@ -35,7 +35,7 @@ export const editModel = (data) => {
         data
     })
 }
-// 删除
+// Delete
 export const deleteModel = (data) => {
     return service({
         url: `${USER_API}/model`,
@@ -43,7 +43,7 @@ export const deleteModel = (data) => {
         data,
     })
 }
-// 修改状态
+// Modify status
 export const changeModelStatus = (data) => {
     return service({
         url: `${USER_API}/model/status`,
@@ -52,7 +52,7 @@ export const changeModelStatus = (data) => {
     })
 }
 
-//获取embedding列表
+//GetembeddingList
 export const getEmbeddingList = (params) => {
     return service({
         url: `${USER_API}/model/select/embedding`,
@@ -61,7 +61,7 @@ export const getEmbeddingList = (params) => {
     })
 }
 
-//获取rerank模型列表
+//GetrerankModelList
 export const getRerankList = () => {
     return service({
         url: `${USER_API}/model/select/rerank`,
@@ -69,7 +69,7 @@ export const getRerankList = () => {
     })
 }
 
-//获取下来选择模型列表
+// Get select model list
 export const selectModelList = () => {
     return service({
         url: `${USER_API}/model/select/llm`,

@@ -25,17 +25,17 @@ import (
 // GetModelById
 //
 //	@Tags		callback
-//	@Summary	根据ModelId获取模型
+//	@Summary Get the model based on ModelId
 //	@Accept		json
 //	@Produce	json
-//	@Param		modelId	path		string	true	"模型ID"
+//	@Param modelId path string true "model ID"
 //	@Success	200		{object}	response.Response{data=response.ModelInfo}
 //	@Router		/model/{modelId} [get]
 func GetModelById(ctx *gin.Context) {
 	modelId := ctx.Param("modelId")
 	resp, err := service.GetModelById(ctx, &request.GetModelByIdRequest{
 		BaseModelRequest: request.BaseModelRequest{ModelId: modelId}})
-	// 替换callback返回的模型中的apiKey/endpointUrl信息
+	// Replace apiKey/endpointUrl information in the model returned by callback
 	if resp != nil && resp.Config != nil {
 		cfg := make(map[string]interface{})
 		b, err := json.Marshal(resp.Config)
@@ -47,7 +47,7 @@ func GetModelById(ctx *gin.Context) {
 			gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v unmarshal config err: %v", modelId, err)))
 			return
 		}
-		// 替换apiKey, endpointUrl
+		// Replace apiKey, endpointUrl
 		cfg["apiKey"] = "useless-api-key"
 		endpoint := mp.ToModelEndpoint(resp.ModelId, resp.Model)
 		for k, v := range endpoint {
@@ -56,7 +56,7 @@ func GetModelById(ctx *gin.Context) {
 				break
 			}
 		}
-		// 替换Config
+		// ReplaceConfig
 		resp.Config = cfg
 	}
 	gin_util.Response(ctx, resp, err)
@@ -68,8 +68,8 @@ func GetModelById(ctx *gin.Context) {
 //	@Summary	Model Chat Completions
 //	@Accept		json
 //	@Produce	json
-//	@Param		modelId	path		string				true	"模型ID"
-//	@Param		data	body		mp_common.LLMReq{}	true	"请求参数"
+//	@Param modelId path string true "model ID"
+//	@Param data body mp_common.LLMReq{} true "Request Parameters"
 //	@Success	200		{object}	mp_common.LLMResp{}
 //	@Router		/model/{modelId}/chat/completions [post]
 func ModelChatCompletions(ctx *gin.Context) {
@@ -86,8 +86,8 @@ func ModelChatCompletions(ctx *gin.Context) {
 //	@Summary	Model Embeddings
 //	@Accept		json
 //	@Produce	json
-//	@Param		modelId	path		string						true	"模型ID"
-//	@Param		data	body		mp_common.EmbeddingReq{}	true	"请求参数"
+//	@Param modelId path string true "model ID"
+//	@Param data body mp_common.EmbeddingReq{} true "Request parameter"
 //	@Success	200		{object}	mp_common.EmbeddingResp{}
 //	@Router		/model/{modelId}/embeddings [post]
 func ModelEmbeddings(ctx *gin.Context) {
@@ -104,8 +104,8 @@ func ModelEmbeddings(ctx *gin.Context) {
 //	@Summary	Model Rerank
 //	@Accept		json
 //	@Produce	json
-//	@Param		modelId	path		string					true	"模型ID"
-//	@Param		data	body		mp_common.RerankReq{}	true	"请求参数"
+//	@Param modelId path string true "model ID"
+//	@Param data body mp_common.RerankReq{} true "Request Parameters"
 //	@Success	200		{object}	mp_common.RerankResp{}
 //	@Router		/model/{modelId}/rerank [post]
 func ModelRerank(ctx *gin.Context) {
@@ -122,8 +122,8 @@ func ModelRerank(ctx *gin.Context) {
 //	@Summary	Model Ocr
 //	@Accept		multipart/form-data
 //	@Produce	json
-//	@Param		modelId	path		string	true	"模型ID"
-//	@Param		file	formData	file	true	"文件"
+//	@Param modelId path string true "model ID"
+//	@Param file formData file true "file"
 //	@Success	200		{object}	mp_common.OcrResp{}
 //	@Router		/model/{modelId}/ocr [post]
 func ModelOcr(ctx *gin.Context) {
@@ -140,9 +140,9 @@ func ModelOcr(ctx *gin.Context) {
 //	@Summary	Model PdfParser
 //	@Accept		multipart/form-data
 //	@Produce	json
-//	@Param		modelId		path		string	true	"模型ID"
-//	@Param		file		formData	file	true	"文件"
-//	@Param		file_name	formData	string	true	"文件名"
+//	@Param modelId path string true "model ID"
+//	@Param file formData file true "file"
+//	@Param file_name formData string true "file name"
 //	@Success	200			{object}	mp_common.PdfParserResp{}
 //	@Router		/model/{modelId}/pdf-parser [post]
 func ModelPdfParser(ctx *gin.Context) {
@@ -159,8 +159,8 @@ func ModelPdfParser(ctx *gin.Context) {
 //	@Summary	Model Gui
 //	@Accept		json
 //	@Produce	json
-//	@Param		modelId	path		string				true	"模型ID"
-//	@Param		data	body		mp_common.GuiReq{}	true	"请求参数"
+//	@Param modelId path string true "model ID"
+//	@Param data body mp_common.GuiReq{} true "Request Parameters"
 //	@Success	200		{object}	mp_common.GuiResp{}
 //	@Router		/model/{modelId}/gui [post]
 func ModelGui(ctx *gin.Context) {
@@ -174,11 +174,11 @@ func ModelGui(ctx *gin.Context) {
 // UpdateDocStatus
 //
 //	@Tags			callback
-//	@Summary		更新文档状态（模型扩展调用）
-//	@Description	更新文档状态（模型扩展调用）
+//	@Summary updates document status (model extension call)
+//	@Description updates document status (model extension call)
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CallbackUpdateDocStatusReq	true	"更新文档状态请求参数"
+//	@Param data body request.CallbackUpdateDocStatusReq true "Update document status request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/api/docstatus [post]
 func UpdateDocStatus(ctx *gin.Context) {
@@ -193,11 +193,11 @@ func UpdateDocStatus(ctx *gin.Context) {
 // UpdateKnowledgeStatus
 //
 //	@Tags			callback
-//	@Summary		更新知识库状态
-//	@Description	更新知识库状态
+//	@Summary updates knowledge base status
+//	@Description updates knowledge base status
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CallbackUpdateDocStatusReq	true	"更新知识库状态请求参数"
+//	@Param data body request.CallbackUpdateDocStatusReq true "Update knowledge base status request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/api/knowledge/status [post]
 func UpdateKnowledgeStatus(ctx *gin.Context) {
@@ -212,8 +212,8 @@ func UpdateKnowledgeStatus(ctx *gin.Context) {
 // DocStatusInit
 //
 //	@Tags			callback
-//	@Summary		将正在解析的文档设置为解析失败
-//	@Description	将正在解析的文档设置为解析失败
+//	@Summary sets the document being parsed to parse failure
+//	@Description sets the document being parsed to parse failure
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{object}	response.Response{}
@@ -226,8 +226,8 @@ func DocStatusInit(ctx *gin.Context) {
 // GetDeployInfo
 //
 //	@Tags			callback
-//	@Summary		获取Maas平台部署信息（模型扩展调用）
-//	@Description	获取Maas平台部署信息（模型扩展调用）
+//	@Summary Get Maas platform deployment information (model extension call)
+//	@Description Get Maas platform deployment information (model extension call)
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{object}	response.Response{}
@@ -240,11 +240,11 @@ func GetDeployInfo(ctx *gin.Context) {
 // SelectKnowledgeInfoByName
 //
 //	@Tags			callback
-//	@Summary		获取Maas平台知识库信息（模型扩展调用）
-//	@Description	获取Maas平台知识库信息（模型扩展调用）
+//	@Summary Get Maas platform knowledge base information (model extension call)
+//	@Description Get Maas platform knowledge base information (model extension call)
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.SearchKnowledgeInfoReq	true	"根据知识库名称请求参数"
+//	@Param data body request.SearchKnowledgeInfoReq true "Request parameters based on knowledge base name"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/api/category/info [get]
 func SelectKnowledgeInfoByName(ctx *gin.Context) {
@@ -259,12 +259,12 @@ func SelectKnowledgeInfoByName(ctx *gin.Context) {
 // GetWorkflowList
 //
 //	@Tags			callback
-//	@Summary		根据userId和spaceId获取Workflow
-//	@Description	根据userId和spaceId获取Workflow
+//	@Summary Get Workflow based on userId and spaceId
+//	@Description Get Workflow based on userId and spaceId
 //	@Accept			json
 //	@Produce		json
-//	@Param			userId	query		string	true	"获取工作流参数userId"
-//	@Param			orgId	query		string	true	"获取工作流参数orgId"
+//	@Param userId query string true "Get workflow parameter userId"
+//	@Param orgId query string true "Get workflow parameter orgId"
 //	@Success		200		{object}	response.Response
 //	@Router			/workflow/list [get]
 func GetWorkflowList(ctx *gin.Context) {
@@ -279,8 +279,8 @@ func GetWorkflowList(ctx *gin.Context) {
 // GetWorkflowCustomTool
 //
 //	@Tags			callback
-//	@Summary		获取自定义工具详情
-//	@Description	获取自定义工具详情
+//	@Summary Get custom tool details
+//	@Description Get custom tool details
 //	@Accept			json
 //	@Produce		json
 //	@Param			customToolId	query		string	true	"customToolId"
@@ -294,13 +294,13 @@ func GetWorkflowCustomTool(ctx *gin.Context) {
 // GetWorkflowSquareTool
 //
 //	@Tags			callback
-//	@Summary		获取内置工具详情
-//	@Description	获取内置工具详情
+//	@Summary Get built-in tool details
+//	@Description Get built-in tool details
 //	@Accept			json
 //	@Produce		json
 //	@Param			toolSquareId	query		string	true	"toolSquareId"
-//	@Param			userID			query		string	true	"用户ID"
-//	@Param			orgID			query		string	true	"组织ID"
+//	@Param userID query string true "userID"
+//	@Param orgID query string true "Organization ID"
 //	@Success		200				{object}	response.Response{data=response.ToolSquareDetail}
 //	@Router			/workflow/tool/square [get]
 func GetWorkflowSquareTool(ctx *gin.Context) {
@@ -311,11 +311,11 @@ func GetWorkflowSquareTool(ctx *gin.Context) {
 // SearchKnowledgeBase
 //
 //	@Tags			callback
-//	@Summary		查询知识库列表（命中测试）
-//	@Description	查询知识库列表（命中测试）
+//	@Summary Query the knowledge base list (hit test)
+//	@Description Query the knowledge base list (hit test)
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.RagSearchKnowledgeBaseReq	true	"查询知识库列表请求参数"
+//	@Param data body request.RagSearchKnowledgeBaseReq true "Query knowledge base list request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/rag/search-knowledge-base [post]
 func SearchKnowledgeBase(ctx *gin.Context) {
@@ -330,11 +330,11 @@ func SearchKnowledgeBase(ctx *gin.Context) {
 // KnowledgeStreamSearch
 //
 //	@Tags			callback
-//	@Summary		知识库流式问答
-//	@Description	知识库流式问答
+//	@Summary Knowledge Base Streaming Q&A
+//	@Description Knowledge Base Streaming Q&A
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.RagKnowledgeChatReq	true	"知识库流式问答请求参数"
+//	@Param data body request.RagKnowledgeChatReq true "Knowledge base streaming question and answer request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/rag/knowledge/stream/search [post]
 func KnowledgeStreamSearch(ctx *gin.Context) {

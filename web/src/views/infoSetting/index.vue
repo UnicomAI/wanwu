@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!--tab配置-->
+    <!--tabConfiguration-->
     <el-card shadow="never" class="docPage-card">
       <div slot="header">
         <span class="card-title">{{$t('infoSetting.tabSet')}}</span>
@@ -43,7 +43,7 @@
         </el-button>
       </div>
     </el-card>
-    <!--登录页配置-->
+    <!--登录页Configuration-->
     <el-card shadow="never" class="docPage-card">
       <div slot="header">
         <span class="card-title">{{$t('infoSetting.loginBgSet')}}</span>
@@ -112,7 +112,7 @@
         </el-button>
       </div>
     </el-card>
-    <!--平台配置-->
+    <!--平台Configuration-->
     <el-card shadow="never" class="docPage-card">
       <div slot="header">
         <span class="card-title">{{$t('infoSetting.platformSet')}}</span>
@@ -182,7 +182,7 @@ import {avatarSrc} from "@/utils/util";
 export default {
   data() {
     const checkImage = (val, rule, value, callback) => {
-      // 判断编辑器值，编辑器默认没输入时是 <p><br></p>
+      // CheckEdit器Value，Edit器Default没Enter when Yes <p><br></p>
       if (!val) {
         callback(new Error(this.$t('infoSetting.form.uploadHint')))
       } else {

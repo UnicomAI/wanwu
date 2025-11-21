@@ -1,7 +1,7 @@
 <template>
     <div class="metaSet">
         <div class="tool-typ">
-            <el-button icon="el-icon-plus" type="primary" @click="addMataItem" size="small">新增条件</el-button>
+            <el-button icon="el-icon-plus" type="primary" @click="addMataItem" size="small">Add Condition</el-button>
             <el-switch v-model="metaDataFilterParams.filterEnable" active-color="var(--color)" @change="switchChange"></el-switch>
         </div>
         <div class="docMetaData">
@@ -13,7 +13,7 @@
                     <div class="docItem_data">
                         <el-select
                             v-model="item.key"
-                            placeholder="请选择key"
+                            placeholder="Please selectkey"
                             @change="keyChange($event,item,index)"
                         >
                            <template #prefix>
@@ -32,7 +32,7 @@
                     <div class="docItem_data">
                         <el-select
                             v-model="item.condition"
-                            placeholder="请选择条件"
+                            placeholder="Please select condition"
                             @change="conditionChange($event,item)"
                         >
                             <template #prefix>
@@ -53,7 +53,7 @@
                             v-model="item.value"
                             v-if="item.type === 'string' || item.type === ''"
                             @blur="metaValueBlur(item)"
-                            placeholder="请输入value"
+                            placeholder="Please entervalue"
                             :disabled="item.condition === 'empty' || item.condition === 'not empty'"
                         >
                         <template #prefix>
@@ -79,7 +79,7 @@
                             format="yyyy-MM-dd HH:mm:ss"
                             value-format="timestamp"
                             type="datetime"
-                            placeholder="选择日期时间"
+                            placeholder="Select Date Time"
                             :disabled="item.condition === 'empty' || item.condition === 'not empty'"
                         >
                         </el-date-picker>
@@ -96,7 +96,7 @@
                     v-if="metaDataFilterParams.metaFilterParams.length > 1"
                     v-model="metaDataFilterParams.filterLogicType"
                     class="orAnd"
-                    placeholder="条件"
+                    placeholder="Condition"
                 >
                     <el-option
                     v-for="item in conditions"
@@ -135,102 +135,102 @@ export default {
             conditions:[
                 {
                     value:'and',
-                    label:'且'
+                    label:'AND'
                 },
                 {
                     value:'or',
-                    label:'或'
+                    label:'OR'
                 }
             ],
             conditionOptions:{
                 time:[
                         {
                             value:'is',
-                            label:'是'
+                            label:'Yes'
                         },
                         {
                             value:'before',
-                            label:'早于'
+                            label:'Earlier than'
                         },
                         {
                             value:'after',
-                            label:'晚于'
+                            label:'Later than'
                         },
                         {
                             value:'empty',
-                            label:'为空'
+                            label:'Is Empty'
                         },
                         {
                             value:'not empty',
-                            label:'不为空'
+                            label:'Is Not Empty'
                         }
                     ],
                 string:[
                     {
                         value:'is',
-                        label:'是'
+                        label:'Yes'
                     },
                     {
                         value:'is not',
-                        label:'不是'
+                        label:'Is Not'
                     },
                     {
                         value:'contains',
-                        label:'包含'
+                        label:'Contains'
                     },
                     {
                         value:'not contains',
-                        label:'不包含'
+                        label:'Does not contain'
                     },
                     {
                         value:'start with',
-                        label:'开始是'
+                        label:'Starts With'
                     },
                     {
                         value:'end with',
-                        label:'结束是'
+                        label:'Ends With'
                     },
                     {
                         value:'empty',
-                        label:'为空'
+                        label:'Is Empty'
                     },
                     {
                         value:'not empty',
-                        label:'不为空'
+                        label:'Is Not Empty'
                     }
                 ],
                 number:[
                     {
                         value:'=',
-                        label:'等于'
+                        label:'Equal'
                     },
                     {
                         value:'≠',
-                        label:'不等于'
+                        label:'Not Equal'
                     },
                     {
                         value:'>',
-                        label:'大于'
+                        label:'Greater Than'
                     },
                     {
                         value:'≥',
-                        label:'大于等于'
+                        label:'Greater Than or Equal'
                     },
                     {
                         value:'<',
-                        label:'小于'
+                        label:'Less Than'
                     },
                     {
                         value:'≤',
-                        label:'小于等于'
+                        label:'Less Than or Equal'
                     },
                     {
                         value:'empty',
-                        label:'为空'
+                        label:'Is Empty'
                     },
                     {
                         value:'not empty',
-                        label:'不为空'
+                        label:'Is Not Empty'
                     }
                 ]
             }
@@ -302,7 +302,7 @@ export default {
                  return true;
             }else{
                 if (!item.value) {
-                    this.$message.warning("请输入value值");
+                    this.$message.warning("Please enter value");
                     return;
                 }
             }
@@ -324,12 +324,12 @@ export default {
         },
         addMataItem(){
             if(this.metaDataFilterParams.filterEnable === false){
-                this.$message.warning('请开启元数据配置后再进行添加')
+                this.$message.warning('Please enable metadata configuration before adding')
                 return;
             }
             if(this.metaDataFilterParams.metaFilterParams.length > 0){
                  if(this.validateRequiredFields(this.metaDataFilterParams.metaFilterParams)){
-                    this.$message.warning('存在未填信息,请补充')
+                    this.$message.warning('Missing information, please complete')
                     return
                  }
             }

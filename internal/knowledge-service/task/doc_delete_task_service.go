@@ -22,7 +22,7 @@ var docDeleteTask = &DocDeleteTask{Del: true}
 
 type DocDeleteTask struct {
 	Wg  sync.WaitGroup
-	Del bool // 是否需要自动清理
+	Del bool // Do you need automatic cleaning?
 }
 
 func init() {
@@ -69,7 +69,7 @@ func (t *DocDeleteTask) Running(ctx context.Context, taskCtx string, stop <-chan
 			reportCh <- r.clone()
 		}()
 
-		//执行数据清理
+		//Perform data cleansing
 		systemStop, err := t.runStep(ctx, taskCtx, stop)
 		if systemStop {
 			log.Infof("system stop")
@@ -118,7 +118,7 @@ func deleteDocByIds(ctx context.Context, taskCtx string) Result {
 	if err != nil {
 		return Result{Error: err}
 	}
-	//1.查询所有doc详情
+	//1. Query all doc details
 	list, err := orm.GetDocListByIdListNoDeleteCheck(ctx, "", "", params.DocIdList)
 	if err != nil {
 		return Result{Error: err}
@@ -126,52 +126,52 @@ func deleteDocByIds(ctx context.Context, taskCtx string) Result {
 	if len(list) == 0 {
 		return Result{Error: nil}
 	}
-	//2.查询知识库信息
+	//2. Query knowledge base information
 	knowledge, err := orm.SelectKnowledgeByIdNoDeleteCheck(ctx, list[0].KnowledgeId, "", "")
 	if err != nil {
 		return Result{Error: err}
 	}
-	//3.事务执行删除数据
+	//3. Transaction execution deletes data
 	err = db.GetClient().DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		return BatchDeleteAllDoc(ctx, tx, knowledge, list)
 	})
 	return Result{Error: err}
 }
 
-// BatchDeleteAllDoc 批量删除所有文档
+// BatchDeleteAllDoc deletes all documents in batches
 func BatchDeleteAllDoc(ctx context.Context, tx *gorm.DB, knowledge *model.KnowledgeBase, docList []*model.KnowledgeDoc) error {
 	var docIdList []uint32
 	for _, doc := range docList {
 		docIdList = append(docIdList, doc.Id)
 	}
-	//1.删除底层数据
+	//1. Delete underlying data
 	err := batchRagDelete(ctx, knowledge, docList)
 	if err != nil {
-		//只打印，不阻塞
+		//Just print, don't block
 		log.Errorf("batchRagDelete error %v", err)
 	}
-	//2.删除minio
+	//2. Delete minio
 	err = batchMinioDelete(ctx, docList)
 	if err != nil {
-		//只打印，不阻塞
+		//Just print, don't block
 		log.Errorf("batchMinioDelete error %v", err)
 	}
-	//3.删除db数据
+	//3. Delete db data
 	err = orm.ExecuteDeleteDocByIdList(tx, docIdList)
 	if err != nil {
 		log.Errorf("ExecuteDeleteDocByIdList error %v", err)
 		return err
 	}
-	//4.删除元数据
+	//4. Delete metadata
 	err = orm.DeleteMetaDataByDocIdList(tx, knowledge.KnowledgeId, buildDocIdList(docList))
 	if err != nil {
-		//只打印，不阻塞
+		//Just print, don't block
 		log.Errorf("DeleteMetaDataByDocIdList error %v", err)
 	}
 	return nil
 }
 
-// batchRagDelete 批量rag删除
+// batchRagDelete batch rag delete
 func batchRagDelete(ctx context.Context, knowledge *model.KnowledgeBase, docList []*model.KnowledgeDoc) error {
 	for _, doc := range docList {
 		var fileName = service.RebuildFileName(doc.DocId, doc.FileType, doc.Name)
@@ -187,11 +187,11 @@ func batchRagDelete(ctx context.Context, knowledge *model.KnowledgeBase, docList
 	return nil
 }
 
-// batchMinioDelete 批量minio url 删除
+// batchMinioDelete batch minio url delete
 func batchMinioDelete(ctx context.Context, docList []*model.KnowledgeDoc) error {
 	for _, doc := range docList {
 		if doc.FileType == "url" {
-			//url 类型没有上传minio，跳过
+			//The url type is not uploaded to minio, so skip it.
 			continue
 		}
 		err := service.DeleteFile(ctx, doc.FilePath)

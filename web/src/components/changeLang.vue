@@ -41,7 +41,7 @@ export default {
         this.langOptions = languages || []
         const langCode = localStorage.getItem("locale")
 
-        // 如果本地缓存没有默认语言，则设置接口返回的默认语言到缓存
+        // If no default language is cached locally, store the backend default language and reload
         if (!langCode) {
           window.localStorage.setItem('locale', defaultLanguage.code || ZH)
           window.location.reload()

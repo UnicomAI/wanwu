@@ -176,12 +176,12 @@ func openapiSchema2ToolActionInputsAndOutputs4Workflow(ctx context.Context, sche
 func openapiOperation2ToolActionInputs4Workflow(operation *openapi3.Operation) []interface{} {
 	inputs := []interface{}{}
 
-	// 解析路径参数、查询参数、header 参数等
+	// Parse path parameters, query parameters, header parameters, etc.
 	if operation.Parameters != nil {
 		inputs = openapiParameters2ToolActionParams4Workflow(operation.Parameters)
 	}
 
-	// 解析请求体
+	// Parse request body
 	if operation.RequestBody != nil && operation.RequestBody.Value != nil {
 		for _, mediaType := range operation.RequestBody.Value.Content {
 			if mediaType.Schema != nil && mediaType.Schema.Value != nil {
@@ -199,14 +199,14 @@ func openapiOperation2ToolActionOutputs4Workflow(operation *openapi3.Operation) 
 	}
 
 	var responseRef *openapi3.ResponseRef
-	// 优先查找 200 响应
+	// Find 200 responses first
 	for statusCode, currResponseRef := range operation.Responses.Map() {
 		if strings.HasPrefix(statusCode, "2") {
 			responseRef = currResponseRef
 			break
 		}
 	}
-	// 如果没有2开头的响应，使用第一个可用的响应
+	// If there is no response starting with 2, the first available response is used
 	if responseRef == nil {
 		for _, currResponseRef := range operation.Responses.Map() {
 			responseRef = currResponseRef
@@ -311,7 +311,7 @@ func openapiSchemaProperties2ToolActionParams4Workflow(properties openapi3.Schem
 	return rets
 }
 
-// openapiParameterType4Workflow 获取参数类型
+// openapiParameterType4Workflow gets parameter type
 func openapiParameterType4Workflow(param *openapi3.Parameter) string {
 	if param.Schema != nil && param.Schema.Value != nil {
 		return openaiSchemaType4Workflow(param.Schema.Value)
@@ -319,10 +319,10 @@ func openapiParameterType4Workflow(param *openapi3.Parameter) string {
 	return "string"
 }
 
-// openaiSchemaType4Workflow 获取 schema 的类型
+// openaiSchemaType4Workflow gets the type of schema
 func openaiSchemaType4Workflow(schema *openapi3.Schema) string {
 	if schema.Type != nil {
-		// 检查类型切片中的具体类型
+		// Check for concrete types in type slices
 		if schema.Type.Is("object") {
 			return "object"
 		} else if schema.Type.Is("array") {
@@ -337,7 +337,7 @@ func openaiSchemaType4Workflow(schema *openapi3.Schema) string {
 			return "boolean"
 		}
 
-		// 如果有多个类型，返回第一个
+		// If there are multiple types, return the first one
 		if len(*schema.Type) > 0 {
 			return string((*schema.Type)[0])
 		}

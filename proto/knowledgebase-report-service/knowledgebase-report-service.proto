@@ -7,17 +7,17 @@ import "google/protobuf/empty.proto";
 option go_package = "gitlab.ai-yuanjing.cn/ai-platform-private/backend-used-bff/common-api/api/proto/knowledgebase-report-service";
 
 service KnowledgeBaseReportService {
-  // 获取知识库社区报告
+  // 获取知识库社区报告 [EN] Get the Knowledge Base Community Report
   rpc GetKnowledgeReport(GetReportReq) returns (GetReportResp) {}
-  // 生成知识库社区报告
+  // 生成知识库社区报告 [EN] Generate Knowledge Base Community Report
   rpc GenerateKnowledgeReport(ReportIdentity) returns (google.protobuf.Empty) {}
-  // 删除知识库社区报告
+  // 删除知识库社区报告 [EN] Delete a knowledge base community report
   rpc DeleteKnowledgeReport(DeleteReportReq) returns (google.protobuf.Empty) {}
-  // 更新知识库社区报告
+  // 更新知识库社区报告 [EN] Update Knowledge Base Community Report
   rpc UpdateKnowledgeReport(UpdateReportReq) returns (google.protobuf.Empty) {}
-  // 单条新增知识库社区报告
+  // 单条新增知识库社区报告 [EN] Add a single new knowledge base community report
   rpc AddKnowledgeReport(AddReportReq) returns (google.protobuf.Empty) {}
-  // 批量新增知识库社区报告
+  // 批量新增知识库社区报告 [EN] Add knowledge base community reports in batches
   rpc BatchAddKnowledgeReport(BatchAddKnowledgeReportReq) returns (google.protobuf.Empty) {}
 }
 
@@ -28,13 +28,13 @@ message GetReportReq{
 }
 
 message GetReportResp{
-  int32 total = 1; // 社区报告数量
-  string createdAt = 2; // 生成时间
-  int32 status = 3; // 状态：0.未生成(-) 1.生成中 2.已生成 3.生成失败
-  bool canGenerate = 4; // 是否可生成：true.可生成 false.不可生成
-  bool canAddReport = 5; // 是否可新增社区报告：true.可新增 false.不可新增
-  string generateLabel = 6; // 生成社区报告按钮文案: 生成/重新生成
-  repeated ReportInfo list = 7; // 社区报告列表
+  int32 total = 1; // 社区报告数量 [EN] Number of community reports
+  string createdAt = 2; // 生成时间 [EN] Generation time
+  int32 status = 3; // 状态：0.未生成(-) 1.生成中 2.已生成 3.生成失败 [EN] Status: 0. Not generated (-) 1. Generating 2. Generated 3. Generation failed
+  bool canGenerate = 4; // 是否可生成：true.可生成 false.不可生成 [EN] Whether it can be generated: true. Can be generated. False. Cannot be generated.
+  bool canAddReport = 5; // 是否可新增社区报告：true.可新增 false.不可新增 [EN] Whether community reports can be added: true. Can be added. False. Cannot be added.
+  string generateLabel = 6; // 生成社区报告按钮文案: 生成/重新生成 [EN] Generate community report button copy: Generate/Regenerate
+  repeated ReportInfo list = 7; // 社区报告列表 [EN] Community Report List
 }
 
 message ReportInfo{

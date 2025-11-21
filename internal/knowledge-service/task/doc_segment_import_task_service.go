@@ -25,7 +25,7 @@ var docSegmentImportTask = &DocSegmentImportTask{Del: true}
 
 type DocSegmentImportTask struct {
 	Wg  sync.WaitGroup
-	Del bool // 是否需要自动清理
+	Del bool // Do you need automatic cleaning?
 }
 
 func init() {
@@ -73,7 +73,7 @@ func (t *DocSegmentImportTask) Running(ctx context.Context, taskCtx string, stop
 			reportCh <- r.clone()
 		}()
 
-		//执行文件导入
+		//Execute file import
 		systemStop, err := t.runStep(ctx, taskCtx, stop)
 		if systemStop {
 			log.Infof("system stop")
@@ -128,7 +128,7 @@ func importDocSegment(ctx context.Context, taskCtx string) Result {
 		log.Errorf("select doc segment import task err: %s", err)
 		return Result{Error: err}
 	}
-	//状态校验
+	//status check
 	if importTask.Status != model.DocSegmentImportInit {
 		log.Infof("knowledge import task not need process : %s status %d", importTask.ImportId, importTask.Status)
 		return Result{Error: err}
@@ -139,13 +139,13 @@ func importDocSegment(ctx context.Context, taskCtx string) Result {
 		log.Errorf("doc segment import params err: %s", err)
 		return Result{Error: err}
 	}
-	//更新状态处理中
+	//Update status in progress
 	err = orm.UpdateDocSegmentImportTaskStatus(ctx, docSegmentImportTaskParams.TaskId, model.DocSegmentImportImporting, "", 0)
 	if err != nil {
 		log.Errorf("UpdateDocSegmentImportTaskStatus err: %s", err)
 		return Result{Error: err}
 	}
-	//执行导入
+	//Execute import
 	lineCount, err := doDocSegmentImport(ctx, &importTaskParams, importTask)
 	if err != nil {
 		log.Errorf("doc segment file download err: %s, lineCount %d", err, lineCount)
@@ -155,7 +155,7 @@ func importDocSegment(ctx context.Context, taskCtx string) Result {
 	return Result{Error: err}
 }
 
-// doDocSegmentImport 执行文件导入
+// doDocSegmentImport performs file import
 func doDocSegmentImport(ctx context.Context, importTaskParams *model.DocSegmentImportParams, importTask *model.DocSegmentImportTask) (lineCount int, err error) {
 	defer util.PrintPanicStackWithCall(func(panicOccur bool, err2 error) {
 		if panicOccur {
@@ -172,14 +172,14 @@ func doDocSegmentImport(ctx context.Context, importTaskParams *model.DocSegmentI
 			status = model.DocSegmentImportFail
 			errMsg = "文件所有行全部处理失败"
 		}
-		//更新状态和数量
+		//Update status and quantity
 		err = orm.UpdateDocSegmentImportTaskStatus(ctx, importTask.ImportId, status, errMsg, lineCount)
 	})
 	lineCount, err = processCsvFileLine(ctx, importTaskParams.FileUrl, buildLineProcessor(importTask, importTaskParams))
 	return
 }
 
-// csv 文件行处理器
+// csv file line processor
 func buildLineProcessor(importTask *model.DocSegmentImportTask, importParams *model.DocSegmentImportParams) func(ctx context.Context, strings []string) error {
 	return func(ctx context.Context, lineData []string) error {
 		if utf8.RuneCountInString(lineData[0]) > importParams.MaxSentenceSize {
@@ -215,7 +215,7 @@ func buildKnowledgeBase(importParams *model.DocSegmentImportParams) string {
 func processCsvFileLine(ctx context.Context, csvUrl string,
 	lineProcessor func(context.Context, []string) error) (int, error) {
 
-	//下载url，循环调用rag
+	//Download url and call rag in a loop
 	object, err := service.DownloadFileObject(ctx, csvUrl)
 	if err != nil {
 		log.Errorf("download file err: %s", err)
@@ -229,15 +229,15 @@ func processCsvFileLine(ctx context.Context, csvUrl string,
 		}
 	}()
 
-	// 创建CSV读取器
+	// Create CSV reader
 	reader := csv.NewReader(object)
 
-	// 根据需要配置CSV读取器
-	reader.Comma = ','          // 设置分隔符，默认为逗号
-	reader.Comment = '#'        // 设置注释字符
-	reader.FieldsPerRecord = -1 // 允许可变字段数量
+	// Configure the CSV reader as needed
+	reader.Comma = ','          // Set delimiter, default is comma
+	reader.Comment = '#'        // Set comment character
+	reader.FieldsPerRecord = -1 // Allow variable number of fields
 
-	// 读取并跳过表头行
+	// Read and skip header rows
 	_, err = reader.Read()
 	if err != nil {
 		if err == io.EOF {
@@ -248,21 +248,21 @@ func processCsvFileLine(ctx context.Context, csvUrl string,
 	}
 
 	var lineCount = 0
-	// 逐行读取CSV内容
+	// Read CSV content line by line
 	for {
 		record, err := reader.Read()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
-			// 可以选择记录错误并继续，或者直接返回错误
+			// You can choose to log the error and continue, or return the error directly
 			log.Errorf("解析CSV行时出错: %v, lineCount %d", err, lineCount)
 			continue
 		}
 		lineCount++
 		if len(record) < 2 {
 			err = fmt.Errorf("line data not ok lineCount %d", lineCount)
-			// 可以选择记录错误并继续，或者直接返回错误
+			// You can choose to log the error and continue, or return the error directly
 			log.Errorf("解析CSV行时出错: %v", err)
 			continue
 		}

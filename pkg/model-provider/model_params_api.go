@@ -17,7 +17,7 @@ type ILLMParams interface {
 	GetParams() map[string]interface{}
 }
 
-// ToModelEndpoint 返回model、model_url、model_id的kv
+// ToModelEndpoint returns the kv of model, model_url, model_id
 func ToModelEndpoint(modelId, model string) map[string]interface{} {
 	ret := make(map[string]interface{})
 	if modelId != "" && model != "" {
@@ -29,13 +29,13 @@ func ToModelEndpoint(modelId, model string) map[string]interface{} {
 	return ret
 }
 
-// ToModelParams 返回ILLMParams、IEmbeddingParams或IRerankParams，与对应实际传给模型的参数
+// ToModelParams returns ILLMParams, IEmbeddingParams or IRerankParams, corresponding to the parameters actually passed to the model
 func ToModelParams(provider, modelType, cfg string) (interface{}, map[string]interface{}, error) {
 	params := make(map[string]interface{})
 	if cfg == "" {
 		return nil, params, nil
 	}
-	var ret interface{} // 前端需要的结构体
+	var ret interface{} // Structure required by the front end
 	var err error
 	switch provider {
 	case ProviderOpenAICompatible:
@@ -129,8 +129,8 @@ func ToModelParams(provider, modelType, cfg string) (interface{}, map[string]int
 }
 
 type AppModelParams struct {
-	ProviderOpenAICompatible AppModelParamsOpenAICompatible `json:"providerOpenAICompatible"` // OpenAI-API-compatible模型配置
-	ProviderYuanJing         AppModelParamsYuanjing         `json:"providerYuanjing"`         // YuanJing模型配置
+	ProviderOpenAICompatible AppModelParamsOpenAICompatible `json:"providerOpenAICompatible"` // OpenAI-API-compatible model configuration
+	ProviderYuanJing         AppModelParamsYuanjing         `json:"providerYuanjing"`         // YuanJing model configuration
 	ProviderHuoshan          AppModelParamsHuoshan          `json:"providerHuoshan"`
 	ProviderQwen             AppModelParamsQwen             `json:"providerQwen"`
 	ProviderOllama           AppModelParamsOllama           `json:"providerOllama"`
@@ -138,25 +138,25 @@ type AppModelParams struct {
 }
 
 type AppModelParamsOpenAICompatible struct {
-	LLM mp_openai_compatible.LLMParams `json:"llm"` // 大语言模型配置
+	LLM mp_openai_compatible.LLMParams `json:"llm"` // Large language model configuration
 }
 
 type AppModelParamsYuanjing struct {
-	LLM mp_yuanjing.LLMParams `json:"llm"` // 大语言模型配置
+	LLM mp_yuanjing.LLMParams `json:"llm"` // Large language model configuration
 }
 
 type AppModelParamsHuoshan struct {
-	LLM mp_huoshan.LLMParams `json:"llm"` // 大语言模型配置
+	LLM mp_huoshan.LLMParams `json:"llm"` // Large language model configuration
 }
 
 type AppModelParamsQwen struct {
-	LLM mp_qwen.LLMParams `json:"llm"` // 大语言模型配置
+	LLM mp_qwen.LLMParams `json:"llm"` // Large language model configuration
 }
 
 type AppModelParamsOllama struct {
-	LLM mp_ollama.LLMParams `json:"llm"` // 大语言模型配置
+	LLM mp_ollama.LLMParams `json:"llm"` // Large language model configuration
 }
 
 type AppModelParamsInfini struct {
-	LLM mp_infini.LLMParams `json:"llm"` // 大语言模型配置
+	LLM mp_infini.LLMParams `json:"llm"` // Large language model configuration
 }

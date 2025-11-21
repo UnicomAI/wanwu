@@ -12,35 +12,35 @@ logger.info(logger_name+'---------LOG_FILE：'+repr(app_name))
 
 
 def process_string(long_str, punctuation_list, size):  
-    # 存储逆序后的句子列表（包括标点）  
+    # Store the reversed sentence list (including punctuation)
     sentences_reversed = []  
     current_sentence = ''  
       
-    # 从后往前遍历字符串  
+    # Traverse the string from back to front
     for i in range(len(long_str) - 1, -1, -1):  
         if long_str[i] in punctuation_list:  
-            # 如果当前字符是标点，则先添加到当前句子中  
+            # If the current character is punctuation, it is added to the current sentence first
             current_sentence += long_str[i]  
-            # 然后检查是否要添加这个完整的句子到列表中  
+            # Then check if you want to add this complete sentence to the list
             if current_sentence:  
                 sentences_reversed.append(current_sentence[::-1])  
-                current_sentence = ''  # 重置当前句子  
+                current_sentence = ''  # reset current sentence
         else:  
-            # 否则，继续构建当前句子  
+            # Otherwise, continue building the current sentence
             current_sentence += long_str[i]  
       
-    # 如果最后一个句子（可能没有标点）不为空，也添加到列表中  
+    # If the last sentence (which may have no punctuation) is not empty, also add to the list
     if current_sentence:  
         sentences_reversed.append(current_sentence[::-1])  
       
-    # 构建最终的结果字符串，同时检查长度  
+    # Build the final result string while checking the length
     final_str = ''  
     for sentence in sentences_reversed:  
-        # 检查加上当前句子后是否超过长度限制  
+        # Check whether the length limit is exceeded after adding the current sentence
         if len(final_str) + len(sentence) <= size:  
             final_str = sentence + final_str  
         else:  
-            # 如果超过，则停止添加句子  
+            # If exceeded, stop adding sentences
             break  
       
     return final_str  
@@ -48,17 +48,17 @@ def process_string(long_str, punctuation_list, size):
 
 def remove_leading_punctuation(s, punctuation_list):  
 
-    # 遍历标点符号列表  
+    # Iterate over a list of punctuation marks
 
     for punct in punctuation_list:  
 
-        # 如果字符串以该标点符号开始，则去除它  
+        # If the string starts with this punctuation mark, remove it
 
         if s.startswith(punct):  
 
             return s[1:]  
 
-    # 如果没有找到匹配的标点符号，则返回原始字符串  
+    # If no matching punctuation is found, the original string is returned
 
     return s
 
@@ -89,12 +89,12 @@ class ChineseTextSplitter(CharacterTextSplitter):
         self.default_separators = ["。", "！", "？", ".", "!", "?", "……"]
 
     def split_text1(self, text: str) -> List[str]:
-        # logger.info('走到通用切分')
+        # logger.info('Go to universal segmentation')
         punctuation_list = self.separators
         def generate_regex(punc_list):
             escaped_punc = [re.escape(p) for p in punc_list]
             return r'([' + ''.join(escaped_punc) + r'])([^”’])'
-        # 初始句子切分
+        # Initial sentence segmentation
         regex_replacements = [
             (generate_regex(punctuation_list), r"\1\n\2")
         ]
@@ -103,7 +103,7 @@ class ChineseTextSplitter(CharacterTextSplitter):
         text = text.rstrip().replace(r'\u3000', ' ')
         sentences = [i for i in text.split("\n") if i]
     
-        # 进一步切分长句子
+        # Further segment long sentences
         result_sentences = []
         for ele in sentences:
             if len(ele) > self.sentence_size:
@@ -146,7 +146,7 @@ class ChineseTextSplitter(CharacterTextSplitter):
         else:
             i = 0
             while i < len(sentences):
-                # 计算当前段落
+                # Calculate current paragraph
                 temp = sentences[i]
                 j = i + 1
                 while j < len(sentences) and len(temp) + len(sentences[j]) <= self.sentence_size:
@@ -154,13 +154,13 @@ class ChineseTextSplitter(CharacterTextSplitter):
                     j += 1
                 result.append(temp)
                 
-                # 计算重叠句子数量
+                # Count the number of overlapping sentences
                 overlap_count = int(self.overlap_size * (j - i))
                 if overlap_count < 1:
                     overlap_count = 1
                 print('overlap_count',overlap_count)
                 
-                # 更新索引 i
+                # Update index i
                 i = j - overlap_count if j - overlap_count > i else i + 1
             if len(result) == 0:
                 print("列表为空")
@@ -171,7 +171,7 @@ class ChineseTextSplitter(CharacterTextSplitter):
         return result
 
     def split_text2(self, text: str) -> List[str]:
-        # logger.info('走到自定义切分')
+        # logger.info('Go to custom segmentation')
         punctuation_list = self.separators
         if not any(p in text for p in punctuation_list):
             punctuation_list = ["。", "！", "？", ".", "!", "?", "……"]
@@ -227,7 +227,7 @@ class ChineseTextSplitter(CharacterTextSplitter):
         return result
 
     def split_text3(self, text, separators) -> List[str]:
-        # logger.info('走到自定义切分，支持正则表达式和自定义分割符')
+        # logger.info('Go to custom segmentation, support regular expressions and custom separators')
         def split_with_regex(text, separator):
             splits = re.split(f"({re.escape(separator)})", text)
             results = [splits[i - 1] + splits[i] for i in range(1, len(splits), 2)]
@@ -375,7 +375,7 @@ class ChineseTextSplitter(CharacterTextSplitter):
             separator, text = replace_k_consecutive_nl(separator, text)
             if separator not in new_separators:
                 new_separators.append(separator)
-        # 如果分隔符里没有\n，先把原文中的\n替换为特殊标记
+        # If there is no \n in the delimiter, first replace the \n in the original text with a special mark
         if "\n" not in self.separators and "\\n" not in self.separators:
             text = text.replace("\n", "<NL>")
         regex_replacements = [

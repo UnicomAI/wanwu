@@ -10,12 +10,12 @@ import (
 // CreateSensitiveWordTable
 //
 //	@Tags			safety
-//	@Summary		创建敏感词表
-//	@Description	创建敏感词表
+//	@Summary Create a sensitive word list
+//	@Description Create a sensitive word list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CreateSensitiveWordTableReq	true	"创建敏感词表请求参数"
+//	@Param data body request.CreateSensitiveWordTableReq true "Create sensitive word table request parameters"
 //	@Success		200		{object}	response.Response{data=response.CreateSensitiveWordTableResp}
 //	@Router			/safe/sensitive/table [post]
 func CreateSensitiveWordTable(ctx *gin.Context) {
@@ -30,12 +30,12 @@ func CreateSensitiveWordTable(ctx *gin.Context) {
 // UpdateSensitiveWordTable
 //
 //	@Tags			safety
-//	@Summary		编辑敏感词表
-//	@Description	编辑敏感词表
+//	@Summary Edit sensitive word list
+//	@Description Edit sensitive word list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.UpdateSensitiveWordTableReq	true	"编辑敏感词表请求参数"
+//	@Param data body request.UpdateSensitiveWordTableReq true "Edit sensitive word table request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/safe/sensitive/table [put]
 func UpdateSensitiveWordTable(ctx *gin.Context) {
@@ -50,12 +50,12 @@ func UpdateSensitiveWordTable(ctx *gin.Context) {
 // DeleteSensitiveWordTable
 //
 //	@Tags			safety
-//	@Summary		删除敏感词表
-//	@Description	删除敏感词表
+//	@Summary Delete sensitive word list
+//	@Description Delete sensitive word list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.DeleteSensitiveWordTableReq	true	"删除敏感词表请求参数"
+//	@Param data body request.DeleteSensitiveWordTableReq true "Delete sensitive word table request parameter"
 //	@Success		200		{object}	response.Response
 //	@Router			/safe/sensitive/table [delete]
 func DeleteSensitiveWordTable(ctx *gin.Context) {
@@ -70,8 +70,8 @@ func DeleteSensitiveWordTable(ctx *gin.Context) {
 // GetSensitiveWordTableList
 //
 //	@Tags			safety
-//	@Summary		获取敏感词表列表
-//	@Description	获取敏感词表列表
+//	@Summary Get a list of sensitive words
+//	@Description Get the list of sensitive words
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
@@ -85,14 +85,14 @@ func GetSensitiveWordTableList(ctx *gin.Context) {
 // GetSensitiveVocabularyList
 //
 //	@Tags			safety
-//	@Summary		获取词表数据列表
-//	@Description	获取词表数据列表
+//	@Summary Get the vocabulary data list
+//	@Description Get the vocabulary data list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data		query		request.GetSensitiveVocabularyReq	true	"查询词表数据列表参数"
-//	@Param			pageNo		query		int									true	"页面编号，从1开始"
-//	@Param			pageSize	query		int									true	"单页数量，从1开始"
+//	@Param data query request.GetSensitiveVocabularyReq true "Query vocabulary data list parameters"
+//	@Param pageNo query int true "Page number, starting from 1"
+//	@Param pageSize query int true "Number of single pages, starting from 1"
 //	@Success		200			{object}	response.Response{data=response.ListResult{list=[]response.SensitiveWordVocabularyDetail}}
 //	@Router			/safe/sensitive/word/list [get]
 func GetSensitiveVocabularyList(ctx *gin.Context) {
@@ -107,12 +107,12 @@ func GetSensitiveVocabularyList(ctx *gin.Context) {
 // UploadSensitiveVocabulary
 //
 //	@Tags			safety
-//	@Summary		上传敏感词
-//	@Description	上传敏感词
+//	@Summary Upload sensitive words
+//	@Description Upload sensitive words
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.UploadSensitiveVocabularyReq	true	"上传敏感词参数"
+//	@Param data body request.UploadSensitiveVocabularyReq true "Upload sensitive word parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/safe/sensitive/word [post]
 func UploadSensitiveVocabulary(ctx *gin.Context) {
@@ -127,12 +127,12 @@ func UploadSensitiveVocabulary(ctx *gin.Context) {
 // DeleteSensitiveVocabulary
 //
 //	@Tags			safety
-//	@Summary		删除敏感词
-//	@Description	删除敏感词
+//	@Summary Delete sensitive words
+//	@Description Delete sensitive words
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.DeleteSensitiveVocabularyReq	true	"删除敏感词参数"
+//	@Param data body request.DeleteSensitiveVocabularyReq true "Delete sensitive word parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/safe/sensitive/word [delete]
 func DeleteSensitiveVocabulary(ctx *gin.Context) {
@@ -147,12 +147,12 @@ func DeleteSensitiveVocabulary(ctx *gin.Context) {
 // UpdateSensitiveWordTableReply
 //
 //	@Tags			safety
-//	@Summary		编辑回复设置
-//	@Description	编辑回复设置
+//	@Summary Edit reply settings
+//	@Description Edit reply settings
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.UpdateSensitiveWordTableReplyReq	true	"编辑回复设置请求参数"
+//	@Param data body request.UpdateSensitiveWordTableReplyReq true "Edit reply set request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/safe/sensitive/table/reply [put]
 func UpdateSensitiveWordTableReply(ctx *gin.Context) {
@@ -167,8 +167,8 @@ func UpdateSensitiveWordTableReply(ctx *gin.Context) {
 // GetSensitiveWordTableSelect
 //
 //	@Tags			safety
-//	@Summary		获取敏感词表列表（用于下拉选择）
-//	@Description	获取敏感词表列表（用于下拉选择）
+//	@Summary Get a list of sensitive words (for drop-down selection)
+//	@Description Get the list of sensitive words (for drop-down selection)
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
@@ -182,12 +182,12 @@ func GetSensitiveWordTableSelect(ctx *gin.Context) {
 // GetSensitiveWordTable
 //
 //	@Tags			safety
-//	@Summary		获取敏感词表
-//	@Description	获取敏感词表
+//	@Summary Get the sensitive word list
+//	@Description Get the sensitive word list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	query		request.GetSensitiveVocabularyReq	true	"查询敏感词表参数"
+//	@Param data query request.GetSensitiveVocabularyReq true "Query sensitive vocabulary parameters"
 //	@Success		200		{object}	response.Response{data=response.SensitiveWordTableDetail}
 //	@Router			/safe/sensitive/table [get]
 func GetSensitiveWordTable(ctx *gin.Context) {

@@ -4,7 +4,7 @@ type RagInfo struct {
 	ID    int64  `json:"id" gorm:"primaryKey;type:bigint(20) auto_increment;not null;"`
 	RagID string `json:"ragId" gorm:"uniqueIndex:idx_unique_rag_id;column:rag_id;type:varchar(255);comment:ragId"`
 
-	// 使用嵌入结构体（将字段直接映射到主表）
+	// Use embedded structures (map fields directly to the main table)
 	BriefConfig         AppBriefConfig      `gorm:"embedded;embeddedPrefix:brief_"`
 	ModelConfig         AppModelConfig      `gorm:"embedded;embeddedPrefix:model_"`
 	RerankConfig        AppModelConfig      `gorm:"embedded;embeddedPrefix:rerank_"`

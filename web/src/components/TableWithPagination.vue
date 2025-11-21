@@ -1,9 +1,9 @@
 <template>
   <div>
-    <!-- 搜索区 -->
+    <!-- Search Area -->
     <slot name="search"></slot>
 
-    <!-- 表格区 -->
+    <!-- Table Area -->
     <!--<el-scrollbar>
     <div style="max-height: 5rem;">-->
     <div>
@@ -16,16 +16,16 @@
       >
         <slot name="checkbox"></slot>
 
-        <!-- 多选区 -->
+        <!-- Multi-select Area -->
         <slot name="selection" ></slot>
 
-        <!-- 索引区 -->
-        <el-table-column v-if="index" type="index" :index="indexMethod" width="62" label="序号"></el-table-column>
+        <!-- Index Area -->
+        <el-table-column v-if="index" type="index" :index="indexMethod" width="62" label="No."></el-table-column>
 
-        <!-- 头部 -->
+        <!-- Header -->
         <slot name="haed"></slot>
 
-        <!-- 表头区 -->
+        <!-- Table Header Area -->
         <el-table-column
           v-for="(column, index) in table.column"
           :key="index"
@@ -38,17 +38,17 @@
           <span v-if="column.html" >{{column.formatter()}}</span>
         </el-table-column>
 
-        <!-- 设置区 -->
+        <!-- SettingArea -->
         <slot name="other1"></slot>
         <slot name="other2"></slot>
         <slot name="other3"></slot>
 
-        <!-- 按钮区 -->
+        <!-- ButtonArea -->
         <slot name="button"></slot>
       </el-table>
     </div>
     <!--</el-scrollbar>-->
-    <!-- 分页区 -->
+    <!-- Pagination Area -->
     <el-pagination
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
@@ -68,32 +68,32 @@ export default {
   props: ["noCreate","table","index","select",'pageSize','noborder'],
   data() {
     return {
-      // 表格分页参数
+      // Table pagination parameters
       page: {
         pageNo: 1,
         pageSize: 5
       },
-      // 表格多选集合
+      // Table multi-select collection
       selection: []
     };
   },
   created: function() {
-    // 初始化加载
+    // Initialize table load
     this.page.pageSize=this.pageSize||5
     if(!this.noCreate){
       this.handlePagination();
     }
   },
   methods: {
-    // 序号索引算法
+    // Index calculation for serial numbers
     indexMethod(index) {
       return (this.page.pageNo - 1) * this.page.pageSize + index + 1;
     },
-    // 把每一行的索引放进row
+    // Assign the calculated index back to each row
     tableRowClassName({ row, rowIndex }) {
       row.rowIndex = rowIndex;
     },
-    // 执行分页逻辑
+    // Execute pagination logic
     handlePagination() {
       this.selection = [];
       this.$emit("handlePagination", this.page);

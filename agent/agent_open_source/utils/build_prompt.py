@@ -8,20 +8,20 @@ from re import sub
 from utils.tokenizers import CustomTokenizer
 from utils.llm_tools import format_prompt_template, prompts_base_path
 
-# 日志对象初始化
+# Log object initialization
 logger = logging.getLogger(__name__)
 
-# 加载配置文件
+# Load configuration file
 config = configparser.ConfigParser()
 config.read("config.ini", encoding="utf-8")
 
-# 常量定义
-MAX_INPUT_TOKENS = int(config["AGENTS"]["MAX_INPUT_TOKENS"])  # 从配置读取的最大模型输入 token 数
-DEFAULT_MODEL = "deepseek-v3"                                   # 默认使用的模型名称
-DEFAULT_TIMEZONE = "Asia/Shanghai"                             # 默认的时区设置
+# constant definition
+MAX_INPUT_TOKENS = int(config["AGENTS"]["MAX_INPUT_TOKENS"])  # Maximum number of model input tokens read from configuration
+DEFAULT_MODEL = "deepseek-v3"                                   # The model name used by default
+DEFAULT_TIMEZONE = "Asia/Shanghai"                             # Default time zone setting
 
-# 拼接文本时的截断阈值（单位：token）
-# 搜索内容拼接时如果剩余token数量低于该值，则舍弃该chunk，否则将chunk截断后再拼接
+# Truncation threshold when splicing text (unit: token)
+# When the search content is spliced, if the number of remaining tokens is lower than this value, the chunk will be discarded, otherwise the chunk will be truncated and spliced ​​again.
 TRUNCATION_THRESHOLD = 20                                   
 
 
@@ -104,7 +104,7 @@ def build_prompt_from_search_list(
     citation_label = "citation" if auto_citation else "参考信息"
 
     template_name = f"{template_prefix}_prompt{'_citation' if auto_citation else ''}.txt"
-    template_path = Path(prompts_base_path, template_name)  # 确保 prompts_base_path 为 Path 类型
+    template_path = Path(prompts_base_path, template_name)  # Make sure prompts_base_path is of type Path
     template_content = template_path.read_text(encoding='utf-8')
     template_token_num = tokenizer.count_tokens(template_content)
 

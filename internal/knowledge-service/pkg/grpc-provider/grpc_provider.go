@@ -31,10 +31,10 @@ func init() {
 	pkg.AddContainer(grpcProvider)
 }
 
-// ServerInterceptor 拦截器结构体
+// ServerInterceptor interceptor structure
 type ServerInterceptor struct{}
 
-// Unary 拦截服务方法的处理
+// Unary interception service method processing
 func (si *ServerInterceptor) Unary() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		start := time.Now().UnixMilli()
@@ -46,7 +46,7 @@ func (si *ServerInterceptor) Unary() grpc.UnaryServerInterceptor {
 			}
 			knowledge_log.LogAccessPB(ctx, "grpc", info.FullMethod, req, resp, err, start)
 		})
-		// 调用原始的处理函数
+		// Call the original handler function
 		resp, err = handler(ctx, req)
 		return resp, err
 	}

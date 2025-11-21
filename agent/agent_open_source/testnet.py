@@ -1,10 +1,10 @@
 import requests
 import json
 
-# Flask 服务的地址
+# The address of the Flask service
 url = "http://172.17.0.1:1990/net_search"
 
-# 要测试的请求数据
+# Request data to test
 payload = {
     "query": "联通董事长是谁",
     "search_url":"https://api.bochaai.com/v1/web-search",
@@ -16,6 +16,6 @@ headers = {
     "Content-Type": "application/json"
 }
 
-# 发送 POST 请求
+# Send POST request
 response = requests.post(url, headers=headers, data=json.dumps(payload))
 print(response.text)

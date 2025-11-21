@@ -9,8 +9,8 @@ import (
 // GetMCPSquareDetail
 //
 //	@Tags			mcp.square
-//	@Summary		获取广场MCP详情
-//	@Description	获取广场MCP详情
+//	@Summary Get the details of the square MCP
+//	@Description Get square MCP details
 //	@Accept			json
 //	@Produce		json
 //	@Param			mcpSquareId	query		string	true	"mcpSquareId"
@@ -24,12 +24,12 @@ func GetMCPSquareDetail(ctx *gin.Context) {
 // GetMCPSquareList
 //
 //	@Tags			mcp.square
-//	@Summary		获取广场MCP列表
-//	@Description	获取广场MCP列表
+//	@Summary Get the square MCP list
+//	@Description Get the square MCP list
 //	@Accept			json
 //	@Produce		json
-//	@Param			category	query		string	false	"mcp类型"	Enums(all,data,create,search)
-//	@Param			name		query		string	false	"mcp名称"
+//	@Param category query string false "mcp type" Enums(all,data,create,search)
+//	@Param name query string false "mcp name"
 //	@Success		200			{object}	response.Response{data=response.ListResult{list=[]response.MCPSquareInfo}}
 //	@Router			/mcp/square/list [get]
 func GetMCPSquareList(ctx *gin.Context) {
@@ -40,8 +40,8 @@ func GetMCPSquareList(ctx *gin.Context) {
 // GetMCPSquareRecommends
 //
 //	@Tags			mcp.square
-//	@Summary		获取广场MCP推荐列表
-//	@Description	获取广场MCP推荐列表
+//	@Summary Get the square MCP recommendation list
+//	@Description Get the square MCP recommendation list
 //	@Accept			json
 //	@Produce		json
 //	@Param			mcpId		query		string	false	"mcpId"

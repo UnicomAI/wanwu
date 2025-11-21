@@ -5,8 +5,8 @@
     :before-close="handleClose"
   >
   <template #title>
-    <span class="dialog-title">元数据管理</span>
-    <span>[ 元数据key为空时，去<span class="link" @click="goCreate">创建元数据</span> ]</span>
+    <span class="dialog-title">Metadata Management</span>
+    <span>[ MetadatakeyIs Empty when ，去<span class="link" @click="goCreate">CreateMetadata</span> ]</span>
   </template>
     <div>
         <el-table
@@ -23,7 +23,7 @@
             <template #default="{ row }">
               <el-select
                 v-model="row.metaKey"
-                placeholder="请选择key"
+                placeholder="Please selectkey"
                 @change="keyChange($event,row)"
                 :disabled="Boolean(row.metaId)"
             >
@@ -39,7 +39,7 @@
           </el-table-column>
           <el-table-column
               prop="metaValueType"
-              label="类型"
+              label="Type"
               align="center">
             <template #default="{ row }">
               <span class="metaValueType">[{{row.metaValueType}}]</span>
@@ -58,7 +58,7 @@
                   @change="handleValueChange(row)"
                   clearable
                   :disabled="!row.editable"
-                  placeholder="请输入内容"
+                  placeholder="Please enterContent"
               />
               <el-input
                   v-if="row.metaValueType === 'number'"
@@ -67,7 +67,7 @@
                   clearable
                   :disabled="!row.editable"
                   type="number"
-                  placeholder="请输入数字"
+                  placeholder="Please enternumber"
                   @change="handleValueChange(row)"
               />
               <el-date-picker
@@ -81,13 +81,13 @@
                   format="yyyy-MM-dd HH:mm:ss"
                   value-format="timestamp"
                   type="datetime"
-                  placeholder="请选择日期时间"
+                  placeholder="Please select date and time"
                   style="width:100%;"
               />
             </template>
           </el-table-column>
           <el-table-column
-              label="操作"
+              label="Operation"
               align="center"
           >
             <template #default="{ row }">
@@ -104,13 +104,13 @@
       slot="footer"
       class="dialog-footer"
     >
-      <el-button @click="dialogVisible = false">取 消</el-button>
-      <el-button @click="addItem" type="primary">+ 创建元数据</el-button>
+      <el-button @click="dialogVisible = false">Cancel</el-button>
+      <el-button @click="addItem" type="primary">+ CreateMetadata</el-button>
       <el-button
         type="primary"
         @click="submitDialog('submit')"
         :disabled="isDisabled"
-      >确 定</el-button>
+      >Confirm</el-button>
     </span>
   </el-dialog>
 </template>
@@ -194,7 +194,7 @@ export default {
       }
       updateDocMeta(data).then(res =>{
         if(res.code === 0){
-            this.$message.success('操作成功');
+            this.$message.success('OperationSuccess');
             this.$emit('updateData')
             this.isDisabled = true;
             if(type === 'submit'){

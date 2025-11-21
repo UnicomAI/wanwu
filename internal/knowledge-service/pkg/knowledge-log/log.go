@@ -6,7 +6,7 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/log"
 )
 
-// 打印等级 Panic > Error > Warn > Info > Debug
+// Print level Panic > Error > Warn > Info > Debug
 
 var knowledgeLog = KnowledgeLog{}
 

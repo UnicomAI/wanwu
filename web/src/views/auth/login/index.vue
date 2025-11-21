@@ -102,7 +102,7 @@ export default {
     }
   },
   created() {
-    // 如果已登录，重定向到有权限的页面
+    // IfalreadyLogin，重定向toHasPermission of Page
     // if (this.$store.state.user.token && localStorage.getItem("access_cert") && !this.$store.state.user.is2FA) redirectUrl()
 
     this.getImgCode()
@@ -122,7 +122,7 @@ export default {
         });
 
       },
-      // 深度观察监听
+      // 深度ObserveListen
       deep: true
     }
   },
@@ -152,7 +152,7 @@ export default {
         this.doLogin()
       }
     },
-    // 获取图片验证码
+    // GetImageVerification Code
     async getImgCode() {
       const res = await getImgVerCode()
       this.codeData = res.data || {}

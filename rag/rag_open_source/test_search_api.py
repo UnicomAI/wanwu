@@ -19,13 +19,13 @@ headers = {
             }
 
 excel_file_path_label =r"RAG-test.xlsx"
-# 打开Excel文件
+# OpenExcelFile
 workbook = openpyxl.load_workbook(excel_file_path_label)
-# 选择指定的工作表
+# 选择指定的工作Table
 sheet = workbook['RAG基线数据集']   
-# 读取Excel文件数据
+# 读取ExcelFileData
 df = pd.read_excel(excel_file_path_label,usecols = ['序号','问题'])
-# 提取所需的两列数据
+# 提取所需的两列Data
 question_list = df['问题'].astype(str).tolist()
 
 # question_list = [ 

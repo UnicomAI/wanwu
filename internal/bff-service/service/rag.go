@@ -76,29 +76,29 @@ func ragKBConfigToProto(knowledgeConfig request.AppKnowledgebaseConfig) *rag_ser
 		PerKnowledgeConfigs: make([]*rag_service.RagPerKnowledgeConfig, 0, len(knowledgeConfig.Knowledgebases)),
 	}
 	for _, knowledge := range knowledgeConfig.Knowledgebases {
-		// 初始化单个知识库配置
+		// Initialize a single knowledge base configuration
 		perConfig := &rag_service.RagPerKnowledgeConfig{
 			KnowledgeId: knowledge.ID,
 			GraphSwitch: knowledge.GraphSwitch,
 		}
-		// 构建元数据过滤条件（如果启用）
+		// Build metadata filters (if enabled)
 		if metaFilter := buildRagMetaFilter(knowledge.MetaDataFilterParams); metaFilter != nil {
 			perConfig.RagMetaFilter = metaFilter
 		}
-		// 单个知识库配置添加到result
+		// A single knowledge base configuration is added to the result
 		result.PerKnowledgeConfigs = append(result.PerKnowledgeConfigs, perConfig)
 	}
 	result.GlobalConfig = buildRagGlobalConfig(knowledgeConfig.Config)
 	return result
 }
 
-// 构建单个知识库的元数据过滤条件
+// Build metadata filters for a single knowledge base
 func buildRagMetaFilter(params *request.MetaDataFilterParams) *rag_service.RagMetaFilter {
-	// 检查过滤参数是否有效（未启用或无具体条件则返回nil）
+	// Check whether the filtering parameters are valid (return nil if they are not enabled or have no specific conditions)
 	if params == nil || params.MetaFilterParams == nil || len(params.MetaFilterParams) == 0 {
 		return nil
 	}
-	// 转换过滤条件项
+	// Convert filter items
 	filterItems := make([]*rag_service.RagMetaFilterItem, 0, len(params.MetaFilterParams))
 	for _, metaParam := range params.MetaFilterParams {
 		filterItems = append(filterItems, &rag_service.RagMetaFilterItem{
@@ -212,7 +212,7 @@ func ragKBConfigProto2Model(ctx *gin.Context, kbConfig *rag_service.RagKnowledge
 	}
 	knowledgeList := make([]request.AppKnowledgeBase, 0, len(kbConfig.PerKnowledgeConfigs))
 
-	// 转换每个知识库的单独配置
+	// Convert individual configurations for each knowledge base
 	for _, perConfig := range kbConfig.PerKnowledgeConfigs {
 		kbInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx, &knowledgeBase_service.KnowledgeDetailSelectReq{
 			KnowledgeId: perConfig.KnowledgeId,
@@ -224,13 +224,13 @@ func ragKBConfigProto2Model(ctx *gin.Context, kbConfig *rag_service.RagKnowledge
 				Config:         request.AppKnowledgebaseParams{},
 			}
 		}
-		// 基础信息映射
+		// Basic information mapping
 		knowledge := request.AppKnowledgeBase{
 			ID:          perConfig.KnowledgeId,
 			Name:        kbInfo.Name,
 			GraphSwitch: kbInfo.GraphSwitch,
 		}
-		// 转换元数据过滤配置
+		// Convert metadata filtering configuration
 		metaFilter := perConfig.RagMetaFilter
 		knowledge.MetaDataFilterParams = convertRagMetaFilterToParams(metaFilter)
 
@@ -261,7 +261,7 @@ func convertRagMetaFilterToParams(metaFilter *rag_service.RagMetaFilter) *reques
 	if metaFilter == nil {
 		return nil
 	}
-	// 转换过滤条件项
+	// Convert filter items
 	filterParams := make([]*request.MetaFilterParams, 0, len(metaFilter.FilterItems))
 	for _, item := range metaFilter.FilterItems {
 		filterParams = append(filterParams, &request.MetaFilterParams{
@@ -274,7 +274,7 @@ func convertRagMetaFilterToParams(metaFilter *rag_service.RagMetaFilter) *reques
 	return &request.MetaDataFilterParams{
 		FilterEnable:     metaFilter.FilterEnable,
 		FilterLogicType:  metaFilter.FilterLogicType,
-		MetaFilterParams: filterParams, // 映射过滤条件列表
+		MetaFilterParams: filterParams, // Map filter list
 	}
 }
 

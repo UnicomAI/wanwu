@@ -1,13 +1,13 @@
 package response
 
 type RoleTemplate struct {
-	Routes []Route `json:"routes"` // 一级路由
+	Routes []Route `json:"routes"` // Level 1 routing
 }
 
 type Route struct {
-	Name     string  `json:"name"`     // 路由名
-	Perm     string  `json:"perm"`     // 权限
-	Children []Route `json:"children"` // 子路由
+	Name     string  `json:"name"`     // Route name
+	Perm     string  `json:"perm"`     // Permissions
+	Children []Route `json:"children"` // Subroutes
 }
 
 type RoleID struct {
@@ -21,8 +21,8 @@ type RoleInfo struct {
 	CreatedAt string `json:"createdAt"`
 	Creator   IDName `json:"creator"`
 	Status    bool   `json:"status"`
-	IsAdmin   bool   `json:"isAdmin"` // 是否组织内置管理员角色
+	IsAdmin   bool   `json:"isAdmin"` // Whether the organization has built-in administrator roles
 
 	*RoleTemplate
-	Permissions []Permission `json:"permissions"` // 权限列表
+	Permissions []Permission `json:"permissions"` // Permission list
 }

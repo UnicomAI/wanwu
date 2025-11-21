@@ -149,7 +149,7 @@ export default {
     };
   },
   watch: {
-    // 监听初始数据变化，更新本地副本
+    // Listen初始Data变化，Update本地副本
     initialData: {
       handler(newVal) {
         this.ruleForm = { ...newVal }

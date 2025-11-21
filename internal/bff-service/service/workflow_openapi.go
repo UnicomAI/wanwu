@@ -14,8 +14,8 @@ import (
 )
 
 func OpenAPIWorkflowRun(ctx *gin.Context, workflowID string, input []byte) ([]byte, error) {
-	// 生成调用工作流的url
-	// 将用户输入的intput透传
+	// Generate the url for calling the workflow
+	// Transparently transmit the input entered by the user
 	testRunUrl, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, fmt.Sprintf(config.Cfg().Workflow.TestRunUri, workflowID))
 	resp, err := resty.New().
 		R().
@@ -38,7 +38,7 @@ func OpenAPIWorkflowRun(ctx *gin.Context, workflowID string, input []byte) ([]by
 }
 
 func OpenAPIWorkflowFileUpload(ctx *gin.Context) (string, error) {
-	// 从context中获取file
+	// Get file from context
 	fh, err := ctx.FormFile("file")
 	if err != nil {
 		return "", grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_file_upload", fmt.Sprintf("read file err: %v", err))
@@ -53,7 +53,7 @@ func OpenAPIWorkflowFileUpload(ctx *gin.Context) (string, error) {
 		return "", grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_file_upload", fmt.Sprintf("io read all file err: %v", err))
 	}
 	fileExtension := filepath.Ext(fh.Filename)
-	// 生成文件在tos上的storeUri
+	// Generate the storeUri of the file on tos
 	uploadActionUri, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.UploadActionUri)
 	uploadActionRet := &cozeApplyUploadActionResponse{}
 	if resp, err := resty.New().
@@ -77,7 +77,7 @@ func OpenAPIWorkflowFileUpload(ctx *gin.Context) (string, error) {
 	} else {
 		return "", grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_file_upload", "invalid response format: missing StoreUri")
 	}
-	// 使用storeUri+fileBytes上传文件
+	// Use storeUri+fileBytes to upload files
 	uploadCommonUrl, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.UploadCommonUri, storeUri)
 	if resp, err := resty.New().
 		R().
@@ -89,7 +89,7 @@ func OpenAPIWorkflowFileUpload(ctx *gin.Context) (string, error) {
 	} else if resp.StatusCode() >= 300 {
 		return "", grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_file_upload", fmt.Sprintf("[%v] %v", resp.StatusCode(), resp.String()))
 	}
-	// 生成签名，并返回可访问文件的url
+	// Generate a signature and return the url of the accessible file
 	signImgUrl, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.SignImgUri)
 	ret := &cozeWorkflowSignImgUrlResp{}
 	if resp, err := resty.New().

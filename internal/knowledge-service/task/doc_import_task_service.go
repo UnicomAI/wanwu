@@ -20,7 +20,7 @@ var docImportTask = &DocImportTask{Del: true}
 
 type DocImportTask struct {
 	Wg  sync.WaitGroup
-	Del bool // 是否需要自动清理
+	Del bool // Do you need automatic cleaning?
 }
 
 type Result struct {
@@ -46,7 +46,7 @@ func (t *DocImportTask) InitTask() error {
 
 func (t *DocImportTask) SubmitTask(ctx context.Context, params interface{}) (err error) {
 	if params == nil {
-		return errors.New("参数不能为空")
+		return errors.New("Parameters cannot be empty")
 	}
 	paramStr, err := json.Marshal(params)
 	if err != nil {
@@ -72,7 +72,7 @@ func (t *DocImportTask) Running(ctx context.Context, taskCtx string, stop <-chan
 			reportCh <- r.clone()
 		}()
 
-		//执行文件导入
+		//Execute file import
 		systemStop, err := t.runStep(ctx, taskCtx, stop)
 		if systemStop {
 			log.Infof("system stop")
@@ -127,12 +127,12 @@ func importDoc(ctx context.Context, taskCtx string) Result {
 		log.Errorf("select knowledge import task err: %s", err)
 		return Result{Error: err}
 	}
-	//状态校验
+	//status check
 	if importTask.Status == model.KnowledgeImportFinish || importTask.Status == model.KnowledgeImportError {
 		log.Infof("knowledge import task not need process : %s status %d", importTask.ImportId, importTask.Status)
 		return Result{Error: err}
 	}
-	//执行导入
+	//Execute import
 	list, err := import_service.DoDocImport(ctx, importTask)
 	if len(list) > 0 {
 		log.Infof("import task success : %s status %d, doc list %v", importTask.ImportId, importTask.Status, list)

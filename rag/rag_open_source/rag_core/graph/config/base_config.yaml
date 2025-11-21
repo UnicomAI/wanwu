@@ -109,7 +109,7 @@ prompts:
       \   输出：\n   {{\n       \\\"sub_questions\\\": [\n           {{\\\"sub-question\\\": \\\"智取生辰纲中PERSON#1的策略是什么？\\\"}},\n  \
       \           {{\\\"sub-question\\\": \\\"智取生辰纲中的PERSON、LOCATION有什么特殊属性？\\\"}}\n       ],\n       \\\"involved_types\\\": {{\n           \\\"nodes\\\": [\\\"person\\\", \\\"event\\\", \\\"location\\\"],\n           \\\"relations\\\": [\\\"策划\\\", \\\"发生地\\\"],\n           \\\"attributes\\\": [\\\"绰号\\\", \\\"职位\\\", \\\"特长\\\"]\n       }}\n   }}\n   如果是简单问题，返回原始问题作为单个子问题。\n\
       \   原始问题：\\\"智取生辰纲事件中，PERSON#1是谁\\\"\n   输出：\n   {{\n       \\\"sub_questions\\\": [\n           {{\\\"sub-question\\\": \\\"\
-      智取生辰纲事件中，PERSON#1是谁？\\\"}}\n       ],\n       \\\"involved_types\\\": {{\n           \\\"nodes\\\": [\\\"person\\\", \\\"event\\\"],\n           \\\"relations\\\": [\\\"参与\\\"],\n           \\\"attributes\\\": [\\\"name\\\"]\n       }}\n   }}\n"
+      智取生辰纲事件中，PERSON#1是谁？\\\"}}\n       ],\n       \\\"involved_types\\\": {{\n           \\\"nodes\\\": [\\\"person\\\", \\\"event\\\"],\n           \\\"relations\\\": [\\\"参与\\\"],\n           \\\"attributes\\\": [\\\"name\\\"]\n       }}\n   }}\n" [EN] 1Who is it? \\\"}}\n ],\n \\\"involved_types\\\": {{\n \\\"nodes\\\": [\\\"person\\\", \\\"event\\\"],\n \\\"relations\\\": [\\\"participation\\\"],\n \\\"attributes\\\": [\\\"name\\\"]\n }}\n }}\n"
   retrieval:
     general: 'You are an expert knowledge assistant. Your task is to answer the question
       based on the provided knowledge context.

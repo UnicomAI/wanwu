@@ -1,7 +1,7 @@
 import service from "@/utils/request"
 import {USER_API} from "@/utils/requestConstants"
 
-// 获取组织列表
+// GetOrganizationList
 export const fetchOrgList = (params) => {
     return service({
         url: `${USER_API}/org/list`,
@@ -9,7 +9,7 @@ export const fetchOrgList = (params) => {
         params,
     })
 }
-// 获取组织详情
+// GetOrganizationDetails
 export const fetchOrgDetail = (params) => {
     return service({
         url: `${USER_API}/org/info`,
@@ -17,7 +17,7 @@ export const fetchOrgDetail = (params) => {
         params,
     })
 }
-// 创建组织
+// CreateOrganization
 export const createOrg = (data) => {
     return service({
         url: `${USER_API}/org`,
@@ -25,7 +25,7 @@ export const createOrg = (data) => {
         data,
     })
 }
-// 编辑组织
+// EditOrganization
 export const editOrg = (data) => {
     return service({
         url: `${USER_API}/org`,
@@ -33,7 +33,7 @@ export const editOrg = (data) => {
         data,
     })
 }
-// 删除组织
+// DeleteOrganization
 export const deleteOrg = (data) => {
     return service({
         url: `${USER_API}/org`,
@@ -41,7 +41,7 @@ export const deleteOrg = (data) => {
         data,
     })
 }
-// 修改组织状态
+// ModifyOrganizationStatus
 export const changeOrgStatus = (data) => {
     return service({
         url: `${USER_API}/org/status`,
@@ -50,7 +50,7 @@ export const changeOrgStatus = (data) => {
     })
 }
 
-// 获取导航组织列表
+// GetNavigationOrganizationList
 export const fetchOrgs = () => {
     return service({
         url: `${USER_API}/org/select`,

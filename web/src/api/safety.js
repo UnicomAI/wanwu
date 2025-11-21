@@ -1,7 +1,7 @@
 import request from "@/utils/request";
 import {USER_API} from "@/utils/requestConstants"
 
-//编辑敏感词表
+//EditSensitive Word Table
 export const editSensitive = (data)=>{
     return request({
         url: `${USER_API}/safe/sensitive/table`,
@@ -9,7 +9,7 @@ export const editSensitive = (data)=>{
         data
     })
 };
-//创建敏感词表
+//CreateSensitive Word Table
 export const createSensitive = (data)=>{
     return request({
         url: `${USER_API}/safe/sensitive/table`,
@@ -17,7 +17,7 @@ export const createSensitive = (data)=>{
         data
     })
 };
-//删除敏感词表
+//DeleteSensitive Word Table
 export const delSensitive = (data)=>{
     return request({
         url: `${USER_API}/safe/sensitive/table`,
@@ -25,14 +25,14 @@ export const delSensitive = (data)=>{
         data
     })
 };
-//查看敏感词表列表
+//ViewSensitive Word TableList
 export const getSensitiveList = ()=>{
     return request({
         url: `${USER_API}/safe/sensitive/table/list`,
         method: 'get',
     })
 };
-//编辑回复设置
+//EditReplySetting
 export const setReply = (data)=>{
     return request({
         url: `${USER_API}/safe/sensitive/table/reply`,
@@ -40,14 +40,14 @@ export const setReply = (data)=>{
         data
     })
 };
-//获取敏感词表下拉列表
+// Get sensitive word table dropdown list
 export const sensitiveSelect = ()=>{
     return request({
         url: `${USER_API}/safe/sensitive/table/select`,
         method: 'get',
     })
 };
-//删除敏感词
+//DeleteSensitive Word
 export const delSensitiveWord = (data)=>{
     return request({
         url: `${USER_API}/safe/sensitive/word`,
@@ -55,7 +55,7 @@ export const delSensitiveWord = (data)=>{
         data
     })
 };
-//查询词表数据列表
+// Query sensitive word table data list
 export const getSensitiveWord = (data)=>{
     return request({
         url: `${USER_API}/safe/sensitive/word/list`,
@@ -63,7 +63,7 @@ export const getSensitiveWord = (data)=>{
         params:data
     })
 };
-//上传敏感词
+//UploadSensitive Word
 export const uploadSensitiveWord = (data)=>{
     return request({
         url: `${USER_API}/safe/sensitive/word`,
@@ -71,7 +71,7 @@ export const uploadSensitiveWord = (data)=>{
         data
     })
 };
-//获取敏感词回复设置
+//GetSensitive WordReplySetting
 export const getReplay = (data)=>{
     return request({
         url: `${USER_API}/safe/sensitive/table`,

@@ -14,12 +14,12 @@
     >
       <div>
         <i class="el-icon-upload"></i>
-        <p>将文件拖到此处，或点击上传</p>
+        <p>Drag file here, orclick to upload</p>
         <div class="tips">
           <p>
-            支持
+            Supported
             {{ fileType }}
-            格式
+            format
           </p>
         </div>
       </div>
@@ -38,7 +38,7 @@
         <el-tooltip
           class="item"
           effect="dark"
-          content="删除"
+          content="Delete"
           placement="top"
           v-show="!loading"
         >
@@ -51,7 +51,7 @@
           v-if="fail"
           class="item"
           effect="dark"
-          content="重新上传"
+          content="Re-upload"
           placement="top"
           v-show="!loading"
         >
@@ -71,7 +71,7 @@ export default {
     return {
       fileList: [],
       fileType: ".jpg,.jpeg,.png,.webp,.txt,.pdf,.docx,.xlsx,.csv,.pptx",
-      //上传文件弹框
+      //UploadFile弹框
       loading: false,
       fail: false,
     };
@@ -112,23 +112,23 @@ export default {
       } else {
       }
     },
-    // 判断文件是否为空
+    // CheckFileYesNoIs Empty
     handleVerifySize(file) {
       if (file.size <= 0) {
         this.fileList = [];
-        this.$message.error("文件不能为空");
+        this.$message.error("FileCannot be empty");
         return false;
       }
       return true;
     },
-    // 判断文件格式
+    // CheckFileFormat
     handleVerifyFormat(file) {
       let fileSplitArr = file.name.split(".");
       let fileType = fileSplitArr[fileSplitArr.length - 1];
       let res = this.fileType.split(",").includes("." + fileType);
       if (!res) {
         this.fileList = [];
-        this.$message.error("文件格式不正确");
+        this.$message.error("Fileformat不正确");
         return false;
       }
       return res;
@@ -157,11 +157,11 @@ export default {
           file: file,
         };
         this.$emit("handleUploadSuccess", params);
-        this.$message.success("文件上传成功");
+        this.$message.success("FileUploadSuccess");
       }).catch(()=>{
         this.loading = false;
         this.fail = true;
-        this.$message.error("文件" + this.fileList[0].name + "上传失败");
+        this.$message.error("File" + this.fileList[0].name + "UploadFailed");
       })
     },
   },
@@ -224,9 +224,9 @@ export default {
       margin: 0 6% 0 3%;
       max-width: 80%;
       font-size: 14px;
-      white-space: nowrap; /* 禁止换行 */
-      overflow: hidden; /* 隐藏溢出内容 */
-      text-overflow: ellipsis; /* 超出用省略号表示 */
+      white-space: nowrap; /* 禁止换row */
+      overflow: hidden; /* hide溢出Content */
+      text-overflow: ellipsis; /* Exceed用省略号Table示 */
     }
     .el-icon-delete,
     .el-icon-refresh {

@@ -1,14 +1,14 @@
 <template>
     <el-dialog
-    title="视觉设置"
+    title="Visual Settings"
     :visible.sync="dialogVisible"
     width="40%"
     :before-close="handleClose">
         <el-form :model="ruleForm" ref="ruleForm"  class="demo-ruleForm" label-width="120px" label-position="left">
             <el-form-item 
-            label="图片上传限制" 
+            label="imageUploadlimit" 
             prop="visionConfig.picNum"
-            :rules="[{ required: true, message: '请选设置图片上传限制', trigger: 'blur'}]"
+            :rules="[{ required: true, message: 'Please选SettingimageUploadlimit', trigger: 'blur'}]"
             >
                 <el-slider
                     v-model="ruleForm.visionConfig.picNum"
@@ -20,7 +20,7 @@
             </el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
-            <el-button type="primary" @click="submit('ruleForm')">确 定</el-button>
+            <el-button type="primary" @click="submit('ruleForm')">Confirm</el-button>
         </span>
     </el-dialog>
 </template>

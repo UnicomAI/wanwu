@@ -18,22 +18,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ChatRagStream rag私域问答
+// ChatRagStream rag private domain Q&A
 func ChatRagStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest) error {
 	// 1.CallRagChatStream
 	chatCh, err := CallRagChatStream(ctx, userId, orgId, req)
 	if err != nil {
 		return err
 	}
-	// 2.流式返回结果
+	// 2. Streaming return results
 	_ = sse_util.NewSSEWriter(ctx, fmt.Sprintf("[RAG] %v user %v org %v", req.RagID, userId, orgId), sse_util.DONE_MSG).
 		WriteStream(chatCh, nil, buildRagChatRespLineProcessor(), nil)
 	return nil
 }
 
-// CallRagChatStream 调用Rag对话
+// CallRagChatStream calls the Rag conversation
 func CallRagChatStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest) (<-chan string, error) {
-	// 根据ragID获取敏感词配置
+	// Get sensitive word configuration based on ragID
 	ragInfo, err := rag.GetRagDetail(ctx, &rag_service.RagDetailReq{
 		RagId: req.RagID,
 	})
@@ -41,7 +41,7 @@ func CallRagChatStream(ctx *gin.Context, userId, orgId string, req request.ChatR
 		return nil, err
 	}
 	var matchDicts []ahocorasick.DictConfig
-	// 如果Enable为true,则处理敏感词
+	// If Enable is true, handle sensitive words
 	if ragInfo.SensitiveConfig.GetEnable() {
 		matchDicts, err = BuildSensitiveDict(ctx, ragInfo.SensitiveConfig.GetTableIds())
 		if err != nil {
@@ -84,7 +84,7 @@ func CallRagChatStream(ctx *gin.Context, userId, orgId string, req request.ChatR
 	firstResp, err := stream.Recv()
 	if err != nil {
 		if err == io.EOF {
-			// 流已经结束，没有数据
+			// The stream has ended and there is no data
 			return nil, err
 		}
 		return nil, err
@@ -112,12 +112,12 @@ func CallRagChatStream(ctx *gin.Context, userId, orgId string, req request.ChatR
 	if !ragInfo.SensitiveConfig.GetEnable() {
 		return rawCh, nil
 	}
-	// 敏感词过滤
+	// Sensitive word filtering
 	retCh := ProcessSensitiveWords(ctx, rawCh, matchDicts, &ragSensitiveService{})
 	return retCh, nil
 }
 
-// buildRagChatRespLineProcessor 构造rag对话结果行处理器
+// buildRagChatRespLineProcessor constructs the rag conversation result line processor
 func buildRagChatRespLineProcessor() func(*gin.Context, string, interface{}) (string, bool, error) {
 	return func(c *gin.Context, lineText string, params interface{}) (string, bool, error) {
 		if strings.HasPrefix(lineText, "error:") {
@@ -140,13 +140,13 @@ func (s *ragSensitiveService) serviceType() string {
 }
 
 func (s *ragSensitiveService) parseContent(raw string) (id, content string) {
-	// 1. 清理数据前缀
+	// 1. Clean data prefix
 	raw = strings.TrimPrefix(raw, "data:")
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
 		return "", ""
 	}
-	// 2. 解析JSON
+	// 2. Parse JSON
 	resp := struct {
 		MsgID string `json:"msg_id"`
 		Data  struct {
@@ -157,7 +157,7 @@ func (s *ragSensitiveService) parseContent(raw string) (id, content string) {
 	if err := json.Unmarshal([]byte(raw), &resp); err != nil {
 		return "", ""
 	}
-	// 3. 返回content
+	// 3. Return content
 	return resp.MsgID, resp.Data.Output
 }
 

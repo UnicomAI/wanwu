@@ -15,7 +15,7 @@ import (
 // ListLlmModelsByWorkflow
 //
 //	@Tags		workflow
-//	@Summary	llm模型列表（用于workflow）
+//	@Summary llm model list (for workflow)
 //	@Description
 //	@Security	JWT
 //	@Accept		json
@@ -30,12 +30,12 @@ func ListLlmModelsByWorkflow(ctx *gin.Context) {
 // CreateWorkflow
 //
 //	@Tags		workflow
-//	@Summary	创建Workflow
+//	@Summary Create Workflow
 //	@Description
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		data	body		request.AppBriefConfig	true	"创建Workflow的请求参数"
+//	@Param data body request.AppBriefConfig true "Create request parameters for Workflow"
 //	@Success	200		{object}	response.Response{data=response.CozeWorkflowIDData}
 //	@Router		/appspace/workflow [post]
 func CreateWorkflow(ctx *gin.Context) {
@@ -50,12 +50,12 @@ func CreateWorkflow(ctx *gin.Context) {
 // CopyWorkflow
 //
 //	@Tags		workflow
-//	@Summary	拷贝Workflow
+//	@Summary Copy Workflow
 //	@Description
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		data	body		request.WorkflowIDReq	true	"创建Workflow的请求参数"
+//	@Param data body request.WorkflowIDReq true "Create request parameters for Workflow"
 //	@Success	200		{object}	response.Response{data=response.CozeWorkflowIDData}
 //	@Router		/appspace/workflow/copy [post]
 func CopyWorkflow(ctx *gin.Context) {
@@ -70,12 +70,12 @@ func CopyWorkflow(ctx *gin.Context) {
 // ExportWorkflow
 //
 //	@Tags			workflow
-//	@Summary		导出Workflow
-//	@Description	导出工作流的json文件
+//	@Summary Export Workflow
+//	@Description Export the json file of the workflow
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		application/octet-stream
-//	@Param			workflow_id	query		string	true	"工作流ID"
+//	@Param workflow_id query string true "workflow ID"
 //	@Success		200			{object}	response.Response{}
 //	@Router			/appspace/workflow/export [get]
 func ExportWorkflow(ctx *gin.Context) {
@@ -85,23 +85,23 @@ func ExportWorkflow(ctx *gin.Context) {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	// 设置响应头
+	// Set response headers
 	ctx.Header("Content-Disposition", "attachment; filename*=utf-8''"+url.QueryEscape(fileName))
 	ctx.Header("Content-Type", "application/octet-stream")
 	ctx.Header("Access-Control-Expose-Headers", "Content-Disposition")
-	// 直接写入字节数据
+	// Write byte data directly
 	ctx.Data(http.StatusOK, "application/octet-stream", resp)
 }
 
 // ImportWorkflow
 //
 //	@Tags			workflow
-//	@Summary		导入Workflow
-//	@Description	通过JSON文件导入工作流
+//	@Summary Import Workflow
+//	@Description Import workflow via JSON file
 //	@Security		JWT
 //	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			file	formData	file	true	"工作流JSON文件"
+//	@Param file formData file true "Workflow JSON file"
 //	@Success		200		{object}	response.Response{data=response.CozeWorkflowIDData}
 //	@Router			/appspace/workflow/import [post]
 func ImportWorkflow(ctx *gin.Context) {
@@ -112,13 +112,13 @@ func ImportWorkflow(ctx *gin.Context) {
 // GetWorkflowToolSelect
 //
 //	@Tags		workflow
-//	@Summary	工具列表（用于workflow）
-//	@Description工具列表（用于workflow）
+//	@Summary Tool list (for workflow)
+//	@DescriptionTool list (for workflow)
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		toolType	query		string	true	"工具类型"	Enums(builtin,custom)
-//	@Param		name		query		string	false	"工具名称"
+//	@Param toolType query string true "Tool type" Enums(builtin,custom)
+//	@Param name query string false "Tool name"
 //	@Success	200			{object}	response.Response{data=response.ListResult{list=[]response.ToolSelect4Workflow}}
 //	@Router		/workflow/tool/select [get]
 func GetWorkflowToolSelect(ctx *gin.Context) {
@@ -133,14 +133,14 @@ func GetWorkflowToolSelect(ctx *gin.Context) {
 // GetWorkflowToolDetail
 //
 //	@Tags		workflow
-//	@Summary	工具具体action（用于workflow）
-//	@Description工具具体action（用于workflow）
+//	@Summary Tool specific action (for workflow)
+//	@Description tool specific action (for workflow)
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		toolType	query		string	true	"工具类型"	Enums(builtin,custom)
-//	@Param		actionName	query		string	true	"工具具体action名称"
-//	@Param		toolId		query		string	true	"工具ID"
+//	@Param toolType query string true "Tool type" Enums(builtin,custom)
+//	@Param actionName query string true "Tool specific action name"
+//	@Param toolId query string true "tool ID"
 //	@Success	200			{object}	response.Response{data=response.ToolDetail4Workflow}
 //	@Router		/workflow/tool/action [get]
 func GetWorkflowToolDetail(ctx *gin.Context) {
@@ -155,12 +155,12 @@ func GetWorkflowToolDetail(ctx *gin.Context) {
 // CreateWorkflowByTemplate
 //
 //	@Tags		workflow
-//	@Summary	复制工作流模板
-//	@Description复制工作流模板
+//	@Summary Copy workflow template
+//	@DescriptionCopy workflow template
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		data	body		request.CreateWorkflowByTemplateReq	true	"通过模板创建Workflow的请求参数"
+//	@Param data body request.CreateWorkflowByTemplateReq true "Request parameters to create Workflow through template"
 //	@Success	200		{object}	response.Response{data=response.CozeWorkflowIDData}
 //	@Router		/workflow/template [post]
 func CreateWorkflowByTemplate(ctx *gin.Context) {

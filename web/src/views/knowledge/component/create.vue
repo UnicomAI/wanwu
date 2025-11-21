@@ -167,7 +167,7 @@
               </div>
             </div>
           </el-upload>
-          <!-- 上传文件的列表 -->
+          <!-- UploadFile of List -->
           <div class="file-list" v-if="fileList.length > 0">
             <transition name="el-zoom-in-top">
               <ul class="document_lise">
@@ -268,7 +268,7 @@ export default {
       knowledgeGraphModelOptions: [],
       modelLoading: false,
       knowledgeGraphTips: KNOWLEDGE_GRAPH_TIPS,
-      maxSizeBytes: 0, // 设置为0，所有文件都走切片上传
+      maxSizeBytes: 0, // Settingis0，所HasFile都走切片Upload
       rules: {
         name: [
           {
@@ -319,12 +319,12 @@ export default {
   },
   created() {
     this.getEmbeddingList();
-    this.getModelData(); //获取模型列表
+    this.getModelData(); //GetModelList
   },
   methods: {
     ...mapActions("app", ["getEmbeddingList"]),
     visibleChange(val) {
-      //下拉框显示的时候请求模型列表
+      //下拉框Show of  when 候RequestModelList
       if (val) {
         this.getModelData();
       }
@@ -345,7 +345,7 @@ export default {
         a.download = fileName;
         a.click();
 
-        URL.revokeObjectURL(blobUrl); // 释放内存
+        URL.revokeObjectURL(blobUrl); // Release memory
       } catch (error) {
         this.$message.error(this.$t("knowledgeManage.create.downloadFailed"));
       }
@@ -398,18 +398,18 @@ export default {
             }
           });
         }, 10);
-        //开始切片上传(如果没有文件正在上传)
+        //Start chunk upload (if no file is uploading)
         if (this.file === null) {
           this.startUpload();
         } else {
-          //如果上传当中有新的文件加入
+          //If new file is added during upload
           if (this.file.progressStatus === "success") {
             this.startUpload(this.fileIndex);
           }
         }
       }
     },
-    //  验证文件为空
+    //  VerifyFileIs Empty
     verifyEmpty(file) {
       if (file.size <= 0) {
         setTimeout(() => {
@@ -424,7 +424,7 @@ export default {
       }
       return true;
     },
-    //  验证文件格式
+    //  VerifyFileFormat
     verifyFormat(file) {
       const nameType = ["xlsx", "xls"];
       const fileName = file.name;
@@ -464,7 +464,7 @@ export default {
         return true;
       }
     },
-    //  验证文件重复
+    //  VerifyFileduplicate
     verifyRepeat(file) {
       let res = true;
       setTimeout(() => {
@@ -502,7 +502,7 @@ export default {
         this.cancelAllRequests();
         return;
       }
-      // 如果文件已上传成功，需要删除服务器上的文件
+      // IfFilealreadyUploadSuccess，NeedDeleteService器上 of File
       if (this.resList && this.resList[index] && this.resList[index]["name"]) {
         this.delfile({
           fileList: [this.resList[index]["name"]],

@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	BindTag   int32 = 0 //绑定
-	UnbindTag int32 = 1 //解绑定
+	BindTag   int32 = 0 //binding
+	UnbindTag int32 = 1 //Unbind
 )
 
-// SelectKnowledgeTagRelationList 查询知识库标签关系列表
+// SelectKnowledgeTagRelationList Query the knowledge base tag relationship list
 func SelectKnowledgeTagRelationList(ctx context.Context, userId, orgId string, knowledgeIdList []string) ([]*model.KnowledgeTagRelation, error) {
 	var knowledgeTagRelationList []*model.KnowledgeTagRelation
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithKnowledgeIDList(knowledgeIdList)).
@@ -28,7 +28,7 @@ func SelectKnowledgeTagRelationList(ctx context.Context, userId, orgId string, k
 	return knowledgeTagRelationList, nil
 }
 
-// SelectKnowledgeIdByTagId 根据tagId 查询知识库id
+// SelectKnowledgeIdByTagId Query the knowledge base id based on tagId
 func SelectKnowledgeIdByTagId(ctx context.Context, tagIdList []string) ([]string, error) {
 	var knowledgeIdList []string
 	err := db.GetHandle(ctx).Model(&model.KnowledgeTagRelation{}).
@@ -41,7 +41,7 @@ func SelectKnowledgeIdByTagId(ctx context.Context, tagIdList []string) ([]string
 	return knowledgeIdList, nil
 }
 
-// SelectKnowledgeCountByTagId 根据tagId 查询知识库id数量
+// SelectKnowledgeCountByTagId Query the number of knowledge base ids based on tagId
 func SelectKnowledgeCountByTagId(ctx context.Context, tagId string) (int64, error) {
 	var count int64
 	err := db.GetHandle(ctx).Model(&model.KnowledgeTagRelation{}).
@@ -54,16 +54,16 @@ func SelectKnowledgeCountByTagId(ctx context.Context, tagId string) (int64, erro
 	return count, nil
 }
 
-// BindKnowledgeTag 绑定知识库标签
+// BindKnowledgeTag binds knowledge base tags
 func BindKnowledgeTag(ctx context.Context, dataList []*model.KnowledgeTagRelation, knowledgeId string) error {
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		//1.先删除所有
+		//1. Delete all first
 		err := tx.Unscoped().Model(&model.KnowledgeTagRelation{}).Where("knowledge_id = ?", knowledgeId).
 			Delete(&model.KnowledgeTagRelation{}).Error
 		if err != nil {
 			return err
 		}
-		//2.再绑定
+		//2.Rebind
 		if len(dataList) > 0 {
 			err = tx.Model(&model.KnowledgeTagRelation{}).CreateInBatches(dataList, len(dataList)).Error
 			return err

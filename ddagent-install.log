@@ -1,0 +1,9 @@
+[34m
+* Datadog Agent 7 install script v1.42.0
+[0m
+bash: line 611: 1763613219N: value too great for base (error token is "1763613219N")
+bash: line 611: 1763613219N: value too great for base (error token is "1763613219N")
+[31mThis script does not support installing on the Mac.
+
+Please use the 1-step script available at https://app.datadoghq.com/account/settings/agent/latest?platform=macos.[0m
+bash: line 611: 1763613349N: value too great for base (error token is "1763613349N")

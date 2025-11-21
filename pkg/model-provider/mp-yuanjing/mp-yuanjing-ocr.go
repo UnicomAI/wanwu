@@ -9,7 +9,7 @@ import (
 
 type Ocr struct {
 	ApiKey      string `json:"apiKey"`      // ApiKey
-	EndpointUrl string `json:"endpointUrl"` // 推理url
+	EndpointUrl string `json:"endpointUrl"` // inference url
 }
 
 func (cfg *Ocr) Tags() []mp_common.Tag {

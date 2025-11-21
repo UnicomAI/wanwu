@@ -1,21 +1,21 @@
 #!/bin/bash
 
 # ==========================================
-# Flask + Gunicorn 多 Worker 启动脚本
+# Flask + Gunicorn 多 Worker 启动脚本 [EN] Flask + Gunicorn multi-worker startup script
 # ==========================================
 
-# 基础配置
-APP_NAME="server_open"               # Flask 应用模块名（如 server_open.py）
-APP_VAR="app"                        # Flask 应用对象变量名
-PORT=7258                            # 监听端口
+# 基础配置 [EN] Basic configuration
+APP_NAME="server_open"               # Flask 应用模块名（如 server_open.py） [EN] Flask application module name (such as server_open.py)
+APP_VAR="app"                        # Flask 应用对象变量名 [EN] Flask application object variable name
+PORT=7258                            # 监听端口 [EN] listening port
 WORKERS=${WORKERS:-5}                 
-THREADS=${THREADS:-2}                            # 每个 worker 的线程数
-TIMEOUT=300                          # 超时时间
-LOG_DIRECTORY="./logs"               # 日志目录
+THREADS=${THREADS:-2}                            # 每个 worker 的线程数 [EN] Number of threads per worker
+TIMEOUT=300                          # 超时时间 [EN] timeout
+LOG_DIRECTORY="./logs"               # 日志目录 [EN] Log directory
 LOG_FILE="${LOG_DIRECTORY}/${APP_NAME}_console.log"
 
 # ==========================================
-# 检查日志目录
+# 检查日志目录 [EN] Check log directory
 # ==========================================
 if [ ! -d "$LOG_DIRECTORY" ]; then
   echo "日志目录不存在，正在创建..."
@@ -24,7 +24,7 @@ if [ ! -d "$LOG_DIRECTORY" ]; then
 fi
 
 # ==========================================
-# 检查端口占用
+# 检查端口占用 [EN] Check port occupancy
 # ==========================================
 process_ids=$(lsof -ti:$PORT)
 if [ -n "$process_ids" ]; then
@@ -37,7 +37,7 @@ else
 fi
 
 # ==========================================
-# 启动 Flask + Gunicorn 服务
+# 启动 Flask + Gunicorn 服务 [EN] Start the Flask + Gunicorn service
 # ==========================================
 echo "启动 Flask 服务 (workers=${WORKERS}, threads=${THREADS}) ..."
 nohup gunicorn ${APP_NAME}:${APP_VAR} \
@@ -49,7 +49,7 @@ nohup gunicorn ${APP_NAME}:${APP_VAR} \
   > "$LOG_FILE" 2>&1 &
 
 # ==========================================
-# 启动结果检测
+# 启动结果检测 [EN] Start result detection
 # ==========================================
 sleep 3
 if lsof -i:$PORT >/dev/null; then

@@ -1,13 +1,13 @@
 <template>
-    <!-- 远景大模型 -->
+    <!-- 远景大Model -->
     <div class="full-content flex">
         <el-main class="scroll">
             <div class="smart-center" style="padding:0;">
-                <!--基础配置回显-->
+                <!--基础Configuration回显-->
                 <div v-show="echo" class="session rl echo">
                     <Prologue  :editForm="editForm" @setProloguePrompt="setProloguePrompt" :isBigModel="true" />
                 </div>
-                <!--对话-->
+                <!--conversation-->
                 <div v-show="!echo" class="center-session">
                     <SessionComponentSe
                             ref="session-com"
@@ -20,7 +20,7 @@
                             :defaultUrl="editForm.avatar.path"
                     />
                 </div>
-                <!--输入框-->
+                <!--Input Box-->
                 <div class="center-editable">
                     <div v-show="stopBtShow" class="stop-box">
                         <span v-show="sessionStatus === 0" class="stop" @click="preStop">
@@ -45,9 +45,9 @@
                             @setSessionStatus="setSessionStatus"
                     />
                     <div v-if="appUrlInfo" class="appUrlInfo">
-                        <span v-if='appUrlInfo.copyrightEnable'>版权所有: {{appUrlInfo.copyright}}</span>
-                        <span v-if='appUrlInfo.privacyPolicyEnable'>隐私协议: <a :href="appUrlInfo.privacyPolicy" target="_blank" style="color:var(--color);">{{appUrlInfo.privacyPolicy}}</a></span>
-                        <span v-if="appUrlInfo.disclaimerEnable">免责声明: {{appUrlInfo.disclaimer}}</span>
+                        <span v-if='appUrlInfo.copyrightEnable'>Copyright所have: {{appUrlInfo.copyright}}</span>
+                        <span v-if='appUrlInfo.privacyPolicyEnable'>Privacy Policy: <a :href="appUrlInfo.privacyPolicy" target="_blank" style="color:var(--color);">{{appUrlInfo.privacyPolicy}}</a></span>
+                        <span v-if="appUrlInfo.disclaimerEnable">Disclaimer: {{appUrlInfo.disclaimer}}</span>
                     </div>
                 </div>
             </div>
@@ -128,7 +128,7 @@
                 if (this.echo) {
                     this.$message({
                         type: 'info',
-                        message: '已切换最新会话',
+                        message: 'alreadytoggle最新session',
                         customClass: 'dark-message',
                         iconClass: 'none',
                         duration: 1500
@@ -140,11 +140,11 @@
                 this.clearPageHistory()
                 this.$emit('setHistoryStatus')
             },
-            //切换对话
+            //toggleconversation
             conversionClick(n) {
                 // this.isModelDisable = true;
                 if (this.sessionStatus === 0) {
-                    //this.$message.warning('上个问题未答完')
+                    //this.$message.warning('上问题not答完')
                     return
                 }else{
                     this.stopBtShow = false
@@ -179,8 +179,8 @@
                             fileList: n.requestFiles,
                             "gen_file_url_list":n.responseFileUrls || [],
                             "isOpen":true,
-                            toolText:'已使用工具',
-                            thinkText:'已深度思考',
+                            toolText:'alreadyuseTool',
+                            thinkText:'already深度思考',
                             showScrollBtn:null
                         }
                     }) : []
@@ -190,7 +190,7 @@
                     })
                 }
             },
-            //删除对话
+            //Delete Conversation
             async preDelConversation(n) {
                 if (this.sessionStatus === 0) {
                     return
@@ -212,20 +212,20 @@
                     this.echo = true
                 }
             },
-            /*------会话------*/
+            /*------session------*/
             async preSend(val,fileList,fileInfo) {
                 this.inputVal = val || this.$refs['editable'].getPrompt()
                 this.fileId = fileInfo || [];
                 this.isTestChat = this.chatType === 'test' ? true :false;
                 this.fileList = fileList || this.$refs['editable'].getFileList();
                 if (!this.inputVal) {
-                    this.$message.warning('请输入内容');
+                    this.$message.warning('Please enterContent');
                     return
                 }
                 if (!this.verifiyFormParams()) {
                     return;
                 }
-                //如果是新会话，先创建
+                //IfYes新session，FirstCreate
                 if (!this.conversationId && this.chatType === 'chat') {
                     let res = null;
                     if (this.type === "agentChat") {
@@ -247,8 +247,8 @@
             verifiyFormParams(){
                 if (this.chatType === 'chat') return true;
                 const conditions = [
-                    { check: !this.editForm.modelParams, message: '请选择模型' },
-                    { check: !this.editForm.prologue, message: '请输入开场白' }
+                    { check: !this.editForm.modelParams, message: 'Please selectModel' },
+                    { check: !this.editForm.prologue, message: 'Please enter开场白' }
                 ];
                 for (const condition of conditions) {
                     if (condition.check) {
@@ -258,7 +258,7 @@
                 }
                 return true;
             },
-            modelChange(){//切换模型新建对话
+            modelChange(){//toggleModelNew Conversation
                 this.preCreateConversation()
             },
             setParams() {
@@ -272,7 +272,7 @@
                 this.doSend()
                 this.echo = false
             },
-            /*--右侧提示词--*/
+            /*--右侧Tip词--*/
             showDrawer() {
                 this.drawer = true
             },

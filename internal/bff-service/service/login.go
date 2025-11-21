@@ -144,7 +144,7 @@ func getLoginResp(ctx *gin.Context, resp *iam_service.LoginResp) (*response.Logi
 		Username:         resp.User.GetUserName(),
 		Nickname:         resp.User.GetNickName(),
 		Token:            token,
-		ExpiresAt:        claims.StandardClaims.ExpiresAt * 1000, // 超时事件戳毫秒
+		ExpiresAt:        claims.StandardClaims.ExpiresAt * 1000, // Timeout event stamp milliseconds
 		ExpireIn:         strconv.FormatInt(jwt_util.UserTokenTimeout, 10),
 		Orgs:             toOrgIDNames(ctx, orgs.Selects, resp.User.GetUserId() == config.SystemAdminUserID),
 		OrgPermission:    toOrgPermission(ctx, resp.Permission),

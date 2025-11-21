@@ -136,10 +136,10 @@ type KnowledgeSplitterInfo struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	SplitterId    string `protobuf:"bytes,1,opt,name=splitterId,proto3" json:"splitterId,omitempty"`       //知识库分隔符id
-	SplitterName  string `protobuf:"bytes,2,opt,name=splitterName,proto3" json:"splitterName,omitempty"`   //知识库分隔符名称
-	SplitterValue string `protobuf:"bytes,3,opt,name=splitterValue,proto3" json:"splitterValue,omitempty"` //知识库分隔符值
-	Type          string `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`                   // preset 内置 / custom 用户
+	SplitterId    string `protobuf:"bytes,1,opt,name=splitterId,proto3" json:"splitterId,omitempty"`       //知识库分隔符id [EN] knowledge base separator id
+	SplitterName  string `protobuf:"bytes,2,opt,name=splitterName,proto3" json:"splitterName,omitempty"`   //知识库分隔符名称 [EN] Knowledge base separator name
+	SplitterValue string `protobuf:"bytes,3,opt,name=splitterValue,proto3" json:"splitterValue,omitempty"` //知识库分隔符值 [EN] Knowledge base delimiter value
+	Type          string `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`                   // preset 内置 / custom 用户 [EN] preset built-in/custom user
 }
 
 func (x *KnowledgeSplitterInfo) Reset() {
@@ -210,7 +210,7 @@ type CreateKnowledgeSplitterReq struct {
 	UserId        string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId         string `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	SplitterName  string `protobuf:"bytes,3,opt,name=splitterName,proto3" json:"splitterName,omitempty"`
-	SplitterValue string `protobuf:"bytes,4,opt,name=splitterValue,proto3" json:"splitterValue,omitempty"` //知识库分隔符值
+	SplitterValue string `protobuf:"bytes,4,opt,name=splitterValue,proto3" json:"splitterValue,omitempty"` //知识库分隔符值 [EN] Knowledge base delimiter value
 }
 
 func (x *CreateKnowledgeSplitterReq) Reset() {
@@ -281,8 +281,8 @@ type UpdateKnowledgeSplitterReq struct {
 	UserId        string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId         string `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
 	SplitterName  string `protobuf:"bytes,3,opt,name=splitterName,proto3" json:"splitterName,omitempty"`
-	SplitterValue string `protobuf:"bytes,4,opt,name=splitterValue,proto3" json:"splitterValue,omitempty"` //知识库分隔符值
-	SplitterId    string `protobuf:"bytes,5,opt,name=splitterId,proto3" json:"splitterId,omitempty"`       //知识库分隔符id
+	SplitterValue string `protobuf:"bytes,4,opt,name=splitterValue,proto3" json:"splitterValue,omitempty"` //知识库分隔符值 [EN] Knowledge base delimiter value
+	SplitterId    string `protobuf:"bytes,5,opt,name=splitterId,proto3" json:"splitterId,omitempty"`       //知识库分隔符id [EN] knowledge base separator id
 }
 
 func (x *UpdateKnowledgeSplitterReq) Reset() {

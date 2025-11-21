@@ -93,7 +93,7 @@ func (c *Client) GetOrgByOrgIDs(ctx context.Context, orgIDs []uint32) ([]IDName,
 func (c *Client) GetOrgAndSubOrgSelectByUser(ctx context.Context, userID, orgID uint32) ([]IDName, *errs.Status) {
 	var result []IDName
 	return result, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
-		// 获取组织树
+		// Get organization tree
 		orgTree, err := getOrgTree(tx)
 		if err != nil {
 			return toErrStatus("iam_orgs_select", err.Error())
@@ -120,7 +120,7 @@ func createOrgTx(tx *gorm.DB, org *model.Org) *errs.Status {
 	var roleName string
 	// check parents
 	if org.ParentID != 0 {
-		// 正常创建组织
+		// Create an organization normally
 		if err := sqlopt.WithID(org.ParentID).Apply(tx).First(&model.Org{}).Error; err != nil {
 			return toErrStatus("iam_org_create", err.Error())
 		}
@@ -128,7 +128,7 @@ func createOrgTx(tx *gorm.DB, org *model.Org) *errs.Status {
 		if err := sqlopt.WithID(org.CreatorID).Apply(tx).First(&model.User{}).Error; err != nil {
 			return toErrStatus("iam_org_create", err.Error())
 		}
-		// check name 组织名在上级组织的所有下级组织内唯一
+		// check name The organization name is unique within all subordinate organizations of the parent organization
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithParentID(org.ParentID),
 			sqlopt.WithName(org.Name),
@@ -140,7 +140,7 @@ func createOrgTx(tx *gorm.DB, org *model.Org) *errs.Status {
 		}
 		roleName = "组织管理员"
 	} else {
-		// 创建系统内唯一顶级组织，此时系统内不能存在任何组织
+		// Create the only top-level organization in the system. At this time, no organization can exist in the system.
 		if err := tx.First(&model.Org{}).Error; err != gorm.ErrRecordNotFound {
 			if err == nil {
 				err = errors.New("already exist")

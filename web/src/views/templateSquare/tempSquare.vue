@@ -98,14 +98,13 @@ export default {
       typeRadio: 'all',
       typeList: [
         {name: this.$t('tempSquare.all'), key: 'all'},
-        {name: this.$t('tempSquare.gov'), key: 'gov'},
-        {name: this.$t('tempSquare.industry'), key: 'industry'},
-        {name: this.$t('tempSquare.edu'), key: 'edu'},
-        {name: this.$t('tempSquare.tourism'), key: 'tourism'},
-        // {name: this.$t('tempSquare.medical'), key: 'medical'},
-        {name: this.$t('tempSquare.data'), key: 'data'},
-        {name: this.$t('tempSquare.creator'), key: 'create'},
-        {name: this.$t('tempSquare.search'), key: 'search'},
+        {name: this.$t('tempSquare.incident_investigation'), key: 'incident_investigation'},
+        {name: this.$t('tempSquare.compliance'), key: 'compliance'},
+        {name: this.$t('tempSquare.corrective_actions'), key: 'corrective_actions'},
+        {name: this.$t('tempSquare.training'), key: 'training'},
+        {name: this.$t('tempSquare.audit'), key: 'audit'},
+        {name: this.$t('tempSquare.reporting'), key: 'reporting'},
+        {name: this.$t('tempSquare.safety_inspection'), key: 'safety_inspection'},
       ]
     };
   },

@@ -1,17 +1,17 @@
-# 基于已构建的基础镜像
+# 基于已构建的基础镜像 [EN] Based on the built base image
 FROM crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/agent-base:v0.2.2-0773787a
 
-# 工作目录
+# 工作目录 [EN] working directory
 WORKDIR /agent/agent_open_source
 
-# 复制 agent 代码
+# 复制 agent 代码 [EN] Copy agent code
 COPY ./agent/agent_open_source/ .
 
-# 设置脚本权限
+# 设置脚本权限 [EN] Set script permissions
 RUN chmod +x ./start_all.sh
 
-# 暴露端口
+# 暴露端口 [EN] exposed port
 EXPOSE 1991-1992 7258 15001-15003
 
-# 启动命令
+# 启动命令 [EN] Start command
 CMD ["/bin/bash", "-c", "./start_all.sh && tail -f /dev/null"]

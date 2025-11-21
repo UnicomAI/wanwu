@@ -7,13 +7,13 @@ import "google/protobuf/empty.proto";
 option go_package = "gitlab.ai-yuanjing.cn/ai-platform-private/backend-used-bff/common-api/api/proto/knowledgebase-splitter-service";
 
 service KnowledgeBaseSplitterService {
-  // 获取知识库标签列表
+  // 获取知识库标签列表 [EN] Get a list of knowledge base tags
   rpc SelectKnowledgeSplitterList(KnowledgeSplitterSelectReq) returns (KnowledgeSplitterSelectListResp) {}
-  // 新增知识库标签
+  // 新增知识库标签 [EN] Add new knowledge base tag
   rpc CreateKnowledgeSplitter(CreateKnowledgeSplitterReq) returns (google.protobuf.Empty) {}
-  // 修改知识库标签
+  // 修改知识库标签 [EN] Modify knowledge base tags
   rpc UpdateKnowledgeSplitter(UpdateKnowledgeSplitterReq) returns (google.protobuf.Empty) {}
-  // 删除知识库标签
+  // 删除知识库标签 [EN] Delete knowledge base tag
   rpc DeleteKnowledgeSplitter(DeleteKnowledgeSplitterReq) returns (google.protobuf.Empty) {}
 }
 
@@ -28,25 +28,25 @@ message KnowledgeSplitterSelectListResp {
 }
 
 message KnowledgeSplitterInfo {
-  string splitterId = 1;//知识库分隔符id
-  string splitterName = 2; //知识库分隔符名称
-  string splitterValue = 3; //知识库分隔符值
-  string type = 4; // preset 内置 / custom 用户
+  string splitterId = 1;//知识库分隔符id [EN] knowledge base separator id
+  string splitterName = 2; //知识库分隔符名称 [EN] Knowledge base separator name
+  string splitterValue = 3; //知识库分隔符值 [EN] Knowledge base delimiter value
+  string type = 4; // preset 内置 / custom 用户 [EN] preset built-in/custom user
 }
 
 message CreateKnowledgeSplitterReq{
   string userId = 1;
   string orgId = 2;
   string splitterName = 3;
-  string splitterValue = 4; //知识库分隔符值
+  string splitterValue = 4; //知识库分隔符值 [EN] Knowledge base delimiter value
 }
 
 message UpdateKnowledgeSplitterReq{
   string userId = 1;
   string orgId = 2;
   string splitterName = 3;
-  string splitterValue = 4; //知识库分隔符值
-  string splitterId = 5;//知识库分隔符id
+  string splitterValue = 4; //知识库分隔符值 [EN] Knowledge base delimiter value
+  string splitterId = 5;//知识库分隔符id [EN] knowledge base separator id
 }
 
 message DeleteKnowledgeSplitterReq{

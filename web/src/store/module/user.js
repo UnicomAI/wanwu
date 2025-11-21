@@ -24,20 +24,20 @@ const processLogin = (res, commit, params) => {
         commit('setOrgInfo', {orgs})
         commit('setToken', res.data.token)
         commit('setPermission', {...permission, isAdmin, isSystem, isUpdatePassword: res.data.isUpdatePassword})
-        //配置导航用户logo和名称以及欢迎文字
+        //ConfigurationNavigationUserlogoAndNameAnd欢迎文字
         commit('setCommonInfo', {data: res.data.custom || {}})
 
         commit('setIs2FA', false)
 
         if (params.client_id) {
-            // 重定向到OAuth页面
+            // 重定向toOAuthPage
             jumpOAuth(params)
             return
         }
 
-        // 更新权限路由
+        // UpdatePermissionRoute
         replaceRouter(permission.orgPermission)
-        // 重定向到有权限的页面
+        // 重定向toHasPermission of Page
         redirectUrl()
     }
 }
@@ -121,7 +121,7 @@ export const user = {
           processLogin(res, commit, params)
       },
 
-      // 获取权限
+      // GetPermission
       async getPermissionInfo({ commit }) {
           return new Promise(async(resolve, reject) => {
               let res = await getPermission()
@@ -163,7 +163,7 @@ export const user = {
         const res = await getCommonInfo() || {}
         if(res.code === 0){
             commit('setCommonInfo', {data: res.data || {}})
-            // 存储默认图标信息
+            // 存储Default图标Information
             const defaultIcons = {
               agentIcon: res.data.defaultIcon.agentIcon || '',
               ragIcon: res.data.defaultIcon.ragIcon || ''

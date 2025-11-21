@@ -28,9 +28,9 @@ func jwtOAuthAccessAuth(ctx *gin.Context, token string) {
 		ctx.Abort()
 		return
 	}
-	//验证sub，是否是access token
+	//Verify whether sub is an access token
 	if claims.Subject != oauth2_util.SUBJECT_ACCESS {
-		gin_util.ResponseDetail(ctx, httpStatus, codes.Code(err_code.Code_BFFJWT), nil, "token subject错误")
+		gin_util.ResponseDetail(ctx, httpStatus, codes.Code(err_code.Code_BFFJWT), nil, "token subject error")
 		ctx.Abort()
 		return
 	}

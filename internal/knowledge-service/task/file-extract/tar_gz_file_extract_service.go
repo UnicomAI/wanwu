@@ -25,7 +25,7 @@ func (t TarGzFileExtractServiceService) ExtractFileType() string {
 }
 
 func (t TarGzFileExtractServiceService) ExtractFile(ctx context.Context, localFilePath string, destDir string) (extractDir string, err error) {
-	// 打开.tar.gz文件
+	// Open .tar.gz file
 	file, err := os.Open(localFilePath)
 	if err != nil {
 		return "", err
@@ -36,7 +36,7 @@ func (t TarGzFileExtractServiceService) ExtractFile(ctx context.Context, localFi
 			log.Errorf("error closing file: %v", err)
 		}
 	}()
-	// 创建gzip读取器
+	// Create gzip reader
 	gzipReader, err := gzip.NewReader(file)
 	if err != nil {
 		log.Errorf("error gzip new reader file: %v", err)
@@ -49,27 +49,27 @@ func (t TarGzFileExtractServiceService) ExtractFile(ctx context.Context, localFi
 		}
 	}()
 
-	// 创建tar读取器
+	// Create tar reader
 	tarReader := tar.NewReader(gzipReader)
-	// 确保目标目录存在
+	// Make sure the target directory exists
 	if err = os.MkdirAll(destDir, 0755); err != nil {
 		log.Errorf("error make dir: %v", err)
 		return "", err
 	}
 
-	// 遍历tar包中的文件
+	// Traverse files in tarball
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
-			break // 已遍历完全部的文件
+			break // All files have been traversed
 		}
 		if err != nil {
 			log.Errorf("error tar reader: %v", err)
 			return "", err
 		}
-		// 获取文件的路径
+		// Get the path of the file
 		path := filepath.Join(destDir, header.Name)
-		// 根据文件类型创建文件夹或者写文件
+		// Create folders or write files based on file type
 		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 			log.Errorf("error make dir: %v", err)
 			return "", err
@@ -86,16 +86,16 @@ func (t TarGzFileExtractServiceService) ExtractFile(ctx context.Context, localFi
 				return "", err
 			}
 		default:
-			// 忽略其他类型的文件
+			// Ignore other types of files
 			continue
 		}
 	}
 	return destDir, nil
 }
 
-// writeFile 写入文件
+// writeFile writes to file
 func writeFile(filePath string, header *tar.Header, tarReader *tar.Reader) error {
-	// 打开文件进行写入
+	// Open file for writing
 	writer, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func writeFile(filePath string, header *tar.Header, tarReader *tar.Reader) error
 		log.Errorf("error make dir: %v", err)
 	}()
 
-	// 从tar包中读取文件内容并写入到文件中
+	// Read file contents from tarball and write to file
 	if _, err := io.Copy(writer, tarReader); err != nil {
 		return err
 	}

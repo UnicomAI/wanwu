@@ -1,4 +1,4 @@
-# 调用测试
+# Call test
 import json
 import requests
 import time
@@ -6,7 +6,7 @@ import time
 BASE_URL = "http://localhost:20041"
 
 if __name__ == "__main__":
-    # *******************  测试联通  *******************
+    # ******************* Test China Unicom *******************
     url = f'{BASE_URL}/es/test'
     headers = {'Content-Type': 'application/json'}
     test = {"test": "test"}
@@ -21,13 +21,13 @@ if __name__ == "__main__":
     user_id = "hhh20240815"
     kb_name = "test_KB"
     print(f"url:{url},{user_id},kb_name:{kb_name}=============== init_kb start =================")
-    # 构造请求数据
+    # Construct request data
     data = {
         "userId": user_id,
         "kb_name": kb_name,
     }
-    # 发送 POST 请求
-    response = requests.post(url, headers=headers, json=data)  # 直接使用json参数发送JSON数据
+    # Send POST request
+    response = requests.post(url, headers=headers, json=data)  # Send JSON data directly using json parameters
     print(response.status_code)
     result_data = json.loads(response.text)
     print(result_data)
@@ -51,14 +51,14 @@ if __name__ == "__main__":
             'embedding_content': '终端安全基线是终端安全的短板或者说是最基础的安全要求，一台没有经过任何安全基线加固的终端将成为不法分子首要攻击的目标。  \n2.2.1终端基线加固  \n终端安全基线加固是我们终端安全的基石，为奠定这一基石现已启用终端安全系统中的“运维管控”与“安全检查”功能模块便捷式的帮助终端使用人配置终端安全基线。  \n2.3终端感染病毒  \n终端病毒是人为制造的，有破坏性，又有传染性和潜伏性的，对终端信息或系统起破坏作用的程序。  \n2.3.1终端病毒扫描  \n病毒扫描的工作旨在为终端清理已下载的病毒文件以及防护将下载与打开的病毒文件或程序。为了更加及时的处置全国高风险染毒终端，现采用终端安全可视化系统进行全国高风险终端事件监控，对于感染勒索或挖矿病毒且未处理的终端通过统一指挥调度平台与终端安全邮箱双向通报，对于病毒查杀超500次未处理的终端实行统一指挥调度平台单向通报。对于病毒防护方面全国策略均已开启“云查杀”防护引擎、文件实时防护、主动防御等功能，极大的提高了终端防护病毒的能力。  \n2.3.2数据输出  \n1、日报中告警终端事件数与告警终端事件数。  \n2、周报中勒索挖矿病毒指令下发数、挖矿病毒事件数、勒索病毒事件数、高风险病毒终端指令下发数、终端指令闭环率、高风险病毒终端事件数与感染终端省份分布情况等。  \n3、月报中指令下发数、挖矿/勒索病毒省份分布情况、终端指令闭环情况与高风险病毒终端省份分布情况。  \n2.4终端漏洞暴露  \n计算机漏洞是在硬件、软件、协议的具体实现或系统安全策略上存在的缺陷，从而可以使攻击者能够在未授权的情况下访问或破坏系统。  \n2.4.1终端漏洞修复  \n终端漏洞修复工作涉及终端较多且漏洞修复工作可能出现较多不稳定因素，目前个别省份开启漏洞自动修复功能，仅集团对特定高危漏洞进行后台强制修复，对于其他漏洞则由终端使用人根据自身情况修复。  \n2.5终端安全可视化系统运营',
             'meta_data': {'file_name': '中国联通网络和信息安全监控指挥中心运营手册（终端安全分册）.docx'}},
     ]
-    # 构造请求数据
+    # Construct request data
     data = {
         "userId": user_id,
         "kb_name": kb_name,
         "data": data
     }
-    # 发送 POST 请求
-    response = requests.post(url, headers=headers, json=data)  # 直接使用json参数发送JSON数据
+    # Send POST request
+    response = requests.post(url, headers=headers, json=data)  # Send JSON data directly using json parameters
     print(response.status_code)
     result_data = json.loads(response.text)
     print(result_data)
@@ -70,13 +70,13 @@ if __name__ == "__main__":
 
     user_id = "hhh20240815"
     print(f"url:{url},{user_id}, =============== /rag/kn/list_kb_names start =================")
-    # 构造请求数据
+    # Construct request data
     data = {
         "userId": user_id,
     }
 
-    # 发送 POST 请求
-    response = requests.post(url, headers=headers, json=data)  # 直接使用json参数发送JSON数据
+    # Send POST request
+    response = requests.post(url, headers=headers, json=data)  # Send JSON data directly using json parameters
     print(response.status_code)
     result_data = json.loads(response.text)
     print(result_data)
@@ -89,13 +89,13 @@ if __name__ == "__main__":
     kb_name = "test_KB"
     print(f"url:{url},{user_id},kb_name:{kb_name}===============  rag/kn/list_file_names start =================")
 
-    # 构造请求数据
+    # Construct request data
     data = {
         "userId": user_id,
         "kb_name": kb_name,
     }
-    # 发送 POST 请求
-    response = requests.post(url, headers=headers, json=data)  # 直接使用json参数发送JSON数据
+    # Send POST request
+    response = requests.post(url, headers=headers, json=data)  # Send JSON data directly using json parameters
     print(response.status_code)
     result_data = json.loads(response.text)
     print(result_data)
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     top_k = 10
     min_score = 0
     print(f"url:{url},{user_id},kb_names:{kb_names}===============  /rag/kn/search start =================")
-    # 构造请求数据
+    # Construct request data
     data = {
         "userId": user_id,
         "kb_names": kb_names,
@@ -118,8 +118,8 @@ if __name__ == "__main__":
         "topk": top_k,
         "threshold": min_score
     }
-    # 发送 POST 请求
-    response = requests.post(url, headers=headers, json=data)  # 直接使用json参数发送JSON数据
+    # Send POST request
+    response = requests.post(url, headers=headers, json=data)  # Send JSON data directly using json parameters
     print(response.status_code)
     result_data = json.loads(response.text)
     print(result_data)
@@ -131,14 +131,14 @@ if __name__ == "__main__":
     user_id = "hhh20240815"
     kb_name = "test_KB"
     print(f"url:{url},{user_id},kb_names:{kb_names}===============  /rag/kn/del_kb start =================")
-    # 构造请求数据
+    # Construct request data
     data = {
         "userId": user_id,
         "kb_name": kb_name,
     }
 
-    # 发送 POST 请求
-    response = requests.post(url, headers=headers, json=data)  # 直接使用json参数发送JSON数据
+    # Send POST request
+    response = requests.post(url, headers=headers, json=data)  # Send JSON data directly using json parameters
     print(response.status_code)
     result_data = json.loads(response.text)
     print(result_data)

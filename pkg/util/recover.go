@@ -12,8 +12,8 @@ var (
 	panicLogLen = 2048
 )
 
-// PrintPanicStack recover并打印堆栈
-// 用法：defer util.PrintPanicStack()，注意 defer func() { util.PrintPanicStack() } 是无效的
+// PrintPanicStack recover and print the stack
+// Usage: defer util.PrintPanicStack(), note that defer func() { util.PrintPanicStack() } is invalid
 func PrintPanicStack() {
 	if r := recover(); r != nil {
 		buf := make([]byte, panicLogLen)

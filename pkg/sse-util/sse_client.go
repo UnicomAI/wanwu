@@ -9,11 +9,11 @@ import (
 
 const DONE_MSG = "data: [DONE]\n"
 
-// SSEWriter 设计sse writer 目标可以规范化统一标准输出方法（所有sse 返回都能用），同时与业务尽可能解耦
+// SSEWriter designs sse writer to standardize and unify standard output methods (all sse returns can be used), and at the same time decouple it from the business as much as possible
 type SSEWriter struct {
 	client  *gin.Context
-	label   string // 用于SSE日志中的标记
-	doneMsg string // SSE结束时，发送给前端的结束消息，空不发送；一般为 "data: [DONE]\n"
+	label   string // Used for tags in SSE logs
+	doneMsg string // When SSE ends, the end message sent to the front end will not be sent if it is empty; usually "data: [DONE]\n"
 }
 
 func NewSSEWriter(c *gin.Context, label, doneMsg string) *SSEWriter {
@@ -27,7 +27,7 @@ func NewSSEWriter(c *gin.Context, label, doneMsg string) *SSEWriter {
 	}
 }
 
-// WriteStream 流式写入，识别channel 循环写入给前端
+// WriteStream streaming writing, identifying channels and writing to the front end in a loop
 func (sw *SSEWriter) WriteStream(sseCh <-chan string, streamContextParams interface{},
 	lineBuilder func(*gin.Context, string, interface{}) (string, bool, error),
 	doneProcessor func(*gin.Context, interface{}) error) error {
@@ -51,7 +51,7 @@ func (sw *SSEWriter) WriteStream(sseCh <-chan string, streamContextParams interf
 	return sw.WriteLine("", true, streamContextParams, doneProcessor)
 }
 
-// WriteLine 写入一行给客户端
+// WriteLine writes a line to the client
 func (sw *SSEWriter) WriteLine(lineText string, done bool, streamProcessParams interface{},
 	doneProcessor func(*gin.Context, interface{}) error) error {
 
@@ -64,7 +64,7 @@ func (sw *SSEWriter) WriteLine(lineText string, done bool, streamProcessParams i
 		} else {
 			return
 		}
-		// err 或 done 执行 doneProcessor
+		// err or done execute doneProcessor
 		if doneProcessor != nil {
 			if err := doneProcessor(sw.client, streamProcessParams); err != nil {
 				log.Errorf("[SSE]%v doneProcessor err: %v", sw.label, err)
@@ -75,7 +75,7 @@ func (sw *SSEWriter) WriteLine(lineText string, done bool, streamProcessParams i
 	if done {
 		lineText = fmt.Sprintf("%v%v", lineText, sw.doneMsg)
 	}
-	// 写入数据
+	// Write data
 	log.Debugf("[SSE]%v write: %v", sw.label, lineText)
 	_, err = sw.client.Writer.Write([]byte(lineText))
 	if err != nil {

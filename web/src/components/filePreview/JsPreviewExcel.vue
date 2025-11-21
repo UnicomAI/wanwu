@@ -28,14 +28,14 @@ export default {
   },
 
   mounted() {
-    // 获取路由参数
+    // Get route parameters
     this.page = this.$route.query || {};
     this.initPreviewer();
   },
 
   methods: {
     initPreviewer() {
-      const highlightRowNum = this.page.rownum ? parseInt(this.page.rownum) - 1 : null; // 高亮行索引（0开始）
+      const highlightRowNum = this.page.rownum ? parseInt(this.page.rownum) - 1 : null; // Highlight row index (0-based)
       let dataIndex = -1;
 
       this.options = {
@@ -45,15 +45,15 @@ export default {
         widthOffset: 20,
         heightOffset: 10,
         transformData: (workbookData) => {
-          // 查找指定 sheet
+          // Locate the specified sheet
           dataIndex = workbookData.findIndex(item => item.name === this.page.sheetName);
 
           if (dataIndex === -1) {
-            console.warn('未找到指定的 sheet:', this.page.sheetName);
+            console.warn('Specified sheet not found:', this.page.sheetName);
             return workbookData;
           }
 
-          // 高亮指定行
+          // Highlight the target row
           if (highlightRowNum !== null && workbookData[dataIndex].rows[highlightRowNum]) {
             const row = workbookData[dataIndex].rows[highlightRowNum];
             if (row.cells) {
@@ -61,7 +61,7 @@ export default {
                 const cell = row.cells[key];
                 const styleKey = cell.style;
 
-                // 确保 style 存在
+                // Ensure a style exists before updating
                 if (styleKey && workbookData[dataIndex].styles[styleKey]) {
                   workbookData[dataIndex].styles[styleKey].bgcolor = '#ff0000';
                   workbookData[dataIndex].styles[styleKey].color = '#fff';
@@ -76,16 +76,16 @@ export default {
     },
 
     renderedHandler() {
-      console.log('Excel 渲染完成');
+      console.log('Excel Rendering complete');
     },
 
     errorHandler(err) {
-      console.error('Excel 加载失败:', err);
+      console.error('Excel loadingFailed:', err);
     }
   },
 
   watch: {
-    // 如果你想监听路由变化（比如 url 参数变了），重新初始化
+    // Re-initialize when route query parameters change
     '$route.query': {
       handler(newQuery) {
         this.page = newQuery || {};

@@ -156,7 +156,7 @@ class RerankModelConfig(ModelConfigure):
         return cls(
             model_id=data.get("modelId"),
             model_name=data.get("model"),
-            model_provider="OpenAI-API-compatible",  # 写死openapi格式，具体由bff层适配
+            model_provider="OpenAI-API-compatible",  # The openapi format is hard-coded and specifically adapted by the bff layer.
             api_key=rerank_cfg.get("apiKey"),
             endpoint_url=rerank_cfg.get("endpointUrl"),
             model_args=rerank_cfg
@@ -189,7 +189,7 @@ class OcrModelConfig(ModelConfigure):
         return cls(
             model_id=data.get("modelId"),
             model_name=data.get("model"),
-            model_provider="OpenAI-API-compatible",  # 写死openapi格式，具体由bff层适配
+            model_provider="OpenAI-API-compatible",  # The openapi format is hard-coded and specifically adapted by the bff layer.
             api_key=ocr_cfg.get("apiKey"),
             endpoint_url=ocr_cfg.get("endpointUrl"),
             model_args=ocr_cfg

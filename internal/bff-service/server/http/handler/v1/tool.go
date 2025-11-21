@@ -10,11 +10,11 @@ import (
 // CreateCustomTool
 //
 //	@Tags			tool.custom
-//	@Summary		创建自定义工具
-//	@Description	创建自定义工具
+//	@Summary Create a custom tool
+//	@Description Create a custom tool
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CustomToolCreate	true	"自定义工具信息"
+//	@Param data body request.CustomToolCreate true "Custom tool information"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/tool/custom [post]
 func CreateCustomTool(ctx *gin.Context) {
@@ -28,8 +28,8 @@ func CreateCustomTool(ctx *gin.Context) {
 // GetCustomTool
 //
 //	@Tags			tool.custom
-//	@Summary		获取自定义工具详情
-//	@Description	获取自定义工具详情
+//	@Summary Get custom tool details
+//	@Description Get custom tool details
 //	@Accept			json
 //	@Produce		json
 //	@Param			customToolId	query		string	true	"customToolId"
@@ -43,11 +43,11 @@ func GetCustomTool(ctx *gin.Context) {
 // DeleteCustomTool
 //
 //	@Tags			tool.custom
-//	@Summary		删除自定义工具
-//	@Description	删除自定义工具
+//	@Summary Delete custom tools
+//	@Description Delete custom tool
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CustomToolIDReq	true	"自定义工具ID"
+//	@Param data body request.CustomToolIDReq true "Custom tool ID"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/tool/custom [delete]
 func DeleteCustomTool(ctx *gin.Context) {
@@ -61,11 +61,11 @@ func DeleteCustomTool(ctx *gin.Context) {
 // UpdateCustomTool
 //
 //	@Tags			tool.custom
-//	@Summary		修改自定义工具
-//	@Description	修改自定义工具
+//	@Summary Modify custom tools
+//	@Description Modify custom tools
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CustomToolUpdateReq	true	"自定义工具信息"
+//	@Param data body request.CustomToolUpdateReq true "Custom tool information"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/tool/custom [put]
 func UpdateCustomTool(ctx *gin.Context) {
@@ -79,11 +79,11 @@ func UpdateCustomTool(ctx *gin.Context) {
 // GetCustomToolList
 //
 //	@Tags			tool.custom
-//	@Summary		获取自定义工具列表
-//	@Description	获取自定义工具列表
+//	@Summary Get the list of custom tools
+//	@Description Get the list of custom tools
 //	@Accept			json
 //	@Produce		json
-//	@Param			name	query		string	false	"CustomTool名称"
+//	@Param name query string false "CustomTool name"
 //	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.CustomToolInfo}}
 //	@Router			/tool/custom/list [get]
 func GetCustomToolList(ctx *gin.Context) {
@@ -94,11 +94,11 @@ func GetCustomToolList(ctx *gin.Context) {
 // GetCustomToolActions
 //
 //	@Tags			tool.custom
-//	@Summary		获取可用API列表（根据Schema）
-//	@Description	解析自定义工具的Schema转换为API相关数据
+//	@Summary Get the list of available APIs (according to Schema)
+//	@Description Parse the Schema of the custom tool and convert it into API related data
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CustomToolSchemaReq	true	"Schema格式数据"
+//	@Param data body request.CustomToolSchemaReq true "Schema format data"
 //	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.CustomToolActionInfo}}
 //	@Router			/tool/custom/schema [post]
 func GetCustomToolActions(ctx *gin.Context) {
@@ -113,8 +113,8 @@ func GetCustomToolActions(ctx *gin.Context) {
 // GetToolSquareDetail
 //
 //	@Tags			tool.square
-//	@Summary		获取内置工具详情
-//	@Description	获取内置工具详情
+//	@Summary Get built-in tool details
+//	@Description Get built-in tool details
 //	@Accept			json
 //	@Produce		json
 //	@Param			toolSquareId	query		string	true	"toolSquareId"
@@ -128,11 +128,11 @@ func GetToolSquareDetail(ctx *gin.Context) {
 // GetToolSquareList
 //
 //	@Tags			tool.builtin
-//	@Summary		获取内置工具列表
-//	@Description	获取内置工具列表
+//	@Summary Get the list of built-in tools
+//	@Description Get the list of built-in tools
 //	@Accept			json
 //	@Produce		json
-//	@Param			name	query		string	false	"tool名称"
+//	@Param name query string false "tool name"
 //	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.ToolSquareInfo}}
 //	@Router			/tool/square/list [get]
 func GetToolSquareList(ctx *gin.Context) {
@@ -143,11 +143,11 @@ func GetToolSquareList(ctx *gin.Context) {
 // UpdateToolSquareAPIKey
 //
 //	@Tags			tool.builtin
-//	@Summary		修改内置工具
-//	@Description	修改内置工具
+//	@Summary Modify built-in tools
+//	@Description Modify built-in tools
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.ToolSquareAPIKeyReq	true	"内置工具信息"
+//	@Param data body request.ToolSquareAPIKeyReq true "Built-in tool information"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/tool/builtin [post]
 func UpdateToolSquareAPIKey(ctx *gin.Context) {
@@ -161,11 +161,11 @@ func UpdateToolSquareAPIKey(ctx *gin.Context) {
 // GetToolSelect
 //
 //	@Tags			tool
-//	@Summary		获取工具列表（用于下拉选择）
-//	@Description	获取工具列表（用于下拉选择）
+//	@Summary Get the tool list (for drop-down selection)
+//	@Description Get the tool list (for drop-down selection)
 //	@Accept			json
 //	@Produce		json
-//	@Param			name	query		string	true	"工具名"
+//	@Param name query string true "Tool name"
 //	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.ToolSelect}}
 //	@Router			/tool/select [get]
 func GetToolSelect(ctx *gin.Context) {
@@ -176,11 +176,11 @@ func GetToolSelect(ctx *gin.Context) {
 // GetToolActionList
 //
 //	@Tags			tool
-//	@Summary		获取工具列表
-//	@Description	获取工具列表
+//	@Summary Get the list of tools
+//	@Description Get the tool list
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	query		request.ToolActionListReq	true	"工具信息"
+//	@Param data query request.ToolActionListReq true "Tool information"
 //	@Success		200		{object}	response.Response{data=response.ToolActionList}
 //	@Router			/tool/action/list [get]
 func GetToolActionList(ctx *gin.Context) {
@@ -195,11 +195,11 @@ func GetToolActionList(ctx *gin.Context) {
 // GetToolActionDetail
 //
 //	@Tags			tool
-//	@Summary		获取工具详情
-//	@Description	获取工具详情
+//	@Summary Get tool details
+//	@Description Get tool details
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	query		request.ToolActionReq	true	"工具信息"
+//	@Param data query request.ToolActionReq true "Tool information"
 //	@Success		200		{object}	response.Response{data=response.ToolActionDetail}
 //	@Router			/tool/action/detail [get]
 func GetToolActionDetail(ctx *gin.Context) {

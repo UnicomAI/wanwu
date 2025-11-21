@@ -9,10 +9,10 @@ class GunicornServer(WSGIApplication):
         super().__init__()
 
     def load_config(self):
-        # # 加载默认配置
+        # #Load default configuration
         # super().load_config()
 
-        # 应用自定义配置
+        # Apply custom configuration
         for key, value in self.options.items():
             self.cfg.set(key.lower(), value)
 
@@ -27,10 +27,10 @@ class GunicornBaseServer(BaseApplication):
         super().__init__()
 
     def load_config(self):
-        # # 加载默认配置
+        # #Load default configuration
         # super().load_config()
 
-        # 应用自定义配置
+        # Apply custom configuration
         for key, value in self.options.items():
             self.cfg.set(key.lower(), value)
 

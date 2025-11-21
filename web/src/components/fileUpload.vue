@@ -14,14 +14,14 @@
             <div>
                 <img :src="require('@/assets/imgs/uploadImg.png')" class="upload-img" />
                 <p class="click-text">
-                    将文件拖到此处，或
-                    <span class="clickUpload">点击上传</span>
-                    <a class="clickUpload template" :href="templateUrl" download @click.stop>模版下载</a>
+                    Drag file here, or
+                    <span class="clickUpload">click to upload</span>
+                    <a class="clickUpload template" :href="templateUrl" download @click.stop>Download Template</a>
                 </p>
             </div>
             </div>
         </el-upload>
-        <!-- 上传文件的列表 -->
+        <!-- UploadFile of List -->
         <div class="file-list" v-if="fileList.length > 0">
                 <transition name="el-zoom-in-top">
                 <ul class="document_lise">
@@ -106,7 +106,7 @@ export default {
            const data = {fileList:[this.resList[index]['name']],isExpired:true}
             delfile(data).then(res =>{
                 if(res.code === 0){
-                this.$message.success('删除成功')
+                this.$message.success('DeleteSuccess')
                 }
             })
             this.fileList = this.fileList.filter((files) => files.name !== item.name);

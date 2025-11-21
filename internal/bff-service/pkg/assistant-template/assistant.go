@@ -41,7 +41,7 @@ func Init(ctx context.Context) error {
 	if _mrpc != nil {
 		log.Panicf("already init")
 	}
-	// 加载配置
+	// Load configuration
 	configPath := config.Cfg().AssistantTemplate.ConfigPath
 	if _, err := os.Stat(configPath); err != nil {
 		return err
@@ -55,14 +55,14 @@ func Init(ctx context.Context) error {
 	if err := v.Unmarshal(cfg); err != nil {
 		return err
 	}
-	// 处理图片
+	// Process pictures
 	for _, assistant := range cfg.Assistants {
-		// 检查图片 - 本地
+		// Check Picture - Local
 		b, err := os.ReadFile(assistant.Avatar)
 		if err != nil {
 			return fmt.Errorf("read %v err: %v", assistant.Avatar, err)
 		}
-		// 检查图片 - minio
+		// Check pictures - minio
 		objectName := path.Join("avatar/agent", path.Base(assistant.Avatar))
 		objectPath := path.Join(minio.BucketCustom, objectName)
 		if _, err = minio.Custom().GetObject(ctx, minio.BucketCustom, objectName); err != nil {

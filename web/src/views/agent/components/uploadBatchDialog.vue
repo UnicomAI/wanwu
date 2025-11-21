@@ -52,8 +52,8 @@
                                             <el-button v-show="canScroll" icon="el-icon-arrow-right" @click="next($event)" circle class="scroll-btn right" size="mini" type="primary"></el-button>
                                         </div>
                                         <div v-else>
-                                            <p>文件名称: {{fileList[0]['name']}}</p>
-                                            <p>文件大小: {{fileList[0]['size'] > 1024 ? (fileList[0]['size'] / (1024 * 1024 )).toFixed(2) + ' MB' : fileList[0]['size'] + ' bytes' }}</p>
+                                            <p>FileName: {{fileList[0]['name']}}</p>
+                                            <p>Filesize: {{fileList[0]['size'] > 1024 ? (fileList[0]['size'] / (1024 * 1024 )).toFixed(2) + ' MB' : fileList[0]['size'] + ' bytes' }}</p>
                                         </div>
                                     </div>
                                     <!--<i  class="el-icon-close" @click.stop="clearFile"></i>-->
@@ -65,7 +65,7 @@
                                             max="100"
                                             style="width:360px;margin:0 auto;"
                                         ></el-progress>
-                                        <p>图片类型限制{{maxPicNum}}个文件，其它类型限制1个文件<span style="color:var(--color);"> {{$t('common.fileUpload.click')}} </span>非图片类型文件会替换已有文件</p>
+                                        <p>imageTypelimit{{maxPicNum}}File，其它Typelimit1File<span style="color:var(--color);"> {{$t('common.fileUpload.click')}} </span>nonimageTypeFile会replacealreadyhaveFile</p>
                                     </div>
                                 </div>
                                 <div v-else>
@@ -75,7 +75,7 @@
                                             <span>{{tipsArr}}</span>
                                             {{$t('common.fileUpload.typeFileTip')}}
                                         </p>
-                                        <p style="padding-top: 5px;color:#dc6803!important;">*若该智能体基于大语言模型创建，则上传图片暂时无法进行解析</p>
+                                        <p style="padding-top: 5px;color:#dc6803!important;">*If该Agent基于大语言ModelCreate，ThenUploadimage暂 when 无法进rowParse</p>
                                     </div>
                                 </div>
                         </el-upload>
@@ -102,11 +102,11 @@
                 fileIdList:[],
                 fileList:[],
                 fileType:'',
-                //上传文件弹框
+                //UploadFile弹框
                 loading:false,
                 dialogVisible:false,
                 fileUrl:'',
-                //上传文件
+                //UploadFile
                 imgConfig:["jpeg", "PNG", "png", "JPG", "jpg",'bmp','webp'],
                 audioConfig:['mp3','wav'],
                 tipsArr:'',
@@ -185,16 +185,16 @@
                 this.dialogVisible = false
             },
             uploadOnChange(file, fileList) {
-                const prevFileType = this.fileType; // 保存上一次的文件类型
+                const prevFileType = this.fileType; // Save上一次 of FileType
                 let filename= file.name
-                //通过上传的文件名判断文件类型，用于回显
+                //ByUpload of FileNameCheckFileType，Used for回显
                 let fileType = filename.split('.')[filename.split('.').length-1]
-                // 重置图片URL
+                // ResetImageURL
                 this.imgUrl = '';
                 
                 if(["jpeg", "PNG", "png", "JPG", "jpg",'bmp','webp'].includes(fileType)){
                     this.fileType = 'image/*'
-                    // 获取图片预览URL
+                    // GetImagepreviewURL
                     if (file.url) {
                         this.imgUrl = file.url;
                     } else if (file.raw) {
@@ -208,13 +208,13 @@
                     this.fileType = 'doc/*'
                 }
                 
-                // 创建文件预览URL
+                // CreateFilepreviewURL
                 this.fileUrl = URL.createObjectURL(file.raw);
                 
                 if (this.fileType === 'image/*') {
-                    // 图片类型可累加至6个
+                    // ImageType可累加to6
                     if (fileList.length > 6) {
-                        this.$message.warning('只能上传6个图片文件');
+                        this.$message.warning('can onlyUpload6imageFile');
                         return;
                     }
                     if (prevFileType && prevFileType !== this.fileType) {
@@ -224,13 +224,13 @@
                     }else{
                         this.fileList = fileList;
                     }
-                    const currentFileIndex = this.fileList.length - 1; // 当前文件在列表中的索引
+                    const currentFileIndex = this.fileList.length - 1; // currentFile在Listin of Index
                     if (file.raw) {
                         this.fileList[currentFileIndex].fileUrl = URL.createObjectURL(file.raw);
                     }
                     this.checkScrollable();
                 } else {
-                    // 非图片类型只保留最新一个
+                    // NonImageType只保留最新一
                     this.fileList = [];
                     this.fileList.push(file);
                 }
@@ -239,16 +239,16 @@
                     this.maxSizeBytes = 0;
                     this.isExpire = true;
                     //this.startUpload();
-                    // 为每个文件启动上传，而不是只上传索引0的文件
+                    // iseachFileStartUpload，而Is Not只UploadIndex0 of File
                     for(let i = 0; i < this.fileList.length; i++) {
-                        if (!this.fileList[i].uploaded) { // 添加标记避免重复上传
+                        if (!this.fileList[i].uploaded) { // AddmarkavoidduplicateUpload
                             this.startUpload(i);
                             this.fileList[i].uploaded = true;
                         }
                     }
                 }
             },
-            uploadFile(fileName,oldFileName,fiePath){//文件上传完之后
+            uploadFile(fileName,oldFileName,fiePath){//FileUpload完之after
                 if (this.lastFileType && this.lastFileType !== this.fileType) {
                     this.fileInfo = [];
                 }

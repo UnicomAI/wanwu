@@ -8,9 +8,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class CustomTokenizer:
-    # 使用类变量来存储模型实例，确保每个模型只有一个实例
+    # Use class variables to store model instances, ensuring there is only one instance of each model
     _instances = {}
-    # 支持的模型列表
+    # Supported model list
     _supported_models = [
         "deepseek-r1",
         "deepseek-r1-distill-llama-8b",
@@ -25,7 +25,7 @@ class CustomTokenizer:
         "yuanjing-70b-chat",
         "qwen3-8b"
     ]
-    # 默认字符到token的转换比例
+    # Default character to token conversion ratio
     _default_char_to_token_ratio = 1.7
 
     def __new__(cls, tokenizer_dir: str = "/agent/agent_open_source/utils/tokenizers", model_name: str = "deepseek-v3", device: str = None):
@@ -37,7 +37,7 @@ class CustomTokenizer:
     def __init__(self, tokenizer_dir: str = "/agent/agent_open_source/utils/tokenizers", model_name: str = "deepseek-v3", device: str = None):
         """初始化tokenizer"""
         model_name = "deepseek-v3"
-        if not hasattr(self, 'tokenizer'):  # 确保只初始化一次
+        if not hasattr(self, 'tokenizer'):  # Make sure to initialize only once
             self.tokenizer = None
             self.device = None
             self.model_name = model_name
@@ -65,7 +65,7 @@ class CustomTokenizer:
         result = None
         
         if not self.is_supported_model:
-            # 对于不支持的模型，使用字符长度估算
+            # For unsupported models, use character length estimates
             if isinstance(text, str):
                 result = int(len(text) / self._default_char_to_token_ratio)
             elif isinstance(text, list):
@@ -73,7 +73,7 @@ class CustomTokenizer:
             else:
                 raise ValueError("输入必须是字符串或字符串列表")
         else:
-            # 对于支持的模型，使用tokenizer计算
+            # For supported models, use tokenizer calculations
             if isinstance(text, str):
                 result = len(self.tokenizer.encode(text))
             elif isinstance(text, list):
@@ -81,7 +81,7 @@ class CustomTokenizer:
             else:
                 raise ValueError("输入必须是字符串或字符串列表")
                 
-        # logger.info(f"计算token数量耗时: {time.time() - start_time:.4f}秒")
+        # logger.info(f"Calculating the number of tokens takes: {time.time() - start_time:.4f} seconds")
         return result
 
     def encode(self, text: str) -> List[int]:
@@ -89,7 +89,7 @@ class CustomTokenizer:
         start_time = time.time()
         
         if not self.is_supported_model:
-            # 对于不支持的模型，返回一个模拟的token列表
+            # For unsupported models, return a simulated token list
             tokens = [0] * int(len(text) / self._default_char_to_token_ratio)
             logger.warning(f"Model {self.model_name} not supported for actual encoding, returning estimated token count")
         else:
@@ -105,7 +105,7 @@ class CustomTokenizer:
         start_time = time.time()
         
         if not self.is_supported_model:
-            # 对于不支持的模型，返回一个警告信息
+            # For unsupported models, return a warning message
             result = "[不支持的模型无法进行实际解码]"
             logger.warning(f"Model {self.model_name} not supported for decoding")
         else:
@@ -115,7 +115,7 @@ class CustomTokenizer:
         return result
 
     
-    # 删除实例方法 is_model_supported
+    # Remove instance method is_model_supported
     
     @classmethod
     def is_model_in_supported_list(cls, model_name: str) -> bool:
@@ -137,7 +137,7 @@ class CustomTokenizer:
             raise ValueError("max_tokens必须大于0")
 
         if not self.is_supported_model:
-            # 对于不支持的模型，使用字符估算截断
+            # For unsupported models, use character estimate truncation
             max_chars = int(max_tokens * self._default_char_to_token_ratio)
             result = text[:max_chars]
             logger.warning(f"Model {self.model_name} not supported for actual truncation, using character estimation")
@@ -148,20 +148,20 @@ class CustomTokenizer:
             else:
                 truncated_ids = token_ids[:max_tokens]
                 decoded_text = self.tokenizer.decode(truncated_ids, skip_special_tokens=True)
-                # 去除多余的特殊前缀（如BOS等）
-                result = decoded_text.lstrip("<|begin▁of▁sentence|>").lstrip()  # 若需更灵活，可用正则处理
+                # Remove redundant special prefixes (such as BOS, etc.)
+                result = decoded_text.lstrip("<|begin▁of▁sentence|>").lstrip()  # If you need more flexibility, you can use regular processing
 
         logger.info(f"文本截断总耗时: {time.time() - start_time:.4f}秒")
         return result
     
     # def truncate_text(self, text: str, max_tokens: int) -> str:
-    #     """按照指定的最大token数量截断文本"""
+    #     """Truncate text according to the specified maximum number of tokens"""
     #     start_time = time.time()
     #     if max_tokens < 1:
-    #         raise ValueError("max_tokens必须大于0")
+    #         raise ValueError("max_tokens must be greater than 0")
 
     #     if not self.is_supported_model:
-    #         # 对于不支持的模型，使用字符估算截断
+    #         # For unsupported models, use character estimate truncation
     #         max_chars = int(max_tokens * self._default_char_to_token_ratio)
     #         result = text[:max_chars]
     #         logger.warning(f"Model {self.model_name} not supported for actual truncation, using character estimation")
@@ -173,7 +173,7 @@ class CustomTokenizer:
     #             truncated_ids = token_ids[:max_tokens]
     #             result = self.decode(truncated_ids)
 
-    #     logger.info(f"文本截断总耗时: {time.time() - start_time:.4f}秒")
+    #     logger.info(f"Total time spent on text truncation: {time.time() - start_time:.4f} seconds")
     #     return result
 
 if __name__ == "__main__":
@@ -205,9 +205,9 @@ if __name__ == "__main__":
     print(f"yuanjing-70b-chat tokens: {yuanjing_70b_chat_tokenizer.count_tokens(text)}")
     print(f"other model tokens: {other_tokenizer.count_tokens(text)}")
     
-    # 测试模型支持检查
+    # Test model support checks
     print(f"Is deepseek-v3 supported: {CustomTokenizer.is_model_in_supported_list('deepseek-v3')}")
     print(f"Is yuanjing-34b-chat supported: {CustomTokenizer.is_model_in_supported_list('yuanjing-34b-chat')}")
     
     print(f"Is some-other-model supported: {CustomTokenizer.is_model_in_supported_list('some-other-model')}")
-    print(f"Is current model supported: {deepseek_r1_distill_qwen_32b_tokenizer.is_supported_model}")  # 使用实例属性
+    print(f"Is current model supported: {deepseek_r1_distill_qwen_32b_tokenizer.is_supported_model}")  # Using instance properties

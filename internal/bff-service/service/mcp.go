@@ -87,7 +87,7 @@ func GetMCP(ctx *gin.Context, mcpID string) (*response.MCPDetail, error) {
 }
 
 func DeleteMCP(ctx *gin.Context, mcpID string) error {
-	// 删除智能体表AssistantMCP相关记录
+	// Delete records related to AssistantMCP on the smart body surface
 	_, err := assistant.AssistantMCPDeleteByMCPId(ctx.Request.Context(), &assistant_service.AssistantMCPDeleteByMCPIdReq{
 		McpId:   mcpID,
 		McpType: constant.MCPTypeMCP,
@@ -122,7 +122,7 @@ func GetMCPList(ctx *gin.Context, userID, orgID, name string) (*response.ListRes
 }
 
 func GetMCPSelect(ctx *gin.Context, userID, orgID string, name string) (*response.ListResult, error) {
-	// 获取自定义mcp列表
+	// Get custom mcp list
 	resp, err := mcp.GetCustomMCPList(ctx.Request.Context(), &mcp_service.GetCustomMCPListReq{
 		OrgId:  orgID,
 		UserId: userID,
@@ -135,15 +135,15 @@ func GetMCPSelect(ctx *gin.Context, userID, orgID string, name string) (*respons
 	for _, mcpInfo := range resp.Infos {
 		list = append(list, response.MCPSelect{
 			UniqueId: bff_util.ConcatAssistantToolUniqueId("mcp", mcpInfo.McpId),
-			// 兼容旧版
+			// Compatible with older versions
 			MCPID:       mcpInfo.McpId,
 			MCPSquareID: mcpInfo.Info.McpSquareId,
 			Name:        mcpInfo.Info.Name,
-			// 适用于智能体mcp下拉
+			// Suitable for agent mcp dropdown
 			ToolId:   mcpInfo.McpId,
 			ToolName: mcpInfo.Info.Name,
 			ToolType: constant.MCPTypeMCP,
-			// 共有字段
+			// Common fields
 			Description: mcpInfo.Info.Desc,
 			ServerFrom:  mcpInfo.Info.From,
 			ServerURL:   mcpInfo.SseUrl,
@@ -152,7 +152,7 @@ func GetMCPSelect(ctx *gin.Context, userID, orgID string, name string) (*respons
 		})
 	}
 
-	// 获取mcp server列表
+	// Get mcp server list
 	mcpServerList, err := mcp.GetMCPServerList(ctx.Request.Context(), &mcp_service.GetMCPServerListReq{
 		Name: name,
 		Identity: &mcp_service.Identity{
@@ -173,7 +173,7 @@ func GetMCPSelect(ctx *gin.Context, userID, orgID string, name string) (*respons
 			ServerFrom:  "mcp server",
 			ServerURL:   mcpServerInfo.SseUrl,
 			Type:        constant.MCPTypeMCPServer,
-			// 适用于智能体mcp下拉
+			// Suitable for agent mcp dropdown
 			ToolId:   mcpServerInfo.McpServerId,
 			ToolName: mcpServerInfo.Name,
 			ToolType: constant.MCPTypeMCPServer,

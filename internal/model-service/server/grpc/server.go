@@ -57,7 +57,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	healthcheck := health.NewServer()
 	healthpb.RegisterHealthServer(s.serv, healthcheck)
-	// 注册operate_service
+	// Register operate_service
 	model_service.RegisterModelServiceServer(s.serv, s.model)
 	// listen
 	lis, err := net.Listen("tcp", s.cfg.Server.GrpcEndpoint)

@@ -142,7 +142,7 @@ export default {
         this.loading = false
       }
     },
-    // 获取从分页组件传递的 data
+    // Get从分页Component传递 of  data
     refreshData(data) {
       this.tableData = data
     },
@@ -168,7 +168,7 @@ export default {
     preUpdate(row) {
       this.row = row
       this.isEdit = true
-      // 处理一级权限返回问题
+      // Process一级PermissionBack问题
       const perms = row.permissions || []
       const permKeys = perms.map(item => item.perm)
       const permissions = perms.map((item) => {
@@ -225,7 +225,7 @@ export default {
             this.$message.success(this.$t('common.message.success'))
             this.dialogVisible = false
 
-            // 如果当前用户有这个角色，则更新权限
+            // IfcurrentUserHas这Role，ThenUpdatePermission
             const permission = this.$store.state.user.permission || {}
             const roles = permission.roles ? permission.roles.map(item => item.id) : []
             if (roles.includes(this.row.roleId)) {

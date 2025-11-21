@@ -33,7 +33,7 @@ from langchain_core.messages import (
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-###加载配置文件
+###Load configuration file
 config = configparser.ConfigParser()
 config.read('config.ini',encoding='utf-8')
 OPENAI_BASE_URL = config["MODELS"]["openai_base_url"]
@@ -48,11 +48,11 @@ def tool_to_dict(tool):
         "description": tool.description,
         "args_schema": tool.args_schema,
         "response_format": tool.response_format
-        # 如果你不需要 coroutine，可以不加，因为它是函数对象，不能序列化
+        # If you don’t need coroutine, you don’t need to add it because it is a function object and cannot be serialized.
     }
 
 
-###判断是否命中mcp server
+###Determine whether the mcp server is hit
 def generator_empty_check(gen):
     try:
         next(gen)
@@ -78,7 +78,7 @@ async def mcp_client(query,mcp_tools,tools_name,temperature= 0.01,model_name = D
                 api_key= "XXXXXXXXXX",
                 base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
                 temperature=0,
-                streaming=stream  # 启用流式输出
+                streaming=stream  # Enable streaming output
             )
         else:
             llm = ChatOpenAI(
@@ -89,7 +89,7 @@ async def mcp_client(query,mcp_tools,tools_name,temperature= 0.01,model_name = D
             )
 
         async with MultiServerMCPClient(mcp_tools) as client:
-            # 转换成可序列化的列表以便查看传入的tool列表
+            # Convert to a serializable list to view the incoming tool list
             logger.info(f"mcp_server_is:{mcp_tools}")
             tools = client.get_tools()
             logger.info(f"tools_name is:{tools_name}")
@@ -100,11 +100,11 @@ async def mcp_client(query,mcp_tools,tools_name,temperature= 0.01,model_name = D
             # logger.info(f"Tools:{json.dumps(serializable_tools, indent=2, ensure_ascii=False)}")
             logger.info(f"MCP Tools:共计{len(serializable_tools)}个")
             logger.info(f"MCP Tools有哪些:{serializable_tools}")
-            ###创建mcp智能体
+            ###Create mcp agent
             agent = create_react_agent(llm, tools)
             messages_input = []
             
-            ###基于历史对话实现多轮对话效果
+            ###Achieve multiple rounds of dialogue effects based on historical dialogues
             print(f"---history长度为：{len(history)}---")
             logger.info(f"---history长度为：{len(history)}---")
             if history:
@@ -133,10 +133,10 @@ async def mcp_client(query,mcp_tools,tools_name,temperature= 0.01,model_name = D
                     if line and "agent" in line.keys():
                         line = line["agent"].get("messages")[0]
                         if line.additional_kwargs.get("tool_calls") or text:
-                            if i == 0:  ###打印mcp起始标志，用以判断是否命中mcp server
+                            if i == 0:  ###Print the mcp start flag to determine whether the mcp server is hit.
                                 yield "命中mcp server"
                                 yield line
-                            ####最后一次流式拆分输出
+                            ####Last streaming split output
                             else:
                                 answer = line.content
                                 # print(f"line:{line}")
@@ -146,7 +146,7 @@ async def mcp_client(query,mcp_tools,tools_name,temperature= 0.01,model_name = D
                                     split_text.response_metadata = {}
                                     split_text.usage_metadata = {}
                                     yield split_text
-                                line.content = ""  ###流式输出结束标识符
+                                line.content = ""  ###Streaming output end identifier
                                 yield line
                     elif line and "tools" in line.keys():
                         line = line["tools"].get("messages")[0]
@@ -160,7 +160,7 @@ async def mcp_client(query,mcp_tools,tools_name,temperature= 0.01,model_name = D
                 yield result
 
     except Exception as e:
-        # print(f"mcp_client 发生错误：{str(e)}")
+        # print(f"mcp_client error occurred: {str(e)}")
         logger.info(f"mcp_client 发生错误：{str(e)}")
         pass
 
@@ -188,7 +188,7 @@ def sync_generator(query,mcp_tools,tools_name,temperature= 0.01,model_name = DEF
         logger.info(f"sync_generator 发生错误：{str(e)}")
         print(f"sync_generator 发生错误：{str(e)}")
     finally:
-        # 确保在函数结束时关闭事件循环
+        # Make sure you close the event loop when the function ends
         loop.close()
         
 ###model：yuanjing-70b-functioncall、qwq-32b、deepseek-v3-functioncall
@@ -205,20 +205,20 @@ def mcp_server_client(query,mcp_tools,tools_name,temperature= 0.01,model_name = 
                 non_llm_response = ""
                 for line in result:
                     line = line["messages"]
-                    # logger.info(f"非流式line：{line}\n长度为{len(line)}")
-                    if len(line) == 2:  ####仅包含输入和答案，不包含tool_calls相关返回
+                    # logger.info(f"Non-streaming line: {line}\nThe length is {len(line)}")
+                    if len(line) == 2:  ####Contains only input and answers, does not include tool_calls related returns
                         logger.info(f"-----mcp_server_client 非流式未命中mcp-----")
                         return None
                     for text in line:
                         logger.info(f"非流式text:{text}\n")
                         if isinstance(text, HumanMessage):
-                            # non_llm_response += f"query为：" + text.content  + "\n"
+                            # non_llm_response += f"query is: " + text.content + "\n"
                             non_llm_response += ""
                         elif isinstance(text, AIMessage) and text.response_metadata.get("finish_reason", "") == "tool_calls":
                             mcp_name = text.tool_calls[0]["name"]
                             mcp_args = text.tool_calls[0]["args"]
                             non_llm_response += f"<tool>mcp-工具名：{mcp_name}\n\n\n```mcp-请求参数：\n{mcp_args}\n```\n\n"
-                            # non_llm_response += f"<tool>\n\n\n```mcp 工具名：\n" + json.dumps(text.tool_calls,ensure_ascii= False) + "\n```\n\n"
+                            # non_llm_response += f"<tool>\n\n\n```mcp tool name:\n" + json.dumps(text.tool_calls,ensure_ascii= False) + "\n```\n\n"
                         elif isinstance(text, ToolMessage) and text.type == "tool":
                             non_llm_response += f"\n\n\n```mcp-调用结果：\n" + text.content + "\n```\n\n" + "</tool>\n\n"
                         else:
@@ -230,12 +230,12 @@ def mcp_server_client(query,mcp_tools,tools_name,temperature= 0.01,model_name = 
             return None
     except Exception as e:
         logger.info(f"mcp_server_client 发生错误：{str(e)}")
-        # print(f"mcp_server_client 发生错误：{str(e)}") 
+        # print(f"mcp_server_client error occurred: {str(e)}")
         pass
         
 
 if __name__ == "__main__":
-    # query = "3*5等于多少"
+    # query = "What is 3*5 equal to"
     query = "北京今天天气如何"
     query = "北京天安门经纬度"
 

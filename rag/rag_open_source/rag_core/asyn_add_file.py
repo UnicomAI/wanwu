@@ -1,11 +1,11 @@
 import os
 import nltk
-# 设置NLTK数据路径
-# 获取当前文件的绝对路径
+# Set NLTK data path
+# Get the absolute path of the current file
 current_file_path = os.path.abspath(__file__)
-# 获取当前文件所在的目录
+# Get the directory where the current file is located
 current_dir = os.path.dirname(current_file_path)
-# 拼接nltk_data文件夹的路径
+# Splice the path to the nltk_data folder
 nltk_data_path = os.path.join(current_dir, 'nltk_data')
 nltk.data.path.append(nltk_data_path)
 nltk.data.path.append("/opt/nltk_data")
@@ -29,13 +29,13 @@ from settings import *
 from utils.constant import CONVERT_DIR, USER_DATA_PATH
 graph_redis_client = redis_utils.get_redis_connection()
 
-# 定义路径
+# define path
 paths = ["./data", "./user_data"]
-# 遍历路径列表
+# Traverse a list of paths
 for path in paths:
-    # 检查路径是否存在
+    # Check if the path exists
     if not os.path.exists(path):
-        # 如果不存在，则创建目录
+        # Create the directory if it does not exist
         os.makedirs(path)
         print(f"目录 {path} 已创建。")
     else:
@@ -66,8 +66,8 @@ def kafkal():
                                      sasl_plain_password=KAFKA_SASL_PLAIN_PASSWORD,
                                      group_id=KAFKA_GROUP_ID,
                                      enable_auto_commit=KAFKA_ENABLE_AUTO_COMMIT,
-                                     max_poll_records=1,  # 设置每次最多拉取1条消息
-                                     # max_poll_interval_ms=8000000,  # 设置最大轮询间隔为120分钟
+                                     max_poll_records=1,  # Set to pull at most 1 message at a time
+                                     # max_poll_interval_ms=8000000, # Set the maximum polling interval to 120 minutes
                                      value_deserializer=lambda x: x.decode('utf-8'))
 
         else:
@@ -75,11 +75,11 @@ def kafkal():
                                      bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
                                      group_id=KAFKA_GROUP_ID,
                                      enable_auto_commit=KAFKA_ENABLE_AUTO_COMMIT,
-                                     max_poll_records=1,  # 设置每次最多拉取1条消息
-                                     # max_poll_interval_ms=8000000,  # 设置最大轮询间隔为120分钟
+                                     max_poll_records=1,  # Set to pull at most 1 message at a time
+                                     # max_poll_interval_ms=8000000, # Set the maximum polling interval to 120 minutes
                                      value_deserializer=lambda x: x.decode('utf-8'))
         for message in consumer:
-            # 初始化用户知识库路径
+            # Initialize user knowledge base path
             print('收到新kafka消息：' + repr(message.value))
             logger.info('收到新kafka消息：' + repr(message.value))
             master_control_logger.info('收到新kafka消息：' + repr(message.value))
@@ -101,7 +101,7 @@ def kafkal():
             is_enhanced = message_value["doc"].get("is_enhanced", 'false')
             enable_knowledge_graph = message_value["doc"].get("enable_knowledge_graph", "false")
 
-            # 文件导入时选择解析方式，默认勾选文字提取，可选光学识别ocr当多选时此参数默认为["text"],当勾选ocr时传：["text","ocr"]
+            # When importing files, select the parsing method. Text extraction is checked by default. Optical recognition OCR is optional. When multiple selections are made, this parameter defaults to ["text"]. When OCR is checked, pass: ["text", "ocr"]
             parser_choices = message_value["doc"]["parser_choices"] if "parser_choices" in message_value["doc"] else [
                 "text"]
             ocr_model_id = message_value["doc"]["ocr_model_id"] if "ocr_model_id" in message_value["doc"] else [
@@ -123,11 +123,11 @@ def kafkal():
 
             try:
                 if not KAFKA_ENABLE_AUTO_COMMIT:
-                    # 提交当前消息的偏移量
+                    # Commit the offset of the current message
                     tp = TopicPartition(KAFKA_TOPICS, message.partition)
                     offset_and_metadata = OffsetAndMetadata(offset=message.offset + 1, metadata="")
                     offsets = {tp: offset_and_metadata}
-                    # consumer.commit(offsets=offsets)  # 不需要使用这个提交
+                    # consumer.commit(offsets=offsets) # No need to use this commit
                     consumer.commit()
                     logger.info('kafka异步消费完成 ===== 已提交 offset：' + str(message.offset) + '===== kafka消息：' + repr(message.value))
                     master_control_logger.info('kafka异步消费完成 ===== 已提交 offset：' + str(message.offset) + '===== kafka消息：' + repr(message.value))
@@ -135,18 +135,18 @@ def kafkal():
                     master_control_logger.info('consumer.commit offset：' + repr(offsets))
 
                 if KAFKA_USE_ASYN_ADD:
-                    # ============ 异步添加 =============
+                    # ============ Asynchronous addition =============
                     lock = threading.Lock()
                     thread = threading.Thread(target=add_files, args=(
                     user_id, kb_name, filename, object_name, file_id, is_enhanced, enable_knowledge_graph, pre_process, meta_data_rules, split_config))
                     lock.acquire()
                     thread.start()
                     lock.release()
-                    # ============ 异步添加 =============
+                    # ============ Asynchronous addition =============
                 else:
-                    # ============ 顺序添加 =============
+                    # ============ Sequential addition =============
                     add_files(user_id, kb_name, filename, object_name, file_id, is_enhanced, enable_knowledge_graph, pre_process, meta_data_rules, split_config, kb_id=kb_id)
-                    # ============ 顺序添加 =============
+                    # ============ Sequential addition =============
                 logger.info('----->kafka异步消费完成：user_id=%s,kb_name=%s,filename=%s,file_id=%s,process finished' % (user_id, kb_name,filename,file_id))
                 master_control_logger.info('----->kafka异步消费完成：user_id=%s,kb_name=%s,filename=%s,file_id=%s,process finished' % (user_id, kb_name, filename, file_id))
 
@@ -198,9 +198,9 @@ def parse_meta_data(docs, parse_rules):
         return result
 
     def parse_date_to_timestamp(date_str):
-        # 常见的日期格式列表
+        # List of common date formats
         date_formats = [
-            # 英文格式
+            # English format
             "%Y-%m-%d %H:%M:%S",
             "%Y-%m-%d %H:%M",
             "%Y-%m-%d",
@@ -211,23 +211,23 @@ def parse_meta_data(docs, parse_rules):
             "%Y/%m/%d",
             "%Y/%m/%d %H:%M:%S",
 
-            # 中文格式
+            # Chinese format
             "%Y年%m月%d日 %H时%M分%S秒",
             "%Y年%m月%d日 %H:%M:%S",
             "%Y年%m月%d日 %H时%M分",
             "%Y年%m月%d日",
             "%Y年%m月%d日 %H:%M",
 
-            # 其他常见格式
+            # Other common formats
             "%Y.%m.%d",
             "%Y.%m.%d %H:%M:%S",
         ]
 
-        # 预处理：处理一些特殊情况
+        # Preprocessing: Handling some special cases
         processed_str = date_str.strip()
         processed_str = processed_str.replace(" ", "")
 
-        # 尝试每种格式
+        # try every format
         for fmt in date_formats:
             try:
                 dt = datetime.strptime(processed_str, fmt)
@@ -241,9 +241,9 @@ def parse_meta_data(docs, parse_rules):
     for item in parse_rules:
         pattern = item["rule"]
         if pattern:
-            # 通过rule提取元数据
+            # Extract metadata through rules
             meta_datas = []
-            #反转义
+            #Anti-escaping
             tmp = pattern.encode().decode('unicode_escape')
             pattern = tmp.encode('latin-1').decode('utf-8')
             for doc in docs:
@@ -257,15 +257,15 @@ def parse_meta_data(docs, parse_rules):
                     try:
                         item["value"] = str(parse_date_to_timestamp(item["value"]))
                     except ValueError:
-                        # 提取的时间类型的元数据不支持转成unix timestamp
+                        # The extracted time type metadata does not support conversion to unix timestamp.
                         continue
             else:
-                #提取不到元数据
+                #Unable to extract metadata
                 continue
         else:
             item["value"] = str(item["value"])
 
-        # 如果item["rule"] 为空，item["value"]是固定值
+        # If item["rule"] is empty, item["value"] is a fixed value
         result.append(item)
 
     return result
@@ -331,12 +331,12 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
             logger.info('文档下载完成')
             master_control_logger.info('文档下载完成')
             mq_rel_utils.update_doc_status(file_id, status=32)
-            # 转换文件格式
-            base_filename, file_extension = os.path.splitext(file_name)  # 分离文件名和后缀
+            # Convert file format
+            base_filename, file_extension = os.path.splitext(file_name)  # Separate filename and suffix
             master_control_logger.info(f"base_filename={base_filename} file_extension={file_extension}")
-            if "model" in split_config.parser_choices and file_extension in [".doc", ".docx", ".pptx"]:  # 先判断是否模型解析
+            if "model" in split_config.parser_choices and file_extension in [".doc", ".docx", ".pptx"]:  # First determine whether the model is analyzed
                 convert_office_format_map = {".doc": "pdf", ".docx": "pdf", ".pptx": "pdf"}
-                target_format = convert_office_format_map[file_extension]  # 获取目标格式
+                target_format = convert_office_format_map[file_extension]  # Get target format
                 res_filename = knowledge_base_utils.convert_office_file(download_path, convert_dir, target_format)
                 if res_filename:
                     master_control_logger.error(f"{download_path} convert_office_file successfully => {res_filename}")
@@ -345,7 +345,7 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
                     mq_rel_utils.update_doc_status(file_id, status=53)
                     return
             elif file_extension in CONVERT_OFFICE_FORMAT_MAP:
-                target_format = CONVERT_OFFICE_FORMAT_MAP[file_extension]  # 获取目标格式
+                target_format = CONVERT_OFFICE_FORMAT_MAP[file_extension]  # Get target format
                 res_filename = knowledge_base_utils.convert_office_file(download_path, convert_dir, target_format)
                 if res_filename:
                     master_control_logger.error(f"{download_path} convert_office_file successfully => {res_filename}")
@@ -365,13 +365,13 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
     try:
         logger.info('文档切分开始')
         master_control_logger.info('文档切分开始')
-        if res_filename:  # 需要传递转换后的 文件路径
+        if res_filename:  # Need to pass the converted file path
             add_file_path = res_filename
         else:
             add_file_path = download_path
         logger.info('------>add_file_path=%s' % add_file_path)
         master_control_logger.info('------>add_file_path=%s' % add_file_path)
-        # 检查文件是否存在
+        # Check if the file exists
         if os.path.exists(add_file_path):
             logger.info(f'{user_id}-{kb_name}' + '文件已成功保存存在本地, 文件路径是：' + add_file_path)
             master_control_logger.info(f'{user_id}-{kb_name}' + '文件已成功保存存在本地, 文件路径是：' + add_file_path)
@@ -403,12 +403,12 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
         with open("./data/%s_chunk.txt" % file_name, 'w', encoding='utf-8') as chunks_file:
             for item in chunks:
                 if "download_link" not in item["meta_data"]:
-                    item["meta_data"]["download_link"] = download_link  # 添加file下载链接
-                if res_filename and "file_name" in item["meta_data"]:  # 如果有转换后的文件，则替换回原来文件名
+                    item["meta_data"]["download_link"] = download_link  # Add file download link
+                if res_filename and "file_name" in item["meta_data"]:  # If there is a converted file, replace it back with the original file name.
                     item["meta_data"]["file_name"] = file_name
-                # 存储 BUCKET 和 object_name
-                item["meta_data"]["bucket_name"] = BUCKET_NAME  # 添加文件桶名
-                item["meta_data"]["object_name"] = object_name  # 添加文件下载对象名
+                # Store BUCKET and object_name
+                item["meta_data"]["bucket_name"] = BUCKET_NAME  # Add file bucket name
+                item["meta_data"]["object_name"] = object_name  # Add file download object name
 
                 if pre_process_rules:
                     item["text"] = pre_process_text(item["text"], pre_process_rules)
@@ -420,12 +420,12 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
         with open("./data/%s_subchunk.txt" % file_name, 'w', encoding='utf-8') as sub_chunk_file:
             for item in sub_chunk:
                 if "download_link" not in item["meta_data"]:
-                    item["meta_data"]["download_link"] = download_link  # 添加file下载链接
-                if res_filename and "file_name" in item["meta_data"]:  # 如果有转换后的文件，则替换回原来文件名
+                    item["meta_data"]["download_link"] = download_link  # Add file download link
+                if res_filename and "file_name" in item["meta_data"]:  # If there is a converted file, replace it back with the original file name.
                     item["meta_data"]["file_name"] = file_name
-                # 存储 BUCKET 和 object_name
-                item["meta_data"]["bucket_name"] = BUCKET_NAME  # 添加文件桶名
-                item["meta_data"]["object_name"] = object_name  # 添加文件下载对象名
+                # Store BUCKET and object_name
+                item["meta_data"]["bucket_name"] = BUCKET_NAME  # Add file bucket name
+                item["meta_data"]["object_name"] = object_name  # Add file download object name
 
                 if pre_process_rules:
                     item["content"] = pre_process_text(item["content"], pre_process_rules)
@@ -446,7 +446,7 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
         import traceback
         logger.error("add_konwledge error %s" % e)
         logger.error(traceback.format_exc())
-        if "Error loading" in repr(e):  # 文件不可用
+        if "Error loading" in repr(e):  # File not available
             logger.error('文档切分失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
             master_control_logger.error(
                 '文档切分失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name) + repr(e))
@@ -465,7 +465,7 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
         logger.info(repr(file_name) + '添加文档meta结果：' + repr(add_file_result))
         master_control_logger.info(repr(file_name) + '添加文档meta结果：' + repr(add_file_result))
         if add_file_result['code'] != 0:
-            # 回调
+            # callback
             logger.error('添加文档meta失败'+ "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
             master_control_logger.error('添加文档meta失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
             mq_rel_utils.update_doc_status(file_id, status=55)
@@ -524,7 +524,7 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
         mq_rel_utils.update_doc_status(file_id, status=56)
         return
 
-    # --------------7、最终完成
+    # ---------------7. Final completion
 
     logger.info("user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name) + '===== 文档上传成功且完成')
     master_control_logger.info("user_id=%s,kb_name=%s,file_name=%s,kb_id=%s" % (user_id, kb_name, file_name, kb_id) + '===== 文档上传成功且完成')

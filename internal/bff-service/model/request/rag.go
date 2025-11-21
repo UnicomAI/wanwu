@@ -7,10 +7,10 @@ type RagBrief struct {
 
 type RagConfig struct {
 	RagID               string                 `json:"ragId" validate:"required"`
-	ModelConfig         AppModelConfig         `json:"modelConfig" validate:"required"`         // 模型
-	RerankConfig        AppModelConfig         `json:"rerankConfig" validate:"required"`        // Rerank模型
-	KnowledgeBaseConfig AppKnowledgebaseConfig `json:"knowledgeBaseConfig" validate:"required"` // 知识库
-	SafetyConfig        AppSafetyConfig        `json:"safetyConfig"`                            // 敏感词表配置
+	ModelConfig         AppModelConfig         `json:"modelConfig" validate:"required"`         // Model
+	RerankConfig        AppModelConfig         `json:"rerankConfig" validate:"required"`        // Rerank model
+	KnowledgeBaseConfig AppKnowledgebaseConfig `json:"knowledgeBaseConfig" validate:"required"` // knowledge base
+	SafetyConfig        AppSafetyConfig        `json:"safetyConfig"`                            // Sensitive word list configuration
 }
 
 type ChatRagRequest struct {

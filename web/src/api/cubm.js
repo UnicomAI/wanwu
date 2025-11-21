@@ -1,8 +1,8 @@
 import request from "@/utils/request";
 import {MODEL_API, DATACENTER_API} from "@/utils/requestConstants";
 
-/*----元景------*/
-//对话列表
+/*---- Yuanjing ------*/
+//conversationList
 export const getConversationList = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/list`,
@@ -10,7 +10,7 @@ export const getConversationList = (data)=>{
         params: data
     })
 };
-//创建对话
+//Createconversation
 export const createConversation = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/create`,
@@ -18,7 +18,7 @@ export const createConversation = (data)=>{
         data
     })
 };
-//删除对话
+//Delete Conversation
 export const deleteConversation = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/delete`,
@@ -26,7 +26,7 @@ export const deleteConversation = (data)=>{
         data
     })
 };
-//对话详情
+//conversationDetails
 export const getConversationDetail = (data)=>{
     return request({
         url: `${MODEL_API}/chatllm/conversation/detail`,
@@ -69,7 +69,7 @@ export const deleteConversationHistory = (data)=>{
         data
     })
 };
-//获取模型列表
+//GetModelList
 export const getModelList= (data) => {
     return request({
         url: `${DATACENTER_API}/infer/publish/model/select`,
@@ -78,7 +78,7 @@ export const getModelList= (data) => {
     });
 }
 
-//AI自动生成原生应用
+// AI auto-generates native app
 export const autoCreate= (data) => {
     return request({
         url: `${MODEL_API}/assistant/auto/create`,

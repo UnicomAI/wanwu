@@ -11,12 +11,12 @@ import (
 // UploadCustomTab
 //
 //	@Tags			setting
-//	@Summary		标签页自定义配置
-//	@Description	上传标签页图标、标签页标题
+//	@Summary tag page custom configuration
+//	@Description Upload tab icon, tab title
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CustomTabConfig	true	"标签页配置请求参数"
+//	@Param data body request.CustomTabConfig true "Tab page configuration request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/custom/tab [post]
 func UploadCustomTab(ctx *gin.Context) {
@@ -32,12 +32,12 @@ func UploadCustomTab(ctx *gin.Context) {
 // UploadCustomLogin
 //
 //	@Tags			setting
-//	@Summary		登录页自定义配置
-//	@Description	上传登录页背景图、登录页欢迎语、登录按钮颜色
+//	@Summary Login page custom configuration
+//	@Description Upload login page background image, login page welcome message, login button color
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CustomLoginConfig	true	"登录页配置请求参数"
+//	@Param data body request.CustomLoginConfig true "Login page configuration request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/custom/login [post]
 func UploadCustomLogin(ctx *gin.Context) {
@@ -52,12 +52,12 @@ func UploadCustomLogin(ctx *gin.Context) {
 // UploadCustomHome
 //
 //	@Tags			setting
-//	@Summary		平台自定义配置
-//	@Description	配置平台名称、平台图标、平台背景色
+//	@Summary Platform custom configuration
+//	@Description Configure platform name, platform icon, platform background color
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CustomHomeConfig	true	"平台配置请求参数"
+//	@Param data body request.CustomHomeConfig true "Platform configuration request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/custom/home [post]
 func UploadCustomHome(ctx *gin.Context) {

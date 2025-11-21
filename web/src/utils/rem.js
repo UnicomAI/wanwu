@@ -2,7 +2,7 @@
     var docEl = doc.documentElement,
         timer = '';
 
-  //当dom加载完成时，或者 屏幕垂直、水平方向有改变进行html的根元素计算
+  //当domLoadComplete when ，OR者 屏幕垂直、水平方向Has改变进rowhtml of 根element计算
   function recalc(){
         var clientWidth = docEl.getBoundingClientRect ? docEl.getBoundingClientRect().width : docEl.clientWidth;
 	    if (!clientWidth) return;
@@ -24,7 +24,7 @@
         WeixinJSBridge.invoke('setFontSizeCallback', { 'fontSize' : 0 });
       });
     }
-    //不受微信字体大小影响
+    //不受微信字体size影响
     if (typeof WeixinJSBridge == "object" && typeof WeixinJSBridge.invoke == "function") {
       handleFontSize();
     } else {

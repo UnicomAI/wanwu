@@ -1,7 +1,7 @@
 import service from "@/utils/request"
 import {USER_API} from "@/utils/requestConstants"
 
-// 获取OAuth应用列表
+// GetOAuthAppList
 export const fetchOAuthList = (data) => {
     return service({
         url: `${USER_API}/oauth/app/list`,
@@ -10,7 +10,7 @@ export const fetchOAuthList = (data) => {
     })
 }
 
-// 创建OAuth应用
+// CreateOAuthApp
 export const createOAuth = (data) => {
     return service({
         url: `${USER_API}/oauth/app`,
@@ -19,7 +19,7 @@ export const createOAuth = (data) => {
     })
 }
 
-// 更新OAuth应用
+// UpdateOAuthApp
 export const editOAuth = (data) => {
     return service({
         url: `${USER_API}/oauth/app`,
@@ -28,7 +28,7 @@ export const editOAuth = (data) => {
     })
 }
 
-// 删除OAuth应用
+// DeleteOAuthApp
 export const deleteOAuth = (data) => {
     return service({
         url: `${USER_API}/oauth/app`,
@@ -37,7 +37,7 @@ export const deleteOAuth = (data) => {
     })
 }
 
-// 修改OAuth应用状态
+// ModifyOAuthAppStatus
 export const changeOAuthStatus = (data) => {
     return service({
         url: `${USER_API}/oauth/app/status`,
@@ -46,7 +46,7 @@ export const changeOAuthStatus = (data) => {
     })
 }
 
-// 授权码认证
+// Authorization code authentication
 export const codeOAuth = (data) => {
     return service({
         url: `${USER_API}/oauth/code/authorize`,

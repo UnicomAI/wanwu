@@ -1,13 +1,13 @@
 <template>
-    <!-- 远景大模型 -->
+    <!-- 远景大Model -->
     <div class="full-content flex">
         <el-main class="scroll">
             <div class="smart-center">
-                <!--基础配置回显-->
+                <!--基础Configuration回显-->
                 <div v-show="echo" class="session rl echo">
                     <Prologue  :editForm="editForm" @setProloguePrompt="setProloguePrompt" :isBigModel="true" />
                 </div>
-                <!--对话-->
+                <!--conversation-->
                 <div  v-show="!echo" class="center-session">
                     <SessionComponentSe
                             ref="session-com"
@@ -19,12 +19,12 @@
                             :defaultUrl="editForm.avatar.path"
                     />
                 </div>
-                <!--输入框-->
+                <!--Input Box-->
                 <div class="center-editable">
                     <div v-show="stopBtShow" class="stop-box">
                         <span v-show="sessionStatus === 0" class="stop" @click="preStop">
                             <img class="stop-icon mdl" :src="require('@/assets/imgs/stop.png')"/>
-                            <span class="mdl">停止生成</span>
+                            <span class="mdl">StopGenerate</span>
                         </span>
                         <!-- <span v-show="sessionStatus !== 0" class="stop" @click="refresh">
                             <img class="stop-icon mdl" :src="require('@/assets/imgs/refresh.png')"/>
@@ -88,16 +88,16 @@
                 currentModel:null,
                 echo: true,
                 basicForm: {
-                    avatar: '123',//img/tr/deepseek-icon.png-使用接口获取的图片
-                    instructions: '456',//我是您的智能小助手，可以帮您思考文案，与您聊天，还可以答疑结果。比如您可以问我：
-                    name: 'ffff',//你好，我是DeepSeek-使用接口获取的文案
+                    avatar: '123',//img/tr/deepseek-icon.png-UseInterfaceGet of Image
+                    instructions: '456',//我Yes您 of 智能小助手，可以帮您思考文案，With您聊天，还可以答疑Result。For example您可以问我：
+                    name: 'ffff',//你好，我YesDeepSeek-UseInterfaceGet of 文案
                     description: 'fsdfdggfh'
                 },
                 expandForm: {
                     starterPrompts: [
-                        // {value: '如何打粉底不卡粉?'},
+                        // {value: 'Such as何打粉底不卡粉?'},
                         // {value: '我想问怎么化妆皮肤不干?'},
-                        // {value: '写一个故宫一日游攻略'}
+                        // {value: '写一故宫一日游攻略'}
                     ]
                 },
                 // fileTypeArr: ['image/*','doc/*'],
@@ -136,7 +136,7 @@
                    this.basicForm.avatar = this.$basePath + '/use/model/api' + dataInfo.useModels[0]['welcomeLogoPath'];
                 }
             },
-            //对话列表
+            //conversationList
             async getConversationList(noInit) {
                 let res = await getConversationList({assistantId: this.assistantId, pageSize: 1000, pageNo: 1})
                 if (res.code === 0) {
@@ -145,7 +145,7 @@
                             return {...n, hover: false, active: false}
                          })
                         if (noInit) {
-                            this.chatList[0].active = true  //noInit 是true时，左侧默认选中第一个,但是不要调接口刷新详情
+                            this.chatList[0].active = true  //noInit Yestrue when ，左侧Default选infirst,butYes不to调InterfaceRefreshDetails
                         } else {
                             this.conversionClick[this.chatList[0]]
                         }
@@ -154,7 +154,7 @@
                     }
                 }
             },
-            //新建对话
+            //New Conversation
             preCreateConversation() {
                 if (this.echo) {
                     this.$message({
@@ -175,11 +175,11 @@
                     m.active = false
                 })
             },
-            //切换对话
+            //toggleconversation
             async conversionClick(n) {
                 this.isModelDisable = true;
                 if (this.sessionStatus === 0) {
-                    //this.$message.warning('上个问题未答完')
+                    //this.$message.warning('上问题not答完')
                     return
                 }else{
                     this.stopBtShow = false
@@ -214,7 +214,7 @@
                         }
                     }) : []
 
-                    //切换历史记录，选择对应模型
+                    //toggleHistory Record，select对应Model
                     if(res.data.list && res.data.list !== null){
                         this.currentModel = {
                         modelId:res.data.list[0]['modelId'],
@@ -229,11 +229,11 @@
                     })
                 }
             },
-            //删除对话
+            //Delete Conversation
             async preDelConversation(n) {
-                //todo 给所有的点击事件统一添加拦截
+                //todo 给所Has of clickEvent统一Add拦截
                 if (this.sessionStatus === 0) {
-                    //this.$message.warning('上个问题未答完')
+                    //this.$message.warning('上问题not答完')
                     return
                 }
                 let res = await deleteConversation({conversationId: n.conversationId})
@@ -246,11 +246,11 @@
                     this.echo = true
                 }
             },
-            /*------会话------*/
+            /*------session------*/
             async preSend(val,fileId,fileInfo) {
                 this.inputVal = val || this.$refs['editable'].getPrompt()
                 if (!this.inputVal) {
-                    this.$message.warning('请输入内容');
+                    this.$message.warning('Please enterContent');
                     return
                 }
                 if (!this.verifiyFormParams()) {
@@ -266,9 +266,9 @@
                 const { matchType, priorityMatch, rerankModelId } = this.editForm.knowledgeConfig;
                 const isMixPriorityMatch = matchType === 'mix' && priorityMatch;
                 const conditions = [
-                    { check: !this.editForm.modelParams, message: '请选择模型' },
-                    { check: !isMixPriorityMatch && !rerankModelId, message: '请选择rerank模型' },
-                    { check: this.editForm.knowledgebases.length === 0, message: '请选择知识库' }
+                    { check: !this.editForm.modelParams, message: 'Please selectModel' },
+                    { check: !isMixPriorityMatch && !rerankModelId, message: 'Please selectrerankModel' },
+                    { check: this.editForm.knowledgebases.length === 0, message: 'Please selectKnowledge Base' }
                 ];
                 for (const condition of conditions) {
                     if (condition.check) {
@@ -278,7 +278,7 @@
                 }
                 return true;
             },
-            modelChange(){//切换模型新建对话
+            modelChange(){//toggleModelNew Conversation
                 this.preCreateConversation()
             },
             setParams() {
@@ -294,7 +294,7 @@
                 this.doSend()
                 this.echo = false
             },
-            /*--右侧提示词--*/
+            /*--右侧Tip词--*/
             showDrawer() {
                 this.drawer = true
             },

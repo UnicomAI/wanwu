@@ -5,10 +5,10 @@ import (
 )
 
 const (
-	KnowledgeDeleteTaskType  = 1 //知识库删除
-	DocDeleteTaskType        = 2 // 文档列表删除
-	DocImportTaskType        = 3 // 文档导入
-	DocSegmentImportTaskType = 4 // 文档分片导入
+	KnowledgeDeleteTaskType  = 1 //Knowledge base deletion
+	DocDeleteTaskType        = 2 // Document list delete
+	DocImportTaskType        = 3 // Document import
+	DocSegmentImportTaskType = 4 // Document segmentation import
 )
 
 type KnowledgeDeleteParams struct {
@@ -29,8 +29,8 @@ type DocSegmentImportTaskParams struct {
 
 type BusinessTaskService interface {
 	BuildServiceType() uint32
-	//InitTask 初始化任务
+	//InitTask initialization task
 	InitTask() error
-	//SubmitTask 提交任务
+	//SubmitTask Submit task
 	SubmitTask(ctx context.Context, params interface{}) error
 }

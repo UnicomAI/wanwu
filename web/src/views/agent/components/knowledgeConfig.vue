@@ -2,7 +2,7 @@
     <div class="knowledgeEnhance ">
         <div class="knowledge-upload" v-loading="fileLoading" element-loading-background="rgba(255, 255, 255, 0.8)">
             <div class="el-upload-box">
-                <!--算法解析文件能力不够，改为每次只上传一个文件-->
+                <!--算法ParseFile能力不够，改iseach次只Upload一File-->
                 <el-upload
                         :disabled="!assistantId"
                         :class="!assistantId?'not-allow':'allow'"
@@ -51,14 +51,14 @@
                 configForm:{
                     threshold:0.3, //ws传
                     topK:3, //ws传
-                    sentenceSize:100  //上传文件传
+                    sentenceSize:100  //UploadFile传
                 },
                 headers:{
                     'Authorization': "Bearer " + JSON.parse(localStorage.getItem('access_cert')).user.token,
                     'X-User-Id': JSON.parse(localStorage.getItem('access_cert')).user.userInfo.uid,
                     "x-org-id": this.$store.state.user.userInfo.orgId
                 },
-                //上传文件
+                //UploadFile
                 limitFileType:['.txt','.docx','.pdf'],
                 fileLoading:false,
                 fileList:[],
@@ -143,7 +143,7 @@
                         break;
                 }
             },
-            //删除指定下标的文件
+            //Delete指定下标 of File
             spliceFile(index){
                 this.fileResList.splice(index,1)
             },
@@ -154,7 +154,7 @@
             fileMouseLeave(n){
                 n.hover = false
             },
-            //---自动上传自带回调，文件上传失败也会显示成功icon，弃用---
+            //---自动Upload自带Callback，FileUploadFailed也会ShowSuccessicon，弃用---
             async beforeRemove(file,fileList){
                 let fileId = file.fileId || file.response.data.list[0]
                 let res = await deleteKnowledgeFile({fileId, assistantId:this.assistantId})

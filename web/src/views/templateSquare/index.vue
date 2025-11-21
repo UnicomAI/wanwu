@@ -7,9 +7,9 @@
       </div>
       <!-- tabs -->
       <div class="templateSquare-tabs">
-        <!--<div :class="['templateSquare-tab',{ 'active': type === workflow }]" @click="tabClick(workflow)">
+        <div :class="['templateSquare-tab',{ 'active': type === workflow }]" @click="tabClick(workflow)">
           {{$t('tempSquare.workflow')}}
-        </div>-->
+        </div>
         <div :class="['templateSquare-tab',{ 'active': type === prompt }]" @click="tabClick(prompt)">
           {{$t('tempSquare.prompt')}}
         </div>

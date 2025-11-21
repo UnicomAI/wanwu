@@ -19,7 +19,7 @@ func InitAssistant(ctx context.Context, cfg Config, initBucketName string) error
 	}
 	_minioAssistant = c
 
-	// 创建存储桶并设置存储策略
+	// Create a bucket and set storage policy
 	if _, err = _minioAssistant.createBucketIfAbsent(ctx, initBucketName); err != nil {
 		return err
 	}

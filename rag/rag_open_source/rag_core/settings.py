@@ -46,7 +46,7 @@ if DOC_STATUS_INIT_URL is None:
 
 # object storage
 USE_OSS = config.getboolean('OSS', 'USE_OSS')
-if USE_OSS:  # 获取配置文件中的桶名
+if USE_OSS:  # Get the bucket name in the configuration file
     BUCKET_NAME = config.getstr('OSS', 'OSS_BUCKET_NAME')
 else:
     BUCKET_NAME = config.getstr('MINIO', 'MINIO_BUCKET_NAME')

@@ -22,7 +22,7 @@ func ModelChatCompletions(ctx *gin.Context, modelID string, req *mp_common.LLMRe
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	// 校验model字段
+	// Verify model fields
 	if req != nil {
 		if req.Model != modelInfo.Model {
 			gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v chat completions err: model mismatch!", modelInfo.ModelId)))
@@ -72,8 +72,8 @@ func ModelChatCompletions(ctx *gin.Context, modelID string, req *mp_common.LLMRe
 	ctx.Header("Connection", "keep-alive")
 	ctx.Header("Content-Type", "text/event-stream; charset=utf-8")
 	var (
-		firstFlag = false // 思维链起始标识符，默认思维链未开始
-		endFlag   = false // 思维链结束标识符，默认思维链未结束
+		firstFlag = false // The starting identifier of the thinking chain. The default thinking chain has not started.
+		endFlag   = false // The end identifier of the thinking chain. The default thinking chain is not ended.
 	)
 	var data *mp_common.LLMResp
 	for sseResp := range sseCh {

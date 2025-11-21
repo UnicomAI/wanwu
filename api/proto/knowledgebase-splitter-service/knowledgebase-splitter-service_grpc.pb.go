@@ -30,13 +30,13 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KnowledgeBaseSplitterServiceClient interface {
-	// 获取知识库标签列表
+	// 获取知识库标签列表 [EN] Get a list of knowledge base tags
 	SelectKnowledgeSplitterList(ctx context.Context, in *KnowledgeSplitterSelectReq, opts ...grpc.CallOption) (*KnowledgeSplitterSelectListResp, error)
-	// 新增知识库标签
+	// 新增知识库标签 [EN] Add new knowledge base tag
 	CreateKnowledgeSplitter(ctx context.Context, in *CreateKnowledgeSplitterReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 修改知识库标签
+	// 修改知识库标签 [EN] Modify knowledge base tags
 	UpdateKnowledgeSplitter(ctx context.Context, in *UpdateKnowledgeSplitterReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除知识库标签
+	// 删除知识库标签 [EN] Delete knowledge base tag
 	DeleteKnowledgeSplitter(ctx context.Context, in *DeleteKnowledgeSplitterReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -92,13 +92,13 @@ func (c *knowledgeBaseSplitterServiceClient) DeleteKnowledgeSplitter(ctx context
 // All implementations must embed UnimplementedKnowledgeBaseSplitterServiceServer
 // for forward compatibility.
 type KnowledgeBaseSplitterServiceServer interface {
-	// 获取知识库标签列表
+	// 获取知识库标签列表 [EN] Get a list of knowledge base tags
 	SelectKnowledgeSplitterList(context.Context, *KnowledgeSplitterSelectReq) (*KnowledgeSplitterSelectListResp, error)
-	// 新增知识库标签
+	// 新增知识库标签 [EN] Add new knowledge base tag
 	CreateKnowledgeSplitter(context.Context, *CreateKnowledgeSplitterReq) (*emptypb.Empty, error)
-	// 修改知识库标签
+	// 修改知识库标签 [EN] Modify knowledge base tags
 	UpdateKnowledgeSplitter(context.Context, *UpdateKnowledgeSplitterReq) (*emptypb.Empty, error)
-	// 删除知识库标签
+	// 删除知识库标签 [EN] Delete knowledge base tag
 	DeleteKnowledgeSplitter(context.Context, *DeleteKnowledgeSplitterReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedKnowledgeBaseSplitterServiceServer()
 }

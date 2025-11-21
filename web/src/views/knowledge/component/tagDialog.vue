@@ -8,7 +8,7 @@
     <div>
       <el-input
         v-if="type !== 'section'"
-        placeholder="搜索标签"
+        placeholder="SearchTag"
         suffix-icon="el-icon-search"
         @keyup.enter.native="addByEnterKey"
         v-model="tagName"
@@ -34,7 +34,7 @@
             v-model="item.tagName"
             v-if="item.showIpt"
             maxlength="50"
-            placeholder="按回车(enter)键确认"
+            placeholder="Press Enter key to confirm"
             @keydown.backspace.native="handleDelete(item,index)" 
             @keyup.enter.native="inputBlur(item)"
            
@@ -54,7 +54,7 @@
       <el-button
         type="primary"
         @click="submitDialog"
-      >确 定</el-button>
+      >Confirm</el-button>
     </span>
   </el-dialog>
 </template>
@@ -134,11 +134,11 @@ export default {
       const isBind = await this.bindTagCount(item.tagId);
       if(isBind == 'unknow') return
       await this.$confirm(
-        `删除标签${item.tagName}`,
-        item.selected && isBind ? "标签正在使用中，是否删除？" : "确认要删除当前标签？",
+        `DeleteTag${item.tagName}`,
+        item.selected && isBind ? "Tagin progressusein，YesNoDelete？" : "ConfirmtoDeletecurrentTag？",
         {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
+          confirmButtonText: "Confirm",
+          cancelButtonText: "Cancel",
           type: "warning",
         }
       )
@@ -210,7 +210,7 @@ export default {
       const emptyTag = this.tagList.find(tag => !tag.tagId && tag.tagName === "");
       if(emptyTag) return;
       if(this.type === 'section' && this.tagList.length > 10){
-        this.$message.warning('最多可创建10个关键词')
+        this.$message.warning('最多可Create10Keyword')
         return;
       }
       this.tagList.unshift({

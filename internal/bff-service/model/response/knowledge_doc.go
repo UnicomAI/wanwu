@@ -17,46 +17,46 @@ type DocKnowledgeInfo struct {
 
 type ListDocResp struct {
 	DocId         string `json:"docId"`
-	DocName       string `json:"docName"`       //文档名称
-	DocType       string `json:"docType"`       //文档类型
-	KnowledgeId   string `json:"knowledgeId"`   //知识库id
-	UploadTime    string `json:"uploadTime"`    //上传时间
-	Status        int    `json:"status"`        //处理状态
-	ErrorMsg      string `json:"errorMsg"`      //解析错误信息，预留
-	FileSize      string `json:"fileSize"`      //文件大小，预留
-	SegmentMethod string `json:"segmentMethod"` //分段模式 0:通用分段，1：父子分段
-	Author        string `json:"author"`        //上传文档 作者
-	GraphStatus   int32  `json:"graphStatus"`   //图谱状态 0:待处理，1.解析中，2.解析成功，3.解析失败
-	GraphErrMsg   string `json:"graphErrMsg"`   //图谱错误信息
+	DocName       string `json:"docName"`       //file name
+	DocType       string `json:"docType"`       //Document type
+	KnowledgeId   string `json:"knowledgeId"`   //knowledge base id
+	UploadTime    string `json:"uploadTime"`    //Upload time
+	Status        int    `json:"status"`        //Processing status
+	ErrorMsg      string `json:"errorMsg"`      //Parse error information, reserved
+	FileSize      string `json:"fileSize"`      //File size, reserved
+	SegmentMethod string `json:"segmentMethod"` //Segmentation mode 0: universal segmentation, 1: parent-child segmentation
+	Author        string `json:"author"`        //Upload document author
+	GraphStatus   int32  `json:"graphStatus"`   //Spectrum status 0: pending, 1. parsing, 2. parsing successful, 3. parsing failed
+	GraphErrMsg   string `json:"graphErrMsg"`   //Plot error message
 }
 
 type DocImportTipResp struct {
 	Message       string `json:"msg"`
-	UploadStatus  int32  `json:"uploadstatus"`  //上传状态
-	KnowledgeId   string `json:"knowledgeId"`   //知识库id
-	KnowledgeName string `json:"knowledgeName"` //知识库名称
+	UploadStatus  int32  `json:"uploadstatus"`  //Upload status
+	KnowledgeId   string `json:"knowledgeId"`   //knowledge base id
+	KnowledgeName string `json:"knowledgeName"` //Knowledge base name
 }
 
 type DocSegmentResp struct {
-	FileName            string            `json:"fileName"`            //名称
-	PageTotal           int               `json:"pageTotal"`           //总页数
-	SegmentTotalNum     int               `json:"segmentTotalNum"`     //分段数量
-	MaxSegmentSize      int               `json:"maxSegmentSize"`      //设置最大长度
-	SegmentType         string            `json:"segmentType"`         //分段方式 0自动分段 1自定义分段
-	UploadTime          string            `json:"uploadTime"`          //上传时间
-	Splitter            string            `json:"splitter"`            //分隔符（只有自定义分段必填）
-	MetaDataList        []*DocMetaData    `json:"metaDataList"`        //文档元数据
-	SegmentContentList  []*SegmentContent `json:"contentList"`         //内容
-	SegmentImportStatus string            `json:"segmentImportStatus"` //分段导入状态描述
-	SegmentMethod       string            `json:"segmentMethod"`       //分段方式 父子分段/通用分段
+	FileName            string            `json:"fileName"`            //name
+	PageTotal           int               `json:"pageTotal"`           //Total pages
+	SegmentTotalNum     int               `json:"segmentTotalNum"`     //Number of segments
+	MaxSegmentSize      int               `json:"maxSegmentSize"`      //Set maximum length
+	SegmentType         string            `json:"segmentType"`         //Segmentation mode 0 automatic segmentation 1 custom segmentation
+	UploadTime          string            `json:"uploadTime"`          //Upload time
+	Splitter            string            `json:"splitter"`            //Delimiter (required only for custom segments)
+	MetaDataList        []*DocMetaData    `json:"metaDataList"`        //Document metadata
+	SegmentContentList  []*SegmentContent `json:"contentList"`         //content
+	SegmentImportStatus string            `json:"segmentImportStatus"` //Staged import status description
+	SegmentMethod       string            `json:"segmentMethod"`       //Segmentation method: parent-child segmentation/universal segmentation
 }
 
 type DocMetaData struct {
 	MetaKey       string `json:"metaKey"`       // key
-	MetaValue     string `json:"metaValue"`     // 确定值
+	MetaValue     string `json:"metaValue"`     // Determine value
 	MetaValueType string `json:"metaValueType"` // number，time, string
-	MetaRule      string `json:"metaRule"`      // 正则表达式
-	MetaId        string `json:"metaId"`        // 元数据id
+	MetaRule      string `json:"metaRule"`      // regular expression
+	MetaId        string `json:"metaId"`        // metadata id
 }
 
 type SegmentContent struct {
@@ -65,15 +65,15 @@ type SegmentContent struct {
 	ContentId  string   `json:"contentId"`
 	ContentNum int      `json:"contentNum"`
 	Labels     []string `json:"labels"`
-	IsParent   bool     `json:"isParent"` // 父子分段/通用分段 true是父分段，false是通用分段
-	ChildNum   int      `json:"childNum"` // 子分段数量
+	IsParent   bool     `json:"isParent"` // Parent-child segmentation/universal segmentation true is the parent segment, false is the universal segmentation
+	ChildNum   int      `json:"childNum"` // Number of subsegments
 }
 
 type ChildSegmentInfo struct {
-	Content  string `json:"content"`  // 内容
-	ChildId  string `json:"childId"`  // 子分段id
-	ChildNum int    `json:"childNum"` // 子分段序号
-	ParentId string `json:"parentId"` // 父分段id
+	Content  string `json:"content"`  // content
+	ChildId  string `json:"childId"`  // subsegment id
+	ChildNum int    `json:"childNum"` // subsegment number
+	ParentId string `json:"parentId"` // parent segment id
 }
 
 type AnalysisDocUrlResp struct {
@@ -87,5 +87,5 @@ type DocUrl struct {
 }
 
 type DocChildSegmentResp struct {
-	SegmentContentList []*ChildSegmentInfo `json:"contentList"` //内容
+	SegmentContentList []*ChildSegmentInfo `json:"contentList"` //content
 }

@@ -8,23 +8,33 @@ services:
     container_name: ${WANWU_MYSQL_HOST}
     networks:
       - ${WANWU_DOCKER_NETWORK}
-    # ports:
-    #   - 3306:3306
+    ports:
+      - 3306:3306
     volumes:
       - wanwu_mysql_data:/var/lib/mysql
       - ./configs/middleware/mysql/initdb.d:/docker-entrypoint-initdb.d
+      - ./configs/middleware/mysql/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
     environment:
       MYSQL_ROOT_PASSWORD: ${WANWU_MYSQL_PASSWORD}
       TZ: Asia/Shanghai
     command:
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_bin
+      --max-connections=50
+      --innodb-buffer-pool-size=256M
+      --skip-name-resolve
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -u root -p$$MYSQL_ROOT_PASSWORD | grep 'mysqld is alive'"]
-      interval: 15s
-      timeout: 5s
-      retries: 99
-      start_period: 10s
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
   
   mysql-setup:
     depends_on:
@@ -251,6 +261,7 @@ services:
       - ${WANWU_PROJECT_DIR}/bff-service/tmp:/app/tmp
       - ${WANWU_BFF_OAUTH_RSA_PRIVATE_KEY_PATH}:/app/tmp/oauth_rsa_private.pem
       - ${WANWU_BFF_OAUTH_RSA_PUBLIC_KEY_PATH}:/app/tmp/oauth_rsa_public.pem
+      - ./configs:/app/configs:ro
     environment:
       CUSTOM_INFO_VERSION: ${WANWU_VERSION}
       SERVER_WEB_BASE_URL: ${WANWU_WEB_BASE_URL}
@@ -493,6 +504,9 @@ services:
       start_period: 10s
   
   operate-service:
+    depends_on:
+      mysql:
+        condition: service_healthy
     restart: always
     image: ${WANWU_BACKEND_IMAGE}
     container_name: operate-service
@@ -567,6 +581,7 @@ services:
     #   - 8999:8999
     volumes:
       - ${WANWU_PROJECT_DIR}/workflow-wanwu/log:/app/log
+      - ./configs/microservice/workflow-wanwu/schema.sql:/app/configs/schema.sql
     environment:
       DB_NAME: ${WANWU_DB_NAME}
       DB_MYSQL_ADDRESS: ${WANWU_MYSQL_ADDRESS}
@@ -578,7 +593,11 @@ services:
       MINIO_USER: ${WANWU_MINIO_USER}
       MINIO_PASSWORD: ${WANWU_MINIO_PASSWORD}
       JWT_SIGNING_KEY: ${WANWU_BFF_JWT_SIGNING_KEY}
-      # --- 以下env用于workflow-wanwu适配 ---
+      # Language settings - force English
+      LANG: en_US.UTF-8
+      LANGUAGE: en_US:en
+      LC_ALL: en_US.UTF-8
+      # --- 以下env用于workflow-wanwu适配 --- [EN] --- The following env is used for workflow-wanwu adaptation ---
       WANWU_EXTERNAL_ENDPOINT: ${WANWU_EXTERNAL_ENDPOINT}
       WANWU_EXTERNAL_SCHEME: ${WANWU_EXTERNAL_SCHEME}
       WANWU_CALLBACK_LLM_BASE_URL: http://bff-service:6668/callback/v1/model
@@ -588,13 +607,13 @@ services:
       WANWU_KNOWLEDGE_SEARCH_URL: http://bff-service:6668/callback/v1/rag/search-knowledge-base
       WANWU_FILE_GENERATOR_URL: http://agent-wanwu:15002/upload
       WANWU_FILE_PARSER_URL: http://rag-wanwu:8681/rag/doc_parser
-      # 用于nginx 8081代理workflow-wanwu:8998 minio presign相关api
+      # 用于nginx 8081代理workflow-wanwu:8998 minio presign相关api [EN] Used for nginx 8081 proxy workflow-wanwu:8998 minio presign related api
       WANWU_MINIO_PROXY_ENDPOINT: ${WANWU_EXTERNAL_ENDPOINT}
       WANWU_MINIO_PROXY_PREFIX: /workflow/minio/presign
-      # 用于workflow-wanwu:8998代理minio-wanwu:9000
+      # 用于workflow-wanwu:8998代理minio-wanwu:9000 [EN] Used for workflow-wanwu:8998 proxy minio-wanwu:9000
       MINIO_API_HOST: http://${WANWU_MINIO_ENDPOINT}
       MINIO_PROXY_ENDPOINT: :8998
-      # 用于code节点运行
+      # 用于code节点运行 [EN] Used for code node running
       CODE_RUNNER_TYPE: ${WANWU_WORKFLOW_CODE_RUNNER_TYPE}
       CODE_RUNNER_ALLOW_ENV:
       CODE_RUNNER_ALLOW_READ:
@@ -606,7 +625,7 @@ services:
       CODE_RUNNER_TIMEOUT_SECONDS:
       CODE_RUNNER_MEMORY_LIMIT_MB:
     working_dir: /app
-    command: ./bin/workflow-wanwu
+    command: /app/bin/workflow-wanwu
   
   rag:
     depends_on:
@@ -644,7 +663,7 @@ services:
       REDIS_HOST: ${WANWU_REDIS_HOST}
       REDIS_PORT: ${WANWU_REDIS_PORT}
       REDIS_PASSWD: ${WANWU_REDIS_PASSWORD}
-      # 用于rag调用外部API的env
+      # 用于rag调用外部API的env [EN] env used for rag to call external API
       GET_KB_ID_URL: http://bff-service:6668/v1/api/category/info
       KAFKA_MQ_REL_URL: http://bff-service:6668/v1/api/docstatus
       KAFKA_MQ_KB_STATUS_URL: http://bff-service:6668/v1/api/knowledge/status
@@ -677,10 +696,10 @@ services:
       MINIO_ADDRESS: ${WANWU_MINIO_ENDPOINT}
       MINIO_ACCESS_KEY: ${WANWU_MINIO_USER}
       MINIO_SECRET_KEY: ${WANWU_MINIO_PASSWORD}
-      # 用于agent并发处理
+      # 用于agent并发处理 [EN] Used for agent concurrent processing
       WORKERS: 4
       THREADS: 8
-      # 用于agent调用外部接口的API前缀
+      # 用于agent调用外部接口的API前缀 [EN] API prefix used by the agent to call the external interface
       URL_MODEL: http://bff-service
       URL_MINIO: http://bff-service
       URL_RAG: http://rag-wanwu
@@ -729,6 +748,8 @@ services:
       - 8081:8081
     volumes:
       - ${WANWU_PROJECT_DIR}/nginx/log:/var/log/nginx
+      # Mount translated workflow JavaScript file to replace Chinese text with English
+      - ./project/nginx/workflow-static-overrides/js/index~0.1aa44a47.js:/usr/share/nginx/html/workflow/static/js/index~0.1aa44a47.js:ro
     healthcheck:
       test: ["CMD-SHELL", "timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/8081' || exit 1"]
       interval: 15s

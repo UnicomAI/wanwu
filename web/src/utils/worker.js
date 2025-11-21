@@ -7,10 +7,10 @@ const blobURL = URL.createObjectURL(
             function() {
                 const intervalIds = {};
 
-                // 监听message 开始执行定时器或者销毁
+                // Listenmessage startExecute定 when 器OR者Destroy
                 self.onmessage = function onMsgFunc(e) {
                     switch (e.data.command) {
-                        case 'interval:start': // 开启定时器
+                        case 'interval:start': // 开启定 when 器
                             const intervalId = setInterval(function() {
                                 postMessage({
                                     message: 'interval:tick',
@@ -25,7 +25,7 @@ const blobURL = URL.createObjectURL(
 
                             intervalIds[e.data.id] = intervalId;
                             break;
-                        case 'interval:clear': // 销毁
+                        case 'interval:clear': // Destroy
                             clearInterval(intervalIds[e.data.id]);
 
                             postMessage({
@@ -86,7 +86,7 @@ const workerTimer = {
         return id;
     },
 
-    // 监听worker 里面的定时器发送的message 然后执行回调函数
+    // Listenworker 里面 of 定 when 器Send of message 然afterExecuteCallbackFunction
     onMessage: function(e) {
         switch (e.data.message) {
             case 'interval:tick':
@@ -104,7 +104,7 @@ const workerTimer = {
         }
     },
 
-    // 往worker里面发送销毁指令
+    // 往worker里面SendDestroy指令
     clearInterval: function(id) {
         delete this.callbacks[id];
         worker.postMessage({ command: 'interval:clear', id: id });

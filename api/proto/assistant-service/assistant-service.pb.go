@@ -400,9 +400,9 @@ type AssistantConfigUpdateReq struct {
 	Instructions        string                        `protobuf:"bytes,2,opt,name=instructions,proto3" json:"instructions,omitempty"`
 	Prologue            string                        `protobuf:"bytes,3,opt,name=prologue,proto3" json:"prologue,omitempty"`
 	RecommendQuestion   []string                      `protobuf:"bytes,4,rep,name=recommendQuestion,proto3" json:"recommendQuestion,omitempty"`
-	ModelConfig         *common.AppModelConfig        `protobuf:"bytes,5,opt,name=modelConfig,proto3" json:"modelConfig,omitempty"`                 // 模型配置
-	KnowledgeBaseConfig *AssistantKnowledgeBaseConfig `protobuf:"bytes,6,opt,name=knowledgeBaseConfig,proto3" json:"knowledgeBaseConfig,omitempty"` // 知识库
-	RerankConfig        *common.AppModelConfig        `protobuf:"bytes,7,opt,name=rerankConfig,proto3" json:"rerankConfig,omitempty"`               // Rerank模型
+	ModelConfig         *common.AppModelConfig        `protobuf:"bytes,5,opt,name=modelConfig,proto3" json:"modelConfig,omitempty"`                 // Model configuration
+	KnowledgeBaseConfig *AssistantKnowledgeBaseConfig `protobuf:"bytes,6,opt,name=knowledgeBaseConfig,proto3" json:"knowledgeBaseConfig,omitempty"` // Knowledge base
+	RerankConfig        *common.AppModelConfig        `protobuf:"bytes,7,opt,name=rerankConfig,proto3" json:"rerankConfig,omitempty"`               // Rerank model
 	Identity            *Identity                     `protobuf:"bytes,9,opt,name=identity,proto3" json:"identity,omitempty"`
 	SafetyConfig        *AssistantSafetyConfig        `protobuf:"bytes,10,opt,name=safetyConfig,proto3" json:"safetyConfig,omitempty"`
 	VisionConfig        *AssistantVisionConfig        `protobuf:"bytes,11,opt,name=visionConfig,proto3" json:"visionConfig,omitempty"`
@@ -735,16 +735,16 @@ type AssistantKnowledgeBaseConfig struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	KnowledgeBaseIds     []string            `protobuf:"bytes,1,rep,name=knowledgeBaseIds,proto3" json:"knowledgeBaseIds,omitempty"`     // 知识库信息
-	MaxHistory           int32               `protobuf:"varint,2,opt,name=maxHistory,proto3" json:"maxHistory,omitempty"`                // 最长上下文
-	Threshold            float32             `protobuf:"fixed32,3,opt,name=threshold,proto3" json:"threshold,omitempty"`                 // 过滤阈值
+	KnowledgeBaseIds     []string            `protobuf:"bytes,1,rep,name=knowledgeBaseIds,proto3" json:"knowledgeBaseIds,omitempty"`     // Knowledge base information
+	MaxHistory           int32               `protobuf:"varint,2,opt,name=maxHistory,proto3" json:"maxHistory,omitempty"`                // longest context
+	Threshold            float32             `protobuf:"fixed32,3,opt,name=threshold,proto3" json:"threshold,omitempty"`                 // filter threshold
 	TopK                 int32               `protobuf:"varint,4,opt,name=topK,proto3" json:"topK,omitempty"`                            // topK
-	MatchType            string              `protobuf:"bytes,5,opt,name=matchType,proto3" json:"matchType,omitempty"`                   //matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
-	KeywordPriority      float32             `protobuf:"fixed32,6,opt,name=keywordPriority,proto3" json:"keywordPriority,omitempty"`     // 关键词权重
-	PriorityMatch        int32               `protobuf:"varint,7,opt,name=priorityMatch,proto3" json:"priorityMatch,omitempty"`          // 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1
-	SemanticsPriority    float32             `protobuf:"fixed32,8,opt,name=semanticsPriority,proto3" json:"semanticsPriority,omitempty"` // 语义权重
-	TermWeight           float32             `protobuf:"fixed32,9,opt,name=termWeight,proto3" json:"termWeight,omitempty"`               // 关键词系数
-	TermWeightEnable     bool                `protobuf:"varint,10,opt,name=termWeightEnable,proto3" json:"termWeightEnable,omitempty"`   // 关键词系数开关
+	MatchType            string              `protobuf:"bytes,5,opt,name=matchType,proto3" json:"matchType,omitempty"`                   //matchType: vector (vector search), text (text search), mix (mixed search: vector + text)
+	KeywordPriority      float32             `protobuf:"fixed32,6,opt,name=keywordPriority,proto3" json:"keywordPriority,omitempty"`     // Keyword weight
+	PriorityMatch        int32               `protobuf:"varint,7,opt,name=priorityMatch,proto3" json:"priorityMatch,omitempty"`          // Weight matching. This is only set to 1 after selecting the weight setting in mixed search mode.
+	SemanticsPriority    float32             `protobuf:"fixed32,8,opt,name=semanticsPriority,proto3" json:"semanticsPriority,omitempty"` // semantic weight
+	TermWeight           float32             `protobuf:"fixed32,9,opt,name=termWeight,proto3" json:"termWeight,omitempty"`               // keyword coefficient
+	TermWeightEnable     bool                `protobuf:"varint,10,opt,name=termWeightEnable,proto3" json:"termWeightEnable,omitempty"`   // Keyword coefficient switch
 	AppKnowledgeBaseList []*AppKnowledgeBase `protobuf:"bytes,11,rep,name=appKnowledgeBaseList,proto3" json:"appKnowledgeBaseList,omitempty"`
 	UseGraph             bool                `protobuf:"varint,12,opt,name=useGraph,proto3" json:"useGraph,omitempty"`
 }
@@ -872,7 +872,7 @@ type AppKnowledgeBase struct {
 
 	KnowledgeBaseId      string                `protobuf:"bytes,1,opt,name=knowledgeBaseId,proto3" json:"knowledgeBaseId,omitempty"`
 	KnowledgeBaseName    string                `protobuf:"bytes,2,opt,name=knowledgeBaseName,proto3" json:"knowledgeBaseName,omitempty"`
-	GraphSwitch          int32                 `protobuf:"varint,3,opt,name=graphSwitch,proto3" json:"graphSwitch,omitempty"` // 知识图谱开关
+	GraphSwitch          int32                 `protobuf:"varint,3,opt,name=graphSwitch,proto3" json:"graphSwitch,omitempty"` // Knowledge graph switch
 	MetaDataFilterParams *MetaDataFilterParams `protobuf:"bytes,4,opt,name=metaDataFilterParams,proto3" json:"metaDataFilterParams,omitempty"`
 }
 
@@ -941,9 +941,9 @@ type MetaDataFilterParams struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FilterEnable     bool                `protobuf:"varint,1,opt,name=filterEnable,proto3" json:"filterEnable,omitempty"`        // 元数据过滤开关
-	FilterLogicType  string              `protobuf:"bytes,2,opt,name=filterLogicType,proto3" json:"filterLogicType,omitempty"`   // 元数据逻辑条件：and/or
-	MetaFilterParams []*MetaFilterParams `protobuf:"bytes,3,rep,name=metaFilterParams,proto3" json:"metaFilterParams,omitempty"` // 元数据过滤参数列表
+	FilterEnable     bool                `protobuf:"varint,1,opt,name=filterEnable,proto3" json:"filterEnable,omitempty"`        // Metadata filter switch
+	FilterLogicType  string              `protobuf:"bytes,2,opt,name=filterLogicType,proto3" json:"filterLogicType,omitempty"`   // Metadata logical conditions: and/or
+	MetaFilterParams []*MetaFilterParams `protobuf:"bytes,3,rep,name=metaFilterParams,proto3" json:"metaFilterParams,omitempty"` // Metadata filter parameter list
 }
 
 func (x *MetaDataFilterParams) Reset() {
@@ -1207,9 +1207,9 @@ type AssistantInfo struct {
 	Prologue            string                        `protobuf:"bytes,4,opt,name=prologue,proto3" json:"prologue,omitempty"`
 	Instructions        string                        `protobuf:"bytes,5,opt,name=instructions,proto3" json:"instructions,omitempty"`
 	RecommendQuestion   []string                      `protobuf:"bytes,6,rep,name=recommendQuestion,proto3" json:"recommendQuestion,omitempty"`
-	ModelConfig         *common.AppModelConfig        `protobuf:"bytes,7,opt,name=modelConfig,proto3" json:"modelConfig,omitempty"`                 // 模型配置
-	KnowledgeBaseConfig *AssistantKnowledgeBaseConfig `protobuf:"bytes,8,opt,name=knowledgeBaseConfig,proto3" json:"knowledgeBaseConfig,omitempty"` // 知识库
-	RerankConfig        *common.AppModelConfig        `protobuf:"bytes,9,opt,name=rerankConfig,proto3" json:"rerankConfig,omitempty"`               // Rerank模型
+	ModelConfig         *common.AppModelConfig        `protobuf:"bytes,7,opt,name=modelConfig,proto3" json:"modelConfig,omitempty"`                 // Model configuration
+	KnowledgeBaseConfig *AssistantKnowledgeBaseConfig `protobuf:"bytes,8,opt,name=knowledgeBaseConfig,proto3" json:"knowledgeBaseConfig,omitempty"` // Knowledge base
+	RerankConfig        *common.AppModelConfig        `protobuf:"bytes,9,opt,name=rerankConfig,proto3" json:"rerankConfig,omitempty"`               // Rerank model
 	Scope               int32                         `protobuf:"varint,11,opt,name=scope,proto3" json:"scope,omitempty"`
 	WorkFlowInfos       []*AssistantWorkFlowInfos     `protobuf:"bytes,12,rep,name=workFlowInfos,proto3" json:"workFlowInfos,omitempty"`
 	McpInfos            []*AssistantMCPInfos          `protobuf:"bytes,13,rep,name=mcpInfos,proto3" json:"mcpInfos,omitempty"`

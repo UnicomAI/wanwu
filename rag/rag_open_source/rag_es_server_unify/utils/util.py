@@ -8,7 +8,7 @@ class IndexType(Enum):
     CONTENT_CONTROL = "content_control"
     FILE_CONTROL = "file_control"
 
-#获取主索引名
+#GetMainIndex名
 def get_main_index_name(user_id:str) -> str:
     return settings.INDEX_NAME_PREFIX + user_id
 

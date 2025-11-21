@@ -3,41 +3,41 @@
     <div class="form-header">
       <div class="header-left">
         <span class="el-icon-arrow-left btn" @click="goBack"></span>
-        <!-- <span class="header-left-title">文本问答编辑</span> -->
+        <!-- <span class="header-left-title">Text Q&AEdit</span> -->
         <div class="basicInfo">
           <div class="img">
             <img :src="editForm.avatar.path ? `/user/api`+ editForm.avatar.path : '@/assets/imgs/bg-logo.png'"  />
           </div>
           <div class="basicInfo-desc">
-            <span class="basicInfo-title">{{editForm.name || '无信息'}}</span>
+            <span class="basicInfo-title">{{editForm.name || 'No information'}}</span>
             <span class="el-icon-edit-outline editIcon" @click="editAgent"></span>
             <LinkIcon type="rag" />
-            <p>{{editForm.desc || '无信息'}}</p>
+            <p>{{editForm.desc || 'No information'}}</p>
           </div>
           </div>
       </div>
       <div class="header-right">
         <div class="header-api">
-          <el-tag  effect="plain" class="root-url">API根地址</el-tag>
+          <el-tag  effect="plain" class="root-url">API Base URL</el-tag>
           {{apiURL}}
         </div>
         <el-button @click="openApiDialog" plain class="apikeyBtn" size="small" >
           <img :src="require('@/assets/imgs/apikey.png')" />
-          API密钥
+          API Key
         </el-button>
-        <el-button size="small" type="primary" @click="handlePublish" style="padding:13px 12px;">发布<span class="el-icon-arrow-down" style="margin-left:5px;"></span></el-button>
+        <el-button size="small" type="primary" @click="handlePublish" style="padding:13px 12px;">Publish<span class="el-icon-arrow-down" style="margin-left:5px;"></span></el-button>
         <div class="popover-operation" v-if="showOperation">
           <div>
-            <el-radio :label="'private'" v-model="scope">私密发布为应用：仅自己可见</el-radio>
+            <el-radio :label="'private'" v-model="scope">Private: Visible only to you</el-radio>
           </div>
           <div>
-            <el-radio :label="'organization'" v-model="scope">公开发布为应用：组织内可见</el-radio>
+            <el-radio :label="'organization'" v-model="scope">Public: Visible within organization</el-radio>
           </div>
           <div>
-            <el-radio :label="'public'" v-model="scope">公开发布为应用：全局可见</el-radio>
+            <el-radio :label="'public'" v-model="scope">Public: Globally visible</el-radio>
           </div>
           <div class="saveBtn">
-            <el-button size="mini" type="primary" @click="savePublish">保 存</el-button>
+            <el-button size="mini" type="primary" @click="savePublish">Save</el-button>
           </div>
         </div>
       </div>
@@ -49,17 +49,17 @@
             <p class="block-title common-set">
               <span class="common-set-label">
                 <img :src="require('@/assets/imgs/require.png')" class="required-label"/>
-                模型选择
-                <span class="model-tips">[ 暂不支持选择图文问答类模型 ]</span>
+                Model Selection
+                <span class="model-tips">[ Image-text Q&A models not currently supported ]</span>
               </span>
               <span class="el-icon-s-operation operation" @click="showModelSet"></span>
             </p>
             <div class="rl">
               <el-select
                 v-model="editForm.modelParams"
-                placeholder="可输入模型名称搜索"
+                placeholder="Enter model name to search"
                 @visible-change="visibleChange"
-                loading-text="模型加载中..."
+                loading-text="ModelLoading..."
                 class="cover-input-icon model-select"
                 :disabled="isPublish"
                 :loading="modelLoading"
@@ -90,12 +90,12 @@
             <p class="block-title common-set">
               <span class="common-set-label">
                 <img :src="require('@/assets/imgs/require.png')" class="required-label"/>
-                关联知识库
+                Associated Knowledge Base
               </span>
               <span>
                 <span class="common-add" @click="showKnowledgeDiglog">
                   <span class="el-icon-plus"></span>
-                  <span class="handleBtn">添加</span>
+                  <span class="handleBtn">Add</span>
                 </span>
               </span>
             </p>
@@ -107,7 +107,7 @@
                         <span>{{n.name}}</span>
                        </div>
                         <div class="bt">
-                          <el-tooltip class="item" effect="dark" content="元数据过滤" placement="top-start">
+                          <el-tooltip class="item" effect="dark" content="Metadata Filter" placement="top-start">
                             <span class="el-icon-setting del" @click="showMetaSet(n,i)" style="margin-right:10px;"></span>
                           </el-tooltip>
                           <span class="el-icon-delete del" @click="delKnowledge(i)"></span>
@@ -122,7 +122,7 @@
             <p class="block-title common-set">
               <span class="common-set-label">
                 <img :src="require('@/assets/imgs/require.png')" class="required-label"/>
-                检索方式配置
+                Search Method Configuration
               </span>
             </p>
           <div class="rl">
@@ -132,40 +132,40 @@
         <div class="block prompt-box safety-box">
             <p class="block-title tool-title">
             <span class="block-title-text">
-              安全护栏配置
-              <el-tooltip class="item" effect="dark" content="实时拦截高风险内容的输入和输出，保障内容安全合规。" placement="top">
+              Safety Guardrail Configuration
+              <el-tooltip class="item" effect="dark" content="Real-time interception of high-risk input and output content to ensure content safety and compliance." placement="top">
                   <span class="el-icon-question question-tips"></span>
               </el-tooltip>
             </span>
             <span class="common-add">
               <span @click="showSafety">
                 <span class="el-icon-s-operation" ></span>
-                <span class="handleBtn" style="margin-right:10px;">配置</span>
+                <span class="handleBtn" style="margin-right:10px;">Configuration</span>
               </span>
               <el-switch v-model="editForm.safetyConfig.enable" :disabled="!(editForm.safetyConfig.tables || []).length"></el-switch>
             </span>
           </p>
         </div>
         <div class="block prompt-box safety-box" v-if="showGraphSwitch">
-          <graphSwitch ref="graphSwitch" @graphSwitchchange="graphSwitchchange" :label="'知识图谱'" :graphSwitch="editForm.knowledgeConfig.useGraph"/>
+          <graphSwitch ref="graphSwitch" @graphSwitchchange="graphSwitchchange" :label="'Knowledge Graph'" :graphSwitch="editForm.knowledgeConfig.useGraph"/>
         </div>
       </div>
       <div class="drawer-test">
         <Chat :chatType="'test'" :editForm="editForm"/>
       </div>
     </div>
-    <!-- 编辑智能体 -->
+    <!-- EditAgent -->
     <CreateTxtQues ref="createTxtQues" :type="'edit'" :editForm="editForm" @updateInfo="getDetail"/>
-    <!-- 模型设置 -->
+    <!-- ModelSetting -->
     <ModelSet @setModelSet="setModelSet" ref="modelSetDialog" :modelConfig="editForm.modelConfig" />
-    <!-- 知识库设置 -->
+    <!-- Knowledge BaseSetting -->
     <knowledgeSet @setKnowledgeSet="setKnowledgeSet" ref="knowledgeSetDialog" :knowledgeConfig="editForm.knowledgeConfig" />
     <!-- apikey -->
     <ApiKeyDialog ref="apiKeyDialog" :appId="editForm.appId" :appType="'rag'" />
     <setSafety ref="setSafety" @sendSafety="sendSafety" />
-    <!-- 知识库选择 -->
+    <!-- Knowledge Base Selection -->
     <knowledgeSelect ref="knowledgeSelect" @getKnowledgeData="getKnowledgeData" />
-    <!-- 元数据设置 -->
+    <!-- Metadata Settings -->
     <el-dialog
       :visible.sync="metaSetVisible"
       width="1050px"
@@ -173,14 +173,14 @@
       :before-close="handleMetaClose">
       <template #title>
          <div class="metaHeader">
-          <h3>配置元数据过滤</h3>
-          <span>[ 通过设置的元数据，对知识库内信息进行更加细化的筛选与检索控制。]</span>
+          <h3>ConfigurationMetadata Filter</h3>
+          <span>[ By setting metadata, perform more refined filtering and retrieval control on information within the knowledge base.]</span>
          </div>
       </template>
       <metaSet ref="metaSet"  :knowledgeId="currentKnowledgeId" :currentMetaData="currentMetaData"/>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="handleMetaClose">取 消</el-button>
-        <el-button type="primary" @click="submitMeta">确 定</el-button>
+        <el-button @click="handleMetaClose">Cancel</el-button>
+        <el-button type="primary" @click="submitMeta">Confirm</el-button>
       </span>
     </el-dialog>
   </div>
@@ -242,13 +242,13 @@ export default {
         rerankParams:'',
         knowledgebases:[],
         knowledgeConfig:{
-          keywordPriority: 0.8, //关键词权重
-          matchType: "mix", //vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
-          priorityMatch: 1, //权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1
-          rerankModelId: "", //rerank模型id
-          semanticsPriority: 0.2, //语义权重
-          topK: 5, //topK 获取最高的几行
-          threshold: 0.4, //过滤分数阈值
+          keywordPriority: 0.8, //Keyword weight
+          matchType: "mix", //vector（Vector search）、text（Text search）、mix（Hybrid search: vector + text）
+          priorityMatch: 1, //Weight matching, only set to 1
+          rerankModelId: "", //rerankModelid
+          semanticsPriority: 0.2, //Semantic weight
+          topK: 5, //topK Get top N rows
+          threshold: 0.4, //Filter score threshold
           maxHistory:0,//
           useGraph:false
         },
@@ -271,19 +271,19 @@ export default {
       selectKnowledge: [],
       loadingPercent: 10,
       nameStatus: "",
-      saved: false, //按钮
-      loading: false, //按钮
+      saved: false, //Button
+      loading: false, //Button
       t: null,
       logoFileList: [],
-      debounceTimer:null, //防抖计时器
-      isUpdating: false, // 防止重复更新标记
-      isSettingFromDetail: false, // 防止详情数据触发更新标记
+      debounceTimer:null, //Debounce timer
+      isUpdating: false, // Prevent duplicate update flag
+      isSettingFromDetail: false, // Prevent detail data trigger update flag
     };
   },
   watch:{
     editForm: {
     handler(newVal) {
-      // 如果是从详情设置的数据，不触发更新逻辑
+      // If data is set from details, do not trigger update logic
       if (this.isSettingFromDetail) {
         return;
       }
@@ -318,16 +318,16 @@ export default {
     this.initialEditForm = JSON.parse(JSON.stringify(this.editForm));
   },
   created() {
-    this.getModelData(); //获取模型列表
-    this.getRerankData(); //获取rerank模型
+    this.getModelData(); //GetModelList
+    this.getRerankData(); //GetrerankModel
     if (this.$route.query.id) {
       this.editForm.appId = this.$route.query.id;
       setTimeout(() => {
-        this.getDetail();//获取详情
-        this.apiKeyRootUrl(); //获取api跟地址
+        this.getDetail();//Get details
+        this.apiKeyRootUrl(); //Get API base address
       }, 500);
     }
-        //判断是否发布
+        //Check if published
     if (this.$route.query.publish) {
       this.isPublish = true;
     }
@@ -339,7 +339,7 @@ export default {
     submitMeta(){
       const metaData  = this.$refs.metaSet.getMetaData();
       if(this.$refs.metaSet.validateRequiredFields(metaData['metaDataFilterParams']['metaFilterParams'])){
-        this.$message.warning('存在未填信息,请补充')
+        this.$message.warning('Missing information, please complete')
         return
       }
       this.$set(this.editForm.knowledgebases, this.knowledgeIndex, { ...this.editForm.knowledgebases[this.knowledgeIndex], ...metaData });
@@ -381,8 +381,8 @@ export default {
     goBack(){
       this.$router.go(-1);
     },
-    getDetail(){//获取详情
-      this.isSettingFromDetail = true; // 设置标志位，防止触发更新逻辑
+    getDetail(){//Get details
+      this.isSettingFromDetail = true; // Set flag to prevent triggering update logic
       getRagInfo({ragId:this.editForm.appId}).then(res =>{
         if(res.code === 0){
             this.editForm.avatar = res.data.avatar;
@@ -413,7 +413,7 @@ export default {
             }
             
             this.editForm.knowledgeConfig.rerankModelId = res.data.rerankConfig.modelId;
-            // 使用nextTick确保所有数据设置完成后再重置标志位
+            // Use nextTick to ensure all data is set before resetting flag
             this.$nextTick(() => {
               this.isSettingFromDetail = false;
             });
@@ -438,15 +438,15 @@ export default {
       const { matchType, priorityMatch, rerankModelId } = this.editForm.knowledgeConfig;
       const isMixPriorityMatch = matchType === 'mix' && priorityMatch;
       if(this.editForm.modelParams === ''){
-        this.$message.warning('请选择模型！')
+        this.$message.warning('Please selectModel！')
         return false
       }
       if(!isMixPriorityMatch && !rerankModelId){
-        this.$message.warning('请选rerank择模型！')
+        this.$message.warning('Please select rerank model!')
         return false
       }
       if(this.editForm.knowledgebases.length === 0){
-        this.$message.warning('请选择关联知识库！')
+        this.$message.warning('Please selectAssociated Knowledge Base！')
         return false
       }
       const data = {appId:this.editForm.appId,appType:'rag',publishType:this.scope}
@@ -505,12 +505,12 @@ export default {
       this.modelLoading = false;
     },
     async updateInfo() {
-      if (this.isUpdating) return; // 防止重复调用
+      if (this.isUpdating) return; // Prevent duplicate calls
       
       this.isUpdating = true;
       try {
-        //知识库数据
-        //模型数据
+        //Knowledge BaseData
+        //ModelData
         const modeInfo = this.modleOptions.find(item => item.modelId === this.editForm.modelParams)
         if(this.editForm.knowledgeConfig.matchType === 'mix' && this.editForm.knowledgeConfig.priorityMatch === 1){
           this.editForm.knowledgeConfig.rerankModelId = ''
@@ -541,13 +541,13 @@ export default {
         }
         const res = await updateRagConfig(fromParams)
         
-        // 更新成功后，更新 initialEditForm 避免重复触发
+        // After successful update, update initialEditForm to avoid duplicate triggers
         if (res.code === 0) {
           this.initialEditForm = JSON.parse(JSON.stringify(this.editForm));
-          this.getDetail();//获取详情
+          this.getDetail();//Get details
         }
       } catch (error) {
-        console.error('更新配置失败:', error);
+        console.error('UpdateConfigurationFailed:', error);
       } finally {
         this.isUpdating = false;
       }
@@ -816,7 +816,7 @@ export default {
       font-weight:bold;
     }
   }
-  /*通用*/
+  /* General */
   .block {
     margin-bottom: 24px;
     .block-title {
@@ -900,7 +900,7 @@ export default {
     bottom: 5px;
     right: 10px;
   }
-  /*新建应用*/
+  /* Create App */
   .name-box {
     height: 90px;
     line-height: 90px;
@@ -969,7 +969,7 @@ export default {
     margin-top: 10px;
     padding: 8px 20px;
   }
-  /*推荐问题*/
+  /* Recommended Questions */
   .recommend-box {
     .recommend-item {
       margin-bottom: 12px;
@@ -990,7 +990,7 @@ export default {
     }
   }
 
-  /*知识增强*/
+  /* Knowledge Enhancement */
   .knowledge-config-com {
     margin-top: 10px;
   }
@@ -1000,7 +1000,7 @@ export default {
     padding-bottom: 60px;
   }
 
-  /*插件*/
+  /*Plugin*/
   .plugin-box {
     .el-checkbox-group {
       margin-top: 10px;
@@ -1084,9 +1084,9 @@ export default {
   z-index: 9999 !important;
 }
 .custom-tooltip.is-light {
-  border-color: #ccc; /* 设置边框颜色 */
-  background-color: #fff; /* 设置背景颜色 */
-  color: #666; /* 设置文字颜色 */
+  border-color: #ccc; /* Set border color */
+  background-color: #fff; /* Set background color */
+  color: #666; /* Set text color */
 }
 .custom-tooltip.el-tooltip__popper[x-placement^="top"] .popper__arrow::after {
   border-top-color: #fff !important;

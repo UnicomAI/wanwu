@@ -76,8 +76,8 @@
           </div>
         </div>
         <div v-if="isShowPublished && n.publishType && type !== 'workflow'" class="publishType">
-            <span v-if="n.publishType === 'private'" class="publishType-tag"><span class="el-icon-lock"></span> 私密</span>
-            <span v-else class="publishType-tag"><span class="el-icon-unlock"></span> 公开</span>
+            <span v-if="n.publishType === 'private'" class="publishType-tag"><span class="el-icon-lock"></span> Private</span>
+            <span v-else class="publishType-tag"><span class="el-icon-unlock"></span> Public</span>
         </div>
         <div
           class="editor"
@@ -126,7 +126,7 @@
                <el-dropdown-item
                 command="publishSet"
               >
-                发布配置
+                PublishConfiguration
               </el-dropdown-item>
               <el-dropdown-item
                 command="export"
@@ -139,7 +139,7 @@
         </div>
         <div class="copy-editor" v-if="n.appType === 'agentTemplate' && n.isShowCopy" @click.stop="copyTemplate(n)">
           <span class="el-icon-plus add"></span>
-          <span>复制</span>
+          <span>Copy</span>
         </div>
       </div>
     </div>
@@ -216,7 +216,7 @@ export default {
     copyTemplate(n){
       copyAgnetTemplate({assistantTemplateId:n.assistantTemplateId}).then(res =>{
         if(res.code === 0){
-          this.$message.success('复制成功')
+          this.$message.success('Copy successful')
           const id = res.data.assistantId
           this.$router.push({path:`/agent/test?id=${id}`})
         }
@@ -245,7 +245,7 @@ export default {
     isCanClick(n) {
       return this.isShowTool ? ((n.appType === 'workflow' && !n.publishType && n.appId !== 'example') || n.appType !== 'workflow') : true
     },
-    // 公用删除方法
+    // Shared delete method
     async handleDelete() {
       const params = {
         appId: this.row.appId,
@@ -279,7 +279,7 @@ export default {
         workflow_id: row.appId,
       }
 
-      const isExample = false // row.appId === 'example' 新版工作流无模板copy接口，暂定统一走工作流copy接口
+      const isExample = false // For now always call the workflow copy interface even though templates are not supported yet
       const exampleParams = {
         configName: row.name + '_' + this.$t('common.copy.copyText'),
         configENName: "",
@@ -324,9 +324,9 @@ export default {
         appType: row.appType
       };
       
-      //工作流取消发布，需弹窗提示
+      // Workflow unpublish requires a confirmation dialog
       if(row.appType === 'workflow'){
-        confirmed = await this.showDeleteConfirm('取消发布后，历史引用了本工作流的智能体将自动取消引用，且此操作不可撤回');
+        confirmed = await this.showDeleteConfirm('After unpublishing, agents that historically referenced this workflow will automatically cancel the reference, and this operation cannot be undone');
       }
       
       if(confirmed){
@@ -399,7 +399,7 @@ export default {
       copyAgentApp({assistantId:row.appId}).then(res=>{
         if(res.code === 0){
           const id = res.data.assistantId;
-          this.$message.success('复制成功');
+          this.$message.success('Copy successful');
           this.$router.push({path:`/agent/test?id=${id}`})
         }
       }).catch(()=>{})
@@ -407,22 +407,22 @@ export default {
     intelligentOperation(method, row) {
       switch (method) {
         case "edit":
-          // 智能体编辑
+          // AgentEdit
           this.intelligentEdit(row);
           break;
         case "delete":
-          // 智能体删除
+          // AgentDelete
           this.intelligentDelete(row);
           break;
         case "copy":
-          // 智能体复制
+          // AgentCopy
           this.intelligentCopy(row);
           break;
         case "cancelPublish":
           this.cancelPublish(row);
           break;
         case "publishSet":
-          //发布设置
+          //PublishSetting
           this.$router.push({path:`/agent/publishSet`, query: {appId: row.appId, appType: row.appType, name: row.name}})
           break;
       }
@@ -444,7 +444,7 @@ export default {
       copyTextQues({ragId:row.appId}).then(res=>{
         if(res.code === 0){
           const id = res.data.ragId;
-          this.$message.success('复制成功');
+          this.$message.success('Copy successful');
           this.$router.push({path:`/rag/test?id=${id}`})
         }
       }).catch(()=>{})
@@ -452,15 +452,15 @@ export default {
     txtQuesOperation(method, row) {
       switch (method) {
         case "edit":
-          // 文本问答编辑
+          // Text Q&AEdit
           this.txtQuesEdit(row);
           break;
         case "delete":
-          // 文本问答删除
+          // Text Q&ADelete
           this.txtQuesDelete(row);
           break;
         case "copy":
-          // 文本问答复制
+          // Text Q&ACopy
           this.txtQuesCopy(row);
           break;
         case "cancelPublish":

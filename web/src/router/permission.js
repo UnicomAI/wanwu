@@ -8,9 +8,9 @@ const white_list = [basePath + '/aibase', '/oauth', '/login', '/webChat', '/regi
 export const PERMS = menuPerms
 
 export const checkPerm = (perm) => {
-    // 不传权限点，表示不需要权限控制，返回 true
+    // 不传Permission点，Table示不NeedPermission控制，Back true
     if (!perm) return true
-    // 传权限点，判断是否在权限列表，在返回 true，否则 false
+    // 传Permission点，CheckYesNo在PermissionList，在Back true，NoThen false
     const permission = store.getters['user/permission']
     const orgPermission = permission.orgPermission
     if (orgPermission && orgPermission.length) {

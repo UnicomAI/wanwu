@@ -97,8 +97,8 @@ def batch_add_chunks(user_id: str, kb_name: str, file_name: str, max_sentence_si
         chunk_total_num = allocate_chunk_result["data"]["chunk_total_num"]
         meta_data = allocate_chunk_result["data"]["meta_data"]
         current_chunk_num = chunk_total_num - len(chunks) + 1
-        if not kb_id:  # kb_id为空，则根据kb_name获取kb_id
-            kb_id = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)  # 获取kb_id
+        if not kb_id:  # If kb_id is empty, get kb_id based on kb_name
+            kb_id = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)  # Get kb_id
         for chunk in chunks:
             chunk["meta_data"] = copy.deepcopy(meta_data)
             chunk["meta_data"]["chunk_current_num"] = current_chunk_num
@@ -146,8 +146,8 @@ def batch_add_child_chunks(user_id: str, kb_name: str, file_name: str, chunk_id:
         parent_content = allocate_child_chunk_result["data"]["content"]
         meta_data = allocate_child_chunk_result["data"]["meta_data"]
         child_chunk_current_num = child_chunk_total_num - len(child_contents) + 1
-        if not kb_id:  # kb_id为空，则根据kb_name获取kb_id
-            kb_id = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)  # 获取kb_id
+        if not kb_id:  # If kb_id is empty, get kb_id based on kb_name
+            kb_id = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)  # Get kb_id
         for child_content in child_contents:
             copy_meta_data = copy.deepcopy(meta_data)
             copy_meta_data["child_chunk_current_num"] = child_chunk_current_num
@@ -209,8 +209,8 @@ def update_chunk(user_id: str, kb_name: str, file_name: str, max_sentence_size: 
     if 'labels' in old_content:
         chunk['labels'] = old_content['labels']
 
-    if not kb_id:  # kb_id为空，则根据kb_name获取kb_id
-        kb_id = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)  # 获取kb_id
+    if not kb_id:  # If kb_id is empty, get kb_id based on kb_name
+        kb_id = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)  # Get kb_id
     content_str = kb_id + chunk["text"] + file_name + str(chunk_current_num)
     new_content_id = generate_md5(content_str)
     if new_content_id != old_content_id:
@@ -224,7 +224,7 @@ def update_chunk(user_id: str, kb_name: str, file_name: str, max_sentence_size: 
         save_resp = save_chunks(user_id, kb_name, file_name, chunks, sub_chunks, kb_id=kb_id)
         if save_resp["code"] != 0:
             response_info["message"] = save_resp["message"]
-            #新增数据回滚
+            #New data rollback
             milvus_utils.batch_delete_chunks(user_id, kb_name, file_name, [new_content_id], kb_id=kb_id)
             return response_info
 
@@ -236,13 +236,13 @@ def update_chunk(user_id: str, kb_name: str, file_name: str, max_sentence_size: 
         if update_status_result['code'] != 0:
             logger.error(f"更新分段status失败, user_id: {user_id}, kb_name={kb_name}, file_name: {file_name}, content_id: {new_content_id}")
             response_info["message"] = update_status_result["message"]
-            # 新增数据回滚
+            # New data rollback
             milvus_utils.batch_delete_chunks(user_id, kb_name, file_name, [new_content_id], kb_id=kb_id)
             return response_info
         else:
             logger.info(f"更新分段status完成, user_id: {user_id}, kb_name: {kb_name}, file_name: {file_name}, content_id: {new_content_id}")
 
-        #清理旧数据
+        #Clean old data
         milvus_utils.batch_delete_chunks(user_id, kb_name, file_name, [old_content_id], kb_id=kb_id)
         if "labels" in chunk and chunk["labels"]:
             redis_utils.update_chunk_labels(chunk_label_redis_client, kb_id, file_name, new_content_id, chunk["labels"])

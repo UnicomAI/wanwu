@@ -95,8 +95,8 @@ export default {
   data() {
     return {
       loading: false,
-      content: {}, // 存储返回的总揽数据
-      echartContent: {}, // 存储返回的echart数据
+      content: {}, // 存储Back of 总揽Data
+      echartContent: {}, // 存储Back of echartData
       type: "model",
       concurrentUser: {},
       count: [
@@ -130,7 +130,7 @@ export default {
         },
       ],
       searchShow: true,
-      timeout: null, // 防抖定时
+      timeout: null, // debounce定 when 
       searchTime: {
         time: [],
       },
@@ -180,7 +180,7 @@ export default {
         const {overview, trend} = res.data || {}
         this.content = overview || {}
         this.echartContent = trend || {}
-        // 解构后台返回的数据，暂存和 count 数组中key对应的数据
+        // 解构after台Back of Data，暂存And count Arrayinkey对应 of Data
         this.count.map((item) => {
           item.value = overview[item.key] ? overview[item.key].value : 0;
           item.des_value = overview[item.key] ? overview[item.key].periodOverPeriod : -9999;

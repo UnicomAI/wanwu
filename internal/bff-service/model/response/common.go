@@ -26,23 +26,23 @@ type IDName struct {
 }
 
 type UserPermission struct {
-	OrgPermission    UserOrgPermission `json:"orgPermission"`    // 用户所在组织权限
-	Language         Language          `json:"language"`         // 语言
-	IsUpdatePassword bool              `json:"isUpdatePassword"` // 是否已更新密码
-	Avatar           request.Avatar    `json:"avatar"`           // 用户头像信息
+	OrgPermission    UserOrgPermission `json:"orgPermission"`    // User organization permissions
+	Language         Language          `json:"language"`         // language
+	IsUpdatePassword bool              `json:"isUpdatePassword"` // Has the password been updated?
+	Avatar           request.Avatar    `json:"avatar"`           // User avatar information
 }
 
 type UserOrgPermission struct {
-	IsAdmin     bool         `json:"isAdmin"`     // 是否系统内置管理员
-	IsSystem    bool         `json:"isSystem"`    // 是否系统视角（此时org.id为空，org.name为"系统"）
-	Org         IDName       `json:"org"`         // 组织
-	Roles       []IDName     `json:"roles"`       // 角色列表
-	Permissions []Permission `json:"permissions"` // 权限列表
+	IsAdmin     bool         `json:"isAdmin"`     // Whether the system has a built-in administrator
+	IsSystem    bool         `json:"isSystem"`    // Whether to use the system perspective (at this time, org.id is empty and org.name is "system")
+	Org         IDName       `json:"org"`         // organize
+	Roles       []IDName     `json:"roles"`       // role list
+	Permissions []Permission `json:"permissions"` // Permission list
 }
 
 type Permission struct {
-	Perm string `json:"perm"` // 权限
-	Name string `json:"name"` // 权限名（对应菜单名）
+	Perm string `json:"perm"` // Permissions
+	Name string `json:"name"` // Permission name (corresponding to menu name)
 }
 
 type Select struct {
@@ -50,11 +50,11 @@ type Select struct {
 }
 
 type DocMenu struct {
-	Name     string     `json:"name"`     // 目录名称
-	Index    string     `json:"index"`    // 目录索引
-	Path     string     `json:"path"`     // 目录路径（转码后）
-	PathRaw  string     `json:"pathRaw"`  // 目录路径
-	Children []*DocMenu `json:"children"` // 目录
+	Name     string     `json:"name"`     // directory name
+	Index    string     `json:"index"`    // directory index
+	Path     string     `json:"path"`     // Directory path (after transcoding)
+	PathRaw  string     `json:"pathRaw"`  // directory path
+	Children []*DocMenu `json:"children"` // Table of contents
 
 	content string
 }
@@ -64,12 +64,12 @@ func (dm *DocMenu) SetContent(content string) {
 }
 
 type DocSearchResp struct {
-	Title       string             `json:"title"` // 文档名
-	ContentList []DocSearchContent `json:"list"`  // 内容列表
+	Title       string             `json:"title"` // Document name
+	ContentList []DocSearchContent `json:"list"`  // Contents list
 }
 
 type DocSearchContent struct {
-	Title   string `json:"title"`   // 文档中的子标题
-	Content string `json:"content"` // 内容
-	Url     string `json:"url"`     // 文档链接
+	Title   string `json:"title"`   // Subtitles in the document
+	Content string `json:"content"` // content
+	Url     string `json:"url"`     // Documentation link
 }

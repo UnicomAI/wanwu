@@ -1,16 +1,16 @@
 package mp_qwen
 
 type LLMParams struct {
-	Temperature            float32 `json:"temperature"`            // 温度
-	TemperatureEnable      bool    `json:"temperatureEnable"`      // 温度(开关)
+	Temperature            float32 `json:"temperature"`            // temperature
+	TemperatureEnable      bool    `json:"temperatureEnable"`      // Temperature (switch)
 	TopP                   float32 `json:"topP"`                   // Top P
-	TopPEnable             bool    `json:"topPEnable"`             // Top P(开关)
-	FrequencyPenalty       float32 `json:"frequencyPenalty"`       // 频率惩罚
-	FrequencyPenaltyEnable bool    `json:"frequencyPenaltyEnable"` // 频率惩罚(开关)
-	PresencePenalty        float32 `json:"presencePenalty"`        // 存在惩罚
-	PresencePenaltyEnable  bool    `json:"presencePenaltyEnable"`  // 存在惩罚(开关)
-	MaxTokens              int32   `json:"maxTokens"`              // 最大标记
-	MaxTokensEnable        bool    `json:"maxTokensEnable"`        // 最大标记(开关)
+	TopPEnable             bool    `json:"topPEnable"`             // Top P(switch)
+	FrequencyPenalty       float32 `json:"frequencyPenalty"`       // frequency penalty
+	FrequencyPenaltyEnable bool    `json:"frequencyPenaltyEnable"` // Frequency Penalty (Switching)
+	PresencePenalty        float32 `json:"presencePenalty"`        // There is punishment
+	PresencePenaltyEnable  bool    `json:"presencePenaltyEnable"`  // There is a penalty (switch)
+	MaxTokens              int32   `json:"maxTokens"`              // maximum mark
+	MaxTokensEnable        bool    `json:"maxTokensEnable"`        // maximum mark(switch)
 }
 
 func (cfg *LLMParams) GetParams() map[string]interface{} {

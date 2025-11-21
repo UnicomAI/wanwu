@@ -143,7 +143,7 @@ export default {
       this.getTableData(this.docQuery)
     },
     handleDel(data){
-       this.$confirm('确定要删除当前数据吗？',this.$t('knowledgeManage.tip'),
+       this.$confirm('ConfirmtoDeletecurrentData吗？',this.$t('knowledgeManage.tip'),
         {
           confirmButtonText:  this.$t('common.button.confirm'),
           cancelButtonText: this.$t('common.button.cancel'),
@@ -156,7 +156,7 @@ export default {
           let res = await delKeyWord(jsondata);
           if (res.code === 0) {
             this.$message.success(this.$t('common.info.delInfo'));
-            this.getTableData(this.docQuery)//获取知识分类数据
+            this.getTableData(this.docQuery)//Get知识分ClassData
           }
           this.tableLoading = false;
         })
@@ -352,9 +352,9 @@ export default {
 </style>
 <style lang="scss">
 .custom-tooltip.is-light {
-  border-color: #eee; /* 设置边框颜色 */
-  background-color: #fff; /* 设置背景颜色 */
-  color: #666; /* 设置文字颜色 */
+  border-color: #eee; /* Set border color */
+  background-color: #fff; /* Set background color */
+  color: #666; /* Set text color */
 }
 .custom-tooltip.el-tooltip__popper[x-placement^="top"] .popper__arrow::after {
   border-top-color: #fff !important;

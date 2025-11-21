@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s', handlers=[logging.StreamHandler()])
 
-# ======= 从环境变量中获取mimio配置信息 =======
+# ======= Obtain mimio configuration information from environment variables =======
 MINIO_ADDRESS = os.getenv("MINIO_ADDRESS")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
@@ -21,8 +21,8 @@ if MINIO_ADDRESS is None or MINIO_ACCESS_KEY is None or MINIO_SECRET_KEY is None
     MINIO_ADDRESS = "172.17.0.1:9000"
     MINIO_ACCESS_KEY = "root"
     MINIO_SECRET_KEY = "V5EMfXAuCCx3JkjTG4jQ"
-# ======= 从环境变量中获取mimio配置信息 =======
-# 配置Minio服务器
+# ======= Obtain mimio configuration information from environment variables =======
+# Configure Minio server
 minio_client = Minio(
     MINIO_ADDRESS,
     access_key=MINIO_ACCESS_KEY,
@@ -41,15 +41,15 @@ public_minio_download_url = base_url
 
 def upload_file_to_minio(file_stream, original_filename, bucket_name=default_bucket_name, overwrite_file_name=None):
     try:
-        # 获取文件扩展名
+        # Get file extension
         _, file_extension = os.path.splitext(original_filename)
         
-        # 创建临时文件
+        # Create temporary files
         temp_file_path = tempfile.mktemp(suffix=file_extension)
         with open(temp_file_path, "wb") as temp_file:
             temp_file.write(file_stream.read())
 
-        # 获取临时文件的文件名
+        # Get the filename of a temporary file
         file_name = os.path.basename(temp_file_path)
 
         if overwrite_file_name:
@@ -59,7 +59,7 @@ def upload_file_to_minio(file_stream, original_filename, bucket_name=default_buc
             file_stat = os.stat(temp_file_path)
             minio_client.put_object(bucket_name, file_name, file_data, file_stat.st_size)
 
-        # 删除临时文件
+        # Delete temporary files
         os.remove(temp_file_path)
         logging.info(f"File '{file_name}' uploaded to Minio bucket '{bucket_name}'")
 
@@ -72,7 +72,7 @@ def upload_file_to_minio(file_stream, original_filename, bucket_name=default_buc
 @app.route("/upload", methods=["POST"])
 def upload_file():
     try:
-        # 从请求中获取文件
+        # Get files from request
         uploaded_file = request.files["file"]
         file_stream = uploaded_file.stream
         original_filename = uploaded_file.filename

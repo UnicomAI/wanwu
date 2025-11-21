@@ -6,22 +6,22 @@
         width="45%"
         :before-close="handleClose">
         <el-form ref="form" :model="form" label-width="130px" :rules="rules">
-            <el-form-item label="问题中的关键词" prop="name">
+            <el-form-item label="Keyword in Question" prop="name">
                 <el-input v-model="form.name"></el-input>
             </el-form-item>
-            <el-form-item label="文档中的词语" prop="alias">
+            <el-form-item label="Word in Document" prop="alias">
                 <el-input v-model="form.alias"></el-input>
             </el-form-item>
-            <el-form-item label="选择知识库" prop="knowledgeBaseIds">
+            <el-form-item label="Select Knowledge Base" prop="knowledgeBaseIds">
             <el-select
               v-model="form.knowledgeBaseIds"
-              placeholder="请选择"
+              placeholder="Please select"
               multiple
               clearable
               filterable 
               style="width:100%;"
               @visible-change="visibleChange($event)"
-            >
+            > 
               <el-option
                 v-for="item in knowledgeOptions"
                 :key="item.knowledgeId"
@@ -33,8 +33,8 @@
           </el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
-            <el-button @click="dialogVisible = false">取 消</el-button>
-            <el-button type="primary" @click="submit('form')">确 定</el-button>
+            <el-button @click="dialogVisible = false">Cancel</el-button>
+            <el-button type="primary" @click="submit('form')">Confirm</el-button>
         </span>
         </el-dialog> 
     </div>
@@ -51,12 +51,12 @@ export default {
                 knowledgeBaseIds:[]
             },
             rules:{
-                name:[{required: true, message: '请输入问题中的关键词', trigger: 'blur' }],
-                alias:[{required: true, message: '请输入文档中的词语', trigger: 'blur' }],
-                knowledgeBaseIds:[{required: true, message: '请选择知识库', trigger: 'blur' }]
+                name:[{required: true, message: 'Please enter问题in of Keyword', trigger: 'blur' }],
+                alias:[{required: true, message: 'Please enterDocumentin of 词语', trigger: 'blur' }],
+                knowledgeBaseIds:[{required: true, message: 'Please selectKnowledge Base', trigger: 'blur' }]
             },
             knowledgeOptions:[],
-            title:'创建关键词',
+            title:'CreateKeyword',
             dialogVisible:false,
             id:''
         }
@@ -101,7 +101,7 @@ export default {
         })
       },
       async getKnowledgeList() {
-            //获取文档知识分类
+            //GetDocument知识分Class
             const res = await getKnowledgeList({});
             if (res.code === 0) {
                 this.knowledgeOptions = res.data.knowledgeList || [];
@@ -117,7 +117,7 @@ export default {
         showDialog(row=null){
             this.dialogVisible = true
             if(row !== null){
-                this.title = '编辑关键词'
+                this.title = 'EditKeyword'
                 this.id = row.id
                 this.form.name = row.name
                 this.form.alias = row.alias
@@ -132,7 +132,7 @@ export default {
             this.form.alias = ''
             this.form.knowledgeBaseIds = []
             this.id = ''
-            this.title = '新增关键词'
+            this.title = 'AddKeyword'
             this.$refs.form.clearValidate()
             this.$refs.form.validateField()
         },

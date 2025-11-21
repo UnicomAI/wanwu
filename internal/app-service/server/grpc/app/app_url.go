@@ -10,9 +10,9 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// AppUrlCreate 创建智能体Url
+// AppUrlCreate creates the agent Url
 func (s *Service) AppUrlCreate(ctx context.Context, req *app_service.AppUrlCreateReq) (*emptypb.Empty, error) {
-	// 组装model参数
+	// Assemble model parameters
 	appUrl := &model.AppUrl{
 		AppID:               req.AppUrlInfo.AppId,
 		AppType:             req.AppUrlInfo.AppType,
@@ -29,25 +29,25 @@ func (s *Service) AppUrlCreate(ctx context.Context, req *app_service.AppUrlCreat
 		Suffix:              util.GenUUID(),
 		Description:         req.AppUrlInfo.Description,
 	}
-	// 调用client方法创建智能体Url
+	// Call the client method to create the agent Url
 	if err := s.cli.CreateAppUrl(ctx, appUrl); err != nil {
 		return nil, errStatus(errs.Code_AppUrl, err)
 	}
 	return &emptypb.Empty{}, nil
 }
 
-// AppUrlDelete 删除智能体Url
+// AppUrlDelete deletes the agent Url
 func (s *Service) AppUrlDelete(ctx context.Context, req *app_service.AppUrlDeleteReq) (*emptypb.Empty, error) {
-	// 调用client方法删除智能体Url
+	// Call the client method to delete the agent Url
 	if status := s.cli.DeleteAppUrl(ctx, util.MustU32(req.UrlId)); status != nil {
 		return nil, errStatus(errs.Code_AppUrl, status)
 	}
 	return &emptypb.Empty{}, nil
 }
 
-// AppUrlUpdate 修改智能体Url
+// AppUrlUpdate Modifies the agent Url
 func (s *Service) AppUrlUpdate(ctx context.Context, req *app_service.AppUrlUpdateReq) (*emptypb.Empty, error) {
-	// 调用client方法更新智能体Url
+	// Call the client method to update the agent Url
 	if status := s.cli.UpdateAppUrl(ctx, &model.AppUrl{
 		ID:                  util.MustU32(req.AppUrlInfo.UrlId),
 		Name:                req.AppUrlInfo.Name,
@@ -65,13 +65,13 @@ func (s *Service) AppUrlUpdate(ctx context.Context, req *app_service.AppUrlUpdat
 	return &emptypb.Empty{}, nil
 }
 
-// GetAppUrlList 智能体Url列表
+// GetAppUrlList Agent Url list
 func (s *Service) GetAppUrlList(ctx context.Context, req *app_service.GetAppUrlListReq) (*app_service.GetAppUrlListResp, error) {
 	appUrls, err := s.cli.GetAppUrlList(ctx, req.AppId, req.AppType)
 	if err != nil {
 		return nil, errStatus(errs.Code_AppUrl, err)
 	}
-	// 转换为响应格式
+	// Convert to responsive format
 	var existingAppUrls []*app_service.AppUrlInfo
 	for _, appUrl := range appUrls {
 		existingAppUrls = append(existingAppUrls, appUrl2pb(appUrl))
@@ -82,7 +82,7 @@ func (s *Service) GetAppUrlList(ctx context.Context, req *app_service.GetAppUrlL
 }
 
 func (s *Service) GetAppUrlInfoBySuffix(ctx context.Context, req *app_service.GetAppUrlInfoBySuffixReq) (*app_service.AppUrlInfo, error) {
-	// 获取现有智能体Url信息
+	// Get existing agent Url information
 	appUrl, err := s.cli.GetAppUrlInfoBySuffix(ctx, req.Suffix)
 	if err != nil {
 		return nil, errStatus(errs.Code_AppUrl, err)
@@ -90,7 +90,7 @@ func (s *Service) GetAppUrlInfoBySuffix(ctx context.Context, req *app_service.Ge
 	return appUrl2pb(appUrl), nil
 }
 
-// AppUrlStatusSwitch AppUrl开关
+// AppUrlStatusSwitch AppUrl switch
 func (s *Service) AppUrlStatusSwitch(ctx context.Context, req *app_service.AppUrlStatusSwitchReq) (*emptypb.Empty, error) {
 	if err := s.cli.AppUrlStatusSwitch(ctx, util.MustU32(req.UrlId), req.Status); err != nil {
 		return nil, errStatus(errs.Code_AppUrl, err)

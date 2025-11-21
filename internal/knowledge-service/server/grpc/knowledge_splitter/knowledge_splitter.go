@@ -32,7 +32,7 @@ func (s *Service) SelectKnowledgeSplitterList(ctx context.Context, req *knowledg
 	configSplitterList := config.GetConfig().SplitterList
 	var presetSplitterList []*model.KnowledgeSplitter
 	for _, v := range configSplitterList {
-		// 搜索条件
+		// Search criteria
 		if req.SplitterName != "" {
 			if strings.Contains(v.Name, req.SplitterName) {
 				presetSplitterList = append(presetSplitterList, &model.KnowledgeSplitter{
@@ -52,39 +52,39 @@ func (s *Service) SelectKnowledgeSplitterList(ctx context.Context, req *knowledg
 }
 
 func (s *Service) CreateKnowledgeSplitter(ctx context.Context, req *knowledgebase_splitter_service.CreateKnowledgeSplitterReq) (*emptypb.Empty, error) {
-	//1.重名校验
+	//1. Duplicate name verification
 	err := orm.CheckSameKnowledgeSplitterNameOrValue(ctx, req.UserId, req.OrgId, req.SplitterName, req.SplitterValue)
 	if err != nil {
 		return nil, err
 	}
-	//2.创建创建知识库分隔符
+	//2. Create a knowledge base separator
 	splitterModel := buildKnowledgeSplitterModel(req)
 	err = orm.CreateKnowledgeSplitter(ctx, splitterModel)
 	if err != nil {
 		log.Errorf("CreateKnowledgeSplitter error %v params %v", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeSplitterCreateFailed)
 	}
-	//3.返回结果
+	//3.Return results
 	return &emptypb.Empty{}, nil
 }
 
 func (s *Service) UpdateKnowledgeSplitter(ctx context.Context, req *knowledgebase_splitter_service.UpdateKnowledgeSplitterReq) (*emptypb.Empty, error) {
-	//1.查询知识库分隔符详情
+	//1. Query the knowledge base separator details
 	knowledgeTag, err := orm.SelectKnowledgeSplitterDetail(ctx, req.UserId, req.OrgId, req.SplitterId)
 	if err != nil {
 		log.Errorf(fmt.Sprintf("没有操作该分隔符的权限 参数(%v)", req))
 		return nil, util.ErrCode(errs.Code_KnowledgeSplitterAccessDenied)
 	}
-	//2.重名校验
+	//2. Duplicate name verification
 	if knowledgeTag.Name == req.SplitterName {
-		//如何修改得名称和原名称一样无需修改
+		//How to modify the name so that it is the same as the original name without modification
 		return &emptypb.Empty{}, nil
 	}
 	err = orm.CheckSameKnowledgeSplitterNameOrValue(ctx, req.UserId, req.OrgId, req.SplitterName, req.SplitterValue)
 	if err != nil {
 		return nil, err
 	}
-	//3.更新知识库
+	//3. Update knowledge base
 	err = orm.UpdateKnowledgeSplitter(ctx, req.SplitterName, req.SplitterValue, knowledgeTag.Id)
 	if err != nil {
 		log.Errorf("知识库分隔符更新失败(%v)  参数(%v)", err, req)
@@ -94,13 +94,13 @@ func (s *Service) UpdateKnowledgeSplitter(ctx context.Context, req *knowledgebas
 }
 
 func (s *Service) DeleteKnowledgeSplitter(ctx context.Context, req *knowledgebase_splitter_service.DeleteKnowledgeSplitterReq) (*emptypb.Empty, error) {
-	//1.查询知识库分隔符详情
+	//1. Query the knowledge base separator details
 	knowledgeTag, err := orm.SelectKnowledgeSplitterDetail(ctx, req.UserId, req.OrgId, req.SplitterId)
 	if err != nil {
 		log.Errorf(fmt.Sprintf("没有操作该分隔符的权限 参数(%v)", req))
 		return nil, err
 	}
-	//2.删除知识库分隔符
+	//2. Remove the knowledge base separator
 	err = orm.DeleteKnowledgeSplitter(ctx, knowledgeTag.Id)
 	if err != nil {
 		log.Errorf("知识库分隔符删除失败(%v)  参数(%v)", err, req)
@@ -109,7 +109,7 @@ func (s *Service) DeleteKnowledgeSplitter(ctx context.Context, req *knowledgebas
 	return &emptypb.Empty{}, nil
 }
 
-// buildKnowledgeSplitterListResp 构造知识库分隔符列表返回结果
+// buildKnowledgeSplitterListResp constructs a knowledge base separator list and returns the results
 func buildKnowledgeSplitterListResp(customSplitters, presetSplitters []*model.KnowledgeSplitter) *knowledgebase_splitter_service.KnowledgeSplitterSelectListResp {
 	var retList []*knowledgebase_splitter_service.KnowledgeSplitterInfo
 	for _, splitter := range customSplitters {
@@ -123,7 +123,7 @@ func buildKnowledgeSplitterListResp(customSplitters, presetSplitters []*model.Kn
 	}
 }
 
-// buildKnowledgeSplitter 构造知识库tag
+// buildKnowledgeSplitter constructs knowledge base tags
 func buildKnowledgeSplitter(knowledgeSplitter *model.KnowledgeSplitter, splitterType string) *knowledgebase_splitter_service.KnowledgeSplitterInfo {
 	return &knowledgebase_splitter_service.KnowledgeSplitterInfo{
 		SplitterId:    knowledgeSplitter.SplitterId,
@@ -133,7 +133,7 @@ func buildKnowledgeSplitter(knowledgeSplitter *model.KnowledgeSplitter, splitter
 	}
 }
 
-// buildKnowledgeSplitterModel 构造知识库分隔符模型
+// buildKnowledgeSplitterModel constructs the knowledge base separator model
 func buildKnowledgeSplitterModel(req *knowledgebase_splitter_service.CreateKnowledgeSplitterReq) *model.KnowledgeSplitter {
 	return &model.KnowledgeSplitter{
 		SplitterId: generator.GetGenerator().NewID(),

@@ -18,10 +18,10 @@ class LoaderCheckPoint:
     """
     # remote in the model on loader checkpoint
     no_remote_model: bool = False
-    # 模型名称
+    # Model name
     model_name: str = None
     tokenizer: object = None
-    # 模型全路径
+    # Model full path
     model_path: str = None
     model: object = None
     model_config: object = None
@@ -29,24 +29,24 @@ class LoaderCheckPoint:
     lora_dir: str = None
     ptuning_dir: str = None
     use_ptuning_v2: bool = False
-    # 如果开启了8bit量化加载,项目无法启动，参考此位置，选择合适的cuda版本，https://github.com/TimDettmers/bitsandbytes/issues/156
-    # 另一个原因可能是由于bitsandbytes安装时选择了系统环境变量里不匹配的cuda版本，
-    # 例如PATH下存在cuda10.2和cuda11.2，bitsandbytes安装时选择了10.2，而torch等安装依赖的版本是11.2
-    # 因此主要的解决思路是清理环境变量里PATH下的不匹配的cuda版本，一劳永逸的方法是：
-    # 0. 在终端执行`pip uninstall bitsandbytes`
-    # 1. 删除.bashrc文件下关于PATH的条目
-    # 2. 在终端执行 `echo $PATH >> .bashrc`
-    # 3. 删除.bashrc文件下PATH中关于不匹配的cuda版本路径
-    # 4. 在终端执行`source .bashrc`
-    # 5. 再执行`pip install bitsandbytes`
+    # If 8bit quantization loading is turned on, the project cannot be started. Refer to this location to select the appropriate cuda version, https://github.com/TimDettmers/bitsandbytes/issues/156
+    # Another reason may be that bitsandbytes selected a cuda version that does not match the system environment variables during installation.
+    # For example, there are cuda10.2 and cuda11.2 under PATH, bitsandbytes selected 10.2 when installing, and the version that torch and other installations depend on is 11.2
+    # Therefore, the main solution is to clean up the mismatched cuda version under PATH in the environment variable. The solution once and for all is:
+    # 0. Execute `pip uninstall bitsandbytes` in the terminal
+    # 1. Delete the PATH entries in the .bashrc file
+    # 2. Execute `echo $PATH >> .bashrc` in the terminal
+    # 3. Delete the mismatched cuda version path in PATH under the .bashrc file
+    # 4. Execute `source .bashrc` in the terminal
+    # 5. Execute `pip install bitsandbytes` again
 
     load_in_8bit: bool = False
     is_llamacpp: bool = False
     bf16: bool = False
     params: object = None
-    # 自定义设备网络
+    # Custom device network
     device_map: Optional[Dict[str, int]] = None
-    # 默认 cuda ，如果不支持cuda使用多卡， 如果不支持多卡 使用cpu
+    # The default is cuda. ​​If cuda is not supported, use multiple cards. If multiple cards are not supported, use cpu.
     llm_device = LLM_DEVICE
 
     def __init__(self, params: dict = None):
@@ -109,13 +109,13 @@ class LoaderCheckPoint:
             LoaderClass = AutoModelForCausalLM
 
         # Load the model in simple 16-bit mode by default
-        # 如果加载没问题，但在推理时报错RuntimeError: CUDA error: CUBLAS_STATUS_ALLOC_FAILED when calling `cublasCreate(handle)`
-        # 那还是因为显存不够，此时只能考虑--load-in-8bit,或者配置默认模型为`chatglm-6b-int8`
+        # If there is no problem loading, but an error occurs during inference: RuntimeError: CUDA error: CUBLAS_STATUS_ALLOC_FAILED when calling `cublasCreate(handle)`
+        # That's because there is not enough video memory. At this time, you can only consider --load-in-8bit, or configure the default model to `chatglm-6b-int8`
         if not any([self.llm_device.lower() == "cpu",
                     self.load_in_8bit, self.is_llamacpp]):
 
             if torch.cuda.is_available() and self.llm_device.lower().startswith("cuda"):
-                # 根据当前设备GPU数量决定是否进行多卡部署
+                # Determine whether to deploy multiple cards based on the number of GPUs in the current device
                 num_gpus = torch.cuda.device_count()
                 if num_gpus < 2 and self.device_map is None:
                     model = (
@@ -133,7 +133,7 @@ class LoaderCheckPoint:
                                                         config=self.model_config,
                                                         torch_dtype=torch.bfloat16 if self.bf16 else torch.float16,
                                                         trust_remote_code=True).half()
-                    # 可传入device_map自定义每张卡的部署情况
+                    # You can pass in device_map to customize the deployment of each card.
                     if self.device_map is None:
                         if 'chatglm' in model_name.lower():
                             self.device_map = self.chatglm_auto_configure_device_map(num_gpus)
@@ -238,25 +238,25 @@ class LoaderCheckPoint:
         return model, tokenizer
 
     def chatglm_auto_configure_device_map(self, num_gpus: int) -> Dict[str, int]:
-        # transformer.word_embeddings 占用1层
-        # transformer.final_layernorm 和 lm_head 占用1层
-        # transformer.layers 占用 28 层
-        # 总共30层分配到num_gpus张卡上
+        # transformer.word_embeddings occupies 1 layer
+        # transformer.final_layernorm and lm_head occupy 1 layer
+        # transformer.layers takes up 28 layers
+        # A total of 30 layers are allocated to num_gpus cards
         num_trans_layers = 28
         per_gpu_layers = 30 / num_gpus
 
-        # bugfix: PEFT加载lora模型出现的层命名不同
+        # bugfix: The layer names that appear when PEFT loads the lora model are different
         if self.lora:
             layer_prefix = 'base_model.model.transformer'
         else:
             layer_prefix = 'transformer'
 
-        # bugfix: 在linux中调用torch.embedding传入的weight,input不在同一device上,导致RuntimeError
-        # windows下 model.device 会被设置成 transformer.word_embeddings.device
-        # linux下 model.device 会被设置成 lm_head.device
-        # 在调用chat或者stream_chat时,input_ids会被放到model.device上
-        # 如果transformer.word_embeddings.device和model.device不同,则会导致RuntimeError
-        # 因此这里将transformer.word_embeddings,transformer.final_layernorm,lm_head都放到第一张卡上
+        # Bugfix: When calling torch.embedding in Linux, the weight passed in is not on the same device, causing a RuntimeError.
+        # Under windows model.device will be set to transformer.word_embeddings.device
+        # Under Linux, model.device will be set to lm_head.device
+        # When calling chat or stream_chat, input_ids will be placed on model.device
+        # If transformer.word_embeddings.device and model.device are different, a RuntimeError will result
+        # Therefore, transformer.word_embeddings, transformer.final_layernorm, and lm_head are all placed on the first card here.
         device_map = {f'{layer_prefix}.word_embeddings': 0,
                       f'{layer_prefix}.final_layernorm': 0, 'lm_head': 0,
                       f'base_model.model.lm_head': 0, }
@@ -325,11 +325,11 @@ class LoaderCheckPoint:
                 "Could not import depend python package. "
                 "Please install it with `pip install peft``pip install accelerate`."
             ) from exc
-        # 目前加载的lora
+        # currently loaded lora
         prior_set = set(self.lora_names)
-        # 需要加载的
+        # Need to be loaded
         added_set = set(lora_names) - prior_set
-        # 删除的lora
+        # deleted lora
         removed_set = prior_set - set(lora_names)
         self.lora_names = list(lora_names)
 

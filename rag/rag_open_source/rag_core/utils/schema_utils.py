@@ -18,14 +18,14 @@ def parse_excel_to_schema_json(file_path):
     """
     schema = {}
     try:
-        # 使用 pd.read_excel 自动推断引擎（支持 .xls 和 .xlsx）
+        # Automatic inference engine using pd.read_excel (supports .xls and .xlsx)
         df_category = pd.read_excel(file_path, sheet_name='类目表')
         df_attribute = pd.read_excel(file_path, sheet_name='类目属性表')
-        # 清理列名：去除空格和换行
+        # Clean column names: remove spaces and newlines
         df_category.columns = df_category.columns.str.strip()
         df_attribute.columns = df_attribute.columns.str.strip()
 
-        # === 解析 类目表 ===
+        # === Analysis Category Table ===
         category_list = []
         for _, row in df_category.iterrows():
             item = {
@@ -34,19 +34,19 @@ def parse_excel_to_schema_json(file_path):
             }
             category_list.append(item)
 
-        # === 解析 类目属性表 ===
+        # === Parse category attribute table ===
         attribute_list = []
 
         for _, row in df_attribute.iterrows():
             class_name = str(row["类名"]).strip() if pd.notna(row["类名"]) else ""
             attr_name = str(row["属性/关系名"]).strip() if pd.notna(row["属性/关系名"]) else ""
 
-            # 修复说明字段
+            # Fix description field
             key = (class_name, attr_name)
 
             desc = str(row["属性/关系说明"]).strip() if pd.notna(row["属性/关系说明"]) else ""
 
-            # 处理别名字段（支持多个别名用 | 分隔）
+            # Processing alias fields (supports multiple aliases separated by |)
             alias = row["别名(多别名以|隔开)"]
             if pd.isna(alias) or str(alias).strip() == "" or str(alias).lower() == "nan":
                 alias_str = ""
@@ -63,7 +63,7 @@ def parse_excel_to_schema_json(file_path):
                 "值类型": value_type
             })
 
-        # 构建最终 JSON 结构
+        # Build the final JSON structure
         schema = {
             "schema定义": {
                 "类目表": category_list,
@@ -80,17 +80,17 @@ def parse_excel_to_schema_json(file_path):
 
 if __name__ == "__main__":
 
-    excel_file = "graph_schema_文物.xlsx"  # 或 "图谱schema定义模板.xls"
+    excel_file = "graph_schema_文物.xlsx"  # or "Graph schema definition template.xls"
 
     try:
         schema_json = parse_excel_to_schema_json(excel_file)
-        # 输出格式化 JSON 到控制台
+        # Output formatted JSON to console
         print(json.dumps(schema_json, ensure_ascii=False, indent=4))
 
-        # （可选）保存到文件
+        # (Optional) Save to file
         # with open("schema_output.json", "w", encoding="utf-8") as f:
         #     json.dump(schema_json, f, ensure_ascii=False, indent=4)
-        # print("✅ 已保存到 schema_output.json")
+        # print("✅ saved to schema_output.json")
 
     except Exception as e:
         print(f"错误: {e}", file=sys.stderr)

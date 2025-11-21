@@ -54,7 +54,7 @@ class OpenAPIPluginTool(BaseTool):
         super().__init__(cfg)
 
     def call(self, params: dict, **kwargs):
-        # logger.info(f"call函数的入参：{params}")
+        # logger.info(f"Input parameters of call function: {params}")
         if self.url == '':
             result = {
                 "action_code":1,
@@ -68,7 +68,7 @@ class OpenAPIPluginTool(BaseTool):
 #         if not params:
 #             result = {
 #                 "action_code":1,
-#                 "description":f"大模型识别的参数为空"
+#                 "description":f"The parameters identified by the large model are empty"
 
 #             }
 #             # raise ValueError(
@@ -251,26 +251,26 @@ class OpenAPIPluginTool(BaseTool):
             }
             return result
     def _remote_parse_input(self, *args, **kwargs):
-        # 先构建一个字典来存储预设参数值
+        # First build a dictionary to store the preset parameter values
         preset_params = {param['name']: param.get('value', '') for param in self.parameters if 'value' in param}
-        # 更新预设参数值字典，用 kwargs 中的值覆盖预设值（如果存在）
+        # Update the preset parameter value dictionary, overwriting the preset value with the value in kwargs (if it exists)
         preset_params.update(kwargs)
         
-        # 初始化一个新的字典用于存储最终的请求参数
+        # Initialize a new dictionary to store the final request parameters
         restored_dict = {}
         for key, value in preset_params.items():
             if '.' in key:
-                # 如果键包含"."，则分割键并创建嵌套的字典结构
+                # If the key contains ".", split the key and create a nested dictionary structure
                 keys = key.split('.')
                 temp_dict = restored_dict
                 for k in keys[:-1]:
                     temp_dict = temp_dict.setdefault(k, {})
                 temp_dict[keys[-1]] = value
             else:
-                # 如果键不包含"."，直接将键值对存储到restored_dict中
+                # If the key does not contain ".", store the key-value pair directly in restored_dict
                 restored_dict[key] = value
         
-        # logger.info(f"传给tool的参数：{restored_dict}")
+        # logger.info(f"Parameters passed to tool: {restored_dict}")
         return restored_dict
 
 
@@ -291,7 +291,7 @@ def extract_references(schema_content):
 def parse_nested_parameters(param_name, param_info, parameters_list, content):
     param_type = param_info['type']
     param_description = param_info.get('example',param_info.get('description',
-                                       f'用户输入的{param_name}'))  # 按需更改描述
+                                       f'用户输入的{param_name}'))  # Change description as needed
     param_required = param_name in content['required']
     try:
         if param_type == 'object':
@@ -340,7 +340,7 @@ def parse_nested_parameters(param_name, param_info, parameters_list, content):
 def parse_responses_parameters(param_name, param_info, parameters_list):
     param_type = param_info['type']
     param_description = param_info.get('description',
-                                       f'调用api返回的{param_name}')  # 按需更改描述
+                                       f'调用api返回的{param_name}')  # Change description as needed
     try:
         if param_type == 'object':
             properties = param_info.get('properties')
@@ -560,7 +560,7 @@ def openapi_schema_convert(schema, auth):
                 else:
                     raise 'method is not POST or GET'
 
-                # 把auth添加到config_entry中
+                # Add auth to config_entry
                 config_entry = add_auth_to_config_entry(config_entry,auth)
                 config_data[summary] = config_entry
         return config_data

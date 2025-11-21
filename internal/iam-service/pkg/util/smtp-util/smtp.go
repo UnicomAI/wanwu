@@ -6,7 +6,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-// Config 邮件服务器配置
+// Config mail server configuration
 type Config struct {
 	Host     string `json:"host" mapstructure:"host"`
 	Port     int    `json:"port" mapstructure:"port"`
@@ -36,7 +36,7 @@ func (m *mailer) SendMail(toEmails []string, subject, contentType, body string, 
 		return errors.New("email subject or body cannot be empty")
 	}
 	msg := gomail.NewMessage()
-	// 设置发件人
+	// Set sender
 	var fromEmail *From
 	if len(from) > 0 {
 		fromEmail = from[0]
@@ -48,13 +48,13 @@ func (m *mailer) SendMail(toEmails []string, subject, contentType, body string, 
 	} else {
 		msg.SetHeader("From", fromEmail.Email)
 	}
-	// 设置收件人
+	// Set recipients
 	msg.SetHeader("To", toEmails...)
-	// 设置主题
+	// Set theme
 	msg.SetHeader("Subject", subject)
-	// 设置正文
+	// Set text
 	msg.SetBody(contentType, body)
-	// 发送邮件
+	// Send email
 	return m.dialer.DialAndSend(msg)
 }
 

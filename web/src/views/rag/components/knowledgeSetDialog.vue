@@ -1,7 +1,7 @@
 <template>
     <div>
         <el-dialog
-        title="召回参数配置"
+        title="Recall parameter configuration"
         :visible.sync="dialogVisible"
         width="50%"
         :before-close="handleClose">
@@ -25,8 +25,8 @@
             </el-form>
         </span>
         <span slot="footer" class="dialog-footer">
-            <el-button @click="dialogVisible = false">取 消</el-button>
-            <el-button type="primary" @click="submit">确 定</el-button>
+            <el-button @click="dialogVisible = false">Cancel</el-button>
+            <el-button type="primary" @click="submit">Confirm</el-button>
         </span>
         </el-dialog>
     </div>
@@ -52,8 +52,8 @@ export default {
             },
             konwledgeSet: [
                 {
-                    label:'最长上下文',
-                    desc: '保存的最长的上下文对话轮数',
+                    label:'Max Context Length',
+                    desc: 'Maximum number of conversation turns to keep in context.',
                     props: 'maxHistory',
                     btnProps:'maxHistoryEnable',
                     min: 0,
@@ -61,8 +61,8 @@ export default {
                     step: 1,
                 },
                 {
-                    label:'过滤阀值',
-                    desc: '检索结果匹配度的最小值，小于阈值的结果会被过滤掉',
+                    label:' Filter threshold value',
+                    desc: 'Minimum relevance score for retrieved results; items below this threshold are filtered out.',
                     props: "threshold",
                     btnProps:"thresholdEnable",
                     precision:1,
@@ -71,8 +71,8 @@ export default {
                     step: 0.1,
                 },
                 {
-                    label:'知识条数',
-                    desc: '检索召回的知识片段数量的最大值，当检索到的知识数量大于知识条数，也只返回最大知识条数',
+                    label:' Number of knowledge items',
+                    desc: 'Maximum number of knowledge segments to retrieve; if more are found, only this many will be returned.',
                     props: "topK",
                     btnProps:"topKEnable",
                     min:1,

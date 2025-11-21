@@ -28,7 +28,7 @@ export default {
         else if (this.$route.query.mcp === "custom") this.tabActive = 1
         else this.tabActive = 0
       },
-      // 深度观察监听
+      // 深度ObserveListen
       deep: true
     }
   },

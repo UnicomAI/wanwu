@@ -12,13 +12,13 @@
         </div>
         <div>
         <el-tabs v-model="activeName" @tab-click="handleClick">
-          <el-tab-pane label="智能体" name="agent">
+          <el-tab-pane label="Agent" name="agent">
             <AppList :appData="listData" :isShowTool="false" :appFrom="'explore'" />
           </el-tab-pane>
-          <el-tab-pane label="文本问答" name="rag">
+          <el-tab-pane label="Text Q&A" name="rag">
             <AppList :appData="listData" :isShowTool="false" :appFrom="'explore'" />
           </el-tab-pane>
-          <!--<el-tab-pane label="工作流" name="workflow">
+          <!--<el-tab-pane label="Workflow" name="workflow">
             <AppList :appData="listData" :isShowTool="false" :appFrom="'explore'" />
           </el-tab-pane>-->
         </el-tabs>
@@ -37,32 +37,32 @@ export default {
   components: { SearchInput, CreateTotalDialog, AppList },
   data() {
     return {
-      placeholder:'输入应用名称搜索',
-      asideTitle:'历史应用',
+      placeholder:'EnterAppNameSearch',
+      asideTitle:'historyApp',
       activeName:'agent',
       searchValue:'',
       active:'all',
       tagList:[
         {
-          name:'全部',
+          name:'all',
           value:'all',
           activeImg:require('@/assets/imgs/all_active.svg'),
           unactiveImg:require('@/assets/imgs/all_unactive.svg')
         },
         {
-          name:'我收藏的',
+          name:'我Favorite of ',
           value:'favorite',
           activeImg:require('@/assets/imgs/mine_active.svg'),
           unactiveImg:require('@/assets/imgs/mine_unactive.svg')
         },
         {
-          name:'私密发布的',
+          name:'PrivatePublish of ',
           value:'private',
           activeImg:require('@/assets/imgs/start_active.svg'),
           unactiveImg:require('@/assets/imgs/start_unactive.svg')
         },
         {
-          name:'历史应用',
+          name:'historyApp',
           value:'history',
           activeImg:require('@/assets/imgs/history_active.svg'),
           unactiveImg:require('@/assets/imgs/history_unactive.svg')

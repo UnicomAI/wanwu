@@ -14,8 +14,8 @@ BOCHA_SEARCH_URL = config["BING"]["BOCHA_SEARCH_URL"]
 def clean_text(text):
     """清除文本中的特殊字符和多余的空白，以及HTML标签。"""
     patterns = [
-        r'\xa0+', r'\u3000', r'\t+', r'\r+', r'\n+',   # 清除特殊空白字符和多行换行符
-        r'<[/]?b>|&gt;|&lt;'                        # 清除HTML标签
+        r'\xa0+', r'\u3000', r'\t+', r'\r+', r'\n+',   # Clear special whitespace characters and multiline newlines
+        r'<[/]?b>|&gt;|&lt;'                        # Clear HTML tags
     ]
     for pattern in patterns:
         text = re.sub(pattern, '', text)
@@ -33,20 +33,20 @@ def bocha_cleaned_search(query,search_url,search_key, result_len):
     })
 
     headers = {
-        'Authorization': search_key,  # 请替换为你自己的API密钥
+        'Authorization': search_key,  # Please replace with your own API key
         'Content-Type': 'application/json'
     }
 
     try:
-        # 发起请求并检查状态码
+        # Make a request and check the status code
         response = requests.request("POST", url, headers=headers, data=payload)
-        response.raise_for_status()  # 如果返回的状态码不是 2xx，会抛出异常
-        response_data = response.json()  # 尝试解析 JSON
+        response.raise_for_status()  # If the returned status code is not 2xx, an exception will be thrown
+        response_data = response.json()  # Try to parse JSON
         
-        # print("返回数据:", response_data)
+        # print("Return data:", response_data)
         # print()
 
-        # 映射返回结果
+        # Mapping returns results
         if 'data' in response_data and 'webPages' in response_data['data']:
             results = response_data['data']['webPages']['value']
             mapped_results = [
@@ -79,7 +79,7 @@ def bocha_cleaned_search(query,search_url,search_key, result_len):
         return []
 
     except Exception as err:
-        # 特别处理不同的 HTTP 错误码
+        # Special handling of different HTTP error codes
         if response.status_code == 403:
             print("错误 403: 余额不足。请前往 https://open.bochaai.com 进行充值")
         elif response.status_code == 400:

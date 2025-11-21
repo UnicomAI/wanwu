@@ -1,9 +1,9 @@
 package config
 
 var (
-	topOrgID    uint32 // 系统内部唯一顶级组织ID
-	adminRoleID uint32 // 系统顶级组织内部管理员角色ID
-	adminUserID uint32 // 系统顶级组织内部管理员用户ID
+	topOrgID    uint32 // The unique top-level organization ID within the system
+	adminRoleID uint32 // System top-level organization internal administrator role ID
+	adminUserID uint32 // System top-level organization internal administrator user ID
 )
 
 func InitTopOrgID(orgID uint32) {

@@ -117,7 +117,7 @@ export default {
         this.loading = false
       }
     },
-    // 获取从分页组件传递的 data
+    // Get从分页Component传递 of  data
     refreshData(data) {
       this.tableData = data
     },

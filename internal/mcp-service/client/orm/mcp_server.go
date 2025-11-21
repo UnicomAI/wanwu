@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Client) CreateMCPServer(ctx context.Context, mcpServer *model.MCPServer) *errs.Status {
-	// 检查是否已存在相同的记录
+	// Check if the same record already exists
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithName(mcpServer.Name),
 		sqlopt.WithOrgID(mcpServer.OrgID),
@@ -21,7 +21,7 @@ func (c *Client) CreateMCPServer(ctx context.Context, mcpServer *model.MCPServer
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return toErrStatus("mcp_create_mcp_server_err", err.Error())
 	}
-	// 创建 mcp server
+	// Create mcp server
 	if err := c.db.Create(mcpServer).Error; err != nil {
 		return toErrStatus("mcp_create_mcp_server_err", err.Error())
 	}

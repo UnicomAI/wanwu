@@ -44,7 +44,7 @@ service.interceptors.request.use(
 // response interceptor
 service.interceptors.response.use(
   response => {
-    // 导出文件
+    // ExportFile
     const res = response.data
     if (response.config.responseType === 'blob') {
       return res
@@ -66,9 +66,9 @@ service.interceptors.response.use(
   error => {
     // console.log('err：' + error)
     /**
-     * 接口异常处理：
-     * 1. 401: 没有权限返回，会重定向到 login
-     * 2. 其他异常报错：errMessage 中
+     * 接口异常Process：
+     * 1. 401: NoPermissionBack，会重定向to login
+     * 2. Other异常报错：errMessage in
     **/
     const errRes = error.response || {}
     const { status, statusText } = errRes

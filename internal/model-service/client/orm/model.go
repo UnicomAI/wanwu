@@ -20,7 +20,7 @@ func (c *Client) ImportModel(ctx context.Context, tab *model_client.ModelImporte
 		}
 		db.Rollback()
 	}()
-	// 查询是否已存在相同的模型(0.2.1版本下掉）
+	// Query whether the same model already exists (dropped in version 0.2.1)
 	//if err := sqlopt.SQLOptions(
 	//	sqlopt.WithProvider(tab.Provider),
 	//	sqlopt.WithModelType(tab.ModelType),
@@ -30,7 +30,7 @@ func (c *Client) ImportModel(ctx context.Context, tab *model_client.ModelImporte
 	//).Apply(db).Select("id").First(&model_client.ModelImported{}).Error; err == nil {
 	//	return toErrStatus("model_create_err", "model with same identifier exist")
 	//} else if err != gorm.ErrRecordNotFound {
-	//	// 其他错误
+	//	// other errors
 	//	return toErrStatus("model_create_err", err.Error())
 	//}
 
@@ -44,7 +44,7 @@ func (c *Client) ImportModel(ctx context.Context, tab *model_client.ModelImporte
 		).Apply(db).Select("id").First(&model_client.ModelImported{}).Error; err == nil {
 			return toErrStatus("model_create_err", "model with same display name exist")
 		} else if err != gorm.ErrRecordNotFound {
-			// 其他错误
+			// Other errors
 			return toErrStatus("model_create_err", err.Error())
 		}
 	}
@@ -56,7 +56,7 @@ func (c *Client) ImportModel(ctx context.Context, tab *model_client.ModelImporte
 }
 
 func (c *Client) DeleteModel(ctx context.Context, tab *model_client.ModelImported) *errs.Status {
-	// 查询
+	// Query
 	var existing model_client.ModelImported
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithID(tab.ID),
@@ -72,7 +72,7 @@ func (c *Client) DeleteModel(ctx context.Context, tab *model_client.ModelImporte
 }
 
 func (c *Client) UpdateModel(ctx context.Context, tab *model_client.ModelImported) *errs.Status {
-	// 查询
+	// Query
 	var existing model_client.ModelImported
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithID(tab.ID),
@@ -82,7 +82,7 @@ func (c *Client) UpdateModel(ctx context.Context, tab *model_client.ModelImporte
 	if existing.ModelType != tab.ModelType || existing.Model != tab.Model || existing.Provider != tab.Provider {
 		return toErrStatus("model_update_err", "type,model,provider can not update!")
 	}
-	// 更新
+	// renew
 	if err := c.db.WithContext(ctx).Model(existing).Updates(map[string]interface{}{
 		"display_name":    tab.DisplayName,
 		"model_icon_path": tab.ModelIconPath,
@@ -95,7 +95,7 @@ func (c *Client) UpdateModel(ctx context.Context, tab *model_client.ModelImporte
 }
 
 func (c *Client) ChangeModelStatus(ctx context.Context, tab *model_client.ModelImported) *errs.Status {
-	// 查询
+	// Query
 	var existing model_client.ModelImported
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithID(tab.ID),
@@ -104,7 +104,7 @@ func (c *Client) ChangeModelStatus(ctx context.Context, tab *model_client.ModelI
 	).Apply(c.db).WithContext(ctx).Select("id").First(&existing).Error; err != nil {
 		return toErrStatus("model_change_model_status_err", err.Error())
 	}
-	// 更新
+	// renew
 	if err := c.db.WithContext(ctx).Model(existing).Updates(map[string]interface{}{
 		"is_active": tab.IsActive,
 	}).Error; err != nil {

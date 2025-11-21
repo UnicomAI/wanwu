@@ -1,32 +1,32 @@
 <template>
     <div>
         <el-dialog
-            title="API密钥"
+            title="API Key"
             :visible.sync="dialogVisible"
             width="50%"
             :before-close="handleClose">
             <el-table
                 :data="tableData"
                 style="width: 100%">
-                <el-table-column label="密钥"  prop="apiKey"  width="300" >
+                <el-table-column label="API Key"  prop="apiKey"  width="300" >
                     <template slot-scope="scope">
                         <span>{{scope.row.apiKey.slice(0,6) + '******'}}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="创建时间"  prop="createdAt"  />
-                <el-table-column label="操作" width="200">
+                <el-table-column label="Create Time"  prop="createdAt"  />
+                <el-table-column label="Operation" width="200">
                 <template slot-scope="scope">
                     <el-button
                     size="mini"
-                    @click="handleCopy(scope.row) && copycb()">复制</el-button>
+                    @click="handleCopy(scope.row) && copycb()">Copy</el-button>
                     <el-button
                     size="mini"
-                    @click="handleDelete(scope.row)">删除</el-button>
+                    @click="handleDelete(scope.row)">Delete</el-button>
                 </template>
                 </el-table-column>
             </el-table>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button @click="dialogVisible = false">Cancel</el-button>
                 <el-button type="primary" @click="handleCreate">创 建</el-button>
             </span>
         </el-dialog>
@@ -79,7 +79,7 @@ export default {
             return res;
         },
         copycb(){
-            this.$message.success('内容已复制到粘贴板')
+            this.$message.success('Content copied to clipboard')
         },
         handleCreate(){
             const data = {appId:this.appId,appType:this.appType}
@@ -98,17 +98,17 @@ export default {
             })
         },
         handleDelete(row){
-            this.$confirm('确定要删除当前APIkey吗？',this.$t('knowledgeManage.tip'),
+            this.$confirm('ConfirmtoDeletecurrentAPIkey吗？',this.$t('knowledgeManage.tip'),
                 {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
+                confirmButtonText: 'Confirm',
+                cancelButtonText: 'Cancel',
                 type: "warning"
                 }
             )
             .then(() => {
                 delApiKey({apiId:row.apiId}).then(res =>{
                     if(res.code === 0){
-                        this.$message.success('删除成功')
+                        this.$message.success('DeleteSuccess')
                         this.getTableData()
                     }
                 })

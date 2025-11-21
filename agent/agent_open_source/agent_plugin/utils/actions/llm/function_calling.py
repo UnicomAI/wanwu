@@ -353,7 +353,7 @@ FN_STOP_WORDS = [FN_RESULT, FN_EXIT]
 
 FN_CALL_TEMPLATE_INFO_ZH = """# 工具
 
-## 你拥有如下工具：
+## You have the following tools:
 
 {tool_descs}"""
 
@@ -363,7 +363,7 @@ FN_CALL_TEMPLATE_INFO_EN = """# Tools
 
 {tool_descs}"""
 
-FN_CALL_TEMPLATE_FMT_ZH = """## 你可以在回复中插入零次、一次或多次以下命令以调用工具：
+FN_CALL_TEMPLATE_FMT_ZH = """## 你可以在回复Medium插入零次、一次OrMany次以Down命令以Call工具：
 
 %s: 工具名称，必须是[{tool_names}]之一。
 %s: 工具输入
@@ -387,7 +387,7 @@ FN_CALL_TEMPLATE_FMT_EN = """## When you need to call a tool, please insert the 
     FN_EXIT,
 )
 
-FN_CALL_TEMPLATE_FMT_PARA_ZH = """## 你可以在回复中插入以下命令以并行调用N个工具：
+FN_CALL_TEMPLATE_FMT_PARA_ZH = """## 你可以在回复Medium插入以Down命令以并行CallN个工具：
 
 %s: 工具1的名称，必须是[{tool_names}]之一
 %s: 工具1的输入
@@ -452,7 +452,7 @@ def get_function_description(function: Dict, lang: Literal['en', 'zh']) -> str:
     Text description of function
     """
     tool_desc_template = {
-        'zh': '### {name_for_human}\n\n{name_for_model}: {description_for_model} 输入参数：{parameters} {args_format}',
+        'zh': '### {name_for_human}\n\n{name_for_model}: {description_for_model} InputParameter：{parameters} {args_format}',
         'en': '### {name_for_human}\n\n{name_for_model}: {description_for_model} Parameters: {parameters} {args_format}'
     }
     tool_desc = tool_desc_template[lang]

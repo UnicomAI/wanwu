@@ -10,7 +10,7 @@
         v-for="(n,i) in session_data.history"
         :key="`${i}sdhs`"
       >
-        <!--问题-->
+        <!-- Question -->
         <div
           v-if="n.query"
           class="session-question"
@@ -25,7 +25,7 @@
                 <span
                   class="session-setting-id"
                   v-if="$route.params && $route.params.id && (type && type !=='webChat')"
-                >智能体ID: {{$route.params.id}}</span>
+                >AgentID: {{$route.params.id}}</span>
                 <el-popover
                   placement="bottom-start"
                   trigger="hover"
@@ -61,8 +61,8 @@
                     style="width:30px!important;"
                   />
                   <div class="docInfo">
-                    <p class="docInfo_name">文件名称：{{file.name}}</p>
-                    <p class="docInfo_size">文件大小:{{getFileSizeDisplay(file.size)}}</p>
+                    <p class="docInfo_name">FileName：{{file.name}}</p>
+                    <p class="docInfo_size">Filesize:{{getFileSizeDisplay(file.size)}}</p>
                   </div>
                   </div>
                  </div>
@@ -107,13 +107,13 @@
           </div>
         </div>
 
-        <!-- 回答故障  code:7-->
+        <!-- Answer error  code:7 -->
         <div
           class="session-error"
           v-if="n.error"
         ><i class="el-icon-warning"></i>&nbsp;{{n.response}}</div>
 
-        <!--回答 文字+图片-->
+        <!-- Answer: text + image -->
         <div
           v-if="(n.response && !n.error)"
           class="session-answer"
@@ -175,7 +175,7 @@
               v-html="(n.response)"
             ></div>
           </div>
-          <!--文件-->
+          <!--File-->
           <div
             v-if="n.gen_file_url_list && n.gen_file_url_list.length"
             class="file-path response-file"
@@ -187,7 +187,7 @@
               :preview-src-list="[g]"
             ></el-image>
           </div>
-          <!--出处-->
+          <!-- Source -->
           <div
             v-if="n.searchList && n.searchList.length && n.finish === 1"
             class="search-list"
@@ -201,7 +201,7 @@
                 class="serach-list-item"
                 v-if="showSearchList(j,n.qa_type,n.citations)"
               >
-                <span @click="collapseClick(n,m,j)"><i :class="['',m.collapse?'el-icon-caret-bottom':'el-icon-caret-right']"></i>出处：</span>
+                <span @click="collapseClick(n,m,j)"><i :class="['',m.collapse?'el-icon-caret-bottom':'el-icon-caret-right']"></i>Source:</span>
                 <a
                   v-if="m.link"
                   :href="m.link"
@@ -217,7 +217,7 @@
                     v-if="n.qa_type === 1"
                   >{{j + 1}}</sub> {{m.title}}
                 </span>
-                <!-- <span @click="goPreview($event,m)" class="search-doc">查看全文</span> -->
+                <!-- <span @click="goPreview($event,m)" class="search-doc">View full text</span> -->
               </div>
               <el-collapse-transition>
                 <div
@@ -238,7 +238,7 @@
             <div></div>
             <div></div>
           </div>
-          <!--停止生成 重新生成 点赞   session code 是0时不可操作-->
+          <!-- Stop and regenerate actions; when session code is 0 these operations are disabled. -->
           <div class="answer-operation">
             <div class="opera-left">
               <span
@@ -262,7 +262,7 @@
           </div>
         </div>
 
-        <!-- 回答 仅图片-->
+        <!-- Answer with images only -->
         <div
           v-if="!n.response && n.gen_file_url_list && n.gen_file_url_list.length"
           class="session-answer"
@@ -286,7 +286,7 @@
               </div>
             </div>
           </div>
-          <!--仅图片时只有 重新生成-->
+          <!-- For image-only answers, only the regenerate action is available -->
           <div class="answer-operation">
             <div class="opera-left">
               <span
@@ -355,18 +355,18 @@ export default {
       },
       basePath: this.$basePath,
       current_data: [],
-      //标注相关
+      // Annotation related
       c: null,
       ctx: null,
       canvasShow: false,
       cv: null,
       currImg: {
         url: "",
-        width: 0, // 原始宽高
+        width: 0, // Original width
         height: 0,
-        w: 0, // 压缩后的宽高
+        w: 0, // Width after compression
         h: 358,
-        roteX: 0, // 压缩后的比例
+        roteX: 0, // Compression ratio
         roteY: 0,
       },
       imgConfig: ["jpeg", "PNG", "png", "JPG", "jpg", "bmp", "webp"],
@@ -419,7 +419,7 @@ export default {
       clearTimeout(this.resizeTimer);
     }
     
-    // 移除图片错误事件监听器
+    // Remove image load error event listener
     if (this.imageErrorHandler) {
       document.body.removeEventListener("error", this.imageErrorHandler, true);
     }
@@ -458,7 +458,7 @@ export default {
       if (showScrollBtn !== null && showScrollBtn !== undefined) {
         return showScrollBtn;
       }
-      // 否则从 fileScrollStateMap 中获取
+      // Otherwise, get from fileScrollStateMap
       return this.fileScrollStateMap[i] || false;
     },
     prev(e,i){
@@ -523,7 +523,7 @@ export default {
       return Array.from(citationsSet);
     },
     goPreview(event, item) {
-      event.stopPropagation(); // 阻止事件冒泡
+      event.stopPropagation(); // preventEventbubbling
       let { meta_data } = item;
       let { file_name, download_link, page_num, row_num, sheet_name } =
         meta_data;
@@ -559,13 +559,13 @@ export default {
               sheet_name;
             break;
           default:
-            this.$message.warning("暂不支持此格式查看");
+            this.$message.warning("This format is not currently supported for preview.");
         }
       }
       if (openUrl !== "") {
         window.open(openUrl, "_blank","noopener,noreferrer");
       } else {
-        this.$message.warning("暂不支持此格式查看");
+        this.$message.warning("This format is not currently supported for preview.");
       }
     },
     setupScrollListener() {
@@ -575,22 +575,22 @@ export default {
     handleScroll(e) {
       const container = document.getElementById("timeScroll");
       const { scrollTop, clientHeight, scrollHeight } = container;
-      // 检测是否接近底部（5px容差）
+      // Check whether scroll is near the bottom (5px tolerance)
       const nearBottom = scrollHeight - (scrollTop + clientHeight) < 5;
-      // 用户手动滚动时取消自动置底
+      // If the user scrolls manually, disable auto-scroll to bottom
       if (!nearBottom) {
         this.autoScroll = false;
       }
-      // 清除之前的定时器
+      // Clear previous timer
       clearTimeout(this.scrollTimeout);
-      // 设置新的定时器检测滚动停止
+      // Set a new timer to detect when scrolling stops
       this.scrollTimeout = setTimeout(() => {
-        // 如果停止时接近底部，恢复自动置底
+        // If scrolling stops near the bottom, restore auto-scroll
         if (nearBottom) {
           this.autoScroll = true;
           this.scrollBottom();
         }
-      }, 500); // 500ms内没有新滚动视为停止
+      }, 500); // If no new scroll occurs within 500ms, treat it as stopped
     },
     replaceHTML(data, n) {
       let _data = data;
@@ -599,22 +599,22 @@ export default {
       const toolStart = /<tool>/i;
       const toolEnd = /<\/tool>/i;
 
-      // 处理 think 标签
+      // Process think Tag
       if (thinkEnd.test(data)) {
-        n.thinkText = "已深度思考";
+        n.thinkText = "Deep thinking completed";
         if (!thinkStart.test(data)) {
           data = "<think>\n" + data;
         }
       }
 
-      // 新增处理 tool 标签
+      // AddProcess tool Tag
       if (toolEnd.test(data)) {
-        n.toolText = "已使用工具"; // 需要添加对应的翻译
+        n.toolText = "Tool execution completed"; // TODO: add corresponding translation key if needed
         if (!toolStart.test(data)) {
           data = "<tool>\n" + data;
         }
       }
-      // 统一替换为 section 标签
+      // Normalize by replacing custom tags with section tags
       return data
         .replace(/think>/gi, "section>")
         .replace(/tool>/gi, "section>");
@@ -665,7 +665,7 @@ export default {
     copy(text) {
       text = text.replaceAll("<br/>", "\n");
       var textareaEl = document.createElement("textarea");
-      textareaEl.setAttribute("readonly", "readonly"); // 防止手机上弹出软键盘
+      textareaEl.setAttribute("readonly", "readonly"); // Prevent soft keyboard from showing on mobile
       textareaEl.value = text;
       document.body.appendChild(textareaEl);
       textareaEl.select();
@@ -708,11 +708,11 @@ export default {
     },
     replaceLastData(index, data) {
       if (!data.response) {
-        data.response = "无响应数据";
+        data.response = "No response data";
       }
       this.$set(this.session_data.history, index, data);
       this.scrollBottom();
-      this.codeScrollBottom(); //code内容置底
+      this.codeScrollBottom(); // Scroll code content to the bottom
       if (data.finish === 1) {
         const setCitations = this.setCitations(index);
         this.$set(this.session_data.history[index], "citations", setCitations);
@@ -726,12 +726,12 @@ export default {
         ? `${(fileSize / (1024 * 1024)).toFixed(2)} MB`
         : `${fileSize} bytes`;
     },
-    //websocket 替换全部数据
+    //websocket ReplaceallData
     replaceData(data) {
       this.session_data = data;
       this.scrollBottom();
     },
-    //http 只替换history
+    // For HTTP, only replace history
     replaceHistory(data) {
       this.session_data.history = data;
       this.scrollBottom();
@@ -790,7 +790,7 @@ export default {
       this.session_data.history = this.session_data.history.filter((item) => {
         if (item.pending) {
           item.responseLoading = false;
-          item.pendingResponse = "本次回答已被终止";
+          item.pendingResponse = "This response has been terminated";
         }
         return item;
       });
@@ -813,11 +813,11 @@ export default {
       }
       this.$set(this.session_data.history, index, { ...item, evaluate: 2 });
     },
-    //=================标注相关===============
+    //================= Annotation related ===============
     initCanvasUtil() {
       this.canvasShow = true;
       this.$nextTick(() => {
-        // 开始画图 canvas, 2d, 宽高，形状
+        // Initialize drawing canvas, 2D context, size, and shapes
         this.cv &&
           this.cv.destroy() &&
           this.cv.clearPre() &&
@@ -827,7 +827,7 @@ export default {
       });
     },
     preTagging(response) {
-      // canvas大小重置
+      // Reset canvas size
       this.currImg = {
         url: "",
         width: 0,
@@ -839,7 +839,7 @@ export default {
         dx: 0,
         dy: 0,
       };
-      // 图片原始宽高
+      // Original image width and height
       var image = new Image();
       image.src = response.annotationImg;
       image.onload = () => {
@@ -871,11 +871,11 @@ export default {
       let currImg = this.currImg;
       let contain = document.getElementById("mycantain");
       if (currImg.width > contain.offsetWidth) {
-        // 宽度大于容器
+        // Width is greater than the container width
         this.currImg.roteX = currImg.width / contain.offsetWidth;
         currImg.w = contain.offsetWidth;
         currImg.h = (currImg.height * contain.offsetWidth) / currImg.width;
-        // 压缩后高度大于cantain
+        // After compression, height is greater than the container height
         if (currImg.h > contain.offsetHeight) {
           currImg.h = contain.offsetHeight;
           currImg.w = (currImg.width * currImg.h) / currImg.height;
@@ -886,9 +886,9 @@ export default {
           currImg.dy = (contain.offsetHeight - currImg.h) / 2;
         }
       } else {
-        // 高度压缩比例
+        // Compression ratio based on height
         currImg.roteY = currImg.height / currImg.h;
-        // 压缩后宽度
+        // Width after compression
         currImg.w = (currImg.width * currImg.h) / currImg.height;
         currImg.roteX = currImg.width / currImg.w;
         currImg.dx = (contain.offsetWidth - currImg.w) / 2;
@@ -902,7 +902,7 @@ export default {
       });
     },
     listenerImg() {
-      //捕获图片加载错误
+      // Capture image load errors
       this.imageErrorHandler = (e) => {
         if (e.target.tagName === "IMG") {
           this.handleImageError(e.target);
@@ -911,13 +911,13 @@ export default {
       document.body.addEventListener("error", this.imageErrorHandler, true);
     },
     handleImageError(img) {
-      // 防止重复处理
+      // Prevent duplicate processing
       if (img.classList.contains("failed")) {
         return;
       }
       img.classList.add("failed");
 
-      // 设置图片为不可见，避免闪烁
+      // Hide the image to avoid flickering
       img.style.visibility = "hidden";
       img.style.display = "none";
     },
@@ -984,7 +984,7 @@ export default {
       width: 80% !important;
     }
     section li,li {
-      list-style-position: inside !important; /* 将标记符号放在内容框内 */
+      list-style-position: inside !important; /* Place list marker inside the content box */
     }
    
     .citation {
@@ -1095,8 +1095,8 @@ export default {
             border-radius: 5px;
           }
           .docInfo-img-container{
-            flex-shrink: 0;  /* 防止图片被压缩 */
-            width: auto;  /* 或固定宽度 */
+            flex-shrink: 0;  /* Prevent image from being squeezed */
+            width: auto;  /* Or use a fixed width */
             p{
               text-align: center;
               color: $color;
@@ -1151,7 +1151,7 @@ export default {
     .no-response {
       margin: 15px 0;
     }
-    /*出处*/
+    /* Source list */
     .search-list {
       padding: 10px 20px 3px 54px;
       .search-list-item {
@@ -1178,7 +1178,7 @@ export default {
         }
       }
     }
-    /*操作*/
+    /*Operation*/
     .answer-operation {
       display: flex;
       // justify-content: space-between;
@@ -1225,7 +1225,7 @@ export default {
     }
   }
 
-  /*图片*/
+  /*Image*/
   .file-path {
     .el-image {
       height: 200px !important;
@@ -1276,7 +1276,7 @@ export default {
     overflow-y: auto;
     padding: 20px;
   }
-  /*删除历史...*/
+  /*Deletehistory...*/
   .session-setting {
     position: relative;
     height: 36px;
@@ -1334,8 +1334,7 @@ export default {
   }
 }
 
-/* 仅通过样式调整位置：
-   问题在右侧（内容在右、头像在最右），答案在左侧（默认） */
+/* Layout adjustment only: question on the right (content and avatar on the right), answer on the left (default). */
 .session-question {
   .session-item {
     flex-direction: row-reverse;
@@ -1347,23 +1346,23 @@ export default {
   .session-answer-wrapper {
     display: flex;
     align-items: flex-start;
-    gap: 10px; /* 头像和内容之间10px距离 */
+    gap: 10px; /* 10px gap between avatar and content */
     padding: 20px 20px 0 20px;
     min-height: 80px;
-    background: none; /* 确保外层容器无背景色 */
+    background: none; /* Ensure outer container has no background color */
     
     .logo {
       width: 30px;
       height: 30px;
       border-radius: 6px;
       object-fit: cover;
-      flex-shrink: 0; /* 防止头像被压缩 */
-      background: none; /* 头像无背景色 */
+      flex-shrink: 0; /* Prevent avatar from being squeezed */
+      background: none; /* No background color for avatar */
     }
     
     .answer-content {
       flex: 1;
-      background-color: #eceefe; /* 只有内容区域有背景色 */
+      background-color: #eceefe; /* Only the content area has background color */
       border-radius: 0 10px 10px 10px;
       padding: 20px;
       line-height:1.6;
@@ -1371,7 +1370,7 @@ export default {
   }
 }
 
-/* 图片加载失败时的样式 */
+/* ImageLoadWhen Failed of Style */
 img.failed {
   position: relative;
   border: 2px dashed #ff6b6b;
@@ -1380,7 +1379,7 @@ img.failed {
 }
 
 img.failed::after {
-  content: "图片加载失败";
+  content: "imageloadingFailed";
   position: absolute;
   top: 50%;
   left: 50%;

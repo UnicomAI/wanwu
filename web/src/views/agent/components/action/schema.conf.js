@@ -4,9 +4,9 @@ export const schemaConfig = {
         '            "openapi": "3.0.0",\n' +
         '            "info":\n' +
         '                {\n' +
-        '                    "title": "心知天气API",\n' +
+        '                    "title": "Seniverse Weather API",\n' +
         '                    "version": "1.0.0",\n' +
-        '                    "description": "提供当前天气信息的API，包括温度、天气状况等。"\n' +
+        '                    "description": "API providing current weather info, including temperature, conditions, etc."\n' +
         '                },\n' +
         '            "servers":\n' +
         '                [\n' +
@@ -16,19 +16,19 @@ export const schemaConfig = {
         '                {\n' +
         '                    "/weather/now.json": {\n' +
         '                        "get": {\n' +
-        '                            "summary": "天气查询工具",\n' +
+        '                            "summary": "Weather Query Tool",\n' +
         '                            "operationId": "getWeatherNow",\n' +
-        '                            "description": "根据地点获取当前的天气情况，包括温度和天气状况描述。",\n' +
+        '                            "description": "Get current weather for a location, including temperature and conditions.",\n' +
         '                            "parameters": [{\n' +
         '                                "name": "location",\n' +
-        '                                "description": "查询的地点，可以是城市名、邮编等。",\n' +
+        '                                "description": "Query location, can be city name, zip code, etc.",\n' +
         '                                "in": "query",\n' +
         '                                "required": true,\n' +
         '                                "schema": {"type": "string"}\n' +
         '                            }],\n' +
         '                            "responses": {\n' +
         '                                "200": {\n' +
-        '                                    "description": "成功获取天气信息",\n' +
+        '                                    "description": "Successfully retrieved weather info",\n' +
         '                                    "content": {\n' +
         '                                        "application/json": {\n' +
         '                                            "schema": {\n' +
@@ -44,7 +44,7 @@ export const schemaConfig = {
         '                                    }\n' +
         '                                },\n' +
         '                                "default": {\n' +
-        '                                    "description": "请求失败时的错误信息",\n' +
+        '                                    "description": "Error information when request failed",\n' +
         '                                    "content": {\n' +
         '                                        "application/json": {\n' +
         '                                            "schema": {\n' +
@@ -61,27 +61,27 @@ export const schemaConfig = {
         '        }',
     yaml:'openapi: 3.0.0\n' +
         'info:\n' +
-        '  title: 心知天气API\n' +
+        '  title: Seniverse Weather API\n' +
         '  version: 1.0.0\n' +
-        '  description: 提供当前天气信息的API，包括温度、天气状况等。\n' +
+        '  description: API providing current weather info, including temperature, conditions, etc.\n' +
         'servers:\n' +
         '  - url: https://api.seniverse.com/v3\n' +
         'paths:\n' +
         '  /weather/now.json:\n' +
         '    get:\n' +
-        '      summary: 天气查询工具\n' +
+        '      summary: Weather Query Tool\n' +
         '      operationId: getWeatherNow\n' +
-        '      description: 根据地点获取当前的天气情况，包括温度和天气状况描述。\n' +
+        '      description: Get current weather for a location, including temperature and conditions.\n' +
         '      parameters:\n' +
         '        - name: location\n' +
-        '          description: 查询的地点，可以是城市名、邮编等。\n' +
+        '          description: Query location, can be city name, zip code, etc.\n' +
         '          in: query\n' +
         '          required: true\n' +
         '          schema:\n' +
         '            type: string\n' +
         '      responses:\n' +
         '        \'200\':\n' +
-        '          description: 成功获取天气信息\n' +
+        '          description: Successfully retrieved weather info\n' +
         '          content:\n' +
         '            application/json:\n' +
         '              schema:\n' +
@@ -96,7 +96,7 @@ export const schemaConfig = {
         '                  temperature:\n' +
         '                    type: string\n' +
         '        default:\n' +
-        '          description: 请求失败时的错误信息\n' +
+        '          description: Error information when request failed\n' +
         '          content:\n' +
         '            application/json:\n' +
         '              schema:\n' +

@@ -10,12 +10,12 @@ import (
 // GetKnowledgeSplitterSelect
 //
 //	@Tags			knowledge.splitter
-//	@Summary		查询知识库分隔符列表
-//	@Description	查询知识库分隔符列表
+//	@Summary Query the knowledge base delimiter list
+//	@Description Query the knowledge base delimiter list
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	query		request.GetKnowledgeSplitterReq	false	"查询知识库分隔符列表参数"
+//	@Param data query request.GetKnowledgeSplitterReq false "Query knowledge base separator list parameter"
 //	@Success		200		{object}	response.Response{data=response.KnowledgeSplitterListResp}
 //	@Router			/knowledge/splitter [get]
 func GetKnowledgeSplitterSelect(ctx *gin.Context) {
@@ -31,12 +31,12 @@ func GetKnowledgeSplitterSelect(ctx *gin.Context) {
 // CreateKnowledgeSplitter
 //
 //	@Tags			knowledge.splitter
-//	@Summary		创建知识库分隔符
-//	@Description	创建知识库分隔符
+//	@Summary creates knowledge base delimiter
+//	@Description creates knowledge base separator
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CreateKnowledgeSplitterReq	true	"创建知识库分隔符请求参数"
+//	@Param data body request.CreateKnowledgeSplitterReq true "Create knowledge base separator request parameter"
 //	@Success		200		{object}	response.Response
 //	@Router			/knowledge/splitter [post]
 func CreateKnowledgeSplitter(ctx *gin.Context) {
@@ -52,12 +52,12 @@ func CreateKnowledgeSplitter(ctx *gin.Context) {
 // UpdateKnowledgeSplitter
 //
 //	@Tags			knowledge.splitter
-//	@Summary		修改知识库分隔符
-//	@Description	修改知识库分隔符
+//	@Summary Modify the knowledge base separator
+//	@Description Modify the knowledge base separator
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.UpdateKnowledgeSplitterReq	true	"修改知识库分隔符请求参数"
+//	@Param data body request.UpdateKnowledgeSplitterReq true "Modify knowledge base separator request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/knowledge/splitter [put]
 func UpdateKnowledgeSplitter(ctx *gin.Context) {
@@ -73,12 +73,12 @@ func UpdateKnowledgeSplitter(ctx *gin.Context) {
 // DeleteKnowledgeSplitter
 //
 //	@Tags			knowledge.splitter
-//	@Summary		删除知识库分隔符
-//	@Description	删除知识库分隔符
+//	@Summary Remove knowledge base separator
+//	@Description removes knowledge base separator
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.DeleteKnowledgeSplitterReq	true	"删除知识库分隔符请求参数"
+//	@Param data body request.DeleteKnowledgeSplitterReq true "Delete knowledge base separator request parameter"
 //	@Success		200		{object}	response.Response
 //	@Router			/knowledge/splitter [delete]
 func DeleteKnowledgeSplitter(ctx *gin.Context) {

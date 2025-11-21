@@ -28,7 +28,7 @@ type KnowledgeUserPermissionReq struct {
 
 	UserId      string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId       string `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	KnowledgeId string `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"` //知识库id
+	KnowledgeId string `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"` //知识库id [EN] knowledge base id
 }
 
 func (x *KnowledgeUserPermissionReq) Reset() {
@@ -91,8 +91,8 @@ type CheckKnowledgeUserPermissionReq struct {
 
 	UserId         string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId          string `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	KnowledgeId    string `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`        //知识库id
-	PermissionType int32  `protobuf:"varint,4,opt,name=permissionType,proto3" json:"permissionType,omitempty"` //权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限
+	KnowledgeId    string `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`        //知识库id [EN] knowledge base id
+	PermissionType int32  `protobuf:"varint,4,opt,name=permissionType,proto3" json:"permissionType,omitempty"` //权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限 [EN] Permission type: 0: View permission; 10: Edit permission; 20: Authorization permission. The reason for discontinuous values ​​prevents intermediate permissions in the future. The current logic is Authorization permission > Edit permission > View permission.
 }
 
 func (x *CheckKnowledgeUserPermissionReq) Reset() {
@@ -162,9 +162,9 @@ type AddKnowledgeUserReq struct {
 
 	UserId            string               `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId             string               `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	KnowledgeId       string               `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`             //知识库id
-	PermissionType    int32                `protobuf:"varint,4,opt,name=permissionType,proto3" json:"permissionType,omitempty"`      //权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限
-	KnowledgeUserList []*KnowledgeUserInfo `protobuf:"bytes,5,rep,name=knowledgeUserList,proto3" json:"knowledgeUserList,omitempty"` //知识库用户信息
+	KnowledgeId       string               `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`             //知识库id [EN] knowledge base id
+	PermissionType    int32                `protobuf:"varint,4,opt,name=permissionType,proto3" json:"permissionType,omitempty"`      //权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限 [EN] Permission type: 0: View permission; 10: Edit permission; 20: Authorization permission. The reason for discontinuous values ​​prevents intermediate permissions in the future. The current logic is Authorization permission > Edit permission > View permission.
+	KnowledgeUserList []*KnowledgeUserInfo `protobuf:"bytes,5,rep,name=knowledgeUserList,proto3" json:"knowledgeUserList,omitempty"` //知识库用户信息 [EN] Knowledge base user information
 }
 
 func (x *AddKnowledgeUserReq) Reset() {
@@ -241,8 +241,8 @@ type KnowledgeUserInfo struct {
 
 	UserId         string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId          string `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	PermissionType int32  `protobuf:"varint,3,opt,name=permissionType,proto3" json:"permissionType,omitempty"` // 权限类型: -1 删除此用户权限；0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限
-	PermissionId   string `protobuf:"bytes,4,opt,name=permissionId,proto3" json:"permissionId,omitempty"`      //权限id 编辑删除才有用
+	PermissionType int32  `protobuf:"varint,3,opt,name=permissionType,proto3" json:"permissionType,omitempty"` // 权限类型: -1 删除此用户权限；0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限 [EN] Permission type: -1 Delete this user permission; 0: View permission; 10: Edit permission; 20: Authorization permission, the reason of discontinuous values ​​prevents subsequent intermediate permissions, the current logic is Authorization permission>Edit permission>View permission
+	PermissionId   string `protobuf:"bytes,4,opt,name=permissionId,proto3" json:"permissionId,omitempty"`      //权限id 编辑删除才有用 [EN] Permission id is only useful for editing and deleting
 }
 
 func (x *KnowledgeUserInfo) Reset() {
@@ -312,8 +312,8 @@ type EditKnowledgeUserReq struct {
 
 	UserId        string             `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId         string             `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	KnowledgeId   string             `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`     //知识库id
-	KnowledgeUser *KnowledgeUserInfo `protobuf:"bytes,4,opt,name=knowledgeUser,proto3" json:"knowledgeUser,omitempty"` //知识库用户信息
+	KnowledgeId   string             `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`     //知识库id [EN] knowledge base id
+	KnowledgeUser *KnowledgeUserInfo `protobuf:"bytes,4,opt,name=knowledgeUser,proto3" json:"knowledgeUser,omitempty"` //知识库用户信息 [EN] Knowledge base user information
 }
 
 func (x *EditKnowledgeUserReq) Reset() {
@@ -383,8 +383,8 @@ type DeleteKnowledgeUserReq struct {
 
 	UserId       string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId        string `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	KnowledgeId  string `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`   //知识库id
-	PermissionId string `protobuf:"bytes,4,opt,name=permissionId,proto3" json:"permissionId,omitempty"` //权限id 编辑删除才有用
+	KnowledgeId  string `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`   //知识库id [EN] knowledge base id
+	PermissionId string `protobuf:"bytes,4,opt,name=permissionId,proto3" json:"permissionId,omitempty"` //权限id 编辑删除才有用 [EN] Permission id is only useful for editing and deleting
 }
 
 func (x *DeleteKnowledgeUserReq) Reset() {
@@ -454,9 +454,9 @@ type TransferKnowledgeAdminUserReq struct {
 
 	UserId        string             `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId         string             `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	KnowledgeId   string             `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`     //知识库id
-	PermissionId  string             `protobuf:"bytes,4,opt,name=permissionId,proto3" json:"permissionId,omitempty"`   //权限id
-	KnowledgeUser *KnowledgeUserInfo `protobuf:"bytes,5,opt,name=knowledgeUser,proto3" json:"knowledgeUser,omitempty"` //知识库用户信息
+	KnowledgeId   string             `protobuf:"bytes,3,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`     //知识库id [EN] knowledge base id
+	PermissionId  string             `protobuf:"bytes,4,opt,name=permissionId,proto3" json:"permissionId,omitempty"`   //权限id [EN] permission id
+	KnowledgeUser *KnowledgeUserInfo `protobuf:"bytes,5,opt,name=knowledgeUser,proto3" json:"knowledgeUser,omitempty"` //知识库用户信息 [EN] Knowledge base user information
 }
 
 func (x *TransferKnowledgeAdminUserReq) Reset() {

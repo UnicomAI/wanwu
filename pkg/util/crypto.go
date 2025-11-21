@@ -37,7 +37,7 @@ func unPadding(src []byte) ([]byte, error) {
 	length := len(src)
 	unPadNum := int(src[length-1])
 	if length <= unPadNum {
-		return nil, errors.New("解密失败")
+		return nil, errors.New("decryption failed")
 	}
 	return src[:length-unPadNum], nil
 }

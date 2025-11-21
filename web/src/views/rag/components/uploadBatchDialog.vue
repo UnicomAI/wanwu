@@ -36,8 +36,8 @@
                                         <div v-if="fileType === 'doc/*'" class="docFile">
                                             <img  :src='require('@/assets/imgs/docFile.png')' />
                                         </div>
-                                        <p>文件名称: {{fileList[0]['name']}}</p>
-                                        <p>文件大小: {{fileList[0]['size'] > 1024 ? (fileList[0]['size'] / (1024 * 1024 )).toFixed(2) + ' MB' : fileList[0]['size'] + ' bytes' }}</p>
+                                        <p>FileName: {{fileList[0]['name']}}</p>
+                                        <p>Filesize: {{fileList[0]['size'] > 1024 ? (fileList[0]['size'] / (1024 * 1024 )).toFixed(2) + ' MB' : fileList[0]['size'] + ' bytes' }}</p>
                                     </div>
                                     <!--<i  class="el-icon-close" @click.stop="clearFile"></i>-->
                                     <div class="tips">
@@ -81,11 +81,11 @@
                 fileIdList:[],
                 fileList:[],
                 fileType:'',
-                //上传文件弹框
+                //UploadFile弹框
                 loading:false,
                 dialogVisible:false,
                 fileUrl:'',
-                //上传文件
+                //UploadFile
                 imgConfig:["jpeg", "PNG", "png", "JPG", "jpg",'bmp','webp'],
                 audioConfig:['mp3','wav'],
                 tipsArr:'',
@@ -135,7 +135,7 @@
             },
             uploadOnChange(file, fileList) {
                 let filename= file.name
-                //通过上传的文件名判断文件类型，用于回显
+                //ByUpload of FileNameCheckFileType，Used for回显
                 let fileType = filename.split('.')[filename.split('.').length-1]
                 if(["jpeg", "PNG", "png", "JPG", "jpg",'bmp','webp'].includes(fileType)){
                     this.fileType = 'image/*'
@@ -167,7 +167,7 @@
                         this.fileIdList = fileIdList || [];
                         this.$emit('setFileId',this.fileIdList)
                         this.$emit('setFile',this.fileList)
-                        this.$message.success("文件上传成功");
+                        this.$message.success("FileUploadSuccess");
                         this.handleClose();
                     }
                 })
@@ -175,7 +175,7 @@
             // doBatchUpload(){
             //     var formData = new FormData();
             //     var config = {headers: {"Content-Type": "multipart/form-data",}};
-            //     // 组装文件
+            //     // 组装File
             //     var files = this.fileList
             //     if (files.length) {
             //         files.forEach(element => {
@@ -191,7 +191,7 @@
             //         this.loading = false
             //         this.fileIdList = response.data.list
             //         this.$emit('setFileId',this.fileIdList)
-            //         this.$message.success("文件上传成功")
+            //         this.$message.success("FileUploadSuccess")
             //         this.handleClose()
             //     }).catch(error => {
             //         this.loading = false

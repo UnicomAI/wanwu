@@ -1,15 +1,15 @@
 package response
 
 type KnowledgeReportPageResult struct {
-	List          []*KnowledgeReportInfo `json:"list"`          // 社区报告内容列表
-	Total         int32                  `json:"total"`         // 社区报告数量：如果为0显示-
-	PageNo        int                    `json:"pageNo"`        // 当前页码
-	PageSize      int                    `json:"pageSize"`      // 每页数量
-	CreatedAt     string                 `json:"createdAt"`     // 生成时间：unix毫秒级时间戳，若为空串显示-
-	Status        int32                  `json:"status"`        // 状态：0.未生成(-) 1.生成中 2.已生成 3.生成失败
-	CanGenerate   bool                   `json:"canGenerate"`   // 是否可生成：true.可生成 false.不可生成
-	CanAddReport  bool                   `json:"canAddReport"`  // 是否可新增社区报告：true.可新增 false.不可新增
-	GenerateLabel string                 `json:"generateLabel"` // 生成社区报告按钮文案: 生成/重新生成
+	List          []*KnowledgeReportInfo `json:"list"`          // Community report content list
+	Total         int32                  `json:"total"`         // Number of community reports: if 0 show -
+	PageNo        int                    `json:"pageNo"`        // Current page number
+	PageSize      int                    `json:"pageSize"`      // Quantity per page
+	CreatedAt     string                 `json:"createdAt"`     // Generation time: unix millisecond timestamp, if it is an empty string, it will be displayed -
+	Status        int32                  `json:"status"`        // Status: 0. Not generated (-) 1. Generating 2. Generated 3. Generation failed
+	CanGenerate   bool                   `json:"canGenerate"`   // Whether it can be generated: true. Can be generated. False. Cannot be generated.
+	CanAddReport  bool                   `json:"canAddReport"`  // Whether community reports can be added: true. Can be added. False. Cannot be added.
+	GenerateLabel string                 `json:"generateLabel"` // Generate community report button copy: Generate/Regenerate
 }
 
 type KnowledgeReportInfo struct {

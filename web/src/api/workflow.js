@@ -15,7 +15,7 @@ export const useWorkFlow = (data)=>{
         data
     })
 };
-//应用广场工作流列表
+// App marketplace workflow list
 export const getExplorationFlowList = (params)=>{
     return request({
         url: `${USER_API}/exploration/app/list`,
@@ -44,7 +44,7 @@ export const publishWorkFlow = (data)=>{
         data
     })
 };
-//复制
+//Copy
 export const copyWorkFlow = (data)=>{
     return request({
         url: `${USER_API}/appspace/workflow/copy`, //`${WORKFLOW_API}/workflow/clone`,
@@ -52,7 +52,7 @@ export const copyWorkFlow = (data)=>{
         data
     })
 };
-//chakan
+// View workflow schema
 export const readWorkFlow = (data)=>{
     return request({
         url: `${WORKFLOW_API}/workflow/openapi_schema`,
@@ -78,7 +78,7 @@ export const getList = (data)=>{
     })
 };
 
-// 工作流图片上传
+// WorkflowImageUpload
 export const uploadFile = (data) => {
     return request({
         url: `/api/bot/upload_file`,
@@ -87,7 +87,7 @@ export const uploadFile = (data) => {
     })
 }
 
-// 导入工作流
+// ImportWorkflow
 export const importWorkflow = (data, config) => {
     return request({
         url: `${USER_API}/appspace/workflow/import`,
@@ -97,7 +97,7 @@ export const importWorkflow = (data, config) => {
     });
 };
 
-// 导出工作流
+// ExportWorkflow
 export const exportWorkflow = (params) => {
     return request({
         url: `${USER_API}/appspace/workflow/export`,

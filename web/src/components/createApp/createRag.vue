@@ -24,10 +24,10 @@
               
                 <img :src="getImageSrc()" /> 
                 <p class="echo-img-tip" v-if="isLoading">
-                  图片上传中
+                  Image uploading
                   <span class="el-icon-loading"></span>
                 </p>
-                <p class="echo-img-tip" v-else>点击上传图片</p>
+                <p class="echo-img-tip" v-else>Click to upload image</p>
             </div>
             </el-upload>
         </el-form-item>
@@ -109,8 +109,8 @@ export default {
           }
         ],
         desc: [
-          { required: true, message: '请输入文本描述', trigger: "blur" },
-          { max:600, message:'文本描述限制600字符以内',trigger: "blur"}
+          { required: true, message: 'Please enter text description', trigger: "blur" },
+          { max:600, message:'Text description limited to 600 characters',trigger: "blur"}
         ],
       },
       titleMap: {

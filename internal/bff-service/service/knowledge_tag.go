@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SelectKnowledgeTagList 查询知识库标签列表，主要根据userId 查询用户所有知识库标签
+// SelectKnowledgeTagList queries the knowledge base tag list, mainly querying all the user's knowledge base tags based on userId.
 func SelectKnowledgeTagList(ctx *gin.Context, userId, orgId string, req *request.KnowledgeTagSelectReq) (*response.KnowledgeTagListResp, error) {
 	resp, err := knowledgeBaseTag.SelectKnowledgeTagList(ctx.Request.Context(), &knowledgebase_tag_service.KnowledgeTagSelectReq{
 		UserId:      userId,
@@ -21,7 +21,7 @@ func SelectKnowledgeTagList(ctx *gin.Context, userId, orgId string, req *request
 	return buildKnowledgeTagList(resp), nil
 }
 
-// SelectKnowledgeTagBindCount 查询标签绑定数量
+// SelectKnowledgeTagBindCount queries the number of tag bindings
 func SelectKnowledgeTagBindCount(ctx *gin.Context, userId, orgId string, req *request.KnowledgeTagBindCountReq) (*response.TagBindResp, error) {
 	resp, err := knowledgeBaseTag.TagBindCount(ctx.Request.Context(), &knowledgebase_tag_service.TagBindCountReq{
 		UserId: userId,
@@ -34,7 +34,7 @@ func SelectKnowledgeTagBindCount(ctx *gin.Context, userId, orgId string, req *re
 	return &response.TagBindResp{BindCount: resp.BindCount}, nil
 }
 
-// CreateKnowledgeTag 创建知识库标签
+// CreateKnowledgeTag creates a knowledge base tag
 func CreateKnowledgeTag(ctx *gin.Context, userId, orgId string, r *request.CreateKnowledgeTagReq) (*response.CreateKnowledgeTagResp, error) {
 	resp, err := knowledgeBaseTag.CreateKnowledgeTag(ctx.Request.Context(), &knowledgebase_tag_service.CreateKnowledgeTagReq{
 		TagName: r.TagName,
@@ -47,7 +47,7 @@ func CreateKnowledgeTag(ctx *gin.Context, userId, orgId string, r *request.Creat
 	return &response.CreateKnowledgeTagResp{KnowledgeId: resp.TagId}, nil
 }
 
-// UpdateKnowledgeTag 更新知识库标签
+// UpdateKnowledgeTag updates the knowledge base tag
 func UpdateKnowledgeTag(ctx *gin.Context, userId, orgId string, r *request.UpdateKnowledgeTagReq) error {
 	_, err := knowledgeBaseTag.UpdateKnowledgeTag(ctx.Request.Context(), &knowledgebase_tag_service.UpdateKnowledgeTagReq{
 		TagId:   r.TagId,
@@ -58,7 +58,7 @@ func UpdateKnowledgeTag(ctx *gin.Context, userId, orgId string, r *request.Updat
 	return err
 }
 
-// DeleteKnowledgeTag 删除知识库标签
+// DeleteKnowledgeTag Delete knowledge base tag
 func DeleteKnowledgeTag(ctx *gin.Context, userId, orgId string, r *request.DeleteKnowledgeTagReq) error {
 	_, err := knowledgeBaseTag.DeleteKnowledgeTag(ctx.Request.Context(), &knowledgebase_tag_service.DeleteKnowledgeTagReq{
 		TagId:  r.TagId,
@@ -68,7 +68,7 @@ func DeleteKnowledgeTag(ctx *gin.Context, userId, orgId string, r *request.Delet
 	return err
 }
 
-// BindKnowledgeTag 绑定知识库标签
+// BindKnowledgeTag binds knowledge base tags
 func BindKnowledgeTag(ctx *gin.Context, userId, orgId string, r *request.BindKnowledgeTagReq) error {
 	_, err := knowledgeBaseTag.BindKnowledgeTag(ctx.Request.Context(), &knowledgebase_tag_service.BindKnowledgeTagReq{
 		KnowledgeId: r.KnowledgeId,
@@ -79,7 +79,7 @@ func BindKnowledgeTag(ctx *gin.Context, userId, orgId string, r *request.BindKno
 	return err
 }
 
-// buildKnowledgeTagList 构造知识库标签结果
+// buildKnowledgeTagList constructs knowledge base tag results
 func buildKnowledgeTagList(knowledgeTagListResp *knowledgebase_tag_service.KnowledgeTagSelectListResp) *response.KnowledgeTagListResp {
 	if knowledgeTagListResp == nil || len(knowledgeTagListResp.KnowledgeTagList) == 0 {
 		return &response.KnowledgeTagListResp{

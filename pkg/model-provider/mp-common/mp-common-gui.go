@@ -15,14 +15,14 @@ import (
 // --- openapi request ---
 
 type GuiReq struct {
-	Algo                    string   `json:"algo,omitempty"`                                     // 算法名称，默认gui_agent_v1
-	Platform                string   `json:"platform" validate:"required"`                       // 平台信息，移动端填写Mobile, Windows端填写WIN，Mac端填写MAC
-	CurrentScreenshotXml    string   `json:"current_screenshot_xml,omitempty"`                   // 屏幕布局导出的xml文件
-	CurrentScreenshot       string   `json:"current_screenshot" validate:"required"`             // 当前屏幕截图，Base64编码的图像字符串
-	CurrentScreenshotWidth  int      `json:"current_screenshot_width" validate:"required,gt=0"`  // 当前屏幕截图的宽度
-	CurrentScreenshotHeight int      `json:"current_screenshot_height" validate:"required,gt=0"` // 当前屏幕截图的高度
-	Task                    string   `json:"task" validate:"required"`                           //当前用户任务
-	History                 []string `json:"history"`                                            //当前任务的历史返回结果，历次返回结果中的content字段
+	Algo                    string   `json:"algo,omitempty"`                                     // Algorithm name, default gui_agent_v1
+	Platform                string   `json:"platform" validate:"required"`                       // For platform information, fill in Mobile for mobile, WIN for Windows, and MAC for Mac.
+	CurrentScreenshotXml    string   `json:"current_screenshot_xml,omitempty"`                   // Screen layout exported xml file
+	CurrentScreenshot       string   `json:"current_screenshot" validate:"required"`             // Current screenshot, Base64 encoded image string
+	CurrentScreenshotWidth  int      `json:"current_screenshot_width" validate:"required,gt=0"`  // The width of the current screenshot
+	CurrentScreenshotHeight int      `json:"current_screenshot_height" validate:"required,gt=0"` // The height of the current screenshot
+	Task                    string   `json:"task" validate:"required"`                           //Current user tasks
+	History                 []string `json:"history"`                                            //The historical return result of the current task, the content field in the previous return results
 }
 
 func (req *GuiReq) Check() error {
@@ -135,8 +135,8 @@ func Gui(ctx context.Context, provider, apiKey, url string, req *GuiReq, headers
 		})
 	}
 	request := resty.New().
-		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验
-		SetTimeout(0).                                             // 关闭请求超时
+		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // Turn off certificate verification
+		SetTimeout(0).                                             // Close request timeout
 		R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").

@@ -8,7 +8,7 @@
       @click="back"
     >
     <span class="el-icon-arrow-left"></span>
-    返回
+    Back
     </span>
     <div class="mcp-title">
       <img
@@ -42,21 +42,21 @@
         <div>
           <div class="overview bg-border">
             <div class="overview-item">
-              <div class="item-title">• &nbsp;使用概述</div>
+              <div class="item-title">• &nbsp;Usage Overview</div>
               <div
                 class="item-desc"
                 v-html="parseTxt(detail.summary)"
               ></div>
             </div>
             <div class="overview-item">
-              <div class="item-title">• &nbsp;特性说明</div>
+              <div class="item-title">• &nbsp;Feature Description</div>
               <div
                 class="item-desc"
                 v-html="parseTxt(detail.feature)"
               ></div>
             </div>
             <div class="overview-item">
-              <div class="item-title">• &nbsp;应用场景</div>
+              <div class="item-title">• &nbsp;App Scenario</div>
               <div class="item-desc">
                 <div v-html="parseTxt(detail.scenario)"></div>
               </div>
@@ -64,7 +64,7 @@
           </div>
           <div class="overview bg-border">
             <div class="overview-item">
-              <div class="item-title" style="width:110px;">• &nbsp;工作流配置说明</div>
+              <div class="item-title" style="width:110px;">• &nbsp;Workflow Configuration Description</div>
               <div
                 class="item-desc"
                 v-html="parseTxt(detail.workFlowInstruction)"
@@ -75,7 +75,7 @@
       </div>
 
       <div class="right-recommend">
-        <p style="margin: 20px 0;color: #333;">更多推荐</p>
+        <p style="margin: 20px 0;color: #333;">More Recommendations</p>
         <div
           class="recommend-item"
           v-for="(item ,i) in recommendList"
@@ -114,7 +114,7 @@ export default {
       handler() {
         this.initData()
       },
-      // 深度观察监听
+      // Deep watch route updates
       deep: true
     }
   },
@@ -130,7 +130,7 @@ export default {
       this.assistantTemplateId = this.$route.query.id
       this.getDetailData()
 
-      //滚动到顶部
+      //scrolltotop
       const main = document.querySelector(".el-main > .page-container")
       if (main) main.scrollTop = 0
     },
@@ -148,7 +148,7 @@ export default {
       this.assistantTemplateId = item.assistantTemplateId;
       this.getDetailData();
     },
-    // 解析文本，遇到.换行等
+    // Parse text and keep line breaks/tabs readable
     parseTxt(txt){
       if (!txt) return ''
       const text = txt.replaceAll('\n\t','<br/>&nbsp;').replaceAll('\n','<br/>').replaceAll('\t', '   &nbsp;')

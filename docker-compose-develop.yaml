@@ -288,7 +288,7 @@ services:
       MINIO_USER: ${WANWU_MINIO_USER}
       MINIO_PASSWORD: ${WANWU_MINIO_PASSWORD}
       JWT_SIGNING_KEY: ${WANWU_BFF_JWT_SIGNING_KEY}
-      # --- 以下env用于workflow-wanwu适配 ---
+      # --- 以下env用于workflow-wanwu适配 --- [EN] --- The following env is used for workflow-wanwu adaptation ---
       WANWU_EXTERNAL_ENDPOINT: ${WANWU_EXTERNAL_ENDPOINT}
       WANWU_EXTERNAL_SCHEME: ${WANWU_EXTERNAL_SCHEME}
       WANWU_CALLBACK_LLM_BASE_URL: http://bff-service:6668/callback/v1/model
@@ -298,13 +298,13 @@ services:
       WANWU_KNOWLEDGE_SEARCH_URL: http://bff-service:6668/callback/v1/rag/search-knowledge-base
       WANWU_FILE_GENERATOR_URL: http://agent-wanwu:15002/upload
       WANWU_FILE_PARSER_URL: http://rag-wanwu:8681/rag/doc_parser
-      # 用于nginx 8081代理workflow-wanwu:8998 minio presign相关api
+      # 用于nginx 8081代理workflow-wanwu:8998 minio presign相关api [EN] Used for nginx 8081 proxy workflow-wanwu:8998 minio presign related api
       WANWU_MINIO_PROXY_ENDPOINT: ${WANWU_EXTERNAL_ENDPOINT}
       WANWU_MINIO_PROXY_PREFIX: /workflow/minio/presign
-      # 用于workflow-wanwu:8998代理minio-wanwu:9000
+      # 用于workflow-wanwu:8998代理minio-wanwu:9000 [EN] Used for workflow-wanwu:8998 proxy minio-wanwu:9000
       MINIO_API_HOST: http://${WANWU_MINIO_ENDPOINT}
       MINIO_PROXY_ENDPOINT: :8998
-      # 用于code节点运行
+      # 用于code节点运行 [EN] Used for code node running
       CODE_RUNNER_TYPE: ${WANWU_WORKFLOW_CODE_RUNNER_TYPE}
       CODE_RUNNER_ALLOW_ENV:
       CODE_RUNNER_ALLOW_READ:
@@ -346,7 +346,7 @@ services:
       REDIS_HOST: ${WANWU_REDIS_HOST}
       REDIS_PORT: ${WANWU_REDIS_PORT}
       REDIS_PASSWD: ${WANWU_REDIS_PASSWORD}
-      # 用于rag调用外部API的env
+      # 用于rag调用外部API的env [EN] env used for rag to call external API
       GET_KB_ID_URL: http://bff-service:6668/v1/api/category/info
       KAFKA_MQ_REL_URL: http://bff-service:6668/v1/api/docstatus
       KAFKA_MQ_KB_STATUS_URL: http://bff-service:6668/v1/api/knowledge/status
@@ -378,10 +378,10 @@ services:
       MINIO_ADDRESS: ${WANWU_MINIO_ENDPOINT}
       MINIO_ACCESS_KEY: ${WANWU_MINIO_USER}
       MINIO_SECRET_KEY: ${WANWU_MINIO_PASSWORD}
-      # 用于agent并发处理
+      # 用于agent并发处理 [EN] Used for agent concurrent processing
       WORKERS: 4
       THREADS: 8
-      # 用于agent调用外部接口的API前缀
+      # 用于agent调用外部接口的API前缀 [EN] API prefix used by the agent to call the external interface
       URL_MODEL: http://bff-service
       URL_MINIO: http://bff-service
       URL_RAG: http://rag-wanwu

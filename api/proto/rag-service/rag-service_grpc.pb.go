@@ -35,23 +35,23 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RagServiceClient interface {
-	// 流式对话
+	// 流式对话 [EN] streaming conversation
 	ChatRag(ctx context.Context, in *ChatRagReq, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChatRagResp], error)
-	// 创建 rag
+	// 创建 rag [EN] Create a rag
 	CreateRag(ctx context.Context, in *CreateRagReq, opts ...grpc.CallOption) (*CreateRagResp, error)
-	// 更新 rag 基本信息
+	// 更新 rag 基本信息 [EN] Update rag basic information
 	UpdateRag(ctx context.Context, in *UpdateRagReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 更新 rag 配置信息
+	// 更新 rag 配置信息 [EN] Update rag configuration information
 	UpdateRagConfig(ctx context.Context, in *UpdateRagConfigReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 删除 rag
+	// 删除 rag [EN] Delete rag
 	DeleteRag(ctx context.Context, in *RagDeleteReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 获取 rag
+	// 获取 rag [EN] Get rag
 	GetRagDetail(ctx context.Context, in *RagDetailReq, opts ...grpc.CallOption) (*RagInfo, error)
-	// 获取 rag 列表
+	// 获取 rag 列表 [EN] Get rag list
 	ListRag(ctx context.Context, in *RagListReq, opts ...grpc.CallOption) (*RagListResp, error)
-	// 根据 ragIds 获取 rag 列表
+	// 根据 ragIds 获取 rag 列表 [EN] Get the rag list based on ragIds
 	GetRagByIds(ctx context.Context, in *GetRagByIdsReq, opts ...grpc.CallOption) (*AppBriefList, error)
-	// 复制 rag
+	// 复制 rag [EN] Copy rag
 	CopyRag(ctx context.Context, in *CopyRagReq, opts ...grpc.CallOption) (*CreateRagResp, error)
 }
 
@@ -166,23 +166,23 @@ func (c *ragServiceClient) CopyRag(ctx context.Context, in *CopyRagReq, opts ...
 // All implementations must embed UnimplementedRagServiceServer
 // for forward compatibility.
 type RagServiceServer interface {
-	// 流式对话
+	// 流式对话 [EN] streaming conversation
 	ChatRag(*ChatRagReq, grpc.ServerStreamingServer[ChatRagResp]) error
-	// 创建 rag
+	// 创建 rag [EN] Create a rag
 	CreateRag(context.Context, *CreateRagReq) (*CreateRagResp, error)
-	// 更新 rag 基本信息
+	// 更新 rag 基本信息 [EN] Update rag basic information
 	UpdateRag(context.Context, *UpdateRagReq) (*emptypb.Empty, error)
-	// 更新 rag 配置信息
+	// 更新 rag 配置信息 [EN] Update rag configuration information
 	UpdateRagConfig(context.Context, *UpdateRagConfigReq) (*emptypb.Empty, error)
-	// 删除 rag
+	// 删除 rag [EN] Delete rag
 	DeleteRag(context.Context, *RagDeleteReq) (*emptypb.Empty, error)
-	// 获取 rag
+	// 获取 rag [EN] Get rag
 	GetRagDetail(context.Context, *RagDetailReq) (*RagInfo, error)
-	// 获取 rag 列表
+	// 获取 rag 列表 [EN] Get rag list
 	ListRag(context.Context, *RagListReq) (*RagListResp, error)
-	// 根据 ragIds 获取 rag 列表
+	// 根据 ragIds 获取 rag 列表 [EN] Get the rag list based on ragIds
 	GetRagByIds(context.Context, *GetRagByIdsReq) (*AppBriefList, error)
-	// 复制 rag
+	// 复制 rag [EN] Copy rag
 	CopyRag(context.Context, *CopyRagReq) (*CreateRagResp, error)
 	mustEmbedUnimplementedRagServiceServer()
 }

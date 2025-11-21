@@ -39,7 +39,7 @@ func (s *Server) Start() error {
 	if s.serv != nil {
 		return nil
 	}
-	// 初始化微服务
+	// Initialize microservices
 	if err := assistant.StartService(); err != nil {
 		log.Fatalf("init service err: %v", err)
 	}

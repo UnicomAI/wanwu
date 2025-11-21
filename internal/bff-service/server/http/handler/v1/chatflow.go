@@ -14,12 +14,12 @@ import (
 // CreateChatflow
 //
 //	@Tags		chatflow
-//	@Summary	创建Chatflow
+//	@Summary Create Chatflow
 //	@Description
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		data	body		request.AppBriefConfig	true	"创建Chatflow的请求参数"
+//	@Param data body request.AppBriefConfig true "Create request parameters for Chatflow"
 //	@Success	200		{object}	response.Response{data=response.CozeWorkflowIDData}
 //	@Router		/appspace/chatflow [post]
 func CreateChatflow(ctx *gin.Context) {
@@ -34,12 +34,12 @@ func CreateChatflow(ctx *gin.Context) {
 // CopyChatflow
 //
 //	@Tags		chatflow
-//	@Summary	拷贝Chatflow
+//	@Summary Copy Chatflow
 //	@Description
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		data	body		request.WorkflowIDReq	true	"拷贝Chatflow的请求参数"
+//	@Param data body request.WorkflowIDReq true "Copy Chatflow's request parameters"
 //	@Success	200		{object}	response.Response{data=response.CozeWorkflowIDData}
 //	@Router		/appspace/chatflow/copy [post]
 func CopyChatflow(ctx *gin.Context) {
@@ -54,12 +54,12 @@ func CopyChatflow(ctx *gin.Context) {
 // ImportChatflow
 //
 //	@Tags			chatflow
-//	@Summary		导入Chatflow
-//	@Description	通过JSON文件导入工作流
+//	@Summary Import Chatflow
+//	@Description Import workflow via JSON file
 //	@Security		JWT
 //	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			file	formData	file	true	"工作流JSON文件"
+//	@Param file formData file true "Workflow JSON file"
 //	@Success		200		{object}	response.Response{data=response.CozeWorkflowIDData}
 //	@Router			/appspace/chatflow/import [post]
 func ImportChatflow(ctx *gin.Context) {
@@ -70,12 +70,12 @@ func ImportChatflow(ctx *gin.Context) {
 // ExportChatflow
 //
 //	@Tags			chatflow
-//	@Summary		导出Chatflow
-//	@Description	导出工作流的json文件
+//	@Summary Export Chatflow
+//	@Description Export the json file of the workflow
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		application/octet-stream
-//	@Param			workflow_id	query		string	true	"工作流ID"
+//	@Param workflow_id query string true "workflow ID"
 //	@Success		200			{object}	response.Response{}
 //	@Router			/appspace/chatflow/export [get]
 func ExportChatflow(ctx *gin.Context) {
@@ -85,10 +85,10 @@ func ExportChatflow(ctx *gin.Context) {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	// 设置响应头
+	// Set response headers
 	ctx.Header("Content-Disposition", "attachment; filename*=utf-8''"+url.QueryEscape(fileName))
 	ctx.Header("Content-Type", "application/octet-stream")
 	ctx.Header("Access-Control-Expose-Headers", "Content-Disposition")
-	// 直接写入字节数据
+	// Write byte data directly
 	ctx.Data(http.StatusOK, "application/octet-stream", resp)
 }

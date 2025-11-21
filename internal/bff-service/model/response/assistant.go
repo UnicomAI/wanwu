@@ -5,22 +5,22 @@ import (
 )
 
 type Assistant struct {
-	request.AppBriefConfig                                // 基本信息
+	request.AppBriefConfig                                // Basic information
 	AssistantId            string                         `json:"assistantId"  validate:"required"`
-	Prologue               string                         `json:"prologue"`            // 开场白
-	Instructions           string                         `json:"instructions"`        // 系统提示词
-	RecommendQuestion      []string                       `json:"recommendQuestion"`   // 推荐问题
-	ModelConfig            request.AppModelConfig         `json:"modelConfig"`         // 模型
-	KnowledgeBaseConfig    request.AppKnowledgebaseConfig `json:"knowledgeBaseConfig"` // 知识库
-	RerankConfig           request.AppModelConfig         `json:"rerankConfig"`        // Rerank模型
-	SafetyConfig           request.AppSafetyConfig        `json:"safetyConfig"`        // 敏感词表配置
-	VisionConfig           VisionConfig                   `json:"visionConfig"`        // 视觉配置
-	Scope                  int32                          `json:"scope"`               // 作用域
-	WorkFlowInfos          []*AssistantWorkFlowInfo       `json:"workFlowInfos"`       // 工作流信息
-	MCPInfos               []*AssistantMCPInfo            `json:"mcpInfos"`            // MCP信息
-	ToolInfos              []*AssistantToolInfo           `json:"toolInfos"`           // 自定义工具、内置工具
-	CreatedAt              string                         `json:"createdAt"`           // 创建时间
-	UpdatedAt              string                         `json:"updatedAt"`           // 更新时间
+	Prologue               string                         `json:"prologue"`            // opening remarks
+	Instructions           string                         `json:"instructions"`        // System prompt word
+	RecommendQuestion      []string                       `json:"recommendQuestion"`   // Recommended questions
+	ModelConfig            request.AppModelConfig         `json:"modelConfig"`         // Model
+	KnowledgeBaseConfig    request.AppKnowledgebaseConfig `json:"knowledgeBaseConfig"` // knowledge base
+	RerankConfig           request.AppModelConfig         `json:"rerankConfig"`        // Rerank model
+	SafetyConfig           request.AppSafetyConfig        `json:"safetyConfig"`        // Sensitive word list configuration
+	VisionConfig           VisionConfig                   `json:"visionConfig"`        // visual configuration
+	Scope                  int32                          `json:"scope"`               // Scope
+	WorkFlowInfos          []*AssistantWorkFlowInfo       `json:"workFlowInfos"`       // Workflow information
+	MCPInfos               []*AssistantMCPInfo            `json:"mcpInfos"`            // MCP information
+	ToolInfos              []*AssistantToolInfo           `json:"toolInfos"`           // Custom tools, built-in tools
+	CreatedAt              string                         `json:"createdAt"`           // creation time
+	UpdatedAt              string                         `json:"updatedAt"`           // Update time
 }
 
 type AssistantWorkFlowInfo struct {
@@ -93,15 +93,15 @@ type AssistantCreateResp struct {
 }
 
 type AssistantTemplateInfo struct {
-	AssistantTemplateId string `json:"assistantTemplateId"` // 智能体模板Id
-	AppType             string `json:"appType"`             // 应用类型(固定值: agentTemplate)
-	Category            string `json:"category"`            // 种类(gov:政务,industry:工业,edu:文教,medical:医疗)
+	AssistantTemplateId string `json:"assistantTemplateId"` // Agent template ID
+	AppType             string `json:"appType"`             // Application type (fixed value: agentTemplate)
+	Category            string `json:"category"`            // Category (gov: government affairs, industry: industry, edu: culture and education, medical: medical)
 	request.AppBriefConfig
-	Prologue                  string   `json:"prologue"`            // 开场白
-	Instructions              string   `json:"instructions"`        // 系统提示词
-	RecommendQuestion         []string `json:"recommendQuestion"`   // 推荐问题
-	Summary                   string   `json:"summary"`             // 使用概述
-	Feature                   string   `json:"feature"`             // 特性说明
-	Scenario                  string   `json:"scenario"`            // 应用场景
-	WorkFlowConfigInstruction string   `json:"workFlowInstruction"` // 工作流配置说明
+	Prologue                  string   `json:"prologue"`            // opening remarks
+	Instructions              string   `json:"instructions"`        // System prompt word
+	RecommendQuestion         []string `json:"recommendQuestion"`   // Recommended questions
+	Summary                   string   `json:"summary"`             // Usage overview
+	Feature                   string   `json:"feature"`             // Feature description
+	Scenario                  string   `json:"scenario"`            // Application scenarios
+	WorkFlowConfigInstruction string   `json:"workFlowInstruction"` // Workflow configuration instructions
 }

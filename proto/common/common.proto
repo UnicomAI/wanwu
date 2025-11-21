@@ -8,12 +8,12 @@ message AppBrief {
     string orgId = 1;
     string userId = 2;
     string appId = 3;
-    string appType = 4; // 应用类型 agent,rag,workflow
-    string avatarPath = 5; // 图标minio object path
+    string appType = 4; // 应用类型 agent,rag,workflow [EN] Application type agent,rag,workflow
+    string avatarPath = 5; // 图标minio object path [EN] iconminio object path
     string name = 6;
     string desc = 7;
-    int64 createdAt = 8; // 创建时间，毫秒时间戳
-    int64 updatedAt = 9; // 更新时间，毫秒时间戳
+    int64 createdAt = 8; // 创建时间，毫秒时间戳 [EN] Creation time, millisecond timestamp
+    int64 updatedAt = 9; // 更新时间，毫秒时间戳 [EN] Update time, millisecond timestamp
 }
 
 message AppBriefConfig {
@@ -37,7 +37,7 @@ message ToolAction {
 }
 
 message ToolActionInputSchema {
-    string type = 1; // 固定 object
+    string type = 1; // 固定 object [EN] Fixed object
     map<string, ToolActionInputSchemaValue> properties = 2;
     repeated string required = 3;
 }

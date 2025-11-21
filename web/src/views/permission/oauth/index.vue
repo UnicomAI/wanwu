@@ -47,7 +47,7 @@
       </div>
     </div>
 
-    <!-- 创建/编辑弹窗 -->
+    <!-- Create/Edit弹窗 -->
     <el-dialog
       :title="isEdit ? $t('oauth.edit') : $t('oauth.create')"
       :visible.sync="dialogVisible"

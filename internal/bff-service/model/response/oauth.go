@@ -5,38 +5,38 @@ import (
 )
 
 type OAuthTokenResponse struct {
-	AccessToken  string   `json:"access_token"`  // 访问令牌
-	ExpiresIn    int64    `json:"expires_in"`    // token过期时间(毫秒时间戳)
-	IDToken      string   `json:"id_token"`      // ID令牌
-	TokenType    string   `json:"token_type"`    // 令牌类型(bearer)
-	RefreshToken string   `json:"refresh_token"` // 刷新令牌
-	Scope        []string `json:"scope"`         // 权限范围
+	AccessToken  string   `json:"access_token"`  // access token
+	ExpiresIn    int64    `json:"expires_in"`    // token expiration time (millisecond timestamp)
+	IDToken      string   `json:"id_token"`      // ID token
+	TokenType    string   `json:"token_type"`    // Token type (bearer)
+	RefreshToken string   `json:"refresh_token"` // refresh token
+	Scope        []string `json:"scope"`         // Scope of authority
 }
 
 type OAuthRefreshTokenResponse struct {
-	AccessToken  string `json:"access_token"`  // 访问令牌
-	RefreshToken string `json:"refresh_token"` // 刷新令牌(可选)
-	ExpiresAt    string `json:"expires_at"`    // token过期时间(毫秒时间戳)
+	AccessToken  string `json:"access_token"`  // access token
+	RefreshToken string `json:"refresh_token"` // Refresh token (optional)
+	ExpiresAt    string `json:"expires_at"`    // token expiration time (millisecond timestamp)
 }
 
 type OAuthConfig struct {
-	Issuer           string   `json:"issuer"`                                // auth的base url
-	AuthEndpoint     string   `json:"authorization_endpoint"`                // 获取授权码接口
-	TokenEndpoint    string   `json:"token_endpoint"`                        // 获取token接口
-	JwksUri          string   `json:"jwks_uri"`                              // 获取jwt公钥
-	UserInfoEndpoint string   `json:"userinfo_endpoint"`                     //获取用户信息接口
-	ResponseTypes    []string `json:"response_types_supported"`              // 授权模式，默认code
-	IDtokenSignAlg   []string `json:"id_token_signing_alg_values_supported"` //jwt签名算法
-	SubjectTypes     []string `json:"subject_types_supported"`               // 用户标识类型，即 ID Token中的sub是如何生成的。
+	Issuer           string   `json:"issuer"`                                // auth base url
+	AuthEndpoint     string   `json:"authorization_endpoint"`                // Obtain authorization code interface
+	TokenEndpoint    string   `json:"token_endpoint"`                        // Get token interface
+	JwksUri          string   `json:"jwks_uri"`                              // Get jwt public key
+	UserInfoEndpoint string   `json:"userinfo_endpoint"`                     //Obtain user information interface
+	ResponseTypes    []string `json:"response_types_supported"`              // Authorization mode, default code
+	IDtokenSignAlg   []string `json:"id_token_signing_alg_values_supported"` //jwt signature algorithm
+	SubjectTypes     []string `json:"subject_types_supported"`               // The user identification type, that is, how the sub in the ID Token is generated.
 }
 
 type OAuthAppInfo struct {
-	ClientID     string `json:"clientId"`     // 客户端ID
-	Name         string `json:"name"`         // 应用名称
-	Desc         string `json:"desc"`         // 应用描述
-	ClientSecret string `json:"clientSecret"` // 客户端密钥
-	RedirectURI  string `json:"redirectUri"`  // oauth重定向地址
-	Status       bool   `json:"status"`       // oauth应用开关
+	ClientID     string `json:"clientId"`     // Client ID
+	Name         string `json:"name"`         // Application name
+	Desc         string `json:"desc"`         // Application description
+	ClientSecret string `json:"clientSecret"` // client key
+	RedirectURI  string `json:"redirectUri"`  // oauth redirect address
+	Status       bool   `json:"status"`       // oauth application switch
 }
 
 type OAuthJWKS struct {

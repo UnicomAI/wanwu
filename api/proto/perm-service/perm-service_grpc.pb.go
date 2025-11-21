@@ -27,9 +27,9 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PermServiceClient interface {
-	// 检查用户状态
+	// Check user status
 	CheckUserEnable(ctx context.Context, in *CheckUserEnableReq, opts ...grpc.CallOption) (*CheckUserEnableResp, error)
-	// 检查用户权限
+	// Check user permissions
 	CheckUserPerm(ctx context.Context, in *CheckUserPermReq, opts ...grpc.CallOption) (*CheckUserPermResp, error)
 }
 
@@ -65,9 +65,9 @@ func (c *permServiceClient) CheckUserPerm(ctx context.Context, in *CheckUserPerm
 // All implementations must embed UnimplementedPermServiceServer
 // for forward compatibility.
 type PermServiceServer interface {
-	// 检查用户状态
+	// Check user status
 	CheckUserEnable(context.Context, *CheckUserEnableReq) (*CheckUserEnableResp, error)
-	// 检查用户权限
+	// Check user permissions
 	CheckUserPerm(context.Context, *CheckUserPermReq) (*CheckUserPermResp, error)
 	mustEmbedUnimplementedPermServiceServer()
 }

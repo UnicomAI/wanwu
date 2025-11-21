@@ -11,115 +11,115 @@ service IAMService {
 
   // --- user ---
 
-  // 获取用户列表（用于下拉选择，不在组织中的用户）
+  // 获取用户列表（用于下拉选择，不在组织中的用户） [EN] Get a list of users (for drop-down selection, users not in the organization)
   rpc GetUserSelectNotInOrg(GetUserSelectNotInOrgReq) returns (Select) {}
-  // 获取用户列表 by userIDs
+  // 获取用户列表 by userIDs [EN] Get user list by userIDs
   rpc GetUserSelectByUserIDs(GetUserSelectByUserIDsReq) returns (Select) {}
-  // 获取用户列表
+  // 获取用户列表 [EN] Get user list
   rpc GetUserList(GetUserListReq) returns (GetUserListResp) {}
-  // 获取用户
+  // 获取用户 [EN] Get user
   rpc GetUserInfo(GetUserInfoReq) returns (UserInfo) {}
-  // 创建用户
+  // 创建用户 [EN] Create user
   rpc CreateUser(CreateUserReq) returns (IDName) {}
-  // 编辑用户
+  // 编辑用户 [EN] Edit user
   rpc UpdateUser(UpdateUserReq) returns (google.protobuf.Empty) {}
-  // 删除用户
+  // 删除用户 [EN] Delete user
   rpc DeleteUser(DeleteUserReq) returns (google.protobuf.Empty) {}
-  // 修改用户状态
+  // 修改用户状态 [EN] Modify user status
   rpc ChangeUserStatus(ChangeUserStatusReq) returns (google.protobuf.Empty) {}
-  // 更新用户密码
+  // 更新用户密码 [EN] Update user password
   rpc UpdateUserPassword(UpdateUserPasswordReq) returns (google.protobuf.Empty) {}
-  // 重置用户密码
+  // 重置用户密码 [EN] Reset user password
   rpc ResetUserPassword(ResetUserPasswordReq) returns (google.protobuf.Empty) {}
-  // 获取用户权限
+  // 获取用户权限 [EN] Get user permissions
   rpc GetUserPermission(GetUserPermissionReq) returns (UserPermission) {}
-  // 修改用户语言
+  // 修改用户语言 [EN] Modify user language
   rpc ChangeUserLanguage(ChangeUserLanguageReq) returns (google.protobuf.Empty){}
-  // 上传用户头像
+  // 上传用户头像 [EN] Upload user avatar
   rpc UpdateUserAvatar(UpdateUserAvatarReq) returns (google.protobuf.Empty){}
 
   // --- org ---
 
-  // 获取组织列表（用于下拉选择）
+  // 获取组织列表（用于下拉选择） [EN] Get list of organizations (for drop-down selection)
   rpc GetOrgSelect(GetOrgSelectReq) returns (Select) {}
-  // 获取组织列表
+  // 获取组织列表 [EN] Get list of organizations
   rpc GetOrgList(GetOrgListReq) returns (GetOrgListResp) {}
-  // 获取组织
+  // 获取组织 [EN] Get organization
   rpc GetOrgInfo(GetOrgInfoReq) returns (OrgInfo) {}
-  // 通过orgIds获取组织信息
+  // 通过orgIds获取组织信息 [EN] Get organization information through orgIds
   rpc GetOrgByOrgIDs(GetOrgByOrgIDsReq) returns (GetOrgByOrgIDsResp) {}
-  // 获取子组织信息
+  // 获取子组织信息 [EN] Get sub-organization information
   rpc GetOrgAndSubOrgSelectByUser(GetOrgAndSubOrgSelectByUserReq) returns (GetOrgAndSubOrgSelectByUserResp) {}
-  // 创建组织
+  // 创建组织 [EN] Create an organization
   rpc CreateOrg(CreateOrgReq) returns (IDName) {}
-  // 编辑组织
+  // 编辑组织 [EN] Edit organization
   rpc UpdateOrg(UpdateOrgReq) returns (google.protobuf.Empty) {}
-  // 删除组织
+  // 删除组织 [EN] Delete organization
   rpc DeleteOrg(DeleteOrgReq) returns (google.protobuf.Empty) {}
-  // 修改组织状态
+  // 修改组织状态 [EN] Modify organization status
   rpc ChangeOrgStatus(ChangeOrgStatusReq) returns (google.protobuf.Empty) {}
 
-  // 增加组织用户
+  // 增加组织用户 [EN] Add organizational users
   rpc AddOrgUser(AddOrgUserReq) returns (google.protobuf.Empty) {}
-  // 移除组织用户
+  // 移除组织用户 [EN] Remove organization user
   rpc RemoveOrgUser(RemoveOrgUserReq) returns (google.protobuf.Empty) {}
 
   // --- role ---
 
-  // 获取角色列表（用于下拉选择）
+  // 获取角色列表（用于下拉选择） [EN] Get a list of roles (for drop-down selection)
   rpc GetRoleSelect(GetRoleSelectReq) returns (GetRoleSelectResp) {}
-  // 获取角色列表
+  // 获取角色列表 [EN] Get role list
   rpc GetRoleList(GetRoleListReq) returns (GetRoleListResp) {}
-  // 获取角色
+  // 获取角色 [EN] Get role
   rpc GetRoleInfo(GetRoleInfoReq) returns (RoleInfo) {}
-  // 创建角色
+  // 创建角色 [EN] Create a role
   rpc CreateRole(CreateRoleReq) returns (RoleIDName) {}
-  // 编辑角色
+  // 编辑角色 [EN] Edit role
   rpc UpdateRole(UpdateRoleReq) returns (google.protobuf.Empty) {}
-  // 删除角色
+  // 删除角色 [EN] Delete role
   rpc DeleteRole(DeleteRoleReq) returns (google.protobuf.Empty) {}
-  // 修改角色状态
+  // 修改角色状态 [EN] Modify character status
   rpc ChangeRoleStatus(ChangeRoleStatusReq) returns (google.protobuf.Empty) {}
 
   // --- login ---
   
-  // 获取验证码
+  // 获取验证码 [EN] Get verification code
   rpc GetCaptcha(GetCaptchaReq) returns (GetCaptchaResp) {}
-  // 登录
+  // 登录 [EN] Log in
   rpc Login(LoginReq) returns (LoginResp) {}
-  // 一阶段登录
+  // 一阶段登录 [EN] One stage login
   rpc LoginByEmail(LoginByEmailReq) returns (LoginByEmailResp) {}
-  // 登录发送邮箱验证码
+  // 登录发送邮箱验证码 [EN] Log in and send email verification code
   rpc LoginSendEmailCode(LoginSendEmailCodeReq)returns (google.protobuf.Empty) {}
-  // 二阶段登录邮箱校验
+  // 二阶段登录邮箱校验 [EN] Two-stage login email verification
   rpc LoginEmailCheck(LoginEmailCheckReq) returns (LoginResp) {}
-  // 二阶段登录重置密码与邮箱校验
+  // 二阶段登录重置密码与邮箱校验 [EN] Two-stage login, password reset and email verification
   rpc ChangeUserPasswordByEmail(ChangeUserPasswordByEmailReq) returns (LoginResp) {}
 
   // --- register ---
-  // 邮箱注册用户
+  // 邮箱注册用户 [EN] Email registered user
   rpc RegisterByEmail(RegisterByEmailReq) returns (google.protobuf.Empty) {}
-  // 邮箱注册发送邮件
+  // 邮箱注册发送邮件 [EN] Email registration to send emails
   rpc RegisterSendEmailCode(RegisterSendEmailCodeReq) returns (google.protobuf.Empty) {}
 
   // --- reset password ---
-  // 重置密码邮箱验证码发送
+  // 重置密码邮箱验证码发送 [EN] Reset password email verification code sent
   rpc ResetPasswordSendEmailCode(ResetPasswordSendEmailCodeReq) returns (google.protobuf.Empty) {}
-  // 邮箱重置密码
+  // 邮箱重置密码 [EN] Email password reset
   rpc ResetPasswordByEmail(ResetPasswordByEmailReq) returns (google.protobuf.Empty) {}
 
   // --- oauth ---
-  // 创建OAuth应用
+  // 创建OAuth应用 [EN] Create an OAuth application
   rpc CreateOauthApp(CreateOauthAppReq) returns (google.protobuf.Empty);
-  // 删除OAuth应用
+  // 删除OAuth应用 [EN] Delete OAuth application
   rpc DeleteOauthApp(DeleteOauthAppReq) returns (google.protobuf.Empty);
-  // 更新OAuth应用
+  // 更新OAuth应用 [EN] Update OAuth application
   rpc UpdateOauthApp(UpdateOauthAppReq) returns (google.protobuf.Empty);
-  // 获取OAuth应用列表
+  // 获取OAuth应用列表 [EN] Get OAuth application list
   rpc GetOauthAppList(GetOauthAppListReq) returns (OauthAppListResp);
-  // 更新OAuth应用状态
+  // 更新OAuth应用状态 [EN] Update OAuth application status
   rpc UpdateOauthAppStatus(UpdateOauthAppStatusReq) returns (google.protobuf.Empty);
-  // 根据clientID获取oauth app信息
+  // 根据clientID获取oauth app信息 [EN] Get oauth app information based on clientID
   rpc GetOauthApp(GetOauthAppReq) returns (OauthApp);
 }
 
@@ -426,20 +426,20 @@ message ChangeRoleStatusReq {
 // --- login ---
 
 message GetCaptchaReq {
-  string key = 1; // 客户端key
+  string key = 1; // 客户端key [EN] client key
 }
 
 message GetCaptchaResp {
-  string key = 1; // 客户端key
-  string b64 = 2; // 验证码png图片base64字符串
+  string key = 1; // 客户端key [EN] client key
+  string b64 = 2; // 验证码png图片base64字符串 [EN] Verification code png picture base64 string
 }
 
 message LoginReq {
-  string userName = 1; // 用户名
-  string password = 2; // 密码
-  string key = 3; // 客户端key
-  string code = 4; // 验证码
-  string language = 5; //用户语言
+  string userName = 1; // 用户名 [EN] username
+  string password = 2; // 密码 [EN] password
+  string key = 3; // 客户端key [EN] client key
+  string code = 4; // 验证码 [EN] Verification code
+  string language = 5; //用户语言 [EN] User language
 }
 
 message LoginResp {
@@ -448,10 +448,10 @@ message LoginResp {
 }
 
 message LoginByEmailReq {
-  string userName = 1; // 用户名
-  string password = 2; // 密码
-  string key = 3; // 客户端key
-  string code = 4; // 验证码
+  string userName = 1; // 用户名 [EN] username
+  string password = 2; // 密码 [EN] password
+  string key = 3; // 客户端key [EN] client key
+  string code = 4; // 验证码 [EN] Verification code
 }
 
 message LoginByEmailResp {
@@ -468,7 +468,7 @@ message LoginEmailCheckReq{
   string userId = 1;
   string email = 2;
   string code = 3;
-  string language = 4; //用户语言
+  string language = 4; //用户语言 [EN] User language
 }
 
 message ChangeUserPasswordByEmailReq{
@@ -477,7 +477,7 @@ message ChangeUserPasswordByEmailReq{
   string newPassword = 3;
   string email = 4;
   string code = 5;
-  string language = 6; //用户语言
+  string language = 6; //用户语言 [EN] User language
 }
 
 // --- register ---

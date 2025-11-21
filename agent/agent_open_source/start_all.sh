@@ -5,7 +5,7 @@ echo "开始执行主脚本"
 #export PATH = "/root/miniconda3/bin:/root/miniconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 source /root/miniconda3/etc/profile.d/conda.sh
 
-# 启动其他脚本
+# 启动其他脚本 [EN] Start other scripts
 conda activate agent
 bash start.sh
 

@@ -32,7 +32,7 @@ import uuid
 import hashlib
 user_data_path = r'./user_data'
 app = FastAPI()
-# 解决跨域问题
+# Solve cross-domain issues
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,7 +40,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-# 初始化 MongoDB 客户端
+# Initialize the MongoDB client
 client = MongoClient(MONGO_URL, 0, connectTimeoutMS=5000, serverSelectionTimeoutMS=3000)
 
 collection = client['rag']['rag_user_logs']
@@ -59,16 +59,16 @@ def get_query_dict_cache(redis_client, user_id, knowledgebases):
         redis_key = f"query_dict:{user_id}:{knowledgebase}"
         redis_key_list.append(redis_key)
     for redis_key in redis_key_list:
-        # 获取整个哈希表，返回一个字典，字段是 id，值是对应的条目 JSON 字符串
+        # Get the entire hash table and return a dictionary. The field is id and the value is the corresponding entry JSON string.
         term_dict_hash = redis_client.hgetall(redis_key)
         if term_dict_hash:
-            # 将每个字段的 JSON 字符串转换为 Python 对象（字典）
+            # Convert each field's JSON string to a Python object (dictionary)
             term_dict = [json.loads(value) for value in term_dict_hash.values()]
             all_query_dicts.extend(term_dict)
-    # 此处请将all_query_dicts相同元素去重
-    # 去重：将所有字典转换为 JSON 字符串，存入集合中，集合自动去重
+    # Please deduplicate the same elements in all_query_dicts here
+    # Deduplication: Convert all dictionaries into JSON strings and store them in the collection, and the collection will automatically deduplicate
     unique_query_dicts = {json.dumps(query_dict, sort_keys=True): query_dict for query_dict in all_query_dicts}
-    # 返回去重后的字典列表
+    # Return the dictionary list after deduplication
     return list(unique_query_dicts.values())
 
 def query_rewrite(question, term_dict):
@@ -82,27 +82,27 @@ def query_rewrite(question, term_dict):
     返回:
     - list: 改写后的用户问题列表，每个改写对应一种组合方式。
     """
-    # 保存所有的替换项
+    # Save all substitutions
     replacements = []
 
     for term in term_dict:
-        name = term["name"]  # 标准词
-        aliases = term["alias"]  # 别名列表
+        name = term["name"]  # standard word
+        aliases = term["alias"]  # Alias ​​list
 
-        # 如果问题中包含标准词，则保存替换方案
+        # Save alternatives if question contains standard words
         if re.search(re.escape(name), question):
             replacements.append([(name, alias) for alias in aliases])
 
-    # 如果没有匹配到标准词，直接返回原问题
+    # If no standard word is matched, return directly to the original question.
     if not replacements:
         return [question]
 
-    # 使用笛卡尔积计算所有可能的替换组合
+    # Calculate all possible substitution combinations using Cartesian product
     combinations = product(*replacements)
 
     rewritten_questions = []
     for combo in combinations:
-        # 逐个应用替换规则
+        # Apply replacement rules one by one
         new_question = question
         for name, alias in combo:
             new_question = re.sub(re.escape(name), alias, new_question)
@@ -169,22 +169,22 @@ async def search(request: Request):
                     if "choices" in datajson:
                         #content = datajson["choices"][0]["delta"]["content"]
                         content = datajson.get("choices", [{}])[0].get("delta", {}).get("content", "")
-                        #if datajson["choices"][0]["finish_reason"] == "stop":  # 如果模型已经停止输出
+                        #if datajson["choices"][0]["finish_reason"] == "stop": # If the model has stopped outputting
                         finish_reason = datajson.get("choices", [{}])[0].get("finish_reason", "")
                         if finish_reason == "stop":
                             finish = 1
-                        elif finish_reason == "sensitive_cancel":  # 如果模型已经停止输出
+                        elif finish_reason == "sensitive_cancel":  # If the model has stopped outputting
                             finish = 4
                         else:
                             finish = 0
                     else:
                         #content = datajson["data"]["choices"][0]["message"]["content"]
                         content = datajson.get("data", {}).get("choices", [{}])[0].get("message", {}).get("content", "")
-                        #if datajson["data"]["choices"][0]["finish_reason"] == "stop":  # 如果模型已经停止输出
+                        #if datajson["data"]["choices"][0]["finish_reason"] == "stop": # If the model has stopped outputting
                         finish_reason = datajson.get("data", {}).get("choices", [{}])[0].get("finish_reason", "")
                         if finish_reason == "stop":
                             finish = 1
-                        elif finish_reason == "sensitive_cancel":  # 如果模型已经停止输出
+                        elif finish_reason == "sensitive_cancel":  # If the model has stopped outputting
                             finish = 4
                         else:
                             finish = 0
@@ -206,7 +206,7 @@ async def search(request: Request):
                         "history":history_tmp,
                         "finish": finish
                     }
-                    if score != -1:  # 如果允许返回得分
+                    if score != -1:  # Return score if allowed
                         response_info["data"]["score"] = score
                     jsonarr = json.dumps(response_info, ensure_ascii=False)
                     id += 1
@@ -216,24 +216,24 @@ async def search(request: Request):
                         end_time = time.time()
                         logger.info(f"question:{question}。开始流式第一个词返回时间：{end_time - start_time}秒")
                         time_i += 1
-                else:  # 适配 openai 的返回格式
+                else:  # Adapt the return format of openai
                     try:
                         datajson = json.loads(line)
                         if "choices" in datajson:
                             #content = datajson["choices"][0]["delta"]["content"]
                             content = datajson.get("choices", [{}])[0].get("delta", {}).get("content", "")
-                            if datajson["choices"][0]["finish_reason"] == "stop":  # 如果模型已经停止输出
+                            if datajson["choices"][0]["finish_reason"] == "stop":  # If the model has stopped outputting
                                 finish = 1
-                            elif datajson["choices"][0]["finish_reason"] == "sensitive_cancel":  # 敏感词
+                            elif datajson["choices"][0]["finish_reason"] == "sensitive_cancel":  # Sensitive words
                                 finish = 4
                             else:
                                 finish = 0
                         else:
                             #content = datajson["data"]["choices"][0]["message"]["content"]
                             content = datajson.get("data", {}).get("choices", [{}])[0].get("message", {}).get("content", "")
-                            if datajson["data"]["choices"][0]["finish_reason"] == "stop":  # 如果模型已经停止输出
+                            if datajson["data"]["choices"][0]["finish_reason"] == "stop":  # If the model has stopped outputting
                                 finish = 1
-                            elif datajson["data"]["choices"][0]["finish_reason"] == "sensitive_cancel":  # 敏感词
+                            elif datajson["data"]["choices"][0]["finish_reason"] == "sensitive_cancel":  # Sensitive words
                                 finish = 4
                             else:
                                 finish = 0
@@ -255,7 +255,7 @@ async def search(request: Request):
                             "history": history_tmp,
                             "finish": finish
                         }
-                        if score != -1:  # 如果允许返回得分
+                        if score != -1:  # Return score if allowed
                             response_info["data"]["score"] = score
                         jsonarr = json.dumps(response_info, ensure_ascii=False)
                         id += 1
@@ -267,15 +267,15 @@ async def search(request: Request):
                             time_i += 1
                     except Exception as e:
                         pass
-        except Exception as e:  # 如果发生异常，返回错误信息
+        except Exception as e:  # If an exception occurs, an error message is returned
             logger.error(f"LLM Error url:{llm_url}, err: {e}")
-            if finish not in [1, 4]:  # 如果模型没有停止输出，则返回错误信息
+            if finish not in [1, 4]:  # If the model does not stop output, an error message is returned.
                 response_info = {
                     'code': 1,
                     "message": f"LLM Error:{e}",
                 }
                 yield json.dumps(response_info, ensure_ascii=False)
-        # ========== 最终流式返回完成后 动作 ===========
+        # ========== Action after final streaming returns ===========
         end_time = time.time()
         logger.info(f"question:{question}。流式最后一个词返回时间：{end_time - start_time}秒,返回json:{jsonarr}")
     async def no_search_list(return_answer, history, question, code, msg, score, msg_id):
@@ -301,12 +301,12 @@ async def search(request: Request):
                 "history": history_tmp,
                 "finish": 0
             }
-            if score != -1:  # 如果允许返回得分，返回空
+            if score != -1:  # If returning scores is allowed, return null
                 response_info["data"]["score"] = []
             jsonarr = json.dumps(response_info, ensure_ascii=False)
             str_out = f'{jsonarr}'
             yield str_out
-        # ======= 最后返回 ========
+        # ======= Finally return ========
         response_info = {
             'code': code,
             "message": msg,
@@ -318,7 +318,7 @@ async def search(request: Request):
             "history": history_tmp,
             "finish": 1
         }
-        if score != -1:  # 如果允许返回得分，返回空
+        if score != -1:  # If returning scores is allowed, return null
             response_info["data"]["score"] = []
         jsonarr = json.dumps(response_info, ensure_ascii=False)
         str_out = f'{jsonarr}'
@@ -351,26 +351,26 @@ async def search(request: Request):
     top_p = json_request.get("top_p", 0.85)
     repetition_penalty = json_request.get("repetition_penalty", 1.1)
     temperature = json_request.get("temperature", TEMPERATURE)
-    if temperature <= 0.01:  # 强制到0.01以下
+    if temperature <= 0.01:  # Forced to below 0.01
         temperature = 0.01
     max_history = json_request.get("max_history", 10)
     custom_model_info = json_request.get("custom_model_info", {})
     search_field = json_request.get('search_field', 'con')
 
-    if "do_sample" not in json_request:  # 如果没有传参，则默认使用temperature决定是否开启采样
+    if "do_sample" not in json_request:  # If no parameters are passed, temperature is used by default to decide whether to enable sampling.
         if temperature > 0.1:
             do_sample = True
         else:
             do_sample = False
     else:
         do_sample = json_request.get('do_sample')
-    # 是否开启自动引文，此参数与prompt_template互斥，当开启auto_citation时，prompt_template用户传参不生效
+    # Whether to enable automatic citation. This parameter is mutually exclusive with prompt_template. When auto_citation is enabled, prompt_template user-passed parameters will not take effect.
     auto_citation = json_request.get("auto_citation", False)
-    # 是否开启数据飞轮
+    # Whether to enable data flywheel
     data_flywheel = json_request.get("data_flywheel", False)
-    # 是否返回得分
+    # Whether to return score
     return_score = json_request.get("return_score", False)
-    # 是否query改写
+    # Whether to rewrite query
     rewrite_query = json_request.get("rewrite_query", False)
     rerank_mod = json_request.get("rerank_mod", "rerank_model")
     rerank_model_id = json_request.get("rerank_model_id", '')
@@ -400,16 +400,16 @@ async def search(request: Request):
         else:
             return JSONResponse(content=response_info)
 
-    # 检查 knowledge_base_info 是否为空
+    # Check if knowledge_base_info is empty
     if not knowledge_base_info:
         error_msg = "knowledge_base_info cannot be empty"
         return params_check_failed(error_msg)
-    # 检查 custom_model_info['llm_model_id'] 是否为空
+    # Check if custom_model_info['llm_model_id'] is empty
     if 'llm_model_id' not in custom_model_info or not custom_model_info.get('llm_model_id'):
         error_msg = "custom_model_info['llm_model_id'] 不能为空"
         return params_check_failed(error_msg)
 
-    # 检查 rerank_model_id 是否为空
+    # Check if rerank_model_id is empty
     if rerank_mod == "rerank_model" and not rerank_model_id:
         error_msg = "rerank_model_id cannot be empty when using model-based reranking."
         return params_check_failed(error_msg)
@@ -450,7 +450,7 @@ async def search(request: Request):
             else:
                 logger.info("未启用或维护转名词表,query未改写,按原问题:%s 进行召回" % question)
     if top_k<=0:
-        # top_k必须大于0
+        # top_k must be greater than 0
         return EventSourceResponse(no_search_list(default_answer,history,question,1,'top_k必须大于0'))
     else:
         prompt=question
@@ -459,14 +459,14 @@ async def search(request: Request):
         try:
             temp_start_time = time.time()
             if data_flywheel:
-                # 要存储的数据
+                # data to store
                 cache_key = "%s^%s^%s" % (knowledge_base_info, top_k, question)
                 exists = redis_client.exists(cache_key)
                 if exists:
                     use_cache_flag = True
                     logger.info("=========>命中缓存,cache_key=%s" % cache_key)
                     cache_result = redis_client.get(cache_key)
-                    # 将字符串转换为 JSON 对象
+                    # Convert string to JSON object
                     cache_result_json = json.loads(cache_result)
                     if cache_result_json and 'data' in cache_result_json:
                         if 'searchList' in cache_result_json['data'] and 'prompt' in cache_result_json['data'] and 'score' in cache_result_json['data']:
@@ -505,7 +505,7 @@ async def search(request: Request):
             temp_end_time = time.time()
             logger.info(f"======知识召回使用时间：{temp_end_time - temp_start_time}秒")
         except Exception as e:
-            # logger.info('知识召回异常：'+repr(e))
+            # logger.info('Knowledge recall exception:'+repr(e))
             import traceback
             logger.error("====> 知识召回异常 error %s" % e)
             logger.error(traceback.format_exc())
@@ -516,9 +516,9 @@ async def search(request: Request):
             prompt=question
             search_list=[]
             score = []
-        if not return_score:  # 如果不返回分数
+        if not return_score:  # If no score is returned
             score = -1
-        if SSE_USE_MONGO:  # 如果使用mongo
+        if SSE_USE_MONGO:  # If using mongo
             temp_start_time = time.time()
             message = {"id": msg_id}
             current_date = datetime.now().strftime("%Y%m%d")
@@ -560,34 +560,34 @@ async def search(request: Request):
                     del message["_id"]
                 logger.info("=======>user log已存储至mongoDB,id=%s,data=%s" % (msg_id, json.dumps(message, ensure_ascii=False)))
             except Exception as err:
-                # 存储mongodb异常的时候，接口msg_id返回-1
+                # When storing mongodb exception, the interface msg_id returns -1
                 msg_id = "-1"
                 import traceback
                 logger.error("====> stream search save mongoDB error %s" % err)
                 logger.error(traceback.format_exc())
         # if not use_cache_flag and data_flywheel:
-        #     # 判断在飞轮模式下且若未命中缓存，推送kafka触发飞轮策略构建
+        #     # Determine whether it is in flywheel mode and if the cache is not hit, push kafka to trigger the construction of flywheel strategy
         #     try:
         #         kafka_utils.push_kafka_msg(message)
-        #         logger.info("=======>user log已推送kakfa")
+        #         logger.info("========>user log has been pushed to kakfa")
         #     except Exception as err:
         #         import traceback
         #         logger.error("====> stream search push kafka error %s" % err)
         #         logger.error(traceback.format_exc())
-        # 大模型生成返回
+        # Large model generation returns
             temp_end_time = time.time()
             logger.info(f"======save mongoDB 使用时间：{temp_end_time - temp_start_time}秒")
         if stream:
             if response_info['code'] !=0:
                 return EventSourceResponse(no_search_list(default_answer,history,question,response_info['code'],response_info['message'], score, msg_id))
-            # 需要大模型输出
+            # Requires large model output
             if len(search_list)>0 or chichat:
                 return EventSourceResponse(stream_generate(prompt, history, search_list,question,top_p,repetition_penalty,temperature,custom_model_info,do_sample,score,msg_id))
-             # 知识召回为空，并且使用兜底话术返回，不需要大模型输出
+             # The knowledge recall is empty, and the return is done using cryptic techniques, and no large model output is required.
             else:
                 return EventSourceResponse(no_search_list(default_answer,history,question,0,'success', score, msg_id))
 
-        else:  # 非stream返回
+        else:  # Non-stream return
             # if response_info['code'] != 0:
             #     response_info = {
             #         'code': response_info['code'],
@@ -598,15 +598,15 @@ async def search(request: Request):
             #                  },
             #         "history": history
             #     }
-            #     if return_score:  # 如果允许返回得分，返回空
+            #     if return_score: # If return score is allowed, return empty
             #         response_info["data"]["score"] = []
             #     return JSONResponse(content=response_info)
-            # # 需要大模型输出
+            # # Requires large model output
             # if len(search_list) > 0 or chichat:
             #     response_info = generate(prompt, history, search_list, question, top_p, repetition_penalty, temperature, model_name,do_sample, score,msg_id)
             #     logger.info(f"=======>response_info:{response_info}")
             #     return JSONResponse(content=response_info)
-            # # 知识召回为空，并且使用兜底话术返回，不需要大模型输出
+            # #Knowledge recall is empty, and returns using cryptic techniques, which does not require large model output
             # else:
             #     response_info = {
             #         'code': 0,
@@ -617,7 +617,7 @@ async def search(request: Request):
             #                  },
             #         "history": history
             #     }
-            #     if return_score:  # 如果允许返回得分，返回空
+            #     if return_score: # If return score is allowed, return empty
             #         response_info["data"]["score"] = []
             #     return JSONResponse(content=response_info)
             response_info = {

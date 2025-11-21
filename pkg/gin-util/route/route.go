@@ -15,9 +15,9 @@ var paths sync.Map
 type PermLevel uint32
 
 const (
-	PermNone       PermLevel = 0 // 无需校验
-	PermNeedEnable PermLevel = 1 // 需要用户enable
-	PermNeedCheck  PermLevel = 2 // 需要用户有权限
+	PermNone       PermLevel = 0 // No verification required
+	PermNeedEnable PermLevel = 1 // Requires user to enable
+	PermNeedCheck  PermLevel = 2 // Requires user permissions
 )
 
 type Route struct {
@@ -86,7 +86,7 @@ func LoadOrStore(absPath, method, desc string, authType PermLevel, tag TagName, 
 				parts1 := strings.Split(runtime.FuncForPC(reflect.ValueOf(m).Pointer()).Name(), ".")
 				parts2 := strings.Split(runtime.FuncForPC(reflect.ValueOf(middleware).Pointer()).Name(), ".")
 				if len(parts1) == len(parts2) && len(parts1) >= 2 && parts1[len(parts1)-2] == parts2[len(parts2)-2] {
-					// 中间件有可能是闭包func对象
+					// Middleware may be a closure func object
 					exist = true
 					break
 				}

@@ -34,7 +34,7 @@ func (c *Client) GetMCP(ctx context.Context, mcpID uint32) (*model.MCPClient, *e
 
 func (c *Client) CreateMCP(ctx context.Context, tab *model.MCPClient) *errs.Status {
 	return c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
-		// 检查是否已存在来自广场
+		// Check if already exists from square
 		if tab.McpSquareId != "" {
 			if err := sqlopt.SQLOptions(
 				sqlopt.WithMcpSquareId(tab.McpSquareId),
@@ -46,7 +46,7 @@ func (c *Client) CreateMCP(ctx context.Context, tab *model.MCPClient) *errs.Stat
 				return toErrStatus("mcp_create_err", err.Error())
 			}
 		}
-		// 检查是否已存在相同的记录
+		// Check if the same record already exists
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithName(tab.Name),
 			sqlopt.WithOrgID(tab.OrgID),
@@ -56,7 +56,7 @@ func (c *Client) CreateMCP(ctx context.Context, tab *model.MCPClient) *errs.Stat
 		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return toErrStatus("mcp_create_err", err.Error())
 		}
-		// 创建
+		// create
 		if err := tx.Create(tab).Error; err != nil {
 			return toErrStatus("mcp_create_err", err.Error())
 		}

@@ -22,7 +22,7 @@ class AccessTokenManager:
         self.create_time = None
 
     def is_token_expired(self):
-        # 检查token是否超期（20天）
+        # Check whether the token has expired (20 days)
         if not self.create_time or (datetime.now() - self.create_time >= timedelta(days=20)):
             return True
         return False

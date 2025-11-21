@@ -16,14 +16,14 @@ type UserInfo struct {
 	Remark    string         `json:"remark"`
 	Company   string         `json:"company"`
 	CreatedAt string         `json:"createdAt"`
-	Creator   IDName         `json:"creator"` // 创建人
+	Creator   IDName         `json:"creator"` // Creator
 	Status    bool           `json:"status"`
 	Language  Language       `json:"language"`
-	Orgs      []OrgRole      `json:"orgs"` // 用户的组织角色列表
+	Orgs      []OrgRole      `json:"orgs"` // List of user's organizational roles
 	Avatar    request.Avatar `json:"avatar"`
 }
 
 type OrgRole struct {
-	Org   IDName   `json:"org"`   // 组织
-	Roles []IDName `json:"roles"` // 角色列表
+	Org   IDName   `json:"org"`   // organize
+	Roles []IDName `json:"roles"` // role list
 }

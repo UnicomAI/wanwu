@@ -46,7 +46,7 @@ type DictConfig struct {
 
 type DictStatus struct {
 	DictCfg DictConfig
-	Status  bool // 词表是否存在
+	Status  bool // Does the vocabulary exist?
 }
 
 // ------------ api -----------
@@ -176,9 +176,9 @@ func (a *acMgr) contentMatch(content string, dicts []DictConfig, returnFirstMatc
 	if len(content) == 0 || len(dicts) == 0 {
 		return nil, nil
 	}
-	// 1. 加读锁，仅保护字典读取阶段
+	// 1. Add a read lock to protect only the dictionary reading phase
 	a.mu.RLock()
-	dictsCopy := make(map[string]*acDict) // 复制字典，避免后续操作依赖锁
+	dictsCopy := make(map[string]*acDict) // Copy the dictionary to avoid subsequent operations relying on locks
 	for _, cfg := range dicts {
 		dictKey := getDictKey(cfg.DictID, cfg.Version)
 		if dict, exists := a.dicts[dictKey]; exists && dict != nil {
@@ -186,11 +186,11 @@ func (a *acMgr) contentMatch(content string, dicts []DictConfig, returnFirstMatc
 			dictsCopy[dictKey] = dict
 		}
 	}
-	a.mu.RUnlock() // 字典读取完毕，立即释放锁
+	a.mu.RUnlock() // After reading the dictionary, release the lock immediately
 	if len(dictsCopy) != len(dicts) {
 		log.Warnf("aho-corasick content match dictscopy len[%v] dicts len[%v] missmatch", len(dictsCopy), len(dicts))
 	}
-	// 2. 无锁状态下进行匹配
+	// 2. Matching in lock-free state
 	results := make([]MatchResult, 0)
 	contentBytes := []byte(content)
 	for _, cfg := range dicts {
@@ -223,9 +223,9 @@ func (a *acMgr) contentContain(content string, dicts []DictConfig) (*DictConfig,
 	if len(content) == 0 || len(dicts) == 0 {
 		return nil, nil
 	}
-	// 1. 加读锁，仅保护字典读取阶段
+	// 1. Add a read lock to protect only the dictionary reading phase
 	a.mu.RLock()
-	dictsCopy := make(map[string]*acDict) // 复制字典，避免后续操作依赖锁
+	dictsCopy := make(map[string]*acDict) // Copy the dictionary to avoid subsequent operations relying on locks
 	for _, cfg := range dicts {
 		dictKey := getDictKey(cfg.DictID, cfg.Version)
 		if dict, exists := a.dicts[dictKey]; exists && dict != nil {
@@ -233,11 +233,11 @@ func (a *acMgr) contentContain(content string, dicts []DictConfig) (*DictConfig,
 			dictsCopy[dictKey] = dict
 		}
 	}
-	a.mu.RUnlock() // 字典读取完毕，立即释放锁
+	a.mu.RUnlock() // After reading the dictionary, release the lock immediately
 	if len(dictsCopy) != len(dicts) {
 		log.Warnf("aho-corasick content match dictscopy len[%v] dicts len[%v] missmatch", len(dictsCopy), len(dicts))
 	}
-	// 2. 无锁状态匹配字段
+	// 2. Lock-free status matching field
 	contentBytes := []byte(content)
 	for _, cfg := range dictsCopy {
 		dictKey := getDictKey(cfg.DictID, cfg.Version)
@@ -257,7 +257,7 @@ func (m *Matcher) getOriginalWord(index int) string {
 	return ""
 }
 
-// getDictKey 生成字典的唯一键
+// getDictKey generates the unique key of the dictionary
 func getDictKey(dictID, version string) string {
 	return fmt.Sprintf("%s-%s", dictID, version)
 }

@@ -5,7 +5,7 @@
         <el-tag
           effect="plain"
           class="root-url"
-        >API根地址</el-tag>
+        >API Base URL</el-tag>
         {{apiURL}}
       </div>
       <el-button
@@ -14,10 +14,10 @@
         class="apikeyBtn"
       >
         <img :src="require('@/assets/imgs/apikey.png')" />
-        API密钥
+        API Key
       </el-button>
       <div class="show-doc" @click="jumpApiDoc">
-        查看API文档
+        viewAPIDocument
       </div>
     </div>
     <el-table
@@ -25,7 +25,7 @@
       style="width: 100%"
     >
       <el-table-column
-        label="密钥"
+        label="API Key"
         prop="apiKey"
         width="300"
       >
@@ -34,22 +34,22 @@
       </template>
       </el-table-column>
       <el-table-column
-        label="创建时间"
+        label="Create Time"
         prop="createdAt"
       />
       <el-table-column
-        label="操作"
+        label="Operation"
         width="200"
       >
         <template slot-scope="scope">
           <el-button
             size="mini"
             @click="handleCopy(scope.row) && copycb()"
-          >复制</el-button>
+          >Copy</el-button>
           <el-button
             size="mini"
             @click="handleDelete(scope.row)"
-          >删除</el-button>
+          >Delete</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -112,7 +112,7 @@ export default {
       return res;
     },
     copycb() {
-      this.$message.success("内容已复制到粘贴板");
+      this.$message.success("Content copied to clipboard");
     },
     handleCreate() {
       const data = { appId: this.appId, appType: this.appType };
@@ -132,18 +132,18 @@ export default {
     },
     handleDelete(row) {
       this.$confirm(
-        "确定要删除当前APIkey吗？",
+        "ConfirmtoDeletecurrentAPIkey吗？",
         this.$t("knowledgeManage.tip"),
         {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
+          confirmButtonText: "Confirm",
+          cancelButtonText: "Cancel",
           type: "warning",
         }
       )
         .then(() => {
           delApiKey({ apiId: row.apiId }).then((res) => {
             if (res.code === 0) {
-              this.$message.success("删除成功");
+              this.$message.success("DeleteSuccess");
               this.getTableData();
             }
           });

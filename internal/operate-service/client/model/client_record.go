@@ -1,6 +1,6 @@
 package model
 
-// ClientRecord 客户端表
+// ClientRecord client table
 type ClientRecord struct {
 	ID        int64  `gorm:"primaryKey;autoIncrement"`
 	ClientId  string `gorm:"index:idx_client_id"`

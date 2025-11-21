@@ -1,7 +1,7 @@
 import request from "@/utils/request"
 import {USER_API} from "@/utils/requestConstants";
 
-/*----自定义工具------*/
+/*----CustomTool------*/
 export const getCustomList = (data)=>{
     return request({
         url: `${USER_API}/tool/custom/list`,
@@ -50,7 +50,7 @@ export const getSchema = (data)=>{
     })
 };
 
-/*---创建mcp---*/
+/*---Createmcp---*/
 export const getServerList = (data)=>{
     return request({
         url: `${USER_API}/mcp/server/list`,
@@ -123,7 +123,7 @@ export const addOpenapi = (data)=>{
     })
 };
 
-/*---导入mcp---*/
+/*---Importmcp---*/
 export const getList = (data)=>{
     return request({
         url: `${USER_API}/mcp/list`,
@@ -172,7 +172,7 @@ export const setUpdate = (data)=>{
     })
 };
 
-/*---第三方MCP广场---*/
+/*--- Third-party MCP marketplace ---*/
 export const getPublicMcpList = (data)=>{
     return request({
         url: `${USER_API}/mcp/square/list`,
@@ -195,7 +195,7 @@ export const getRecommendsList = (data)=>{
     })
 };
 
-/*----内置工具------*/
+/*---- Built-in tool ------*/
 export const getBuiltInList = (data)=>{
     return request({
         url: `${USER_API}/tool/square/list`,

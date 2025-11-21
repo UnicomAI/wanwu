@@ -11,11 +11,11 @@ import (
 
 type LLM struct {
 	ApiKey          string `json:"apiKey"`                                              // ApiKey
-	EndpointUrl     string `json:"endpointUrl"`                                         // 推理url
-	FunctionCalling string `json:"functionCalling" validate:"oneof=noSupport toolCall"` // 函数调用是否支持
-	VisionSupport   string `json:"visionSupport" validate:"oneof=noSupport support"`    // 视觉支持
-	MaxTokens       *int   `json:"maxTokens"`                                           // 模型回答最大tokens
-	ContextSize     *int   `json:"contextSize"`                                         // 上下文长度
+	EndpointUrl     string `json:"endpointUrl"`                                         // inference url
+	FunctionCalling string `json:"functionCalling" validate:"oneof=noSupport toolCall"` // Does function call support
+	VisionSupport   string `json:"visionSupport" validate:"oneof=noSupport support"`    // visual support
+	MaxTokens       *int   `json:"maxTokens"`                                           // The model answers the maximum tokens
+	ContextSize     *int   `json:"contextSize"`                                         // context length
 }
 
 func (cfg *LLM) Tags() []mp_common.Tag {
@@ -37,7 +37,7 @@ func (cfg *LLM) NewReq(req *mp_common.LLMReq) (mp_common.ILLMReq, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Qwen3 开源模型仅在非思考模式下支持非流式输出方式, 不支持qwq系列模型
+	// Qwen3 open source model only supports non-streaming output mode in non-thinking mode, and does not support qwq series models
 	if req.Stream != nil && !*req.Stream && strings.HasPrefix(req.Model, "qwen3") {
 		m["enable_thinking"] = false
 	}

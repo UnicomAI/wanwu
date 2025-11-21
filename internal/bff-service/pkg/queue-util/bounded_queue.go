@@ -1,6 +1,6 @@
 package queue_util
 
-// BoundedQueue 基础有界队列结构
+// BoundedQueue basic bounded queue structure
 type BoundedQueue struct {
 	items []string
 	head  int
@@ -9,10 +9,10 @@ type BoundedQueue struct {
 	cap   int
 }
 
-// NewBoundedQueue 创建有界队列，容量必须为正整数
+// NewBoundedQueue creates a bounded queue, the capacity must be a positive integer
 func NewBoundedQueue(cap int) *BoundedQueue {
 	if cap <= 0 {
-		panic("队列容量必须为正整数")
+		panic("Queue capacity must be a positive integer")
 	}
 	return &BoundedQueue{
 		items: make([]string, cap),
@@ -20,7 +20,7 @@ func NewBoundedQueue(cap int) *BoundedQueue {
 	}
 }
 
-// Enqueue 非阻塞入队，返回是否成功
+// Enqueue non-blocking enqueue, returns whether it is successful
 func (q *BoundedQueue) Enqueue(item string) bool {
 	if q.IsFull() {
 		return false
@@ -32,40 +32,40 @@ func (q *BoundedQueue) Enqueue(item string) bool {
 	return true
 }
 
-// Dequeue 非阻塞出队，返回元素和是否成功
+// Dequeue non-blocking dequeue, returns the element and whether it is successful
 func (q *BoundedQueue) Dequeue() (string, bool) {
 	if q.IsEmpty() {
 		return "", false
 	}
 
 	item := q.items[q.head]
-	q.items[q.head] = "" // 防止内存泄漏
+	q.items[q.head] = "" // Prevent memory leaks
 	q.head = (q.head + 1) % q.cap
 	q.size--
 	return item, true
 }
 
-// Size 当前元素数量
+// Size current number of elements
 func (q *BoundedQueue) Size() int {
 	return q.size
 }
 
-// IsEmpty 是否为空队列
+// IsEmpty Is the queue empty?
 func (q *BoundedQueue) IsEmpty() bool {
 	return q.size == 0
 }
 
-// IsFull 是否已满
+// IsFull Is it full?
 func (q *BoundedQueue) IsFull() bool {
 	return q.size == q.cap
 }
 
-// Cap 获取队列容量
+// Cap gets the queue capacity
 func (q *BoundedQueue) Cap() int {
 	return q.cap
 }
 
-// AllValue 获取	全部元素
+// AllValue gets all elements
 func (q *BoundedQueue) AllValue() []string {
 	var retList []string
 	for i := 0; i < q.size; i++ {

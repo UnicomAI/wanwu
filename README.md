@@ -18,8 +18,8 @@
 </p>
 <p align="center">
     English |
-    <a href="https://github.com/UnicomAI/wanwu/blob/main/README_CN.md">简体中文</a> |
-    <a href="https://github.com/UnicomAI/wanwu/blob/main/README_繁體.md">繁體中文</a>
+    <a href="https://github.com/UnicomAI/wanwu/blob/main/README_CN.md">Simplified Chinese</a> |
+    <a href="https://github.com/UnicomAI/wanwu/blob/main/README_%E7%B9%81%E9%AB%94.md">Traditional Chinese</a>
 </p>
 </div>
 
@@ -287,7 +287,7 @@ To help you quickly get started with this project, we strongly recommend that yo
               "model": "yuanjing-70b-chat",
               "messages": [{
                       "role": "user",
-                      "content": "你好"
+                      "content": "Hello"
               }]
       }'
   4. Import the model:

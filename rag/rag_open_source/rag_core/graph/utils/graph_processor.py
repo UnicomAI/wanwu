@@ -181,7 +181,7 @@ def save_graph_to_json(graph: nx.MultiDiGraph, output_path: str):
         }
         output.append(relationship)
 
-    # 确保输出路径的目录存在
+    # Make sure the directory for the output path exists
     output_dir = Path(output_path).parent
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -332,7 +332,7 @@ def merge_subgraph(
     subgraph: nx.MultiDiGraph,
     old_graph_path: str
 ):
-    # 检查文件是否存在
+    # Check if the file exists
     if os.path.exists(old_graph_path):
         old_graph = load_graph(old_graph_path)
         if old_graph is not None:
@@ -370,10 +370,10 @@ def extract_community(graph, config):
 
 
 def update_graph(user_id:str, kb_name: str, file_name: str, relationships: list):
-    # =========== 生成subgraph =============
+    # =========== Generate subgraph =============
     subgraph = generate_subgraph(relationships)
 
-    # =========== 合并subgraph =============
+    # =========== Merge subgraph =============
     new_file_path = f"./data/graph/{user_id}/{kb_name}.json"
     new_graph = merge_subgraph(subgraph, new_file_path)
 

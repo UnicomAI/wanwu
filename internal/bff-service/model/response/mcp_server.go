@@ -2,36 +2,36 @@ package response
 
 import "github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 
-// MCPServerInfo MCP Server信息
+// MCPServerInfo MCP Server information
 type MCPServerInfo struct {
 	MCPServerID string         `json:"mcpServerId"` // mcpServerId
-	Avatar      request.Avatar `json:"avatar"`      // 图标
-	Name        string         `json:"name"`        // 名称
-	Desc        string         `json:"desc"`        // 描述
-	ToolNum     int64          `json:"toolNum"`     // 绑定工具数量
+	Avatar      request.Avatar `json:"avatar"`      // icon
+	Name        string         `json:"name"`        // name
+	Desc        string         `json:"desc"`        // describe
+	ToolNum     int64          `json:"toolNum"`     // Number of binding tools
 }
 
-// MCPServerDetail MCP Server详情
+// MCPServerDetail MCP ServerDetails
 type MCPServerDetail struct {
 	MCPServerID       string              `json:"mcpServerId"`       // mcpServerId
-	Avatar            request.Avatar      `json:"avatar"`            // 图标
-	Name              string              `json:"name"`              // 名称
-	Desc              string              `json:"desc"`              // 描述
+	Avatar            request.Avatar      `json:"avatar"`            // icon
+	Name              string              `json:"name"`              // name
+	Desc              string              `json:"desc"`              // describe
 	SSEURL            string              `json:"sseUrl"`            // sse url
-	SSEExample        string              `json:"sseExample"`        // sse连接示例
+	SSEExample        string              `json:"sseExample"`        // sse connection example
 	StreamableURL     string              `json:"streamableUrl"`     // streamable http url
-	StreamableExample string              `json:"streamableExample"` // streamable http 连接示例
-	Tools             []MCPServerToolInfo `json:"tools"`             // 绑定工具列表
+	StreamableExample string              `json:"streamableExample"` // streamable http connection example
+	Tools             []MCPServerToolInfo `json:"tools"`             // Binding tool list
 }
 
-// MCPServerToolInfo MCP Server 绑定工具信息
+// MCPServerToolInfo MCP Server binding tool information
 type MCPServerToolInfo struct {
 	MCPServerToolID string `json:"mcpServerToolId"` // mcpServerToolId
-	MethodName      string `json:"methodName"`      // 显示名称
-	Type            string `json:"type"`            // 类型
-	Id              string `json:"id"`              // 应用或工具id
-	Name            string `json:"name"`            // 应用或工具名称
-	Desc            string `json:"desc"`            // 描述
+	MethodName      string `json:"methodName"`      // display name
+	Type            string `json:"type"`            // type
+	Id              string `json:"id"`              // application or tool id
+	Name            string `json:"name"`            // Application or tool name
+	Desc            string `json:"desc"`            // describe
 }
 
 // MCPServerCreateResp MCP Server ID
@@ -39,16 +39,16 @@ type MCPServerCreateResp struct {
 	MCPServerID string `json:"mcpServerId"` // mcpServerId
 }
 
-// MCPServerCustomToolSelect MCP Server自定义工具选择列表
+// MCPServerCustomToolSelect MCP Server custom tool selection list
 type MCPServerCustomToolSelect struct {
-	UniqueId     string                   `json:"uniqueId"`     // 统一的id
-	CustomToolId string                   `json:"customToolId"` // 自定义工具id
-	Name         string                   `json:"name"`         // 名称
-	Description  string                   `json:"description"`  // 描述
-	Methods      []MCPServerCustomToolApi `json:"methods"`      // 方法
+	UniqueId     string                   `json:"uniqueId"`     // unified id
+	CustomToolId string                   `json:"customToolId"` // Custom tool id
+	Name         string                   `json:"name"`         // name
+	Description  string                   `json:"description"`  // describe
+	Methods      []MCPServerCustomToolApi `json:"methods"`      // method
 }
 
 type MCPServerCustomToolApi struct {
-	MethodName  string `json:"methodName"`  // 方法名称
-	Description string `json:"description"` // 方法描述
+	MethodName  string `json:"methodName"`  // method name
+	Description string `json:"description"` // Method description
 }

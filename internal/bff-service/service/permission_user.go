@@ -205,7 +205,7 @@ func toOrgRole(ctx *gin.Context, userOrg *iam_service.UserOrg) response.OrgRole 
 	}
 }
 
-// 解密password
+// Decrypt password
 func decryptPD(encryptStr string) (string, error) {
 	var (
 		err                      error

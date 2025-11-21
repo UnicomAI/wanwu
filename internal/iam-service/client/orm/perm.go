@@ -70,7 +70,7 @@ func (c *Client) CheckUserPerm(ctx context.Context, userID uint32, genTokenAt in
 			return toErrStatus("iam_perm_check_user_perm", util.Int2Str(userID),
 				util.Int2Str(orgID), fmt.Sprintf("%v", oneOfPerms), err.Error())
 		}
-		// check org user 用户在组织中的状态校验
+		// check org user Check the status of the user in the organization
 		orgUser := &model.OrgUser{}
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithUserID(userID),

@@ -51,43 +51,43 @@ func toErrStatus(key string, args ...string) *err_code.Status {
 }
 
 type SystemCustom struct {
-	Login LoginConfig `json:"login"` // 登录页配置
-	Tab   TabConfig   `json:"tab"`   // 标签页配置
-	Home  HomeConfig  `json:"home"`  // 首页配置
+	Login LoginConfig `json:"login"` // Login page configuration
+	Tab   TabConfig   `json:"tab"`   // Tab configuration
+	Home  HomeConfig  `json:"home"`  // Home page configuration
 }
 
 type LoginConfig struct {
-	LoginBgPath string `json:"loginBgPath"` // 登录页背景图路径
-	LogoPath    string `json:"logoPath"`    // 登录页logo路径
-	WelcomeText string `json:"welcomeText"` // 登录页欢迎词
-	ButtonColor string `json:"buttonColor"` // 登录按钮颜色
+	LoginBgPath string `json:"loginBgPath"` // Login page background image path
+	LogoPath    string `json:"logoPath"`    // Login page logo path
+	WelcomeText string `json:"welcomeText"` // Login page welcome message
+	ButtonColor string `json:"buttonColor"` // Login button color
 }
 
 type TabConfig struct {
-	LogoPath string `json:"logoPath"` // 标签页logo路径
-	Title    string `json:"title"`    // 标签页标题
+	LogoPath string `json:"logoPath"` // Tab logo path
+	Title    string `json:"title"`    // Tab title
 }
 
 type HomeConfig struct {
-	LogoPath string `json:"logoPath"` // 平台logo路径
-	Name     string `json:"name"`     // 平台名称
-	BgColor  string `json:"bgColor"`  // 平台背景颜色
+	LogoPath string `json:"logoPath"` // Platform logo path
+	Name     string `json:"name"`     // Platform name
+	BgColor  string `json:"bgColor"`  // Platform background color
 }
 
 type ClientStatistic struct {
-	Overview ClientOverView `json:"overview"` // 统计面板
-	Trend    ClientTrend    `json:"trend"`    // 统计趋势
+	Overview ClientOverView `json:"overview"` // Statistics panel
+	Trend    ClientTrend    `json:"trend"`    // statistical trends
 }
 
 type ClientOverView struct {
-	Cumulative ClientOverviewItem `json:"cumulative"` // 累计客户端
-	New        ClientOverviewItem `json:"new"`        // 新增客户端
-	Active     ClientOverviewItem `json:"active"`     // 日活客户端
+	Cumulative ClientOverviewItem `json:"cumulative"` // Cumulative clients
+	New        ClientOverviewItem `json:"new"`        // Add new client
+	Active     ClientOverviewItem `json:"active"`     // Daily active client
 }
 
 type ClientOverviewItem struct {
-	Value            float32 `json:"value"`            // 数量
-	PeriodOverPeriod float32 `json:"periodOverPeriod"` // 环比上周期百分比
+	Value            float32 `json:"value"`            // quantity
+	PeriodOverPeriod float32 `json:"periodOverPeriod"` // Period-on-month percentage
 }
 
 type ClientTrend struct {
@@ -95,13 +95,13 @@ type ClientTrend struct {
 }
 
 type StatisticChart struct {
-	Name  string               `json:"name"`  // 统计表名字
-	Lines []StatisticChartLine `json:"lines"` // 统计表中线段集合
+	Name  string               `json:"name"`  // Statistics table name
+	Lines []StatisticChartLine `json:"lines"` // Collection of line segments in statistical tables
 }
 
 type StatisticChartLine struct {
-	Name  string                   `json:"name"`  // 线段名字
-	Items []StatisticChartLineItem `json:"items"` // 线段横纵坐标值
+	Name  string                   `json:"name"`  // Line segment name
+	Items []StatisticChartLineItem `json:"items"` // The horizontal and vertical coordinate values ​​of the line segment
 }
 
 type StatisticChartLineItem struct {

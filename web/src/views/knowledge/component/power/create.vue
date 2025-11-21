@@ -5,7 +5,7 @@
         <div class="search-section">
           <el-select
             v-model="selectedOrganization"
-            placeholder="选择组织"
+            placeholder="selectOrganization"
             filterable
             clearable
             class="org-select"
@@ -21,7 +21,7 @@
           </el-select>
           <el-input
             v-model="searchKeyword"
-            placeholder="搜索用户名"
+            placeholder="SearchuserName"
             class="search-input"
             :disabled="!selectedOrganization"
             @focus="handleInputFocus"
@@ -55,11 +55,11 @@
       
       <div class="right-panel" v-if="!transferMode">
         <div class="permission-section">
-          <div class="permission-label">权限:</div>
-          <el-select v-model="selectedPermission" placeholder="请选择权限" class="permission-select">
-            <el-option label="可读" :value="0"></el-option>
-            <el-option label="可编辑" :value="10"></el-option>
-            <el-option label="管理员" :value="20"></el-option>
+          <div class="permission-label">Permission:</div>
+          <el-select v-model="selectedPermission" placeholder="Please selectPermission" class="permission-select">
+            <el-option label="Read" :value="0"></el-option>
+            <el-option label="Edit" :value="10"></el-option>
+            <el-option label="Administrator" :value="20"></el-option>
           </el-select>
         </div>
         
@@ -112,10 +112,10 @@ export default {
   },
   computed: {
     defaultPermission() {
-      return this.transferMode ? '管理员' : '可读'
+      return this.transferMode ? 'Administrator' : 'Read'
     },
     groupedSelectedUsers() {
-      // 按组织分组选中的用户
+      // 按Organizationgroup选in of User
       const groups = {};
       this.selectedUsers.forEach(user => {
         if (!groups[user.organization]) {
@@ -127,7 +127,7 @@ export default {
         groups[user.organization].users.push(user);
       });
       
-      // 转换为数组并按组织名称排序
+      // ConvertisArray并按OrganizationNameSort
       return Object.values(groups).sort((a, b) => a.organization.localeCompare(b.organization));
     }
   },
@@ -151,13 +151,13 @@ export default {
     transferMode: {
       handler(newVal) {
         if (newVal) {
-          this.selectedPermission = '管理员'
+          this.selectedPermission = 'Administrator'
         }
       },
       immediate: true
     },
     searchKeyword(val){
-      // 只有在选择了组织时才进行搜索
+      // 只Has在select了Organization when 才进rowSearch
       if (this.selectedOrganization) {
         this.$refs.tree.filter(val);
       }
@@ -182,17 +182,17 @@ export default {
     },
     filterNode(value,data){
       if (!value) return true;
-      // 搜索用户名，需要判断属性是否存在
+      // SearchUserName，NeedCheckPropertyYesNoexist
       if (data.userName) {
         return data.userName.indexOf(value) !== -1;
       }
       return false;
     },
     handleOrgChange(orgId) {
-      // 当组织选择改变时，过滤树形数据
+      // 当Organizationselect改变 when ， 滤Tree形Data
       this.getOrgUser(orgId);
       
-      // 如果清空了组织选择，同时清空用户名搜索
+      // IfEmpty了Organizationselect，同 when EmptyUserNameSearch
       if (!orgId) {
         this.searchKeyword = '';
       }
@@ -204,13 +204,13 @@ export default {
         if(res.code === 0){
            var userList = res.data.userInfoList || [];
            var orgIdValue = res.data.orgId;
-           // 给每一项添加 orgId 和 id 字段
+           // 给each一itemAdd orgId And id Field
            self.treeData = userList.map(function(item) {
              item.orgId = orgIdValue;
-             item.id = item.userId;  // 确保有 id 字段，与 userId 保持一致，用于树节点的 key
+             item.id = item.userId;  // ensureHas id Field，With userId keepconsistent，Used forTreeNode of  key
              return item;
            });
-           // 加载完数据后，设置当前组织已选中的用户
+           // Load完Dataafter，SettingcurrentOrganizationalready选in of User
            self.$nextTick(function() {
              self.setCheckedUsersForCurrentOrg();
            });
@@ -219,10 +219,10 @@ export default {
     },
     setCheckedUsersForCurrentOrg() {
       var self = this;
-      //获取当前组织id
+      //GetcurrentOrganizationid
       var currentOrgId = this.selectedOrganization;
       
-      // 确保有组织选择
+      // ensureHasOrganizationselect
       if (!currentOrgId) {
         if (this.$refs.tree) {
           this.$refs.tree.setCheckedKeys([]);
@@ -230,39 +230,39 @@ export default {
         return;
       }
       
-      // 找出当前组织ID下已选中的用户ID列表
-      // 必须同时匹配用户的 orgId 和当前选择的组织 ID
+      // 找出currentOrganizationID下already选in of UserIDList
+      // Must同 when MatchUser of  orgId Andcurrentselect of Organization ID
       var checkedUserIds = this.selectedUsers
         .filter(function(user) {
           return user.orgId === currentOrgId;
         })
         .map(function(user) {
-          // 兼容 id 和 userId 两种字段
+          // compatible id And userId 两种Field
           return user.id || user.userId;
         })
         .filter(function(id) {
           return id != null && id !== undefined && id !== '';
         });
       
-      // 设置树形控件的选中状态
+      // SettingTree形控件 of 选inStatus
       if (this.$refs.tree) {
-        // 设置标志位，防止触发 handleTreeCheck
+        // Set flag，防止Trigger handleTreeCheck
         this.isSettingChecked = true;
         if (checkedUserIds.length > 0) {
           this.$refs.tree.setCheckedKeys(checkedUserIds);
         } else {
           this.$refs.tree.setCheckedKeys([]);
         }
-        // 延迟重置标志位
+        // DelayReset标志位
         this.$nextTick(function() {
           self.isSettingChecked = false;
         });
       }
     },
     handleInputFocus() {
-      // 当用户名输入框获得焦点时，如果没有选择组织，给出提示
+      // 当UserNameInput Box获得焦点 when ，IfNoselectOrganization，给出Tip
       if (!this.selectedOrganization) {
-        this.$message.warning('请先选择组织');
+        this.$message.warning('PleaseFirstselectOrganization');
       }
     },
     filterTreeByOrganization(orgId) {
@@ -271,11 +271,11 @@ export default {
         return;
       }
       
-      // 应用过滤
+      // App 滤
       this.treeData = filterData(this.originalTreeData);
     },
     handleTreeCheck(data, checkedInfo) {
-      // 如果是程序设置的选中状态，不处理
+      // IfYes程序Setting of 选inStatus，不Process
       if (this.isSettingChecked) {
         return;
       }
@@ -288,17 +288,17 @@ export default {
       const currentOrgId = this.selectedOrganization;
       const currentOrgName = currentOrg ? currentOrg.orgName : '';
       
-      // 先移除当前组织的所有用户
+      // FirstRemovecurrentOrganization of 所HasUser
       var otherOrgUsers = this.selectedUsers.filter(function(user) {
         return user.orgId !== currentOrgId;
       });
       
-      // 收集当前选中的用户（去重）
+      // 收集current选in of User（去重）
       var currentOrgUsers = [];
       var addedUserIds = {};
       
       checkedNodes.forEach(function(node) {
-        // 使用 id 字段（已经与 userId 保持一致）
+        // Use id Field（already经With userId keepconsistent）
         const nodeId = node.id || node.userId;
         if (nodeId && !addedUserIds[nodeId]) {
           addedUserIds[nodeId] = true;
@@ -310,10 +310,10 @@ export default {
           });
         }
       });
-      // 合并其他组织的用户和当前组织的用户
+      // 合并OtherOrganization of UserAndcurrentOrganization of User
       var mergedUsers = otherOrgUsers.concat(currentOrgUsers);
       
-      // 最终去重：使用 userId + orgId 作为唯一标识
+      // 最终去重：Use userId + orgId 作isunique标识
       var uniqueUsers = [];
       var uniqueKeys = {};
       
@@ -346,7 +346,7 @@ export default {
       this.selectedUsers = this.selectedUsers.filter(u => u.id !== user.id)
     },
     removeSelectedUser(user) {
-      // 使用 userId 或 id 都能删除
+      // Use userId OR id 都能Delete
       const userId = user.userId || user.id;
       this.selectedUsers = this.selectedUsers.filter(u => {
         const uId = u.userId || u.id;
@@ -370,7 +370,7 @@ export default {
     updateTreeSelection(userId, selected) {
       const updateNode = (nodes) => {
         nodes.forEach(node => {
-          // 兼容 id 和 userId 两种字段
+          // compatible id And userId 两种Field
           const nodeId = node.id || node.userId;
           if (nodeId === userId) {
             node.selected = selected;

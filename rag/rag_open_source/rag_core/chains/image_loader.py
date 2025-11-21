@@ -19,7 +19,7 @@ class ImageLoader(TextLoader):
                  autodetect_encoding: bool = False,
                  ocr_model_id: str = ""):
         """Initialize a PDFLoader with file path and additional chunk_type."""
-        super().__init__(file_path, encoding, autodetect_encoding)  # 确保调用父类的__init__
+        super().__init__(file_path, encoding, autodetect_encoding)  # Make sure to call the parent class's __init__
         self.ocr_model_id = ocr_model_id
 
     def load(self) -> List[Document]:

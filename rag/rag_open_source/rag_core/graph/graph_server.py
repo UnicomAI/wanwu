@@ -145,10 +145,10 @@ async def extrac_graph_data(request: Request):
         )
         res_data = builder.build_knowledge_graph(file_name, chunks)
 
-        # =========== 更新 graph =============
+        # =========== Update graph =============
         graph_processor.update_graph(user_id, kb_name, file_name, res_data)
 
-        # =========== 整理 graph_vocabulary_set =============
+        # =========== Organize graph_vocabulary_set =============
         graph_vocabulary_set = set()
         for node in builder.graph.nodes:
             node_json = builder.graph.nodes[node]
@@ -159,19 +159,19 @@ async def extrac_graph_data(request: Request):
                 schema_type = "K:graph_node"
             node_msg = f"{node_json['properties']['name']}|||schema_type:{schema_type}"
             graph_vocabulary_set.add(node_msg)
-        # =========== 整理 graph_vocabulary_set =============
+        # =========== Organize graph_vocabulary_set =============
 
-        # =========== 整理 graph_chunks start=============
+        # =========== Organize graph_chunks start==============
         graph_chunks = []
         for triple in res_data:
             reference_chunk_id = triple["start_node"]["properties"]["chunk id"]
             meta_data = builder.all_chunks[reference_chunk_id]["meta_data"]
             meta_data["reference_snippet"] = builder.all_chunks[reference_chunk_id]["old_snippet"]
             temp_triple = copy.deepcopy(triple)
-            # 移除 start_node 中的 'chunk id'
+            # Remove 'chunk id' in start_node
             if 'chunk id' in temp_triple['start_node']['properties']:
                 del temp_triple['start_node']['properties']['chunk id']
-            # 移除 end_node 中的 'chunk id'
+            # Remove 'chunk id' in end_node
             if 'chunk id' in temp_triple['end_node']['properties']:
                 del temp_triple['end_node']['properties']['chunk id']
             graph_data_text = f"{triple['start_node']['properties']['name']} {triple['relation']} {triple['end_node']['properties']['name']}"
@@ -179,7 +179,7 @@ async def extrac_graph_data(request: Request):
             graph_chunks.append(
                 {"chunk_type": "graph", "graph_data_text": graph_data_text, "graph_data": copy.deepcopy(temp_triple),
                  "meta_data": meta_data})
-        # =========== 整理 graph_chunks  end =============
+        # =========== Organize graph_chunks end =============
         # await send_progress_update(client_id, "extrac_graph_data", 10, "extrac_graph_data completed successfully!")
 
         return ExtracGraphDataResponse(
@@ -214,7 +214,7 @@ async def generate_community_reports(request: Request):
         config.construction.LLM_BASE_URL = llm_base_url
         config.construction.LLM_API_KEY = llm_api_key
 
-        # =========== 生成社区报告 =============
+        # =========== Generate community report =============
         file_path = f"./data/graph/{user_id}/{kb_name}.json"
         new_graph = graph_processor.load_graph_from_json(file_path)
         reports = []
@@ -243,7 +243,7 @@ async def delete_file(request: Request):
         file_name = json_request["file_name"]
         client_id = json_request.get("client_id", "default")
 
-        # =========== 更新 graph =============
+        # =========== Update graph =============
         graph_processor.delete_file(user_id, kb_name, file_name)
         await send_progress_update(client_id, "delete_file", 10, "delete_file completed successfully!")
 
@@ -266,7 +266,7 @@ async def delete_kb(request: Request):
         kb_name = json_request["kb_name"]
         client_id = json_request.get("client_id", "default")
 
-        # =========== 更新 graph =============
+        # =========== Update graph =============
         graph_processor.delete_kb(user_id, kb_name)
         await send_progress_update(client_id, "delete_kb", 10, "delete_file completed successfully!")
 

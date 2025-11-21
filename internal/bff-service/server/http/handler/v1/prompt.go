@@ -10,11 +10,11 @@ import (
 // CreateCustomPrompt
 //
 //	@Tags			prompt
-//	@Summary		创建自定义Prompt
-//	@Description	创建自定义Prompt
+//	@Summary Create a custom Prompt
+//	@Description Create a custom Prompt
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CustomPromptCreate	true	"自定义Prompt信息"
+//	@Param data body request.CustomPromptCreate true "Custom Prompt information"
 //	@Success		200		{object}	response.Response{data=response.CustomPromptIDResp}
 //	@Router			/prompt/custom [post]
 func CreateCustomPrompt(ctx *gin.Context) {
@@ -29,8 +29,8 @@ func CreateCustomPrompt(ctx *gin.Context) {
 // GetCustomPrompt
 //
 //	@Tags			prompt
-//	@Summary		获取自定义Prompt详情
-//	@Description	获取自定义Prompt详情
+//	@Summary Get custom Prompt details
+//	@Description Get custom Prompt details
 //	@Accept			json
 //	@Produce		json
 //	@Param			customPromptId	query		string	true	"customPromptId"
@@ -44,11 +44,11 @@ func GetCustomPrompt(ctx *gin.Context) {
 // DeleteCustomPrompt
 //
 //	@Tags			prompt
-//	@Summary		删除自定义Prompt
-//	@Description	删除自定义Prompt
+//	@Summary Delete custom Prompt
+//	@Description Delete custom Prompt
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CustomPromptIDReq	true	"自定义PromptID"
+//	@Param data body request.CustomPromptIDReq true "Custom PromptID"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/prompt/custom [delete]
 func DeleteCustomPrompt(ctx *gin.Context) {
@@ -62,11 +62,11 @@ func DeleteCustomPrompt(ctx *gin.Context) {
 // UpdateCustomPrompt
 //
 //	@Tags			prompt
-//	@Summary		更新自定义Prompt
-//	@Description	更新自定义Prompt
+//	@Summary Update custom Prompt
+//	@Description Update custom Prompt
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.UpdateCustomPrompt	true	"自定义Prompt信息"
+//	@Param data body request.UpdateCustomPrompt true "Custom Prompt information"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/prompt/custom [put]
 func UpdateCustomPrompt(ctx *gin.Context) {
@@ -80,8 +80,8 @@ func UpdateCustomPrompt(ctx *gin.Context) {
 // GetCustomPromptList
 //
 //	@Tags			prompt
-//	@Summary		获取自定义Prompt列表
-//	@Description	获取自定义Prompt列表
+//	@Summary Get the custom Prompt list
+//	@Description Get the custom prompt list
 //	@Accept			json
 //	@Produce		json
 //	@Param			name	query		string	false	"name"
@@ -95,11 +95,11 @@ func GetCustomPromptList(ctx *gin.Context) {
 // CopyCustomPrompt
 //
 //	@Tags			prompt
-//	@Summary		复制自定义Prompt
-//	@Description	复制自定义Prompt
+//	@Summary Copy custom Prompt
+//	@Description Copy custom Prompt
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CustomPromptIDReq	true	"自定义PromptID"
+//	@Param data body request.CustomPromptIDReq true "Custom PromptID"
 //	@Success		200		{object}	response.Response{data=response.CustomPromptIDResp}
 //	@Router			/prompt/custom/copy [post]
 func CopyCustomPrompt(ctx *gin.Context) {
@@ -114,11 +114,11 @@ func CopyCustomPrompt(ctx *gin.Context) {
 // CreatePromptByTemplate
 //
 //	@Tags			prompt
-//	@Summary		复制提示词模板
-//	@Description	复制提示词模板
+//	@Summary Copy prompt word template
+//	@Description Copy prompt word template
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.CreatePromptByTemplateReq	true	"通过模板创建提示词的请求参数"
+//	@Param data body request.CreatePromptByTemplateReq true "Create request parameters for prompt words through templates"
 //	@Success		200		{object}	response.Response{data=response.PromptIDData}
 //	@Router			/prompt/template [post]
 func CreatePromptByTemplate(ctx *gin.Context) {
@@ -133,11 +133,11 @@ func CreatePromptByTemplate(ctx *gin.Context) {
 // GetPromptOptimize
 //
 //	@Tags			prompt
-//	@Summary		获取提示词优化结果
-//	@Description	获取提示词优化结果
+//	@Summary Get the prompt word optimization results
+//	@Description Get the prompt word optimization results
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.PromptOptimizeReq	true	"提示词优化请求参数"
+//	@Param data body request.PromptOptimizeReq true "Prompt word optimization request parameters"
 //	@Success		200		{object}	response.Response
 //	@Router			/prompt/optimize [post]
 func GetPromptOptimize(ctx *gin.Context) {

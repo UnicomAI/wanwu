@@ -60,7 +60,7 @@
               {{createForm.avatar.path}}
             </span>-->
             <span class="upload-hint">
-              可上传 .png、jpg、jpeg 文件
+              可Upload .png、jpg、jpeg File
             </span>
           </el-upload>
         </el-form-item>

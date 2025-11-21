@@ -12,7 +12,7 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/log"
 )
 
-// SelectKnowledgeSplitterList 查询知识库分隔符列表
+// SelectKnowledgeSplitterList queries the knowledge base separator list
 func SelectKnowledgeSplitterList(ctx context.Context, userId, orgId, name string) ([]*model.KnowledgeSplitter, error) {
 	var knowledgeSplitterList []*model.KnowledgeSplitter
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.LikeName(name)).
@@ -26,7 +26,7 @@ func SelectKnowledgeSplitterList(ctx context.Context, userId, orgId, name string
 	return knowledgeSplitterList, nil
 }
 
-// SelectKnowledgeSplitterDetail 查询知识库分隔符详情
+// SelectKnowledgeSplitterDetail Query the knowledge base separator details
 func SelectKnowledgeSplitterDetail(ctx context.Context, userId, orgId, splitterId string) (*model.KnowledgeSplitter, error) {
 	var knowledgeSplitter model.KnowledgeSplitter
 	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithSplitterID(splitterId)).
@@ -64,12 +64,12 @@ func CheckSameKnowledgeSplitterNameOrValue(ctx context.Context, userId, orgId, n
 	return nil
 }
 
-// CreateKnowledgeSplitter 创建知识库标签
+// CreateKnowledgeSplitter creates knowledge base tags
 func CreateKnowledgeSplitter(ctx context.Context, knowledgeSplitter *model.KnowledgeSplitter) error {
 	return db.GetHandle(ctx).Create(knowledgeSplitter).Error
 }
 
-// UpdateKnowledgeSplitter 更新知识库标签
+// UpdateKnowledgeSplitter updates knowledge base tags
 func UpdateKnowledgeSplitter(ctx context.Context, name, value string, id uint32) error {
 	var updateParams = map[string]interface{}{
 		"name":  name,
@@ -78,7 +78,7 @@ func UpdateKnowledgeSplitter(ctx context.Context, name, value string, id uint32)
 	return db.GetHandle(ctx).Model(&model.KnowledgeSplitter{}).Where("id = ?", id).Updates(updateParams).Error
 }
 
-// DeleteKnowledgeSplitter 删除知识库标签
+// DeleteKnowledgeSplitter deletes knowledge base tags
 func DeleteKnowledgeSplitter(ctx context.Context, id uint32) error {
 	err := db.GetHandle(ctx).Unscoped().Model(&model.KnowledgeSplitter{}).Where("id = ?", id).Delete(&model.KnowledgeSplitter{}).Error
 	if err != nil {

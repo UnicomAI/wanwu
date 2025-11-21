@@ -28,7 +28,7 @@ type KnowledgeTagSelectReq struct {
 
 	UserId      string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`
 	OrgId       string `protobuf:"bytes,2,opt,name=orgId,proto3" json:"orgId,omitempty"`
-	TagName     string `protobuf:"bytes,3,opt,name=tagName,proto3" json:"tagName,omitempty"` //知识库标签名称，支持模糊搜索
+	TagName     string `protobuf:"bytes,3,opt,name=tagName,proto3" json:"tagName,omitempty"` //知识库标签名称，支持模糊搜索 [EN] Knowledge base tag name, supports fuzzy search
 	KnowledgeId string `protobuf:"bytes,4,opt,name=knowledgeId,proto3" json:"knowledgeId,omitempty"`
 }
 
@@ -144,9 +144,9 @@ type KnowledgeTagInfo struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TagId    string `protobuf:"bytes,1,opt,name=tagId,proto3" json:"tagId,omitempty"`        //知识库标签id
-	TagName  string `protobuf:"bytes,2,opt,name=tagName,proto3" json:"tagName,omitempty"`    //知识库标签名称
-	Selected bool   `protobuf:"varint,3,opt,name=selected,proto3" json:"selected,omitempty"` //是否用户已经设置了
+	TagId    string `protobuf:"bytes,1,opt,name=tagId,proto3" json:"tagId,omitempty"`        //知识库标签id [EN] Knowledge base tag id
+	TagName  string `protobuf:"bytes,2,opt,name=tagName,proto3" json:"tagName,omitempty"`    //知识库标签名称 [EN] Knowledge base tag name
+	Selected bool   `protobuf:"varint,3,opt,name=selected,proto3" json:"selected,omitempty"` //是否用户已经设置了 [EN] Whether the user has set
 }
 
 func (x *KnowledgeTagInfo) Reset() {

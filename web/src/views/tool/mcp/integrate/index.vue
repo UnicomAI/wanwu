@@ -10,7 +10,7 @@
         </div>
         <div>
           <search-input :placeholder="$t('tool.integrate.search')" ref="searchInput" @handleSearch="fetchList" />
-          <el-button size="mini" type="primary" @click="handleAddMCP">导入</el-button>
+          <el-button size="mini" type="primary" @click="handleAddMCP">Import</el-button>
         </div>
       </div>
 
@@ -67,7 +67,7 @@
       <!--<div class="no-list" v-if="list.length === 0 && is">
         <div>
           <i class="el-icon-circle-plus-outline" @click="handleAddMCP"></i>
-          <span>添加你的第一个MCP Server</span>
+          <span>Add你 of firstMCP Server</span>
         </div>
       </div>-->
       <el-empty class="noData" v-if="!(list && list.length)" :description="$t('common.noData')"></el-empty>
@@ -86,14 +86,14 @@ export default {
   data() {
     return {
       defaultAvatar: require("@/assets/imgs/mcp_active.svg"),
-      addOpen: false, // 自定义添加mcp开关
+      addOpen: false, // CustomAddmcpSwitch
       addTitle: "",
       dialogParams: {
         name: "",
         from: "",
         sseUrl: "",
         desc: "",
-      }, // 添加自定义mcp参数
+      }, // AddCustommcpParameter
       list: [],
     };
   },
@@ -113,7 +113,7 @@ export default {
         })
     },
     handleClick(val) {
-      // mcpSquareId 有值 MCP广场, 否则自定义
+      // mcpSquareId HasValue MCP广场, NoThenCustom
       this.$router.push({path: `/tool/detail/custom?mcpId=${val.mcpId}&mcpSquareId=${val.mcpSquareId}`})
     },
     handleAddMCP() {

@@ -39,7 +39,7 @@ func FileExt(filePath string) string {
 	return filepath.Ext(filePath)
 }
 
-// ToFileSizeStr fileSize单位是B，转换规则：小于1M为KB，大于等于1M，单位为M，保留两位小数
+// ToFileSizeStr fileSize unit is B, conversion rules: less than 1M is KB, greater than or equal to 1M, the unit is M, keep two decimal places
 func ToFileSizeStr(fileSize int64) string {
 	if fileSize < mb {
 		return fmt.Sprintf("%.2f KB", float64(fileSize)/float64(kb))
@@ -64,29 +64,29 @@ func FileExist(filePath string) (bool, error) {
 
 func DirFileList(dir string, subDir bool, fullPath bool) ([]string, error) {
 	var fileNameList []string
-	// 读取目录
+	// Read directory
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("read dir (%v) err: %v", dir, err)
 	}
 
-	// 遍历目录下的所有文件和子目录
+	// Traverse all files and subdirectories in a directory
 	for _, entry := range entries {
 		info, err := entry.Info()
 		if err != nil {
-			// 处理错误
+			// handling errors
 			log.Errorf("read dir (%v) entry err: %v", dir, err)
 			continue
 		}
 
-		// 判断是否是文件
+		// Determine whether it is a file
 		if !info.IsDir() {
 			if fullPath {
 				fileNameList = append(fileNameList, dir+"/"+entry.Name())
 			} else {
 				fileNameList = append(fileNameList, entry.Name())
 			}
-		} else if !subDir { //不需要校验底层目录
+		} else if !subDir { //No need to verify the underlying directory
 			continue
 		} else {
 			list, err := DirFileList(dir+"/"+entry.Name(), subDir, fullPath)
@@ -101,10 +101,10 @@ func DirFileList(dir string, subDir bool, fullPath bool) ([]string, error) {
 	return fileNameList, nil
 }
 
-// MergeFile 合并文件
+// MergeFile merge files
 func MergeFile(filePathList []string, mergeFilePath string) (*FileMergeResult, error) {
-	// 创建或打开文件
-	//0644，表示文件所有者可读写，同组用户及其他用户只可读
+	// Create or open a file
+	//0644, indicating that the file owner can read and write, and users in the same group and other users can only read.
 	dir := filepath.Dir(mergeFilePath)
 	exist, err := FileExist(dir)
 	if err != nil {
@@ -181,7 +181,7 @@ func appendFile(reader *bufio.Reader, destinationFile *os.File) (byteCount int64
 	buf := make([]byte, MaxScanTokenSize)
 	for {
 		n, err := reader.Read(buf)
-		if FileEOF(err) { // 检查是否到达文件末尾
+		if FileEOF(err) { // Check if end of file is reached
 			break
 		}
 		if err != nil {

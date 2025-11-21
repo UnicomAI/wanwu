@@ -18,7 +18,7 @@
       <div class="info">
         <!-- tabs -->
         <div class="mcp-tabs">
-          <div :class="['mcp-tab',{ 'active': tabActive === 0 }]" @click="tabActive = 0">SSE URL及工具</div>
+          <div :class="['mcp-tab',{ 'active': tabActive === 0 }]" @click="tabActive = 0">SSE URL及Tool</div>
           <div style="display: inline-block">
             <div :class="['mcp-tab',{ 'active': tabActive === 1 }]" @click="tabActive = 1">Streamable HTTP</div>
           </div>
@@ -238,7 +238,7 @@ export default {
       handler() {
         this.initData()
       },
-      // 深度观察监听
+      // 深度ObserveListen
       deep: true
     }
   },
@@ -274,7 +274,7 @@ export default {
         this.apiKeyList = res.data || []
       })
 
-      //滚动到顶部
+      //scrolltotop
       const main = document.querySelector(".el-main > .page-container")
       if (main) main.scrollTop = 0
     },

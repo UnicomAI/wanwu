@@ -91,7 +91,7 @@
                 ></el-table-column>
                 <!-- <el-table-column
                     prop="oriDocName"
-                    label="原始文件名"
+                    label="Original File Name"
                     width="120"
                 >
                     <template slot-scope="scope">

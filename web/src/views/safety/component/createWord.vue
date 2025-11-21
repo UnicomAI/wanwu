@@ -2,7 +2,7 @@
     <div>
       <el-dialog
         top="10vh"
-        title="添加敏感词"
+        title="AddSensitive Word"
         :close-on-click-modal="false"
         :visible.sync="dialogVisible"
         width="50%"
@@ -18,26 +18,26 @@
         >
             <el-form-item class="itemCenter">
               <el-radio-group v-model="ruleForm.importType">
-                <el-radio-button :label="'single'">单条添加</el-radio-button>
-                <el-radio-button :label="'file'">批量上传</el-radio-button>
+                <el-radio-button :label="'single'">单itemAdd</el-radio-button>
+                <el-radio-button :label="'file'">BatchUpload</el-radio-button>
               </el-radio-group>  
             </el-form-item>
             <el-form-item
-            label="敏感词"
+            label="Sensitive Word"
             prop="word"
             v-if="ruleForm.importType === 'single'"
             >
             <el-input
                 v-model="ruleForm.word"
-                placeholder="您可添加一个词"
+                placeholder="You can add one word"
             ></el-input>
             </el-form-item>
             <el-form-item
-            label="敏感词类型"
+            label="Sensitive WordType"
             prop="sensitiveType"
             v-if="ruleForm.importType === 'single'"
             >
-            <el-select v-model="ruleForm.sensitiveType" placeholder="请选择" style="width:100%;">
+            <el-select v-model="ruleForm.sensitiveType" placeholder="Please select" style="width:100%;">
                 <el-option
                 v-for="item in sensitiveTypeOptions"
                 :key="item.value"
@@ -47,7 +47,7 @@
             </el-select>
             </el-form-item>
             <el-form-item
-            label="批量上传"
+            label="BatchUpload"
             prop="fileName"
             v-if="ruleForm.importType === 'file'"
             >
@@ -65,14 +65,14 @@
                 <div>
                     <img :src="require('@/assets/imgs/uploadImg.png')" class="upload-img" />
                     <p class="click-text">
-                        将文件拖到此处，或
-                        <span class="clickUpload">点击上传</span>
-                        <a class="clickUpload template" :href="`/user/api/v1/static/docs/sensitive.xlsx`" download @click.stop>模版下载</a>
+                        Drag file here, or
+                        <span class="clickUpload">click to upload</span>
+                        <a class="clickUpload template" :href="`/user/api/v1/static/docs/sensitive.xlsx`" download @click.stop>Download Template</a>
                     </p>
                 </div>
               </div>
               </el-upload>
-               <!-- 上传文件的列表 -->
+               <!-- UploadFile of List -->
                 <div class="file-list" v-if="fileList.length > 0">
                     <transition name="el-zoom-in-top">
                     <ul class="document_lise">
@@ -142,34 +142,34 @@ export default {
             sensitiveTypeOptions:[
                 {
                     value:'Political',
-                    name:'涉政'
+                    name:'Political'
                 },
                 {
                     value:'Revile',
-                    name:'辱骂'
+                    name:'Abusive'
                 },
                 {
                     value:'Pornography',
-                    name:'涉黄'
+                    name:'Pornographic'
                 },
                 {
                     value:'ViolentTerror',
-                    name:'暴恐'
+                    name:'Violent/Terrorist'
                 },
                 {
                     value:'Illegal',
-                    name:'违禁'
+                    name:'Prohibited'
                 },
                 {
                     value:'InformationSecurity',
-                    name:'信息安全'
+                    name:'Information Security'
                 },
                 {
                     value:'Other',
-                    name:'其他'
+                    name:'Other'
                 }
             ],
-            title:"新建词表",
+            title:"new词table",
             dialogVisible:false,
             ruleForm:{
                 importType:'single',
@@ -180,9 +180,9 @@ export default {
             },
             fileList:[],
             rules: {
-                word: [{ required: true, message:'请输入敏感词', trigger: "blur" }],
-                sensitiveType:[{ required: true, message: '请输选择敏感词类型', trigger: "blur" }],
-                fileName:[{ required: true, message: '请上传文件', trigger: "blur" }]
+                word: [{ required: true, message:'Please enterSensitive Word', trigger: "blur" }],
+                sensitiveType:[{ required: true, message: 'Please输selectSensitive WordType', trigger: "blur" }],
+                fileName:[{ required: true, message: 'PleaseUploadFile', trigger: "blur" }]
             }
         }
     },
@@ -211,7 +211,7 @@ export default {
             const data = {fileList:[this.resList[index]['name']],isExpired:true}
             delfile(data).then(res =>{
                 if(res.code === 0){
-                this.$message.success('删除成功')
+                this.$message.success('DeleteSuccess')
                 }
             })
             this.fileList = this.fileList.filter((files) => files.name !== item.name);
@@ -239,7 +239,7 @@ export default {
                 if(valid){
                    uploadSensitiveWord(this.ruleForm).then(res =>{
                     if(res.code == 0){
-                        this.$message.success('操作成功')
+                        this.$message.success('OperationSuccess')
                         this.$emit('reload')
                         this.dialogVisible = false;
                     }

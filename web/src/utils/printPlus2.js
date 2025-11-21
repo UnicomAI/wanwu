@@ -1,13 +1,13 @@
-/*根据finish为1或2时，判断是否打印结束*/
+/*根据finishis1OR2 when ，CheckYesNoprintend*/
 import workerTimer from './worker'
 import {parseSub, isSub} from "@/utils/util.js"
 
 const Print = function (opt) {
-    this.sentenceArr = []//存储待打印的句子的数组
+    this.sentenceArr = []//存储待print of 句子 of Array
     this.sIndexMap={} 
-    this.timer = opt.timer || 10; //打印速度
+    this.timer = opt.timer || 10; //print速度
     this.t = null;
-    this.sIndex = 0 //记录已打印句子的索引（避免重复打印）
+    this.sIndex = 0 //Recordalreadyprint句子 of Index（avoidduplicateprint）
     this.printStatus = 0
     this.fullWord = ''
     this.searchList = []
@@ -31,7 +31,7 @@ Print.prototype = {
     },
     loop(printingCB, endCB) {
 
-        //如果正在打印或者打印结束
+        //Ifin progressprintOR者printend
         if (this.printStatus === 1 || this.sIndex >= this.sentenceArr.length) {
             return;
         }
@@ -68,38 +68,38 @@ Print.prototype = {
 const Looper = function (sIndex, sentence, timer, printCB, endCB,sIndexMap) {
     this.sIndex = sIndex
     this.sIndexMap=sIndexMap
-    this.sentence = sentence ? sentence.response : "" //当前要打印的句子
+    this.sentence = sentence ? sentence.response : "" //currenttoprint of 句子
     this.timer = timer
     this.t = null
-    this.index = 0 //当前打印到的字符位置
-    this.printCB = printCB //每打印一个字符的回调
-    this.endCB = endCB //句子打印结束的回调
-    this.isCodeBlock = false // 新增：标记是否为代码块
-    this.codeBlockContent = '' // 新增：存储代码块内容
+    this.index = 0 //currentprintto of 字符位置
+    this.printCB = printCB //eachprint一字符 of Callback
+    this.endCB = endCB //句子printend of Callback
+    this.isCodeBlock = false // Add：markYesNois代码块
+    this.codeBlockContent = '' // Add：存储代码块Content
     this.animationFrame = null
-    this.lastTimestamp = performance.now(); // 新增：每次Looper初始化时重置
-    // 在初始化时检测是否为代码块
+    this.lastTimestamp = performance.now(); // Add：each次LooperInit when Reset
+    // 在Init when 检测YesNois代码块
     this.detectCodeBlock()
     this.start()
 }
 
 Looper.prototype = {
     detectCodeBlock() {
-        // 检查是否包含 MCP 工具名，如果是则不按代码块处理
-        const mcpToolPattern = /<tool>mcp-工具名：/;
+        // CheckYesNoContains MCP ToolName，IfYesThen不按代码块Process
+        const mcpToolPattern = /<tool>mcp-tool name：/;
         if (mcpToolPattern.test(this.sentence)) {
             this.isCodeBlock = false;
             return;
         }
         
-        // 更宽松的代码块匹配正则
+        // 更宽松 of 代码块Match正Then
         const codeBlockRegex = /\n\n```(?:\w+)?[\s\S]*?```\n\n/s;
         const match = this.sentence.match(codeBlockRegex);
         if (match) {
             this.isCodeBlock = true;
-            this.codeBlockContent = match[0]; // 整个代码块内容
-            this.sentence = match[0]; // 代码块内部内容（去掉```）
-            this.index = this.sentence.length; // 新增：代码块直接打印完毕
+            this.codeBlockContent = match[0]; // 整代码块Content
+            this.sentence = match[0]; // 代码块内部Content（去掉```）
+            this.index = this.sentence.length; // Add：代码块Directlyprint完毕
         }
     },
     start() {
@@ -110,7 +110,7 @@ Looper.prototype = {
             return
         }
 
-        this.lastTimestamp = performance.now(); // 新增：每次start都重置
+        this.lastTimestamp = performance.now(); // Add：each次start都Reset
 
         if (this.isCodeBlock) {
             this.printCB(this.sentence);
@@ -118,7 +118,7 @@ Looper.prototype = {
             return;
         }
 
-        // 处理索引引文标签
+        // ProcessIndex引文Tag
         if(isSub(this.sentence)){
             this.printCB(parseSub(this.sentence))
             this.stop()
@@ -129,8 +129,8 @@ Looper.prototype = {
         // this.printFn();
 
         
-        // const batchSize = 10; // 推荐每次输出30个字符
-        // const interval = 15; // 减少输出间隔时间
+        // const batchSize = 10; // 推荐each次Output30字符
+        // const interval = 15; // 减少Output间隔 when 间
         // this.index = 0;
         // this.t = workerTimer.setInterval(() => {
         //     if (this.index === this.sentence.length) {
@@ -142,7 +142,7 @@ Looper.prototype = {
         //     this.printCB(chunk);
         //     this.index = endIdx;
         // }, interval,this)
-        // 普通文本使用优化后的逐字打印
+        // 普通TextUse优化after of 逐字print
         this.printNormalText();
     },
     printNormalText(){
@@ -152,7 +152,7 @@ Looper.prototype = {
 
         this.index = 0;
         const baseSpeed = 40; // 基础速度
-        const maxSpeed = 120; // 最大速度
+        const maxSpeed = 120; // Max速度
 
         const printNextChunk = (timestamp) => {
             if (this.index >= this.sentence.length) {
@@ -160,23 +160,23 @@ Looper.prototype = {
                 return;
             }
 
-            // 动态计算应打印的字符数
+            // 动态计算应print of 字符数
             const elapsed = timestamp - this.lastTimestamp;
             const progress = this.index / this.sentence.length;
             const currentSpeed = baseSpeed + (maxSpeed - baseSpeed) * Math.min(progress / 0.3, 1);
             const targetChars = Math.ceil(elapsed * currentSpeed / 1000);
 
-            // 计算本次要打印的字符
+            // 计算本次toprint of 字符
             const endIdx = Math.min(this.index + targetChars, this.sentence.length);
             const currentChunk = this.sentence.slice(this.index, endIdx);
             
             this.index = endIdx;
 
-            // 传递当前这次要打印的文本片段
+            // 传递current这次toprint of TextSegment
             this.printCB(currentChunk);
             this.lastTimestamp = timestamp;
 
-            // 继续下一帧或结束
+            // Continue下一帧ORend
             if (this.index < this.sentence.length) {
                 this.animationFrame = requestAnimationFrame(printNextChunk);
             } else {

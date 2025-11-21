@@ -18,7 +18,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 app.config['JSON_AS_ASCII'] = False
 app.config['JSONIFY_MIMETYPE'] ='application/json;charset=utf-8'
 
-@app.route('/list_file_names', methods=['POST']) #列出kb
+@app.route('/list_file_names', methods=['POST']) #List kb
 def list_file_names():
     data={
         "code": "0",
@@ -30,7 +30,7 @@ def list_file_names():
     response = make_response(json.dumps(data, ensure_ascii=False))
     return response
 
-@app.route('/list_kb_names', methods=['POST']) #列出kb
+@app.route('/list_kb_names', methods=['POST']) #List kb
 def list_kb_names():
     data={
         "code": "0",
@@ -42,7 +42,7 @@ def list_kb_names():
     response = make_response(json.dumps(data, ensure_ascii=False))
     return response
 
-@app.route('/init_kb', methods=['POST']) #初始化
+@app.route('/init_kb', methods=['POST']) #initialization
 def init_kb():
     data={
         "code": "0",
@@ -51,7 +51,7 @@ def init_kb():
     response = make_response(json.dumps(data, ensure_ascii=False))
     return response
 
-@app.route('/del_kb', methods=['POST']) #初始化
+@app.route('/del_kb', methods=['POST']) #initialization
 def del_kb():
     data={
         "code": "0",
@@ -60,7 +60,7 @@ def del_kb():
     response = make_response(json.dumps(data, ensure_ascii=False))
     return response
 
-@app.route('/del_files', methods=['POST']) #初始化
+@app.route('/del_files', methods=['POST']) #initialization
 def del_files():
     data=  {
         "code": "1",
@@ -73,14 +73,14 @@ def del_files():
     response = make_response(json.dumps(data, ensure_ascii=False))
     return response
 
-@app.route('/search', methods=['POST']) #初始化
+@app.route('/search', methods=['POST']) #initialization
 def search():
     with open('examples/milvus_search_result.json', 'r') as f:
         res_data = json.loads(f.read())
     response = make_response(json.dumps(res_data, ensure_ascii=False))
     return response
 
-@app.route('/add', methods=['POST']) #初始化
+@app.route('/add', methods=['POST']) #initialization
 def add():
     init_info = json.loads(request.get_data())
     print(init_info)
@@ -92,7 +92,7 @@ def add():
     return response
 
 
-@app.route('/callback', methods=['POST']) #初始化
+@app.route('/callback', methods=['POST']) #initialization
 def mycallback():
     init_info = json.loads(request.get_data())
     print(init_info)

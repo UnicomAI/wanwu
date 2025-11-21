@@ -227,7 +227,7 @@ export default {
     },
     handleClick(item, index) {
       if(this.permissionType === 0) return;
-      // 点击卡片事件，可根据需求添加功能
+      // clickCardEvent，可根据需RequestAdd功能
       this.$refs.createReport.showDialog(this.obj.knowledgeId, 'edit', item)
     },
     handleCurrentChange(val) {

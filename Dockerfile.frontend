@@ -1,6 +1,6 @@
 ARG WANWU_ARCH
 
-# --- 第一阶段：构建阶段 ---
+# --- Phase 1: Build stage ---
 FROM --platform=linux/$WANWU_ARCH node:14 AS builder
 ARG WANWU_ARCH
 WORKDIR /app
@@ -12,7 +12,7 @@ ENV npm_config_unsafe_perm=true
 RUN set -euo && npm install
 RUN set -euo && npm run build
 
-# --- 第二阶段：运行阶段 ---
+# --- Phase 2: Runtime stage ---
 FROM --platform=linux/$WANWU_ARCH nginx:1.27
 ARG WANWU_ARCH
 
