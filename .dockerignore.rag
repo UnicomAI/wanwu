@@ -1,0 +1,97 @@
+# Minimal dockerignore for rag build
+# Frontend
+web/
+
+# Backend
+cmd/
+internal/
+pkg/
+proto/
+api/
+vendor/
+go.mod
+go.sum
+Makefile*
+
+# Python environments
+.venv/
+venv/
+__pycache__/
+
+# Runtime data and logs
+project/
+
+# Agent (not needed for rag)
+agent/
+
+# Development and IDE files
+.git/
+.vscode/
+.idea/
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# All log files
+*.log
+
+# Python files
+*.pyc
+*.pyo
+*.pyd
+
+# Test files
+*_test.go
+*_test.py
+test/
+tests/
+
+# Build artifacts
+bin/
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Temporary files
+tmp/
+temp/
+.DS_Store
+Thumbs.db
+
+# Docker files
+docker-compose*.yaml
+Dockerfile*
+.dockerignore*
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Environment files with secrets
+.env
+.env.*
+!.env.example
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Coverage and profiling
+coverage/
+*.cover
+*.prof
+
+# Translation artifacts
+translation_*.log
+translation_*.txt
+unique_comments.txt
+untranslated_*.txt
+
+# Keep rag/ for rag build
+# rag/

@@ -759,7 +759,7 @@ services:
 
 networks:
   wanwu-net:
-    external: true
+    
 
 volumes:
   wanwu_mysql_data:

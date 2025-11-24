@@ -6,6 +6,7 @@ ARG WANWU_ARCH
 WORKDIR /app
 COPY . .
 
+RUN go mod tidy && go mod vendor
 RUN make build-bff-$WANWU_ARCH
 RUN make build-iam-$WANWU_ARCH
 RUN make build-model-$WANWU_ARCH

@@ -10,6 +10,7 @@ ENV npm_config_registry=https://registry.npmmirror.com
 ENV npm_config_unsafe_perm=true
 
 RUN set -euo && npm install
+RUN set -euo && npm rebuild node-sass
 RUN set -euo && npm run build
 
 # --- Phase 2: Runtime stage ---

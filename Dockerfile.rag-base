@@ -1,0 +1,51 @@
+# 使用 Ubuntu 22.04 AMD64 镜像 [EN] Use Ubuntu 22.04 AMD64 image
+FROM --platform=linux/amd64 ubuntu:22.04
+
+# 设置工作目录 [EN] Set working directory
+WORKDIR /model_extend
+
+# 安装系统依赖 [EN] Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    python3.10 \
+    python3.10-dev \
+    python3-pip \
+    libpython3.10 \
+    libreoffice-core \
+    libreoffice-common \
+    libreoffice-writer \
+    libreoffice-calc \
+    libreoffice-impress \
+    build-essential \
+    wget \
+    curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# 设置 Python 3.10 为默认 python3
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1 && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
+
+# 升级 pip
+RUN python3 -m pip install --upgrade pip
+
+# 复制并安装 Python 依赖
+COPY ./rag/rag_open_source/rag_core/requirements.txt /tmp/rag_core_requirements.txt
+COPY ./rag/rag_open_source/rag_es_server_unify/requirements.txt /tmp/rag_es_requirements.txt
+
+RUN pip install --no-cache-dir -r /tmp/rag_core_requirements.txt && \
+    pip install --no-cache-dir -r /tmp/rag_es_requirements.txt && \
+    rm /tmp/rag_core_requirements.txt /tmp/rag_es_requirements.txt
+
+# 创建必要的目录结构
+RUN mkdir -p /model_extend /opt /usr/share/fonts/Fonts
+
+# 设置环境变量
+ENV PYTHONUNBUFFERED=1
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+# 暴露端口
+EXPOSE 8000
+
+CMD ["/bin/bash"]

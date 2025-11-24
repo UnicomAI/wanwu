@@ -1,0 +1,81 @@
+# Minimal dockerignore for backend build
+# Frontend (not needed for backend build)
+web/
+
+# Python environments
+.venv/
+venv/
+__pycache__/
+
+# Runtime data and logs (not needed for build)
+project/
+agent/
+rag/
+
+# Development and IDE files
+.git/
+.vscode/
+.idea/
+
+# Documentation (not needed in build)
+*.md
+!README.md
+docs/
+
+# All log files
+*.log
+
+# Python files
+*.pyc
+*.pyo
+*.pyd
+
+# Test files
+*_test.go
+*_test.py
+test/
+tests/
+
+# Build artifacts (will be created during build)
+bin/
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Temporary files
+tmp/
+temp/
+.DS_Store
+Thumbs.db
+
+# Docker files (don't copy into build context)
+docker-compose*.yaml
+Dockerfile*
+.dockerignore*
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Coverage and profiling
+coverage/
+*.cover
+*.prof
+
+# Translation and documentation artifacts
+translation_*.log
+translation_*.txt
+unique_comments.txt
+untranslated_*.txt
+
+# Keep .env files for Makefile
+# .env
+# .env.*

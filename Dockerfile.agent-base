@@ -5,7 +5,7 @@ FROM python:3.12-slim AS builder
 WORKDIR /agent/agent_open_source
 
 # 复制 requirements.txt 文件 [EN] Copy the requirements.txt file
-COPY /agent/agent_open_source/requirements.txt .
+COPY ./agent/agent_open_source/requirements.txt .
 
 # 安装系统依赖和Python依赖 [EN] Install system dependencies and Python dependencies
 RUN apt-get update && \

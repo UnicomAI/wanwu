@@ -1,5 +1,5 @@
 # 基于已构建的基础镜像 [EN] Based on the built base image
-FROM crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/agent-base:v0.2.2-0773787a
+FROM docker.io/safvr/agent-base:latest
 
 # 工作目录 [EN] working directory
 WORKDIR /agent/agent_open_source

@@ -1,5 +1,5 @@
 # 使用 rag-base 镜像作为基础镜像 [EN] Use rag-base image as base image
-FROM crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/rag-base:v1.1.1-20251114
+FROM safvr/rag-base:latest
 
 # 设置工作目录 [EN] Set working directory
 WORKDIR /model_extend

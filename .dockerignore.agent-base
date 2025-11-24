@@ -1,0 +1,91 @@
+# Minimal dockerignore for agent-base build
+# Only exclude what's absolutely not needed
+
+# Frontend
+web/
+
+# Python environments
+.venv/
+venv/
+__pycache__/
+
+# Runtime data and logs
+project/
+
+# Development and IDE files
+.git/
+.vscode/
+.idea/
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# All log files
+*.log
+
+# Test files
+*_test.go
+*_test.py
+test/
+tests/
+
+# Build artifacts
+bin/
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Temporary files
+tmp/
+temp/
+.DS_Store
+Thumbs.db
+
+# Docker files
+docker-compose*.yaml
+Dockerfile*
+.dockerignore*
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Environment files with secrets
+.env
+.env.*
+!.env.example
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Coverage and profiling
+coverage/
+*.cover
+*.prof
+
+# Translation artifacts
+translation_*.log
+translation_*.txt
+unique_comments.txt
+untranslated_*.txt
+
+# Go specific (not needed for Python agent-base)
+go.mod
+go.sum
+vendor/
+cmd/
+internal/
+pkg/
+proto/
+api/
+Makefile*
+
+# RAG (not needed for agent-base)
+rag/
