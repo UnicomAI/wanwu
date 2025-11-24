@@ -61,6 +61,7 @@ import { checkPerm, PERMS } from "@/router/permission"
 export default {
   components: {User, Role, Org, InfoSetting, Statistics, Oauth},
   data() {
+    console.log('this.$store.state.user', this.$store.state.user)
     return {
       radio: '',
       tabActive: 0,
