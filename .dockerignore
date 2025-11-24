@@ -1,13 +1,21 @@
-# === ENTIRE DIRECTORIES TO EXCLUDE ===
-# Frontend (not needed for backend build)
-web/
+# Minimal dockerignore for frontend build
+# Backend (not needed for frontend build)
+cmd/
+internal/
+pkg/
+proto/
+api/
+vendor/
+go.mod
+go.sum
+Makefile*
 
 # Python environments
 .venv/
 venv/
 __pycache__/
 
-# Runtime data and logs (not needed for build)
+# Runtime data and logs
 project/
 agent/
 rag/
@@ -17,19 +25,7 @@ rag/
 .vscode/
 .idea/
 
-# === KEEP ONLY WHAT'S NEEDED FOR GO BUILD ===
-# Required:
-# - cmd/
-# - internal/
-# - pkg/
-# - proto/
-# - api/
-# - vendor/
-# - go.mod, go.sum
-# - Makefile
-# - configs/microservice/ (copied separately in Dockerfile)
-
-# Documentation (not needed in build)
+# Documentation
 *.md
 !README.md
 docs/
@@ -63,10 +59,10 @@ temp/
 .DS_Store
 Thumbs.db
 
-# Docker files (don't copy into build context)
+# Docker files
 docker-compose*.yaml
 Dockerfile*
-.dockerignore
+.dockerignore*
 
 # CI/CD
 .github/
@@ -87,12 +83,11 @@ coverage/
 *.cover
 *.prof
 
-# Agent and RAG specific (if not needed for backend build)
-agent/agent_open_source/minio/
-rag/rag_open_source/minio_project/
-
-# Translation and documentation artifacts
+# Translation artifacts
 translation_*.log
 translation_*.txt
 unique_comments.txt
 untranslated_*.txt
+
+# Keep web/ for frontend build
+# web/

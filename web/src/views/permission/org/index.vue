@@ -76,7 +76,10 @@ import { fetchOrgList, createOrg, editOrg, changeOrgStatus, deleteOrg } from "@/
 import { mapActions } from "vuex"
 export default {
   components: { Pagination, SearchInput },
-  data(){
+  data()
+  
+  {
+    console.log('this.$store.state.user', this.$store.state.user)
     return {
       isAdmin: this.$store.state.user.permission.isAdmin || false,
       listApi: fetchOrgList,

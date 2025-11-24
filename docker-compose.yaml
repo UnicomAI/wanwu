@@ -740,7 +740,10 @@ services:
   
   nginx:
     restart: always
-    image: ${WANWU_FRONTEND_IMAGE}
+    build: 
+      context: .
+      dockerfile: Dockerfile.frontend
+    # image: ${WANWU_FRONTEND_IMAGE}
     container_name: ${WANWU_NGINX_HOST}
     networks:
       - ${WANWU_DOCKER_NETWORK}
