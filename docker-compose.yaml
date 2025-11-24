@@ -759,7 +759,7 @@ services:
 
 networks:
   wanwu-net:
-    
+    driver: bridge
 
 volumes:
   wanwu_mysql_data:
