@@ -743,6 +743,8 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        - WANWU_ARCH=${WANWU_ARCH}
     # image: ${WANWU_FRONTEND_IMAGE}
     container_name: ${WANWU_NGINX_HOST}
     networks:
