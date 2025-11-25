@@ -21,6 +21,8 @@ env:
   WANWU_ARCH: amd64
   WANWU_VERSION: v0.2.7
 
+runs-on: self-hosted  
+
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
