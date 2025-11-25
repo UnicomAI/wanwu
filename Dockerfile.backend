@@ -3,8 +3,19 @@ ARG WANWU_ARCH
 # --- 第一阶段：构建阶段 --- [EN] ---Phase 1: Construction phase ---
 FROM --platform=linux/$WANWU_ARCH golang:1.24.6-bookworm AS builder
 ARG WANWU_ARCH
+ARG WANWU_VERSION=v0.2.7
 WORKDIR /app
 COPY . .
+
+# Create default .env files if they don't exist (for CI/CD builds)
+RUN if [ ! -f .env ]; then \
+    echo "WANWU_VERSION=${WANWU_VERSION}" > .env && \
+    echo "WANWU_ARCH=${WANWU_ARCH}" >> .env; \
+    fi
+
+RUN if [ ! -f .env.image.${WANWU_ARCH} ]; then \
+    touch .env.image.${WANWU_ARCH}; \
+    fi
 
 RUN go mod tidy && go mod vendor
 RUN make build-bff-$WANWU_ARCH

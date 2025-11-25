@@ -19,6 +19,7 @@ on:
 env:
   DOCKER_USERNAME: safvr
   WANWU_ARCH: amd64
+  WANWU_VERSION: v0.2.7
 
 jobs:
   detect-changes:
@@ -89,6 +90,7 @@ jobs:
             ${{ env.DOCKER_USERNAME }}/wanwu-backend:${{ github.sha }}
           build-args: |
             WANWU_ARCH=${{ env.WANWU_ARCH }}
+            WANWU_VERSION=${{ env.WANWU_VERSION }}
           cache-from: type=registry,ref=${{ env.DOCKER_USERNAME }}/wanwu-backend:buildcache
           cache-to: type=registry,ref=${{ env.DOCKER_USERNAME }}/wanwu-backend:buildcache,mode=max
 
