@@ -754,6 +754,8 @@ services:
       - 8081:8081
     volumes:
       - ${WANWU_PROJECT_DIR}/nginx/log:/var/log/nginx
+      # Mount nginx config to use the updated proxy configuration
+      - ./configs/middleware/nginx/conf.d/aibase.conf:/etc/nginx/conf.d/aibase.conf:ro
       # Mount translated workflow JavaScript file to replace Chinese text with English
       - ./project/nginx/workflow-static-overrides/js/index~0.1aa44a47.js:/usr/share/nginx/html/workflow/static/js/index~0.1aa44a47.js:ro
     healthcheck:

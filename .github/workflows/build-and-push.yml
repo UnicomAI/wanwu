@@ -51,6 +51,7 @@ jobs:
             frontend:
               - 'web/**'
               - 'Dockerfile.frontend'
+              - 'configs/middleware/nginx/conf.d/**'
             rag:
               - 'rag/**'
               - 'Dockerfile.rag'
