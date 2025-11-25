@@ -138,7 +138,7 @@ func createOrgTx(tx *gorm.DB, org *model.Org) *errs.Status {
 			}
 			return toErrStatus("iam_org_create", err.Error())
 		}
-		roleName = "组织管理员"
+		roleName = "Organization Administrator"
 	} else {
 		// Create the only top-level organization in the system. At this time, no organization can exist in the system.
 		if err := tx.First(&model.Org{}).Error; err != gorm.ErrRecordNotFound {
@@ -151,7 +151,7 @@ func createOrgTx(tx *gorm.DB, org *model.Org) *errs.Status {
 		if org.CreatorID != 0 {
 			return toErrStatus("iam_org_create", "create top org but creator not empty")
 		}
-		roleName = "超级管理员"
+		roleName = "Super Administrator"
 	}
 	// create org
 	if err := tx.Create(org).Error; err != nil {

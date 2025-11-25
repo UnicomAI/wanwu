@@ -1,21 +1,13 @@
-# Minimal dockerignore for frontend build
-# Backend (not needed for frontend build)
-cmd/
-internal/
-pkg/
-proto/
-api/
-vendor/
-go.mod
-go.sum
-Makefile*
+# Minimal dockerignore for backend build
+# Frontend (not needed for backend build)
+web/
 
 # Python environments
 .venv/
 venv/
 __pycache__/
 
-# Runtime data and logs
+# Runtime data and logs (not needed for build)
 project/
 agent/
 rag/
@@ -25,7 +17,7 @@ rag/
 .vscode/
 .idea/
 
-# Documentation
+# Documentation (not needed in build)
 *.md
 !README.md
 docs/
@@ -44,7 +36,7 @@ docs/
 test/
 tests/
 
-# Build artifacts
+# Build artifacts (will be created during build)
 bin/
 dist/
 build/
@@ -59,7 +51,7 @@ temp/
 .DS_Store
 Thumbs.db
 
-# Docker files
+# Docker files (don't copy into build context)
 docker-compose*.yaml
 Dockerfile*
 .dockerignore*
@@ -67,11 +59,6 @@ Dockerfile*
 # CI/CD
 .github/
 .gitlab-ci.yml
-
-# Environment files with secrets
-.env
-.env.*
-!.env.example
 
 # Database files
 *.db
@@ -83,11 +70,12 @@ coverage/
 *.cover
 *.prof
 
-# Translation artifacts
+# Translation and documentation artifacts
 translation_*.log
 translation_*.txt
 unique_comments.txt
 untranslated_*.txt
 
-# Keep web/ for frontend build
-# web/
+# Keep .env files for Makefile
+# .env
+# .env.*

@@ -294,14 +294,15 @@ jobs:
             echo "  - safvr/agent:latest"
           fi
 
-      - name: Trigger Dokploy Deployment
+      - name: Trigger Dokploy Compose Deployment
         run: |
-          echo "🚀 Triggering Dokploy deployment..."
+          echo "🚀 Triggering Dokploy compose deployment..."
           
-          # Trigger Dokploy webhook
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
-            -H "Content-Type: application/json")
+            "${{ secrets.DOKPLOY_URL }}" \
+            -H "Authorization: Bearer ${{ secrets.DOKPLOY_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"composeId": "${{ secrets.DOKPLOY_COMPOSE_ID }}"}')
           
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
           BODY=$(echo "$RESPONSE" | sed '$d')
@@ -312,6 +313,7 @@ jobs:
           if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
             echo "✅ Dokploy deployment triggered successfully!"
           else
-            echo "⚠️ Dokploy webhook returned status $HTTP_CODE"
-            echo "Deployment may need to be triggered manually"
+            echo "⚠️ Dokploy API returned status $HTTP_CODE"
+            echo "Response body: $BODY"
+            exit 1
           fi

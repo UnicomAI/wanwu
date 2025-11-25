@@ -26,9 +26,11 @@ Local Changes → Git Push → GitHub Actions → Docker Hub → Dokploy → Pro
 | Secret Name | Value |
 |-------------|-------|
 | `DOCKER_PASSWORD` | Your Docker Hub password or access token |
-| `DOKPLOY_WEBHOOK_URL` | `http://34.238.142.181:3000/api/deploy/compose/jtNpnkZEn-HXrGuR2PKEE` |
+| `DOKPLOY_URL` | `http://34.238.142.181:3000` |
+| `DOKPLOY_TOKEN` | Your Dokploy API token |
+| `DOKPLOY_COMPOSE_ID` | Your compose project ID (e.g., `jtNpnkZEn-HXrGuR2PKEE`) |
 
-**Note**: The Dokploy webhook URL triggers a redeploy after images are pushed.
+**Note**: After images are pushed, the workflow calls `POST /api/compose.deploy` to trigger Dokploy redeployment.
 
 ### 2. Configure Dokploy for Auto-Deploy
 

@@ -10,13 +10,13 @@ func Init() {
 	mid.InitWrapper(Record)
 
 	// --- openapi ---
-	mid.NewSub("openapi", "对外提供原子能力", route.PermNone, false, false)
+	mid.NewSub("openapi", "Open API", route.PermNone, false, false)
 
 	// --- callback ---
-	mid.NewSub("callback", "系统内部调用", route.PermNone, false, false)
+	mid.NewSub("callback", "Internal Callback", route.PermNone, false, false)
 
 	// --- openurl ---
-	mid.NewSub("openurl", "智能体Url", route.PermNone, false, false)
+	mid.NewSub("openurl", "Agent URL", route.PermNone, false, false)
 
 	// --- guest ---
 	mid.NewSub("guest", "", route.PermNone, false, false)
@@ -25,50 +25,50 @@ func Init() {
 	mid.NewSub("common", "", route.PermNeedEnable, false, false, JWTUser, CheckUserEnable)
 
 	// --- model ---
-	mid.NewSub("model", "模型管理", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("model", "Model Management", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// --- knowledge ---
-	mid.NewSub("knowledge", "知识库", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("knowledge", "Knowledge Base", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// --- mcp ---
-	mid.NewSub("mcp", "MCP广场", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("mcp", "MCP Platform", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// --- tool ---
-	mid.NewSub("tool", "资源库", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("tool", "Resource Library", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// --- safety ---
-	mid.NewSub("safety", "安全护栏", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("safety", "Safety Guardrails", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// --- rag ---
-	mid.NewSub("rag", "文本问答", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("rag", "Text Q&A", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// --- workflow ---
-	mid.NewSub("workflow", "工作流", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("workflow", "Workflow", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// --- agent ---
-	mid.NewSub("agent", "智能体", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("agent", "Agent", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// --- exploration ---
-	mid.NewSub("exploration", "应用广场", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("exploration", "Application Plaza", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// --- permission ---
-	mid.NewSub("permission", "组织管理", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("permission", "Organization Management", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// permission.user
-	mid.Sub("permission").NewSub("user", "用户", route.PermNeedCheck, true, true)
+	mid.Sub("permission").NewSub("user", "User", route.PermNeedCheck, true, true)
 
 	// permission.org
-	mid.Sub("permission").NewSub("org", "组织", route.PermNeedCheck, true, true)
+	mid.Sub("permission").NewSub("org", "Organization", route.PermNeedCheck, true, true)
 
 	// permission.role
-	mid.Sub("permission").NewSub("role", "角色", route.PermNeedCheck, true, true)
+	mid.Sub("permission").NewSub("role", "Role", route.PermNeedCheck, true, true)
 
 	// --- setting ---
-	mid.NewSub("setting", "平台配置", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("setting", "Platform Configuration", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// --- statistic_client ---
-	mid.NewSub("statistic_client", "统计分析", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("statistic_client", "Statistics", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// --- oauth ---
-	mid.NewSub("oauth", "OAuth密钥管理", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	mid.NewSub("oauth", "OAuth Key Management", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 }

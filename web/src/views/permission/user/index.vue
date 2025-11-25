@@ -162,6 +162,7 @@
   export default {
     components: { Pagination, resetPwd, SearchInput },
     data() {
+      console.log('this.$store.state.user', this.$store.state.user)
       const checkPassword = (rule, value, callback) => {
         let reg = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";'<>?,./]).{8,20}$/
         if (!reg.test(value)) {
@@ -178,9 +179,12 @@
           return callback()
         }
       }
+      const isSystem = this.$store.state.user.permission.isSystem || false
+      const isAdmin = this.$store.state.user.permission.isAdmin || false
+      console.log('isSystem:', isSystem, 'isAdmin:', isAdmin, 'Button should show:', !isSystem && isAdmin)
       return {
-        isSystem: this.$store.state.user.permission.isSystem || false,
-        isAdmin: this.$store.state.user.permission.isAdmin || false,
+        isSystem,
+        isAdmin,
         listApi: fetchUserList,
         loading: false,
         isEdit: false,
