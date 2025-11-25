@@ -54,13 +54,14 @@ else
     git add .
     
     # Commit
-    git commit -m "Fix nginx 403 error: proxy /workflow/ to workflow service
+    git commit -m "Fix nginx 403 and 404 errors for workflow access
 
 - Updated docker-compose.yaml to mount nginx config as volume
 - Updated GitHub Actions to rebuild frontend when nginx config changes
-- nginx now proxies /workflow/ to workflow-wanwu:8999 instead of serving static files
+- Fixed nginx proxy_pass: removed trailing slash to preserve full path
+- nginx now proxies /workflow/ to workflow-wanwu:8999 (without trailing slash)
 
-This fixes the 403 Forbidden error when accessing workflows."
+This fixes both the 403 Forbidden and 404 Not Found errors when accessing workflows."
     
     echo ""
     echo "✓ Changes committed"
