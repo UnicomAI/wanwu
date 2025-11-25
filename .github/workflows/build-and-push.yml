@@ -21,11 +21,11 @@ env:
   WANWU_ARCH: amd64
   WANWU_VERSION: v0.2.7
 
-runs-on: self-hosted  
+
 
 jobs:
   detect-changes:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
@@ -62,7 +62,7 @@ jobs:
   build-backend:
     needs: detect-changes
     if: needs.detect-changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -99,7 +99,7 @@ jobs:
   build-frontend:
     needs: detect-changes
     if: needs.detect-changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -135,7 +135,7 @@ jobs:
   build-rag-base:
     needs: detect-changes
     if: needs.detect-changes.outputs.rag == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -172,7 +172,7 @@ jobs:
       always() &&
       (needs.detect-changes.outputs.rag == 'true' || github.event_name == 'workflow_dispatch') &&
       (needs.build-rag-base.result == 'success' || needs.build-rag-base.result == 'skipped')
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -206,7 +206,7 @@ jobs:
   build-agent-base:
     needs: detect-changes
     if: needs.detect-changes.outputs.agent == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -243,7 +243,7 @@ jobs:
       always() &&
       (needs.detect-changes.outputs.agent == 'true' || github.event_name == 'workflow_dispatch') &&
       (needs.build-agent-base.result == 'success' || needs.build-agent-base.result == 'skipped')
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -277,7 +277,7 @@ jobs:
   trigger-dokploy:
     needs: [build-backend, build-frontend, build-rag, build-agent]
     if: always() && (needs.build-backend.result == 'success' || needs.build-frontend.result == 'success' || needs.build-rag.result == 'success' || needs.build-agent.result == 'success')
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Summary of built images
         run: |
