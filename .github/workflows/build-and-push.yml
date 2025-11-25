@@ -303,7 +303,7 @@ jobs:
           
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             "${{ secrets.DOKPLOY_URL }}" \
-            -H "Authorization: Bearer ${{ secrets.DOKPLOY_TOKEN }}" \
+            -H "x-api-key: ${{ secrets.DOKPLOY_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{"composeId": "${{ secrets.DOKPLOY_COMPOSE_ID }}"}')
           
