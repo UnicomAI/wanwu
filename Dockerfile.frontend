@@ -21,4 +21,7 @@ COPY ./configs/middleware/nginx/conf.d /etc/nginx/conf.d
 
 COPY --from=builder /app/dist /usr/share/nginx/html/aibase
 
+# Copy workflow frontend (Coze Studio)
+COPY ./workflow-frontend /usr/share/nginx/html/workflow
+
 CMD ["nginx", "-g", "daemon off;"]
