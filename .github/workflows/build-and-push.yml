@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - docs/translation-plan
+      - docs/translation-plan 
     paths:
       - 'internal/**'
       - 'cmd/**'
@@ -282,9 +282,6 @@ jobs:
     if: always() && (needs.build-backend.result == 'success' || needs.build-frontend.result == 'success' || needs.build-rag.result == 'success' || needs.build-agent.result == 'success')
     runs-on: self-hosted
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Summary of built images
         run: |
           echo "✅ Images built and pushed successfully!"
@@ -302,39 +299,6 @@ jobs:
           if [ "${{ needs.build-agent.result }}" == "success" ]; then
             echo "  - safvr/agent:latest"
           fi
-
-      - name: Sync configs to deployment server
-        if: ${{ secrets.DEPLOY_SSH_KEY != '' }}
-        env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-        run: |
-          echo "📦 Syncing configs to deployment server..."
-          
-          # Setup SSH
-          mkdir -p ~/.ssh
-          echo "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
-          
-          # Sync configs directory (including static files for logos/icons)
-          rsync -avz --delete \
-            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
-            ./configs/ \
-            "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/configs/"
-          
-          # Sync docker-compose.yaml
-          rsync -avz \
-            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
-            ./docker-compose.yaml \
-            "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
-          
-          # Cleanup
-          rm -f ~/.ssh/deploy_key
-          
-          echo "✅ Configs synced successfully!"
 
       - name: Trigger Dokploy Compose Deployment
         run: |
