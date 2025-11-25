@@ -327,8 +327,9 @@ func changeOrgStatus(tx *gorm.DB, orgID uint32, status bool) error {
 }
 
 func (c *Client) AddOrgUser(ctx context.Context, orgID, userID, roleID uint32) *errs.Status {
+	var isAdmin bool
 
-	return c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+	if err := c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
 		// check org user
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithOrgID(orgID),
@@ -349,6 +350,7 @@ func (c *Client) AddOrgUser(ctx context.Context, orgID, userID, roleID uint32) *
 				return toErrStatus("iam_org_user_add", util.Int2Str(orgID),
 					util.Int2Str(userID), util.Int2Str(roleID), err.Error())
 			}
+			isAdmin = orgRole.IsAdmin
 		}
 		// create org user
 		if err := tx.Create(&model.OrgUser{
@@ -371,11 +373,27 @@ func (c *Client) AddOrgUser(ctx context.Context, orgID, userID, roleID uint32) *
 			}
 		}
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	// Sync user to workflow space_user table
+	roleType := 3 // Default to member
+	if isAdmin {
+		roleType = 2 // Admin
+	}
+
+	// Sync to workflow database (non-blocking - log errors but don't fail)
+	if err := c.SyncUserToWorkflowSpace(ctx, userID, orgID, roleType); err != nil {
+		// Log but don't fail the org user addition
+		// The error is already logged in SyncUserToWorkflowSpace
+	}
+
+	return nil
 }
 
 func (c *Client) RemoveOrgUser(ctx context.Context, orgID, userID uint32) *errs.Status {
-	return c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+	if err := c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
 		// check org
 		if orgID == config.TopOrgID() {
 			return toErrStatus("iam_org_user_remove_top")
@@ -397,7 +415,17 @@ func (c *Client) RemoveOrgUser(ctx context.Context, orgID, userID uint32) *errs.
 				util.Int2Str(userID), err.Error())
 		}
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	// Remove user from workflow space_user table
+	if err := c.RemoveUserFromWorkflowSpace(ctx, userID, orgID); err != nil {
+		// Log but don't fail the org user removal
+		// The error is already logged in RemoveUserFromWorkflowSpace
+	}
+
+	return nil
 }
 
 // --- internal function ---

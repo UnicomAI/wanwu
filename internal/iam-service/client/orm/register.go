@@ -107,8 +107,12 @@ func (c *Client) RegisterByEmail(ctx context.Context, username, email, code stri
 	if !strings.EqualFold(record.Code, code) {
 		return toErrStatus("iam_register_by_email_invalid_code")
 	}
+
+	var userID uint32
+	var newOrgID uint32
+
 	// register
-	return c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+	if err := c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
 		// create user
 		user := &model.User{
 			Status:       true,
@@ -122,22 +126,40 @@ func (c *Client) RegisterByEmail(ctx context.Context, username, email, code stri
 		if err := createUserTx(tx, user, config.TopOrgID(), nil); err != nil {
 			return err
 		}
+		userID = user.ID
+
 		// create org
 		code := iam_util.RandText(config.Cfg().Register.Email.CodeLength)
-		if err := createOrgTx(tx, &model.Org{
+		newOrg := &model.Org{
 			Status:    true,
 			CreatorID: user.ID,
 			ParentID:  config.TopOrgID(),
 			Name:      fmt.Sprintf("%v-Space-%v", username, code),
-		}); err != nil {
+		}
+		if err := createOrgTx(tx, newOrg); err != nil {
 			return err
 		}
+		newOrgID = newOrg.ID
+
 		// redis del
 		if err := redis.IAM().Del(tx.Statement.Context, getRedisUserRegisterByEmailKey(email)); err != nil {
 			return toErrStatus("iam_register_by_email", err.Error())
 		}
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	// Sync user to workflow space_user table for both TopOrgID and new org
+	// User is owner (role_type=1) of their own space
+	if err := c.SyncUserToWorkflowSpace(ctx, userID, config.TopOrgID(), 3); err != nil {
+		// Log but don't fail registration
+	}
+	if err := c.SyncUserToWorkflowSpace(ctx, userID, newOrgID, 1); err != nil {
+		// Log but don't fail registration
+	}
+
+	return nil
 }
 
 // --- internal ---

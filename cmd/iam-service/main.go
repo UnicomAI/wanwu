@@ -68,6 +68,29 @@ func main() {
 		log.Fatalf("init client err: %v", err)
 	}
 
+	// Initialize workflow database connection for space_user sync
+	// Get MySQL connection details from config
+	var mysqlAddress, mysqlPassword string
+	switch config.Cfg().DB.DBName {
+	case "mysql":
+		mysqlAddress = config.Cfg().DB.MySQL.Address
+		mysqlPassword = config.Cfg().DB.MySQL.Password
+	case "tidb":
+		mysqlAddress = config.Cfg().DB.TiDB.Address
+		mysqlPassword = config.Cfg().DB.TiDB.Password
+	case "oceanbase":
+		mysqlAddress = config.Cfg().DB.OceanBase.Address
+		mysqlPassword = config.Cfg().DB.OceanBase.Password
+	}
+
+	if mysqlAddress != "" && mysqlPassword != "" {
+		if err := orm.InitWorkflowDB(mysqlAddress, mysqlPassword); err != nil {
+			log.Warnf("init workflow db connection err (space_user sync will be disabled): %v", err)
+		}
+	} else {
+		log.Warnf("MySQL connection details not available, workflow space_user sync will be disabled")
+	}
+
 	s, err := grpc.NewServer(config.Cfg(), c)
 	if err != nil {
 		log.Fatalf("init server err: %v", err)

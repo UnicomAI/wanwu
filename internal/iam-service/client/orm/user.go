@@ -125,9 +125,36 @@ func (c *Client) CreateUser(ctx context.Context, user *model.User, orgID uint32,
 	if user.ID != 0 {
 		return 0, toErrStatus("iam_user_create", "create user but id not 0")
 	}
-	return user.ID, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+	if err := c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
 		return createUserTx(tx, user, orgID, roleIDs)
-	})
+	}); err != nil {
+		return 0, err
+	}
+
+	// Sync user to workflow space_user table
+	// Determine role type based on whether user has admin roles
+	roleType := 3 // Default to member
+	if len(roleIDs) > 0 {
+		// Check if any role is admin
+		for _, roleID := range roleIDs {
+			orgRole := &model.OrgRole{}
+			if err := sqlopt.SQLOptions(
+				sqlopt.WithOrgID(orgID),
+				sqlopt.WithRoleID(roleID),
+			).Apply(c.db.WithContext(ctx)).First(orgRole).Error; err == nil && orgRole.IsAdmin {
+				roleType = 2 // Admin
+				break
+			}
+		}
+	}
+
+	// Sync to workflow database (non-blocking - log errors but don't fail)
+	if err := c.SyncUserToWorkflowSpace(ctx, user.ID, orgID, roleType); err != nil {
+		// Log but don't fail the user creation
+		// The error is already logged in SyncUserToWorkflowSpace
+	}
+
+	return user.ID, nil
 }
 
 func createUserTx(tx *gorm.DB, user *model.User, orgID uint32, roleIDs []uint32) *errs.Status {
