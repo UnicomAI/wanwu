@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-      - master
-      - develop
+      - docs/translation-plan 
     paths:
       - 'internal/**'
       - 'cmd/**'
