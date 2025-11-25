@@ -1,0 +1,317 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+    paths:
+      - 'internal/**'
+      - 'cmd/**'
+      - 'pkg/**'
+      - 'web/**'
+      - 'rag/**'
+      - 'agent/**'
+      - 'Dockerfile.*'
+      - '.github/workflows/build-and-push.yml'
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  DOCKER_USERNAME: safvr
+  WANWU_ARCH: amd64
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      rag: ${{ steps.filter.outputs.rag }}
+      agent: ${{ steps.filter.outputs.agent }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'internal/**'
+              - 'cmd/**'
+              - 'pkg/**'
+              - 'proto/**'
+              - 'api/**'
+              - 'Dockerfile.backend'
+              - 'go.mod'
+              - 'go.sum'
+            frontend:
+              - 'web/**'
+              - 'Dockerfile.frontend'
+            rag:
+              - 'rag/**'
+              - 'Dockerfile.rag'
+              - 'Dockerfile.rag-base'
+            agent:
+              - 'agent/**'
+              - 'Dockerfile.agent'
+              - 'Dockerfile.agent-base'
+
+  build-backend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Prepare dockerignore
+        run: |
+          cp .dockerignore.backend .dockerignore
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.backend
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.DOCKER_USERNAME }}/wanwu-backend:latest
+            ${{ env.DOCKER_USERNAME }}/wanwu-backend:${{ github.sha }}
+          build-args: |
+            WANWU_ARCH=${{ env.WANWU_ARCH }}
+          cache-from: type=registry,ref=${{ env.DOCKER_USERNAME }}/wanwu-backend:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_USERNAME }}/wanwu-backend:buildcache,mode=max
+
+  build-frontend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Prepare dockerignore
+        run: |
+          cp .dockerignore.frontend .dockerignore
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.frontend
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.DOCKER_USERNAME }}/wanwu-frontend:latest
+            ${{ env.DOCKER_USERNAME }}/wanwu-frontend:${{ github.sha }}
+          build-args: |
+            WANWU_ARCH=${{ env.WANWU_ARCH }}
+          cache-from: type=registry,ref=${{ env.DOCKER_USERNAME }}/wanwu-frontend:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_USERNAME }}/wanwu-frontend:buildcache,mode=max
+
+  build-rag-base:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.rag == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Prepare dockerignore
+        run: |
+          cp .dockerignore.rag .dockerignore
+
+      - name: Build and push rag-base
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.rag-base
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.DOCKER_USERNAME }}/rag-base:latest
+            ${{ env.DOCKER_USERNAME }}/rag-base:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_USERNAME }}/rag-base:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_USERNAME }}/rag-base:buildcache,mode=max
+
+  build-rag:
+    needs: [detect-changes, build-rag-base]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.rag == 'true' || github.event_name == 'workflow_dispatch') &&
+      (needs.build-rag-base.result == 'success' || needs.build-rag-base.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Prepare dockerignore
+        run: |
+          cp .dockerignore.rag .dockerignore
+
+      - name: Build and push rag
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.rag
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.DOCKER_USERNAME }}/wanwu-rag:latest
+            ${{ env.DOCKER_USERNAME }}/wanwu-rag:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_USERNAME }}/wanwu-rag:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_USERNAME }}/wanwu-rag:buildcache,mode=max
+
+  build-agent-base:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.agent == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Prepare dockerignore
+        run: |
+          cp .dockerignore.agent-base .dockerignore
+
+      - name: Build and push agent-base
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.agent-base
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.DOCKER_USERNAME }}/agent-base:latest
+            ${{ env.DOCKER_USERNAME }}/agent-base:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_USERNAME }}/agent-base:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_USERNAME }}/agent-base:buildcache,mode=max
+
+  build-agent:
+    needs: [detect-changes, build-agent-base]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.agent == 'true' || github.event_name == 'workflow_dispatch') &&
+      (needs.build-agent-base.result == 'success' || needs.build-agent-base.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Prepare dockerignore
+        run: |
+          cp .dockerignore.agent-base .dockerignore
+
+      - name: Build and push agent
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.agent
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.DOCKER_USERNAME }}/agent:latest
+            ${{ env.DOCKER_USERNAME }}/agent:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_USERNAME }}/agent:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_USERNAME }}/agent:buildcache,mode=max
+
+  trigger-dokploy:
+    needs: [build-backend, build-frontend, build-rag, build-agent]
+    if: always() && (needs.build-backend.result == 'success' || needs.build-frontend.result == 'success' || needs.build-rag.result == 'success' || needs.build-agent.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary of built images
+        run: |
+          echo "✅ Images built and pushed successfully!"
+          echo ""
+          echo "Built images:"
+          if [ "${{ needs.build-backend.result }}" == "success" ]; then
+            echo "  - safvr/wanwu-backend:latest"
+          fi
+          if [ "${{ needs.build-frontend.result }}" == "success" ]; then
+            echo "  - safvr/wanwu-frontend:latest"
+          fi
+          if [ "${{ needs.build-rag.result }}" == "success" ]; then
+            echo "  - safvr/wanwu-rag:latest"
+          fi
+          if [ "${{ needs.build-agent.result }}" == "success" ]; then
+            echo "  - safvr/agent:latest"
+          fi
+
+      - name: Trigger Dokploy Deployment
+        run: |
+          echo "🚀 Triggering Dokploy deployment..."
+          
+          # Trigger Dokploy webhook
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          echo "Response: $BODY"
+          echo "HTTP Status: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "✅ Dokploy deployment triggered successfully!"
+          else
+            echo "⚠️ Dokploy webhook returned status $HTTP_CODE"
+            echo "Deployment may need to be triggered manually"
+          fi
