@@ -142,14 +142,7 @@ async def search(request: Request):
         messages.append({"role": "user", "content": prompt})
         llm_data = {
             "model": model_name,
-            # "pad_token_id": 0,
-            # "bos_token_id": 1,
-            # "eos_token_id": 2,
             "temperature": temperature,
-            # "top_k": 5,
-            # "top_p": top_p,
-            "repetition_penalty": repetition_penalty,
-            "do_sample": do_sample,
             "stream": True,
             "messages": messages,
         }
@@ -158,6 +151,7 @@ async def search(request: Request):
         waitting_response = ""
         time_i = 0
         finish = 0
+        jsonarr = None  # Initialize jsonarr to avoid UnboundLocalError
         try:
             id = 0
             for line in response.iter_lines(decode_unicode=True):
@@ -267,12 +261,38 @@ async def search(request: Request):
                             time_i += 1
                     except Exception as e:
                         pass
+            # After streaming loop completes, send final message with finish=1 if not already sent
+            if finish not in [1, 4]:
+                finish = 1
+                history_tmp = history.copy()
+                subjson = {}
+                subjson["query"] = question
+                subjson["response"] = answer
+                subjson["needHistory"] = True
+                history_tmp.append(subjson)
+                response_info = {
+                    'code': int(0),
+                    "message": "success",
+                    "msg_id": msg_id,
+                    "data": {"output": "",
+                             "searchList": search_list,
+                             },
+                    "history": history_tmp,
+                    "finish": finish
+                }
+                if score != -1:
+                    response_info["data"]["score"] = score
+                jsonarr = json.dumps(response_info, ensure_ascii=False)
+                yield jsonarr
+                logger.info(f"Sent final finish=1 message for question: {question}")
         except Exception as e:  # If an exception occurs, an error message is returned
             logger.error(f"LLM Error url:{llm_url}, err: {e}")
             if finish not in [1, 4]:  # If the model does not stop output, an error message is returned.
                 response_info = {
                     'code': 1,
                     "message": f"LLM Error:{e}",
+                    "data": {"output": ""},
+                    "finish": 1
                 }
                 yield json.dumps(response_info, ensure_ascii=False)
         # ========== Action after final streaming returns ===========
@@ -345,7 +365,7 @@ async def search(request: Request):
     stream = json_request["stream"]
     history = json_request["history"]
     chichat = json_request.get("chichat", True)
-    default_answer = json_request.get("default_answer", '根据已知信息，无法回答您的问题。')
+    default_answer = json_request.get("default_answer", 'Based on the available information, I cannot answer your question.')
     return_meta = json_request.get("return_meta", False)
     prompt_template = json_request.get("prompt_template", '')
     top_p = json_request.get("top_p", 0.85)
