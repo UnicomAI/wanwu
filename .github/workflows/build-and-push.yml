@@ -35,10 +35,28 @@ jobs:
       agent: ${{ steps.filter.outputs.agent }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Fetch last 2 commits for comparison
+      
+      - name: Get previous commit SHA
+        id: prev-commit
+        run: |
+          if [ "${{ github.event_name }}" == "push" ] && [ -n "${{ github.event.before }}" ]; then
+            echo "sha=${{ github.event.before }}" >> $GITHUB_OUTPUT
+          else
+            # For workflow_dispatch or first commit, compare against HEAD^
+            PREV_SHA=$(git rev-parse HEAD^ 2>/dev/null || echo "")
+            if [ -n "$PREV_SHA" ]; then
+              echo "sha=$PREV_SHA" >> $GITHUB_OUTPUT
+            else
+              echo "sha=" >> $GITHUB_OUTPUT
+            fi
+          fi
       
       - uses: dorny/paths-filter@v2
         id: filter
         with:
+          base: ${{ steps.prev-commit.outputs.sha }}
           filters: |
             backend:
               - 'internal/**'
@@ -51,6 +69,7 @@ jobs:
               - 'go.sum'
             frontend:
               - 'web/**'
+              - 'workflow-frontend/**'
               - 'Dockerfile.frontend'
               - 'configs/middleware/nginx/conf.d/**'
             rag:
@@ -278,13 +297,26 @@ jobs:
           cache-to: type=registry,ref=${{ env.DOCKER_USERNAME }}/agent:buildcache,mode=max
 
   trigger-dokploy:
-    needs: [build-backend, build-frontend, build-rag, build-agent]
-    if: always() && (needs.build-backend.result == 'success' || needs.build-frontend.result == 'success' || needs.build-rag.result == 'success' || needs.build-agent.result == 'success')
+    needs: [detect-changes, build-backend, build-frontend, build-rag, build-agent]
+    if: |
+      always() &&
+      (
+        (needs.build-backend.result == 'success') ||
+        (needs.build-frontend.result == 'success') ||
+        (needs.build-rag.result == 'success') ||
+        (needs.build-agent.result == 'success')
+      )
     runs-on: self-hosted
     steps:
       - name: Summary of built images
         run: |
           echo "✅ Images built and pushed successfully!"
+          echo ""
+          echo "Change detection results:"
+          echo "  - Backend changes: ${{ needs.detect-changes.outputs.backend }}"
+          echo "  - Frontend changes: ${{ needs.detect-changes.outputs.frontend }}"
+          echo "  - RAG changes: ${{ needs.detect-changes.outputs.rag }}"
+          echo "  - Agent changes: ${{ needs.detect-changes.outputs.agent }}"
           echo ""
           echo "Built images:"
           if [ "${{ needs.build-backend.result }}" == "success" ]; then
@@ -298,6 +330,20 @@ jobs:
           fi
           if [ "${{ needs.build-agent.result }}" == "success" ]; then
             echo "  - safvr/agent:latest"
+          fi
+          echo ""
+          echo "Skipped jobs (no changes detected):"
+          if [ "${{ needs.build-backend.result }}" != "success" ]; then
+            echo "  - build-backend (skipped)"
+          fi
+          if [ "${{ needs.build-frontend.result }}" != "success" ]; then
+            echo "  - build-frontend (skipped)"
+          fi
+          if [ "${{ needs.build-rag.result }}" != "success" ]; then
+            echo "  - build-rag (skipped)"
+          fi
+          if [ "${{ needs.build-agent.result }}" != "success" ]; then
+            echo "  - build-agent (skipped)"
           fi
 
       - name: Trigger Dokploy Compose Deployment

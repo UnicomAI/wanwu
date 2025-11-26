@@ -26,6 +26,9 @@ go.work
 .history
 .log
 .env
+.env.remote
+.ssh/
+*.pem
 bin/amd64/*
 bin/arm64/*
 cache
