@@ -33,7 +33,8 @@ FROM --platform=linux/$WANWU_ARCH golang:1.24-alpine
 ARG WANWU_ARCH
 WORKDIR /app
 
-COPY configs/microservice ./configs/microservice
+# Copy entire configs directory to ensure static files are included
+COPY configs ./configs
 
 # bff-service
 COPY --from=builder /app/bin/$WANWU_ARCH/bff-service ./bin/bff-service
