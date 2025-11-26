@@ -261,7 +261,7 @@ services:
       - ${WANWU_PROJECT_DIR}/bff-service/tmp:/app/tmp
       - ${WANWU_BFF_OAUTH_RSA_PRIVATE_KEY_PATH}:/app/tmp/oauth_rsa_private.pem
       - ${WANWU_BFF_OAUTH_RSA_PUBLIC_KEY_PATH}:/app/tmp/oauth_rsa_public.pem
-      - ./configs:/app/configs:ro
+      # Note: configs are baked into the Docker image - no volume mount needed
     environment:
       CUSTOM_INFO_VERSION: ${WANWU_VERSION}
       SERVER_WEB_BASE_URL: ${WANWU_WEB_BASE_URL}
