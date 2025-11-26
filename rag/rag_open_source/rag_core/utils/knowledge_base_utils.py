@@ -15,8 +15,16 @@ import re
 import uuid
 import copy
 
-from easyofd.ofd import OFD
-from ofdparser import OfdParser
+# OFD support - optional imports (may fail if Chinese fonts are missing)
+try:
+    from easyofd.ofd import OFD
+except Exception:
+    OFD = None
+
+try:
+    from ofdparser import OfdParser
+except Exception:
+    OfdParser = None
 import base64
 from datetime import datetime, timedelta
 from enum import Enum
