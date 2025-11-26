@@ -57,6 +57,7 @@ type RagChatParams struct {
 	MetaFilter           bool                            `json:"metadata_filtering"`            // Metadata filter switch
 	MetaFilterConditions []*MetadataFilterItem           `json:"metadata_filtering_conditions"` // Metadata filters
 	UseGraph             bool                            `json:"use_graph"`                     // Whether to start knowledge graph query
+	DefaultAnswer        string                          `json:"default_answer,omitempty"`      // Default answer when no relevant documents found
 }
 
 // RagKnowledgeInfo contains knowledge base id and name for Python RAG service
@@ -225,6 +226,8 @@ func BuildChatConsultParams(req *rag_service.ChatRagReq, rag *model.RagInfo, kno
 	ragChatParams.ReturnMeta = true
 	//Automatic corner mark
 	ragChatParams.AutoCitation = true
+	// Set English default answer for when no relevant documents are found
+	ragChatParams.DefaultAnswer = "Based on the available information, I cannot answer your question."
 
 	// Model parameters
 	ragChatParams.CustomModelInfo = &CustomModelInfo{LlmModelID: rag.ModelConfig.ModelId}
