@@ -50,19 +50,19 @@ export default {
           unactiveImg:require('@/assets/imgs/all_unactive.svg')
         },
         {
-          name:'我Favorite of ',
+          name:'Favorites ',
           value:'favorite',
           activeImg:require('@/assets/imgs/mine_active.svg'),
           unactiveImg:require('@/assets/imgs/mine_unactive.svg')
         },
         {
-          name:'PrivatePublish of ',
+          name:'Private Published ',
           value:'private',
           activeImg:require('@/assets/imgs/start_active.svg'),
           unactiveImg:require('@/assets/imgs/start_unactive.svg')
         },
         {
-          name:'historyApp',
+          name:'History',
           value:'history',
           activeImg:require('@/assets/imgs/history_active.svg'),
           unactiveImg:require('@/assets/imgs/history_unactive.svg')

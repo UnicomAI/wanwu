@@ -32,30 +32,37 @@ const (
 )
 
 type RagChatParams struct {
-	KnowledgeBase        []string              `json:"knowledgeBase"`   // Knowledge base name list
-	KnowledgeIdList      []string              `json:"knowledgeIdList"` // Knowledge base ID list
-	Question             string                `json:"question"`
-	Threshold            float32               `json:"threshold"` // Score threshold
-	TopK                 int32                 `json:"topK"`
-	Stream               bool                  `json:"stream"`
-	Chichat              bool                  `json:"chichat"` // Whether to use the default speech technique (covering the bottom) when the knowledge base recall result is empty, the default is true
-	RerankModelId        string                `json:"rerank_model_id"`
-	CustomModelInfo      *CustomModelInfo      `json:"custom_model_info"`
-	History              []*HistoryItem        `json:"history"`
-	MaxHistory           int32                 `json:"max_history"`
-	RewriteQuery         bool                  `json:"rewrite_query"`   // Whether to rewrite query
-	RerankMod            string                `json:"rerank_mod"`      // rerank_model: reranking mode, weighted_score: weighted search
-	RetrieveMethod       string                `json:"retrieve_method"` // hybrid_search: hybrid search, semantic_search: vector search, full_text_search: text search
-	Weight               *WeightParams         `json:"weights"`         // Weight configuration under weight search
-	Temperature          float32               `json:"temperature"`
-	TopP                 float32               `json:"top_p"`                         // Diversity
-	RepetitionPenalty    float32               `json:"repetition_penalty"`            // Repetition Penalty/Frequency Penalty
-	ReturnMeta           bool                  `json:"return_meta"`                   // Whether to return metadata
-	AutoCitation         bool                  `json:"auto_citation"`                 // Whether to auto-mark
-	TermWeight           float32               `json:"term_weight_coefficient"`       // keyword coefficient
-	MetaFilter           bool                  `json:"metadata_filtering"`            // Metadata filter switch
-	MetaFilterConditions []*MetadataFilterItem `json:"metadata_filtering_conditions"` // Metadata filters
-	UseGraph             bool                  `json:"use_graph"`                     // Whether to start knowledge graph query
+	KnowledgeBase        []string                        `json:"knowledgeBase"`        // Knowledge base name list
+	KnowledgeIdList      []string                        `json:"knowledgeIdList"`      // Knowledge base ID list
+	KnowledgeBaseInfo    map[string][]*RagKnowledgeInfo  `json:"knowledge_base_info"`  // Knowledge base info grouped by user ID (required by Python RAG service)
+	Question             string                          `json:"question"`
+	Threshold            float32                         `json:"threshold"` // Score threshold
+	TopK                 int32                           `json:"topK"`
+	Stream               bool                            `json:"stream"`
+	Chichat              bool                            `json:"chichat"` // Whether to use the default speech technique (covering the bottom) when the knowledge base recall result is empty, the default is true
+	RerankModelId        string                          `json:"rerank_model_id"`
+	CustomModelInfo      *CustomModelInfo                `json:"custom_model_info"`
+	History              []*HistoryItem                  `json:"history"`
+	MaxHistory           int32                           `json:"max_history"`
+	RewriteQuery         bool                            `json:"rewrite_query"`   // Whether to rewrite query
+	RerankMod            string                          `json:"rerank_mod"`      // rerank_model: reranking mode, weighted_score: weighted search
+	RetrieveMethod       string                          `json:"retrieve_method"` // hybrid_search: hybrid search, semantic_search: vector search, full_text_search: text search
+	Weight               *WeightParams                   `json:"weights"`         // Weight configuration under weight search
+	Temperature          float32                         `json:"temperature"`
+	TopP                 float32                         `json:"top_p"`                         // Diversity
+	RepetitionPenalty    float32                         `json:"repetition_penalty"`            // Repetition Penalty/Frequency Penalty
+	ReturnMeta           bool                            `json:"return_meta"`                   // Whether to return metadata
+	AutoCitation         bool                            `json:"auto_citation"`                 // Whether to auto-mark
+	TermWeight           float32                         `json:"term_weight_coefficient"`       // keyword coefficient
+	MetaFilter           bool                            `json:"metadata_filtering"`            // Metadata filter switch
+	MetaFilterConditions []*MetadataFilterItem           `json:"metadata_filtering_conditions"` // Metadata filters
+	UseGraph             bool                            `json:"use_graph"`                     // Whether to start knowledge graph query
+}
+
+// RagKnowledgeInfo contains knowledge base id and name for Python RAG service
+type RagKnowledgeInfo struct {
+	KnowledgeId   string `json:"kb_id"`
+	KnowledgeName string `json:"kb_name"`
 }
 
 type MetadataFilterItem struct {
@@ -185,14 +192,26 @@ func BuildChatConsultParams(req *rag_service.ChatRagReq, rag *model.RagInfo, kno
 	ragChatParams.Weight = buildWeight(knowledgeConfig)
 	var kbNameList []string
 	knowledgeIDToName := make(map[string]string)
+	// Build knowledge_base_info map grouped by user ID (required by Python RAG service)
+	knowledgeBaseInfo := make(map[string][]*RagKnowledgeInfo)
 	for _, v := range knowledgeInfoList.List {
 		kbNameList = append(kbNameList, v.Name)
 		if _, exists := knowledgeIDToName[v.KnowledgeId]; !exists {
 			knowledgeIDToName[v.KnowledgeId] = v.Name
 		}
+		// Group knowledge base info by user ID (CreateUserId)
+		userId := v.CreateUserId
+		if userId == "" {
+			userId = rag.UserID // fallback to rag owner's user ID
+		}
+		knowledgeBaseInfo[userId] = append(knowledgeBaseInfo[userId], &RagKnowledgeInfo{
+			KnowledgeId:   v.KnowledgeId,
+			KnowledgeName: v.RagName, // Use RagName as it's the internal name used for ES/vector store
+		})
 	}
 	ragChatParams.KnowledgeBase = kbNameList
 	ragChatParams.KnowledgeIdList = knowledgeIds
+	ragChatParams.KnowledgeBaseInfo = knowledgeBaseInfo
 	ragChatParams.RerankModelId = buildRerankId(knowledgeConfig.PriorityMatch, rag.RerankConfig.ModelId)
 	if rag.KnowledgeBaseConfig.TermWeightEnable {
 		ragChatParams.TermWeight = float32(rag.KnowledgeBaseConfig.TermWeight)
