@@ -609,6 +609,7 @@ services:
       WANWU_FILE_PARSER_URL: http://rag-wanwu:8681/rag/doc_parser
       # 用于nginx 8081代理workflow-wanwu:8998 minio presign相关api [EN] Used for nginx 8081 proxy workflow-wanwu:8998 minio presign related api
       WANWU_MINIO_PROXY_ENDPOINT: ${WANWU_EXTERNAL_ENDPOINT}
+      WANWU_MINIO_PROXY_SCHEME: ${WANWU_EXTERNAL_SCHEME}
       WANWU_MINIO_PROXY_PREFIX: /workflow/minio/presign
       # 用于workflow-wanwu:8998代理minio-wanwu:9000 [EN] Used for workflow-wanwu:8998 proxy minio-wanwu:9000
       MINIO_API_HOST: http://${WANWU_MINIO_ENDPOINT}
