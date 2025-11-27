@@ -95,7 +95,7 @@
                 colorArr:['#dca3c2','#aaa9db','#d1a69b','#7894cf','#4fbed9',
                     '#ebb8bd','#9b9655','#3bb4b7','#61aac5','#d79ae5',
                     '#51a2da','#89b0f9','#738cbd'],
-                placeholder:'Please enterContent,用Ctrl+Enter可换row',
+                placeholder:'Please enterContent, use Ctrl+Enter to insert a new line',
                 promptHtml:'',
                 promptValue:'',
                 randomReminderList:[],  //随机8Tip词
