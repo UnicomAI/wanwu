@@ -106,6 +106,7 @@ jobs:
               - 'pkg/**'
               - 'proto/**'
               - 'api/**'
+              - 'configs/**'
               - 'Dockerfile.backend'
               - 'go.mod'
               - 'go.sum'
