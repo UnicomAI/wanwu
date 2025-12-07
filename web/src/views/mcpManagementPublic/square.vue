@@ -97,18 +97,9 @@ export default {
       this.doGetPublicMcpList()
     },
     doGetPublicMcpList(){
-      const searchInput = this.$refs.searchInput
-      let params = {
-        name: searchInput.value,
-        category: this.typeRadio,
-      }
-
-      getPublicMcpList(params)
-        .then((res) => {
-          this.list = res.data.list || []
-          this.loading = false
-        })
-        .catch(() => this.loading = false)
+      // Hide MCP marketplace items: always return empty list
+      this.list = []
+      this.loading = false
     },
     handleClick(val) {
       this.mcpSquareId = val.mcpSquareId;

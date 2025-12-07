@@ -63,16 +63,9 @@ export default {
       this.fetchList()
     },
     fetchList(cb) {
-      const searchInput = this.$refs.searchInput
-      const params = {
-        name: searchInput.value,
-      }
-      getBuiltInList(params)
-        .then((res) => {
-          this.list = res.data.list || []
-          cb && cb(this.list)
-        })
-        .catch(() => {})
+      // Hide built-in tools: always return empty list
+      this.list = []
+      cb && cb(this.list)
     },
     handleClick(val) {
       // 内置ToolDetails
