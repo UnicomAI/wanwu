@@ -3,6 +3,7 @@
     <div class="overview">
       <img :src="backgroundSrc" alt="">
     </div>
+    <div class="blur-overlay"></div>
     <div class="auth-modal">
       <div class="header__left">
         <img
@@ -10,17 +11,10 @@
           style="height: 60px; margin: 0 15px 0 22px"
           :src="basePath + '/user/api' + commonInfo.login.logo.path"
           alt=""/>
-        <!--<span style="font-size: 16px;">{{commonInfo.home.title || ''}}</span>-->
-        <!--<div style="margin-left: 10px">
-          <ChangeLang :isLogin="true" />
-        </div>-->
       </div>
-<!--      <div class="container__left">-->
-<!--        {{ commonInfo.login.welcomeText }}-->
-<!--      </div>-->
-
-      <slot :commonInfo="commonInfo"/>
-
+      <div class="auth-content">
+        <slot :commonInfo="commonInfo"/>
+      </div>
     </div>
   </div>
 </template>
@@ -158,6 +152,18 @@ export default {
   height: 100%;
 }
 
+.blur-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100;
+}
+
 .auth-modal {
   position: fixed;
   top: 0;
@@ -167,29 +173,28 @@ export default {
   width: 100%;
   height: 100%;
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
 
   .header__left {
-    position: relative;
-    width: 100%;
-    min-width: 500px;
+    position: absolute;
+    top: 16px;
+    left: 10px;
     color: #fff;
     font-weight: bold;
     display: flex;
     align-items: center;
-    margin-top: 16px;
-    margin-left: 10px;
     height: 60px;
+    z-index: 1001;
   }
 
-  .container__left {
+  .auth-content {
+    flex: 1;
     display: flex;
     align-items: center;
-    height: calc(80% - 60px);
-    font-size: 35px;
-    width: calc(100% - 13% - 400px);
     justify-content: center;
-    color: #fff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+    width: 100%;
+    height: 100%;
   }
 }
 </style>

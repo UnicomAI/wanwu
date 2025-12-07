@@ -3,7 +3,7 @@
     <div class="page-title">
       <img class="page-title-img" src="@/assets/imgs/safety.svg" alt="" />
       <span class="page-title-name">Safety Guardrail</span>
-      <p class="page-tips">SupporteduserCustomSensitive Word Table，Configurationrow业Sensitive Word，Real-time interception of high-risk input and output content to ensure content safety and compliance.可在CreateApp when associatedConfiguration。</p>
+      <p class="page-tips">Supported user Custom Sensitive Word Table，Configuration Sensitive Word，Real-time interception of high-risk input and output content to ensure content safety and compliance. Create App when associated Configuration。</p>
     </div>
     <div style="padding: 0 20px 20px 20px;">
       <safetyList :appData="knowledgeData" @editItem="showCreate" @reloadData="getTableData" ref="knowledgeList" v-loading="tableLoading" />
