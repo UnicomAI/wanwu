@@ -29,6 +29,7 @@ go.work
 .env.remote
 .ssh/
 *.pem
+nginx/
 bin/amd64/*
 bin/arm64/*
 cache
