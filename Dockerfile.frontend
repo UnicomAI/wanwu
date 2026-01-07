@@ -1,20 +1,15 @@
-ARG WANWU_ARCH
-
 # --- 第一阶段：构建阶段 ---
-FROM --platform=linux/$WANWU_ARCH node:14 AS builder
-ARG WANWU_ARCH
+FROM node:14 AS builder
 WORKDIR /app
 COPY web .
 
-ENV npm_config_registry=https://registry.npmmirror.com
 ENV npm_config_unsafe_perm=true
-
+RUN npm config set registry https://registry.npmmirror.com
 RUN set -euo && npm install
 RUN set -euo && npm run build
 
 # --- 第二阶段：运行阶段 ---
-FROM --platform=linux/$WANWU_ARCH nginx:1.27
-ARG WANWU_ARCH
+FROM nginx:1.27
 
 COPY ./configs/middleware/nginx/conf.d /etc/nginx/conf.d
 

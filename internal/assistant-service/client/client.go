@@ -60,6 +60,10 @@ type IClient interface {
 	GetConversationList(ctx context.Context, assistantID, userID, orgID string, offset, limit int32) ([]*model.Conversation, int64, *err_code.Status)
 	DeleteConversationByAssistantID(ctx context.Context, assistantID, userID, orgID string) *err_code.Status
 
+	//============ConversationDetails=============
+	CreateConversationDetails(ctx context.Context, details *model.ConversationDetails) *err_code.Status
+	GetConversationDetailsList(ctx context.Context, conversationID, userID, orgID string, offset, limit int32) ([]*model.ConversationDetails, int64, *err_code.Status)
+
 	//================CustomPrompt================
 	CreateCustomPrompt(ctx context.Context, avatarPath, name, desc, prompt, userId, orgID string) (string, *err_code.Status)
 	DeleteCustomPrompt(ctx context.Context, customPromptID uint32) *err_code.Status

@@ -319,7 +319,7 @@ func CreateKnowledgeReport(ctx context.Context, knowledgeId string) error {
 			return err
 		}
 		//构造知识库图谱
-		knowledgeGraph := BuildKnowledgeGraph(knowledge.KnowledgeGraph)
+		knowledgeGraph := BuildKnowledgeGraph(string(knowledge.KnowledgeGraph))
 		//2.通知rag生成社区报告
 		return service.RagCreateKnowledgeReport(ctx, &service.RagImportDocParams{
 			KnowledgeName:        knowledge.RagName,

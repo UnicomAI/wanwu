@@ -83,15 +83,35 @@ minio:
   knowledge-export-dir: knowledge
   qa-export-dir: qa
 
-kafka:
-  addr: kafka-wanwu:9092
-  user: "admin"
-  password:
+topic: 
   topic: "doc-rag"
   knowledge-graph-topic: "rag-knowledge-graph"
   url-analysis-topic: "url-batch-a-prod"
   url-import-topic: "url-batch-i-prod"
+
+kafka:
+  enabled: false
+  addr: kafka-wanwu:9092
+  user: "admin"
+  password:
   default-partition-num: 3
+
+redis:
+  enabled: false
+  mode: standalone
+  addr:
+    - redis-wanwu:6379
+  password:
+  db: 0
+  pool-size: 10
+  min-idle-conns: 3
+  max-retries: 3
+  dial-timeout: 3
+  read-timeout: 3
+  write-timeout: 3
+  idle-timeout: 10
+  stream-max-len: 1000
+  stream-approx-max-len: true
 
 rag-server:
   endpoint: 'http://rag-wanwu:8681'

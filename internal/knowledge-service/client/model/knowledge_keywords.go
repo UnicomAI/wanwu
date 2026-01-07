@@ -2,7 +2,7 @@ package model
 
 // KnowledgeKeywords  知识库关键词映射表
 type KnowledgeKeywords struct {
-	Id               uint32 `json:"id" gorm:"primary_key;type:bigint(20) auto_increment;not null;comment:'id';"` // Primary Key
+	Id               uint32 `json:"id" gorm:"primary_key;type:bigint auto_increment;not null;comment:'id';"` // Primary Key
 	Name             string `json:"name" gorm:"column:name;type:varchar(255);comment:专名词"`
 	Alias            string `json:"alias" gorm:"column:alias;type:varchar(255);comment:别名"`
 	KnowledgeBaseIds string `json:"knowledgeBaseIds" gorm:"column:knowledge_base_ids;type:text;comment:关联的知识库id;内容格式为:[\"2\",\"3\"]"`

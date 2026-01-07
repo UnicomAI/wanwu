@@ -26,21 +26,6 @@ services:
       retries: 99
       start_period: 10s
   
-  mysql-setup:
-    depends_on:
-      mysql:
-        condition: service_healthy
-    restart: on-failure
-    image: ${WANWU_MYSQL_IMAGE}
-    container_name: ${WANWU_MYSQL_HOST}-setup
-    networks:
-      - ${WANWU_DOCKER_NETWORK}
-    volumes:
-      - ./configs/middleware/mysql/initdb.d:/docker-entrypoint-initdb.d
-    entrypoint: "bash -c"
-    command:
-      - "exec mysql --host mysql -u root -p'${WANWU_MYSQL_PASSWORD}' < /docker-entrypoint-initdb.d/init.sql"
-  
   redis:
     restart: always
     image: ${WANWU_REDIS_IMAGE}
@@ -81,158 +66,6 @@ services:
       retries: 99
       start_period: 10s
   
-  kafka:
-    restart: always
-    image: ${WANWU_KAFKA_IMAGE}
-    container_name: ${WANWU_KAFKA_HOST}
-    networks:
-      - ${WANWU_DOCKER_NETWORK}
-    # ports:
-    #   - 9092:9092
-    volumes:
-      - ./configs/middleware/kafka/configs/kafka-log4j.properties:/opt/bitnami/kafka/config/log4j.properties
-      - ${WANWU_PROJECT_DIR}/kafka/logs:/opt/bitnami/kafka/logs
-      - wanwu_kafka_data:/bitnami/kafka/data
-    environment:
-      # kraft
-      KAFKA_CFG_NODE_ID: 1
-      KAFKA_CFG_PROCESS_ROLES: controller,broker
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@${WANWU_KAFKA_HOST}:9093
-      # listener
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: BROKER:SASL_PLAINTEXT,CONTROLLER:SASL_PLAINTEXT
-      KAFKA_CFG_LISTENERS: BROKER://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_CFG_ADVERTISED_LISTENERS: BROKER://${WANWU_KAFKA_HOST}:9092,CONTROLLER://${WANWU_KAFKA_HOST}:9093
-      KAFKA_CLIENT_USERS: ${WANWU_KAFKA_USER}
-      KAFKA_CLIENT_PASSWORD: ${WANWU_KAFKA_PASSWORD}
-      # broker
-      KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: BROKER
-      KAFKA_CFG_BROKER_ID: 1
-      KAFKA_INTER_BROKER_USER: ${WANWU_KAFKA_USER}
-      KAFKA_INTER_BROKER_PASSWORD: ${WANWU_KAFKA_PASSWORD}
-      # controller
-      KAFKA_CFG_SASL_MECHANISM_CONTROLLER_PROTOCOL: PLAIN
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CONTROLLER_USER: ${WANWU_KAFKA_USER}
-      KAFKA_CONTROLLER_PASSWORD: ${WANWU_KAFKA_PASSWORD}
-      # opt
-      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CFG_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_CFG_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
-      KAFKA_CFG_HEAP_OPTS: -Xmx1G -Xms1G
-    healthcheck:
-      test: ["CMD-SHELL", "timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/9092' || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 99
-      start_period: 10s
-  
-  es-setup:
-    restart: on-failure
-    image: ${WANWU_ELASTIC_IMAGE}
-    container_name: ${WANWU_ELASTIC_HOST}-setup
-    networks:
-      - ${WANWU_DOCKER_NETWORK}
-    volumes:
-      - wanwu_es_certs:/usr/share/elasticsearch/config/certs
-    user: "0"
-    command: >
-      bash -c '
-        if [ x${WANWU_ELASTIC_PASSWORD} == x ]; then
-          echo "Set the WANWU_ELASTIC_PASSWORD environment variable in the .env file";
-          exit 1;
-        elif [ x${WANWU_KIBANA_PASSWORD} == x ]; then
-          echo "Set the WANWU_KIBANA_PASSWORD environment variable in the .env file";
-          exit 1;
-        fi;
-        if [ ! -f config/certs/ca.zip ]; then
-          echo "Creating CA";
-          bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
-          unzip config/certs/ca.zip -d config/certs;
-        fi;
-        if [ ! -f config/certs/certs.zip ]; then
-          echo "Creating certs";
-          echo -ne \
-          "instances:\n"\
-          "  - name: es\n"\
-          "    dns:\n"\
-          "      - es\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          > config/certs/instances.yml;
-          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
-          unzip config/certs/certs.zip -d config/certs;
-        fi;
-        echo "Setting file permissions"
-        chown -R root:root config/certs;
-        find . -type d -exec chmod 750 \{\} \;;
-        find . -type f -exec chmod 640 \{\} \;;
-        echo "Waiting for Elasticsearch availability";
-        until curl -s --cacert config/certs/ca/ca.crt https://es:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
-        echo "Setting kibana user ${WANWU_KIBANA_USERNAME} password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${WANWU_ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es:9200/_security/user/${WANWU_KIBANA_USERNAME}/_password -d "{\"password\":\"${WANWU_KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
-        echo "All done!";
-      '
-    healthcheck:
-      test: ["CMD-SHELL", "[ -f config/certs/es/es.crt ]"]
-      interval: 15s
-      timeout: 5s
-      retries: 99
-      start_period: 10s
-  
-  es:
-    restart: always
-    image: ${WANWU_ELASTIC_IMAGE}
-    container_name: ${WANWU_ELASTIC_HOST}
-    networks:
-      - ${WANWU_DOCKER_NETWORK}
-    # ports:
-    #   - 9200:9200
-    volumes:
-      - ./configs/middleware/elastic/plugins:/usr/share/elasticsearch/plugins
-      - wanwu_es_certs:/usr/share/elasticsearch/config/certs
-      - wanwu_es_data:/usr/share/elasticsearch/data
-      - wanwu_es_logs:/usr/share/elasticsearch/logs
-      - wanwu_es_tmp:/tmp
-    environment:
-      - node.name=es
-      - cluster.name=wanwu-es-cluster
-      - cluster.initial_master_nodes=es
-      - discovery.seed_hosts=es
-      - bootstrap.memory_lock=true
-      - xpack.security.enabled=true
-      - xpack.security.http.ssl.enabled=true
-      - xpack.security.http.ssl.key=certs/es/es.key
-      - xpack.security.http.ssl.certificate=certs/es/es.crt
-      - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
-      - xpack.security.transport.ssl.enabled=true
-      - xpack.security.transport.ssl.key=certs/es/es.key
-      - xpack.security.transport.ssl.certificate=certs/es/es.crt
-      - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
-      - xpack.security.transport.ssl.verification_mode=certificate
-      - xpack.license.self_generated.type=basic
-      - ELASTIC_PASSWORD=${WANWU_ELASTIC_PASSWORD}
-      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
-    mem_limit: 4294967296 # 4GB
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
-        ]
-      interval: 15s
-      timeout: 5s
-      retries: 99
-      start_period: 15s
-
   # ------ microservice ------
 
   bff-service:
@@ -406,8 +239,6 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-      kafka:
-        condition: service_healthy
     restart: always
     image: ${WANWU_BACKEND_IMAGE}
     container_name: knowledge-service
@@ -427,9 +258,8 @@ services:
       DB_OCEANBASE_USER: ${WANWU_OCEAN_BASE_USER}@${WANWU_OCEAN_BASE_TENANT_NAME}
       DB_OCEANBASE_ADDRESS: ${WANWU_OCEAN_BASE_HOST}:${WANWU_OCEAN_BASE_PORT}
       DB_OCEANBASE_PASSWORD: ${WANWU_OCEAN_BASE_PASSWORD}
-      KAFKA_ADDR: ${WANWU_KAFKA_ADDRESS}
-      KAFKA_USER: ${WANWU_KAFKA_USER}
-      KAFKA_PASSWORD: ${WANWU_KAFKA_PASSWORD}
+      REDIS_ENABLED: ${WANWU_REDIS_ENABLED}
+      REDIS_PASSWORD: ${WANWU_REDIS_PASSWORD}
       MINIO_ENDPOINT: ${WANWU_MINIO_ENDPOINT}
       MINIO_USER: ${WANWU_MINIO_USER}
       MINIO_PASSWORD: ${WANWU_MINIO_PASSWORD}
@@ -484,8 +314,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      es:
-        condition: service_healthy
     restart: always
     image: ${WANWU_BACKEND_IMAGE}
     container_name: assistant-service
@@ -511,9 +339,6 @@ services:
       MINIO_USER: ${WANWU_MINIO_USER}
       MINIO_PASSWORD: ${WANWU_MINIO_PASSWORD}
       MINIO_DOWNLOAD_URL: ${WANWU_WEB_BASE_URL}/minio/download/api/
-      ES_ADDRESS: ${WANWU_ELASTIC_ADDRESS}
-      ES_USERNAME: ${WANWU_ELASTIC_USER}
-      ES_PASSWORD: ${WANWU_ELASTIC_PASSWORD}
     working_dir: /app
     command: ./bin/assistant-service
     healthcheck:
@@ -716,114 +541,39 @@ services:
     working_dir: /app
     command: ./bin/workflow-wanwu
   
-  rag:
+  agent:
     depends_on:
       minio:
         condition: service_healthy
-      kafka:
-        condition: service_healthy
-      es:
-        condition: service_healthy
     restart: always
-    image: ${WANWU_RAG_IMAGE}
-    container_name: rag-wanwu
+    image: ${WANWU_AGENT_IMAGE}
+    container_name: agent-wanwu
     networks:
       - ${WANWU_DOCKER_NETWORK}
     # ports:
-    #   - 8613:8613
-    #   - 8681:8681
-    #   - 10891:10891
-    #   - 15000:15000
+    #   - 7258:7258
+    #   - 1991:1991
+    #   - 1992:1992
+    #   - 15001:15001
+    #   - 15002:15002
+    #   - 15003:15003
     volumes:
-      - ${WANWU_PROJECT_DIR}/rag-wanwu/rag_core/logs:/model_extend/rag_core/logs
-      - ${WANWU_PROJECT_DIR}/rag-wanwu/rag_core/graph/logs:/model_extend/rag_core/graph/logs
-      - ${WANWU_PROJECT_DIR}/rag-wanwu/rag_core/graph/data:/model_extend/rag_core/graph/data
-      - ${WANWU_PROJECT_DIR}/rag-wanwu/rag_es_server_unify/logs:/model_extend/rag_es_server_unify/logs
+      - ${WANWU_PROJECT_DIR}/agent-wanwu/agent_open_source/logs:/agent/agent_open_source/logs
+      - ${WANWU_PROJECT_DIR}/agent-wanwu/agent_open_source/minio/logs:/agent/agent_open_source/minio/logs
+      - ${WANWU_PROJECT_DIR}/agent-wanwu/agent_open_source/minio/file:/agent/agent_open_source/minio/file
+      - ${WANWU_PROJECT_DIR}/agent-wanwu/agent_open_source/agent_plugin/logs:/agent/agent_open_source/agent_plugin/logs
     environment:
       MINIO_ADDRESS: ${WANWU_MINIO_ENDPOINT}
       MINIO_ACCESS_KEY: ${WANWU_MINIO_USER}
       MINIO_SECRET_KEY: ${WANWU_MINIO_PASSWORD}
-      KAFKA_BOOTSTRAP_SERVERS: ${WANWU_KAFKA_ADDRESS}
-      KAFKA_SASL_PLAIN_USERNAME: ${WANWU_KAFKA_USER}
-      KAFKA_SASL_PLAIN_PASSWORD: ${WANWU_KAFKA_PASSWORD}
-      ES_HOSTS: https://${WANWU_ELASTIC_ADDRESS}
-      ES_USER: ${WANWU_ELASTIC_USER}
-      ES_PASSWORD: ${WANWU_ELASTIC_PASSWORD}
-      REDIS_HOST: ${WANWU_REDIS_HOST}
-      REDIS_PORT: ${WANWU_REDIS_PORT}
-      REDIS_PASSWD: ${WANWU_REDIS_PASSWORD}
-      # 用于rag调用外部API的env
-      GET_KB_ID_URL: http://bff-service:6668/v1/api/category/info
-      KAFKA_MQ_REL_URL: http://bff-service:6668/v1/api/docstatus
-      KAFKA_MQ_KB_STATUS_URL: http://bff-service:6668/v1/api/knowledge/status
-      KAFKA_DOC_STATUS_INIT_URL: http://bff-service:6668/v1/api/doc_status_init
-      MODEL_PROVIDER_URL: http://bff-service:6668
-      REPLACE_MINIO_DOWNLOAD_URL: ${WANWU_WEB_BASE_URL}/minio/download/api/
-
-  # agent:
-  #   depends_on:
-  #     minio:
-  #       condition: service_healthy
-  #   restart: always
-  #   image: ${WANWU_AGENT_IMAGE}
-  #   container_name: agent-wanwu
-  #   networks:
-  #     - ${WANWU_DOCKER_NETWORK}
-  #   # ports:
-  #   #   - 7258:7258
-  #   #   - 1991:1991
-  #   #   - 1992:1992
-  #   #   - 15001:15001
-  #   #   - 15002:15002
-  #   #   - 15003:15003
-  #   volumes:
-  #     - ${WANWU_PROJECT_DIR}/agent-wanwu/agent_open_source/logs:/agent/agent_open_source/logs
-  #     - ${WANWU_PROJECT_DIR}/agent-wanwu/agent_open_source/minio/logs:/agent/agent_open_source/minio/logs
-  #     - ${WANWU_PROJECT_DIR}/agent-wanwu/agent_open_source/minio/file:/agent/agent_open_source/minio/file
-  #     - ${WANWU_PROJECT_DIR}/agent-wanwu/agent_open_source/agent_plugin/logs:/agent/agent_open_source/agent_plugin/logs
-  #   environment:
-  #     MINIO_ADDRESS: ${WANWU_MINIO_ENDPOINT}
-  #     MINIO_ACCESS_KEY: ${WANWU_MINIO_USER}
-  #     MINIO_SECRET_KEY: ${WANWU_MINIO_PASSWORD}
-  #     # 用于agent并发处理
-  #     WORKERS: 4
-  #     THREADS: 8
-  #     # 用于agent调用外部接口的API前缀
-  #     URL_MODEL: http://bff-service
-  #     URL_MINIO: http://bff-service
-  #     URL_RAG: http://rag-wanwu
-  #     URL_RAG_STREAM: http://bff-service:6668/callback/v1/rag/knowledge/stream/search
-
-  # agentscope:
-  #   depends_on:
-  #     mysql:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   restart: always
-  #   image: ${WANWU_AGENTSCOPE_IMAGE}
-  #   container_name: agentscope-wanwu
-  #   networks:
-  #     - ${WANWU_DOCKER_NETWORK}
-  #   ports:
-  #     - 6672:6672
-  #   volumes:
-  #     - ./configs/microservice/agentscope/configs/config.yaml:/agentscope/src/agentscope/aibigmodel_workflow/config.yaml
-  #     - ${WANWU_PROJECT_DIR}/agentscope/logs:/agentscope/logs
-  #   environment:
-  #     DB_NAME: ${WANWU_DB_NAME}
-  #     DATABASE_HOST: ${WANWU_MYSQL_HOST}
-  #     DATABASE_PORT: ${WANWU_MYSQL_PORT}
-  #     DATABASE_PASSWORD: ${WANWU_MYSQL_PASSWORD}
-  #     REDIS_HOST: ${WANWU_REDIS_HOST}
-  #     REDIS_PORT: ${WANWU_REDIS_PORT}
-  #     REDIS_PASSWORD: ${WANWU_REDIS_PASSWORD}
-  #   healthcheck:
-  #     test: ["CMD", "python", "-c", "import socket; s = socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.settimeout(5); result = s.connect_ex(('localhost', 6672)); s.close(); exit(0 if result == 0 else 1)"]
-  #     interval: 15s
-  #     timeout: 5s
-  #     retries: 99
-  #     start_period: 10s
+      # 用于agent并发处理
+      WORKERS: 4
+      THREADS: 8
+      # 用于agent调用外部接口的API前缀
+      URL_MODEL: http://bff-service
+      URL_MINIO: http://bff-service
+      URL_RAG: http://rag-wanwu
+      URL_RAG_STREAM: http://bff-service:6668/callback/v1/rag/knowledge/stream/search
 
   # ------ nginx & frontend ------
   
@@ -846,15 +596,9 @@ services:
 
 networks:
   wanwu-net:
-    external: true
 
 volumes:
   wanwu_mysql_data:
   wanwu_redis_data:
   wanwu_minio_data:
-  wanwu_kafka_data:
-  wanwu_es_data:
-  wanwu_es_certs:
-  wanwu_es_logs:
-  wanwu_es_tmp:
   

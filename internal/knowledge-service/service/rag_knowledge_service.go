@@ -192,7 +192,7 @@ func RagCreateKnowledgeReport(ctx context.Context, ragImportDocParams *RagImport
 		Operation: "add",
 		Type:      "doc",
 		Doc:       ragImportDocParams,
-	}, config.GetConfig().Kafka.KnowledgeGraphTopic)
+	}, config.GetConfig().Topic.KnowledgeGraphTopic)
 }
 
 // RagKnowledgeUpdate rag更新知识库

@@ -26,7 +26,6 @@ import (
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/config"
 	"github.com/UnicomAI/wanwu/pkg/constant"
-	"github.com/UnicomAI/wanwu/pkg/es"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	http_client "github.com/UnicomAI/wanwu/pkg/http-client"
 	"github.com/UnicomAI/wanwu/pkg/log"
@@ -119,37 +118,20 @@ func (s *Service) GetConversationList(ctx context.Context, req *assistant_servic
 func (s *Service) GetConversationDetailList(ctx context.Context, req *assistant_service.GetConversationDetailListReq) (*assistant_service.GetConversationDetailListResp, error) {
 	// 计算分页参数
 	from := (req.PageNo - 1) * req.PageSize
-	size := int(req.PageSize)
 
-	// 组装查询条件
-	fieldConditions := map[string]interface{}{
-		"conversationId": req.ConversationId,
-		"userId.keyword": req.Identity.UserId,
-		"orgId.keyword":  req.Identity.OrgId,
-	}
-
-	// 使用通配符查询所有对话详情索引
-	indexPattern := "conversation_detail_infos_*"
-
-	// 从ES查询数据
-	documents, total, err := es.Assistant().SearchByFields(ctx, indexPattern, fieldConditions, int(from), size)
+	// 从数据库查询数据
+	details, total, err := s.cli.GetConversationDetailsList(ctx, req.ConversationId, req.Identity.UserId, req.Identity.OrgId, from, req.PageSize)
 	if err != nil {
-		log.Errorf("从ES查询对话详情失败，conversationId: %s, userId: %s, error: %v", req.ConversationId, req.Identity.UserId, err)
+		log.Errorf("从数据库查询对话详情失败，conversationId: %s, userId: %s, error: %v", req.ConversationId, req.Identity.UserId, err)
 		return nil, fmt.Errorf("查询对话详情失败: %v", err)
 	}
 
 	// 转换查询结果为响应格式
 	var conversationDetails []*assistant_service.ConversionDetailInfo
-	for _, doc := range documents {
-		var detail model.ConversationDetails
-		if err := json.Unmarshal(doc, &detail); err != nil {
-			log.Warnf("解析ES文档失败: %v", err)
-			continue
-		}
-
+	for _, detail := range details {
 		conversationDetails = append(conversationDetails, &assistant_service.ConversionDetailInfo{
-			Id:             detail.Id,
-			AssistantId:    detail.AssistantId,
+			Id:             strconv.Itoa(int(detail.ID)),
+			AssistantId:    strconv.Itoa(int(detail.AssistantId)),
 			ConversationId: detail.ConversationId,
 			Prompt:         detail.Prompt,
 			SysPrompt:      detail.SysPrompt,
@@ -165,7 +147,7 @@ func (s *Service) GetConversationDetailList(ctx context.Context, req *assistant_
 		})
 	}
 
-	log.Infof("成功从ES查询对话详情，conversationId: %s, userId: %s, 总数: %d, 返回: %d",
+	log.Infof("成功从数据库查询对话详情，conversationId: %s, userId: %s, 总数: %d, 返回: %d",
 		req.ConversationId, req.Identity.UserId, total, len(conversationDetails))
 
 	return &assistant_service.GetConversationDetailListResp{
@@ -207,7 +189,7 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 				terminationMessage = fullResponse.String() + "\n本次回答已被终止"
 			}
 
-			saveConversation(ctx, req, terminationMessage, searchList)
+			s.saveConversation(ctx, req, terminationMessage, searchList)
 			log.Infof("因上下文取消保存终止消息，assistantId: %s, conversationId: %s", req.AssistantId, req.ConversationId)
 		}
 	}()
@@ -227,7 +209,7 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 		if status != nil {
 			log.Errorf("Assistant服务获取智能体信息失败，assistantId: %s, error: %v", req.AssistantId, status)
 			SSEError(stream, "智能体信息获取失败")
-			saveConversation(ctx, req, "智能体信息获取失败", "")
+			s.saveConversation(ctx, req, "智能体信息获取失败", "")
 			return errStatus(errs.Code_AssistantConversationErr, status)
 		}
 	} else {
@@ -235,13 +217,13 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 		if status != nil {
 			log.Errorf("Assistant服务获取智能体快照失败，assistantId: %s, error: %v", req.AssistantId, status)
 			SSEError(stream, "智能体快照获取失败")
-			saveConversation(ctx, req, "智能体快照获取失败", "")
+			s.saveConversation(ctx, req, "智能体快照获取失败", "")
 			return errStatus(errs.Code_AssistantConversationErr, status)
 		}
 
 		if err := jsonToStruct(assistantSnapshot.AssistantInfo, &assistant); err != nil {
 			SSEError(stream, "智能体信息获取失败")
-			saveConversation(ctx, req, "智能体信息获取失败", "")
+			s.saveConversation(ctx, req, "智能体信息获取失败", "")
 			return errStatus(errs.Code_AssistantErr, toErrStatus("assistant_snapshot", err.Error()))
 		}
 	}
@@ -254,7 +236,7 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 	if assistantConfig.SseUrl == "" {
 		log.Errorf("Assistant服务SSE URL配置为空，assistantId: %s", req.AssistantId)
 		SSEError(stream, "智能体SSE URL配置错误")
-		saveConversation(ctx, req, "智能体SSE URL配置错误", "")
+		s.saveConversation(ctx, req, "智能体SSE URL配置错误", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "SSE URL配置错误")
 	}
 
@@ -278,28 +260,28 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 	_, err = s.setModelConfigParams(sseReq, assistant)
 	if err != nil {
 		SSEError(stream, "智能体模型配置解析失败")
-		saveConversation(ctx, req, "智能体模型配置解析失败", "")
+		s.saveConversation(ctx, req, "智能体模型配置解析失败", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "模型配置解析失败")
 	}
 
 	// 知识库参数配置
 	if err = s.setKnowledgebaseParams(ctx, sseReq, req, assistant); err != nil {
 		SSEError(stream, "智能体知识库配置解析失败")
-		saveConversation(ctx, req, "智能体知识库配置解析失败", "")
+		s.saveConversation(ctx, req, "智能体知识库配置解析失败", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "知识库配置解析失败")
 	}
 
 	// plugin参数配置
 	if err := s.setToolAndWorkflowParams(ctx, sseReq, req.AssistantId, req.Identity, req.Draft, assistantSnapshot); err != nil {
 		SSEError(stream, "智能体plugin配置错误")
-		saveConversation(ctx, req, "智能体plugin配置错误", "")
+		s.saveConversation(ctx, req, "智能体plugin配置错误", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "plugin配置错误")
 	}
 
 	// MCP 信息参数配置
 	if err = s.setMCPParams(ctx, sseReq, assistant, req.Draft, assistantSnapshot); err != nil {
 		SSEError(stream, "智能体MCP配置解析失败")
-		saveConversation(ctx, req, "智能体MCP配置解析失败", "")
+		s.saveConversation(ctx, req, "智能体MCP配置解析失败", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "MCP配置解析失败")
 	}
 
@@ -314,13 +296,13 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 	if err != nil {
 		log.Errorf("Assistant服务序列化请求体失败，assistantId: %s, error: %v", req.AssistantId, err)
 		SSEError(stream, "请求参数错误")
-		saveConversation(ctx, req, "请求参数错误", "")
+		s.saveConversation(ctx, req, "请求参数错误", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "请求参数错误")
 	}
 	if err = json.Unmarshal(reqBytes, &requestBody); err != nil {
 		log.Errorf("Assistant服务反序列化请求体到map失败，assistantId: %s, error: %v", req.AssistantId, err)
 		SSEError(stream, "请求参数错误")
-		saveConversation(ctx, req, "请求参数错误", "")
+		s.saveConversation(ctx, req, "请求参数错误", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "请求参数错误")
 	}
 
@@ -333,7 +315,7 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 	if err != nil {
 		log.Errorf("Assistant服务序列化最终请求体失败，assistantId: %s, error: %v", req.AssistantId, err)
 		SSEError(stream, "请求参数错误")
-		saveConversation(ctx, req, "请求参数错误", "")
+		s.saveConversation(ctx, req, "请求参数错误", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "请求参数错误")
 	}
 
@@ -351,7 +333,7 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 		log.Errorf("Assistant服务调用智能体能力接口失败，assistantId: %s, uuid: %s, error: %v", req.AssistantId, id, err)
 		if ctx.Err() == nil { //非上下文被取消
 			SSEError(stream, "agent服务异常")
-			saveConversation(ctx, req, "agent服务异常", "")
+			s.saveConversation(ctx, req, "agent服务异常", "")
 		}
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "agent服务异常")
 	}
@@ -362,7 +344,7 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 	if sseResp.StatusCode > http.StatusBadRequest {
 		log.Errorf("Assistant服务智能体能力接口返回错误状态码，assistantId: %s, statusCode: %d", req.AssistantId, sseResp.StatusCode)
 		SSEError(stream, "agent服务异常")
-		saveConversation(ctx, req, "agent服务异常", "")
+		s.saveConversation(ctx, req, "agent服务异常", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "agent服务异常")
 	}
 
@@ -383,7 +365,7 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 			if !req.Trial {
 				// 只有在上下文未被取消的情况下才保存并标记为已保存
 				if ctx.Err() == nil {
-					saveConversation(ctx, req, fullResponse.String(), searchList)
+					s.saveConversation(ctx, req, fullResponse.String(), searchList)
 					conversationSaved = true // 标记已保存
 				}
 				// 如果上下文被取消，不设置conversationSaved，让defer函数处理终止消息
@@ -399,7 +381,7 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 				if hasReadFirstMessage && fullResponse.Len() > 0 {
 					errorMessage = fullResponse.String() + "\n" + errorMessage
 				}
-				saveConversation(ctx, req, errorMessage, searchList)
+				s.saveConversation(ctx, req, errorMessage, searchList)
 				conversationSaved = true // 标记已保存，避免defer中重复保存
 				log.Debugf("Assistant服务保存了中断消息，assistantId: %s, errorMessage: %s", req.AssistantId, errorMessage)
 			}
@@ -496,7 +478,7 @@ func (s *Service) AssistantConversionStreamNew(req *assistant_service.AssistantC
 				terminationMessage = fullResponse.String() + "\n本次回答已被终止"
 			}
 
-			saveConversation(ctx, req, terminationMessage, searchList)
+			s.saveConversation(ctx, req, terminationMessage, searchList)
 			log.Infof("因上下文取消保存终止消息，assistantId: %s, conversationId: %s", req.AssistantId, req.ConversationId)
 		}
 	}()
@@ -511,7 +493,7 @@ func (s *Service) AssistantConversionStreamNew(req *assistant_service.AssistantC
 		if status != nil {
 			log.Errorf("Assistant服务获取智能体信息失败，assistantId: %s, error: %v", req.AssistantId, status)
 			SSEError(stream, "智能体信息获取失败")
-			saveConversation(ctx, req, "智能体信息获取失败", "")
+			s.saveConversation(ctx, req, "智能体信息获取失败", "")
 			return errStatus(errs.Code_AssistantConversationErr, status)
 		}
 	} else {
@@ -519,13 +501,13 @@ func (s *Service) AssistantConversionStreamNew(req *assistant_service.AssistantC
 		if status != nil {
 			log.Errorf("Assistant服务获取智能体快照失败，assistantId: %s, error: %v", req.AssistantId, status)
 			SSEError(stream, "智能体快照获取失败")
-			saveConversation(ctx, req, "智能体快照获取失败", "")
+			s.saveConversation(ctx, req, "智能体快照获取失败", "")
 			return errStatus(errs.Code_AssistantConversationErr, status)
 		}
 
 		if err := jsonToStruct(assistantSnapshot.AssistantInfo, &assistant); err != nil {
 			SSEError(stream, "智能体信息获取失败")
-			saveConversation(ctx, req, "智能体信息获取失败", "")
+			s.saveConversation(ctx, req, "智能体信息获取失败", "")
 			return errStatus(errs.Code_AssistantErr, toErrStatus("assistant_snapshot", err.Error()))
 		}
 	}
@@ -537,7 +519,7 @@ func (s *Service) AssistantConversionStreamNew(req *assistant_service.AssistantC
 	if assistantConfig.SseUrl == "" {
 		log.Errorf("Assistant服务SSE URL配置为空，assistantId: %s", req.AssistantId)
 		SSEError(stream, "智能体SSE URL配置错误")
-		saveConversation(ctx, req, "智能体SSE URL配置错误", "")
+		s.saveConversation(ctx, req, "智能体SSE URL配置错误", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "SSE URL配置错误")
 	}
 
@@ -558,28 +540,28 @@ func (s *Service) AssistantConversionStreamNew(req *assistant_service.AssistantC
 	_, err := s.setModelConfigParams(sseReq, assistant)
 	if err != nil {
 		SSEError(stream, "智能体模型配置解析失败")
-		saveConversation(ctx, req, "智能体模型配置解析失败", "")
+		s.saveConversation(ctx, req, "智能体模型配置解析失败", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "模型配置解析失败")
 	}
 
 	// 知识库参数配置
 	if err = s.setKnowledgebaseParams(ctx, sseReq, req, assistant); err != nil {
 		SSEError(stream, "智能体知识库配置解析失败")
-		saveConversation(ctx, req, "智能体知识库配置解析失败", "")
+		s.saveConversation(ctx, req, "智能体知识库配置解析失败", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "知识库配置解析失败")
 	}
 
 	// plugin参数配置
 	if err := s.setToolAndWorkflowParamsNew(ctx, sseReq, req.AssistantId, req.Identity, req.Draft, assistantSnapshot); err != nil {
 		SSEError(stream, "智能体plugin配置错误")
-		saveConversation(ctx, req, "智能体plugin配置错误", "")
+		s.saveConversation(ctx, req, "智能体plugin配置错误", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "plugin配置错误")
 	}
 
 	// MCP 信息参数配置
 	if err = s.setMCPParams(ctx, sseReq, assistant, req.Draft, assistantSnapshot); err != nil {
 		SSEError(stream, "智能体MCP配置解析失败")
-		saveConversation(ctx, req, "智能体MCP配置解析失败", "")
+		s.saveConversation(ctx, req, "智能体MCP配置解析失败", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "MCP配置解析失败")
 	}
 
@@ -596,7 +578,7 @@ func (s *Service) AssistantConversionStreamNew(req *assistant_service.AssistantC
 	if err != nil {
 		log.Errorf("Assistant服务序列化请求体失败，assistantId: %s, error: %v", req.AssistantId, err)
 		SSEError(stream, "请求参数错误")
-		saveConversation(ctx, req, "请求参数错误", "")
+		s.saveConversation(ctx, req, "请求参数错误", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "请求参数错误")
 	}
 
@@ -614,7 +596,7 @@ func (s *Service) AssistantConversionStreamNew(req *assistant_service.AssistantC
 		log.Errorf("Assistant服务调用智能体能力接口失败，assistantId: %s, uuid: %s, error: %v", req.AssistantId, id, err)
 		if ctx.Err() == nil { //非上下文被取消
 			SSEError(stream, "agent服务异常")
-			saveConversation(ctx, req, "agent服务异常", "")
+			s.saveConversation(ctx, req, "agent服务异常", "")
 		}
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "agent服务异常")
 	}
@@ -625,7 +607,7 @@ func (s *Service) AssistantConversionStreamNew(req *assistant_service.AssistantC
 	if sseResp.StatusCode > http.StatusBadRequest {
 		log.Errorf("Assistant服务智能体能力接口返回错误状态码，assistantId: %s, statusCode: %d", req.AssistantId, sseResp.StatusCode)
 		SSEError(stream, "agent服务异常")
-		saveConversation(ctx, req, "agent服务异常", "")
+		s.saveConversation(ctx, req, "agent服务异常", "")
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "agent服务异常")
 	}
 
@@ -647,7 +629,7 @@ func (s *Service) AssistantConversionStreamNew(req *assistant_service.AssistantC
 			if !req.Trial {
 				// 只有在上下文未被取消的情况下才保存并标记为已保存
 				if ctx.Err() == nil {
-					saveConversation(ctx, req, fullResponse.String(), searchList)
+					s.saveConversation(ctx, req, fullResponse.String(), searchList)
 					conversationSaved = true // 标记已保存
 				}
 				// 如果上下文被取消，不设置conversationSaved，让defer函数处理终止消息
@@ -663,7 +645,7 @@ func (s *Service) AssistantConversionStreamNew(req *assistant_service.AssistantC
 				if hasReadFirstMessage && fullResponse.Len() > 0 {
 					errorMessage = fullResponse.String() + "\n" + errorMessage
 				}
-				saveConversation(ctx, req, errorMessage, searchList)
+				s.saveConversation(ctx, req, errorMessage, searchList)
 				conversationSaved = true // 标记已保存，避免defer中重复保存
 				log.Debugf("Assistant服务保存了中断消息，assistantId: %s, errorMessage: %s", req.AssistantId, errorMessage)
 			}
@@ -942,26 +924,14 @@ func (s *Service) setMCPParams(ctx context.Context, sseReq *config.AgentSSEReque
 
 // 设置历史记录参数
 func (s *Service) setHistoryParams(ctx context.Context, sseReq *config.AgentSSERequest, req *assistant_service.AssistantConversionStreamReq) {
-	fieldConditions := map[string]interface{}{
-		"conversationId": req.ConversationId,
-		"userId":         req.Identity.UserId,
-		"orgId":          req.Identity.OrgId,
-	}
-	indexPattern := "conversation_detail_infos_*"
-
-	documents, _, err := es.Assistant().SearchByFields(ctx, indexPattern, fieldConditions, 0, 1000)
+	details, _, err := s.cli.GetConversationDetailsList(ctx, req.ConversationId, req.Identity.UserId, req.Identity.OrgId, 0, 1000)
 	if err != nil {
 		log.Warnf("Assistant服务查询历史聊天记录失败，conversationId: %s, userId: %s, error: %v", req.ConversationId, req.Identity.UserId, err)
 		return
 	}
 
 	var historyList []config.AssistantConversionHistory
-	for _, doc := range documents {
-		var detail model.ConversationDetails
-		if err := json.Unmarshal(doc, &detail); err != nil {
-			log.Warnf("Assistant服务解析ES历史聊天记录失败: %v", err)
-			continue
-		}
+	for _, detail := range details {
 		history := config.AssistantConversionHistory{
 			Query:         detail.Prompt,
 			UploadFileUrl: extractFileUrlsFromModel(detail.FileInfo),
@@ -996,23 +966,39 @@ func buildRerank(req *assistant_service.AssistantConversionStreamReq, knowledgeb
 }
 
 // 使用独立上下文保存对话的辅助函数
-func saveConversation(originalCtx context.Context, req *assistant_service.AssistantConversionStreamReq, response, searchList string) {
+func (s *Service) saveConversation(originalCtx context.Context, req *assistant_service.AssistantConversionStreamReq, response, searchList string) {
+	var saveCtx context.Context
+
 	// 如果原始上下文已取消，创建一个新的独立上下文
 	if originalCtx.Err() != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		newCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-
-		if err := saveConversationDetailToES(ctx, req, response, searchList); err != nil {
-			log.Errorf("保存聊天记录到ES失败，assistantId: %s, conversationId: %s, error: %v",
-				req.AssistantId, req.ConversationId, err)
-		}
-		return
+		saveCtx = newCtx
+	} else {
+		saveCtx = originalCtx
 	}
 
-	// 原始上下文未取消时，继续使用它
-	if err := saveConversationDetailToES(originalCtx, req, response, searchList); err != nil {
-		log.Errorf("保存聊天记录到ES失败，assistantId: %s, conversationId: %s, error: %v",
-			req.AssistantId, req.ConversationId, err)
+	// 组装ConversationDetails数据
+	nowMilli := time.Now().UnixMilli()
+	conversationDetail := &model.ConversationDetails{
+		AssistantId:    util.MustU32(req.AssistantId),
+		ConversationId: req.ConversationId,
+		Prompt:         req.Prompt,
+		FileInfo:       extractFileInfos(req.FileInfo),
+		Response:       response,
+		SearchList:     searchList,
+		UserId:         req.Identity.UserId,
+		OrgId:          req.Identity.OrgId,
+		CreatedAt:      nowMilli,
+		UpdatedAt:      nowMilli,
+	}
+	// 写入数据库
+	if status := s.cli.CreateConversationDetails(saveCtx, conversationDetail); status != nil {
+		log.Errorf("保存聊天记录到数据库失败，assistantId: %s, conversationId: %s, error: %v",
+			req.AssistantId, req.ConversationId, status.TextKey)
+	} else {
+		log.Infof("成功保存聊天记录到数据库，assistantId: %s, conversationId: %s",
+			req.AssistantId, req.ConversationId)
 	}
 }
 
@@ -1491,38 +1477,6 @@ func HttpRequestLlmStream(ctx context.Context, url, userId, xuid string, body io
 		url, userId, response.StatusCode, response.Header)
 
 	return response, err
-}
-
-// saveConversationDetailToES 保存聊天记录到ES
-func saveConversationDetailToES(ctx context.Context, req *assistant_service.AssistantConversionStreamReq, response, searchList string) error {
-	// 根据当前时间生成索引名称，格式为conversation_detail_infos_YYYYMM
-	now := time.Now()
-	indexName := fmt.Sprintf("conversation_detail_infos_%d%02d", now.Year(), now.Month())
-
-	// 组装ConversationDetails数据
-	nowMilli := now.UnixMilli()
-	conversationDetail := &model.ConversationDetails{
-		Id:             uuid.New().String(),
-		AssistantId:    req.AssistantId,
-		ConversationId: req.ConversationId,
-		Prompt:         req.Prompt,
-		FileInfo:       extractFileInfos(req.FileInfo),
-		Response:       response,
-		SearchList:     searchList,
-		UserId:         req.Identity.UserId,
-		OrgId:          req.Identity.OrgId,
-		CreatedAt:      nowMilli,
-		UpdatedAt:      nowMilli,
-	}
-
-	// 写入ES
-	if err := es.Assistant().IndexDocument(ctx, indexName, conversationDetail); err != nil {
-		return fmt.Errorf("写入ES失败: %v", err)
-	}
-
-	log.Infof("成功保存聊天记录到ES，索引: %s, assistantId: %s, conversationId: %s",
-		indexName, req.AssistantId, req.ConversationId)
-	return nil
 }
 
 // ConversationDeleteByAssistantId 根据智能体ID删除对话

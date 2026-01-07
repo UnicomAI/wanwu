@@ -8,6 +8,7 @@ import (
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/client/model"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -27,10 +28,10 @@ func (s *Service) CreateCustomTool(ctx context.Context, req *mcp_service.CreateC
 	if err := s.cli.CreateCustomTool(ctx, &model.CustomTool{
 		AvatarPath:    req.AvatarPath,
 		Name:          req.Name,
-		Description:   req.Description,
-		Schema:        req.Schema,
-		PrivacyPolicy: req.PrivacyPolicy,
-		AuthJSON:      string(apiAuthBytes),
+		Description:   db.LongText(req.Description),
+		Schema:        db.LongText(req.Schema),
+		PrivacyPolicy: db.LongText(req.PrivacyPolicy),
+		AuthJSON:      db.LongText(apiAuthBytes),
 		UserID:        req.Identity.UserId,
 		OrgID:         req.Identity.OrgId,
 	}); err != nil {
@@ -58,9 +59,9 @@ func (s *Service) GetCustomToolInfo(ctx context.Context, req *mcp_service.GetCus
 		CustomToolId:  util.Int2Str(info.ID),
 		AvatarPath:    info.AvatarPath,
 		Name:          info.Name,
-		Description:   info.Description,
-		Schema:        info.Schema,
-		PrivacyPolicy: info.PrivacyPolicy,
+		Description:   string(info.Description),
+		Schema:        string(info.Schema),
+		PrivacyPolicy: string(info.PrivacyPolicy),
 		ApiAuth:       apiAuth,
 	}, nil
 }
@@ -78,7 +79,7 @@ func (s *Service) GetCustomToolList(ctx context.Context, req *mcp_service.GetCus
 		list = append(list, &mcp_service.GetCustomToolItem{
 			CustomToolId: util.Int2Str(info.ID),
 			Name:         info.Name,
-			Description:  info.Description,
+			Description:  string(info.Description),
 			AvatarPath:   info.AvatarPath,
 		})
 	}
@@ -108,7 +109,7 @@ func (s *Service) GetCustomToolByCustomToolIdList(ctx context.Context, req *mcp_
 		list = append(list, &mcp_service.GetCustomToolItem{
 			CustomToolId: util.Int2Str(info.ID),
 			Name:         info.Name,
-			Description:  info.Description,
+			Description:  string(info.Description),
 		})
 	}
 	return &mcp_service.GetCustomToolListResp{
@@ -131,10 +132,10 @@ func (s *Service) UpdateCustomTool(ctx context.Context, req *mcp_service.UpdateC
 		ID:            util.MustU32(req.CustomToolId),
 		AvatarPath:    req.AvatarPath,
 		Name:          req.Name,
-		Description:   req.Description,
-		Schema:        req.Schema,
-		PrivacyPolicy: req.PrivacyPolicy,
-		AuthJSON:      string(apiAuthBytes),
+		Description:   db.LongText(req.Description),
+		Schema:        db.LongText(req.Schema),
+		PrivacyPolicy: db.LongText(req.PrivacyPolicy),
+		AuthJSON:      db.LongText(apiAuthBytes),
 	}); err != nil {
 		return nil, errStatus(errs.Code_MCPUpdateCustomToolErr, err)
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/util"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	wanwu_util "github.com/UnicomAI/wanwu/pkg/util"
 )
@@ -103,7 +104,7 @@ func buildKnowledgeUrlDoc(importTask *model.KnowledgeImportTask, docInfo *CheckF
 		FilePathMd5:  util.MD5(docInfo.DocInfo.DocUrl),
 		Name:         docInfo.DocInfo.DocName,
 		Status:       docInfo.Status,
-		ErrorMsg:     docInfo.ErrMessage,
+		ErrorMsg:     db.LongText(docInfo.ErrMessage),
 		FileType:     UrlFileType,
 		FileSize:     fileSize,
 		CreatedAt:    time.Now().UnixMilli(),

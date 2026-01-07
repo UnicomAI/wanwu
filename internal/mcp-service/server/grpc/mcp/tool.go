@@ -40,7 +40,7 @@ func (s *Service) GetToolByIdList(ctx context.Context, req *mcp_service.GetToolB
 		list = append(list, &mcp_service.GetCustomToolItem{
 			CustomToolId: util.Int2Str(info.ID),
 			Name:         info.Name,
-			Description:  info.Description,
+			Description:  string(info.Description),
 			AvatarPath:   info.AvatarPath,
 		})
 	}
@@ -75,7 +75,7 @@ func (s *Service) GetToolSelect(ctx context.Context, req *mcp_service.GetToolSel
 		list = append(list, &mcp_service.GetToolItem{
 			ToolId:          util.Int2Str(info.ID),
 			ToolName:        info.Name,
-			Desc:            info.Description,
+			Desc:            string(info.Description),
 			ApiKey:          apiAuth.ApiKeyValue,
 			ToolType:        constant.ToolTypeCustom,
 			NeedApiKeyInput: needApiKeyInput,

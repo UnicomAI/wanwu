@@ -135,7 +135,7 @@ func (s *Service) GetMCPByMCPIdList(ctx context.Context, req *mcp_service.GetMCP
 			serverToolInfos = append(serverToolInfos, &mcp_service.MCPServerInfo{
 				McpServerId: info.MCPServerID,
 				Name:        info.Name,
-				Desc:        info.Description,
+				Desc:        string(info.Description),
 				AvatarPath:  info.AvatarPath,
 				ToolNum:     toolNum,
 			})

@@ -28,6 +28,12 @@ func (c Kafka) LoadType() string {
 }
 
 func (c Kafka) Load() error {
+	if !config.GetConfig().Kafka.Enabled {
+		log.Infof("Kafka is not enabled, skip init")
+		return nil
+	}
+
+	log.Infof("Kafka is enabled, start init")
 	admin, err := initKafkaAdmin()
 	if err != nil {
 		return err
@@ -68,7 +74,7 @@ func initKafkaAdmin() (sarama.ClusterAdmin, error) {
 func initKafka(kafkaAdmin sarama.ClusterAdmin) (sarama.SyncProducer, error) {
 	log.Infof("开始初始化Kafka配置")
 	defaultPartitionNum := config.GetConfig().Kafka.DefaultPartitionNum
-	var defaultTopic = config.GetConfig().Kafka.Topic
+	var defaultTopic = config.GetConfig().Topic.Topic
 	kafkaConfig := sarama.NewConfig()
 	kafkaConfig.ClientID = util.GenUUID()
 	kafkaConfig.Version = sarama.MaxVersion
@@ -137,7 +143,7 @@ func initKafka(kafkaAdmin sarama.ClusterAdmin) (sarama.SyncProducer, error) {
 	return producer, nil
 }
 
-func SendMessage(msg interface{}, topic string) error {
+func sendMessageToKafka(msg interface{}, topic string) error {
 	if msg == nil {
 		return errors.New("message is nil")
 	}

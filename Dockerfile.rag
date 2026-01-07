@@ -1,5 +1,5 @@
 # 使用 rag-base 镜像作为基础镜像
-FROM crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/rag-base:v1.1.1-20251114
+FROM wanwulite/rag-base:v1.1.1
 
 # 设置工作目录
 WORKDIR /model_extend

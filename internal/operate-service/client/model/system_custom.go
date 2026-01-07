@@ -1,5 +1,7 @@
 package model
 
+import "github.com/UnicomAI/wanwu/pkg/db"
+
 type SystemCustom struct {
 	ID        uint32 `gorm:"primary_key"`
 	CreatedAt int64  `gorm:"autoCreateTime:milli"`
@@ -11,5 +13,5 @@ type SystemCustom struct {
 	// Key
 	Key string `gorm:"index:idx_system_custom_key"`
 	// Value
-	Value string `gorm:"type:longtext"`
+	Value db.LongText `gorm:"column:value"`
 }

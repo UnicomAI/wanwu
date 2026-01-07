@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/gromitlee/go-async/pkg/async/async_task"
+	"github.com/UnicomAI/wanwu/async/pkg/async/async_task"
 )
 
 // report impl IReport

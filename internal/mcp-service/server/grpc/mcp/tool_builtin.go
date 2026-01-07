@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/ThinkInAIXYZ/go-mcp/protocol"
+	"github.com/UnicomAI/wanwu/pkg/db"
 
 	"github.com/UnicomAI/wanwu/api/proto/common"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
@@ -72,7 +73,7 @@ func (s *Service) UpsertBuiltinToolAPIKey(ctx context.Context, req *mcp_service.
 	})
 	if info != nil {
 		// update
-		info.AuthJSON = string(apiAuthBytes)
+		info.AuthJSON = db.LongText(apiAuthBytes)
 		if err := s.cli.UpdateBuiltinTool(ctx, info); err != nil {
 			return nil, errStatus(errs.Code_MCPUpdateBuiltinToolErr, err)
 		}
@@ -81,7 +82,7 @@ func (s *Service) UpsertBuiltinToolAPIKey(ctx context.Context, req *mcp_service.
 		// create
 		if err := s.cli.CreateBuiltinTool(ctx, &model.BuiltinTool{
 			ToolSquareId: req.ToolSquareId,
-			AuthJSON:     string(apiAuthBytes),
+			AuthJSON:     db.LongText(apiAuthBytes),
 			UserID:       req.Identity.UserId,
 			OrgID:        req.Identity.OrgId,
 		}); err != nil {

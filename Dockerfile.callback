@@ -1,5 +1,5 @@
 # 基于已构建的基础镜像
-FROM crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/callback-base:v0.3.0-6456201f
+FROM wanwulite/callback-base:v0.3.3
 
 # 工作目录
 WORKDIR /callback

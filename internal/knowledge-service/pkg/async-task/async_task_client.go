@@ -3,10 +3,10 @@ package async_task
 import (
 	"context"
 
+	async "github.com/UnicomAI/wanwu/async"
+	"github.com/UnicomAI/wanwu/async/pkg/async/async_component/pending"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/db"
-	async "github.com/gromitlee/go-async"
-	"github.com/gromitlee/go-async/pkg/async/async_component/pending"
 )
 
 var asyncTaskClient = AsyncTaskClient{}

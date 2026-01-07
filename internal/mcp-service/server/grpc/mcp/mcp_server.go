@@ -12,6 +12,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/mcp-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/config"
 	"github.com/UnicomAI/wanwu/pkg/constant"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -26,7 +27,7 @@ func (s *Service) CreateMCPServer(ctx context.Context, req *mcp_service.CreateMC
 	mcpServer = &model.MCPServer{
 		MCPServerID: mcpServerId,
 		Name:        req.Name,
-		Description: req.Desc,
+		Description: db.LongText(req.Desc),
 		AvatarPath:  req.AvatarPath,
 		UserID:      req.Identity.UserId,
 		OrgID:       req.Identity.OrgId,
@@ -42,7 +43,7 @@ func (s *Service) UpdateMCPServer(ctx context.Context, req *mcp_service.UpdateMC
 	mcpServer := &model.MCPServer{
 		MCPServerID: req.McpServerId,
 		Name:        req.Name,
-		Description: req.Desc,
+		Description: db.LongText(req.Desc),
 		AvatarPath:  req.AvatarPath,
 	}
 	err := s.cli.UpdateMCPServer(ctx, mcpServer)
@@ -61,7 +62,7 @@ func (s *Service) GetMCPServer(ctx context.Context, req *mcp_service.GetMCPServe
 	return &mcp_service.MCPServerInfo{
 		Name:              info.Name,
 		McpServerId:       info.MCPServerID,
-		Desc:              info.Description,
+		Desc:              string(info.Description),
 		AvatarPath:        info.AvatarPath,
 		SseUrl:            sseUrl,
 		SseExample:        sseExample,
@@ -93,7 +94,7 @@ func (s *Service) GetMCPServerList(ctx context.Context, req *mcp_service.GetMCPS
 		list = append(list, &mcp_service.MCPServerInfo{
 			McpServerId:       info.MCPServerID,
 			Name:              info.Name,
-			Desc:              info.Description,
+			Desc:              string(info.Description),
 			AvatarPath:        info.AvatarPath,
 			ToolNum:           toolNum,
 			SseUrl:            sseUrl,
@@ -116,11 +117,11 @@ func (s *Service) GetMCPServerTool(ctx context.Context, req *mcp_service.GetMCPS
 		McpServerToolId: info.MCPServerToolId,
 		McpServerId:     info.McpServerId,
 		Name:            info.Name,
-		Desc:            info.Description,
+		Desc:            string(info.Description),
 		Type:            info.Type,
 		AppToolId:       info.AppToolId,
 		AppToolName:     info.AppToolName,
-		Schema:          info.Schema,
+		Schema:          string(info.Schema),
 		ApiAuth: &common.ApiAuth{
 			AuthType:  info.AuthType,
 			AuthIn:    info.AuthIn,
@@ -137,11 +138,11 @@ func (s *Service) CreateMCPServerTool(ctx context.Context, req *mcp_service.Crea
 			MCPServerToolId: util.GenUUID(),
 			McpServerId:     info.McpServerId,
 			Name:            info.Name,
-			Description:     info.Desc,
+			Description:     db.LongText(info.Desc),
 			Type:            info.Type,
 			AppToolId:       info.AppToolId,
 			AppToolName:     info.AppToolName,
-			Schema:          info.Schema,
+			Schema:          db.LongText(info.Schema),
 			AuthType:        info.ApiAuth.AuthType,
 			AuthIn:          info.ApiAuth.AuthIn,
 			AuthName:        info.ApiAuth.AuthName,
@@ -159,8 +160,8 @@ func (s *Service) UpdateMCPServerTool(ctx context.Context, req *mcp_service.Upda
 	mcpServerTool := &model.MCPServerTool{
 		MCPServerToolId: req.McpServerToolId,
 		Name:            req.Name,
-		Description:     req.Desc,
-		Schema:          req.Schema,
+		Description:     db.LongText(req.Desc),
+		Schema:          db.LongText(req.Schema),
 	}
 	err := s.cli.UpdateMCPServerTool(ctx, mcpServerTool)
 	if err != nil {
@@ -188,11 +189,11 @@ func (s *Service) GetMCPServerToolList(ctx context.Context, req *mcp_service.Get
 			McpServerToolId: info.MCPServerToolId,
 			McpServerId:     info.McpServerId,
 			Name:            info.Name,
-			Desc:            info.Description,
+			Desc:            string(info.Description),
 			Type:            info.Type,
 			AppToolId:       info.AppToolId,
 			AppToolName:     info.AppToolName,
-			Schema:          info.Schema,
+			Schema:          string(info.Schema),
 			ApiAuth: &common.ApiAuth{
 				AuthType:  info.AuthType,
 				AuthIn:    info.AuthIn,

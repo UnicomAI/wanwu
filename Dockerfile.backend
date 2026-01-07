@@ -1,69 +1,29 @@
-ARG WANWU_ARCH
-
 # --- 第一阶段：构建阶段 ---
-FROM --platform=linux/$WANWU_ARCH golang:1.24.6-bookworm AS builder
-ARG WANWU_ARCH
+FROM golang:1.24.6-bookworm AS builder
 WORKDIR /app
+# 复制go.mod和go.sum文件
+COPY go.mod go.sum ./
+
+# 设置GOPROXY
+ARG GOPROXY=https://goproxy.cn,direct
+ENV GOPROXY=${GOPROXY}
+
+# 下载依赖
+RUN go mod download
+
+# 复制源代码
 COPY . .
 
-RUN make build-tidb-setup-$WANWU_ARCH
-RUN make build-bff-$WANWU_ARCH
-RUN make build-iam-$WANWU_ARCH
-RUN make build-model-$WANWU_ARCH
-RUN make build-mcp-$WANWU_ARCH
-RUN make build-knowledge-$WANWU_ARCH
-RUN make build-rag-$WANWU_ARCH
-RUN make build-assistant-$WANWU_ARCH
-RUN make build-agent-$WANWU_ARCH
-RUN make build-app-$WANWU_ARCH
-RUN make build-operate-$WANWU_ARCH
+RUN make build
 
 # --- 第二阶段：运行阶段 ---
-FROM --platform=linux/$WANWU_ARCH golang:1.24-alpine
-ARG WANWU_ARCH
+FROM alpine:3.23
+
 WORKDIR /app
 
+ENV ZONEINFO=/zoneinfo.zip
+ENV TZ=Asia/Shanghai
+
 COPY configs ./configs
-
-# tidb-setup
-COPY --from=builder /app/bin/$WANWU_ARCH/tidb-setup ./bin/tidb-setup
-
-# bff-service
-COPY --from=builder /app/bin/$WANWU_ARCH/bff-service ./bin/bff-service
-EXPOSE 6668
-
-# iam-servie
-COPY --from=builder /app/bin/$WANWU_ARCH/iam-service ./bin/iam-service
-EXPOSE 8888
-
-# model-servie
-COPY --from=builder /app/bin/$WANWU_ARCH/model-service ./bin/model-service
-EXPOSE 8989
-
-# mcp-servie
-COPY --from=builder /app/bin/$WANWU_ARCH/mcp-service ./bin/mcp-service
-EXPOSE 9898
-
-# knowledge-servie
-COPY --from=builder /app/bin/$WANWU_ARCH/knowledge-service ./bin/knowledge-service
-EXPOSE 8889
-
-# rag-servie
-COPY --from=builder /app/bin/$WANWU_ARCH/rag-service ./bin/rag-service
-EXPOSE 9640
-
-# assistant-servie
-COPY --from=builder /app/bin/$WANWU_ARCH/assistant-service ./bin/assistant-service
-EXPOSE 8890
-
-# agent-servie
-COPY --from=builder /app/bin/$WANWU_ARCH/agent-service ./bin/agent-service
-EXPOSE 8990
-
-# app-servie
-COPY --from=builder /app/bin/$WANWU_ARCH/app-service ./bin/app-service
-EXPOSE 9988
-
-# operate-servie
-COPY --from=builder /app/bin/$WANWU_ARCH/operate-service ./bin/operate-service
-EXPOSE 9797
+COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /
+COPY --from=builder /app/bin/ ./bin/

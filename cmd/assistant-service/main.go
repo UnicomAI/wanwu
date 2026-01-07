@@ -13,7 +13,6 @@ import (
 	"github.com/UnicomAI/wanwu/internal/assistant-service/config"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/server/grpc"
 	"github.com/UnicomAI/wanwu/pkg/db"
-	"github.com/UnicomAI/wanwu/pkg/es"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/minio"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
@@ -56,14 +55,6 @@ func main() {
 		log.Fatalf("init redis err: %v", err)
 	}
 
-	if err := es.InitAssistant(ctx, config.Cfg().ES); err != nil {
-		log.Fatalf("init es err: %v", err)
-	}
-
-	if err := es.InitESIndexTemplate(ctx); err != nil {
-		log.Fatalf("init es index template err: %v", err)
-	}
-
 	if err := minio.InitAssistant(ctx, minio.Config{
 		Endpoint: config.Cfg().Minio.EndPoint,
 		User:     config.Cfg().Minio.User,
@@ -98,7 +89,6 @@ func main() {
 	<-sc
 	s.Stop()
 	redis.StopSys()
-	es.StopAssistant()
 }
 
 func versionPrint() {

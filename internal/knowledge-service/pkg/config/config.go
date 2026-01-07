@@ -61,7 +61,9 @@ type Config struct {
 	RpcLog             LogConfig           `mapstructure:"rpc-log" json:"rpc-log" yaml:"rpc-log"`
 	DB                 db.Config           `json:"db" mapstructure:"db"`
 	Minio              *MinioConfig        `mapstructure:"minio" json:"minio"`
+	Topic              *TopicConfig        `mapstructure:"topic" json:"topic"`
 	Kafka              *KafkaConfig        `mapstructure:"kafka" json:"kafka"`
+	Redis              *RedisConfig        `mapstructure:"redis" json:"redis"` // 新增Redis配置
 	UsageLimit         *UsageLimitConfig   `mapstructure:"usage-limit" json:"usageLimit"`
 	RagServer          *RagServerConfig    `mapstructure:"rag-server" json:"ragServer"`
 	KnowledgeDocConfig *KnowledgeDocConfig `json:"knowledge-doc-config" mapstructure:"knowledge-doc-config"`
@@ -96,15 +98,38 @@ type MinioConfig struct {
 	PublicExportBucket string `mapstructure:"public-export-bucket" json:"public-export-bucket"`
 }
 
-type KafkaConfig struct {
-	Addr                string `mapstructure:"addr" json:"addr"`
-	User                string `mapstructure:"user" json:"user"`
-	Password            string `mapstructure:"password" json:"password"`
+type TopicConfig struct {
 	UrlAnalysisTopic    string `mapstructure:"url-analysis-topic" json:"url-analysis-topic"`
 	UrlImportTopic      string `mapstructure:"url-import-topic" json:"url-import-topic"`
 	Topic               string `mapstructure:"topic" json:"topic"`
 	KnowledgeGraphTopic string `mapstructure:"knowledge-graph-topic" json:"knowledge-graph-topic"`
+}
+
+type KafkaConfig struct {
+	Enabled             bool   `mapstructure:"enabled" json:"enabled"`
+	Addr                string `mapstructure:"addr" json:"addr"`
+	User                string `mapstructure:"user" json:"user"`
+	Password            string `mapstructure:"password" json:"password"`
 	DefaultPartitionNum int32  `mapstructure:"default-partition-num" json:"defaultPartitionNum"`
+}
+
+type RedisConfig struct {
+	Enabled      bool     `mapstructure:"enabled" json:"enabled"`
+	Mode         string   `mapstructure:"mode" json:"mode"`              // standalone, sentinel, cluster
+	Addr         []string `mapstructure:"addr" json:"addr"`              // 单节点: ["host:port"]; 哨兵/集群: ["host1:port1", "host2:port2", ...]
+	MasterName   string   `mapstructure:"master-name" json:"masterName"` // 哨兵模式专用
+	Password     string   `mapstructure:"password" json:"password"`
+	DB           int      `mapstructure:"db" json:"db"` // 仅standalone模式有效
+	PoolSize     int      `mapstructure:"pool-size" json:"poolSize"`
+	MinIdleConns int      `mapstructure:"min-idle-conns" json:"minIdleConns"`
+	MaxRetries   int      `mapstructure:"max-retries" json:"maxRetries"`
+	DialTimeout  int      `mapstructure:"dial-timeout" json:"dialTimeout"`   // 秒
+	ReadTimeout  int      `mapstructure:"read-timeout" json:"readTimeout"`   // 秒
+	WriteTimeout int      `mapstructure:"write-timeout" json:"writeTimeout"` // 秒
+	IdleTimeout  int      `mapstructure:"idle-timeout" json:"idleTimeout"`   // 秒
+	// Stream 配置
+	StreamMaxLen       int64 `mapstructure:"stream-max-len" json:"streamMaxLen"`              // Stream 最大长度
+	StreamApproxMaxLen bool  `mapstructure:"stream-approx-max-len" json:"streamApproxMaxLen"` // 是否使用近似最大长度
 }
 
 type UsageLimitConfig struct {

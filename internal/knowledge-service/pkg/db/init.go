@@ -15,7 +15,6 @@ import (
 )
 
 const (
-	knowledgeDBName     = "knowledge_base_service"
 	docMetaTimestampOld = "1757692799000" //2025-09-12 23:59:59
 )
 
@@ -45,11 +44,6 @@ func (c DataBaseClient) Load() error {
 	dbHandle, err := db.New(config.GetConfig().DB)
 	if err != nil {
 		log.Errorf("init knowledge_base_service db err: %v", err)
-		return err
-	}
-	//创建数据库配置
-	err = createDB(dbHandle)
-	if err != nil {
 		return err
 	}
 	//注册表配置
@@ -84,17 +78,6 @@ func (c DataBaseClient) Stop() error {
 	}
 	err = dbHandle.Close()
 	return err
-}
-
-// 创建db
-func createDB(dbClient *gorm.DB) error {
-	err := dbClient.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;", knowledgeDBName)).Error
-	if err != nil {
-		log.Errorf("MySQL创建数据库%s异常: %v", knowledgeDBName, err)
-		return err
-	}
-	log.Infof("MySQL创建数据库成功: %s", knowledgeDBName)
-	return nil
 }
 
 // 注册表信息

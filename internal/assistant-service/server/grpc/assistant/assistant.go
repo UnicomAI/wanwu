@@ -10,6 +10,7 @@ import (
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/config"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -142,7 +143,7 @@ func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_serv
 				Args:    []string{err.Error()},
 			})
 		}
-		existingAssistant.ModelConfig = string(modelConfigBytes)
+		existingAssistant.ModelConfig = db.LongText(modelConfigBytes)
 	}
 
 	// 处理rerankConfig，转换成json字符串之后再更新
@@ -162,7 +163,7 @@ func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_serv
 					Args:    []string{err.Error()},
 				})
 			}
-			existingAssistant.RerankConfig = string(rerankConfigBytes)
+			existingAssistant.RerankConfig = db.LongText(rerankConfigBytes)
 		}
 	}
 
@@ -175,7 +176,7 @@ func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_serv
 				Args:    []string{err.Error()},
 			})
 		}
-		existingAssistant.KnowledgebaseConfig = string(knowledgeBaseConfigBytes)
+		existingAssistant.KnowledgebaseConfig = db.LongText(knowledgeBaseConfigBytes)
 		log.Debugf("knowConfig = %s", existingAssistant.KnowledgebaseConfig)
 	}
 
@@ -188,7 +189,7 @@ func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_serv
 				Args:    []string{err.Error()},
 			})
 		}
-		existingAssistant.SafetyConfig = string(safetyConfigBytes)
+		existingAssistant.SafetyConfig = db.LongText(safetyConfigBytes)
 	}
 
 	// 处理visionConfig，转换成json字符串之后再更新
@@ -200,7 +201,7 @@ func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_serv
 				Args:    []string{err.Error()},
 			})
 		}
-		existingAssistant.VisionConfig = string(visionConfigBytes)
+		existingAssistant.VisionConfig = db.LongText(visionConfigBytes)
 	}
 
 	// 调用client方法更新智能体

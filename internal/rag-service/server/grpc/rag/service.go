@@ -13,6 +13,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/rag-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/rag-service/client/orm"
 	message_builder "github.com/UnicomAI/wanwu/internal/rag-service/service/message-builder"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	http_client "github.com/UnicomAI/wanwu/pkg/http-client"
 	"github.com/UnicomAI/wanwu/pkg/log"
@@ -278,7 +279,7 @@ func (s *Service) UpdateRagConfig(ctx context.Context, in *rag_service.UpdateRag
 			MetaParams:        metaParams,
 			UseGraph:          kbGlobalConfig.UseGraph,
 		},
-		QAKnowledgebaseConfig: qaKnowledgeConfig,
+		QAKnowledgebaseConfig: db.LongText(qaKnowledgeConfig),
 		SensitiveConfig: model.SensitiveConfig{
 			Enable:   in.SensitiveConfig.Enable,
 			TableIds: sensitiveIds,

@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	async "github.com/UnicomAI/wanwu/async"
+	"github.com/UnicomAI/wanwu/async/pkg/async/async_task"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/orm"
 	async_task_pkg "github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/async-task"
@@ -19,8 +21,6 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/service"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
-	async "github.com/gromitlee/go-async"
-	"github.com/gromitlee/go-async/pkg/async/async_task"
 )
 
 const (
@@ -226,7 +226,7 @@ func exportCsvFile(ctx context.Context, knowledgeId string) (int64, int64, strin
 		lineCount = total
 		var records [][]string
 		for _, qaPair := range qaPairs {
-			records = append(records, []string{qaPair.Question, qaPair.Answer})
+			records = append(records, []string{string(qaPair.Question), string(qaPair.Answer)})
 		}
 		err = writer.WriteAll(records)
 		if err != nil {

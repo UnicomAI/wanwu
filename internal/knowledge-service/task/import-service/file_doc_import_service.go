@@ -13,6 +13,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/util"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/service"
 	file_extract "github.com/UnicomAI/wanwu/internal/knowledge-service/task/file-extract"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	wanwu_util "github.com/UnicomAI/wanwu/pkg/util"
 )
@@ -201,7 +202,7 @@ func buildKnowledgeDoc(importTask *model.KnowledgeImportTask, checkFileResult *C
 		UserId:       importTask.UserId,
 		OrgId:        importTask.OrgId,
 		Status:       checkFileResult.Status,
-		ErrorMsg:     checkFileResult.ErrMessage,
+		ErrorMsg:     db.LongText(checkFileResult.ErrMessage),
 	}
 }
 

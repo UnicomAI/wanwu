@@ -214,7 +214,7 @@ func RagImportDoc(ctx context.Context, ragImportDocParams *RagImportDocParams) e
 		Operation: "add",
 		Type:      "doc",
 		Doc:       ragImportDocParams,
-	}, config.GetConfig().Kafka.Topic)
+	}, config.GetConfig().Topic.Topic)
 }
 
 // RagBuildKnowledgeGraph 构建知识库图谱
@@ -223,7 +223,7 @@ func RagBuildKnowledgeGraph(ctx context.Context, ragImportDocParams *RagImportDo
 		Operation: "add",
 		Type:      "doc",
 		Doc:       ragImportDocParams,
-	}, config.GetConfig().Kafka.KnowledgeGraphTopic)
+	}, config.GetConfig().Topic.KnowledgeGraphTopic)
 }
 
 // RagImportUrlDoc 导入url文档

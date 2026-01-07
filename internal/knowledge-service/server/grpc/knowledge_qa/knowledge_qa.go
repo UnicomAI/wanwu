@@ -16,6 +16,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/util"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/server/grpc/knowledge"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/service"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	util2 "github.com/UnicomAI/wanwu/pkg/util"
 	wanwu_util "github.com/UnicomAI/wanwu/pkg/util"
@@ -63,7 +64,7 @@ func (s *Service) GetQAImportTip(ctx context.Context, req *knowledgebase_qa_serv
 			return &knowledgebase_qa_service.QAImportTipResp{
 				KnowledgeId:   req.KnowledgeId,
 				KnowledgeName: knowledge.Name,
-				Message:       "\n" + task.ErrorMsg,
+				Message:       string("\n" + task.ErrorMsg),
 				UploadStatus:  model.KnowledgeQAPairImportFail,
 			}, nil
 		} else if task.Status == model.KnowledgeQAPairImportSuccess {
@@ -188,10 +189,10 @@ func (s *Service) UpdateQAPair(ctx context.Context, req *knowledgebase_qa_servic
 	question := strings.Trim(req.Question, " ")
 	answer := strings.Trim(req.Answer, " ")
 	questionMD5 := util.MD5(question)
-	if qaPair.Question == question && qaPair.Answer == answer {
+	if string(qaPair.Question) == question && string(qaPair.Answer) == answer {
 		return nil, nil
 	}
-	questionOmitempty, answerOmitempty := qaPair.Question == question, qaPair.Answer == answer
+	questionOmitempty, answerOmitempty := string(qaPair.Question) == question, string(qaPair.Answer) == answer
 	// 4.更新问答对
 	qaPair, ragParams := buildUpdateQAPairParams(knowledgeBase, question, answer, questionMD5, req.QaPairId, questionOmitempty, answerOmitempty)
 	err = orm.UpdateKnowledgeQAPair(ctx, qaPair, ragParams)
@@ -501,7 +502,7 @@ func buildQAPairImportTask(req *knowledgebase_qa_service.ImportQAPairReq) (*mode
 		KnowledgeId: req.KnowledgeId,
 		CreatedAt:   time.Now().UnixMilli(),
 		UpdatedAt:   time.Now().UnixMilli(),
-		DocInfo:     string(docImportInfo),
+		DocInfo:     db.LongText(docImportInfo),
 		Status:      model.KnowledgeQAPairImportInit,
 		UserId:      req.UserId,
 		OrgId:       req.OrgId,
@@ -530,11 +531,11 @@ func buildQAPairListResp(list []*model.KnowledgeQAPair, knowledge *model.Knowled
 			retList = append(retList, &knowledgebase_qa_service.QAPairInfo{
 				QaPairId:     item.QAPairId,
 				KnowledgeId:  item.KnowledgeId,
-				Question:     item.Question,
-				Answer:       item.Answer,
+				Question:     string(item.Question),
+				Answer:       string(item.Answer),
 				Status:       int32(item.Status),
 				Switch:       item.Switch,
-				ErrorMsg:     item.ErrorMsg,
+				ErrorMsg:     string(item.ErrorMsg),
 				UploadTime:   util2.Time2Str(item.CreatedAt),
 				UserId:       item.UserId,
 				MetaDataList: buildMetaList(metaMap, item.QAPairId),
@@ -558,8 +559,8 @@ func buildCreateQAPairParams(knowledgeBase *model.KnowledgeBase, question, answe
 	qaPairs := []*model.KnowledgeQAPair{&model.KnowledgeQAPair{
 		QAPairId:    qaPairId,
 		KnowledgeId: knowledgeBase.KnowledgeId,
-		Question:    question,
-		Answer:      answer,
+		Question:    db.LongText(question),
+		Answer:      db.LongText(answer),
 		Status:      model.KnowledgeQAPairImportSuccess,
 		Switch:      true,
 		QuestionMd5: questionMD5,
@@ -583,8 +584,8 @@ func buildCreateQAPairParams(knowledgeBase *model.KnowledgeBase, question, answe
 func buildUpdateQAPairParams(knowledgeBase *model.KnowledgeBase, question, answer, questionMD5, qaPairId string, qesOmi, ansOmi bool) (*model.KnowledgeQAPair, *service.RagUpdateQAPairParams) {
 	qaPair := &model.KnowledgeQAPair{
 		QAPairId:    qaPairId,
-		Question:    question,
-		Answer:      answer,
+		Question:    db.LongText(question),
+		Answer:      db.LongText(answer),
 		QuestionMd5: questionMD5,
 		KnowledgeId: knowledgeBase.KnowledgeId,
 	}
@@ -628,11 +629,11 @@ func buildQAPairInfo(item *model.KnowledgeQAPair) *knowledgebase_qa_service.QAPa
 	return &knowledgebase_qa_service.QAPairInfo{
 		QaPairId:    item.QAPairId,
 		KnowledgeId: item.KnowledgeId,
-		Question:    item.Question,
-		Answer:      item.Answer,
+		Question:    string(item.Question),
+		Answer:      string(item.Answer),
 		UploadTime:  util2.Time2Str(item.CreatedAt),
 		Status:      int32(item.Status),
-		ErrorMsg:    item.ErrorMsg,
+		ErrorMsg:    string(item.ErrorMsg),
 		Switch:      item.Switch,
 		UserId:      item.UserId,
 	}

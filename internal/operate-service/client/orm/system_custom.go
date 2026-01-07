@@ -8,8 +8,10 @@ import (
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/operate-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/operate-service/client/orm/sqlopt"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (c *Client) CreateSystemCustom(ctx context.Context, orgID, userID string, key SystemCustomKey, mode SystemCustomMode, custom SystemCustom) *err_code.Status {
@@ -22,7 +24,7 @@ func (c *Client) CreateSystemCustom(ctx context.Context, orgID, userID string, k
 			OrgID:  orgID,
 			UserID: userID,
 			Key:    key2WithModeKey(key, mode),
-			Value:  mergeCustomFields(key, model.SystemCustom{}, custom),
+			Value:  db.LongText(mergeCustomFields(key, model.SystemCustom{}, custom)),
 		}).Error; err != nil {
 			return toErrStatus("ope_system_custom_create", string(key), err.Error())
 		}
@@ -46,8 +48,12 @@ func (c *Client) GetSystemCustom(ctx context.Context, mode SystemCustomMode) (*S
 	}
 
 	var records []model.SystemCustom
+	expr := clause.Expr{
+		SQL:  "? IN (?)",
+		Vars: []interface{}{clause.Column{Name: "key"}, keys},
+	}
 	if err := c.db.WithContext(ctx).
-		Where("`key` IN (?)", keys).
+		Where(expr).
 		Find(&records).Error; err != nil {
 		return nil, toErrStatus("ope_system_custom_get", err.Error())
 	}

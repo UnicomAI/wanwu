@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"sync"
 
+	async "github.com/UnicomAI/wanwu/async"
+	"github.com/UnicomAI/wanwu/async/pkg/async/async_task"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/orm"
 	async_task_pkg "github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/async-task"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
-	async "github.com/gromitlee/go-async"
-	"github.com/gromitlee/go-async/pkg/async/async_task"
 	"gorm.io/gorm"
 )
 

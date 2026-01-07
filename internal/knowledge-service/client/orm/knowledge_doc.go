@@ -309,7 +309,7 @@ func CreateKnowledgeDoc(ctx context.Context, doc *model.KnowledgeDoc, importTask
 			return nil
 		}
 		//构造知识库图谱
-		knowledgeGraph := BuildKnowledgeGraph(knowledge.KnowledgeGraph)
+		knowledgeGraph := BuildKnowledgeGraph(string(knowledge.KnowledgeGraph))
 		//2.rag文档导入
 		return service.RagImportDoc(ctx, &service.RagImportDocParams{
 			DocId:                 doc.DocId,
@@ -377,7 +377,7 @@ func ReImportKnowledgeDoc(ctx context.Context, doc *model.KnowledgeDoc, importTa
 			return nil
 		}
 		//构造知识库图谱
-		knowledgeGraph := BuildKnowledgeGraph(knowledge.KnowledgeGraph)
+		knowledgeGraph := BuildKnowledgeGraph(string(knowledge.KnowledgeGraph))
 		//2.rag文档导入
 		return service.RagImportDoc(ctx, &service.RagImportDocParams{
 			DocId:                 doc.DocId,
@@ -681,7 +681,7 @@ func CreateKnowledgeUrlDoc(ctx context.Context, doc *model.KnowledgeDoc, importT
 		//3.rag 文档开始导入操作
 		var fileName = service.RebuildFileName(doc.DocId, doc.FileType, doc.Name)
 		//构造知识库图谱
-		knowledgeGraph := BuildKnowledgeGraph(knowledge.KnowledgeGraph)
+		knowledgeGraph := BuildKnowledgeGraph(string(knowledge.KnowledgeGraph))
 		return service.RagImportDoc(ctx, &service.RagImportDocParams{
 			DocId:                 doc.DocId,
 			KnowledgeName:         knowledge.RagName,

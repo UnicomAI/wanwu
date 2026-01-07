@@ -14,7 +14,6 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/disintegration/imaging v1.6.2
 	github.com/eino-contrib/jsonschema v1.0.2
-	github.com/elastic/go-elasticsearch/v8 v8.18.0
 	github.com/getkin/kin-openapi v0.118.0
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-ego/riot v0.0.0-20201013133145-f4c30acb3704
@@ -26,7 +25,6 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/gromitlee/access v1.1.0
 	github.com/gromitlee/depend/v2 v2.0.0
-	github.com/gromitlee/go-async v1.0.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/hashicorp/go-version v1.8.0
 	github.com/mark3labs/mcp-go v0.43.0

@@ -16,6 +16,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/util"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/service"
 	import_service "github.com/UnicomAI/wanwu/internal/knowledge-service/task/import-service"
+	db2 "github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	pkg_util "github.com/UnicomAI/wanwu/pkg/util"
 	util2 "github.com/UnicomAI/wanwu/pkg/util"
@@ -542,7 +543,7 @@ func (s *Service) GetDocCategoryUploadTip(ctx context.Context, req *knowledgebas
 			return &knowledgebase_doc_service.DocImportTipResp{
 				KnowledgeId:   req.KnowledgeId,
 				KnowledgeName: knowledge.Name,
-				Message:       "\n" + task.ErrorMsg,
+				Message:       string("\n" + task.ErrorMsg),
 				UploadStatus:  DocImportError,
 			}, nil
 		} else if task.Status == model.KnowledgeImportFinish {
@@ -697,7 +698,7 @@ func buildDocInfo(item *model.KnowledgeDoc, segmentConfigMap map[string]*model.S
 		KnowledgeId:   item.KnowledgeId,
 		UploadTime:    util2.Time2Str(item.CreatedAt),
 		Status:        int32(util.BuildDocRespStatus(item.Status)),
-		ErrorMsg:      item.ErrorMsg,
+		ErrorMsg:      string(item.ErrorMsg),
 		SegmentMethod: buildSegmentMethod(item, segmentConfigMap),
 		UserId:        item.UserId,
 		GraphStatus:   int32(status),
@@ -842,7 +843,7 @@ func buildImportTask(req *knowledgebase_doc_service.ImportDocReq) (*model.Knowle
 		DocAnalyzer:   string(analyzer),
 		CreatedAt:     time.Now().UnixMilli(),
 		UpdatedAt:     time.Now().UnixMilli(),
-		DocInfo:       string(docImportInfo),
+		DocInfo:       db2.LongText(docImportInfo),
 		OcrModelId:    req.OcrModelId,
 		DocPreProcess: string(preprocess),
 		MetaData:      docImportMetaData,
@@ -899,7 +900,7 @@ func buildReImportTask(req *knowledgebase_doc_service.UpdateDocImportConfigReq, 
 		DocAnalyzer:   string(analyzer),
 		CreatedAt:     time.Now().UnixMilli(),
 		UpdatedAt:     time.Now().UnixMilli(),
-		DocInfo:       string(docImportInfo),
+		DocInfo:       db2.LongText(docImportInfo),
 		OcrModelId:    docImportReq.OcrModelId,
 		DocPreProcess: string(preprocess),
 		MetaData:      "",
@@ -933,7 +934,7 @@ func buildReimportTask(req *knowledgebase_doc_service.ReImportDocReq, task *mode
 		DocAnalyzer:   task.DocAnalyzer,
 		CreatedAt:     time.Now().UnixMilli(),
 		UpdatedAt:     time.Now().UnixMilli(),
-		DocInfo:       string(docImportInfo),
+		DocInfo:       db2.LongText(docImportInfo),
 		OcrModelId:    task.OcrModelId,
 		DocPreProcess: task.DocPreProcess,
 		MetaData:      "",
@@ -1223,7 +1224,7 @@ func buildKnowledgeInfo(ctx context.Context, docId string) (*model.KnowledgeBase
 	}
 
 	//构造知识库图谱
-	knowledgeGraph := orm.BuildKnowledgeGraph(knowledge.KnowledgeGraph)
+	knowledgeGraph := orm.BuildKnowledgeGraph(string(knowledge.KnowledgeGraph))
 	return knowledge, doc, knowledgeGraph, nil
 }
 

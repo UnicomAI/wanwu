@@ -6,6 +6,7 @@ import (
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 	"github.com/UnicomAI/wanwu/internal/model-service/client/model"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -20,12 +21,12 @@ func (s *Service) ImportModel(ctx context.Context, req *model_service.ModelInfo)
 		ModelIconPath:  req.ModelIconPath,
 		IsActive:       req.IsActive,
 		PublishDate:    req.PublishDate,
-		ProviderConfig: req.ProviderConfig,
+		ProviderConfig: db.LongText(req.ProviderConfig),
 		PublicModel: model.PublicModel{
 			OrgID:  req.OrgId,
 			UserID: req.UserId,
 		},
-		ModelDesc: req.ModelDesc,
+		ModelDesc: db.LongText(req.ModelDesc),
 	}); err != nil {
 		return nil, errStatus(errs.Code_ModelImportedModel, err)
 	}
@@ -41,8 +42,8 @@ func (s *Service) UpdateModel(ctx context.Context, req *model_service.ModelInfo)
 		DisplayName:    req.DisplayName,
 		ModelIconPath:  req.ModelIconPath,
 		PublishDate:    req.PublishDate,
-		ProviderConfig: req.ProviderConfig,
-		ModelDesc:      req.ModelDesc,
+		ProviderConfig: db.LongText(req.ProviderConfig),
+		ModelDesc:      db.LongText(req.ModelDesc),
 		PublicModel: model.PublicModel{
 			OrgID:  req.OrgId,
 			UserID: req.UserId,
@@ -156,12 +157,12 @@ func toModelInfo(modelInfo *model.ModelImported) *model_service.ModelInfo {
 		ModelIconPath:  modelInfo.ModelIconPath,
 		IsActive:       modelInfo.IsActive,
 		PublishDate:    modelInfo.PublishDate,
-		ProviderConfig: modelInfo.ProviderConfig,
+		ProviderConfig: string(modelInfo.ProviderConfig),
 		UserId:         modelInfo.UserID,
 		OrgId:          modelInfo.OrgID,
 		CreatedAt:      modelInfo.CreatedAt,
 		UpdatedAt:      modelInfo.UpdatedAt,
-		ModelDesc:      modelInfo.ModelDesc,
+		ModelDesc:      string(modelInfo.ModelDesc),
 	}
 }
 
