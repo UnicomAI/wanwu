@@ -345,6 +345,34 @@ export default {
       loading: false,
     };
   },
+  watch: {
+    'createForm.modelType': {
+      handler(newVal) {
+        if (!this.isEdit) {
+          const defaultUrl =
+            this.typeObj.inferUrl[newVal] ||
+            this.typeObj.inferUrl[this.provider.key];
+          if (defaultUrl && !this.createForm.endpointUrl) {
+            this.createForm.endpointUrl = defaultUrl;
+          }
+        }
+      },
+      immediate: false,
+    },
+    'provider.key': {
+      handler(newVal) {
+        if (!this.isEdit && newVal) {
+          const defaultUrl =
+            this.typeObj.inferUrl[this.createForm.modelType] ||
+            this.typeObj.inferUrl[newVal];
+          if (defaultUrl && !this.createForm.endpointUrl) {
+            this.createForm.endpointUrl = defaultUrl;
+          }
+        }
+      },
+      immediate: false,
+    },
+  },
   methods: {
     avatarSrc,
     uploadAvatar(file, key) {
@@ -377,6 +405,17 @@ export default {
       this.createForm.modelType = this.modelType[0]
         ? this.modelType[0].key || LLM
         : LLM;
+
+      // 自动填入推理URL默认值
+      if (!row) {
+        const defaultUrl =
+          this.typeObj.inferUrl[this.createForm.modelType] ||
+          this.typeObj.inferUrl[title];
+        if (defaultUrl) {
+          this.createForm.endpointUrl = defaultUrl;
+        }
+      }
+
       this.dialogVisible = true;
 
       this.isEdit = Boolean(row);
