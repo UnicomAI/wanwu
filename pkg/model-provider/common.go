@@ -27,6 +27,7 @@ const (
 	ProviderQianfan          = "QianFan"
 	ProviderDeepSeek         = "DeepSeek"
 	ProviderJina             = "Jina"
+	ProviderMiniMax          = "MiniMax"
 )
 
 var (
