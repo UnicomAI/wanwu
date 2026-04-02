@@ -196,16 +196,19 @@ func (a *acMgr) contentMatch(content string, dicts []DictConfig, returnFirstMatc
 	for _, cfg := range dicts {
 		dictKey := getDictKey(cfg.DictID, cfg.Version)
 		if dict, exists := dictsCopy[dictKey]; exists {
-			matches := dict.Matcher.MatchThreadSafe(contentBytes)
+			matches := dict.Matcher.MatchThreadSafeWithPos(contentBytes)
 			if len(matches) > 0 {
-				for _, idx := range matches {
+				for _, match := range matches {
+					if !isWordBoundaryMatch(contentBytes, match.Start, match.End, match.WordBytes) {
+						continue
+					}
 					matchResult := MatchResult{
 						DictCfg: DictConfig{
 							DictID:  dict.DictID,
 							Version: dict.Version,
 						},
-						WordIndex: idx,
-						Word:      dict.Matcher.getOriginalWord(idx),
+						WordIndex: match.Index,
+						Word:      dict.Matcher.getOriginalWord(match.Index),
 						Reply:     dict.Reply,
 					}
 					results = append(results, matchResult)

@@ -13,7 +13,16 @@ import (
 	"container/list"
 	"sync"
 	"sync/atomic"
+	"unicode"
+	"unicode/utf8"
 )
+
+type MatchPos struct {
+	Index     int
+	Start     int
+	End       int
+	WordBytes []byte
+}
 
 // A node in the trie structure used to implement Aho-Corasick
 type node struct {
@@ -233,6 +242,19 @@ func (m *Matcher) Match(in []byte) []int {
 	})
 }
 
+// MatchWithPos is like Match but returns position information for each match
+func (m *Matcher) MatchWithPos(in []byte) []MatchPos {
+	m.counter++
+
+	return matchWithPos(in, m.root, func(f *node) bool {
+		if f.counter != m.counter {
+			f.counter = m.counter
+			return true
+		}
+		return false
+	})
+}
+
 // match is a core of matching logic. Accepts input byte slice, starting node
 // and a func to check whether should we include result into response or not
 func match(in []byte, n *node, unique func(f *node) bool) []int {
@@ -274,6 +296,53 @@ func match(in []byte, n *node, unique func(f *node) bool) []int {
 	return hits
 }
 
+// matchWithPos is like match but returns position information
+func matchWithPos(in []byte, n *node, unique func(f *node) bool) []MatchPos {
+	var hits []MatchPos
+
+	for pos, b := range in {
+		c := int(b)
+
+		if !n.root && n.child[c] == nil {
+			n = n.fails[c]
+		}
+
+		if n.child[c] != nil {
+			f := n.child[c]
+			n = f
+
+			if f.output {
+				if unique(f) {
+					start := pos - len(f.b) + 1
+					hits = append(hits, MatchPos{
+						Index:     f.index,
+						Start:     start,
+						End:       pos + 1,
+						WordBytes: f.b,
+					})
+				}
+			}
+
+			for !f.suffix.root {
+				f = f.suffix
+				if unique(f) {
+					start := pos - len(f.b) + 1
+					hits = append(hits, MatchPos{
+						Index:     f.index,
+						Start:     start,
+						End:       pos + 1,
+						WordBytes: f.b,
+					})
+				} else {
+					break
+				}
+			}
+		}
+	}
+
+	return hits
+}
+
 // MatchThreadSafe provides the same result as Match() but does it in a
 // thread-safe manner. Uses a sync.Pool of haystacks to track the uniqueness of
 // the result items.
@@ -303,6 +372,72 @@ func (m *Matcher) MatchThreadSafe(in []byte) []int {
 
 	m.heap.Put(heap)
 	return hits
+}
+
+// MatchThreadSafeWithPos is like MatchThreadSafe but returns position information
+func (m *Matcher) MatchThreadSafeWithPos(in []byte) []MatchPos {
+	var (
+		heap map[int]uint64
+	)
+
+	generation := atomic.AddUint64(&m.counter, 1)
+	n := m.root
+	// read the matcher's heap
+	item := m.heap.Get()
+	if item == nil {
+		heap = make(map[int]uint64, len(m.trie))
+	} else {
+		heap = item.(map[int]uint64)
+	}
+
+	hits := matchWithPos(in, n, func(f *node) bool {
+		g := heap[f.index]
+		if g != generation {
+			heap[f.index] = generation
+			return true
+		}
+		return false
+	})
+
+	m.heap.Put(heap)
+	return hits
+}
+
+// isWordBoundary checks if a byte is a word boundary (not a letter or digit)
+func isWordBoundary(b byte) bool {
+	return !unicode.IsLetter(rune(b)) && !unicode.IsDigit(rune(b))
+}
+
+// containsChinese checks if a byte slice contains Chinese characters
+func containsChinese(b []byte) bool {
+	for len(b) > 0 {
+		r, size := utf8.DecodeRune(b)
+		if r == utf8.RuneError {
+			return false
+		}
+		if unicode.Is(unicode.Han, r) {
+			return true
+		}
+		b = b[size:]
+	}
+	return false
+}
+
+// isWordBoundaryMatch checks if the match is at word boundaries (for non-Chinese words)
+func isWordBoundaryMatch(content []byte, start, end int, wordBytes []byte) bool {
+	if containsChinese(wordBytes) {
+		return true
+	}
+
+	if start > 0 && !isWordBoundary(content[start-1]) {
+		return false
+	}
+
+	if end < len(content) && !isWordBoundary(content[end]) {
+		return false
+	}
+
+	return true
 }
 
 // Contains returns true if any string matches. This can be faster
