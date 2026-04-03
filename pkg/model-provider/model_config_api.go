@@ -10,6 +10,7 @@ import (
 	mp_huoshan "github.com/UnicomAI/wanwu/pkg/model-provider/mp-huoshan"
 	mp_infini "github.com/UnicomAI/wanwu/pkg/model-provider/mp-infini"
 	mp_jina "github.com/UnicomAI/wanwu/pkg/model-provider/mp-jina"
+	mp_minimax "github.com/UnicomAI/wanwu/pkg/model-provider/mp-minimax"
 	mp_ollama "github.com/UnicomAI/wanwu/pkg/model-provider/mp-ollama"
 	mp_openai_compatible "github.com/UnicomAI/wanwu/pkg/model-provider/mp-openai-compatible"
 	mp_qianfan "github.com/UnicomAI/wanwu/pkg/model-provider/mp-qianfan"
@@ -322,6 +323,17 @@ func ToModelTags(provider, modelType, cfg string) ([]mp_common.Tag, error) {
 		default:
 			return nil, fmt.Errorf("ToModelTags:invalid provider %v model type %v", provider, modelType)
 		}
+	case ProviderMiniMax:
+		switch modelType {
+		case ModelTypeLLM:
+			llm := &mp_minimax.LLM{}
+			if err := json.Unmarshal([]byte(cfg), llm); err != nil {
+				return nil, fmt.Errorf("unmarshal model config err: %v", err)
+			}
+			tags = llm.Tags()
+		default:
+			return nil, fmt.Errorf("ToModelTags:invalid provider %v model type %v", provider, modelType)
+		}
 	default:
 		return nil, fmt.Errorf("ToModelTags:invalid provider: %v", provider)
 	}
@@ -470,6 +482,13 @@ func ToModelConfig(provider, modelType, cfg string) (interface{}, error) {
 		default:
 			return nil, fmt.Errorf("ToModelConfig:invalid provider %v model type %v", provider, modelType)
 		}
+	case ProviderMiniMax:
+		switch modelType {
+		case ModelTypeLLM:
+			ret = &mp_minimax.LLM{}
+		default:
+			return nil, fmt.Errorf("ToModelConfig:invalid provider %v model type %v", provider, modelType)
+		}
 	default:
 		return nil, fmt.Errorf("ToModelConfig:invalid provider: %v", provider)
 	}
@@ -489,6 +508,7 @@ type ProviderModelConfig struct {
 	ProviderInfini           ProviderModelByInfini           `json:"providerInfini"`
 	ProviderQianFan          ProviderModelByQianFan          `json:"providerQianFan"`
 	ProviderDeepSeek         ProviderModelByDeepSeek         `json:"providerDeepSeek"`
+	ProviderMiniMax          ProviderModelByMiniMax          `json:"providerMiniMax"`
 }
 
 type ProviderModelByOpenAICompatible struct {
@@ -536,4 +556,8 @@ type ProviderModelByQianFan struct {
 
 type ProviderModelByDeepSeek struct {
 	Llm mp_deepseek.LLM `json:"llm"`
+}
+
+type ProviderModelByMiniMax struct {
+	Llm mp_minimax.LLM `json:"llm"`
 }
