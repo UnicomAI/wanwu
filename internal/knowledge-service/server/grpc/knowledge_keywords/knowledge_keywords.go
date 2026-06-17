@@ -110,6 +110,13 @@ func (s *Service) GetKnowledgeKeywordsDetail(ctx context.Context, req *knowledge
 		log.Errorf(fmt.Sprintf("GetKnowledgeKeywords 失败(%v)  参数(%v)", err, req))
 		return nil, util.ErrCode(errs.Code_KnowledgeKeywordsInfoFailed)
 	}
+	// 校验关键词归属：仅允许访问本租户(org+user)的关键词，避免按 id 跨租户越权读取。
+	// 列表/重复校验接口已通过 WithPermit(org,user) 做此限制，此 detail 接口此前遗漏。
+	if keywords.OrgId != req.Identity.OrgId || keywords.UserId != req.Identity.UserId {
+		log.Errorf(fmt.Sprintf("GetKnowledgeKeywordsDetail 跨租户越权: keyword(org=%v,user=%v) caller(org=%v,user=%v)",
+			keywords.OrgId, keywords.UserId, req.Identity.OrgId, req.Identity.UserId))
+		return nil, util.ErrCode(errs.Code_KnowledgeKeywordsInfoFailed)
+	}
 	// 构造返回体
 	keywordsInfo, err := buildKeywordsInfo(ctx, keywords)
 	if err != nil {
