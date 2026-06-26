@@ -8,6 +8,7 @@
     :visibleVariableConfig="true"
     :visibleHistory="visibleHistory"
     :historyList="historyList"
+    :visibleDownload="visibleDownload"
     @init="initData"
     @back="handleBack"
     @download="handleDownload"
@@ -66,6 +67,11 @@ export default {
   computed: {
     visibleHistory() {
       return this.type === SKILLADDED;
+    },
+    // 作者自己的 skill 始终可下载；资源库 acquired skill 闭源则隐藏下载按钮
+    visibleDownload() {
+      if (this.type === SKILLCUSTOM) return true;
+      return !this.detail.isClosedSource;
     },
   },
   created() {

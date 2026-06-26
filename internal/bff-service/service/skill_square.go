@@ -11,6 +11,7 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -101,6 +102,18 @@ func GetSquareShareSkillList(ctx *gin.Context, userId, orgId, name string) (*res
 		}
 	}
 
+	// 批量查询最新 publish 以判断闭源标记
+	closedMap := make(map[string]bool)
+	if len(skillIds) > 0 {
+		if pubResp, pErr := mcp.GetPublishCustomSkillByIDList(ctx.Request.Context(), &mcp_service.GetPublishCustomSkillByIDListReq{SkillIdList: skillIds}); pErr == nil && pubResp != nil {
+			for _, p := range pubResp.GetList() {
+				if p != nil && p.GetSkill() != nil {
+					closedMap[p.GetSkill().GetSkillId()] = util.IsSkillClosedSource(p.GetMarkdown())
+				}
+			}
+		}
+	}
+
 	detailByID := make(map[string]*mcp_service.CustomSkill, len(detailResp.GetSkillDetails()))
 	for _, skill := range detailResp.GetSkillDetails() {
 		detailByID[skill.GetSkillId()] = skill
@@ -115,7 +128,7 @@ func GetSquareShareSkillList(ctx *gin.Context, userId, orgId, name string) (*res
 		if name != "" && !strings.Contains(skill.GetName(), name) {
 			continue
 		}
-		list = append(list, toSharedSkillInfo(ctx, skill, acquiredMap[skillId]))
+		list = append(list, toSharedSkillInfo(ctx, skill, acquiredMap[skillId], closedMap[skillId]))
 	}
 	return &response.ListResult{
 		List:  list,
@@ -165,7 +178,13 @@ func GetSquareShareSkillDetail(ctx *gin.Context, userId, orgId, skillId string) 
 		isAcquired = acquiredResp.GetAcquiredMap()[skillId]
 	}
 
-	return toSharedSkillDetail(ctx, publish, isAcquired), nil
+	detail := toSharedSkillDetail(ctx, publish, isAcquired)
+	// 闭源 skill：隐藏正文（保留 frontmatter 以便前端展示 name/description）
+	if util.IsSkillClosedSource(publish.GetMarkdown()) {
+		detail.IsClosedSource = true
+		detail.SkillMarkdown = stripSkillBody(detail.SkillMarkdown)
+	}
+	return detail, nil
 }
 
 func DownloadSquareShareSkill(ctx *gin.Context, skillId string) ([]byte, error) {
@@ -178,6 +197,10 @@ func DownloadSquareShareSkill(ctx *gin.Context, skillId string) ([]byte, error) 
 	}
 	if publish.GetObjectPath() == "" {
 		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "skill_publish_package_not_available", "latest skill package objectPath is empty")
+	}
+	// 闭源 skill：禁止下载 ZIP
+	if util.IsSkillClosedSource(publish.GetMarkdown()) {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "skill_closed_source_download_forbidden", "该 skill 为闭源，不支持下载")
 	}
 	// 递增下载计数
 	incrementCustomSkillDownload(ctx, skillId)
@@ -317,7 +340,7 @@ func toSharedSkillDetail(ctx *gin.Context, publish *mcp_service.PublishCustomSki
 	}
 }
 
-func toSharedSkillInfo(ctx *gin.Context, skill *mcp_service.CustomSkill, isAcquired bool) *response.SharedSkillInfo {
+func toSharedSkillInfo(ctx *gin.Context, skill *mcp_service.CustomSkill, isAcquired, isClosedSource bool) *response.SharedSkillInfo {
 	return &response.SharedSkillInfo{
 		SkillBasicInfo: response.SkillBasicInfo{
 			SkillId: skill.GetSkillId(),
@@ -326,9 +349,10 @@ func toSharedSkillInfo(ctx *gin.Context, skill *mcp_service.CustomSkill, isAcqui
 			Author:  skill.GetAuthor(),
 			Desc:    skill.GetDesc(),
 		},
-		IsShared:      isAcquired,
-		DownloadCount: skill.GetDownloadCount(),
-		AcquiredCount: skill.GetAcquiredCount(),
+		IsShared:       isAcquired,
+		DownloadCount:  skill.GetDownloadCount(),
+		AcquiredCount:  skill.GetAcquiredCount(),
+		IsClosedSource: isClosedSource,
 	}
 }
 
@@ -349,4 +373,18 @@ func toSquareCreatedSkillItem(ctx *gin.Context, skill *mcp_service.CustomSkill, 
 		DownloadCount: skill.GetDownloadCount(),
 		AcquiredCount: skill.GetAcquiredCount(),
 	}
+}
+
+// stripSkillBody 移除 markdown 正文，仅保留 frontmatter（用于闭源 skill 的广场展示）。
+func stripSkillBody(markdown string) string {
+	markdown = strings.TrimSpace(markdown)
+	if !strings.HasPrefix(markdown, "---") {
+		return ""
+	}
+	rest := markdown[3:]
+	endIdx := strings.Index(rest, "\n---")
+	if endIdx == -1 {
+		return ""
+	}
+	return markdown[:3+endIdx+4] // 含闭合 "---"
 }

@@ -95,7 +95,7 @@ func GetAppVersionList(ctx *gin.Context, userID, orgID, appType, appID string) (
 	}, nil
 }
 
-func UpdateAppVersion(ctx *gin.Context, userID, orgID, appType, appID, description, publishType string) error {
+func UpdateAppVersion(ctx *gin.Context, userID, orgID, appType, appID, description, publishType string, isClosedSource *bool) error {
 	switch appType {
 	case constant.AppTypeWorkflow, constant.AppTypeChatflow:
 		if err := UpdateWorkflowVersionDesc(ctx, appID, description); err != nil {
@@ -126,9 +126,18 @@ func UpdateAppVersion(ctx *gin.Context, userID, orgID, appType, appID, descripti
 			return err
 		}
 	case constant.AppTypeSkill:
+		markdown := ""
+		if isClosedSource != nil {
+			latest, err := mcp.GetPublishCustomSkillByLatest(ctx.Request.Context(), &mcp_service.GetPublishCustomSkillByLatestReq{SkillId: appID})
+			if err != nil {
+				return err
+			}
+			markdown = util.InjectClosedSourceFlag(latest.GetMarkdown(), *isClosedSource)
+		}
 		_, err := mcp.UpdatePublishCustomSkill(ctx.Request.Context(), &mcp_service.UpdatePublishCustomSkillReq{
 			SkillId:     appID,
 			VersionDesc: description,
+			Markdown:    markdown,
 		})
 		if err != nil {
 			return err
@@ -223,6 +232,7 @@ func GetAppLatestVersion(ctx *gin.Context, userID, orgID, appType, appID string)
 		ret.Version = resp.GetVersion()
 		ret.Desc = resp.GetVersionDesc()
 		ret.CreatedAt = util.Time2Str(resp.GetCreatedAt())
+		ret.IsClosedSource = util.IsSkillClosedSource(resp.GetMarkdown())
 
 	default:
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFAppType)

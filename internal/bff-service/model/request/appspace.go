@@ -26,11 +26,12 @@ type GetAppSpaceAppListByTypeRequest struct {
 }
 
 type PublishAppRequest struct {
-	AppId       string `json:"appId" validate:"required"`   // 应用ID
-	AppType     string `json:"appType" validate:"required"` // 应用类型
-	Version     string `json:"version" validate:"required"`
-	Desc        string `json:"desc"`                            // 描述
-	PublishType string `json:"publishType" validate:"required"` // 发布类型(public:系统公开发布,organization:组织公开发布,private:私密发布)
+	AppId          string `json:"appId" validate:"required"`   // 应用ID
+	AppType        string `json:"appType" validate:"required"` // 应用类型
+	Version        string `json:"version" validate:"required"`
+	Desc           string `json:"desc"`                            // 描述
+	PublishType    string `json:"publishType" validate:"required"` // 发布类型(public:系统公开发布,organization:组织公开发布,private:私密发布)
+	IsClosedSource bool   `json:"isClosedSource"`                  // 仅 skill 类型生效：是否闭源（隐藏正文、禁止下载 ZIP）
 }
 
 func (req PublishAppRequest) Check() error {

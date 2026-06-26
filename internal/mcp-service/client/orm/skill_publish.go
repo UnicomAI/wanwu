@@ -52,7 +52,7 @@ func (c *Client) PublishCustomSkill(ctx context.Context, publish *model.CustomSk
 	return nil
 }
 
-func (c *Client) UpdatePublishCustomSkill(ctx context.Context, skillId, versionDesc string) *errs.Status {
+func (c *Client) UpdatePublishCustomSkill(ctx context.Context, skillId, versionDesc, markdown string) *errs.Status {
 	if skillId == "" {
 		return toErrStatus("mcp_skill_config_invalid_arg")
 	}
@@ -63,7 +63,11 @@ func (c *Client) UpdatePublishCustomSkill(ctx context.Context, skillId, versionD
 	if latest == nil {
 		return toErrStatus(textKeyCustomSkillPublishNotFound)
 	}
-	if err := c.db.WithContext(ctx).Model(latest).Update("version_description", versionDesc).Error; err != nil {
+	updates := map[string]interface{}{"version_description": versionDesc}
+	if markdown != "" {
+		updates["markdown"] = markdown
+	}
+	if err := c.db.WithContext(ctx).Model(latest).Updates(updates).Error; err != nil {
 		return toErrStatus("mcp_custom_skill_publish_update", err.Error())
 	}
 	return nil

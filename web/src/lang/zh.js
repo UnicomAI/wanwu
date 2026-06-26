@@ -848,6 +848,8 @@ export default {
       publishType1: '公开发布：组织内可见',
       publishType2: '公开发布：全平台可见',
       noAcquired: '可前往Skill广场--共享--点击发送到资源库进行添加',
+      closedSource: '闭源',
+      closedSourceTip: '开启后其他用户在广场仅可查看简介，无法查看正文与下载',
     },
   },
 

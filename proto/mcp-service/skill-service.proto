@@ -153,6 +153,7 @@ message PublishCustomSkillReq {
 message UpdatePublishCustomSkillReq {
   string skillId = 1;
   string versionDesc = 2;
+  string markdown = 3; // 非空时更新最新发布记录的 markdown（用于切换闭源标记）
 }
 
 message GetPublishCustomSkillHistoryListReq {

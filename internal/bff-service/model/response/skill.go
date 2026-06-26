@@ -47,14 +47,16 @@ type BuiltinSkillDetail struct {
 // AcquiredSkillInfo 资源库-我添加的skill列表项
 type AcquiredSkillInfo struct {
 	SkillBasicInfo
-	DownloadCount int32 `json:"downloadCount"`
+	DownloadCount  int32 `json:"downloadCount"`
+	IsClosedSource bool  `json:"isClosedSource"` // 闭源 skill：列表卡片隐藏下载按钮、显示闭源铭牌
 }
 
 // AcquiredSkillDetail 资源库-我添加的skill详情
 type AcquiredSkillDetail struct {
 	AcquiredSkillInfo
-	SkillMarkdown string           `json:"skillMarkdown"`
-	Variables     []*SkillVariable `json:"variables,omitempty"`
+	SkillMarkdown  string           `json:"skillMarkdown"`
+	Variables      []*SkillVariable `json:"variables,omitempty"`
+	IsClosedSource bool             `json:"isClosedSource"` // 闭 skill 为闭源时：正文已隐藏、下载被禁止
 }
 
 // --- 广场 skill ---
@@ -70,15 +72,17 @@ type SquareSkillInfo struct {
 // SharedSkillInfo 探索广场-共享skill列表项
 type SharedSkillInfo struct {
 	SkillBasicInfo
-	IsShared      bool  `json:"isShared"`
-	DownloadCount int32 `json:"downloadCount"`
-	AcquiredCount int32 `json:"acquiredCount"`
+	IsShared       bool  `json:"isShared"`
+	DownloadCount  int32 `json:"downloadCount"`
+	AcquiredCount  int32 `json:"acquiredCount"`
+	IsClosedSource bool  `json:"isClosedSource"` // 闭源 skill：列表卡片隐藏下载按钮、显示闭源铭牌
 }
 
 // SharedSkillDetail 探索广场-共享skill详情
 type SharedSkillDetail struct {
 	SharedSkillInfo
-	SkillMarkdown string `json:"skillMarkdown"`
+	SkillMarkdown  string `json:"skillMarkdown"`
+	IsClosedSource bool   `json:"isClosedSource"`
 }
 
 // --- 广场/资源库 我发布的 skill（= 自定义 skill）---
@@ -98,8 +102,9 @@ type PublishedSkillInfo struct {
 // PublishedSkillDetail 我发布的skill详情
 type PublishedSkillDetail struct {
 	PublishedSkillInfo
-	Variables     []*SkillVariable `json:"variables,omitempty"`
-	SkillMarkdown string           `json:"skillMarkdown,omitempty"`
+	Variables      []*SkillVariable `json:"variables,omitempty"`
+	SkillMarkdown  string           `json:"skillMarkdown,omitempty"`
+	IsClosedSource bool             `json:"isClosedSource"`
 }
 
 // --- 内部回调用（不对外暴露）---

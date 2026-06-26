@@ -125,6 +125,10 @@ func DownloadAcquiredSkill(ctx *gin.Context, userId, orgId, acquiredSkillId stri
 	if err := checkAcquiredSkillAccess(ctx, skill); err != nil {
 		return nil, err
 	}
+	// 闭源 skill：禁止下载 ZIP
+	if util.IsSkillClosedSource(skill.GetSkill().GetMarkdown()) {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "skill_closed_source_download_forbidden", "该 skill 为闭源，不支持下载")
+	}
 	if skill.GetSkill().GetObjectPath() == "" {
 		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "skill_publish_package_not_available", "acquired skill package objectPath is empty")
 	}
@@ -213,6 +217,7 @@ func toAcquiredSkillDetail(ctx *gin.Context, skill *mcp_service.AcquiredSkill, i
 	}
 	publish := skill.GetSkill()
 	customSkill := publish.GetSkill()
+	markdown := config.FixFrontMatterFormat(publish.GetMarkdown())
 	ret := &response.AcquiredSkillDetail{
 		AcquiredSkillInfo: response.AcquiredSkillInfo{
 			SkillBasicInfo: response.SkillBasicInfo{
@@ -224,7 +229,12 @@ func toAcquiredSkillDetail(ctx *gin.Context, skill *mcp_service.AcquiredSkill, i
 			},
 			DownloadCount: customSkill.GetDownloadCount(),
 		},
-		SkillMarkdown: config.FixFrontMatterFormat(publish.GetMarkdown()),
+		SkillMarkdown: markdown,
+	}
+	// 闭源 skill：隐藏正文（保留 frontmatter 以便前端展示 name/description）
+	if util.IsSkillClosedSource(publish.GetMarkdown()) {
+		ret.IsClosedSource = true
+		ret.SkillMarkdown = stripSkillBody(markdown)
 	}
 	if includeVariables {
 		variables, err := getAcquiredSkillVariables(ctx, skill.GetAcquiredSkillId())
@@ -272,6 +282,7 @@ func toAcquiredSkillInfo(ctx *gin.Context, skill *mcp_service.AcquiredSkill) *re
 			Author:  customSkill.GetAuthor(),
 			Desc:    customSkill.GetDesc(),
 		},
-		DownloadCount: customSkill.GetDownloadCount(),
+		DownloadCount:  customSkill.GetDownloadCount(),
+		IsClosedSource: util.IsSkillClosedSource(skill.GetSkill().GetMarkdown()),
 	}
 }

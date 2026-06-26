@@ -13,6 +13,14 @@
             v-if="visibleVersionInfo && info.isPublished"
             class="el-icon-success published-icon"
           />
+          <el-tag
+            v-if="info.isClosedSource"
+            size="mini"
+            type="warning"
+            class="closed-source-tag"
+          >
+            {{ $t('tempSquare.skills.closedSource') }}
+          </el-tag>
         </span>
         <span class="mcp_from from_tag">
           <label :title="`${$t('tempSquare.author')}：${info.author || ''}`">
@@ -315,5 +323,10 @@ export default {
     max-width: 50%;
     flex-shrink: 1;
   }
+}
+
+.closed-source-tag {
+  margin-left: 6px;
+  vertical-align: middle;
 }
 </style>

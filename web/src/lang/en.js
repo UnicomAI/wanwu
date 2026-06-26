@@ -827,6 +827,8 @@ export default {
       publishType1: 'Public release as Skill: Visible within organization',
       publishType2: 'Public release as Skill: Globally visible',
       noAcquired: '可前往Skill广场--共享--点击发送到资源库进行添加',
+      closedSource: 'Closed Source',
+      closedSourceTip: 'Once enabled, other users can only view the brief on the square, not the body or download',
     },
   },
 

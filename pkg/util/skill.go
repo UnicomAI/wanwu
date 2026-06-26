@@ -13,8 +13,78 @@ import (
 )
 
 type SkillFrontMatter struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
+	Name         string `yaml:"name"`
+	Description  string `yaml:"description"`
+	ClosedSource bool   `yaml:"closed_source"`
+}
+
+// IsSkillClosedSource 从 markdown 内容判断 skill 是否闭源。
+// 不含 frontmatter 或解析失败时返回 false（向后兼容：老数据视为开源）。
+func IsSkillClosedSource(markdown string) bool {
+	markdown = strings.TrimSpace(markdown)
+	if !strings.HasPrefix(markdown, "---") {
+		return false
+	}
+	rest := markdown[3:]
+	endIdx := strings.Index(rest, "\n---")
+	if endIdx == -1 {
+		return false
+	}
+	frontMatterStr := strings.TrimSpace(rest[:endIdx])
+	var fm struct {
+		ClosedSource bool `yaml:"closed_source"`
+	}
+	if err := yaml.Unmarshal([]byte(frontMatterStr), &fm); err != nil {
+		// yaml 解析失败时（如 description 含 C1 控制字符），fallback 到逐行字符串匹配
+		return isClosedSourceByString(frontMatterStr)
+	}
+	return fm.ClosedSource
+}
+
+// isClosedSourceByString 从 frontmatter 字符串中逐行查找 closed_source 标志。
+func isClosedSourceByString(frontMatterStr string) bool {
+	for _, line := range strings.Split(frontMatterStr, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "closed_source:") {
+			val := strings.TrimSpace(strings.TrimPrefix(line, "closed_source:"))
+			return val == "true" || val == "True" || val == "TRUE"
+		}
+	}
+	return false
+}
+
+// InjectClosedSourceFlag 在 markdown frontmatter 中注入或移除 closed_source 标记。
+// 不含 frontmatter 时原样返回。保留原有字段和正文，仅增删 closed_source 行。
+func InjectClosedSourceFlag(markdown string, closed bool) string {
+	markdown = strings.TrimSpace(markdown)
+	if !strings.HasPrefix(markdown, "---") {
+		return markdown
+	}
+	rest := markdown[3:]
+	endIdx := strings.Index(rest, "\n---")
+	if endIdx == -1 {
+		return markdown
+	}
+	frontMatterStr := rest[:endIdx]
+	body := rest[endIdx+4:] // "\n---" 之后的内容
+
+	lines := strings.Split(frontMatterStr, "\n")
+	var result []string
+	found := false
+	for _, line := range lines {
+		if strings.HasPrefix(strings.TrimSpace(line), "closed_source:") {
+			found = true
+			if closed {
+				result = append(result, "closed_source: true")
+			}
+		} else {
+			result = append(result, line)
+		}
+	}
+	if closed && !found {
+		result = append(result, "closed_source: true")
+	}
+	return "---" + strings.Join(result, "\n") + "\n---" + body
 }
 
 // skillNameRegex allows kebab-case names with Unicode letters (e.g. Chinese characters),

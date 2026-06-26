@@ -80,6 +80,15 @@
             </div>
           </el-radio-group>
         </el-form-item>
+        <el-form-item
+          v-if="appType === 'skill'"
+          :label="$t('tempSquare.skills.closedSource')"
+        >
+          <el-switch v-model="publishForm.isClosedSource" />
+          <span class="closed-source-tip">{{
+            $t('tempSquare.skills.closedSourceTip')
+          }}</span>
+        </el-form-item>
         <div class="saveBtn" style="text-align: right; margin-top: 10px">
           <el-button size="mini" type="primary" @click="savePublish">
             {{ $t('common.button.save') }}
@@ -125,6 +134,7 @@ export default {
         publishType: 'private',
         version: '',
         desc: '',
+        isClosedSource: false,
       },
     };
   },
@@ -203,6 +213,7 @@ export default {
             publishType: this.publishForm.publishType,
             desc: this.publishForm.desc,
             version: this.publishForm.version,
+            isClosedSource: this.publishForm.isClosedSource,
           };
 
           appPublish(data).then(res => {
@@ -225,5 +236,10 @@ export default {
 .app-publish-actions {
   display: flex;
   align-items: center;
+}
+.closed-source-tip {
+  margin-left: 10px;
+  color: #999;
+  font-size: 12px;
 }
 </style>

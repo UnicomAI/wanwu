@@ -33,7 +33,7 @@ func (s *Service) CreatePublishCustomSkill(ctx context.Context, req *mcp_service
 }
 
 func (s *Service) UpdatePublishCustomSkill(ctx context.Context, req *mcp_service.UpdatePublishCustomSkillReq) (*emptypb.Empty, error) {
-	if err := s.cli.UpdatePublishCustomSkill(ctx, req.SkillId, req.VersionDesc); err != nil {
+	if err := s.cli.UpdatePublishCustomSkill(ctx, req.SkillId, req.VersionDesc, req.Markdown); err != nil {
 		return nil, errStatus(errs.Code_MCPCustomSkillErr, err)
 	}
 	return &emptypb.Empty{}, nil

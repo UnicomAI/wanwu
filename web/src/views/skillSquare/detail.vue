@@ -8,7 +8,7 @@
     :visibleVariableConfig="false"
     :visibleHistory="visibleHistory"
     :historyList="historyList"
-    :visibleDownload="skillType !== 'mine'"
+    :visibleDownload="skillType !== 'mine' && !detail.isClosedSource"
     @init="initData"
     @back="handleBack"
     @download="handleDownload"

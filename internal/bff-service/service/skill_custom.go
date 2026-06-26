@@ -598,8 +598,9 @@ func toPublishedSkillDetail(ctx *gin.Context, skill *mcp_service.CustomSkill, va
 			PublishType: publishType,
 			Version:     version,
 		},
-		Variables:     toSkillVariables(variables),
-		SkillMarkdown: config.FixFrontMatterFormat(publish.GetMarkdown()),
+		Variables:      toSkillVariables(variables),
+		SkillMarkdown:  config.FixFrontMatterFormat(publish.GetMarkdown()),
+		IsClosedSource: util.IsSkillClosedSource(publish.GetMarkdown()),
 	}
 }
 

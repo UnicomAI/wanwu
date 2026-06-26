@@ -61,7 +61,7 @@ type IClient interface {
 	GetCustomSkillVars(ctx context.Context, userId, orgId, skillId string) ([]*model.CustomSkillVariable, *errs.Status)
 	GetCustomSkillVarsBySkillIDs(ctx context.Context, userId, orgId string, skillIds []string) (map[string][]*model.CustomSkillVariable, *errs.Status)
 	PublishCustomSkill(ctx context.Context, publish *model.CustomSkillPublish, snapshot *orm.CustomSkillPublishSnapshot) *errs.Status
-	UpdatePublishCustomSkill(ctx context.Context, skillId, versionDesc string) *errs.Status
+	UpdatePublishCustomSkill(ctx context.Context, skillId, versionDesc, markdown string) *errs.Status
 	GetPublishCustomSkillHistoryList(ctx context.Context, skillId string) ([]*model.CustomSkillPublish, int64, *errs.Status)
 	GetPublishCustomSkillByLatest(ctx context.Context, skillId string) (*model.CustomSkillPublish, *errs.Status)
 	GetPublishCustomSkillByVersion(ctx context.Context, skillId, version string) (*model.CustomSkillPublish, *errs.Status)

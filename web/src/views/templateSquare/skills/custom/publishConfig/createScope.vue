@@ -43,6 +43,13 @@
             </el-radio-group>
           </el-form-item>
 
+          <el-form-item :label="$t('tempSquare.skills.closedSource')">
+            <el-switch v-model="publishForm.isClosedSource" />
+            <span class="closed-source-tip">{{
+              $t('tempSquare.skills.closedSourceTip')
+            }}</span>
+          </el-form-item>
+
           <div class="save-action">
             <el-button
               size="medium"
@@ -98,6 +105,7 @@ export default {
         publishType: 'private',
         version: '',
         desc: '',
+        isClosedSource: false,
       },
       publishRules: {
         version: [
@@ -151,6 +159,7 @@ export default {
             appType: this.appType,
             desc: this.publishForm.desc,
             publishType: this.publishForm.publishType,
+            isClosedSource: this.publishForm.isClosedSource,
           })
             .then(res => {
               if (res.code === 0) {
@@ -224,5 +233,11 @@ export default {
 
 .version-history {
   margin-top: 20px;
+}
+
+.closed-source-tip {
+  margin-left: 10px;
+  color: #999;
+  font-size: 12px;
 }
 </style>

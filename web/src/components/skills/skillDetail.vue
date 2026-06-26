@@ -19,7 +19,17 @@
           :src="avatarSrc(detail.avatar.path)"
         />
         <div :class="['info', { fold: foldStatus }]">
-          <p class="name">{{ detail.name }}</p>
+          <p class="name">
+            {{ detail.name }}
+            <el-tag
+              v-if="detail.isClosedSource"
+              size="mini"
+              type="warning"
+              class="closed-source-tag"
+            >
+              {{ $t('tempSquare.skills.closedSource') }}
+            </el-tag>
+          </p>
           <p v-if="detail.desc && detail.desc.length > 260" class="desc">
             {{ foldStatus ? detail.desc : detail.desc.slice(0, 268) + '...' }}
             <span class="arrow" v-show="detail.desc.length > 260" @click="fold">
@@ -295,5 +305,10 @@ export default {
 
 .info-config {
   margin-bottom: 10px;
+}
+
+.closed-source-tag {
+  margin-left: 8px;
+  vertical-align: middle;
 }
 </style>

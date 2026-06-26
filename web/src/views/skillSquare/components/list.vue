@@ -43,6 +43,7 @@
                       </el-tooltip>
 
                       <el-tooltip
+                        v-if="!info.isClosedSource"
                         :content="$t('tempSquare.download')"
                         placement="top"
                       >

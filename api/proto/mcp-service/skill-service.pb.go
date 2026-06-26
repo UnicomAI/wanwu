@@ -7,10 +7,11 @@
 package mcp_service
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -1497,6 +1498,7 @@ type UpdatePublishCustomSkillReq struct {
 
 	SkillId     string `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
 	VersionDesc string `protobuf:"bytes,2,opt,name=versionDesc,proto3" json:"versionDesc,omitempty"`
+	Markdown    string `protobuf:"bytes,3,opt,name=markdown,proto3" json:"markdown,omitempty"`
 }
 
 func (x *UpdatePublishCustomSkillReq) Reset() {
@@ -1541,6 +1543,13 @@ func (x *UpdatePublishCustomSkillReq) GetSkillId() string {
 func (x *UpdatePublishCustomSkillReq) GetVersionDesc() string {
 	if x != nil {
 		return x.VersionDesc
+	}
+	return ""
+}
+
+func (x *UpdatePublishCustomSkillReq) GetMarkdown() string {
+	if x != nil {
+		return x.Markdown
 	}
 	return ""
 }

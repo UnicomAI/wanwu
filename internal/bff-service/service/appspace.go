@@ -201,6 +201,8 @@ func PublishApp(ctx *gin.Context, userId, orgId string, req request.PublishAppRe
 		}
 		rollbackPublishPackage = rollback
 		publishPackageCommitted = false
+		// 闭源标记写入 frontmatter（不影响 ZIP 包内的原始 SKILL.md，仅影响广场展示的 markdown）
+		markdown = util.InjectClosedSourceFlag(markdown, req.IsClosedSource)
 		_, err = mcp.CreatePublishCustomSkill(ctx.Request.Context(), &mcp_service.PublishCustomSkillReq{
 			SkillId:     req.AppId,
 			Version:     req.Version,
