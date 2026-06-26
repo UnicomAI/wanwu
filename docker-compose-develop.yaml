@@ -1,7 +1,7 @@
 services:
   nginx:
     restart: always
-    image: ${WANWU_FRONTEND_IMAGE}
+    image: ${WANWU_NGINX_IMAGE}
     container_name: ${WANWU_NGINX_HOST}
     networks:
       - ${WANWU_DOCKER_NETWORK}
@@ -15,7 +15,7 @@ services:
   # ------ microservice ------
   bff-service:
     restart: always
-    image: ${WANWU_BACKEND_IMAGE}
+    image: ${WANWU_GO_IMAGE}
     container_name: bff-service
     networks:
       - ${WANWU_DOCKER_NETWORK}
@@ -66,12 +66,12 @@ services:
 
   iam-service:
     restart: always
-    image: ${WANWU_BACKEND_IMAGE}
+    image: ${WANWU_GO_IMAGE}
     container_name: iam-service
     networks:
       - ${WANWU_DOCKER_NETWORK}
     ports:
-      - 18888:8888
+      - 8888:8888
     volumes:
       - /etc/localtime:/etc/localtime
       - ./bin/${WANWU_ARCH}/iam-service:/app/bin/iam-service
@@ -102,7 +102,7 @@ services:
 
   model-service:
     restart: always
-    image: ${WANWU_BACKEND_IMAGE}
+    image: ${WANWU_GO_IMAGE}
     container_name: model-service
     networks:
       - ${WANWU_DOCKER_NETWORK}
@@ -132,7 +132,7 @@ services:
 
   mcp-service:
     restart: always
-    image: ${WANWU_BACKEND_IMAGE}
+    image: ${WANWU_GO_IMAGE}
     container_name: mcp-service
     networks:
       - ${WANWU_DOCKER_NETWORK}
@@ -163,7 +163,7 @@ services:
 
   knowledge-service:
     restart: always
-    image: ${WANWU_BACKEND_IMAGE}
+    image: ${WANWU_GO_IMAGE}
     container_name: knowledge-service
     networks:
       - ${WANWU_DOCKER_NETWORK}
@@ -197,7 +197,7 @@ services:
 
   rag-service:
     restart: always
-    image: ${WANWU_BACKEND_IMAGE}
+    image: ${WANWU_GO_IMAGE}
     container_name: rag-service
     networks:
       - ${WANWU_DOCKER_NETWORK}
@@ -227,7 +227,7 @@ services:
 
   assistant-service:
     restart: always
-    image: ${WANWU_BACKEND_IMAGE}
+    image: ${WANWU_GO_IMAGE}
     container_name: assistant-service
     networks:
       - ${WANWU_DOCKER_NETWORK}
@@ -264,7 +264,7 @@ services:
 
   agent-service:
     restart: always
-    image: ${WANWU_BACKEND_IMAGE}
+    image: ${WANWU_GO_IMAGE}
     container_name: agent-service
     networks:
       - ${WANWU_DOCKER_NETWORK}
@@ -289,7 +289,7 @@ services:
 
   operate-service:
     restart: always
-    image: ${WANWU_BACKEND_IMAGE}
+    image: ${WANWU_GO_IMAGE}
     container_name: operate-service
     networks:
       - ${WANWU_DOCKER_NETWORK}
@@ -316,7 +316,7 @@ services:
 
   app-service:
     restart: always
-    image: ${WANWU_BACKEND_IMAGE}
+    image: ${WANWU_GO_IMAGE}
     container_name: app-service
     networks:
       - ${WANWU_DOCKER_NETWORK}
