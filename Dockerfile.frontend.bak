@@ -24,7 +24,7 @@ RUN cd /app/frontend && npm install -g @microsoft/rush && rush install && rush u
 RUN cd /app/frontend/apps/coze-studio && npm run build
 
 # --- 第三阶段：运行阶段 ---
-FROM nginx:1.27
+FROM nginx:1.27.3
 
 COPY wanwu/configs/middleware/nginx/conf.d /etc/nginx/conf.d
 
