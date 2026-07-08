@@ -13,13 +13,13 @@ type Channel struct {
 	Status      string `gorm:"index:idx_channel_status;size:32"` // loggedIn/offline
 	Enabled     bool   `gorm:"index:idx_channel_enabled"`
 	AppType     string `gorm:"size:32"`                          // agent
-	AppID       string `gorm:"index:idx_channel_app_id;size:64"` // 智能体 UUID
-	AppName     string `gorm:"size:128"`                         // 智能体名称（冗余展示）
+	AppID       string `gorm:"index:idx_channel_app_id;size:64"` // 智能体 UUID（agent）/ 子智能体id（wga）/ 数字员工id（dip）
+	AppName     string `gorm:"size:128"`                         // 智能体名称（冗余展示）：agent=智能体名 / wga=子智能体名或"通用智能体" / dip=数字员工名
 	ApiKeyID    string `gorm:"size:64"`                          // API Key ID
 	ApiKeyName  string `gorm:"size:128"`                         // API Key 名称（冗余展示）
 	ApiKey      string `gorm:"size:512"`                         // API Key（明文存储）
 	ModelUuid   string `gorm:"size:64"`                          // WGA 通道使用的模型 UUID
-	AgentId     string `gorm:"size:64"`                          // WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）
+	AgentId     string `gorm:"size:64"`                          // wga=绑定的子智能体id（直连该子智能体，跳过 Supervisor）/ dip=数字员工id
 	Config      string `gorm:"type:text"`                        // 平台配置 JSON
 	AccountId   string `gorm:"size:64"`                          // 平台账号 ID
 	Nickname    string `gorm:"size:128"`

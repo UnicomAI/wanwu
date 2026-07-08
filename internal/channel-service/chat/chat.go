@@ -138,11 +138,11 @@ func (h *Handler) handleWGAMessage(ctx context.Context, ch *model.Channel, msg *
 
 // handleDIPMessage 处理数字员工（DIP Agent）消息。
 // DIP 模式要求 agentId 固定为 "DIP Agent"，且消息以 "@员工名称 " 开头（BFF buildWgaOntologyDIPMode
-// 据此解析执行者）。通道绑定的员工名称存在 ch.AgentId，这里改写消息前缀后走 WGA 链路。
+// 据此解析执行者）。通道绑定的员工名称存在 ch.AppName（员工 id 存 ch.AgentId），这里改写消息前缀后走 WGA 链路。
 // 会话用独立 key "dip"，与 wga 会话隔离。
 func (h *Handler) handleDIPMessage(ctx context.Context, ch *model.Channel, msg *types.PlatformMessage) error {
-	if ch.AgentId == "" {
-		return fmt.Errorf("channel %s is dip type but has no digital employee (agent_id) configured", ch.ChannelID)
+	if ch.AppName == "" {
+		return fmt.Errorf("channel %s is dip type but has no digital employee name (app_name) configured", ch.ChannelID)
 	}
 	return h.doWGAChat(ctx, ch, msg, "dip", "DIP Agent", true)
 }
@@ -150,7 +150,7 @@ func (h *Handler) handleDIPMessage(ctx context.Context, ch *model.Channel, msg *
 // doWGAChat WGA/DIP 共用的对话处理：建会话 → 构造消息 → 调 WGA 对话接口 → 处理 SSE。
 //   - appTypeKey: 会话隔离 key（"wga" / "dip"）
 //   - agentID: 传给 WGA 的 agentId（wga 用 ch.AgentId 直连子智能体；dip 固定 "DIP Agent"）
-//   - rewriteWithEmployee: dip 场景给消息文本前缀 "@员工名 "（仅当原文不以 @ 开头）
+//   - rewriteWithEmployee: dip 场景给消息文本前缀 "@员工名 "（员工名取自 ch.AppName，仅当原文不以 @ 开头）
 func (h *Handler) doWGAChat(ctx context.Context, ch *model.Channel, msg *types.PlatformMessage, appTypeKey, agentID string, rewriteWithEmployee bool) error {
 	apiKey := ch.ApiKey
 
@@ -177,9 +177,10 @@ func (h *Handler) doWGAChat(ctx context.Context, ch *model.Channel, msg *types.P
 	}
 
 	// DIP：消息文本前缀 "@员工名 "，使 BFF 解析出执行者（仅在原文不以 @ 开头时改写，避免重复）
-	if rewriteWithEmployee && ch.AgentId != "" && msg.Content != "" && !strings.HasPrefix(strings.TrimSpace(msg.Content), "@") {
+	// 员工名取自 ch.AppName（员工 id 存 ch.AgentId）
+	if rewriteWithEmployee && ch.AppName != "" && msg.Content != "" && !strings.HasPrefix(strings.TrimSpace(msg.Content), "@") {
 		origContent := msg.Content
-		msg.Content = "@" + ch.AgentId + " " + msg.Content
+		msg.Content = "@" + ch.AppName + " " + msg.Content
 		defer func() { msg.Content = origContent }() // 构造完毕后恢复，避免污染后续流程
 	}
 

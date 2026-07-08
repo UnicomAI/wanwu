@@ -178,7 +178,7 @@ message UpdateChannelReq {
   string org_id = 8;
   string model_uuid = 9;   // WGA 通道使用的模型 UUID
   string app_name = 10;    // 智能体名称（由 BFF 层查询填充）
-  string agent_id = 11;    // WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）
+  optional string agent_id = 11;    // WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）；optional 以支持更新时清空（置空走 Supervisor 默认）
 }
 
 message UpdateChannelStatusReq {

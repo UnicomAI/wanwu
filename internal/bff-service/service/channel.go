@@ -263,26 +263,19 @@ func CreateChannel(ctx *gin.Context, userID, orgID string, req request.CreateCha
 		apiKey = key
 	}
 
-	// 根据 appId 查询智能体名称
-	appName := ""
-	if req.AppID != "" {
-		name, nameErr := resolveAppName(ctx, req.AppID, userID, orgID)
-		if nameErr != nil {
-			log.Warnf("failed to resolve app name for %s: %v", req.AppID, nameErr)
-		}
-		appName = name
-	}
+	// 按 AppType 分流解析 AppID/AppName/AgentId
+	appID, appName, agentID := resolveChannelAppFields(ctx, req.AppType, req.AppID, req.AgentId, userID, orgID)
 
 	resp, err := channel.CreateChannel(ctx.Request.Context(), &channel_service.CreateChannelReq{
 		Name:        req.Name,
 		ChannelType: req.ChannelType,
 		AppType:     req.AppType,
-		AppId:       req.AppID,
+		AppId:       appID,
 		AppName:     appName,
 		ApiKeyId:    req.ApiKeyId,
 		ApiKey:      apiKey,
 		ModelUuid:   req.ModelUuid,
-		AgentId:     req.AgentId,
+		AgentId:     agentID,
 		Config:      req.Config,
 		UserId:      userID,
 		OrgId:       orgID,
@@ -341,25 +334,69 @@ func UpdateChannel(ctx *gin.Context, channelID, userID, orgID string, req reques
 		apiKey = key
 	}
 
-	// 根据 appId 查询智能体名称
-	appName := ""
-	if req.AppID != "" {
-		name, nameErr := resolveAppName(ctx, req.AppID, userID, orgID)
-		if nameErr != nil {
-			log.Warnf("failed to resolve app name for %s: %v", req.AppID, nameErr)
+	// 先取已存在通道，按其 AppType 分流解析 AppID/AppName/AgentId
+	// （UpdateChannelRequest 无 AppType 字段，须从存量通道读取）
+	existing, err := channel.GetChannel(ctx.Request.Context(), &channel_service.GetChannelReq{
+		ChannelId: channelID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get existing channel for update: %w", err)
+	}
+
+	// 按 existing.AppType + req.AgentId 指针三态解析 AppID/AppName/AgentId
+	// req.AgentId: nil=不改(保留旧值) / &""=清空(仅wga) / &id=设新值
+	var (
+		appID, appName string
+		agentIDPtr     *string // optional agent_id：nil=不改，&""=清空，&id=设新值
+	)
+	switch existing.AppType {
+	case "wga":
+		switch {
+		case req.AgentId == nil:
+			// 不改 agentId，appID/appName 也不下发（grpc 非空才更新→保留旧值）
+		case *req.AgentId == "":
+			// 清空：切回默认 Supervisor（agent_id 写空串、app_id 留空、app_name 回到"通用智能体"）
+			appID, appName = "", "通用智能体"
+			agentIDPtr = strPtr("")
+		default:
+			// 换子智能体
+			name, err := resolveWGASubAgentName(*req.AgentId)
+			if err != nil {
+				log.Warnf("failed to resolve wga sub agent name for %s: %v", *req.AgentId, err)
+			}
+			appID, appName = *req.AgentId, name
+			agentIDPtr = strPtr(*req.AgentId)
 		}
-		appName = name
+	case "dip":
+		// dip 员工 id 必填，不支持清空：传非空 id=换员工，nil 或 &"" 都视为不改
+		if req.AgentId != nil && *req.AgentId != "" {
+			name, err := resolveDIPAgentName(ctx, *req.AgentId, userID, orgID)
+			if err != nil {
+				log.Warnf("failed to resolve dip agent name for %s: %v", *req.AgentId, err)
+			}
+			appID, appName = *req.AgentId, name
+			agentIDPtr = strPtr(*req.AgentId)
+		}
+	default: // agent
+		// agent 通道 agentId 本就为空；若前端传了 appId 则重算 appName
+		if req.AppID != "" {
+			name, err := resolveAppName(ctx, req.AppID, userID, orgID)
+			if err != nil {
+				log.Warnf("failed to resolve app name for %s: %v", req.AppID, err)
+			}
+			appID, appName = req.AppID, name
+		}
 	}
 
 	resp, err := channel.UpdateChannel(ctx.Request.Context(), &channel_service.UpdateChannelReq{
 		ChannelId: channelID,
 		Name:      req.Name,
-		AppId:     req.AppID,
+		AppId:     appID,
 		AppName:   appName,
 		ApiKeyId:  req.ApiKeyId,
 		ApiKey:    apiKey,
 		ModelUuid: req.ModelUuid,
-		AgentId:   req.AgentId,
+		AgentId:   agentIDPtr,
 		Config:    req.Config,
 		UserId:    userID,
 		OrgId:     orgID,
@@ -513,6 +550,76 @@ func resolveApiKeyByID(ctx *gin.Context, userID, orgID, apiKeyID string) (string
 		}
 	}
 	return "", fmt.Errorf("api key %s not found", apiKeyID)
+}
+
+// strPtr 返回 s 的指针，用于给 proto3 optional string 字段赋值。
+func strPtr(s string) *string { return &s }
+
+// resolveChannelAppFields 按 AppType 分流解析创建通道的 AppID/AppName/AgentId（仅 Create 用）。
+//   - agent：AppID=智能体UUID，AppName=resolveAppName（智能体名），AgentId 留空
+//   - wga：传了 agentId（子智能体id）则 AppID=AgentId=子智能体id、AppName=子智能体名；
+//     未传 agentId 则 AppID=""、AppName="通用智能体"、AgentId=""
+//   - dip：agentId 传员工id，AppID=AgentId=员工id、AppName=员工名
+//
+// 更新场景的三态（nil/空串/值）语义见 UpdateChannel 内联逻辑，不复用本函数。
+// 反查失败只 warn 不阻断（沿用 resolveAppName 容错风格），返回已能确定的字段。
+func resolveChannelAppFields(ctx *gin.Context, appType, appID, agentID, userID, orgID string) (string, string, string) {
+	switch appType {
+	case "wga":
+		if agentID != "" {
+			name, err := resolveWGASubAgentName(agentID)
+			if err != nil {
+				log.Warnf("failed to resolve wga sub agent name for %s: %v", agentID, err)
+			}
+			return agentID, name, agentID
+		}
+		return "", "通用智能体", ""
+	case "dip":
+		if agentID != "" {
+			name, err := resolveDIPAgentName(ctx, agentID, userID, orgID)
+			if err != nil {
+				log.Warnf("failed to resolve dip agent name for %s: %v", agentID, err)
+			}
+			return agentID, name, agentID
+		}
+		return "", "", ""
+	default: // agent
+		appName := ""
+		if appID != "" {
+			name, err := resolveAppName(ctx, appID, userID, orgID)
+			if err != nil {
+				log.Warnf("failed to resolve app name for %s: %v", appID, err)
+			}
+			appName = name
+		}
+		return appID, appName, ""
+	}
+}
+
+// resolveWGASubAgentName 根据 WGA 子智能体 id 本地反查子智能体名称。
+// 数据源为配置 config.WgaCfg().SubAgents（agent_id -> agent_name），无需 RPC。
+func resolveWGASubAgentName(agentID string) (string, error) {
+	for _, agent := range config.WgaCfg().SubAgents {
+		if agent.AgentID == agentID {
+			return agent.AgentName, nil
+		}
+	}
+	return "", fmt.Errorf("wga sub agent %s not found in config", agentID)
+}
+
+// resolveDIPAgentName 根据数字员工 id 反查员工名称。
+// 复用 GetGeneralAgentOntologyEmployeeSelect 拉取员工列表，按 ID 匹配 Name。
+func resolveDIPAgentName(ctx *gin.Context, agentID, userID, orgID string) (string, error) {
+	employees, err := GetGeneralAgentOntologyEmployeeSelect(ctx, userID, orgID, "")
+	if err != nil {
+		return "", fmt.Errorf("failed to list dip employees: %w", err)
+	}
+	for _, employee := range employees {
+		if employee.ID == agentID {
+			return employee.Name, nil
+		}
+	}
+	return "", fmt.Errorf("dip employee %s not found", agentID)
 }
 
 // resolveAppName 根据 appId（UUID）查询智能体名称

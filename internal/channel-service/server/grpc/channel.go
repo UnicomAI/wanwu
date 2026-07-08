@@ -364,8 +364,9 @@ func (s *ChannelService) UpdateChannel(ctx context.Context, req *channel_service
 	if req.ModelUuid != "" {
 		updates["model_uuid"] = req.ModelUuid
 	}
-	if req.AgentId != "" {
-		updates["agent_id"] = req.AgentId
+	if req.AgentId != nil {
+		// optional agent_id：传了即写入（含空串，用于 WGA 清空 agentId 切回默认 Supervisor）；未传则保留旧值
+		updates["agent_id"] = req.GetAgentId()
 	}
 	if len(req.Config) > 0 {
 		configJSON, err := json.Marshal(req.Config)
