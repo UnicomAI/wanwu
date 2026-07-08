@@ -41,6 +41,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"text/template"
 	"time"
@@ -418,23 +419,51 @@ func (r *Runner) setupTool(ctx context.Context, tool wga_sandbox_option.Tool) er
 }
 
 // copyOutput 复制输出文件到本地，并移除隐藏文件。
+//
+// 替换策略：先复制到临时目录并清理隐藏文件，再用 backup+swap 原子替换 OutputDir。
+// 这样可以确保沙箱中已删除/重命名的文件不会在 OutputDir 中残留，
+// 同时保证任何失败都不会破坏 OutputDir 的现有内容（workspace 链不断）。
 func (r *Runner) copyOutput(ctx context.Context) error {
-	if err := r.sb.CopyFromSandbox(ctx, r.opt.OutputDir); err != nil {
+	outputDir := r.opt.OutputDir
+	tmpDir := filepath.Join(filepath.Dir(outputDir), ".swaptmp-"+filepath.Base(outputDir))
+	bakDir := filepath.Join(filepath.Dir(outputDir), ".swapbak-"+filepath.Base(outputDir))
+
+	// 清理上次失败留下的临时/备份目录
+	_ = os.RemoveAll(tmpDir)
+	_ = os.RemoveAll(bakDir)
+
+	// 1. 复制沙箱内容到临时目录（失败 → OutputDir 不变，链安全）
+	if err := r.sb.CopyFromSandbox(ctx, tmpDir); err != nil {
+		_ = os.RemoveAll(tmpDir)
 		return fmt.Errorf("failed to copy output from workspace: %w", err)
 	}
-
-	entries, err := os.ReadDir(r.opt.OutputDir)
-	if err != nil {
-		return fmt.Errorf("failed to read output directory: %w", err)
+	// 确保 tmpDir 存在（CopyFromSandbox 在沙箱只有隐藏文件时会跳过）
+	if err := os.MkdirAll(tmpDir, 0755); err != nil {
+		_ = os.RemoveAll(tmpDir)
+		return fmt.Errorf("failed to create temp dir: %w", err)
 	}
 
+	// 2. 清理临时目录中的隐藏文件
+	entries, err := os.ReadDir(tmpDir)
+	if err != nil {
+		_ = os.RemoveAll(tmpDir)
+		return fmt.Errorf("failed to read temp directory: %w", err)
+	}
 	for _, entry := range entries {
 		if strings.HasPrefix(entry.Name(), ".") {
-			removePath := r.opt.OutputDir + "/" + entry.Name()
+			removePath := filepath.Join(tmpDir, entry.Name())
 			if err := os.RemoveAll(removePath); err != nil {
+				_ = os.RemoveAll(tmpDir)
 				return fmt.Errorf("failed to remove hidden file %s: %w", entry.Name(), err)
 			}
 		}
+	}
+
+	// 3. 原子替换：备份 OutputDir → 安装 tmpDir → 清理备份
+	//    （失败 → 从备份恢复，链安全）
+	if err := swapDirWithBackup(tmpDir, outputDir, bakDir); err != nil {
+		_ = os.RemoveAll(tmpDir)
+		return fmt.Errorf("failed to swap output directory: %w", err)
 	}
 
 	return nil
@@ -1291,4 +1320,31 @@ func formatTraceContextContent(traceCtx map[string]string) string {
 	buf.WriteString(strings.Join(curlArgs, " "))
 	buf.WriteString("\n```\n")
 	return buf.String()
+}
+
+// swapDirWithBackup 用备份目录实现原子替换 targetDir 为 tmpDir。
+//
+// 流程：
+//  1. Rename targetDir → bakDir（备份当前内容）
+//  2. Rename tmpDir → targetDir（安装新内容）
+//  3. 如果步骤 2 失败，恢复 bakDir → targetDir（尽力恢复）
+//  4. 删除 bakDir（清理）
+//
+// 三个目录必须在同一文件系统上，os.Rename 才能工作。
+// 如果 targetDir 不存在，函数返回错误，不修改 tmpDir。
+//
+// 安全保证：任意步骤失败时，targetDir 要么包含原始内容（从备份恢复），
+// 要么从未被修改。tmpDir 在失败时不会丢失。
+func swapDirWithBackup(tmpDir, targetDir, bakDir string) error {
+	if err := os.Rename(targetDir, bakDir); err != nil {
+		return fmt.Errorf("failed to backup %s to %s: %w", targetDir, bakDir, err)
+	}
+
+	if err := os.Rename(tmpDir, targetDir); err != nil {
+		_ = os.Rename(bakDir, targetDir)
+		return fmt.Errorf("failed to install %s to %s: %w", tmpDir, targetDir, err)
+	}
+
+	_ = os.RemoveAll(bakDir)
+	return nil
 }

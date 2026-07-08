@@ -94,3 +94,18 @@ const (
 	AppStatisticSourceWebUrl  = "webURL"
 	AppStatisticSourceDraft   = "draft" // 应用的草稿版本不统计
 )
+
+// biz module
+const (
+	BizModuleWGA               = "wga"       // 通用智能体
+	BizModuleModel             = "model"     // 模型
+	BizModuleResourceKnowledge = "knowledge" // 知识库
+	BizModuleResourceMCP       = "mcp"       // MCP
+	BizModuleResourceTool      = "tool"      // 插件工具
+	BizModuleResourcePrompt    = "prompt"    // 提示词
+	BizModuleResourceSkill     = "skill"     // Skills
+	BizModuleResourceSafety    = "safety"    // 安全护栏
+	BizModuleAppRag            = "rag"       // 知识问答
+	BizModuleAppWorkflow       = "workflow"  // 工作流
+	BizModuleAppAgent          = "agent"     // 智能体
+)

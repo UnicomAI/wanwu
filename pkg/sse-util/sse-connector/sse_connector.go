@@ -7,12 +7,12 @@ import (
 	"sync"
 	"time"
 
-	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	safe_go_util "github.com/UnicomAI/wanwu/pkg/safe-go-util"
 	"github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector/model"
 	"github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector/session"
 	"github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector/store"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 )
 
 type SSEConnector struct {

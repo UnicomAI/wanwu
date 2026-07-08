@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	safety_service "github.com/UnicomAI/wanwu/api/proto/safety-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/pkg/ahocorasick"
@@ -24,6 +23,62 @@ type chatService interface {
 	serviceType() string
 	buildSensitiveResp(id, content string) []string
 	parseContent(raw string) (id, content string)
+}
+
+type SensitiveChecker struct {
+	PersonalTableIds []string
+	ChatSrv          chatService
+	Enable           bool
+}
+
+func CreateSensitiveChecker(personalTableIds []string, chatSrv chatService, enable bool) *SensitiveChecker {
+	return &SensitiveChecker{
+		PersonalTableIds: personalTableIds,
+		ChatSrv:          chatSrv,
+		Enable:           enable,
+	}
+}
+
+func (c *SensitiveChecker) Check(ctx *gin.Context, query string, executor func() (ch <-chan string, callback func(string, string), err error)) (<-chan string, error) {
+	if !c.Enable {
+		ch, _, err := executor()
+		if err != nil {
+			return nil, err
+		}
+		return ch, nil
+	}
+	//1.查询敏感词表
+	matchDicts, err := BuildSensitiveDict(ctx, c.PersonalTableIds, c.Enable)
+	if err != nil {
+		return nil, err
+	}
+	//2.同步敏感词检测
+	err = SyncSensitiveCheck(query, matchDicts)
+	if err != nil {
+		return nil, err
+	}
+	//3.任务执行
+	rawCh, callback, err := executor()
+	if err != nil {
+		return nil, err
+	}
+	//4.敏感词过滤(必须过滤，全局敏感词)
+	outputCh := ProcessSensitiveWordsWithCallback(ctx, rawCh, matchDicts, c.ChatSrv, callback)
+	return outputCh, nil
+}
+
+func SyncSensitiveCheck(query string, matchDicts []ahocorasick.DictConfig) error {
+	matchResults, err := ahocorasick.ContentMatch(query, matchDicts, true)
+	if err != nil {
+		return err
+	}
+	if len(matchResults) > 0 {
+		if matchResults[0].Reply != "" {
+			return grpc_util.ErrorStatusWithKey(err_code.Code_BFFSensitiveWordCheck, "bff_sensitive_check_req", matchResults[0].Reply)
+		}
+		return grpc_util.ErrorStatusWithKey(err_code.Code_BFFSensitiveWordCheck, "bff_sensitive_check_req_default_reply")
+	}
+	return nil
 }
 
 // 构建敏感词字典
