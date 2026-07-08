@@ -1,72 +1,70 @@
 <template>
   <div class="statistics_common list-common statistics_client_wrapper">
-    <div>
-      <GlobalFilter
-        v-if="isShowGlobal"
-        ref="globalFilter"
-        @change="handleGlobalFilterChange"
-      />
-      <div style="padding: 5px 24px">
-        <label>{{ $t('statisticsDashboard.apiSelect') }}:</label>
-        <el-select
-          v-model="apiParams.apiKeyIds"
-          :placeholder="$t('statisticsDashboard.apiName')"
-          :class="[
-            'no-border-select',
-            'scroll-select',
-            { 'hide-tag-close': isApiSelectedAll },
-          ]"
-          style="margin-left: 15px; width: 400px"
-          multiple
-          filterable
-          clearable
-          @change="handleApiNameChange"
+    <div style="padding: 5px 24px">
+      <label>{{ $t('statisticsDashboard.apiSelect') }}:</label>
+      <el-select
+        v-model="apiParams.apiKeyIds"
+        :placeholder="$t('statisticsDashboard.apiName')"
+        :class="[
+          'no-border-select',
+          'scroll-select',
+          { 'hide-tag-close': isApiSelectedAll },
+        ]"
+        style="margin-left: 15px; width: 240px"
+        multiple
+        collapse-tags
+        filterable
+        clearable
+        @change="handleApiNameChange"
+      >
+        <el-option
+          v-for="item in apiNameList"
+          :key="item.keyId"
+          :label="item.name"
+          :value="item.keyId"
+        />
+      </el-select>
+      <el-select
+        v-model="apiParams.methodPaths"
+        :placeholder="$t('statisticsDashboard.apiPath')"
+        class="no-border-select scroll-select"
+        style="margin-left: 15px; width: 400px"
+        clearable
+        multiple
+        collapse-tags
+        filterable
+        @change="refreshData"
+      >
+        <el-option
+          v-for="item in apiRoutesList"
+          :key="`${item.method}-${item.path}`"
+          :label="`${item.method} ${item.path}`"
+          :value="`${item.method}-${item.path}`"
         >
-          <el-option
-            v-for="item in apiNameList"
-            :key="item.keyId"
-            :label="item.name"
-            :value="item.keyId"
-          />
-        </el-select>
-        <el-select
-          v-model="apiParams.methodPaths"
-          :placeholder="$t('statisticsDashboard.apiPath')"
-          class="no-border-select scroll-select"
-          style="margin-left: 15px; width: 500px"
-          clearable
-          multiple
-          filterable
-        >
-          <el-option
-            v-for="item in apiRoutesList"
-            :key="`${item.method}-${item.path}`"
-            :label="`${item.method} ${item.path}`"
-            :value="`${item.method}-${item.path}`"
-          >
-            <div class="model-option-content">
-              <div class="model-option-content-left">
-                <span
-                  class="model-name"
-                  :style="`color: ${colorsObj[item.method] || colorsObj['DEFAULT']}`"
-                >
-                  {{ item.method }}
-                </span>
-                <span class="model-name">
-                  {{ item.path }}
-                </span>
-              </div>
+          <div class="model-option-content">
+            <div class="model-option-content-left">
+              <span
+                class="model-name"
+                :style="`color: ${colorsObj[item.method] || colorsObj['DEFAULT']}`"
+              >
+                {{ item.method }}
+              </span>
+              <span class="model-name">
+                {{ item.path }}
+              </span>
             </div>
-          </el-option>
-        </el-select>
-      </div>
-      <div>
-        <Search
-          v-show="searchShow"
-          ref="search"
-          @handleSetTime="handleSetTime"
-        ></Search>
-      </div>
+          </div>
+        </el-option>
+      </el-select>
+      <el-button
+        type="primary"
+        size="mini"
+        :loading="loading"
+        style="margin-left: 15px"
+        @click="handleSearch"
+      >
+        {{ $t('common.button.search') }}
+      </el-button>
     </div>
     <div class="statistics_content_box scroll-card-container">
       <div class="item_box">
@@ -143,14 +141,11 @@
         </div>
       </div>
     </div>
-    <el-backtop target=".statistics_content_box"></el-backtop>
   </div>
 </template>
 <script>
-import Search from '@/components/searchDate.vue';
 import UserEchart from '@/components/echart/userEchart.vue';
 import ApiList from './apiList.vue';
-import GlobalFilter from '../globalFilter.vue';
 import { formatAmount } from '@/utils/util.js';
 import {
   getApiData,
@@ -162,14 +157,24 @@ import { DEFAULT_APP_ITEM, ALL } from '../../constants';
 export default {
   components: {
     UserEchart,
-    Search,
     ApiList,
-    GlobalFilter,
+  },
+  props: {
+    globalFilterParams: {
+      type: Object,
+      default: () => ({}),
+    },
+    timeParams: {
+      type: Object,
+      default: () => ({ time: [] }),
+    },
+    scope: {
+      type: String,
+      default: '',
+    },
   },
   data() {
-    const { isSystem, isAdmin } = this.$store.state.user.permission || {};
     return {
-      isShowGlobal: isSystem || isAdmin,
       apiNameList: [DEFAULT_APP_ITEM],
       apiRoutesList: [],
       colorsObj: {
@@ -233,29 +238,39 @@ export default {
           unit: this.$t('statisticsDashboard.frequency'),
         },
       ],
-      searchShow: true,
-      searchTime: {
-        time: [],
-      },
       apiParams: {
         apiKeyIds: [ALL],
         methodPaths: [],
-      },
-      globalFilterParams: {
-        orgIds: [ALL],
-        userIds: [ALL],
       },
     };
   },
   computed: {
     params() {
       return {
-        endDate: this.searchTime.time[1],
-        startDate: this.searchTime.time[0],
+        endDate: this.timeParams?.time?.[1],
+        startDate: this.timeParams?.time?.[0],
       };
     },
     isApiSelectedAll() {
       return this.apiParams.apiKeyIds.includes(ALL);
+    },
+  },
+  watch: {
+    globalFilterParams: {
+      handler() {
+        this.fetchApiNameList();
+        this.refreshData();
+      },
+      deep: true,
+    },
+    timeParams: {
+      handler(val) {
+        if (val?.time?.length) {
+          this.refreshData();
+        }
+      },
+      deep: true,
+      immediate: true,
     },
   },
   mounted() {
@@ -265,13 +280,14 @@ export default {
   methods: {
     formatAmount,
     formatParams(params) {
-      const globalFilterParams = this.isShowGlobal
-        ? this.globalFilterParams
-        : {};
       return {
         ...params,
-        ...globalFilterParams,
+        ...this.globalFilterParams,
       };
+    },
+    refreshData() {
+      if (!this.timeParams?.time?.length) return;
+      this.fetchData(this.formatParams({ ...this.params, ...this.apiParams }));
     },
     async fetchApiNameList() {
       this.apiNameList = [DEFAULT_APP_ITEM];
@@ -288,34 +304,26 @@ export default {
     handleApiNameChange(keyIds) {
       if (!keyIds.length) {
         this.apiParams.apiKeyIds = [ALL];
-        return;
-      }
-
-      const addKey = keyIds[keyIds.length - 1];
-      if (addKey === ALL) {
-        this.apiParams.apiKeyIds = [ALL];
       } else {
-        const allIndex = this.apiParams.apiKeyIds.findIndex(
-          item => item === ALL,
-        );
-        if (allIndex !== -1) {
-          this.apiParams.apiKeyIds.splice(allIndex, 1);
+        const addKey = keyIds[keyIds.length - 1];
+        if (addKey === ALL) {
+          this.apiParams.apiKeyIds = [ALL];
+        } else {
+          const allIndex = this.apiParams.apiKeyIds.findIndex(
+            item => item === ALL,
+          );
+          if (allIndex !== -1) {
+            this.apiParams.apiKeyIds.splice(allIndex, 1);
+          }
         }
       }
+      this.refreshData();
     },
-    handleGlobalFilterChange(vals) {
-      this.globalFilterParams = { ...vals };
-      this.fetchApiNameList();
+    handleSearch() {
+      this.refreshData();
     },
-    handleSetTime(val) {
+    fetchData(params) {
       this.loading = true;
-      this.searchTime = val;
-
-      const params = this.formatParams({
-        startDate: val.time[0],
-        endDate: val.time[1],
-        ...this.apiParams,
-      });
       getApiData(params)
         .then(res => {
           const { overview, trend } = res.data || {};

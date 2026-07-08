@@ -11,10 +11,11 @@
         'scroll-select',
         { 'hide-tag-close': isOrgSelectedAll },
       ]"
-      style="margin-left: 15px; width: 420px"
+      style="margin-left: 15px; width: 240px"
       multiple
       filterable
       clearable
+      collapse-tags
       @change="handleOrgChange"
     >
       <el-option :label="$t('statisticsDashboard.all')" :value="ALL" />
@@ -33,8 +34,9 @@
         'scroll-select',
         { 'hide-tag-close': isUserSelectedAll },
       ]"
-      style="margin-left: 15px; width: 420px"
+      style="margin-left: 15px; width: 240px"
       multiple
+      collapse-tags
       filterable
       clearable
       @change="handleUserChange"

@@ -1,64 +1,60 @@
 <template>
   <div class="statistics_common list-common statistics_client_wrapper">
-    <div>
-      <GlobalFilter
-        v-if="isShowGlobal"
-        ref="globalFilter"
-        @change="handleGlobalFilterChange"
-      />
-      <div style="padding: 5px 24px">
-        <label>{{ $t('statisticsDashboard.appSelect') }}:</label>
-        <el-select
-          v-model="appParams.appType"
-          :placeholder="$t('statisticsDashboard.appType')"
-          class="no-border-select"
-          style="margin-left: 15px"
-          @change="changeAppType()"
+    <div style="padding: 5px 24px">
+      <label>{{ $t('statisticsDashboard.appSelect') }}:</label>
+      <el-select
+        v-model="appParams.appType"
+        :placeholder="$t('statisticsDashboard.appType')"
+        class="no-border-select"
+        style="margin-left: 15px"
+        @change="changeAppType()"
+      >
+        <el-option
+          v-for="key in Object.keys(appTypeObj)"
+          :key="key"
+          :label="appTypeObj[key]"
+          :value="key"
+        />
+      </el-select>
+      <el-select
+        v-model="appParams.apps"
+        :placeholder="$t('statisticsDashboard.app')"
+        class="no-border-select scroll-select"
+        style="margin-left: 15px; width: 300px"
+        collapse-tags
+        clearable
+        multiple
+        filterable
+      >
+        <el-option
+          v-for="item in appList"
+          :key="item.appId"
+          :label="item.name"
+          :value="item.appId"
         >
-          <el-option
-            v-for="key in Object.keys(appTypeObj)"
-            :key="key"
-            :label="appTypeObj[key]"
-            :value="key"
-          />
-        </el-select>
-        <el-select
-          v-model="appParams.apps"
-          :placeholder="$t('statisticsDashboard.app')"
-          class="no-border-select scroll-select"
-          style="margin-left: 15px; width: 600px"
-          clearable
-          multiple
-          filterable
-        >
-          <el-option
-            v-for="item in appList"
-            :key="item.appId"
-            :label="item.name"
-            :value="item.appId"
-          >
-            <div class="model-option-content">
-              <div class="model-option-content-left">
-                <img
-                  v-if="item?.avatar.path"
-                  class="model-img"
-                  :src="convertIcon(item?.avatar.path)"
-                />
-                <span class="model-name">
-                  {{ item.name }}
-                </span>
-              </div>
+          <div class="model-option-content">
+            <div class="model-option-content-left">
+              <img
+                v-if="item?.avatar.path"
+                class="model-img"
+                :src="convertIcon(item?.avatar.path)"
+              />
+              <span class="model-name">
+                {{ item.name }}
+              </span>
             </div>
-          </el-option>
-        </el-select>
-      </div>
-      <div>
-        <Search
-          v-show="searchShow"
-          ref="search"
-          @handleSetTime="handleSetTime"
-        ></Search>
-      </div>
+          </div>
+        </el-option>
+      </el-select>
+      <el-button
+        type="primary"
+        size="mini"
+        :loading="loading"
+        style="margin-left: 15px"
+        @click="handleSearch"
+      >
+        {{ $t('common.button.search') }}
+      </el-button>
     </div>
     <div class="statistics_content_box scroll-card-container">
       <div class="item_box">
@@ -135,30 +131,36 @@
         </div>
       </div>
     </div>
-    <el-backtop target=".statistics_content_box"></el-backtop>
   </div>
 </template>
 <script>
-import Search from '@/components/searchDate.vue';
 import UserEchart from '@/components/echart/userEchart.vue';
 import AppList from './appList.vue';
-import GlobalFilter from '../globalFilter.vue';
 import { avatarSrc, formatAmount } from '@/utils/util.js';
 import { getAppData, getAppSelect } from '@/api/statisticsDashboard';
 import { AGENT, AppType } from '@/utils/commonSet';
-import { ALL } from '../../constants';
 
 export default {
   components: {
     UserEchart,
-    Search,
     AppList,
-    GlobalFilter,
+  },
+  props: {
+    globalFilterParams: {
+      type: Object,
+      default: () => ({}),
+    },
+    timeParams: {
+      type: Object,
+      default: () => ({ time: [] }),
+    },
+    scope: {
+      type: String,
+      default: '',
+    },
   },
   data() {
-    const { isSystem, isAdmin } = this.$store.state.user.permission || {};
     return {
-      isShowGlobal: isSystem || isAdmin,
       appTypeObj: AppType,
       appList: [],
       loading: false,
@@ -214,26 +216,36 @@ export default {
           unit: this.$t('statisticsDashboard.frequency'),
         },
       ],
-      searchShow: true,
-      searchTime: {
-        time: [],
-      },
       appParams: {
         appType: AGENT,
         apps: [],
-      },
-      globalFilterParams: {
-        orgIds: [ALL],
-        userIds: [ALL],
       },
     };
   },
   computed: {
     params() {
       return {
-        endDate: this.searchTime.time[1],
-        startDate: this.searchTime.time[0],
+        endDate: this.timeParams?.time?.[1],
+        startDate: this.timeParams?.time?.[0],
       };
+    },
+  },
+  watch: {
+    globalFilterParams: {
+      handler() {
+        this.fetchApps();
+        this.refreshData();
+      },
+      deep: true,
+    },
+    timeParams: {
+      handler(val) {
+        if (val?.time?.length) {
+          this.refreshData();
+        }
+      },
+      deep: true,
+      immediate: true,
     },
   },
   mounted() {
@@ -242,21 +254,21 @@ export default {
   methods: {
     formatAmount,
     formatParams(params) {
-      const globalFilterParams = this.isShowGlobal
-        ? this.globalFilterParams
-        : {};
       return {
         ...params,
-        ...globalFilterParams,
+        ...this.globalFilterParams,
       };
     },
-    handleGlobalFilterChange(vals) {
-      this.globalFilterParams = { ...vals };
-      this.fetchApps();
+    refreshData() {
+      if (!this.timeParams?.time?.length) return;
+      this.fetchData(this.formatParams({ ...this.params, ...this.appParams }));
     },
     changeAppType() {
       this.fetchApps();
-      this.fetchData(this.formatParams({ ...this.params, ...this.appParams }));
+      this.refreshData();
+    },
+    handleSearch() {
+      this.refreshData();
     },
     async fetchApps() {
       this.appList = [];
@@ -268,6 +280,7 @@ export default {
       this.appList = res.data ? res.data.list || [] : [];
     },
     fetchData(params) {
+      this.loading = true;
       getAppData(params)
         .then(res => {
           const { overview, trend } = res.data || {};
@@ -285,17 +298,6 @@ export default {
           this.loading = false;
         });
       this.$refs.appList.getTableData(params);
-    },
-    handleSetTime(val) {
-      this.loading = true;
-      this.searchTime = val;
-
-      const params = this.formatParams({
-        startDate: val.time[0],
-        endDate: val.time[1],
-        ...this.appParams,
-      });
-      this.fetchData(params);
     },
     convertIcon(iconPath) {
       return iconPath ? avatarSrc(iconPath) : '';

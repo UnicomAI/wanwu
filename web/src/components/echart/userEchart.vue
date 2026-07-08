@@ -27,6 +27,7 @@ export default {
   data() {
     return {
       api: null,
+      resizeHandler: null,
     };
   },
   computed: {
@@ -47,23 +48,34 @@ export default {
   watch: {
     content: {
       handler(val) {
-        if (val.length > 0) {
-          if (this.api) {
-            this.api.dispose();
-          }
-          this.api = echarts.init(this.$refs.api);
-
-          window.addEventListener('resize', () => {
-            this.api.resize();
-          });
-          this.handleLine();
-        }
+        this.renderChart();
       },
       deep: true,
     },
   },
-  mounted() {},
+  mounted() {
+    this.renderChart();
+  },
   methods: {
+    renderChart() {
+      const val = this.content;
+      if (!val || val.length === 0 || !this.$refs.api) {
+        return;
+      }
+      if (this.api) {
+        this.api.dispose();
+      }
+      this.api = echarts.init(this.$refs.api);
+      if (!this.resizeHandler) {
+        this.resizeHandler = () => {
+          if (this.api) {
+            this.api.resize();
+          }
+        };
+        window.addEventListener('resize', this.resizeHandler);
+      }
+      this.handleLine();
+    },
     handleLine() {
       let seriesData = [];
       let legendData = [];
@@ -251,6 +263,9 @@ export default {
   beforeDestroy() {
     if (this.api) {
       this.api.dispose();
+    }
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
     }
   },
 };

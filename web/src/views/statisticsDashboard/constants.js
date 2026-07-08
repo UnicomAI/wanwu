@@ -6,6 +6,11 @@ export const STATISTIC = {
   API: 'api',
 };
 
+export const SCOPE = {
+  PUBLISHED: 'published',
+  USED: 'used',
+};
+
 export const ALL = 'ALL';
 export const DEFAULT_APP_ITEM = {
   keyId: ALL,
