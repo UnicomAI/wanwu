@@ -3,10 +3,19 @@ package wechat
 import (
 	"bytes"
 	"context"
+	"crypto/aes"
+	"crypto/md5"
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"path"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -344,6 +353,7 @@ func (w *WeChatAdapter) getUpdates(ctx context.Context, pollBuf string, timeout 
 	w.mu.RUnlock()
 
 	reqBody := map[string]interface{}{
+		"base_info":       buildWeChatBaseInfo(),
 		"get_updates_buf": pollBuf,
 	}
 	body, err := json.Marshal(reqBody)
@@ -377,6 +387,7 @@ func (w *WeChatAdapter) getUpdates(ctx context.Context, pollBuf string, timeout 
 // sendTextMessage 发送文本消息
 func (w *WeChatAdapter) sendTextMessage(ctx context.Context, baseURL, token, toUserID, content, contextToken string) error {
 	req := &SendRequest{
+		BaseInfo: buildWeChatBaseInfo(),
 		Msg: SendMsg{
 			ToUserID:     toUserID,
 			ClientID:     generateClientID(),
@@ -422,14 +433,52 @@ func (w *WeChatAdapter) sendTextMessage(ctx context.Context, baseURL, token, toU
 	return nil
 }
 
-// setHeaders 设置请求头
+// wechatILinkAppID iLink-App-Id，固定值（对齐 openclaw-weixin package.json 的 ilink_appid）。
+const wechatILinkAppID = "bot"
+
+// wechatILinkClientVersion iLink-App-ClientVersion，version "2.4.3" 编码为 0x00MMNNPP。
+// (major<<16)|(minor<<8)|patch = (2<<16)|(4<<8)|3 = 132099。对齐 openclaw-weixin buildClientVersion。
+const wechatILinkClientVersion = "132099"
+
+// wechatChannelVersion base_info.channel_version，对齐 openclaw-weixin 插件版本。
+const wechatChannelVersion = "2.4.3"
+
+// setHeaders 设置请求头（对齐 openclaw-weixin buildHeaders）。
+// X-WECHAT-UIN 每次请求随机生成（uint32→十进制字符串→base64）。
 func (w *WeChatAdapter) setHeaders(req *http.Request, token string) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("AuthorizationType", "ilink_bot_token")
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
-	req.Header.Set("iLink-App-ClientVersion", "1")
+	req.Header.Set("iLink-App-Id", wechatILinkAppID)
+	req.Header.Set("iLink-App-ClientVersion", wechatILinkClientVersion)
+	req.Header.Set("X-WECHAT-UIN", randomWechatUIN())
+}
+
+// randomWeChatUIN 生成 X-WECHAT-UIN 头：随机 uint32 → 十进制字符串 → base64。
+func randomWechatUIN() string {
+	var b [4]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		// 极少失败，回退固定值避免请求被拒
+		return base64.StdEncoding.EncodeToString([]byte("0"))
+	}
+	uint32Val := uint32(b[0])<<24 | uint32(b[1])<<16 | uint32(b[2])<<8 | uint32(b[3])
+	return base64.StdEncoding.EncodeToString([]byte(strconv.FormatUint(uint64(uint32Val), 10)))
+}
+
+// wechatBaseInfo 每个请求体都需携带的 base_info（对齐 openclaw-weixin buildBaseInfo）。
+// channel_version 对齐插件版本，bot_agent 为默认 UA。
+type wechatBaseInfo struct {
+	ChannelVersion string `json:"channel_version"`
+	BotAgent       string `json:"bot_agent"`
+}
+
+func buildWeChatBaseInfo() wechatBaseInfo {
+	return wechatBaseInfo{
+		ChannelVersion: wechatChannelVersion,
+		BotAgent:       "OpenClaw",
+	}
 }
 
 // convertMessage 转换 openclaw 消息为平台消息
@@ -582,7 +631,8 @@ type CDNMedia struct {
 
 // SendRequest 发送消息请求
 type SendRequest struct {
-	Msg SendMsg `json:"msg"`
+	BaseInfo wechatBaseInfo `json:"base_info"`
+	Msg      SendMsg        `json:"msg"`
 }
 
 // SendMsg 发送消息
@@ -609,4 +659,351 @@ type GetUpdatesResponse struct {
 	ErrMsg        string          `json:"errmsg"`
 	GetUpdatesBuf string          `json:"get_updates_buf"`
 	Msgs          []WeixinMessage `json:"msgs"`
+}
+
+// --- 文件发送（openclaw iLink Bot 3 步流程）---
+//
+// 微信发文件/图片走 iLink Bot API：
+//  1. getuploadurl：申请 CDN 上传地址（携带 AES 密钥、MD5、加密后大小等）
+//  2. AES-128-ECB 加密文件 → PUT/POST 到 CDN，响应头 x-encrypted-param 为下载凭证
+//  3. sendmessage：携带 CDN 下载凭证 + AES 密钥发送 file_item(type=4) / image_item(type=2)
+//
+// 参考 openclaw-weixin 协议。media_type：1=IMAGE, 2=VIDEO, 3=FILE。
+
+const (
+	ilinkMediaImage = 1
+	ilinkMediaVideo = 2
+	ilinkMediaFile  = 3
+
+	ilinkItemImage = 2
+	ilinkItemFile  = 4
+
+	ilinkEncryptType = 1 // AES-128-ECB
+
+	// wechatCDNBaseURL 微信 CDN 基址（对齐 openclaw-weixin CDN_BASE_URL）。
+	// getuploadurl 未返回 upload_full_url 时，用 upload_param + 此基址拼接上传 URL：
+	//   {cdnBaseUrl}/upload?encrypted_query_param={upload_param}&filekey={filekey}
+	wechatCDNBaseURL = "https://novac2c.cdn.weixin.qq.com/c2c"
+)
+
+// fileUploadURLReq getuploadurl 请求体
+type fileUploadURLReq struct {
+	BaseInfo    wechatBaseInfo `json:"base_info"`
+	Filekey     string         `json:"filekey"`
+	MediaType   int            `json:"media_type"`
+	ToUserID    string         `json:"to_user_id"`
+	RawSize     int64          `json:"rawsize"`
+	RawFileMD5  string         `json:"rawfilemd5"`
+	FileSize    int64          `json:"filesize"` // AES 加密后大小
+	NoNeedThumb bool           `json:"no_need_thumb"`
+	AESKey      string         `json:"aeskey"` // 16 字节 hex
+}
+
+// fileUploadURLResp getuploadurl 响应
+// 服务端二选一返回上传地址：upload_full_url（完整 URL，优先用）或 upload_param（需客户端拼接）。
+type fileUploadURLResp struct {
+	Ret           int    `json:"ret"`
+	ErrMsg        string `json:"errmsg,omitempty"`
+	UploadFullURL string `json:"upload_full_url"`
+	UploadParam   string `json:"upload_param"` // 服务端只给参数时用，配合 wechatCDNBaseURL 拼接
+}
+
+// sendCDNMedia 发送方向的 CDN 媒体信息（字段与接收方向 CDNMedia 不同）
+type sendCDNMedia struct {
+	EncryptQueryParam string `json:"encrypt_query_param"`
+	AESKey            string `json:"aes_key"` // base64 编码的 AES 密钥
+	EncryptType       int    `json:"encrypt_type"`
+}
+
+// sendFileItem 发送方向的文件项
+type sendFileItem struct {
+	Media    *sendCDNMedia `json:"media,omitempty"`
+	FileName string        `json:"file_name,omitempty"`
+	Len      string        `json:"len,omitempty"` // 原始文件大小（字符串）
+}
+
+// sendImageItem 发送方向的图片项
+type sendImageItem struct {
+	Media   *sendCDNMedia `json:"media,omitempty"`
+	MidSize int64         `json:"mid_size,omitempty"` // 加密后文件大小
+}
+
+// SendFile 向微信用户发送文件/图片附件（实现 types.FileSender）。
+// 图片（png/jpg）走 image_item，其余走 file_item。均经 AES-128-ECB 加密 + CDN 中转。
+func (w *WeChatAdapter) SendFile(ctx context.Context, userID, fileName, mimeType string, data []byte, extra map[string]string) error {
+	w.mu.RLock()
+	token := w.token
+	baseURL := w.baseURL
+	w.mu.RUnlock()
+
+	if token == "" {
+		return fmt.Errorf("wechat not logged in")
+	}
+	if len(data) == 0 {
+		return fmt.Errorf("empty file data")
+	}
+
+	contextToken := ""
+	if extra != nil {
+		contextToken = extra["contextToken"]
+	}
+
+	// 1. 生成 filekey + AES 密钥（各 16 字节随机）
+	aesKey := make([]byte, 16)
+	if _, err := rand.Read(aesKey); err != nil {
+		return fmt.Errorf("generate aes key failed: %w", err)
+	}
+	filekeyBytes := make([]byte, 16)
+	if _, err := rand.Read(filekeyBytes); err != nil {
+		return fmt.Errorf("generate filekey failed: %w", err)
+	}
+	filekey := hex.EncodeToString(filekeyBytes)
+
+	// 2. AES-128-ECB 加密文件
+	encData, err := aesECBEncrypt(aesKey, data)
+	if err != nil {
+		return fmt.Errorf("aes encrypt failed: %w", err)
+	}
+
+	// 3. 原始文件 MD5
+	md5sum := md5.Sum(data)
+	rawFileMD5 := hex.EncodeToString(md5sum[:])
+
+	// 4. 判定媒体类型：图片走 image，其余走 file
+	isImage := isImageFile(fileName, mimeType)
+	mediaType := ilinkMediaFile
+	if isImage {
+		mediaType = ilinkMediaImage
+	}
+
+	// 5. getuploadurl
+	uploadURL, err := w.getUploadURL(ctx, baseURL, token, fileUploadURLReq{
+		BaseInfo:    buildWeChatBaseInfo(),
+		Filekey:     filekey,
+		MediaType:   mediaType,
+		ToUserID:    userID,
+		RawSize:     int64(len(data)),
+		RawFileMD5:  rawFileMD5,
+		FileSize:    int64(len(encData)),
+		NoNeedThumb: true,
+		AESKey:      hex.EncodeToString(aesKey),
+	})
+	if err != nil {
+		return fmt.Errorf("get upload url failed: %w", err)
+	}
+
+	// 6. 上传加密后数据到 CDN，拿下载凭证
+	encryptQueryParam, err := w.uploadToCDN(ctx, uploadURL, encData)
+	if err != nil {
+		return fmt.Errorf("upload to cdn failed: %w", err)
+	}
+
+	// 7. sendmessage 携带 CDN 凭证。
+	// aes_key 编码对齐 openclaw-weixin：base64( hex字符串 的 UTF-8 字节 )，
+	// 即先 hex.EncodeToString(aesKey) 得 32 字符 hex，再对其字节做 base64（非对原始 16 字节做 base64）。
+	aesKeyHex := hex.EncodeToString(aesKey)
+	media := &sendCDNMedia{
+		EncryptQueryParam: encryptQueryParam,
+		AESKey:            base64.StdEncoding.EncodeToString([]byte(aesKeyHex)),
+		EncryptType:       ilinkEncryptType,
+	}
+	return w.sendFileMessage(ctx, baseURL, token, userID, contextToken, fileName, isImage, media, int64(len(data)), int64(len(encData)))
+}
+
+// sendFileMessage 发送携带 CDN 媒体的消息（图片/文件）。
+func (w *WeChatAdapter) sendFileMessage(ctx context.Context, baseURL, token, toUserID, contextToken, fileName string,
+	isImage bool, media *sendCDNMedia, rawSize, encSize int64) error {
+
+	type sendMsgItem struct {
+		Type      int            `json:"type"`
+		ImageItem *sendImageItem `json:"image_item,omitempty"`
+		FileItem  *sendFileItem  `json:"file_item,omitempty"`
+	}
+	type sendMsg struct {
+		ToUserID     string        `json:"to_user_id"`
+		ClientID     string        `json:"client_id"`
+		MessageType  int           `json:"msg_type"`
+		MessageState int           `json:"msg_state"`
+		ContextToken string        `json:"context_token,omitempty"`
+		ItemList     []sendMsgItem `json:"item_list"`
+	}
+	type sendReq struct {
+		BaseInfo wechatBaseInfo `json:"base_info"`
+		Msg      sendMsg        `json:"msg"`
+	}
+
+	item := sendMsgItem{Type: ilinkItemFile}
+	if isImage {
+		item.Type = ilinkItemImage
+		item.ImageItem = &sendImageItem{Media: media, MidSize: encSize}
+	} else {
+		item.FileItem = &sendFileItem{Media: media, FileName: fileName, Len: fmt.Sprintf("%d", rawSize)}
+	}
+
+	req := sendReq{
+		BaseInfo: buildWeChatBaseInfo(),
+		Msg: sendMsg{
+			ToUserID:     toUserID,
+			ClientID:     generateClientID(),
+			MessageType:  2, // BOT
+			MessageState: 2, // FINISH
+			ContextToken: contextToken,
+			ItemList:     []sendMsgItem{item},
+		},
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", baseURL+"/ilink/bot/sendmessage", bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	w.setHeaders(httpReq, token)
+
+	resp, err := w.httpClient.Do(httpReq)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	respBody, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("send file message failed: %s", string(respBody))
+	}
+
+	var sendResp SendResponse
+	if err := json.Unmarshal(respBody, &sendResp); err == nil {
+		if sendResp.Ret != 0 {
+			return fmt.Errorf("send file message failed: ret=%d, errmsg=%s", sendResp.Ret, sendResp.ErrMsg)
+		}
+	}
+	log.Infof("[WeChat] SendFile ok: user=%s, fileName=%s, isImage=%v, rawSize=%d", toUserID, fileName, isImage, rawSize)
+	return nil
+}
+
+// getUploadURL 调用 getuploadurl 拿 CDN 上传地址。
+func (w *WeChatAdapter) getUploadURL(ctx context.Context, baseURL, token string, reqBody fileUploadURLReq) (string, error) {
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		return "", err
+	}
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", baseURL+"/ilink/bot/getuploadurl", bytes.NewReader(body))
+	if err != nil {
+		return "", err
+	}
+	w.setHeaders(httpReq, token)
+
+	resp, err := w.httpClient.Do(httpReq)
+	if err != nil {
+		return "", err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	respBody, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("getuploadurl http %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var ur fileUploadURLResp
+	if err := json.Unmarshal(respBody, &ur); err != nil {
+		return "", fmt.Errorf("parse getuploadurl resp failed: %w, raw=%s", err, truncateWechat(string(respBody)))
+	}
+
+	// 服务端二选一返回上传地址：
+	//  1. upload_full_url（完整 URL，优先用）
+	//  2. upload_param（仅参数，需客户端拼接：{cdnBaseUrl}/upload?encrypted_query_param={param}&filekey={filekey}）
+	// 对齐 openclaw-weixin cdn-url.ts buildCdnUploadUrl。
+	if full := strings.TrimSpace(ur.UploadFullURL); full != "" {
+		return full, nil
+	}
+	if param := strings.TrimSpace(ur.UploadParam); param != "" {
+		return fmt.Sprintf("%s/upload?encrypted_query_param=%s&filekey=%s",
+			wechatCDNBaseURL, url.QueryEscape(param), url.QueryEscape(reqBody.Filekey)), nil
+	}
+	return "", fmt.Errorf("getuploadurl returned no upload URL (need upload_full_url or upload_param), ret=%d, errmsg=%s, raw=%s",
+		ur.Ret, ur.ErrMsg, truncateWechat(string(respBody)))
+}
+
+// uploadToCDN 上传加密后的文件字节到 CDN，返回下载凭证（x-encrypted-param 响应头）。
+func (w *WeChatAdapter) uploadToCDN(ctx context.Context, uploadURL string, encData []byte) (string, error) {
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", uploadURL, bytes.NewReader(encData))
+	if err != nil {
+		return "", err
+	}
+	httpReq.Header.Set("Content-Type", "application/octet-stream")
+
+	resp, err := w.httpClient.Do(httpReq)
+	if err != nil {
+		return "", err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("cdn upload http %d: %s", resp.StatusCode, truncateWechat(string(body)))
+	}
+
+	// 下载凭证在响应头 x-encrypted-param（部分实现也可能放在响应体，二者择一）
+	encryptQueryParam := resp.Header.Get("x-encrypted-param")
+	if encryptQueryParam == "" {
+		// 兜底：尝试从响应体解析
+		body, _ := io.ReadAll(resp.Body)
+		var b struct {
+			EncryptQueryParam string `json:"encrypt_query_param"`
+			XEncryptedParam   string `json:"x-encrypted-param"`
+		}
+		if json.Unmarshal(body, &b) == nil {
+			encryptQueryParam = b.EncryptQueryParam
+			if encryptQueryParam == "" {
+				encryptQueryParam = b.XEncryptedParam
+			}
+		}
+	}
+	if encryptQueryParam == "" {
+		return "", fmt.Errorf("cdn upload ok but empty encrypt_query_param")
+	}
+	return encryptQueryParam, nil
+}
+
+// aesECBEncrypt AES-128-ECB 加密（PKCS7 padding）。Go 标准库未直接提供 ECB，逐块加密。
+func aesECBEncrypt(key, plaintext []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	bs := block.BlockSize()
+	// PKCS7 padding
+	padding := bs - len(plaintext)%bs
+	padded := make([]byte, len(plaintext)+padding)
+	copy(padded, plaintext)
+	for i := len(plaintext); i < len(padded); i++ {
+		padded[i] = byte(padding)
+	}
+	ciphertext := make([]byte, len(padded))
+	for start := 0; start < len(padded); start += bs {
+		block.Encrypt(ciphertext[start:start+bs], padded[start:start+bs])
+	}
+	return ciphertext, nil
+}
+
+// isImageFile 判定是否图片（按扩展名 + mimeType）。
+func isImageFile(fileName, mimeType string) bool {
+	ext := strings.ToLower(strings.TrimPrefix(path.Ext(fileName), "."))
+	switch ext {
+	case "png", "jpg", "jpeg", "gif", "bmp", "webp":
+		return true
+	}
+	return strings.HasPrefix(strings.ToLower(mimeType), "image/")
+}
+
+// truncateWechat 截断日志字符串。
+func truncateWechat(s string) string {
+	const max = 300
+	if len(s) <= max {
+		return s
+	}
+	return s[:max] + "..."
 }

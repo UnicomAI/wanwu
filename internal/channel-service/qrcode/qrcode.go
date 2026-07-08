@@ -32,6 +32,52 @@ func NewQRLoginManager(cfg config.Config, cli client.IClient) *QRLoginManager {
 	}
 }
 
+// StartCleanup 启动过期扫码会话的定时清理协程。
+// 每隔 cleanupInterval 扫描一次，删除 expire_at < now 的 qr_sessions 记录。
+// 返回的 stop 函数用于优雅停止清理协程（传入的 ctx 取消同样会停止）。
+// 建议在服务启动时调用，服务停止时调用返回的 stop。
+func (m *QRLoginManager) StartCleanup(ctx context.Context, cleanupInterval time.Duration) (stop func()) {
+	if cleanupInterval <= 0 {
+		cleanupInterval = 10 * time.Minute
+	}
+
+	ticker := time.NewTicker(cleanupInterval)
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		// 启动时立即清理一次
+		m.cleanupExpiredSessions(ctx)
+		for {
+			select {
+			case <-ctx.Done():
+				ticker.Stop()
+				return
+			case <-ticker.C:
+				m.cleanupExpiredSessions(ctx)
+			}
+		}
+	}()
+
+	return func() {
+		ticker.Stop()
+		<-done
+	}
+}
+
+// cleanupExpiredSessions 删除所有已过期的扫码会话
+func (m *QRLoginManager) cleanupExpiredSessions(ctx context.Context) {
+	now := time.Now().Unix()
+	deleted, err := m.cli.DeleteExpiredQRSessions(ctx, now)
+	if err != nil {
+		log.Errorf("[QRLogin] failed to cleanup expired sessions: %v", err)
+		return
+	}
+	if deleted > 0 {
+		log.Infof("[QRLogin] cleanup expired qr sessions: deleted %d records", deleted)
+	}
+}
+
 // QRLoginResult 扫码登录结果
 type QRLoginResult struct {
 	SessionID  string

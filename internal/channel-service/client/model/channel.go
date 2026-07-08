@@ -19,6 +19,7 @@ type Channel struct {
 	ApiKeyName  string `gorm:"size:128"`                         // API Key 名称（冗余展示）
 	ApiKey      string `gorm:"size:512"`                         // API Key（明文存储）
 	ModelUuid   string `gorm:"size:64"`                          // WGA 通道使用的模型 UUID
+	AgentId     string `gorm:"size:64"`                          // WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）
 	Config      string `gorm:"type:text"`                        // 平台配置 JSON
 	AccountId   string `gorm:"size:64"`                          // 平台账号 ID
 	Nickname    string `gorm:"size:128"`

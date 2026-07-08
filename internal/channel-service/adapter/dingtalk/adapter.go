@@ -3,12 +3,30 @@ package dingtalk
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/UnicomAI/wanwu/internal/channel-service/adapter/types"
 	"github.com/UnicomAI/wanwu/pkg/log"
 )
+
+// toPlatformAttachments 将钉钉附件转换为通用 PlatformMessage 附件格式。
+func toPlatformAttachments(atts []Attachment) []types.Attachment {
+	if len(atts) == 0 {
+		return nil
+	}
+	out := make([]types.Attachment, 0, len(atts))
+	for _, a := range atts {
+		out = append(out, types.Attachment{
+			Name:     a.Name,
+			MimeType: a.MimeType,
+			Data:     a.Data,
+		})
+	}
+	return out
+}
 
 // DingTalkStreamSender 钉钉流式回复发送器
 // 实现钉钉 AI 卡片的流式输出（打字机效果）
@@ -18,9 +36,14 @@ type DingTalkStreamSender struct {
 	accumulated    strings.Builder
 	chunkCount     int
 
-	mu        sync.Mutex
-	closed    bool // Close 已调用，保证幂等
-	finalized bool // SendChunk(isFinal=true) 已成功将卡片置为 finished
+	// setContentLastPush SetContent 时间节流：全量替换模式下按时间节流（非计数），
+	// 避免每个 SSE 事件都打一次卡片 API。零值表示从未推送过（首次立即推）。
+	setContentLastPush time.Time
+
+	mu            sync.Mutex
+	closed        bool // Close 已调用，保证幂等
+	finalized     bool // SendChunk(isFinal=true) 已成功将卡片置为 finished
+	inputtingSent bool // 首次 streaming 前已将卡片状态置为 INPUTING
 }
 
 // SendChunk 发送一个流式内容块
@@ -32,8 +55,19 @@ func (s *DingTalkStreamSender) SendChunk(ctx context.Context, content string, is
 
 	// 每 8 个 chunk 或 isFinal 时更新卡片
 	if (s.chunkCount-1)%8 == 0 || isFinal {
+		// 首次流式更新前，先将卡片状态从 PROCESSING 置为 INPUTING（与钉钉官方 SDK 流程一致）。
+		// 官方 AIMarkdownCardInstance.ai_streaming 在首次 streaming 前会先 put_card_data(INPUTING)。
+		if !s.inputtingSent {
+			if err := s.client.SetCardInputing(ctx, s.cardInstanceID); err != nil {
+				log.Warnf("[DingTalk] SetCardInputing failed (non-fatal): cardInstanceID=%s, err=%v",
+					s.cardInstanceID, err)
+			}
+			s.inputtingSent = true
+		}
+
 		fullContent := s.accumulated.String()
-		err := s.client.StreamingCard(ctx, s.cardInstanceID, "content", fullContent, true, isFinal, false)
+		// key 必须为 "msgContent"（382e4302 模板的 markdown 数据槽字段名），否则钉钉 streaming 接口返回未知错误
+		err := s.client.StreamingCard(ctx, s.cardInstanceID, "msgContent", fullContent, true, isFinal, false)
 		if err != nil {
 			log.Errorf("[DingTalk] Streaming card chunk failed: cardInstanceID=%s, chunkCount=%d, err=%v",
 				s.cardInstanceID, s.chunkCount, err)
@@ -47,6 +81,49 @@ func (s *DingTalkStreamSender) SendChunk(ctx context.Context, content string, is
 			s.finalized = true
 			s.mu.Unlock()
 		}
+	}
+	return nil
+}
+
+// SetContent 用完整内容替换卡片正文（非追加）。
+// 用于 WGA 过程聚合：每个 SSE 事件后把重渲染的完整 markdown 推给卡片。
+// 与 SendChunk 不同：这里重置 accumulated 后写入完整 content，API 侧用 isFull=true 全量替换。
+// 节流策略：全量替换模式下用**时间节流**（非计数）——首次立即推，之后每 500ms 至多一次，
+// isFinal 必推。计数节流会让前几次更新的内容被 reset 后丢弃、卡片长时间不刷新。
+func (s *DingTalkStreamSender) SetContent(ctx context.Context, content string, isFinal bool) error {
+	s.accumulated.Reset()
+	s.accumulated.WriteString(content)
+	s.chunkCount++
+
+	// 时间节流：首次（lastPush 零值）立即推；之后距上次推送 >= 500ms 才推；isFinal 必推。
+	now := time.Now()
+	shouldPush := isFinal || s.setContentLastPush.IsZero() || now.Sub(s.setContentLastPush) >= 500*time.Millisecond
+	if !shouldPush {
+		return nil
+	}
+
+	if !s.inputtingSent {
+		if err := s.client.SetCardInputing(ctx, s.cardInstanceID); err != nil {
+			log.Warnf("[DingTalk] SetCardInputing failed (non-fatal): cardInstanceID=%s, err=%v",
+				s.cardInstanceID, err)
+		}
+		s.inputtingSent = true
+	}
+
+	fullContent := s.accumulated.String()
+	err := s.client.StreamingCard(ctx, s.cardInstanceID, "msgContent", fullContent, true, isFinal, false)
+	if err != nil {
+		log.Errorf("[DingTalk] Streaming card setcontent failed: cardInstanceID=%s, chunkCount=%d, err=%v",
+			s.cardInstanceID, s.chunkCount, err)
+		return err
+	}
+	s.setContentLastPush = now
+	log.Debugf("[DingTalk] Streaming card setcontent: cardInstanceID=%s, chunkCount=%d, isFinal=%v, len=%d",
+		s.cardInstanceID, s.chunkCount, isFinal, len(fullContent))
+	if isFinal {
+		s.mu.Lock()
+		s.finalized = true
+		s.mu.Unlock()
 	}
 	return nil
 }
@@ -69,7 +146,7 @@ func (s *DingTalkStreamSender) Close(ctx context.Context, err error) error {
 	}
 
 	// 流式更新失败或未发送最终 chunk，显式收尾卡片，避免卡片卡在 processing 状态
-	cardData := map[string]string{"content": s.accumulated.String()}
+	cardData := map[string]string{"msgContent": s.accumulated.String()}
 	if err != nil {
 		log.Infof("[DingTalk] Failing streaming card: cardInstanceID=%s, err=%v", s.cardInstanceID, err)
 		if failErr := s.client.FailCard(ctx, s.cardInstanceID, cardData); failErr != nil {
@@ -146,6 +223,7 @@ func (d *DingTalkAdapter) Connect(config types.AdapterConfig) error {
 						"conversationID": msg.Conversation,
 						"messageID":      msg.MessageID,
 					},
+					Attachments: toPlatformAttachments(msg.Attachments),
 				}
 				if err := d.handler(ctx, platformMsg); err != nil {
 					log.Errorf("[DingTalk] Failed to handle message: %v", err)
@@ -187,6 +265,7 @@ func (d *DingTalkAdapter) Connect(config types.AdapterConfig) error {
 						"conversationID": msg.Conversation,
 						"messageID":      msg.MessageID,
 					},
+					Attachments: toPlatformAttachments(msg.Attachments),
 				}
 				if err := d.handler(ctx, platformMsg); err != nil {
 					log.Errorf("[DingTalk] Failed to handle message: %v", err)
@@ -303,6 +382,40 @@ func (d *DingTalkAdapter) SendMessage(ctx context.Context, userID, content strin
 	return fmt.Errorf("dingtalk adapter not connected")
 }
 
+// SendFile 向钉钉用户发送文件附件（实现 types.FileSender）。
+// 单聊走 oToMessages/batchSend，群聊走 groupMessages/send，msgKey 固定 sampleFile。
+// 底层 uploadFile 自动选择普通上传（≤20MB）或分块事务上传（>20MB）。
+func (d *DingTalkAdapter) SendFile(ctx context.Context, userID, fileName, mimeType string, data []byte, extra map[string]string) error {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	if len(data) == 0 {
+		return fmt.Errorf("empty file data")
+	}
+
+	isInGroup := false
+	conversationID := ""
+	if extra != nil {
+		isInGroup = extra["isInGroup"] == "true"
+		conversationID = extra["conversationID"]
+	}
+
+	// fileType 取文件扩展名（去掉点，如 "report.pdf"→"pdf"）；无扩展名用 "file"。
+	fileType := strings.TrimPrefix(filepath.Ext(fileName), ".")
+	if fileType == "" {
+		fileType = "file"
+	}
+
+	if d.stream != nil {
+		return d.stream.SendFile(ctx, userID, fileName, fileType, data, isInGroup, conversationID)
+	}
+	if d.webhook != nil {
+		return d.webhook.SendFile(ctx, userID, fileName, fileType, data, isInGroup, conversationID)
+	}
+
+	return fmt.Errorf("dingtalk adapter not connected")
+}
+
 // SendMessageWithWebhook 使用 sessionWebhook 回复消息（更高效的回复方式）
 func (d *DingTalkAdapter) SendMessageWithWebhook(ctx context.Context, webhookURL, content string) error {
 	d.mu.RLock()
@@ -368,9 +481,9 @@ func (d *DingTalkAdapter) CreateStreamSender(ctx context.Context, userID string,
 		cardTemplateID = DefaultCardTemplateID
 	}
 
-	// 创建并投放 AI 卡片
+	// 创建并投放 AI 卡片（382e4302 模板的数据槽字段名为 msgContent）
 	cardData := map[string]string{
-		"content":    "",
+		"msgContent": "",
 		"flowStatus": string(AICardStatusProcessing),
 	}
 

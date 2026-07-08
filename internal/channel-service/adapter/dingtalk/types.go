@@ -36,6 +36,14 @@ type Message struct {
 	AtUserIDs      []string               `json:"at_user_ids,omitempty"`
 	SessionWebhook string                 `json:"session_webhook,omitempty"` // sessionWebhook 用于回复
 	Raw            map[string]interface{} `json:"raw,omitempty"`             // 原始消息数据
+	Attachments    []Attachment           `json:"attachments,omitempty"`     // 图片/文件附件（已下载为字节）
+}
+
+// Attachment 钉钉附件（图片/文件），已下载为字节
+type Attachment struct {
+	Name     string
+	MimeType string
+	Data     []byte
 }
 
 // TextMessage 文本消息
@@ -146,12 +154,22 @@ type WebhookRequest struct {
 	SessionWebhookExpiredTime int64  `json:"sessionWebhookExpiredTime"`
 }
 
-// AccessTokenResponse 获取 access token 的响应
+// AccessTokenResponse 获取 access token 的响应（新版 API Token，POST /v1.0/oauth2/accessToken）
 type AccessTokenResponse struct {
 	ErrCode     int    `json:"errcode"`
 	ErrMsg      string `json:"errmsg"`
 	AccessToken string `json:"accessToken"`
 	ExpiresIn   int    `json:"expiresIn"`
+}
+
+// OapiTokenResponse 获取旧版 OAPI access token 的响应（GET /gettoken）。
+// 与 AccessTokenResponse 区别：字段名为下划线风格 access_token（非 accessToken），
+// 用于媒体/文件上传接口的 access_token query 参数。
+type OapiTokenResponse struct {
+	ErrCode     int    `json:"errcode"`
+	ErrMsg      string `json:"errmsg"`
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int    `json:"expires_in"`
 }
 
 // SendMessageResponse 发送消息的响应

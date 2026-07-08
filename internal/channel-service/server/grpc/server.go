@@ -7,24 +7,26 @@ import (
 
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+
 	channel_service "github.com/UnicomAI/wanwu/api/proto/channel-service"
 	"github.com/UnicomAI/wanwu/internal/channel-service/adapter"
 	"github.com/UnicomAI/wanwu/internal/channel-service/chat"
 	"github.com/UnicomAI/wanwu/internal/channel-service/client"
 	"github.com/UnicomAI/wanwu/internal/channel-service/config"
 	"github.com/UnicomAI/wanwu/pkg/log"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type Server struct {
-	cfg     *config.Config
-	serv    *grpc.Server
-	cli     client.IClient
-	channel *ChannelService
-	manager *adapter.Manager
-	handler *chat.Handler
+	cfg           *config.Config
+	serv          *grpc.Server
+	cli           client.IClient
+	channel       *ChannelService
+	manager       *adapter.Manager
+	handler       *chat.Handler
+	qrCleanupStop func() // 过期扫码会话清理协程的停止函数
 }
 
 func NewServer(cfg *config.Config, cli client.IClient) (*Server, error) {
@@ -77,6 +79,9 @@ func (s *Server) Start(ctx context.Context) error {
 		}
 	}()
 
+	// 启动过期扫码会话定时清理（每 1 小时一次，随 ctx 退出而停止）
+	s.qrCleanupStop = s.channel.qrMgr.StartCleanup(ctx, time.Hour)
+
 	// listen
 	lis, err := net.Listen("tcp", s.cfg.Server.GrpcEndpoint)
 	if err != nil {
@@ -97,6 +102,11 @@ func (s *Server) Start(ctx context.Context) error {
 func (s *Server) Stop(ctx context.Context) {
 	if s.serv == nil {
 		return
+	}
+
+	// 停止过期扫码会话清理协程
+	if s.qrCleanupStop != nil {
+		s.qrCleanupStop()
 	}
 
 	// 停止所有适配器

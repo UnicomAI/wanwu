@@ -166,6 +166,25 @@ func (m *Manager) CreateStreamSender(ctx context.Context, channelID, userID stri
 	return adapterInst.CreateStreamSender(ctx, userID, extra)
 }
 
+// SendFile 通过指定通道向平台用户发送文件附件。
+// 平台适配器需实现 types.FileSender 接口；未实现时返回 ErrFileSendUnsupported，
+// 调用方据此降级为文本提示。
+func (m *Manager) SendFile(ctx context.Context, channelID, userID, fileName, mimeType string, data []byte, extra map[string]string) error {
+	m.mu.RLock()
+	adapterInst, ok := m.adapters[channelID]
+	m.mu.RUnlock()
+
+	if !ok {
+		return fmt.Errorf("adapter not found for channel: %s", channelID)
+	}
+
+	sender, ok := adapterInst.(types.FileSender)
+	if !ok {
+		return types.ErrFileSendUnsupported
+	}
+	return sender.SendFile(ctx, userID, fileName, mimeType, data, extra)
+}
+
 // RestartAdapter 重启指定通道的适配器
 func (m *Manager) RestartAdapter(ctx context.Context, ch *model.Channel) error {
 	_ = m.StopAdapter(ch.ChannelID)

@@ -10,6 +10,8 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -39,6 +41,12 @@ type StreamClient struct {
 	accessToken     string
 	tokenExpiry     time.Time
 	accessTokenLock sync.RWMutex
+
+	// 旧版 OAPI Token（GET /gettoken），用于媒体/文件上传接口（oapi.dingtalk.com/media/upload、
+	// /file/upload/*）。与上面的新版 API Token（/v1.0/oauth2/accessToken，用于发送消息）是两套，不能混用。
+	oapiToken       string
+	oapiTokenExpiry time.Time
+	oapiTokenLock   sync.RWMutex
 
 	// WebSocket 连接
 	conn      *websocket.Conn
@@ -378,11 +386,15 @@ func (c *StreamClient) handleCallbackMessage(ctx context.Context, message []byte
 		msg.ChannelID = c.channelID
 
 		// 消息去重（双层）：钉钉 Stream 协议在机器人未及时回复时会重发消息，
-		// 且重发时 messageId 可能变化，因此同时按 messageId 和 senderID+content 去重
+		// 且 Stream 层 messageId（callbackMsg.Headers.MessageId）重发时会变化，不能用于去重；
+		// IM 层 msgId（data.msgId，即 msg.MessageID）重发时稳定不变，作为主去重键。
 		isDuplicate := false
 
-		// 第一层：按 messageId 去重
-		msgID := callbackMsg.Headers.MessageID
+		// 第一层：按 IM 层 msgId 去重（重发时稳定不变）；msgId 缺失时回退到 Stream 层 messageId
+		msgID := msg.MessageID
+		if msgID == "" {
+			msgID = callbackMsg.Headers.MessageID
+		}
 		if msgID != "" {
 			if _, seen := c.seenMsgIDs.Load(msgID); seen {
 				log.Warnf("[DingTalk Stream] Duplicate message detected (by messageId), skipping: messageId=%s, sender=%s, content=%s",
@@ -391,11 +403,11 @@ func (c *StreamClient) handleCallbackMessage(ctx context.Context, message []byte
 			}
 		}
 
-		// 第二层：按 senderID+content 去重（兜底 messageId 变化的重发）
+		// 第二层：按 senderID+content 去重（兜底 msgId 缺失或变化的重发）
 		if !isDuplicate && msg.Sender != "" && msg.Content != "" {
 			digestKey := msg.Sender + ":" + msg.Content
 			if lastTime, seen := c.seenMsgDigest.Load(digestKey); seen {
-				if time.Since(lastTime.(time.Time)) < 60*time.Second {
+				if time.Since(lastTime.(time.Time)) < 120*time.Second {
 					log.Warnf("[DingTalk Stream] Duplicate message detected (by content), skipping: messageId=%s, sender=%s, content=%s",
 						msgID, msg.Sender, truncate(msg.Content, 50))
 					isDuplicate = true
@@ -429,6 +441,20 @@ func (c *StreamClient) handleCallbackMessage(ctx context.Context, message []byte
 		}
 
 		go func() {
+			// 若为图片/文件消息，先下载附件字节填入 Attachments（供 chat handler 上传给 WGA）
+			if dc, ok := msg.Raw["downloadCode"].(string); ok && dc != "" {
+				data, dErr := c.DownloadFile(ctx, dc)
+				if dErr != nil {
+					log.Errorf("[DingTalk Stream] Failed to download attachment for messageId=%s: %v", msg.MessageID, dErr)
+				} else {
+					msg.Attachments = append(msg.Attachments, Attachment{
+						Name:     "dingtalk-file",
+						MimeType: http.DetectContentType(data),
+						Data:     data,
+					})
+					log.Infof("[DingTalk Stream] Downloaded attachment for messageId=%s, size=%d", msg.MessageID, len(data))
+				}
+			}
 			if err := c.messageHandler(ctx, msg); err != nil {
 				log.Errorf("[DingTalk Stream] Message handler error: %v", err)
 			}
@@ -476,10 +502,15 @@ func (c *StreamClient) convertToMessage(data map[string]interface{}) *Message {
 					msg.MsgType = MessageTypeMarkdown
 				}
 			}
-			// 处理图片
+			// 处理图片/文件：钉钉图片和文件消息均带 downloadCode，Content 留空，
+			// 实际文件字节在 handleCallbackMessage 中通过 DownloadFile 下载后填入 msg.Attachments。
 			if downloadCode, ok := content["downloadCode"].(string); ok {
-				msg.Content = downloadCode
+				msg.Content = ""
 				msg.MsgType = MessageTypeImage
+				if msg.Raw == nil {
+					msg.Raw = make(map[string]interface{})
+				}
+				msg.Raw["downloadCode"] = downloadCode
 			}
 		}
 	}
@@ -655,6 +686,111 @@ func (c *StreamClient) GetAccessToken(ctx context.Context) (string, error) {
 	return c.accessToken, nil
 }
 
+// GetOapiToken 获取旧版 OAPI Access Token（自动缓存和刷新）。
+// 用于媒体/文件上传接口：oapi.dingtalk.com/media/upload、/file/upload/transaction/*。
+// 与 GetAccessToken（新版 API Token，发消息用）是两套 token，不可混用。
+// 端点：GET https://oapi.dingtalk.com/gettoken?appkey=<appKey>&appsecret=<appSecret>
+func (c *StreamClient) GetOapiToken(ctx context.Context) (string, error) {
+	c.oapiTokenLock.RLock()
+	if c.oapiToken != "" && time.Now().Before(c.oapiTokenExpiry) {
+		token := c.oapiToken
+		c.oapiTokenLock.RUnlock()
+		return token, nil
+	}
+	c.oapiTokenLock.RUnlock()
+
+	apiURL := "https://oapi.dingtalk.com/gettoken?appkey=" + c.appKey + "&appsecret=" + c.appSecret
+	req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	var result OapiTokenResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	if result.ErrCode != 0 {
+		return "", fmt.Errorf("get oapi token failed: errcode=%d, errmsg=%s", result.ErrCode, result.ErrMsg)
+	}
+
+	c.oapiTokenLock.Lock()
+	c.oapiToken = result.AccessToken
+	c.oapiTokenExpiry = time.Now().Add(time.Duration(result.ExpiresIn-300) * time.Second)
+	c.oapiTokenLock.Unlock()
+
+	return c.oapiToken, nil
+}
+
+// DownloadFile 下载机器人接收到的图片/文件。
+// 用 downloadCode 调用钉钉 /v1.0/robot/messageFiles/download 获取下载 URL，再 GET 拉取文件字节。
+// robotCode 为机器人标识，钉钉机器人场景下使用 appKey。
+func (c *StreamClient) DownloadFile(ctx context.Context, downloadCode string) ([]byte, error) {
+	token, err := c.GetAccessToken(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get access token failed: %w", err)
+	}
+
+	// 1. 用 downloadCode 换取下载 URL
+	apiURL := DingTalkOpenAPIEndpoint + "/v1.0/robot/messageFiles/download"
+	reqBody := map[string]string{
+		"robotCode":    c.appKey,
+		"downloadCode": downloadCode,
+	}
+	body, _ := json.Marshal(reqBody)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, apiURL, bytes.NewReader(body))
+	if err != nil {
+		return nil, fmt.Errorf("create download request failed: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-acs-dingtalk-access-token", token)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("call download api failed: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	var dlResult struct {
+		ErrCode int    `json:"errcode"`
+		ErrMsg  string `json:"errmsg"`
+		URL     string `json:"downloadUrl"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&dlResult); err != nil {
+		return nil, fmt.Errorf("decode download result failed: %w", err)
+	}
+	if dlResult.ErrCode != 0 || dlResult.URL == "" {
+		return nil, fmt.Errorf("download api failed: errcode=%d, errmsg=%s", dlResult.ErrCode, dlResult.ErrMsg)
+	}
+
+	// 2. GET 下载 URL 拉取文件字节
+	dlReq, err := http.NewRequestWithContext(ctx, http.MethodGet, dlResult.URL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create file download request failed: %w", err)
+	}
+	dlResp, err := c.httpClient.Do(dlReq)
+	if err != nil {
+		return nil, fmt.Errorf("download file failed: %w", err)
+	}
+	defer func() { _ = dlResp.Body.Close() }()
+	if dlResp.StatusCode != http.StatusOK {
+		b, _ := io.ReadAll(dlResp.Body)
+		return nil, fmt.Errorf("download file status %d: %s", dlResp.StatusCode, string(b))
+	}
+	data, err := io.ReadAll(dlResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read file data failed: %w", err)
+	}
+	return data, nil
+}
+
 // GetUserInfo 获取用户信息
 func (c *StreamClient) GetUserInfo(ctx context.Context, userID string) (*UserInfo, error) {
 	token, err := c.GetAccessToken(ctx)
@@ -784,6 +920,214 @@ func (c *StreamClient) SendImage(ctx context.Context, receiver string, imageData
 	return c.sendAPI(ctx, token, apiURL, reqBody)
 }
 
+// dingTalkChunkUploadThreshold 普通上传与分块上传的分界（20MB，钉钉普通上传上限）。
+const dingTalkChunkUploadThreshold = 20 * 1024 * 1024
+
+// chunkSizeFor 按文件总大小动态决定分块大小（参考钉钉实现：默认 5MB，>50MB 用 6MB，>100MB 用 8MB；
+// 下限 100KB，上限 8MB）。
+func chunkSizeFor(fileSize int) int {
+	switch {
+	case fileSize > 100*1024*1024:
+		return 8 * 1024 * 1024
+	case fileSize > 50*1024*1024:
+		return 6 * 1024 * 1024
+	default:
+		return 5 * 1024 * 1024
+	}
+}
+
+// uploadMediaChunked 分块事务上传大文件（>20MB）到钉钉，返回 download_code（作为后续发送的 mediaId）。
+// 三步：1) enable 开启事务拿 upload_id；2) 顺序逐块 chunk 上传；3) submit 提交事务拿 download_code。
+// 用旧版 OAPI Token（/gettoken）作 access_token query。
+func (c *StreamClient) uploadMediaChunked(ctx context.Context, mediaData []byte, fileName string) (string, error) {
+	token, err := c.GetOapiToken(ctx)
+	if err != nil {
+		return "", fmt.Errorf("get oapi token failed: %w", err)
+	}
+	fileSize := len(mediaData)
+
+	// 1. 开启上传事务
+	enableURL := "https://oapi.dingtalk.com/file/upload/transaction/enable?access_token=" + token
+	enableBody := &bytes.Buffer{}
+	enableWriter := multipart.NewWriter(enableBody)
+	if err := enableWriter.WriteField("file_name", fileName); err != nil {
+		return "", fmt.Errorf("write file_name field failed: %w", err)
+	}
+	if err := enableWriter.WriteField("file_size", strconv.Itoa(fileSize)); err != nil {
+		return "", fmt.Errorf("write file_size field failed: %w", err)
+	}
+	if err := enableWriter.Close(); err != nil {
+		return "", fmt.Errorf("close enable writer failed: %w", err)
+	}
+	enableReq, err := http.NewRequestWithContext(ctx, "POST", enableURL, enableBody)
+	if err != nil {
+		return "", fmt.Errorf("create enable request failed: %w", err)
+	}
+	enableReq.Header.Set("Content-Type", enableWriter.FormDataContentType())
+
+	enableResp, err := c.httpClient.Do(enableReq)
+	if err != nil {
+		return "", fmt.Errorf("enable upload transaction failed: %w", err)
+	}
+	enableRespBody, _ := io.ReadAll(enableResp.Body)
+	_ = enableResp.Body.Close()
+	var enableResult struct {
+		ErrCode  int    `json:"errcode"`
+		ErrMsg   string `json:"errmsg"`
+		UploadID string `json:"upload_id"`
+	}
+	if err := json.Unmarshal(enableRespBody, &enableResult); err != nil {
+		return "", fmt.Errorf("parse enable response failed: %w, body=%s", err, truncate(string(enableRespBody), 200))
+	}
+	if enableResult.ErrCode != 0 || enableResult.UploadID == "" {
+		return "", fmt.Errorf("enable upload transaction failed: errcode=%d, errmsg=%s", enableResult.ErrCode, enableResult.ErrMsg)
+	}
+	uploadID := enableResult.UploadID
+	log.Infof("[DingTalk Stream] Chunk upload enabled: upload_id=%s, fileName=%s, size=%d", uploadID, fileName, fileSize)
+
+	// 2. 顺序逐块上传
+	chunkSize := chunkSizeFor(fileSize)
+	totalChunks := (fileSize + chunkSize - 1) / chunkSize
+	chunkURL := "https://oapi.dingtalk.com/file/upload/chunk?access_token=" + token
+	for i := 0; i < totalChunks; i++ {
+		start := i * chunkSize
+		end := start + chunkSize
+		if end > fileSize {
+			end = fileSize
+		}
+		chunk := mediaData[start:end]
+
+		chunkBody := &bytes.Buffer{}
+		chunkWriter := multipart.NewWriter(chunkBody)
+		if err := chunkWriter.WriteField("upload_id", uploadID); err != nil {
+			return "", fmt.Errorf("write upload_id field failed: %w", err)
+		}
+		if err := chunkWriter.WriteField("chunk_number", strconv.Itoa(i+1)); err != nil {
+			return "", fmt.Errorf("write chunk_number field failed: %w", err)
+		}
+		if err := chunkWriter.WriteField("total_chunks", strconv.Itoa(totalChunks)); err != nil {
+			return "", fmt.Errorf("write total_chunks field failed: %w", err)
+		}
+		part, err := chunkWriter.CreateFormFile("file", fileName)
+		if err != nil {
+			return "", fmt.Errorf("create chunk form file failed: %w", err)
+		}
+		if _, err := part.Write(chunk); err != nil {
+			return "", fmt.Errorf("write chunk data failed: %w", err)
+		}
+		if err := chunkWriter.Close(); err != nil {
+			return "", fmt.Errorf("close chunk writer failed: %w", err)
+		}
+
+		chunkReq, err := http.NewRequestWithContext(ctx, "POST", chunkURL, chunkBody)
+		if err != nil {
+			return "", fmt.Errorf("create chunk request failed: %w", err)
+		}
+		chunkReq.Header.Set("Content-Type", chunkWriter.FormDataContentType())
+
+		chunkResp, err := c.httpClient.Do(chunkReq)
+		if err != nil {
+			return "", fmt.Errorf("upload chunk %d failed: %w", i+1, err)
+		}
+		chunkRespBody, _ := io.ReadAll(chunkResp.Body)
+		_ = chunkResp.Body.Close()
+		var chunkResult struct {
+			ErrCode int    `json:"errcode"`
+			ErrMsg  string `json:"errmsg"`
+		}
+		if err := json.Unmarshal(chunkRespBody, &chunkResult); err != nil {
+			return "", fmt.Errorf("parse chunk %d response failed: %w, body=%s", i+1, err, truncate(string(chunkRespBody), 200))
+		}
+		if chunkResult.ErrCode != 0 {
+			return "", fmt.Errorf("upload chunk %d failed: errcode=%d, errmsg=%s", i+1, chunkResult.ErrCode, chunkResult.ErrMsg)
+		}
+		log.Debugf("[DingTalk Stream] Chunk uploaded: %d/%d, size=%d", i+1, totalChunks, len(chunk))
+	}
+
+	// 3. 提交事务，拿 download_code（即后续发送的 mediaId）
+	submitURL := "https://oapi.dingtalk.com/file/upload/transaction/submit?access_token=" + token +
+		"&upload_id=" + uploadID + "&file_name=" + url.QueryEscape(fileName)
+	submitReq, err := http.NewRequestWithContext(ctx, "GET", submitURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("create submit request failed: %w", err)
+	}
+	submitResp, err := c.httpClient.Do(submitReq)
+	if err != nil {
+		return "", fmt.Errorf("submit upload transaction failed: %w", err)
+	}
+	submitRespBody, _ := io.ReadAll(submitResp.Body)
+	_ = submitResp.Body.Close()
+	var submitResult struct {
+		ErrCode      int    `json:"errcode"`
+		ErrMsg       string `json:"errmsg"`
+		DownloadCode string `json:"download_code"`
+	}
+	if err := json.Unmarshal(submitRespBody, &submitResult); err != nil {
+		return "", fmt.Errorf("parse submit response failed: %w, body=%s", err, truncate(string(submitRespBody), 200))
+	}
+	if submitResult.ErrCode != 0 || submitResult.DownloadCode == "" {
+		return "", fmt.Errorf("submit upload transaction failed: errcode=%d, errmsg=%s", submitResult.ErrCode, submitResult.ErrMsg)
+	}
+	log.Infof("[DingTalk Stream] Chunk upload submitted: download_code=%s, fileName=%s", submitResult.DownloadCode, fileName)
+	return submitResult.DownloadCode, nil
+}
+
+// uploadFile 统一文件上传入口：≤20MB 走普通上传（返回 media_id），>20MB 走分块事务上传（返回 download_code）。
+// 两者统一作为「mediaId 字符串」返回，由调用方在发送前补 `@` 前缀。
+func (c *StreamClient) uploadFile(ctx context.Context, mediaData []byte, fileName string) (string, error) {
+	if len(mediaData) > dingTalkChunkUploadThreshold {
+		log.Infof("[DingTalk Stream] File %s (%d bytes) > 20MB, using chunked upload", fileName, len(mediaData))
+		return c.uploadMediaChunked(ctx, mediaData, fileName)
+	}
+	return c.uploadMedia(ctx, mediaData, fileName, "file")
+}
+
+// SendFile 发送文件附件（实现 types.FileSender 的底层能力，由 DingTalkAdapter.SendFile 调用）。
+// 流程：uploadFile 拿 mediaId（普通/分块自动选择）→ 补 `@` 前缀 → 发 sampleFile 消息。
+// 单聊走 oToMessages/batchSend，群聊走 groupMessages/send。msgKey 固定 sampleFile，
+// msgParam 为字符串化的 JSON（mediaId 必须带 `@`）。
+func (c *StreamClient) SendFile(ctx context.Context, receiver, fileName, fileType string, mediaData []byte, isInGroup bool, conversationID string) error {
+	mediaID, err := c.uploadFile(ctx, mediaData, fileName)
+	if err != nil {
+		return fmt.Errorf("upload file failed: %w", err)
+	}
+	if !strings.HasPrefix(mediaID, "@") {
+		mediaID = "@" + mediaID
+	}
+
+	token, err := c.GetAccessToken(ctx)
+	if err != nil {
+		return err
+	}
+
+	msgParam, err := json.Marshal(map[string]string{
+		"mediaId":  mediaID,
+		"fileName": fileName,
+		"fileType": fileType,
+	})
+	if err != nil {
+		return fmt.Errorf("marshal msgParam failed: %w", err)
+	}
+
+	var apiURL string
+	reqBody := map[string]interface{}{
+		"robotCode": c.appKey,
+		"msgKey":    "sampleFile",
+		"msgParam":  string(msgParam), // 必须是字符串化的 JSON，非对象
+	}
+	if isInGroup {
+		apiURL = "https://api.dingtalk.com/v1.0/robot/groupMessages/send"
+		reqBody["openConversationId"] = conversationID
+		log.Infof("[DingTalk] SendFile via groupMessages API, conversationID=%s, fileName=%s", conversationID, fileName)
+	} else {
+		apiURL = "https://api.dingtalk.com/v1.0/robot/oToMessages/batchSend"
+		reqBody["userIds"] = []string{receiver}
+		log.Infof("[DingTalk] SendFile via oToMessages API, receiver=%s, fileName=%s", receiver, fileName)
+	}
+
+	return c.sendAPI(ctx, token, apiURL, reqBody)
+}
+
 // ReplyWithWebhook 使用 sessionWebhook 回复文本消息
 func (c *StreamClient) ReplyWithWebhook(ctx context.Context, webhookURL, content string, atUserIDs []string) error {
 	if webhookURL == "" {
@@ -827,11 +1171,13 @@ func (c *StreamClient) ReplyMarkdownWithWebhook(ctx context.Context, webhookURL,
 	return c.sendHTTPRequest(ctx, "POST", webhookURL, reqBody, "")
 }
 
-// uploadMedia 上传媒体文件到钉钉
+// uploadMedia 上传媒体文件到钉钉（普通上传，≤20MB）。
+// 用旧版 OAPI Token（/gettoken）作 access_token query；返回的 media_id 可能带也可能不带 `@`，
+// 由调用方在发送前统一补 `@` 前缀。
 func (c *StreamClient) uploadMedia(ctx context.Context, mediaData []byte, filename, mediaType string) (string, error) {
-	token, err := c.GetAccessToken(ctx)
+	token, err := c.GetOapiToken(ctx)
 	if err != nil {
-		return "", fmt.Errorf("get access token failed: %w", err)
+		return "", fmt.Errorf("get oapi token failed: %w", err)
 	}
 
 	body := &bytes.Buffer{}
@@ -1018,6 +1364,14 @@ func (c *StreamClient) FinishCard(ctx context.Context, cardInstanceID string, ca
 // FailCard 标记卡片失败
 func (c *StreamClient) FailCard(ctx context.Context, cardInstanceID string, cardData map[string]string) error {
 	cardData["flowStatus"] = string(AICardStatusFailed)
+	return c.updateCard(ctx, cardInstanceID, cardData)
+}
+
+// SetCardInputing 将卡片状态置为 INPUTING（输入中）。
+// 钉钉官方 AI 卡片流式流程：createAndDeliver(PROCESSING) → put_card_data(INPUTING) → streaming(...)。
+// 首次 streaming 前需先置 INPUTING，否则可能返回未知错误。
+func (c *StreamClient) SetCardInputing(ctx context.Context, cardInstanceID string) error {
+	cardData := map[string]string{"flowStatus": string(AICardStatusInputing)}
 	return c.updateCard(ctx, cardInstanceID, cardData)
 }
 

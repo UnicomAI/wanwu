@@ -21,4 +21,10 @@ type IClient interface {
 	GetQRSession(ctx context.Context, sessionID string) (*model.QRSession, error)
 	UpdateQRSession(ctx context.Context, sessionID string, updates map[string]interface{}) error
 	DeleteQRSession(ctx context.Context, sessionID string) error
+	DeleteExpiredQRSessions(ctx context.Context, now int64) (int64, error)
+
+	// --- ChannelConversation 会话映射（持久化 threadId/conversationId） ---
+	GetConversation(ctx context.Context, channelID, userID, appType string) (*model.ChannelConversation, error)
+	UpsertConversation(ctx context.Context, conv *model.ChannelConversation) error
+	DeleteConversationsByChannel(ctx context.Context, channelID string) error
 }

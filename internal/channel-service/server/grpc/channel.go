@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"strings"
 	"time"
 
 	channel_service "github.com/UnicomAI/wanwu/api/proto/channel-service"
@@ -12,6 +14,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/channel-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/channel-service/config"
 	"github.com/UnicomAI/wanwu/internal/channel-service/qrcode"
+	"github.com/UnicomAI/wanwu/internal/channel-service/wanwu"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"google.golang.org/grpc/codes"
@@ -21,18 +24,20 @@ import (
 
 type ChannelService struct {
 	channel_service.UnimplementedChannelServiceServer
-	cfg     config.Config
-	cli     client.IClient
-	manager *adapter.Manager
-	qrMgr   *qrcode.QRLoginManager
+	cfg      config.Config
+	cli      client.IClient
+	manager  *adapter.Manager
+	qrMgr    *qrcode.QRLoginManager
+	wanwuCli *wanwu.Client
 }
 
 func NewChannelService(cfg *config.Config, cli client.IClient, mgr *adapter.Manager) *ChannelService {
 	return &ChannelService{
-		cfg:     *cfg,
-		cli:     cli,
-		manager: mgr,
-		qrMgr:   qrcode.NewQRLoginManager(*cfg, cli),
+		cfg:      *cfg,
+		cli:      cli,
+		manager:  mgr,
+		qrMgr:    qrcode.NewQRLoginManager(*cfg, cli),
+		wanwuCli: wanwu.NewClient(cfg.BFF.BaseURL),
 	}
 }
 
@@ -259,6 +264,7 @@ func (s *ChannelService) CreateChannel(ctx context.Context, req *channel_service
 		ApiKeyName:  "", // 后续通过代理接口同步
 		ApiKey:      req.ApiKey,
 		ModelUuid:   req.ModelUuid,
+		AgentId:     req.AgentId,
 		Config:      string(configJSON),
 		AccountId:   accountId,
 		UserID:      req.UserId,
@@ -358,6 +364,9 @@ func (s *ChannelService) UpdateChannel(ctx context.Context, req *channel_service
 	if req.ModelUuid != "" {
 		updates["model_uuid"] = req.ModelUuid
 	}
+	if req.AgentId != "" {
+		updates["agent_id"] = req.AgentId
+	}
 	if len(req.Config) > 0 {
 		configJSON, err := json.Marshal(req.Config)
 		if err != nil {
@@ -429,6 +438,11 @@ func (s *ChannelService) DeleteChannel(ctx context.Context, req *channel_service
 	if err := s.cli.DeleteChannel(ctx, req.ChannelId); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to delete channel: %v", err)
 	}
+
+	// 级联清理该通道下的会话映射（threadId/conversationId），仅删通道时清理
+	if err := s.cli.DeleteConversationsByChannel(ctx, req.ChannelId); err != nil {
+		log.Errorf("failed to cleanup conversations for channel %s: %v", req.ChannelId, err)
+	}
 	return &emptypb.Empty{}, nil
 }
 
@@ -459,6 +473,146 @@ func (s *ChannelService) statusForEnabled(enabled bool) string {
 	return "offline"
 }
 
+// loadWGAChannelForUser 加载通道并校验：存在、已绑定 apiKey、属于该用户。
+// 用于 WGA 工作区/上传接口的鉴权与越权防护。
+func (s *ChannelService) loadWGAChannelForUser(ctx context.Context, channelID, userID string) (*model.Channel, error) {
+	ch, err := s.cli.GetChannel(ctx, channelID)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "channel not found: %v", err)
+	}
+	if !ch.HasApiKey() {
+		return nil, status.Errorf(codes.FailedPrecondition, "channel %s has no api key bound", channelID)
+	}
+	// 越权防护：仅通道属主可操作其会话
+	if userID != "" && ch.UserID != "" && ch.UserID != userID {
+		return nil, status.Errorf(codes.PermissionDenied, "channel %s does not belong to user %s", channelID, userID)
+	}
+	return ch, nil
+}
+
+// verifyWGAThreadOwner 校验 threadId 属于该 channel+user 的 WGA 会话，防止越权下载他人工作区。
+func (s *ChannelService) verifyWGAThreadOwner(ctx context.Context, channelID, userID, threadID string) error {
+	conv, err := s.cli.GetConversation(ctx, channelID, userID, "wga")
+	if err != nil || conv == nil || conv.ConversationID != threadID {
+		return status.Errorf(codes.PermissionDenied, "thread %s does not belong to channel %s user %s", threadID, channelID, userID)
+	}
+	return nil
+}
+
+// --- 通用智能体（WGA）工作区与文件 ---
+
+// GetWGAWorkspace 获取 WGA 工作区目录树
+func (s *ChannelService) GetWGAWorkspace(ctx context.Context, req *channel_service.GetWGAWorkspaceReq) (*channel_service.GetWGAWorkspaceResp, error) {
+	ch, err := s.loadWGAChannelForUser(ctx, req.ChannelId, req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.verifyWGAThreadOwner(ctx, req.ChannelId, req.UserId, req.ThreadId); err != nil {
+		return nil, err
+	}
+	ws, err := s.wanwuCli.WGAWorkspace(ctx, ch.ApiKey, req.ThreadId, req.RunId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get wga workspace: %v", err)
+	}
+	return wgaWorkspaceToProto(ws), nil
+}
+
+// DownloadWGAWorkspace 下载 WGA 工作区文件（path 为空则下载整个工作区 ZIP）
+func (s *ChannelService) DownloadWGAWorkspace(ctx context.Context, req *channel_service.DownloadWGAWorkspaceReq) (*channel_service.DownloadWGAWorkspaceResp, error) {
+	ch, err := s.loadWGAChannelForUser(ctx, req.ChannelId, req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.verifyWGAThreadOwner(ctx, req.ChannelId, req.UserId, req.ThreadId); err != nil {
+		return nil, err
+	}
+	resp, err := s.wanwuCli.WGAWorkspaceDownload(ctx, ch.ApiKey, req.ThreadId, req.RunId, req.Path)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to download wga workspace: %v", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to read wga workspace download: %v", err)
+	}
+	// 从 Content-Disposition 提取文件名，回退用 path 或默认名
+	fileName := extractFileName(resp.Header.Get("Content-Disposition"), req.Path)
+	return &channel_service.DownloadWGAWorkspaceResp{FileName: fileName, Data: data}, nil
+}
+
+// UploadWGAFile 上传文件到万悟 minio，返回 filePath（供 WGA 多模态对话 binary.url 使用）
+func (s *ChannelService) UploadWGAFile(ctx context.Context, req *channel_service.UploadWGAFileReq) (*channel_service.UploadWGAFileResp, error) {
+	ch, err := s.loadWGAChannelForUser(ctx, req.ChannelId, req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if len(req.Data) == 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "file data is empty")
+	}
+	uf, err := s.wanwuCli.UploadFile(ctx, ch.ApiKey, req.FileName, req.MimeType, req.Data)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to upload wga file: %v", err)
+	}
+	return &channel_service.UploadWGAFileResp{
+		FileName: uf.FileName,
+		FileId:   uf.FileId,
+		FilePath: uf.FilePath,
+		FileSize: uf.FileSize,
+	}, nil
+}
+
+// extractFileName 从 Content-Disposition 头提取文件名，提取失败时按 path 推断或返回默认名。
+func extractFileName(contentDisposition, path string) string {
+	if contentDisposition != "" {
+		if idx := strings.Index(contentDisposition, "filename="); idx >= 0 {
+			name := strings.Trim(contentDisposition[idx+len("filename="):], `" `)
+			if name != "" {
+				return name
+			}
+		}
+	}
+	if path != "" {
+		if idx := strings.LastIndex(path, "/"); idx >= 0 {
+			return path[idx+1:]
+		}
+		return path
+	}
+	return "workspace.zip"
+}
+
+// wgaWorkspaceToProto 将 wanwu.WGAWorkspace 转换为 protobuf 响应
+func wgaWorkspaceToProto(ws *wanwu.WGAWorkspace) *channel_service.GetWGAWorkspaceResp {
+	if ws == nil {
+		return &channel_service.GetWGAWorkspaceResp{}
+	}
+	return &channel_service.GetWGAWorkspaceResp{
+		ThreadId:  ws.ThreadID,
+		RunId:     ws.RunID,
+		FileCount: ws.FileCount,
+		TotalSize: ws.TotalSize,
+		IsDisplay: ws.IsDisplay,
+		Path:      ws.Path,
+		Files:     wgaFileNodesToProto(ws.Files),
+	}
+}
+
+func wgaFileNodesToProto(nodes []*wanwu.WGAFileNode) []*channel_service.WGAFileNode {
+	if len(nodes) == 0 {
+		return nil
+	}
+	out := make([]*channel_service.WGAFileNode, 0, len(nodes))
+	for _, n := range nodes {
+		out = append(out, &channel_service.WGAFileNode{
+			Name:     n.Name,
+			Type:     n.Type,
+			Size:     n.Size,
+			MimeType: n.MimeType,
+			Children: wgaFileNodesToProto(n.Children),
+		})
+	}
+	return out
+}
+
 // modelToChannelProto 将数据库模型转换为 protobuf 响应
 func modelToChannelProto(ch *model.Channel) *channel_service.Channel {
 	// 解析 config
@@ -485,6 +639,7 @@ func modelToChannelProto(ch *model.Channel) *channel_service.Channel {
 		ApiKeyName:  ch.ApiKeyName,
 		HasApiKey:   hasApiKey,
 		ModelUuid:   ch.ModelUuid,
+		AgentId:     ch.AgentId,
 		Config:      configMap,
 		CreatedAt:   util.Time2Str(ch.CreatedAt),
 		UpdatedAt:   util.Time2Str(ch.UpdatedAt),

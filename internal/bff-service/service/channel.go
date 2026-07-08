@@ -14,9 +14,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// --- 万悟平台代理 ---
+// ListWanwuDIPAgents 获取数字员工列表（用于 DIP 通道选择绑定的数字员工）。
+// 数据源复用 GetGeneralAgentOntologyEmployeeSelect（「知识网络构建专员」固定排第一），
+// 返回 ListResult 以对齐前端 getAppSelect 期望的 {list, total} 结构。
+func ListWanwuDIPAgents(ctx *gin.Context, userID, orgID, name string) (*response.ListResult, error) {
+	employees, err := GetGeneralAgentOntologyEmployeeSelect(ctx, userID, orgID, name)
+	if err != nil {
+		return nil, err
+	}
+	return &response.ListResult{
+		List:  employees,
+		Total: int64(len(employees)),
+	}, nil
+}
 
-// ListWanwuApiKeys 获取万悟 API Key 列表（复用已有 API Key 逻辑，返回简要信息供通道选择下拉使用）
+
 func ListWanwuApiKeys(ctx *gin.Context, userID, orgID string) (*response.ListResult, error) {
 	keys, err := app.ListApiKeys(ctx.Request.Context(), &app_service.ListApiKeysReq{
 		PageNo:   1,
@@ -42,9 +54,43 @@ func ListWanwuApiKeys(ctx *gin.Context, userID, orgID string) (*response.ListRes
 	}, nil
 }
 
+// ListWanwuModels 获取万悟模型列表（JWT 认证，供 WGA 通道选择 modelUuid 使用）。
+// 复用 ListModels 逻辑，裁剪为精简结构（uuid/displayName/provider/modelType/model），
+// 与 OpenAPI /model/list 返回一致；默认仅返回已启用模型。
+func ListWanwuModels(ctx *gin.Context, userID, orgID string, req *request.ListModelsRequest) (*response.ListResult, error) {
+	full, err := ListModels(ctx, userID, orgID, req)
+	if err != nil {
+		return nil, err
+	}
+	if full == nil {
+		return &response.ListResult{List: []response.OpenAPIModelListItem{}, Total: 0}, nil
+	}
+	models, ok := full.List.([]*response.ModelInfo)
+	if !ok {
+		log.Warnf("[Channel][ListWanwuModels] unexpected list type: %T, total=%d", full.List, full.Total)
+		return &response.ListResult{List: []response.OpenAPIModelListItem{}, Total: full.Total}, nil
+	}
+	items := make([]*response.OpenAPIModelListItem, 0, len(models))
+	for _, m := range models {
+		if m == nil {
+			continue
+		}
+		items = append(items, &response.OpenAPIModelListItem{
+			UUID:        m.Uuid,
+			DisplayName: m.DisplayName,
+			Provider:    m.Provider,
+			ModelType:   m.ModelType,
+			Model:       m.Model,
+			ScopeType:   m.ScopeType,
+		})
+	}
+	return &response.ListResult{List: items, Total: full.Total}, nil
+}
+
 // ListWanwuAgents 获取万悟智能体列表（包含 UUID，供通道绑定使用）
 func ListWanwuAgents(ctx *gin.Context, userID, orgID, appType, name string) (*response.ListResult, error) {
-	// 1. 获取探索广场列表
+	// SearchType=all 返回本人+他人公开+本组织内应用，下方按「本人创建且已发布」过滤，
+	// 与 OpenAPI 权限校验 CheckOpenAPIAccess 放行范围对齐，避免选到不可调用的应用。
 	expResp, err := app.GetExplorationAppList(ctx.Request.Context(), &app_service.GetExplorationAppListReq{
 		Name:       name,
 		AppType:    appType,
@@ -63,8 +109,13 @@ func ListWanwuAgents(ctx *gin.Context, userID, orgID, appType, name string) (*re
 	}
 
 	// 2. 收集 agent 类型的 appId，批量查询 UUID 和详情
+	// 仅保留本人创建且已发布的应用：OpenAPI 只放行本人创建的应用（CheckOpenAPIAccess），
+	// 未发布应用会被以 app not published 拒绝，故两者都不下拉。
 	var agentAppIds []string
 	for _, info := range expResp.Infos {
+		if info.UserId != userID || info.OrgId != orgID || info.PublishType == "" {
+			continue
+		}
 		if info.AppType == "agent" {
 			agentAppIds = append(agentAppIds, info.AppId)
 		}
@@ -103,6 +154,10 @@ func ListWanwuAgents(ctx *gin.Context, userID, orgID, appType, name string) (*re
 	// 3. 组装响应
 	result := make([]*response.WanwuAgentResponse, 0, len(expResp.Infos))
 	for _, info := range expResp.Infos {
+		// 仅本人创建且已发布（与上方收集逻辑一致）
+		if info.UserId != userID || info.OrgId != orgID || info.PublishType == "" {
+			continue
+		}
 		agent := &response.WanwuAgentResponse{
 			AppId:   info.AppId,
 			AppType: info.AppType,
@@ -227,6 +282,7 @@ func CreateChannel(ctx *gin.Context, userID, orgID string, req request.CreateCha
 		ApiKeyId:    req.ApiKeyId,
 		ApiKey:      apiKey,
 		ModelUuid:   req.ModelUuid,
+		AgentId:     req.AgentId,
 		Config:      req.Config,
 		UserId:      userID,
 		OrgId:       orgID,
@@ -303,6 +359,7 @@ func UpdateChannel(ctx *gin.Context, channelID, userID, orgID string, req reques
 		ApiKeyId:  req.ApiKeyId,
 		ApiKey:    apiKey,
 		ModelUuid: req.ModelUuid,
+		AgentId:   req.AgentId,
 		Config:    req.Config,
 		UserId:    userID,
 		OrgId:     orgID,
@@ -346,6 +403,92 @@ func DisconnectChannel(ctx *gin.Context, channelID string) (*response.Disconnect
 		return nil, err
 	}
 	return &response.DisconnectChannelResponse{Message: "通道已断开"}, nil
+}
+
+// --- WGA（通用智能体）工作区 / 上传 ---
+
+// GetWGAWorkspace 获取 WGA 工作区目录树（按 threadId + runId 隔离）。
+// channel-service 侧校验通道归属与 threadId 归属，防越权。
+func GetWGAWorkspace(ctx *gin.Context, channelID, userID, threadID, runID string) (*response.WGAWorkspaceResponse, error) {
+	resp, err := channel.GetWGAWorkspace(ctx.Request.Context(), &channel_service.GetWGAWorkspaceReq{
+		ChannelId: channelID,
+		ThreadId:  threadID,
+		RunId:     runID,
+		UserId:    userID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return wgaWorkspaceProtoToResp(resp), nil
+}
+
+// DownloadWGAWorkspace 下载 WGA 工作区文件（path 为空则下载整个工作区 ZIP）。
+// 返回文件名 + 二进制字节，由 handler 写 octet-stream 响应。
+func DownloadWGAWorkspace(ctx *gin.Context, channelID, userID, threadID, runID, path string) (string, []byte, error) {
+	resp, err := channel.DownloadWGAWorkspace(ctx.Request.Context(), &channel_service.DownloadWGAWorkspaceReq{
+		ChannelId: channelID,
+		ThreadId:  threadID,
+		RunId:     runID,
+		Path:      path,
+		UserId:    userID,
+	})
+	if err != nil {
+		return "", nil, err
+	}
+	return resp.FileName, resp.Data, nil
+}
+
+// UploadWGAFile 上传文件到万悟 minio，返回 filePath 供 WGA 多模态对话 binary.url 引用。
+func UploadWGAFile(ctx *gin.Context, channelID, userID, fileName, mimeType string, data []byte) (*response.WGAUploadFileResponse, error) {
+	resp, err := channel.UploadWGAFile(ctx.Request.Context(), &channel_service.UploadWGAFileReq{
+		ChannelId: channelID,
+		FileName:  fileName,
+		MimeType:  mimeType,
+		Data:      data,
+		UserId:    userID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &response.WGAUploadFileResponse{
+		FileName: resp.FileName,
+		FileId:   resp.FileId,
+		FilePath: resp.FilePath,
+		FileSize: resp.FileSize,
+	}, nil
+}
+
+// wgaWorkspaceProtoToResp 将 proto 工作区响应转换为 bff 响应
+func wgaWorkspaceProtoToResp(resp *channel_service.GetWGAWorkspaceResp) *response.WGAWorkspaceResponse {
+	if resp == nil {
+		return &response.WGAWorkspaceResponse{}
+	}
+	return &response.WGAWorkspaceResponse{
+		ThreadID:  resp.ThreadId,
+		RunID:     resp.RunId,
+		FileCount: resp.FileCount,
+		TotalSize: resp.TotalSize,
+		IsDisplay: resp.IsDisplay,
+		Path:      resp.Path,
+		Files:     wgaFileNodesProtoToResp(resp.Files),
+	}
+}
+
+func wgaFileNodesProtoToResp(nodes []*channel_service.WGAFileNode) []*response.WGAFileNode {
+	if len(nodes) == 0 {
+		return nil
+	}
+	out := make([]*response.WGAFileNode, 0, len(nodes))
+	for _, n := range nodes {
+		out = append(out, &response.WGAFileNode{
+			Name:     n.Name,
+			Type:     n.Type,
+			Size:     n.Size,
+			MimeType: n.MimeType,
+			Children: wgaFileNodesProtoToResp(n.Children),
+		})
+	}
+	return out
 }
 
 // --- 内部方法 ---
@@ -423,6 +566,7 @@ func protoToChannelResponse(ch *channel_service.Channel) *response.ChannelRespon
 		ApiKeyName:  ch.ApiKeyName,
 		HasApiKey:   ch.HasApiKey,
 		ModelUuid:   ch.ModelUuid,
+		AgentId:     ch.AgentId,
 		Config:      ch.Config,
 		CreatedAt:   ch.CreatedAt,
 		UpdatedAt:   ch.UpdatedAt,

@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"gorm.io/gorm"
+
 	"github.com/UnicomAI/wanwu/internal/channel-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/channel-service/client/orm/sqlopt"
-	"gorm.io/gorm"
 )
 
 type Client struct {
@@ -18,6 +19,7 @@ func NewClient(db *gorm.DB) (*Client, error) {
 	if err := db.AutoMigrate(
 		&model.Channel{},
 		&model.QRSession{},
+		&model.ChannelConversation{},
 	); err != nil {
 		return nil, fmt.Errorf("failed to migrate channel tables: %w", err)
 	}
@@ -144,6 +146,62 @@ func (c *Client) DeleteQRSession(ctx context.Context, sessionID string) error {
 	result := c.db.WithContext(ctx).Where("session_id = ?", sessionID).Delete(&model.QRSession{})
 	if result.Error != nil {
 		return fmt.Errorf("qr_session_delete: %w", result.Error)
+	}
+	return nil
+}
+
+// DeleteExpiredQRSessions 删除所有已过期的扫码会话（expire_at < now），返回删除条数。
+// 用于定时清理，避免 qr_sessions 表无限堆积。
+func (c *Client) DeleteExpiredQRSessions(ctx context.Context, now int64) (int64, error) {
+	result := c.db.WithContext(ctx).Where("expire_at < ?", now).Delete(&model.QRSession{})
+	if result.Error != nil {
+		return 0, fmt.Errorf("qr_session_delete_expired: %w", result.Error)
+	}
+	return result.RowsAffected, nil
+}
+
+// --- ChannelConversation 会话映射 ---
+
+// GetConversation 按 (channelID, userID, appType) 查询会话映射，未找到返回 gorm.ErrRecordNotFound。
+func (c *Client) GetConversation(ctx context.Context, channelID, userID, appType string) (*model.ChannelConversation, error) {
+	var conv model.ChannelConversation
+	if err := c.db.WithContext(ctx).
+		Where("channel_id = ? AND user_id = ? AND app_type = ?", channelID, userID, appType).
+		First(&conv).Error; err != nil {
+		return nil, fmt.Errorf("conversation_get: %w", err)
+	}
+	return &conv, nil
+}
+
+// UpsertConversation 按 (channelID, userID, appType) 插入或更新会话映射。
+// 同一 channel+user+appType 复用同一行，仅更新 conversation_id。
+func (c *Client) UpsertConversation(ctx context.Context, conv *model.ChannelConversation) error {
+	// 按 (channelID, userID, appType) 唯一索引 upsert：
+	// 不存在 → 用完整字段插入；存在 → 仅更新 conversation_id。
+	// 注意：Where 只用于查询条件，FirstOrCreate 插入时取的是传入的空结构体，
+	// 必须用 Attrs 显式带上唯一索引键 + conversation_id，否则会插入全空行。
+	result := c.db.WithContext(ctx).Where(
+		"channel_id = ? AND user_id = ? AND app_type = ?",
+		conv.ChannelID, conv.UserID, conv.AppType,
+	).Attrs(model.ChannelConversation{
+		ChannelID:      conv.ChannelID,
+		UserID:         conv.UserID,
+		AppType:        conv.AppType,
+		ConversationID: conv.ConversationID,
+	}).Assign(model.ChannelConversation{
+		ConversationID: conv.ConversationID,
+	}).FirstOrCreate(&model.ChannelConversation{})
+	if result.Error != nil {
+		return fmt.Errorf("conversation_upsert: %w", result.Error)
+	}
+	return nil
+}
+
+// DeleteConversationsByChannel 删除指定通道下的所有会话映射，用于删通道时级联清理。
+func (c *Client) DeleteConversationsByChannel(ctx context.Context, channelID string) error {
+	result := c.db.WithContext(ctx).Where("channel_id = ?", channelID).Delete(&model.ChannelConversation{})
+	if result.Error != nil {
+		return fmt.Errorf("conversation_delete_by_channel: %w", result.Error)
 	}
 	return nil
 }

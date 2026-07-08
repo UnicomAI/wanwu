@@ -17,6 +17,7 @@ type ChannelResponse struct {
 	ApiKeyName  string            `json:"apiKeyName"`
 	HasApiKey   bool              `json:"hasApiKey"`
 	ModelUuid   string            `json:"modelUuid"`
+	AgentId     string            `json:"agentId"` // WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）
 	Config      map[string]string `json:"config"`
 	CreatedAt   string            `json:"createdAt"`
 	UpdatedAt   string            `json:"updatedAt"`
@@ -58,4 +59,32 @@ type WanwuAgentResponse struct {
 	Name    string `json:"name"`
 	Desc    string `json:"desc"`
 	Avatar  string `json:"avatar"`
+}
+
+// WGAFileNode WGA 工作区文件/目录树节点（递归）
+type WGAFileNode struct {
+	Name     string         `json:"name"`
+	Type     string         `json:"type"` // file / directory
+	Size     int64          `json:"size,omitempty"`
+	MimeType string         `json:"mimeType,omitempty"`
+	Children []*WGAFileNode `json:"children,omitempty"`
+}
+
+// WGAWorkspaceResponse WGA 工作区目录树响应
+type WGAWorkspaceResponse struct {
+	ThreadID  string         `json:"threadId"`
+	RunID     string         `json:"runId"`
+	FileCount int32          `json:"fileCount"`
+	TotalSize int64          `json:"totalSize"`
+	IsDisplay bool           `json:"isDisplay"`
+	Path      string         `json:"path"`
+	Files     []*WGAFileNode `json:"files"`
+}
+
+// WGAUploadFileResponse WGA 文件上传响应（代理 /file/upload/direct）
+type WGAUploadFileResponse struct {
+	FileName string `json:"fileName"`
+	FileId   string `json:"fileId"`
+	FilePath string `json:"filePath"` // minio 完整 URL，可作为 WGA 多模态 binary.url
+	FileSize int64  `json:"fileSize"`
 }

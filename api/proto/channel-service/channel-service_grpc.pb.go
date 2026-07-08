@@ -20,19 +20,22 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ChannelService_ListWanwuAgents_FullMethodName     = "/channel_service.ChannelService/ListWanwuAgents"
-	ChannelService_ListWanwuApiKeys_FullMethodName    = "/channel_service.ChannelService/ListWanwuApiKeys"
-	ChannelService_CreateQRLogin_FullMethodName       = "/channel_service.ChannelService/CreateQRLogin"
-	ChannelService_GetQRLoginStatus_FullMethodName    = "/channel_service.ChannelService/GetQRLoginStatus"
-	ChannelService_CancelQRLogin_FullMethodName       = "/channel_service.ChannelService/CancelQRLogin"
-	ChannelService_CompleteQRLogin_FullMethodName     = "/channel_service.ChannelService/CompleteQRLogin"
-	ChannelService_CreateChannel_FullMethodName       = "/channel_service.ChannelService/CreateChannel"
-	ChannelService_ListChannels_FullMethodName        = "/channel_service.ChannelService/ListChannels"
-	ChannelService_GetChannel_FullMethodName          = "/channel_service.ChannelService/GetChannel"
-	ChannelService_UpdateChannel_FullMethodName       = "/channel_service.ChannelService/UpdateChannel"
-	ChannelService_UpdateChannelStatus_FullMethodName = "/channel_service.ChannelService/UpdateChannelStatus"
-	ChannelService_DeleteChannel_FullMethodName       = "/channel_service.ChannelService/DeleteChannel"
-	ChannelService_DisconnectChannel_FullMethodName   = "/channel_service.ChannelService/DisconnectChannel"
+	ChannelService_ListWanwuAgents_FullMethodName      = "/channel_service.ChannelService/ListWanwuAgents"
+	ChannelService_ListWanwuApiKeys_FullMethodName     = "/channel_service.ChannelService/ListWanwuApiKeys"
+	ChannelService_CreateQRLogin_FullMethodName        = "/channel_service.ChannelService/CreateQRLogin"
+	ChannelService_GetQRLoginStatus_FullMethodName     = "/channel_service.ChannelService/GetQRLoginStatus"
+	ChannelService_CancelQRLogin_FullMethodName        = "/channel_service.ChannelService/CancelQRLogin"
+	ChannelService_CompleteQRLogin_FullMethodName      = "/channel_service.ChannelService/CompleteQRLogin"
+	ChannelService_CreateChannel_FullMethodName        = "/channel_service.ChannelService/CreateChannel"
+	ChannelService_ListChannels_FullMethodName         = "/channel_service.ChannelService/ListChannels"
+	ChannelService_GetChannel_FullMethodName           = "/channel_service.ChannelService/GetChannel"
+	ChannelService_UpdateChannel_FullMethodName        = "/channel_service.ChannelService/UpdateChannel"
+	ChannelService_UpdateChannelStatus_FullMethodName  = "/channel_service.ChannelService/UpdateChannelStatus"
+	ChannelService_DeleteChannel_FullMethodName        = "/channel_service.ChannelService/DeleteChannel"
+	ChannelService_DisconnectChannel_FullMethodName    = "/channel_service.ChannelService/DisconnectChannel"
+	ChannelService_GetWGAWorkspace_FullMethodName      = "/channel_service.ChannelService/GetWGAWorkspace"
+	ChannelService_DownloadWGAWorkspace_FullMethodName = "/channel_service.ChannelService/DownloadWGAWorkspace"
+	ChannelService_UploadWGAFile_FullMethodName        = "/channel_service.ChannelService/UploadWGAFile"
 )
 
 // ChannelServiceClient is the client API for ChannelService service.
@@ -68,6 +71,13 @@ type ChannelServiceClient interface {
 	DeleteChannel(ctx context.Context, in *DeleteChannelReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 断开通道连接
 	DisconnectChannel(ctx context.Context, in *DisconnectChannelReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// --- 通用智能体（WGA）工作区与文件 ---
+	// 获取 WGA 工作区目录树
+	GetWGAWorkspace(ctx context.Context, in *GetWGAWorkspaceReq, opts ...grpc.CallOption) (*GetWGAWorkspaceResp, error)
+	// 下载 WGA 工作区文件（不传 path 下载整个工作区 ZIP）
+	DownloadWGAWorkspace(ctx context.Context, in *DownloadWGAWorkspaceReq, opts ...grpc.CallOption) (*DownloadWGAWorkspaceResp, error)
+	// 上传文件到万悟 minio，返回 filePath（供 WGA 多模态对话 binary.url 使用）
+	UploadWGAFile(ctx context.Context, in *UploadWGAFileReq, opts ...grpc.CallOption) (*UploadWGAFileResp, error)
 }
 
 type channelServiceClient struct {
@@ -208,6 +218,36 @@ func (c *channelServiceClient) DisconnectChannel(ctx context.Context, in *Discon
 	return out, nil
 }
 
+func (c *channelServiceClient) GetWGAWorkspace(ctx context.Context, in *GetWGAWorkspaceReq, opts ...grpc.CallOption) (*GetWGAWorkspaceResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetWGAWorkspaceResp)
+	err := c.cc.Invoke(ctx, ChannelService_GetWGAWorkspace_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *channelServiceClient) DownloadWGAWorkspace(ctx context.Context, in *DownloadWGAWorkspaceReq, opts ...grpc.CallOption) (*DownloadWGAWorkspaceResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DownloadWGAWorkspaceResp)
+	err := c.cc.Invoke(ctx, ChannelService_DownloadWGAWorkspace_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *channelServiceClient) UploadWGAFile(ctx context.Context, in *UploadWGAFileReq, opts ...grpc.CallOption) (*UploadWGAFileResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UploadWGAFileResp)
+	err := c.cc.Invoke(ctx, ChannelService_UploadWGAFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChannelServiceServer is the server API for ChannelService service.
 // All implementations must embed UnimplementedChannelServiceServer
 // for forward compatibility.
@@ -241,6 +281,13 @@ type ChannelServiceServer interface {
 	DeleteChannel(context.Context, *DeleteChannelReq) (*emptypb.Empty, error)
 	// 断开通道连接
 	DisconnectChannel(context.Context, *DisconnectChannelReq) (*emptypb.Empty, error)
+	// --- 通用智能体（WGA）工作区与文件 ---
+	// 获取 WGA 工作区目录树
+	GetWGAWorkspace(context.Context, *GetWGAWorkspaceReq) (*GetWGAWorkspaceResp, error)
+	// 下载 WGA 工作区文件（不传 path 下载整个工作区 ZIP）
+	DownloadWGAWorkspace(context.Context, *DownloadWGAWorkspaceReq) (*DownloadWGAWorkspaceResp, error)
+	// 上传文件到万悟 minio，返回 filePath（供 WGA 多模态对话 binary.url 使用）
+	UploadWGAFile(context.Context, *UploadWGAFileReq) (*UploadWGAFileResp, error)
 	mustEmbedUnimplementedChannelServiceServer()
 }
 
@@ -289,6 +336,15 @@ func (UnimplementedChannelServiceServer) DeleteChannel(context.Context, *DeleteC
 }
 func (UnimplementedChannelServiceServer) DisconnectChannel(context.Context, *DisconnectChannelReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DisconnectChannel not implemented")
+}
+func (UnimplementedChannelServiceServer) GetWGAWorkspace(context.Context, *GetWGAWorkspaceReq) (*GetWGAWorkspaceResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWGAWorkspace not implemented")
+}
+func (UnimplementedChannelServiceServer) DownloadWGAWorkspace(context.Context, *DownloadWGAWorkspaceReq) (*DownloadWGAWorkspaceResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DownloadWGAWorkspace not implemented")
+}
+func (UnimplementedChannelServiceServer) UploadWGAFile(context.Context, *UploadWGAFileReq) (*UploadWGAFileResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadWGAFile not implemented")
 }
 func (UnimplementedChannelServiceServer) mustEmbedUnimplementedChannelServiceServer() {}
 func (UnimplementedChannelServiceServer) testEmbeddedByValue()                        {}
@@ -545,6 +601,60 @@ func _ChannelService_DisconnectChannel_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChannelService_GetWGAWorkspace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWGAWorkspaceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChannelServiceServer).GetWGAWorkspace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChannelService_GetWGAWorkspace_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChannelServiceServer).GetWGAWorkspace(ctx, req.(*GetWGAWorkspaceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChannelService_DownloadWGAWorkspace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownloadWGAWorkspaceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChannelServiceServer).DownloadWGAWorkspace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChannelService_DownloadWGAWorkspace_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChannelServiceServer).DownloadWGAWorkspace(ctx, req.(*DownloadWGAWorkspaceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChannelService_UploadWGAFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadWGAFileReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChannelServiceServer).UploadWGAFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChannelService_UploadWGAFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChannelServiceServer).UploadWGAFile(ctx, req.(*UploadWGAFileReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ChannelService_ServiceDesc is the grpc.ServiceDesc for ChannelService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -603,6 +713,18 @@ var ChannelService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DisconnectChannel",
 			Handler:    _ChannelService_DisconnectChannel_Handler,
+		},
+		{
+			MethodName: "GetWGAWorkspace",
+			Handler:    _ChannelService_GetWGAWorkspace_Handler,
+		},
+		{
+			MethodName: "DownloadWGAWorkspace",
+			Handler:    _ChannelService_DownloadWGAWorkspace_Handler,
+		},
+		{
+			MethodName: "UploadWGAFile",
+			Handler:    _ChannelService_UploadWGAFile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

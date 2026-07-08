@@ -55,6 +55,7 @@ type CreateChannelRequest struct {
 	ApiKeyId    string            `json:"apiKeyId"`
 	ApiKey      string            `json:"apiKey"`    // API Key 完整值，创建时传入
 	ModelUuid   string            `json:"modelUuid"` // WGA 通道使用的模型 UUID
+	AgentId     string            `json:"agentId"`   // WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）
 	Config      map[string]string `json:"config" binding:"required"`
 }
 
@@ -67,6 +68,7 @@ type UpdateChannelRequest struct {
 	ApiKeyId  string            `json:"apiKeyId"`
 	ApiKey    string            `json:"apiKey"`
 	ModelUuid string            `json:"modelUuid"` // WGA 通道使用的模型 UUID
+	AgentId   string            `json:"agentId"`   // WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）
 	Config    map[string]string `json:"config"`
 }
 
