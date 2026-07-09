@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/UnicomAI/wanwu/internal/channel-service/adapter/types"
 	"github.com/UnicomAI/wanwu/internal/channel-service/client"
@@ -133,7 +135,16 @@ func (h *Handler) handleAgentMessage(ctx context.Context, ch *model.Channel, msg
 
 // handleWGAMessage 处理通用智能体（WGA）消息
 func (h *Handler) handleWGAMessage(ctx context.Context, ch *model.Channel, msg *types.PlatformMessage) error {
-	return h.doWGAChat(ctx, ch, msg, "wga", ch.AgentId, false)
+	return h.doWGAChat(ctx, ch, msg, "wga", wgaAgentID(ch.AgentId), false)
+}
+
+// wgaAgentID 把"通用智能体"哨兵 "wu" 归一化为空串（WGA 端留空走 Supervisor 默认路由），
+// 其余子智能体 id 原样返回。哨兵 "wu" 由 bff 在选「无」子智能体时存入 channels.agent_id。
+func wgaAgentID(id string) string {
+	if id == "wu" {
+		return ""
+	}
+	return id
 }
 
 // handleDIPMessage 处理数字员工（DIP Agent）消息。
@@ -375,13 +386,28 @@ func (h *Handler) handleWGASSEResponse(ctx context.Context, ch *model.Channel, m
 	// textBuf 累积当前段的 delta，TEXT_MESSAGE_END 时一次性发出（不逐 delta，避免消息数爆炸）。
 	var textBuf strings.Builder
 
+	// sendProgress 把一条过程里程碑消息即时发给通道（只发 transfer/子智能体 finished 这类
+	// 关键节点，常规工具调用不在此下发，避免过程刷屏撞 IM 频控）。
+	sendProgress := func(text string) {
+		if strings.TrimSpace(text) == "" {
+			return
+		}
+		if err := h.manager.SendMessage(ctx, msg.ChannelID, msg.UserID, text, msg.Extra); err != nil {
+			log.Warnf("[WGA-SSE] channel=%s user=%s send progress failed: %v",
+				ch.ChannelID, msg.UserID, err)
+		} else {
+			log.Infof("[WGA-SSE] channel=%s user=%s sent progress: %s",
+				ch.ChannelID, msg.UserID, truncate(text, 50))
+		}
+	}
+
 	// 事件聚合器：仍收集 fragment（保留扩展余地），但本路径不再用卡片渲染。
 	agg := newWgaAggregator()
 	reader := bufio.NewReader(resp.Body)
 	var runID string // RUN_FINISHED 解析出的 runId，用于下载工作区产物
-	// snapshotBefore RUN_STARTED 时的工作区文件路径快照，用于 diff 出本次 run 新增的文件。
-	// nil 表示未取到快照（RUN_STARTED 前流就结束 / 取快照失败），sendWorkspaceFiles 据此跳过回发。
-	var snapshotBefore map[string]struct{}
+	// mentionedFiles 本次 SSE 流中智能体在正文里提到过的产物文件名（如 武则天.pptx），
+	// RUN_FINISHED 后据此去工作区精确匹配并回发，不依赖快照 diff（diff 对固定路径覆盖写不可靠）。
+	var mentionedFiles []string
 	// questionCancelCh 在收到 ACTIVITY_SNAPSHOT(question,pending) 后被赋值；
 	// 用户超时未答或放弃时被 close，通知本循环退出（避免 WGA 不再推事件时永久阻塞）。
 	var questionCancelCh chan struct{}
@@ -512,10 +538,14 @@ func (h *Handler) handleWGASSEResponse(ctx context.Context, ch *model.Channel, m
 					textBuf.WriteString(event.Delta)
 				}
 			case "TEXT_MESSAGE_END":
-				// 一段结束：把该段完整内容作为一条独立消息发给通道（过程逐段下发）
+				// 一段正文结束：逐段下发（正文照常实时发，过程类才只发里程碑）。
+				// 同时从正文里提取智能体提到的产物文件名（如 武则天.pptx），供 RUN_FINISHED 后回发。
 				agg.handleEvent(wgaEv)
 				segment := textBuf.String()
 				textBuf.Reset()
+				if mentioned := extractMentionedFiles(segment); len(mentioned) > 0 {
+					mentionedFiles = append(mentionedFiles, mentioned...)
+				}
 				if strings.TrimSpace(segment) == "" {
 					log.Debugf("[WGA-SSE] channel=%s user=%s TEXT_MESSAGE_END empty segment, skip", ch.ChannelID, msg.UserID)
 				} else if err := h.manager.SendMessage(ctx, msg.ChannelID, msg.UserID, segment, msg.Extra); err != nil {
@@ -539,11 +569,6 @@ func (h *Handler) handleWGASSEResponse(ctx context.Context, ch *model.Channel, m
 			case "RUN_STARTED":
 				log.Infof("[WGA-SSE] channel=%s user=%s RUN_STARTED: threadId=%s, runId=%s",
 					ch.ChannelID, msg.UserID, event.ThreadId, event.RunId)
-				// 取本次 run 开始前的工作区文件快照，用于 RUN_FINISHED 后 diff 出新增文件。
-				// 失败不阻塞流（记日志，sendWorkspaceFiles 会因空快照跳过回发，宁可漏发不误发）。
-				if event.RunId != "" && event.ThreadId != "" {
-					snapshotBefore = h.takeWorkspaceSnapshot(ctx, ch.ApiKey, event.ThreadId, event.RunId)
-				}
 			case "TOOL_CALL_START":
 				log.Infof("[WGA-SSE] channel=%s user=%s TOOL_CALL_START: tool=%s, toolCallId=%s",
 					ch.ChannelID, msg.UserID, event.ToolCallName, event.ToolCallId)
@@ -556,7 +581,12 @@ func (h *Handler) handleWGASSEResponse(ctx context.Context, ch *model.Channel, m
 			case "TOOL_CALL_RESULT":
 				log.Debugf("[WGA-SSE] channel=%s user=%s TOOL_CALL_RESULT: toolCallId=%s, content=%s",
 					ch.ChannelID, msg.UserID, event.ToolCallId, truncate(string(event.Content), 200))
-				agg.handleEvent(wgaEv)
+				// 工具调用结束（收到结果）：仅关键里程碑（如 Supervisor 委派 transfer）即时下发，
+				// 常规工具（glob/read/skill/todowrite/bash 等）不下发，避免过程刷屏。
+				completed, _ := agg.handleEvent(wgaEv)
+				if completed != nil && completed.kind == fragToolCall && isMilestoneToolCall(completed) {
+					sendProgress(renderToolCallLine(completed))
+				}
 			case "ACTIVITY_SNAPSHOT":
 				// PPT Agent 等子智能体的进度快照（sub_agent started/finished、workspace 文件更新等）
 				log.Infof("[WGA-SSE] channel=%s user=%s ACTIVITY_SNAPSHOT: activityType=%s, content=%s",
@@ -566,10 +596,18 @@ func (h *Handler) handleWGASSEResponse(ctx context.Context, ch *model.Channel, m
 				if event.ActivityType == "question" {
 					questionCancelCh = h.handleWGAQuestion(ctx, ch, msg, event.Content, questionCancelCh)
 				}
-				agg.handleEvent(wgaEv)
-			case "REASONING_MESSAGE_START", "REASONING_MESSAGE_CONTENT", "REASONING_MESSAGE_END":
-				// 推理消息：喂聚合器（思考过程不计入下发给通道的正文）
+				// 子智能体结束（sub_agent finished）：即时下发里程碑（不再缓冲合并）。
+				// question/workspace 的快照不返回 completed，不会与此处下发冲突。
+				completed, _ := agg.handleEvent(wgaEv)
+				if completed != nil && completed.kind == fragActivity {
+					sendProgress(renderActivityLine(completed))
+				}
+			case "REASONING_MESSAGE_START", "REASONING_MESSAGE_CONTENT":
+				// 推理消息：仅喂聚合器（思考过程不下发到 IM，避免刷屏）
 				log.Debugf("[WGA-SSE] channel=%s user=%s %s", ch.ChannelID, msg.UserID, event.Type)
+				agg.handleEvent(wgaEv)
+			case "REASONING_MESSAGE_END":
+				// 思考段结束：不下发（思考过程不再推到 IM）
 				agg.handleEvent(wgaEv)
 			default:
 				log.Debugf("[WGA-SSE] channel=%s user=%s unhandled event: %s, raw=%s",
@@ -593,7 +631,15 @@ wgaDone:
 		textBuf.Reset()
 	}
 
-	_ = h.sendWorkspaceFiles(ctx, ch, msg, threadID, runID, snapshotBefore)
+	// 收尾聚合器（把未关闭的 activity 挂回顶层）；诊断未完成的过程 fragment（只记日志不下发，
+	// 未完成的思考/工具调用内容不完整，下发会误导用户）。
+	agg.finalize()
+	for _, f := range agg.unfinishedToolCalls() {
+		log.Warnf("[WGA-SSE] channel=%s user=%s unfinished tool_call: %s (id=%s), no RESULT received",
+			ch.ChannelID, msg.UserID, f.toolCallName, f.toolCallID)
+	}
+
+	_ = h.sendWorkspaceFiles(ctx, ch, msg, threadID, runID, mentionedFiles)
 	return nil
 }
 
@@ -833,6 +879,45 @@ func truncate(s string, maxLen int) string {
 // 此上限仅作防呆，避免单文件过大拖垮 IM 上传。
 const maxWorkspaceFileSize = 100 * 1024 * 1024
 
+// mentionedFileRe 匹配智能体正文里提到的产物文件名（文档/图片/压缩包/网页等最终产物扩展名）。
+// 用于 RUN_FINISHED 后去工作区精确匹配回发。预编译避免每次调用重复编译。
+// 含 html：网页生成场景下 .html 是用户要的最终产物（css/js 不在此列，由 isFinalArtifact 拦截）。
+var mentionedFileRe = regexp.MustCompile(`[\w一-龥.\-]+\.(?:pptx?|docx?|xlsx?|pdf|png|jpe?g|gif|zip|rar|md|txt|csv|html?)`)
+
+// workspaceFileSendGap 工作区产物文件之间的下发间隔（及失败兜底提示前的等待）。
+// 微信 ilink sendmessage 在短时间密集推送时会返回 ret=-2（频控），留 1.5s 间隔降低撞频控概率。
+const workspaceFileSendGap = 1500 * time.Millisecond
+
+// workspaceFileSendRetry 文件下发失败的重试次数（不含首次）。
+// 针对 IM 平台瞬时频控（如微信 ret=-2）：间隔后重试，仍失败则跳过。
+const workspaceFileSendRetry = 2
+
+// sendFileWithRetry 发送工作区文件，失败时间隔重试（应对 IM 平台瞬时频控，如微信 ret=-2）。
+// ErrFileSendUnsupported 不重试（平台根本不支持，直接返回让调用方降级）。
+func (h *Handler) sendFileWithRetry(ctx context.Context, msg *types.PlatformMessage, name, mime string, data []byte) error {
+	var lastErr error
+	for attempt := 0; attempt <= workspaceFileSendRetry; attempt++ {
+		err := h.manager.SendFile(ctx, msg.ChannelID, msg.UserID, name, mime, data, msg.Extra)
+		if err == nil {
+			return nil
+		}
+		if errors.Is(err, types.ErrFileSendUnsupported) {
+			return err // 平台不支持，不重试
+		}
+		lastErr = err
+		log.Warnf("[WGA-WS] channel=%s user=%s send file %s attempt %d/%d failed: %v",
+			msg.ChannelID, msg.UserID, name, attempt+1, workspaceFileSendRetry+1, err)
+		if attempt < workspaceFileSendRetry {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(workspaceFileSendGap):
+			}
+		}
+	}
+	return lastErr
+}
+
 // wgaFileNode 是工作区目录树里一个文件节点的本地表示（含工作区内完整相对路径）。
 type wgaFileItem struct {
 	name string // 文件名（发 IM 用）
@@ -849,45 +934,35 @@ func joinWGAPath(dir, name string) string {
 	return dir + "/" + name
 }
 
-// takeWorkspaceSnapshot 取工作区所有文件的路径集合（map[path]struct{}），作为 diff 基线。
-// 失败返回 nil（调用方据此跳过回发，宁可漏发不误发）。
-func (h *Handler) takeWorkspaceSnapshot(ctx context.Context, apiKey, threadID, runID string) map[string]struct{} {
-	wanwuClient := wanwu.NewClient(h.cfg.BFF.BaseURL)
-	ws, err := wanwuClient.WGAWorkspace(ctx, apiKey, threadID, runID)
-	if err != nil {
-		log.Warnf("[WGA-WS] take snapshot failed: %v", err)
-		return nil
-	}
-	if ws == nil || len(ws.Files) == 0 {
-		return map[string]struct{}{}
-	}
-	paths := make(map[string]struct{}, ws.FileCount)
-	var walk func(nodes []*wanwu.WGAFileNode, dir string)
-	walk = func(nodes []*wanwu.WGAFileNode, dir string) {
-		for _, n := range nodes {
-			if n == nil {
-				continue
-			}
-			if n.Type == "file" {
-				paths[joinWGAPath(dir, n.Name)] = struct{}{}
-			}
-			if len(n.Children) > 0 {
-				walk(n.Children, joinWGAPath(dir, n.Name))
-			}
+// extractMentionedFiles 从智能体正文段里提取产物文件名（如 武则天.pptx、report.docx）。
+// 匹配常见文档/图片/压缩包扩展名；返回去重后的文件名列表（仅文件名，不含路径）。
+// 用于 RUN_FINISHED 后去工作区精确匹配回发，不依赖快照 diff（diff 对固定路径覆盖写不可靠）。
+func extractMentionedFiles(text string) []string {
+	matches := mentionedFileRe.FindAllString(text, -1)
+	seen := make(map[string]struct{}, len(matches))
+	out := make([]string, 0, len(matches))
+	for _, m := range matches {
+		// 过滤明显非文件名的误匹配（如纯扩展名 "pptx" 单独出现），要求含至少一个非扩展名字符
+		name := strings.TrimSpace(m)
+		if name == "" {
+			continue
 		}
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		seen[name] = struct{}{}
+		out = append(out, name)
 	}
-	walk(ws.Files, "")
-	log.Infof("[WGA-WS] snapshot taken: %d files in workspace before run, threadId=%s, runId=%s",
-		len(paths), threadID, runID)
-	return paths
+	return out
 }
 
-// sendWorkspaceFiles 在 WGA 对话结束后，把【本次 run 新生成】的工作区产物下载并回发 IM。
-// 工作区是 thread 级累积的（含所有历史 run 的文件），故用 snapshotBefore（RUN_STARTED 时的工作区
-// 文件路径快照）做 diff，只回发本次新增的文件——纯聊天不生成文件时 diff 为空，不发任何东西。
-// 钉钉/微信均实现 FileSender 真实发送文件（钉钉支持分块大文件）；飞书不实现，自动降级为文本提示。
+// sendWorkspaceFiles 在 WGA 对话结束后，把智能体本次生成的产物下载并回发 IM。
+// 工作区是 thread 级累积（含历史 run 的文件，无修改时间字段），无法靠快照 diff 区分本次新增
+// （PPT Agent 用固定路径覆盖写，diff 永远判"无新增"会漏发）。改为按 mentionedFiles（本次 SSE 流中
+// 智能体正文里提到的产物文件名）去工作区精确匹配回发；mentionedFiles 为空时降级用白名单+
+// 用户请求关键词匹配兜底。钉钉/微信实现 FileSender 真实发文件；飞书不实现，降级文本提示。
 // 任何失败只记日志，不影响已发文本回复。
-func (h *Handler) sendWorkspaceFiles(ctx context.Context, ch *model.Channel, msg *types.PlatformMessage, threadID, runID string, snapshotBefore map[string]struct{}) error {
+func (h *Handler) sendWorkspaceFiles(ctx context.Context, ch *model.Channel, msg *types.PlatformMessage, threadID, runID string, mentionedFiles []string) error {
 	if threadID == "" || runID == "" {
 		log.Infof("[WGA-WS] channel=%s user=%s skip workspace files: threadID or runID empty", msg.ChannelID, msg.UserID)
 		return nil
@@ -930,48 +1005,38 @@ func (h *Handler) sendWorkspaceFiles(ctx context.Context, ch *model.Channel, msg
 		return nil
 	}
 
-	// diff：只保留本次 run 新增的文件（工作区是 thread 级累积，含历史 run 的文件）。
-	// snapshotBefore 为 RUN_STARTED 时快照；为空（取快照失败）时无法 diff，保守跳过回发，
-	// 避免把历史文件误发（宁可漏发不误发）。
-	if len(snapshotBefore) == 0 {
-		log.Infof("[WGA-WS] channel=%s user=%s skip workspace files: empty before-snapshot (cannot diff, %d files in workspace)",
-			msg.ChannelID, msg.UserID, len(allFiles))
-		return nil
-	}
-	newFiles := make([]wgaFileItem, 0, len(allFiles))
-	for _, f := range allFiles {
-		if _, exists := snapshotBefore[f.path]; !exists {
-			newFiles = append(newFiles, f)
+	// 仅回发智能体本次正文明确点名的产物文件。工作区是 thread 级历史累积（无修改时间、无本次
+	// 新增信号），任何"按用户请求关键词匹配 / 全发候选"的兜底都会误推历史文件并触发 IM 频控；
+	// 故未点名文件名即视为纯聊天/无本次产物，静默不发。产物不丢失，仍在万悟工作区网页端。
+	var files []wgaFileItem
+	if len(mentionedFiles) > 0 {
+		mentionedSet := make(map[string]struct{}, len(mentionedFiles))
+		for _, m := range mentionedFiles {
+			mentionedSet[m] = struct{}{}
 		}
+		for _, f := range allFiles {
+			if _, ok := mentionedSet[f.name]; ok && isFinalArtifact(f.name, f.mime) {
+				files = append(files, f)
+			}
+		}
+		log.Infof("[WGA-WS] channel=%s user=%s matched %d/%d mentioned file(s) in workspace (mentioned=%v)",
+			msg.ChannelID, msg.UserID, len(files), len(mentionedFiles), mentionedFiles)
 	}
-	if len(newFiles) == 0 {
-		// 本次 run 未生成任何新文件（纯聊天等），静默返回，不发任何提示
-		log.Infof("[WGA-WS] channel=%s user=%s no new files this run (workspace=%d, skip)", msg.ChannelID, msg.UserID, len(allFiles))
-		return nil
-	}
-	log.Infof("[WGA-WS] channel=%s user=%s %d new file(s) this run (workspace total=%d)",
-		msg.ChannelID, msg.UserID, len(newFiles), len(allFiles))
-
-	// 筛选最终产物：白名单过滤中间文件（js/py/json 等脚本与配置），
-	// 再按用户原始请求文本做关键词匹配，挑出用户真正想要的文件（如「介绍地坛的ppt」→ 地坛.pptx）。
-	files := selectWorkspaceFiles(newFiles, msg.Content)
 	if len(files) == 0 {
-		// 本次新增的全是中间文件（无最终产物），提示用户到工作区查看
-		tip := "文件已生成，请到万悟工作区查看"
-		if err := h.manager.SendMessage(ctx, msg.ChannelID, msg.UserID, tip, msg.Extra); err != nil {
-			log.Warnf("[WGA-WS] channel=%s user=%s send tip failed: %v", msg.ChannelID, msg.UserID, err)
-		}
-		log.Infof("[WGA-WS] channel=%s user=%s no final artifact after filter (newFiles=%d)",
-			msg.ChannelID, msg.UserID, len(newFiles))
+		// 智能体本次正文未提到任何产物文件名：视为纯聊天/无本次产物。
+		// 工作区是 thread 级历史累积（无修改时间、无本次新增信号），回发会把历史文件
+		// （README/LICENSE/CHANGELOG 等）误推给用户并触发 IM 频控。产物不丢失，仍在万悟工作区网页端。
+		log.Infof("[WGA-WS] channel=%s user=%s skip workspace files: no mentioned artifact this run (workspace=%d, mentioned=%v)",
+			msg.ChannelID, msg.UserID, len(allFiles), mentionedFiles)
 		return nil
 	}
 
-	log.Infof("[WGA-WS] channel=%s user=%s sending %d workspace file(s) (filtered from %d new), threadId=%s, runId=%s",
-		msg.ChannelID, msg.UserID, len(files), len(newFiles), threadID, runID)
+	log.Infof("[WGA-WS] channel=%s user=%s sending %d workspace file(s) (workspace total=%d), threadId=%s, runId=%s",
+		msg.ChannelID, msg.UserID, len(files), len(allFiles), threadID, runID)
 
 	sent := 0
-	for _, f := range files {
-		// 大文件跳过（20MB 上限，兼顾 IM 平台上传限制）
+	for i, f := range files {
+		// 大文件跳过（100MB 上限，兼顾 IM 平台上传限制）
 		if f.size > maxWorkspaceFileSize {
 			log.Warnf("[WGA-WS] channel=%s user=%s skip file %s: size %d > %d",
 				msg.ChannelID, msg.UserID, f.name, f.size, maxWorkspaceFileSize)
@@ -992,7 +1057,7 @@ func (h *Handler) sendWorkspaceFiles(ctx context.Context, ch *model.Channel, msg
 			continue
 		}
 
-		if err := h.manager.SendFile(ctx, msg.ChannelID, msg.UserID, f.name, f.mime, data, msg.Extra); err != nil {
+		if err := h.sendFileWithRetry(ctx, msg, f.name, f.mime, data); err != nil {
 			if errors.Is(err, types.ErrFileSendUnsupported) {
 				// 当前平台不支持发文件（如飞书），降级为文本提示：列出最终产物文件名，指引到工作区下载。
 				h.sendWorkspaceFallbackTip(ctx, msg, files)
@@ -1007,11 +1072,43 @@ func (h *Handler) sendWorkspaceFiles(ctx context.Context, ch *model.Channel, msg
 		sent++
 		log.Infof("[WGA-WS] channel=%s user=%s sent file %s (%d bytes)",
 			msg.ChannelID, msg.UserID, f.name, len(data))
+
+		// 多文件场景下文件之间留一点间隔，避免短时间内连续推送触发 IM 平台频控
+		// （微信 ilink sendmessage 在密集推送时会返回 ret=-2）。仅在有后续文件时 sleep。
+		if i < len(files)-1 {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(workspaceFileSendGap):
+			}
+		}
 	}
 
 	if sent == 0 {
-		// 支持发文件但全部发送/下载失败，提示用户到工作区下载
+		// 支持发文件但全部发送/下载失败，间隔后提示用户到工作区下载（避免与失败请求连发再次撞频控）
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(workspaceFileSendGap):
+		}
 		h.sendWorkspaceFallbackTip(ctx, msg, files)
+		return nil
+	}
+
+	// 至少发送成功一个文件：发一条 ✅ 生成汇总（关键里程碑），列出本次产物文件名。
+	var names []string
+	for _, f := range files {
+		if f.size > maxWorkspaceFileSize {
+			continue
+		}
+		names = append(names, f.name)
+	}
+	if len(names) > 0 {
+		tip := "✅ 已生成：" + strings.Join(names, "、")
+		if err := h.manager.SendMessage(ctx, msg.ChannelID, msg.UserID, tip, msg.Extra); err != nil {
+			log.Warnf("[WGA-WS] channel=%s user=%s send generated-summary failed: %v",
+				msg.ChannelID, msg.UserID, err)
+		}
 	}
 	return nil
 }
@@ -1029,65 +1126,20 @@ func (h *Handler) sendWorkspaceFallbackTip(ctx context.Context, msg *types.Platf
 	}
 }
 
-// selectWorkspaceFiles 从工作区所有文件中筛选最终产物。
-// Step A：扩展名白名单过滤中间文件（脚本/配置/日志），保留用户可直接打开的文档。
-// Step B：候选 ≥2 时，按用户请求文本做文件名关键词匹配，挑最相关者；全部不命中则保留全部（不丢文件）。
-func selectWorkspaceFiles(all []wgaFileItem, userQuery string) []wgaFileItem {
-	// Step A：白名单过滤
-	candidates := make([]wgaFileItem, 0, len(all))
-	for _, f := range all {
-		if isFinalArtifact(f.name, f.mime) {
-			candidates = append(candidates, f)
-		}
-	}
-	if len(candidates) <= 1 {
-		return candidates
-	}
+// selectWorkspaceFiles / artifactNameScore 已移除：
+// 原先"未点名文件名时按用户请求关键词匹配、全部不命中则全发候选"的兜底会把工作区历史文件
+// 误推给用户并触发 IM 频控。改为仅回发正文明确点名的产物文件，未点名即静默不发。
 
-	// Step B：关键词匹配（候选 ≥2）
-	q := strings.TrimSpace(userQuery)
-	if q == "" {
-		return candidates // 无请求文本，无法匹配，保守全发
-	}
-	bestScore := 0
-	bestIdx := -1
-	for i, c := range candidates {
-		score := artifactNameScore(c.name, q)
-		if score > bestScore {
-			bestScore = score
-			bestIdx = i
-		}
-	}
-	if bestIdx >= 0 {
-		return []wgaFileItem{candidates[bestIdx]}
-	}
-	// 全部不命中：保守保留全部候选
-	return candidates
-}
-
-// artifactNameScore 计算文件名与用户请求的命中分。
-// 取文件名去扩展名部分，若被请求文本包含则得分（更长匹配得分更高）。
-func artifactNameScore(fileName, query string) int {
-	stem := strings.TrimSuffix(fileName, filepathExt(fileName))
-	stem = strings.TrimSpace(stem)
-	if stem == "" {
-		return 0
-	}
-	if strings.Contains(query, stem) {
-		return len(stem) // 更长的文件名命中权重更高
-	}
-	return 0
-}
-
-// isFinalArtifact 判定是否最终产物（用户可直接打开的文档/图片/压缩包）。
-// 过滤中间产物：脚本（js/ts/py/go…）、配置（json/yaml）、网页（html/css）、日志等。
+// isFinalArtifact 判定是否最终产物（用户可直接打开的文档/图片/压缩包/网页）。
+// 过滤中间产物：脚本（js/ts/py/go…）、配置（json/yaml）、样式（css/scss）、日志等。
+// html/htm 算最终产物——网页生成场景下 .html 是用户要的产物，应回发；其依赖的 css/js 仍过滤。
 func isFinalArtifact(name, mime string) bool {
 	ext := strings.ToLower(strings.TrimPrefix(filepathExt(name), "."))
 	switch ext {
 	case "", "js", "mjs", "ts", "jsx", "tsx", "py", "rb", "go", "rs", "java",
 		"c", "h", "cpp", "cc", "hpp", "cs", "php", "sh", "bash", "zsh",
 		"json", "yaml", "yml", "toml", "ini", "cfg", "conf",
-		"html", "htm", "css", "scss", "less", "vue", "svelte",
+		"css", "scss", "less", "vue", "svelte",
 		"xml", "svg", "map", "lock", "log", "tmp", "bak", "swp":
 		return false
 	}

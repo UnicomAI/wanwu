@@ -28,7 +28,6 @@ func ListWanwuDIPAgents(ctx *gin.Context, userID, orgID, name string) (*response
 	}, nil
 }
 
-
 func ListWanwuApiKeys(ctx *gin.Context, userID, orgID string) (*response.ListResult, error) {
 	keys, err := app.ListApiKeys(ctx.Request.Context(), &app_service.ListApiKeysReq{
 		PageNo:   1,
@@ -344,28 +343,28 @@ func UpdateChannel(ctx *gin.Context, channelID, userID, orgID string, req reques
 	}
 
 	// 按 existing.AppType + req.AgentId 指针三态解析 AppID/AppName/AgentId
-	// req.AgentId: nil=不改(保留旧值) / &""=清空(仅wga) / &id=设新值
+	// appIDPtr/appNamePtr/agentIDPtr：nil=不改(保留旧值) / &""=清空 / &val=设新值
 	var (
-		appID, appName string
-		agentIDPtr     *string // optional agent_id：nil=不改，&""=清空，&id=设新值
+		appIDPtr, appNamePtr, agentIDPtr *string
 	)
 	switch existing.AppType {
 	case "wga":
+		// 「无」选项用固定哨兵 "wu" 表示通用智能体（不绑子智能体）：agent_id 存 "wu"，
+		// app_id/app_name 留空，运行时调 WGA 前会把 "wu" 归一化为空串走 Supervisor 默认。
+		// 空串 "" 与 "wu" 同语义（统一归到 "wu" 存库，避免 DB 里出现两种"通用智能体"表示）。
 		switch {
 		case req.AgentId == nil:
-			// 不改 agentId，appID/appName 也不下发（grpc 非空才更新→保留旧值）
-		case *req.AgentId == "":
-			// 清空：切回默认 Supervisor（agent_id 写空串、app_id 留空、app_name 回到"通用智能体"）
-			appID, appName = "", "通用智能体"
-			agentIDPtr = strPtr("")
+			// 不改 agentId，appID/appName 也不下发（nil→保留旧值）
+		case *req.AgentId == wgaNoneAgentID || *req.AgentId == "":
+			// 选「无」/清空：通用智能体，不绑子智能体。agent_id 存哨兵 "wu"，app_id/app_name 清空。
+			appIDPtr, appNamePtr, agentIDPtr = strPtr(""), strPtr(""), strPtr(wgaNoneAgentID)
 		default:
 			// 换子智能体
 			name, err := resolveWGASubAgentName(*req.AgentId)
 			if err != nil {
 				log.Warnf("failed to resolve wga sub agent name for %s: %v", *req.AgentId, err)
 			}
-			appID, appName = *req.AgentId, name
-			agentIDPtr = strPtr(*req.AgentId)
+			appIDPtr, appNamePtr, agentIDPtr = strPtr(*req.AgentId), strPtr(name), strPtr(*req.AgentId)
 		}
 	case "dip":
 		// dip 员工 id 必填，不支持清空：传非空 id=换员工，nil 或 &"" 都视为不改
@@ -374,8 +373,7 @@ func UpdateChannel(ctx *gin.Context, channelID, userID, orgID string, req reques
 			if err != nil {
 				log.Warnf("failed to resolve dip agent name for %s: %v", *req.AgentId, err)
 			}
-			appID, appName = *req.AgentId, name
-			agentIDPtr = strPtr(*req.AgentId)
+			appIDPtr, appNamePtr, agentIDPtr = strPtr(*req.AgentId), strPtr(name), strPtr(*req.AgentId)
 		}
 	default: // agent
 		// agent 通道 agentId 本就为空；若前端传了 appId 则重算 appName
@@ -384,15 +382,15 @@ func UpdateChannel(ctx *gin.Context, channelID, userID, orgID string, req reques
 			if err != nil {
 				log.Warnf("failed to resolve app name for %s: %v", req.AppID, err)
 			}
-			appID, appName = req.AppID, name
+			appIDPtr, appNamePtr = strPtr(req.AppID), strPtr(name)
 		}
 	}
 
 	resp, err := channel.UpdateChannel(ctx.Request.Context(), &channel_service.UpdateChannelReq{
 		ChannelId: channelID,
 		Name:      req.Name,
-		AppId:     appID,
-		AppName:   appName,
+		AppId:     appIDPtr,
+		AppName:   appNamePtr,
 		ApiKeyId:  req.ApiKeyId,
 		ApiKey:    apiKey,
 		ModelUuid: req.ModelUuid,
@@ -555,6 +553,11 @@ func resolveApiKeyByID(ctx *gin.Context, userID, orgID, apiKeyID string) (string
 // strPtr 返回 s 的指针，用于给 proto3 optional string 字段赋值。
 func strPtr(s string) *string { return &s }
 
+// wgaNoneAgentID 是 WGA 子智能体列表「无」选项的 agentId 固定值（见 ListWanwuWGASubAgents）。
+// 表示通用智能体（不绑子智能体）：创建/更新通道时 agent_id 直接存该值，app_id/app_name 留空；
+// 运行时 channel-service 调 WGA 前会把它归一化为空串，走 Supervisor 默认路由。
+const wgaNoneAgentID = "wu"
+
 // resolveChannelAppFields 按 AppType 分流解析创建通道的 AppID/AppName/AgentId（仅 Create 用）。
 //   - agent：AppID=智能体UUID，AppName=resolveAppName（智能体名），AgentId 留空
 //   - wga：传了 agentId（子智能体id）则 AppID=AgentId=子智能体id、AppName=子智能体名；
@@ -566,6 +569,11 @@ func strPtr(s string) *string { return &s }
 func resolveChannelAppFields(ctx *gin.Context, appType, appID, agentID, userID, orgID string) (string, string, string) {
 	switch appType {
 	case "wga":
+		// 「无」选项用固定哨兵 "wu" 表示通用智能体（不绑子智能体）：agent_id 存 "wu"，
+		// app_id/app_name 留空，运行时调 WGA 前会把 "wu" 归一化为空串走 Supervisor 默认。
+		if agentID == wgaNoneAgentID {
+			return "", "", wgaNoneAgentID
+		}
 		if agentID != "" {
 			name, err := resolveWGASubAgentName(agentID)
 			if err != nil {

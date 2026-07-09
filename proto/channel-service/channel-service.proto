@@ -170,14 +170,14 @@ message GetChannelReq {
 message UpdateChannelReq {
   string channel_id = 1;
   string name = 2;
-  string app_id = 3;
+  optional string app_id = 3;       // optional 以支持更新时清空（如 WGA 选「无」子智能体时 app_id 置空）；未传保留旧值
   string api_key_id = 4;
   string api_key = 5;       // 更新 API Key 时传入
   map<string, string> config = 6;
   string user_id = 7;
   string org_id = 8;
   string model_uuid = 9;   // WGA 通道使用的模型 UUID
-  string app_name = 10;    // 智能体名称（由 BFF 层查询填充）
+  optional string app_name = 10;    // optional 以支持更新时清空；未传保留旧值
   optional string agent_id = 11;    // WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）；optional 以支持更新时清空（置空走 Supervisor 默认）
 }
 

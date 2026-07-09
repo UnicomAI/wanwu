@@ -349,11 +349,13 @@ func (s *ChannelService) UpdateChannel(ctx context.Context, req *channel_service
 	if req.Name != "" {
 		updates["name"] = req.Name
 	}
-	if req.AppId != "" {
-		updates["app_id"] = req.AppId
+	if req.AppId != nil {
+		// optional app_id：传了即写入（含空串，用于 WGA 选「无」子智能体时清空 app_id）；未传则保留旧值
+		updates["app_id"] = req.GetAppId()
 	}
-	if req.AppName != "" {
-		updates["app_name"] = req.AppName
+	if req.AppName != nil {
+		// optional app_name：传了即写入（含空串，用于清空）；未传则保留旧值
+		updates["app_name"] = req.GetAppName()
 	}
 	if req.ApiKeyId != "" {
 		updates["api_key_id"] = req.ApiKeyId

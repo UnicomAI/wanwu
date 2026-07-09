@@ -109,8 +109,12 @@ func (a *wgaAggregator) lastFragment() *wgaFragment {
 	return nil
 }
 
-// handleEvent 处理一个 AG-UI 事件，更新聚合状态。返回是否为内容事件（需重渲染）。
-func (a *wgaAggregator) handleEvent(ev *wgaEvent) bool {
+// handleEvent 处理一个 AG-UI 事件，更新聚合状态。
+// 返回 completed：若该事件使一个 fragment 完成（REASONING_MESSAGE_END / TOOL_CALL_RESULT /
+// ACTIVITY_SNAPSHOT sub_agent finished），返回该 fragment 指针（仍在树中，renderMarkdown 仍可用）；
+// 否则 nil。调用方可据此把完整过程内容下发到 IM。
+// 返回 contentChanged：是否为内容事件（需重渲染），保留原语义。
+func (a *wgaAggregator) handleEvent(ev *wgaEvent) (completed *wgaFragment, contentChanged bool) {
 	ts := ev.timestamp
 	if ts == 0 {
 		ts = nowMs()
@@ -118,7 +122,7 @@ func (a *wgaAggregator) handleEvent(ev *wgaEvent) bool {
 	switch ev.eventType {
 	case "REASONING_MESSAGE_START":
 		a.addFragment(&wgaFragment{kind: fragReasoning, startTime: ts})
-		return true
+		return nil, true
 	case "REASONING_MESSAGE_CONTENT":
 		// 末尾 fragment 是 reasoning 则追加；否则兜底新建一个（应对 START 缺失或被中间事件打断）。
 		f := a.lastFragment()
@@ -127,16 +131,21 @@ func (a *wgaAggregator) handleEvent(ev *wgaEvent) bool {
 			a.addFragment(f)
 		}
 		f.content.WriteString(ev.delta)
-		return true
+		return nil, true
 	case "REASONING_MESSAGE_END":
-		if f := a.lastFragment(); f != nil && f.kind == fragReasoning && f.startTime > 0 {
-			f.duration = formatDurationMs(ts - f.startTime)
+		// 思考段结束：算出耗时，返回该 fragment 供 IM 下发全文。
+		var done *wgaFragment
+		if f := a.lastFragment(); f != nil && f.kind == fragReasoning {
+			if f.startTime > 0 {
+				f.duration = formatDurationMs(ts - f.startTime)
+			}
+			done = f // 即使 startTime==0 算不出 duration，content 已完整，仍返回
 		}
-		return true
+		return done, true
 	case "TEXT_MESSAGE_START":
 		// 显式新建 text fragment（部分 WGA 流可能不发 START，CONTENT 里会兜底新建）
 		a.addFragment(&wgaFragment{kind: fragText})
-		return true
+		return nil, true
 	case "TEXT_MESSAGE_CONTENT":
 		// 末尾已是 text 则追加，否则新建
 		f := a.lastFragment()
@@ -145,9 +154,9 @@ func (a *wgaAggregator) handleEvent(ev *wgaEvent) bool {
 			a.addFragment(f)
 		}
 		f.content.WriteString(ev.delta)
-		return true
+		return nil, true
 	case "TEXT_MESSAGE_END":
-		return false
+		return nil, false
 	case "TOOL_CALL_START":
 		f := &wgaFragment{
 			kind:         fragToolCall,
@@ -157,16 +166,18 @@ func (a *wgaAggregator) handleEvent(ev *wgaEvent) bool {
 		}
 		a.toolCallMap[ev.toolCallID] = f
 		a.addFragment(f)
-		return true
+		return nil, true
 	case "TOOL_CALL_ARGS":
 		if f, ok := a.toolCallMap[ev.toolCallID]; ok {
 			f.toolCallArgs.WriteString(ev.delta)
 		}
-		return true
+		return nil, true
 	case "TOOL_CALL_END":
 		// 不删 toolCallMap，等 RESULT
-		return false
+		return nil, false
 	case "TOOL_CALL_RESULT":
+		// 工具调用结束：收到结果即完整，返回该 fragment 供 IM 下发（工具名+参数+结果+耗时）。
+		var done *wgaFragment
 		if f, ok := a.toolCallMap[ev.toolCallID]; ok {
 			f.toolCallResult = string(ev.content)
 			f.finished = true
@@ -174,16 +185,18 @@ func (a *wgaAggregator) handleEvent(ev *wgaEvent) bool {
 				f.duration = formatDurationMs(ts - f.startTime)
 			}
 			delete(a.toolCallMap, ev.toolCallID)
+			done = f
 		}
-		return true
+		return done, true
 	case "ACTIVITY_SNAPSHOT":
 		return a.handleActivitySnapshot(ev, ts)
 	}
-	return false
+	return nil, false
 }
 
-// handleActivitySnapshot 处理 ACTIVITY_SNAPSHOT 事件
-func (a *wgaAggregator) handleActivitySnapshot(ev *wgaEvent, ts int64) bool {
+// handleActivitySnapshot 处理 ACTIVITY_SNAPSHOT 事件。
+// sub_agent finished 时返回该 activity fragment（供 IM 下发子智能体进度），其余情况返回 nil。
+func (a *wgaAggregator) handleActivitySnapshot(ev *wgaEvent, ts int64) (completed *wgaFragment, contentChanged bool) {
 	switch ev.activityType {
 	case "sub_agent":
 		var c struct {
@@ -197,7 +210,9 @@ func (a *wgaAggregator) handleActivitySnapshot(ev *wgaEvent, ts int64) bool {
 				agentName: c.AgentName,
 				startTime: ts,
 			})
+			return nil, true
 		} else if c.Status == "finished" {
+			// 子智能体结束：pop 出栈，算出耗时，挂回树，返回该 fragment 供 IM 下发进度。
 			if n := len(a.activityStack); n > 0 {
 				act := a.activityStack[n-1]
 				a.activityStack = a.activityStack[:n-1]
@@ -210,9 +225,11 @@ func (a *wgaAggregator) handleActivitySnapshot(ev *wgaEvent, ts int64) bool {
 				} else {
 					a.topFragments = append(a.topFragments, act)
 				}
+				return act, true
 			}
+			return nil, true
 		}
-		return true
+		return nil, true
 	case "workspace":
 		var c struct {
 			FileCount int32  `json:"fileCount"`
@@ -226,7 +243,7 @@ func (a *wgaAggregator) handleActivitySnapshot(ev *wgaEvent, ts int64) bool {
 			totalSize: c.TotalSize,
 			runID:     c.RunID,
 		})
-		return true
+		return nil, true
 	case "question":
 		var c wanwu.WGAQuestionContent
 		_ = json.Unmarshal(ev.content, &c)
@@ -236,9 +253,9 @@ func (a *wgaAggregator) handleActivitySnapshot(ev *wgaEvent, ts int64) bool {
 			status:     c.Status,
 			questions:  c.Questions,
 		})
-		return true
+		return nil, true
 	}
-	return false
+	return nil, false
 }
 
 // finalize 流结束时把未关闭的 activity（栈中剩余）挂到顶层
@@ -253,6 +270,15 @@ func (a *wgaAggregator) finalize() {
 			a.topFragments = append(a.topFragments, act)
 		}
 	}
+}
+
+// unfinishedToolCalls 返回已 START 但未收到 RESULT 的 tool_call fragment（流中断诊断用，仅记日志不下发）。
+func (a *wgaAggregator) unfinishedToolCalls() []*wgaFragment {
+	out := make([]*wgaFragment, 0, len(a.toolCallMap))
+	for _, f := range a.toolCallMap {
+		out = append(out, f)
+	}
+	return out
 }
 
 // renderMarkdown 把 fragment 树渲染成 markdown（钉钉卡片正文）。
