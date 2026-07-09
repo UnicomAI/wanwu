@@ -25,17 +25,19 @@ export const getModelData = data => {
 
 // 获取模型列表
 export const fetchModelList = data => {
+  const type = data.type;
+  delete data.type;
   return service({
-    url: `${USER_API}/statistic/model/list`,
+    url: `${USER_API}/statistic/model/${type || 'list'}`,
     method: 'post',
     data,
   });
 };
 
 // 模型数据导出
-export const exportModelData = data => {
+export const exportModelData = (data, type) => {
   return service({
-    url: `${USER_API}/statistic/model/export`,
+    url: `${USER_API}/statistic/model/${type || 'list'}/export`,
     method: 'post',
     data,
     responseType: 'blob',

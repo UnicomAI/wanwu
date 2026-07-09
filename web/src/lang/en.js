@@ -200,6 +200,7 @@ export default {
       start: '开启',
       stop: '停用',
     },
+    status: 'Status',
     model: {
       select: 'Select Model',
     },
@@ -1811,6 +1812,8 @@ export default {
     modelSelect: '模型筛选',
     modelList: '模型列表',
     modelData: '模型统计数据',
+    modelStatistics: 'Model Statistics',
+    modelDetail: 'Model Detail',
     modelName: 'Model Name',
     provider: 'Provider',
     publisher: 'Publisher',

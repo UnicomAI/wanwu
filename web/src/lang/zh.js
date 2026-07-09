@@ -210,6 +210,7 @@ export default {
       start: '开启',
       stop: '停用',
     },
+    status: '状态',
     model: {
       select: '选择模型',
     },
@@ -1975,6 +1976,8 @@ export default {
     modelSelect: '模型筛选',
     modelList: '模型列表',
     modelData: '模型统计数据',
+    modelStatistics: '调用统计',
+    modelDetail: '调用明细',
     modelName: '模型名称',
     provider: '供应商',
     publisher: '发布人',

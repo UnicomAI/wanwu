@@ -199,16 +199,12 @@
           </div>
         </div>
 
-        <div class="model-list-section">
-          <span class="title">
-            {{ $t('statisticsDashboard.modelList') }}
-          </span>
-          <div class="model-list-wrap">
-            <ModelList
-              :params="formatParams({ ...params, ...modelParams })"
-              ref="modelList"
-            />
-          </div>
+        <div class="model-list-wrap">
+          <ModelList
+            :params="formatParams({ ...params, ...modelParams })"
+            :model-map="modelMap"
+            ref="modelList"
+          />
         </div>
       </div>
     </div>
