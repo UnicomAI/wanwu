@@ -44,6 +44,44 @@ export const exportModelData = (data, type) => {
   });
 };
 
+// 获取模型用户统计列表
+export const fetchModelUserList = data => {
+  return service({
+    url: `${USER_API}/statistic/model/user/list`,
+    method: 'post',
+    data,
+  });
+};
+
+// 导出模型用户统计数据
+export const exportModelUserData = data => {
+  return service({
+    url: `${USER_API}/statistic/model/user/export`,
+    method: 'post',
+    data,
+    responseType: 'blob',
+  });
+};
+
+// 获取模型应用统计列表
+export const fetchModelAppList = data => {
+  return service({
+    url: `${USER_API}/statistic/model/app/list`,
+    method: 'post',
+    data,
+  });
+};
+
+// 导出模型应用统计数据
+export const exportModelAppData = data => {
+  return service({
+    url: `${USER_API}/statistic/model/app/export`,
+    method: 'post',
+    data,
+    responseType: 'blob',
+  });
+};
+
 /**
  * 应用统计接口
  */

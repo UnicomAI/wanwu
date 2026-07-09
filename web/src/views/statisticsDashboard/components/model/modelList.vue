@@ -346,6 +346,19 @@
         @refreshData="refreshData"
       />
     </div>
+
+    <ModelUserModal
+      :visible.sync="userModalVisible"
+      :params="params"
+      :model-info="currentRow"
+      :model-map="modelMap"
+    />
+    <ModelAppModal
+      :visible.sync="appModalVisible"
+      :params="params"
+      :model-info="currentRow"
+      :model-map="modelMap"
+    />
   </div>
 </template>
 
@@ -353,6 +366,8 @@
 import Pagination from '@/components/pagination.vue';
 import { formatAmount, resDownloadFile } from '@/utils/util.js';
 import { fetchModelList, exportModelData } from '@/api/statisticsDashboard';
+import ModelUserModal from './modelUserModal.vue';
+import ModelAppModal from './modelAppModal.vue';
 import {
   MODEL_TYPE_OBJ,
   PROVIDER_OBJ,
@@ -369,7 +384,7 @@ import {
 import { AGENT, AppType, CHAT, RAG, WORKFLOW } from '@/utils/commonSet';
 
 export default {
-  components: { Pagination },
+  components: { Pagination, ModelUserModal, ModelAppModal },
   props: {
     params: {},
     modelMap: {
@@ -387,6 +402,9 @@ export default {
       type: 'list',
       sortField: '',
       sortOrder: '',
+      userModalVisible: false,
+      appModalVisible: false,
+      currentRow: null,
     };
   },
   methods: {
@@ -481,11 +499,13 @@ export default {
     showDetail() {
       this.$message.info(this.$t('statisticsDashboard.detailTitle'));
     },
-    showUserDetail() {
-      this.$message.info(this.$t('statisticsDashboard.detailTitle'));
+    showUserDetail(row) {
+      this.currentRow = row;
+      this.userModalVisible = true;
     },
-    showAppDetail() {
-      this.$message.info(this.$t('statisticsDashboard.detailTitle'));
+    showAppDetail(row) {
+      this.currentRow = row;
+      this.appModalVisible = true;
     },
   },
 };
@@ -548,7 +568,7 @@ export default {
   &:focus {
     color: #366fed;
     border: 1px solid #dcebfe;
-    background: #eff6ff;
+    background: #eff6ff !important;
   }
 }
 
@@ -562,7 +582,7 @@ export default {
   &:focus {
     color: #a55fef;
     border: 1px solid #eedfff;
-    background: rgba(165, 95, 239, 0.1);
+    background: #faf5ff !important;
   }
 }
 
@@ -576,7 +596,7 @@ export default {
   &:focus {
     color: #5951e7;
     border: 1px solid #d2dafe;
-    background: #eef2ff;
+    background: #eef2ff !important;
   }
 }
 </style>
