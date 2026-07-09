@@ -92,42 +92,38 @@
         <div v-if="activeTab === 'overview'" class="dataOverview">
           <div class="client_dataOverview_content" v-loading="loading">
             <div v-for="(item, index) in count" :key="index" class="card">
-              <span>
-                {{ item.name }}
-                <i
+              <div class="card-left">
+                <div class="card-title">{{ item.name }}</div>
+                <div class="card-value">
+                  <strong>{{ formatAmount(item.value) }}{{ item.unit }}</strong>
+                </div>
+              </div>
+              <div class="card-right">
+                <span
+                  v-if="item.des_value !== 0 && item.des_value !== -9999"
+                  class="card-tag"
                   :style="{
-                    background: item.des_value < 0 ? '#1afa29' : '#d81e06',
-                  }"
-                  :class="{
-                    defaultBg: item.des_value === 0 || item.des_value === -9999,
-                  }"
-                ></i>
-              </span>
-              <strong>{{ formatAmount(item.value) }}{{ item.unit }}</strong>
-              <span>
-                {{ item.des }}
-                <label
-                  :style="{
+                    background:
+                      item.des_value < 0
+                        ? 'rgba(26, 250, 41, 0.1)'
+                        : 'rgba(216, 30, 6, 0.1)',
                     color: item.des_value < 0 ? '#1afa29' : '#d81e06',
                   }"
-                  :class="{
-                    defaultColor:
-                      item.des_value === 0 || item.des_value === -9999,
-                  }"
                 >
-                  {{ item.des_value === -9999 ? '-' : item.des_value + '%' }}
-                </label>
-                <img
-                  v-if="item.des_value < 0 && item.des_value !== -9999"
-                  src="@/assets/imgs/descend.png"
-                  alt=""
-                />
-                <img
-                  v-if="item.des_value > 0 && item.des_value !== -9999"
-                  src="@/assets/imgs/rise.png"
-                  alt=""
-                />
-              </span>
+                  <img
+                    v-if="item.des_value < 0"
+                    src="@/assets/imgs/descend.png"
+                    alt=""
+                  />
+                  <img
+                    v-if="item.des_value > 0"
+                    src="@/assets/imgs/rise.png"
+                    alt=""
+                  />
+                  {{ (item.des_value > 0 ? '+' : '') + item.des_value + '%' }}
+                </span>
+                <span v-else class="card-tag default-tag">-</span>
+              </div>
             </div>
           </div>
         </div>

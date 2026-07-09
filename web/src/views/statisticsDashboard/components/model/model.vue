@@ -95,42 +95,38 @@
         <div v-if="activeTab === 'overview'" class="dataOverview">
           <div class="client_dataOverview_content" v-loading="loading">
             <div v-for="(item, index) in count" :key="index" class="card">
-              <span>
-                {{ item.name }}
-                <i
+              <div class="card-left">
+                <div class="card-title">{{ item.name }}</div>
+                <div class="card-value">
+                  <strong>{{ formatAmount(item.value) }}{{ item.unit }}</strong>
+                </div>
+              </div>
+              <div class="card-right">
+                <span
+                  v-if="item.des_value !== 0 && item.des_value !== -9999"
+                  class="card-tag"
                   :style="{
-                    background: item.des_value < 0 ? '#1afa29' : '#d81e06',
-                  }"
-                  :class="{
-                    defaultBg: item.des_value === 0 || item.des_value === -9999,
-                  }"
-                ></i>
-              </span>
-              <strong>{{ formatAmount(item.value) }}{{ item.unit }}</strong>
-              <span>
-                {{ item.des }}
-                <label
-                  :style="{
+                    background:
+                      item.des_value < 0
+                        ? 'rgba(26, 250, 41, 0.1)'
+                        : 'rgba(216, 30, 6, 0.1)',
                     color: item.des_value < 0 ? '#1afa29' : '#d81e06',
                   }"
-                  :class="{
-                    defaultColor:
-                      item.des_value === 0 || item.des_value === -9999,
-                  }"
                 >
-                  {{ item.des_value === -9999 ? '-' : item.des_value + '%' }}
-                </label>
-                <img
-                  v-if="item.des_value < 0 && item.des_value !== -9999"
-                  src="@/assets/imgs/descend.png"
-                  alt=""
-                />
-                <img
-                  v-if="item.des_value > 0 && item.des_value !== -9999"
-                  src="@/assets/imgs/rise.png"
-                  alt=""
-                />
-              </span>
+                  <img
+                    v-if="item.des_value < 0"
+                    src="@/assets/imgs/descend.png"
+                    alt=""
+                  />
+                  <img
+                    v-if="item.des_value > 0"
+                    src="@/assets/imgs/rise.png"
+                    alt=""
+                  />
+                  {{ (item.des_value > 0 ? '+' : '') + item.des_value + '%' }}
+                </span>
+                <span v-else class="card-tag default-tag">-</span>
+              </div>
             </div>
           </div>
         </div>
@@ -552,95 +548,4 @@ export default {
 <style lang="scss" scoped>
 @import '@/style/modelSelect.scss';
 @import '@/style/statisticsDashboard.scss';
-
-.dashboard-tab-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 15px 0 0 0;
-
-  .manage-btn {
-    border-color: $color;
-    color: $color;
-  }
-}
-
-.visual-chart-content {
-  .chart-modules {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    margin-top: 20px;
-
-    .data_echart {
-      width: calc(50% - 10px);
-      margin-bottom: 0;
-    }
-  }
-
-  .ranking-modules {
-    display: flex;
-    gap: 20px;
-
-    .ranking-module {
-      flex: 1;
-      min-width: 0;
-    }
-  }
-}
-
-.model-list-section {
-  margin-top: 20px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 5px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
-
-  .model-list-wrap {
-    margin-top: 20px;
-  }
-}
-
-.manage-tips {
-  color: #909399;
-  font-size: 12px;
-  margin-bottom: 16px;
-}
-
-.manage-list {
-  .manage-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    margin-bottom: 8px;
-    background: #f5f7fa;
-    border-radius: 4px;
-    cursor: move;
-
-    .drag-icon {
-      color: #909399;
-      margin-right: 12px;
-      font-size: 16px;
-    }
-
-    .manage-item-name {
-      flex: 1;
-      font-size: 14px;
-      color: #303133;
-    }
-  }
-}
-
-::v-deep .el-dialog__body {
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
-
-::v-deep .model-manage-dialog {
-  z-index: 3000 !important;
-}
-
-::v-deep .model-manage-dialog + .v-modal {
-  z-index: 2999 !important;
-}
 </style>
