@@ -331,7 +331,7 @@
                 class="btn-detail"
                 size="mini"
                 icon="el-icon-view"
-                @click="showDetail(scope.row)"
+                @click="showDetail(scope.row, scope.$index)"
               >
                 {{ $t('common.table.detail') }}
               </el-button>
@@ -359,6 +359,13 @@
       :model-info="currentRow"
       :model-map="modelMap"
     />
+    <ModelRecordDetail
+      :visible.sync="detailVisible"
+      :row="currentRow"
+      :list="tableData"
+      :start-index="detailIndex"
+      :model-map="modelMap"
+    />
   </div>
 </template>
 
@@ -368,6 +375,7 @@ import { formatAmount, resDownloadFile } from '@/utils/util.js';
 import { fetchModelList, exportModelData } from '@/api/statisticsDashboard';
 import ModelUserModal from './modelUserModal.vue';
 import ModelAppModal from './modelAppModal.vue';
+import ModelRecordDetail from './modelRecordDetail.vue';
 import {
   MODEL_TYPE_OBJ,
   PROVIDER_OBJ,
@@ -384,7 +392,7 @@ import {
 import { AGENT, AppType, CHAT, RAG, WORKFLOW } from '@/utils/commonSet';
 
 export default {
-  components: { Pagination, ModelUserModal, ModelAppModal },
+  components: { Pagination, ModelUserModal, ModelAppModal, ModelRecordDetail },
   props: {
     params: {},
     modelMap: {
@@ -404,6 +412,8 @@ export default {
       sortOrder: '',
       userModalVisible: false,
       appModalVisible: false,
+      detailVisible: false,
+      detailIndex: 0,
       currentRow: null,
     };
   },
@@ -496,8 +506,10 @@ export default {
       }
       return orgName || userName || '--';
     },
-    showDetail() {
-      this.$message.info(this.$t('statisticsDashboard.detailTitle'));
+    showDetail(row, index) {
+      this.currentRow = row;
+      this.detailIndex = index;
+      this.detailVisible = true;
     },
     showUserDetail(row) {
       this.currentRow = row;
