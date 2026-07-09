@@ -1977,6 +1977,7 @@ export default {
     modelData: '模型统计数据',
     modelName: '模型名称',
     provider: '供应商',
+    publisher: '发布人',
     org: '组织',
     userName: '用户',
     callCount: '模型调用次数',

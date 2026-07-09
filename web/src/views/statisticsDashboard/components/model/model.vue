@@ -178,6 +178,7 @@
                   dimension="model"
                   :data="rankingData"
                   :loading="rankingLoading"
+                  :model-map="modelMap"
                 />
               </template>
               <template v-else-if="module.id === 'rankingByUser'">
@@ -186,6 +187,7 @@
                   dimension="user"
                   :data="rankingData"
                   :loading="rankingLoading"
+                  :model-map="modelMap"
                 />
               </template>
               <template v-else-if="module.id === 'rankingByOrg'">
@@ -194,6 +196,7 @@
                   dimension="org"
                   :data="rankingData"
                   :loading="rankingLoading"
+                  :model-map="modelMap"
                 />
               </template>
             </div>
@@ -395,6 +398,15 @@ export default {
     },
     visibleModules() {
       return this.moduleList.filter(item => item.visible);
+    },
+    modelMap() {
+      const map = {};
+      this.modelList.forEach(item => {
+        if (item.modelId) {
+          map[item.modelId] = item;
+        }
+      });
+      return map;
     },
   },
   watch: {
