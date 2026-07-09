@@ -67,11 +67,29 @@
       </el-button>
     </div>
     <div class="statistics_content_box scroll-card-container">
-      <div class="item_box">
-        <div class="dataOverview">
-          <span class="title">
-            {{ $t('statistics.overview') }}
-          </span>
+      <div class="item_box" style="margin-bottom: 10px">
+        <div class="dashboard-tab-header">
+          <el-radio-group v-model="activeTab" size="mini">
+            <el-radio-button label="visual">
+              {{ $t('statisticsDashboard.visualCharts') }}
+            </el-radio-button>
+            <el-radio-button label="overview">
+              {{ $t('statisticsDashboard.statisticsOverview') }}
+            </el-radio-button>
+          </el-radio-group>
+          <el-button
+            v-if="activeTab === 'visual'"
+            class="manage-btn"
+            size="mini"
+            plain
+            icon="el-icon-setting"
+            @click="openManageDialog"
+          >
+            {{ $t('statisticsDashboard.manage') }}
+          </el-button>
+        </div>
+
+        <div v-if="activeTab === 'overview'" class="dataOverview">
           <div class="client_dataOverview_content" v-loading="loading">
             <div v-for="(item, index) in count" :key="index" class="card">
               <span>
@@ -113,26 +131,81 @@
             </div>
           </div>
         </div>
-        <div class="data_echart_box">
-          <div class="data_echart" style="width: 100%">
-            <UserEchart
-              :content="
-                echartContent.apiCalls ? echartContent.apiCalls.lines : []
-              "
-              :name="
-                echartContent.apiCalls
-                  ? echartContent.apiCalls.tableName
-                  : $t('statisticsDashboard.apiLineName')
-              "
-              v-loading="loading"
-            ></UserEchart>
+
+        <div v-if="activeTab === 'visual'" class="visual-chart-content">
+          <div class="chart-modules" v-if="!rankingVisible">
+            <div class="data_echart" v-if="!rankingVisible">
+              <UserEchart
+                :content="
+                  echartContent.apiCalls ? echartContent.apiCalls.lines : []
+                "
+                :name="
+                  echartContent.apiCalls
+                    ? echartContent.apiCalls.tableName
+                    : $t('statisticsDashboard.apiLineName')
+                "
+                v-loading="loading"
+              ></UserEchart>
+            </div>
+            <div class="data_echart">
+              <UserEchart
+                :content="
+                  echartContent.apiCalls ? echartContent.apiCalls.lines : []
+                "
+                :name="
+                  echartContent.apiCalls
+                    ? echartContent.apiCalls.tableName
+                    : $t('statisticsDashboard.apiCallCountChartName')
+                "
+                v-loading="loading"
+              ></UserEchart>
+            </div>
+          </div>
+          <div v-if="rankingVisible" class="chart-modules">
+            <div class="data_echart full-width" v-if="rankingVisible">
+              <UserEchart
+                :content="
+                  echartContent.apiCalls ? echartContent.apiCalls.lines : []
+                "
+                :name="
+                  echartContent.apiCalls
+                    ? echartContent.apiCalls.tableName
+                    : $t('statisticsDashboard.apiLineName')
+                "
+                v-loading="loading"
+              ></UserEchart>
+            </div>
+          </div>
+          <div v-if="rankingVisible" class="chart-modules">
+            <ApiRanking
+              :title="$t('statisticsDashboard.apiRanking')"
+              :data="rankingData"
+              :loading="rankingLoading"
+            />
+            <div
+              class="data_echart data_echart_ranking"
+              style="width: calc(60% - 20px)"
+            >
+              <UserEchart
+                :content="
+                  echartContent.apiCalls ? echartContent.apiCalls.lines : []
+                "
+                :name="
+                  echartContent.apiCalls
+                    ? echartContent.apiCalls.tableName
+                    : $t('statisticsDashboard.apiCallCountChartName')
+                "
+                v-loading="loading"
+              ></UserEchart>
+            </div>
           </div>
         </div>
-        <div class="dataOverview">
+
+        <div class="model-list-section">
           <span class="title">
             {{ $t('statisticsDashboard.apiList') }}
           </span>
-          <div style="margin-top: -20px">
+          <div class="model-list-wrap">
             <ApiList
               :params="formatParams({ ...params, ...apiParams })"
               ref="apiList"
@@ -141,16 +214,60 @@
         </div>
       </div>
     </div>
+
+    <el-dialog
+      :title="$t('statisticsDashboard.manageConfig')"
+      :visible.sync="manageDialogVisible"
+      width="500px"
+      :close-on-click-modal="false"
+      custom-class="model-manage-dialog"
+      append-to-body
+      @close="closeManageDialog"
+    >
+      <div class="manage-tips">
+        {{ $t('statisticsDashboard.manageConfigTips') }}
+      </div>
+      <div class="manage-list">
+        <div
+          v-for="(module, index) in dialogModuleList"
+          :key="module.id"
+          class="manage-item"
+          draggable="true"
+          @dragstart="handleDragStart($event, index)"
+          @dragover.prevent="handleDragOver($event, index)"
+          @drop="handleDrop($event, index)"
+          @dragend="handleDragEnd"
+        >
+          <i class="el-icon-rank drag-icon"></i>
+          <span class="manage-item-name">{{ module.name }}</span>
+          <el-switch
+            v-model="module.visible"
+            active-color="#4C7CF6"
+            @change="handleModuleVisibleChange"
+          ></el-switch>
+        </div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button size="small" @click="closeManageDialog">
+          {{ $t('common.button.cancel') }}
+        </el-button>
+        <el-button type="primary" size="small" @click="confirmManageConfig">
+          {{ $t('common.button.confirm') }}
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
 import UserEchart from '@/components/echart/userEchart.vue';
 import ApiList from './apiList.vue';
+import ApiRanking from './apiRanking.vue';
 import { formatAmount } from '@/utils/util.js';
 import {
   getApiData,
   getApiRoutes,
   getApiSelect,
+  fetchApiList,
 } from '@/api/statisticsDashboard';
 import { DEFAULT_APP_ITEM, ALL } from '../../constants';
 
@@ -158,6 +275,7 @@ export default {
   components: {
     UserEchart,
     ApiList,
+    ApiRanking,
   },
   props: {
     globalFilterParams: {
@@ -175,6 +293,8 @@ export default {
   },
   data() {
     return {
+      activeTab: 'visual',
+      manageDialogVisible: false,
       apiNameList: [DEFAULT_APP_ITEM],
       apiRoutesList: [],
       colorsObj: {
@@ -186,8 +306,10 @@ export default {
         DEFAULT: '#909399',
       },
       loading: false,
+      rankingLoading: false,
       content: {}, // 存储返回的总揽数据
       echartContent: {}, // 存储返回的echart数据
+      rankingData: [],
       count: [
         {
           name: this.$t('statisticsDashboard.appCallCountTotal'),
@@ -238,6 +360,16 @@ export default {
           unit: this.$t('statisticsDashboard.frequency'),
         },
       ],
+      moduleList: [
+        {
+          id: 'rankingByApi',
+          name: this.$t('statisticsDashboard.apiRanking'),
+          type: 'ranking',
+          visible: true,
+        },
+      ],
+      dialogModuleList: [],
+      dragIndex: -1,
       apiParams: {
         apiKeyIds: [ALL],
         methodPaths: [],
@@ -253,6 +385,29 @@ export default {
     },
     isApiSelectedAll() {
       return this.apiParams.apiKeyIds.includes(ALL);
+    },
+    visibleModules() {
+      return this.moduleList.filter(item => item.visible);
+    },
+    rankingVisible() {
+      return this.moduleList.some(item => item.visible);
+    },
+    // 提取 apiCalls 趋势中"调用总次数"折线，供"API调用次数"图表复用
+    apiCallCountLines() {
+      const apiCalls = this.echartContent.apiCalls;
+      if (!apiCalls || !apiCalls.lines) return [];
+      const totalLine = (apiCalls.lines || []).find(
+        line => line.lineName === 'app_statistic_api_call_count_total',
+      );
+      if (!totalLine) {
+        return apiCalls.lines || [];
+      }
+      return [
+        {
+          lineName: this.$t('statisticsDashboard.apiCallCountChartName'),
+          items: totalLine.items,
+        },
+      ];
     },
   },
   watch: {
@@ -340,7 +495,53 @@ export default {
         .finally(() => {
           this.loading = false;
         });
+      this.fetchRankingData(params);
       this.$refs.apiList.getTableData(params);
+    },
+    async fetchRankingData(params) {
+      this.rankingLoading = true;
+      try {
+        const res = await fetchApiList({
+          ...params,
+          type: 'list',
+          pageNo: 1,
+          pageSize: 99999,
+        });
+        this.rankingData = res?.data?.list || [];
+      } catch (err) {
+        this.rankingData = [];
+      } finally {
+        this.rankingLoading = false;
+      }
+    },
+    openManageDialog() {
+      this.dialogModuleList = JSON.parse(JSON.stringify(this.moduleList));
+      this.manageDialogVisible = true;
+    },
+    closeManageDialog() {
+      this.manageDialogVisible = false;
+      this.dialogModuleList = [];
+      this.dragIndex = -1;
+    },
+    handleDragStart(e, index) {
+      this.dragIndex = index;
+      e.dataTransfer.effectAllowed = 'move';
+    },
+    handleDragOver(e, index) {
+      e.dataTransfer.dropEffect = 'move';
+    },
+    handleDrop(e, index) {
+      if (this.dragIndex === -1 || this.dragIndex === index) return;
+      const item = this.dialogModuleList.splice(this.dragIndex, 1)[0];
+      this.dialogModuleList.splice(index, 0, item);
+      this.dragIndex = index;
+    },
+    handleDragEnd() {
+      this.dragIndex = -1;
+    },
+    confirmManageConfig() {
+      this.moduleList = JSON.parse(JSON.stringify(this.dialogModuleList));
+      this.closeManageDialog();
     },
   },
 };

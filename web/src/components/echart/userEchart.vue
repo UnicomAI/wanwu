@@ -28,6 +28,7 @@ export default {
     return {
       api: null,
       resizeHandler: null,
+      roHandler: null,
     };
   },
   computed: {
@@ -73,6 +74,22 @@ export default {
           }
         };
         window.addEventListener('resize', this.resizeHandler);
+      }
+      if (!this.roHandler && typeof ResizeObserver !== 'undefined') {
+        this._roInitialized = false;
+        this.roHandler = () => {
+          // 跳过首次回调，避免打断 setOption 的初始动效
+          if (!this._roInitialized) {
+            this._roInitialized = true;
+            return;
+          }
+          if (this.api) {
+            this.api.resize();
+          }
+        };
+        const ro = new ResizeObserver(this.roHandler);
+        ro.observe(this.$refs.api);
+        this._ro = ro;
       }
       this.handleLine();
     },
@@ -266,6 +283,9 @@ export default {
     }
     if (this.resizeHandler) {
       window.removeEventListener('resize', this.resizeHandler);
+    }
+    if (this._ro) {
+      this._ro.disconnect();
     }
   },
 };
