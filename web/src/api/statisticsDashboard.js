@@ -123,6 +123,63 @@ export const exportAppData = data => {
   });
 };
 
+// 获取应用明细列表
+export const fetchAppRecordList = data => {
+  return service({
+    url: `${USER_API}/statistic/app/record`,
+    method: 'post',
+    data,
+  });
+};
+
+// 应用明细导出
+export const exportAppRecordData = data => {
+  return service({
+    url: `${USER_API}/statistic/app/record/export`,
+    method: 'post',
+    data,
+    responseType: 'blob',
+  });
+};
+
+// 获取应用用户统计列表
+export const fetchAppUserList = data => {
+  return service({
+    url: `${USER_API}/statistic/app/user/list`,
+    method: 'post',
+    data,
+  });
+};
+
+// 导出应用用户统计数据
+export const exportAppUserData = data => {
+  return service({
+    url: `${USER_API}/statistic/app/user/export`,
+    method: 'post',
+    data,
+    responseType: 'blob',
+  });
+};
+
+// 获取应用模型统计列表
+export const fetchAppModelList = data => {
+  return service({
+    url: `${USER_API}/statistic/app/model/list`,
+    method: 'post',
+    data,
+  });
+};
+
+// 导出应用模型统计数据
+export const exportAppModelData = data => {
+  return service({
+    url: `${USER_API}/statistic/app/model/export`,
+    method: 'post',
+    data,
+    responseType: 'blob',
+  });
+};
+
 /**
  * API统计接口
  */

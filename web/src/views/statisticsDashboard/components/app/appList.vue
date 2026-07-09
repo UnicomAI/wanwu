@@ -10,7 +10,16 @@
         >
           <span>{{ $t('common.button.export') }}</span>
         </el-button>
+        <el-radio-group v-model="type" size="mini" @change="handleRadio">
+          <el-radio-button label="list">
+            {{ $t('statisticsDashboard.modelStatistics') }}
+          </el-radio-button>
+          <el-radio-button label="record">
+            {{ $t('statisticsDashboard.modelDetail') }}
+          </el-radio-button>
+        </el-radio-group>
         <el-table
+          v-if="type === 'list'"
           :data="tableData"
           :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
           v-loading="loading"
@@ -123,6 +132,150 @@
               {{ formatAmount(scope.row.nonStreamCount) }}
             </template>
           </el-table-column>
+          <el-table-column
+            width="180"
+            align="left"
+            :label="$t('common.table.operation')"
+          >
+            <template slot-scope="scope">
+              <el-button
+                class="btn-user"
+                size="mini"
+                icon="el-icon-user"
+                @click="showUserModal(scope.row)"
+              >
+                {{ $t('common.button.user') }}
+              </el-button>
+              <el-button
+                class="btn-model"
+                size="mini"
+                icon="el-icon-s-grid"
+                @click="showModelModal(scope.row)"
+              >
+                {{ $t('common.button.model') }}
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-table
+          v-else
+          :data="tableData"
+          :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
+          v-loading="loading"
+          style="width: 100%"
+        >
+          <el-table-column
+            prop="source"
+            :label="$t('statisticsDashboard.source')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ scope.row.source || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="module"
+            :label="$t('statisticsDashboard.module')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ scope.row.module || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="appName"
+            :label="$t('statisticsDashboard.appName')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ scope.row.appName || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="appType"
+            :label="$t('statisticsDashboard.appType')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ appTypeObj[scope.row.appType] || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="userName"
+            :label="$t('statisticsDashboard.userName')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ scope.row.userName || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="modelName"
+            :label="$t('statisticsDashboard.modelName')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ scope.row.modelName || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="streamCosts"
+            :label="$t('statisticsDashboard.streamCosts') + ` (ms)`"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ formatAmount(scope.row.streamCosts) }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="nonStreamCosts"
+            :label="$t('statisticsDashboard.nonStreamCosts') + ` (ms)`"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ formatAmount(scope.row.nonStreamCosts) }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="callTime"
+            :label="$t('statisticsDashboard.callTime')"
+            align="left"
+          />
+          <el-table-column
+            prop="status"
+            :label="$t('statisticsDashboard.responseStatus')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              <el-tag
+                v-if="scope.row.status === '成功'"
+                type="success"
+                size="small"
+              >
+                {{ scope.row.status }}
+              </el-tag>
+              <el-tag v-else-if="scope.row.status" type="danger" size="small">
+                {{ scope.row.status }}
+              </el-tag>
+              <span v-else>--</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            width="120"
+            align="left"
+            :label="$t('common.table.operation')"
+          >
+            <template slot-scope="scope">
+              <el-button
+                class="btn-detail"
+                size="mini"
+                icon="el-icon-view"
+                @click="showDetail(scope.row)"
+              >
+                {{ $t('common.table.detail') }}
+              </el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
       <Pagination
@@ -132,17 +285,34 @@
         @refreshData="refreshData"
       />
     </div>
+    <AppUserModal
+      :visible.sync="userModalVisible"
+      :params="params"
+      :app-info="currentRow"
+    />
+    <AppModelModal
+      :visible.sync="modelModalVisible"
+      :params="params"
+      :app-info="currentRow"
+    />
   </div>
 </template>
 
 <script>
 import Pagination from '@/components/pagination.vue';
 import { formatAmount, resDownloadFile } from '@/utils/util.js';
-import { fetchAppList, exportAppData } from '@/api/statisticsDashboard';
+import {
+  fetchAppList,
+  exportAppData,
+  fetchAppRecordList,
+  exportAppRecordData,
+} from '@/api/statisticsDashboard';
 import { AppType } from '@/utils/commonSet';
+import AppUserModal from './appUserModal.vue';
+import AppModelModal from './appModelModal.vue';
 
 export default {
-  components: { Pagination },
+  components: { Pagination, AppUserModal, AppModelModal },
   props: {
     params: {},
   },
@@ -152,10 +322,19 @@ export default {
       loading: false,
       tableData: [],
       appTypeObj: AppType,
+      type: 'list',
+      userModalVisible: false,
+      modelModalVisible: false,
+      currentRow: null,
     };
   },
   methods: {
     formatAmount,
+    handleRadio(val) {
+      this.type = val;
+      this.listApi = val === 'list' ? fetchAppList : fetchAppRecordList;
+      this.getTableData({ ...this.params, pageNo: 1 });
+    },
     async getTableData(params) {
       if (this.$refs.pagination) {
         this.loading = true;
@@ -169,12 +348,31 @@ export default {
     refreshData(data) {
       this.tableData = data;
     },
+    showUserModal(row) {
+      this.currentRow = row;
+      this.userModalVisible = true;
+    },
+    showModelModal(row) {
+      this.currentRow = row;
+      this.modelModalVisible = true;
+    },
+    showDetail(row) {
+      this.$message.info(this.$t('statisticsDashboard.detailTitle'));
+    },
     async exportData() {
-      const response = await exportAppData(this.params);
-      resDownloadFile(
-        response,
-        `${this.$t('statisticsDashboard.appData')}.xlsx`,
-      );
+      if (this.type === 'list') {
+        const response = await exportAppData(this.params);
+        resDownloadFile(
+          response,
+          `${this.$t('statisticsDashboard.appData')}.xlsx`,
+        );
+      } else {
+        const response = await exportAppRecordData(this.params);
+        resDownloadFile(
+          response,
+          `${this.$t('statisticsDashboard.modelDetail')}.xlsx`,
+        );
+      }
     },
   },
 };
@@ -186,6 +384,48 @@ export default {
   .add-bt {
     margin: 0 0 16px;
     float: right;
+  }
+}
+
+.btn-user {
+  color: #366fed;
+  border: 1px solid #dcebfe;
+  background: #eff6ff;
+  padding: 5px 8px;
+
+  &:hover,
+  &:focus {
+    color: #366fed;
+    border: 1px solid #dcebfe;
+    background: #eff6ff !important;
+  }
+}
+
+.btn-model {
+  color: #a55fef;
+  border: 1px solid #eedfff;
+  background: #faf5ff;
+  padding: 5px 8px;
+
+  &:hover,
+  &:focus {
+    color: #a55fef;
+    border: 1px solid #eedfff;
+    background: #faf5ff !important;
+  }
+}
+
+.btn-detail {
+  color: #5951e7;
+  border: 1px solid #d2dafe;
+  background: #eef2ff;
+  padding: 5px 8px;
+
+  &:hover,
+  &:focus {
+    color: #5951e7;
+    border: 1px solid #d2dafe;
+    background: #eef2ff !important;
   }
 }
 </style>

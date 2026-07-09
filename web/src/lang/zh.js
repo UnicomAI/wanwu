@@ -205,6 +205,8 @@ export default {
       download: '下载',
       retry: '重试',
       convertToSkill: '转化为Skill',
+      user: '用户',
+      model: '模型',
     },
     switch: {
       start: '开启',
@@ -1978,6 +1980,7 @@ export default {
     modelData: '模型统计数据',
     userUsageStats: '用户使用统计',
     appUsageStats: '应用使用统计',
+    modelUsageStats: '模型使用统计',
     source: '来源',
     module: '板块',
     author: '作者',
