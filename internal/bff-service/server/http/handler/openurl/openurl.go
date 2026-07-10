@@ -29,6 +29,23 @@ func GetUrlAgentDetail(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
+// GetUrlAgentLLM
+//
+//	@Tags			openurl
+//	@Summary		智能体模型配置
+//	@Description	智能体模型配置
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Client-ID				header		string	true	"临时唯一标识"
+//	@Param			suffix					path		string	true	"Url后缀"
+//	@Success		200						{object}	response.Response{data=response.ModelInfo}
+//	@Router			/agent/{suffix}/llm 	[get]
+func GetUrlAgentLLM(ctx *gin.Context) {
+	resp, err := service.GetAppUrlModel(ctx, ctx.Param("suffix"))
+	gin_util.Response(ctx, resp, err)
+}
+
 // UrlConversationCreate
 //
 //	@Tags			openurl
@@ -105,10 +122,16 @@ func UrlConversationClear(ctx *gin.Context) {
 //	@Produce		json
 //	@Param			X-Client-ID							header		string	true	"临时唯一标识"
 //	@Param			suffix								path		string	true	"Url后缀"
+//	@Param			pageNo								query		int		true	"页码"
+//	@Param			pageSize							query		int		true	"每页数量"
 //	@Success		200									{object}	response.Response{data=response.ListResult{list=[]response.ConversationInfo}}
-//	@Router			/agent/{suffix}/conversation/list 	[get]
+//	@Router			/agent/{suffix}/conversation/list 				[get]
 func GetUrlConversationList(ctx *gin.Context) {
-	resp, err := service.GetUrlConversationList(ctx, ctx.GetHeader("X-Client-ID"), ctx.Param("suffix"))
+	var req request.GetUrlConversationListReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	resp, err := service.GetUrlConversationList(ctx, ctx.GetHeader("X-Client-ID"), ctx.Param("suffix"), req)
 	gin_util.Response(ctx, resp, err)
 }
 

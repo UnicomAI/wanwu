@@ -83,7 +83,7 @@ func GetAppUrlInfo(ctx *gin.Context, suffix string) (*response.AppUrlConfig, err
 	if err != nil {
 		return nil, err
 	}
-	assistantInfo, err := assistant.AssistantSnapshotInfo(ctx, &assistant_service.AssistantSnapshotInfoReq{
+	assistantInfo, err := assistant.AssistantSnapshotInfo(ctx.Request.Context(), &assistant_service.AssistantSnapshotInfoReq{
 		AssistantId: appUrlInfo.AppId,
 	})
 	if err != nil {
@@ -99,14 +99,32 @@ func GetAppUrlInfo(ctx *gin.Context, suffix string) (*response.AppUrlConfig, err
 	}, nil
 }
 
-func GetUrlConversationList(ctx *gin.Context, xCId, suffix string) (*response.ListResult, error) {
+func GetAppUrlModel(ctx *gin.Context, suffix string) (*response.ModelInfo, error) {
 	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := assistant.GetConversationList(ctx, &assistant_service.GetConversationListReq{
-		PageSize:         1000,
-		PageNo:           1,
+	assistantInfo, err := assistant.AssistantSnapshotInfo(ctx.Request.Context(), &assistant_service.AssistantSnapshotInfoReq{
+		AssistantId: appUrlInfo.AppId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return GetModelById(ctx, &request.GetModelRequest{
+		BaseModelRequest: request.BaseModelRequest{
+			ModelId: assistantInfo.ModelConfig.ModelId,
+		},
+	})
+}
+
+func GetUrlConversationList(ctx *gin.Context, xCId, suffix string, req request.GetUrlConversationListReq) (*response.ListResult, error) {
+	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := assistant.GetConversationList(ctx.Request.Context(), &assistant_service.GetConversationListReq{
+		PageSize:         int32(req.PageSize),
+		PageNo:           int32(req.PageNo),
 		ConversationType: constant.ConversationTypeWebURL,
 		Identity: &assistant_service.Identity{
 			UserId: xCId,

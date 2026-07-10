@@ -248,6 +248,7 @@ services:
     networks:
       - ${WANWU_DOCKER_NETWORK}
     # ports:
+    #   - 6667:6667
     #   - 6668:6668
     volumes:
       - wanwu_shared_data_wga_bff:/shared/data/wga/bff
@@ -285,7 +286,7 @@ services:
     working_dir: /app
     command: ./bin/bff-service
     healthcheck:
-      test: ["CMD-SHELL", "timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/6668' || exit 1"]
+      test: ["CMD-SHELL", "timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/6667' && timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/6668' || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 99
@@ -676,7 +677,6 @@ services:
       REDIS_PASSWORD: ${WANWU_REDIS_PASSWORD}
       JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
       JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
-      CHANNEL_BFF_BASE_URL: http://bff-service:6668
     working_dir: /app
     command: ./bin/channel-service
     healthcheck:
@@ -834,11 +834,12 @@ services:
       REDIS_PASSWD: ${WANWU_REDIS_PASSWORD}
       JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
       JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
-      # 用于rag调用外部API的env
-      GET_KB_ID_URL: http://bff-service:6668/v1/api/category/info
-      KAFKA_MQ_REL_URL: http://bff-service:6668/v1/api/docstatus
-      KAFKA_MQ_KB_STATUS_URL: http://bff-service:6668/v1/api/knowledge/status
-      KAFKA_DOC_STATUS_INIT_URL: http://bff-service:6668/v1/api/doc_status_init
+      # bff 6667
+      GET_KB_ID_URL: http://bff-service:6667/v1/api/category/info
+      KAFKA_MQ_REL_URL: http://bff-service:6667/v1/api/docstatus
+      KAFKA_MQ_KB_STATUS_URL: http://bff-service:6667/v1/api/knowledge/status
+      KAFKA_DOC_STATUS_INIT_URL: http://bff-service:6667/v1/api/doc_status_init
+      # bff 6668
       MODEL_PROVIDER_URL: http://bff-service:6668
       REPLACE_MINIO_DOWNLOAD_URL: ${WANWU_WEB_BASE_URL}/minio/download/api/
 

@@ -107,6 +107,36 @@ func (c *Client) GetOrgAndSubOrgSelectByUser(ctx context.Context, userID, orgID 
 	})
 }
 
+func (c *Client) GetAdminOrgSubTree(ctx context.Context, userID uint32) ([]*AdminOrgTreeNode, *errs.Status) {
+	var ret []*AdminOrgTreeNode
+	return ret, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+		// 获取组织树
+		orgTree, err := getOrgTree(tx)
+		if err != nil {
+			return toErrStatus("iam_admin_org_sub_tree", err.Error())
+		}
+		// 查询用户的管理员角色对应的组织ID集合
+		var userRoles []*model.UserRole
+		orgRolesQuery := sqlopt.WithStatus(true).Apply(tx).Select("role_id").Table("org_roles")
+		if err := sqlopt.WithUserID(userID).Apply(tx).Where("role_id IN (?)", orgRolesQuery).Find(&userRoles).Error; err != nil {
+			return toErrStatus("iam_admin_org_sub_tree", err.Error())
+		}
+		adminOrgIDs := make(map[uint32]bool)
+		for _, ur := range userRoles {
+			if ur.IsAdmin {
+				adminOrgIDs[ur.OrgID] = true
+			}
+		}
+		// 如果用户是系统管理员，也加入顶级组织
+		if userID == config.AdminUserID() {
+			adminOrgIDs[config.TopOrgID()] = true
+		}
+		// 从顶级组织开始构建管理员组织树
+		ret = buildAdminOrgSubTree(orgTree, adminOrgIDs)
+		return nil
+	})
+}
+
 func (c *Client) GetFirstClassOrgAndSubs(ctx context.Context, userID, orgID uint32) ([]IDName, *errs.Status) {
 	var result []IDName
 	return result, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
@@ -184,7 +214,7 @@ func createOrgTx(tx *gorm.DB, org *model.Org) *errs.Status {
 		return toErrStatus("iam_org_create", err.Error())
 	}
 	// create role
-	roleID, err := createRole(tx, org.ID, org.CreatorID, roleName, "", true, nil)
+	roleID, err := createRole(tx, org.ID, org.CreatorID, roleName, "", "", true, nil)
 	if err != nil {
 		return toErrStatus("iam_org_create", err.Error())
 	}
@@ -214,17 +244,17 @@ func (c *Client) UpdateOrg(ctx context.Context, org *model.Org) *errs.Status {
 		return toErrStatus("iam_org_update", "update org but id err")
 	}
 	return c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+		orgTable := &model.Org{}
 		// check parent
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithID(org.ID),
-			sqlopt.WithParentID(org.ParentID),
-		).Apply(tx).First(&model.Org{}).Error; err != nil {
+		).Apply(tx).First(orgTable).Error; err != nil {
 			return toErrStatus("iam_org_update", err.Error())
 		}
 		// check name
 		var orgs []*model.Org
 		if err := sqlopt.SQLOptions(
-			sqlopt.WithParentID(org.ParentID),
+			sqlopt.WithParentID(orgTable.ParentID),
 			sqlopt.WithName(org.Name),
 		).Apply(tx).Find(&orgs).Error; err != nil {
 			return toErrStatus("iam_org_update", err.Error())
@@ -238,8 +268,9 @@ func (c *Client) UpdateOrg(ctx context.Context, org *model.Org) *errs.Status {
 		}
 		// update org
 		if err := tx.Model(org).Updates(map[string]interface{}{
-			"name":   org.Name,
-			"remark": org.Remark,
+			"name":        org.Name,
+			"remark":      org.Remark,
+			"avatar_path": org.AvatarPath,
 		}).Error; err != nil {
 			return toErrStatus("iam_org_update", err.Error())
 		}
@@ -365,15 +396,32 @@ func (c *Client) AddOrgUser(ctx context.Context, orgID, userID, roleID uint32) *
 			}
 			return toErrStatus("iam_org_user_add", util.Int2Str(orgID), util.Int2Str(userID), util.Int2Str(roleID), err.Error())
 		}
-		// check org role
-		orgRole := &model.OrgRole{}
+		// check role
+		var isAdmin bool
 		if roleID != 0 {
+			// check org role first
+			orgRole := &model.OrgRole{}
 			if err := sqlopt.SQLOptions(
 				sqlopt.WithOrgID(orgID),
 				sqlopt.WithRoleID(roleID),
-			).Apply(tx).First(orgRole).Error; err != nil {
+			).Apply(tx).First(orgRole).Error; err == nil {
+				// org role found
+				isAdmin = orgRole.IsAdmin
+			} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return toErrStatus("iam_org_user_add", util.Int2Str(orgID),
 					util.Int2Str(userID), util.Int2Str(roleID), err.Error())
+			} else {
+				// not found in org_roles, check global_roles
+				globalRole := &model.GlobalRole{}
+				if err := sqlopt.WithRoleID(roleID).Apply(tx).First(globalRole).Error; err != nil {
+					return toErrStatus("iam_org_user_add", util.Int2Str(orgID),
+						util.Int2Str(userID), util.Int2Str(roleID), err.Error())
+				}
+				if !globalRole.Status {
+					return toErrStatus("iam_org_user_add", util.Int2Str(orgID),
+						util.Int2Str(userID), util.Int2Str(roleID), "global role disabled")
+				}
+				// global role: isAdmin stays false
 			}
 		}
 		// create org user
@@ -390,7 +438,7 @@ func (c *Client) AddOrgUser(ctx context.Context, orgID, userID, roleID uint32) *
 				OrgID:   orgID,
 				UserID:  userID,
 				RoleID:  roleID,
-				IsAdmin: orgRole.IsAdmin,
+				IsAdmin: isAdmin,
 			}).Error; err != nil {
 				return toErrStatus("iam_org_user_add", util.Int2Str(orgID),
 					util.Int2Str(userID), util.Int2Str(roleID), err.Error())
@@ -405,6 +453,14 @@ func (c *Client) RemoveOrgUser(ctx context.Context, orgID, userID uint32) *errs.
 		// check org
 		if orgID == config.TopOrgID() {
 			return toErrStatus("iam_org_user_remove_top")
+		}
+		// check creator: 不能将组织创建者从该组织中移除
+		org := &model.Org{}
+		if err := sqlopt.WithID(orgID).Apply(tx).First(org).Error; err != nil {
+			return toErrStatus("iam_org_user_remove", util.Int2Str(orgID), util.Int2Str(userID), err.Error())
+		}
+		if org.CreatorID == userID {
+			return toErrStatus("iam_org_user_remove", util.Int2Str(orgID), util.Int2Str(userID), "cannot remove org creator")
 		}
 		// delete user role
 		if err := sqlopt.SQLOptions(
@@ -430,11 +486,12 @@ func (c *Client) RemoveOrgUser(ctx context.Context, orgID, userID uint32) *errs.
 
 func toOrgInfoTx(tx *gorm.DB, org *model.Org) (*OrgInfo, error) {
 	ret := &OrgInfo{
-		ID:        org.ID,
-		Name:      org.Name,
-		Remark:    org.Remark,
-		Status:    org.Status,
-		CreatedAt: org.CreatedAt,
+		ID:         org.ID,
+		Name:       org.Name,
+		Remark:     org.Remark,
+		Status:     org.Status,
+		CreatedAt:  org.CreatedAt,
+		AvatarPath: org.AvatarPath,
 	}
 	// creator
 	if org.CreatorID != 0 {
@@ -443,6 +500,33 @@ func toOrgInfoTx(tx *gorm.DB, org *model.Org) (*OrgInfo, error) {
 			return nil, err
 		}
 		ret.Creator = creator
+	}
+	// user count
+	var UserCount int64
+	if err := sqlopt.WithOrgID(org.ID).Apply(tx).Model(&model.OrgUser{}).Count(&UserCount).Error; err != nil {
+		return nil, fmt.Errorf("get org %v user count err: %v", org.ID, err)
+	}
+	ret.UserCount = UserCount
+	// admins: find all admin user names for this org
+	var adminUserRoles []*model.UserRole
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithOrgID(org.ID),
+		sqlopt.WithAdmin(true),
+	).Apply(tx).Find(&adminUserRoles).Error; err != nil {
+		return nil, fmt.Errorf("get org %v admin users err: %v", org.ID, err)
+	}
+	if len(adminUserRoles) > 0 {
+		var adminUserIDs []uint32
+		for _, ur := range adminUserRoles {
+			adminUserIDs = append(adminUserIDs, ur.UserID)
+		}
+		var adminUsers []*model.User
+		if err := sqlopt.WithIDs(adminUserIDs).Apply(tx).Find(&adminUsers).Error; err != nil {
+			return nil, fmt.Errorf("get org %v admin user names err: %v", org.ID, err)
+		}
+		for _, u := range adminUsers {
+			ret.Admins = append(ret.Admins, u.Name)
+		}
 	}
 	return ret, nil
 }
@@ -481,4 +565,95 @@ func selectOrgs(tx *gorm.DB, userID uint32, orgTree *model.OrgNode) ([]IDName, e
 		ret = append(ret, IDName{ID: org.ID, Name: org.Name})
 	}
 	return ret, nil
+}
+
+// buildAdminOrgSubTree 构建管理员组织树
+// 系统管理员：以系统（顶级组织）为根节点返回完整组织树，所有节点 hasPerm=true
+// 普通用户：可见范围 = 管理员组织的祖先路径 + 管理员组织及其所有下级；hasPerm=true = 管理员组织及其所有下级
+func buildAdminOrgSubTree(orgTree *model.OrgNode, adminOrgIDs map[uint32]bool) []*AdminOrgTreeNode {
+	if orgTree == nil {
+		return nil
+	}
+
+	// 判断是否是系统管理员（adminOrgIDs 包含顶级组织）
+	isSysAdmin := adminOrgIDs[orgTree.GetOrgID()]
+
+	// 计算 adminScopeIDs: 管理员组织及其所有后代（这些 hasPerm=true）
+	adminScopeIDs := make(map[uint32]bool)
+	for orgID := range adminOrgIDs {
+		orgTree.CollectDescendants(orgID, adminScopeIDs)
+	}
+
+	if isSysAdmin {
+		// 系统管理员：以系统（顶级组织）为根节点，返回完整组织树，所有节点 hasPerm=true
+		if node := buildFullOrgNode(orgTree); node != nil {
+			return []*AdminOrgTreeNode{node}
+		}
+		return nil
+	}
+
+	// 普通用户：计算可见节点集合
+	visibleIDs := make(map[uint32]bool)
+	for id := range adminScopeIDs {
+		visibleIDs[id] = true
+	}
+	// 添加管理员组织的所有祖先（不含根节点）
+	for orgID := range adminOrgIDs {
+		for _, ancestorID := range orgTree.GetAncestorIDs(orgID) {
+			visibleIDs[ancestorID] = true
+		}
+	}
+
+	// 从根的子节点开始构建过滤后的树
+	var result []*AdminOrgTreeNode
+	for _, sub := range orgTree.GetSubs(orgTree.GetOrgID()) {
+		if node := buildFilteredOrgNode(sub, visibleIDs, adminScopeIDs); node != nil {
+			result = append(result, node)
+		}
+	}
+	return result
+}
+
+// buildFullOrgNode 构建完整的组织树节点（系统管理员使用），所有节点 hasPerm=true
+func buildFullOrgNode(node *model.OrgNode) *AdminOrgTreeNode {
+	if node == nil {
+		return nil
+	}
+	orgID := node.GetOrgID()
+	result := &AdminOrgTreeNode{
+		ID:      orgID,
+		Name:    node.GetOrgName(orgID),
+		HasPerm: true,
+	}
+	for _, sub := range node.GetSubs(orgID) {
+		if child := buildFullOrgNode(sub); child != nil {
+			result.Children = append(result.Children, child)
+		}
+	}
+	return result
+}
+
+// buildFilteredOrgNode 构建过滤后的组织树节点（普通用户使用）
+// visibleIDs: 可见的组织ID集合（管理员组织 + 后代 + 祖先）
+// adminScopeIDs: hasPerm=true 的组织ID集合（管理员组织 + 后代）
+func buildFilteredOrgNode(node *model.OrgNode, visibleIDs, adminScopeIDs map[uint32]bool) *AdminOrgTreeNode {
+	if node == nil {
+		return nil
+	}
+	orgID := node.GetOrgID()
+	// 不可见的节点直接跳过
+	if !visibleIDs[orgID] {
+		return nil
+	}
+	result := &AdminOrgTreeNode{
+		ID:      orgID,
+		Name:    node.GetOrgName(orgID),
+		HasPerm: adminScopeIDs[orgID],
+	}
+	for _, sub := range node.GetSubs(orgID) {
+		if child := buildFilteredOrgNode(sub, visibleIDs, adminScopeIDs); child != nil {
+			result.Children = append(result.Children, child)
+		}
+	}
+	return result
 }

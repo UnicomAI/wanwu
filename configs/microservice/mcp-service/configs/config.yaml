@@ -1,7 +1,7 @@
 server:
   grpc_endpoint: 0.0.0.0:9898
   max_recv_msg_size: 4294967296 # 1024 * 1024 * 1024 * 4 = 4G
-  api_base_url: http://localhost:6668
+  api_base_url: http://localhost:6667
 
 log:
   std: true

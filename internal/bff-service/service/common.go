@@ -321,6 +321,30 @@ func cacheKnowledgeAvatar(ctx *gin.Context, avatarObjectPath string, knowledgeTy
 	return CacheAvatar(avatarObjectPath)
 }
 
+// cacheOrgAvatar 获取组织头像的缓存URL
+// 1. 空avatar返回默认组织图标
+// 2. 否则调用CacheAvatar转换
+func cacheOrgAvatar(avatarObjectPath string) request.Avatar {
+	avatar := request.Avatar{}
+	if avatarObjectPath == "" {
+		avatar.Path = config.Cfg().DefaultIcon.OrgIcon
+		return avatar
+	}
+	return CacheAvatar(avatarObjectPath)
+}
+
+// cacheRoleAvatar 获取角色头像的缓存URL
+// 1. 空avatar返回默认角色图标
+// 2. 否则调用CacheAvatar转换
+func cacheRoleAvatar(avatarObjectPath string) request.Avatar {
+	avatar := request.Avatar{}
+	if avatarObjectPath == "" {
+		avatar.Path = config.Cfg().DefaultIcon.RoleIcon
+		return avatar
+	}
+	return CacheAvatar(avatarObjectPath)
+}
+
 // cacheModelAvatar 获取模型的avatar缓存URL
 // 1. 空avatar返回默认模型图标
 // 2. 否则调用CacheAvatar转换

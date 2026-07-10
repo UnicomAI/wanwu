@@ -3,6 +3,8 @@ package request
 type OrgCreate struct {
 	Name   string `json:"name" validate:"required"` // 组织名
 	Remark string `json:"remark"`                   // 备注
+	OrgID
+	Avatar Avatar `json:"avatar"` // 组织头像
 }
 
 func (o *OrgCreate) Check() error {
@@ -10,7 +12,6 @@ func (o *OrgCreate) Check() error {
 }
 
 type OrgUpdate struct {
-	OrgID
 	OrgCreate
 }
 
@@ -36,7 +37,7 @@ func (o *OrgStatus) Check() error {
 }
 
 type OrgUserAdd struct {
-	UserID
+	UserWithOrgID
 	RoleID string `json:"roleId"`
 }
 

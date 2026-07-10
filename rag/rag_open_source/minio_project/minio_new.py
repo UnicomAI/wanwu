@@ -29,7 +29,7 @@ minio_client = Minio(
 default_bucket_name = "rag-public"
 REPLACE_MINIO_DOWNLOAD_URL = os.getenv("PUBLIC_MINIO_DOWNLOAD_URL")
 if REPLACE_MINIO_DOWNLOAD_URL is None:
-    response = requests.get('http://bff-service:6668/v1/api/deploy/info')
+    response = requests.get('http://bff-service:6667/v1/api/deploy/info')
     response_data = response.json()
     REPLACE_MINIO_DOWNLOAD_URL = response_data['data']['webBaseUrl']
 

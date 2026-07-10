@@ -33,6 +33,7 @@ func NewClient(db *gorm.DB) (*Client, error) {
 		model.OrgRole{},
 		model.Captcha{},
 		model.OauthApp{},
+		model.GlobalRole{},
 	); err != nil {
 		return nil, err
 	}
@@ -57,27 +58,35 @@ type RoleIDName struct {
 	Name     string
 	IsAdmin  bool
 	IsSystem bool
+	IsGlobal bool
 }
 
 type OrgInfo struct {
-	ID        uint32
-	Name      string
-	Remark    string
-	Status    bool
-	CreatedAt int64
-	Creator   IDName
+	ID         uint32
+	Name       string
+	Remark     string
+	Status     bool
+	CreatedAt  int64
+	Creator    IDName
+	UserCount  int64
+	Admins     []string
+	AvatarPath string
 }
 
 type RoleInfo struct {
-	ID        uint32
-	IsAdmin   bool
-	IsSystem  bool
-	Name      string
-	Remark    string
-	Status    bool
-	CreatedAt int64
-	Creator   IDName
-	Perms     []Perm
+	ID         uint32
+	IsAdmin    bool
+	IsSystem   bool
+	IsGlobal   bool
+	Name       string
+	Remark     string
+	Status     bool
+	CreatedAt  int64
+	Creator    IDName
+	OrgName    string
+	UserCount  int32
+	AvatarPath string
+	Perms      []Perm
 }
 
 type UserInfo struct {
@@ -124,6 +133,7 @@ type EmailLoginInfo struct {
 type UsersInfo struct {
 	UserName string
 	Phone    string
+	Email    string
 	Company  string
 	Remark   string
 	Password string
@@ -142,6 +152,24 @@ type CreateUsersResult struct {
 	Success int
 	Failed  int
 	Errors  []CreateUserError
+}
+
+// RoleUser 角色关联用户信息
+type RoleUser struct {
+	UserID     uint32
+	UserName   string
+	Phone      string
+	Email      string
+	AvatarPath string
+	Orgs       []IDName
+}
+
+// AdminOrgTreeNode 管理员组织树节点
+type AdminOrgTreeNode struct {
+	ID       uint32
+	Name     string
+	HasPerm  bool
+	Children []*AdminOrgTreeNode
 }
 
 func toErrStatus(key string, args ...string) *err_code.Status {

@@ -217,6 +217,13 @@ func WgaConversationChat(ctx *gin.Context, params *WgaChatParams) error {
 		eventWorkspaceStore = params.WorkspaceStore
 	}
 
+	// 刷新会话 updated_at，使会话列表按最近聊天排序
+	if _, err := assistant.UpdateWgaConversationConfig(ctx.Request.Context(), &assistant_service.UpdateWgaConversationConfigReq{
+		ThreadId: params.ThreadID,
+		Identity: &assistant_service.Identity{UserId: params.UserID, OrgId: params.OrgID},
+	}); err != nil {
+		log.Warnf("[WgaConversationChat] touch conversation updated_at failed, threadId: %s, err: %v", params.ThreadID, err)
+	}
 	// 异步保存智能体返回的消息（detached context，即使 ClientID 为空，客户端断连也不影响 ES 写入）
 	go saveWgaChatHistoryEvent(trace_util.DetachContext(bgCtx), historyEventCh, params.UserID, params.OrgID, params.ThreadID, runID,
 		eventWorkspaceStore,

@@ -24,20 +24,17 @@ import (
 const (
 	ExcelHeaderUserName      = "用户名"
 	ExcelHeaderPassword      = "密码"
-	ExcelHeaderCompany       = "单位"
 	ExcelHeaderPhone         = "电话"
 	ExcelHeaderRole          = "角色"
-	ExcelHeaderRemark        = "备注"
+	ExcelHeaderEmail         = "邮箱"
 	MaxBatchCreateUsersLimit = 500
 )
 
 var requiredUserExcelHeaders = []string{
 	ExcelHeaderUserName,
 	ExcelHeaderPassword,
-	ExcelHeaderCompany,
 	ExcelHeaderPhone,
 	ExcelHeaderRole,
-	ExcelHeaderRemark,
 }
 
 func CreateUser(ctx *gin.Context, creatorID, orgID string, userCreate *request.UserCreate) (*response.UserID, error) {
@@ -53,15 +50,17 @@ func CreateUser(ctx *gin.Context, creatorID, orgID string, userCreate *request.U
 			return nil, fmt.Errorf("phone %s is invalid", userCreate.Phone)
 		}
 	}
+	if userCreate.Email != "" {
+		if err := validateEmail(userCreate.Email); err != nil {
+			return nil, fmt.Errorf("email %s is invalid", userCreate.Email)
+		}
+	}
 	resp, err := iam.CreateUser(ctx.Request.Context(), &iam_service.CreateUserReq{
 		CreatorId: creatorID,
 		OrgId:     orgID,
-		UserName:  userCreate.Username,
-		NickName:  userCreate.Nickname,
-		Gender:    userCreate.Gender,
+		UserName:  userCreate.UserName,
 		Phone:     userCreate.Phone,
-		Company:   userCreate.Company,
-		Remark:    userCreate.Remark,
+		Email:     userCreate.Email,
 		Password:  password,
 		RoleIds:   userCreate.RoleIDs,
 	})
@@ -80,14 +79,17 @@ func ChangeUser(ctx *gin.Context, orgID string, userUpdate *request.UserUpdate) 
 			return fmt.Errorf("phone %s is invalid", userUpdate.Phone)
 		}
 	}
+	if userUpdate.Email != "" {
+		if err := validateEmail(userUpdate.Email); err != nil {
+			return fmt.Errorf("email %s is invalid", userUpdate.Email)
+		}
+	}
 	_, err := iam.UpdateUser(ctx.Request.Context(), &iam_service.UpdateUserReq{
 		UserId:   userUpdate.UserID,
 		OrgId:    orgID,
-		NickName: userUpdate.Nickname,
-		Gender:   userUpdate.Gender,
+		UserName: userUpdate.UserName,
 		Phone:    userUpdate.Phone,
-		Company:  userUpdate.Company,
-		Remark:   userUpdate.Remark,
+		Email:    userUpdate.Email,
 		RoleIds:  userUpdate.RoleIDs,
 	})
 	return err
@@ -111,10 +113,12 @@ func GetUserInfo(ctx *gin.Context, userID, orgID string) (*response.UserInfo, er
 	return toUserInfo(ctx, resp), nil
 }
 
-func GetUserList(ctx *gin.Context, orgID, name string, pageNo, pageSize int32) (*response.PageResult, error) {
+func GetUserList(ctx *gin.Context, orgID, name string, roleIDs []string, pageNo, pageSize int32) (*response.PageResult, error) {
 	resp, err := iam.GetUserList(ctx.Request.Context(), &iam_service.GetUserListReq{
 		OrgId:    orgID,
 		UserName: name,
+		Email:    name,
+		RoleIds:  roleIDs,
 		PageNo:   pageNo,
 		PageSize: pageSize,
 	})
@@ -202,14 +206,21 @@ func GetOrgUserNotSelect(ctx *gin.Context, orgID, name string) (*response.Select
 	return &response.Select{Select: toIDNames(users.Selects)}, nil
 }
 
-func GetRoleSelect(ctx *gin.Context, orgID string) (*response.Select, error) {
+func GetRoleSelect(ctx *gin.Context, orgID string) (*response.RoleSelect, error) {
 	roles, err := iam.GetRoleSelect(ctx.Request.Context(), &iam_service.GetRoleSelectReq{
 		OrgId: orgID,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &response.Select{Select: toRoleIDNames(ctx, roles.Roles)}, nil
+	selects := toRoleIDNames(ctx, roles.Roles)
+	// also include global roles
+	globalRoles, err := iam.GetGlobalRoleSelect(ctx.Request.Context(), &iam_service.GetGlobalRoleSelectReq{})
+	if err != nil {
+		return nil, err
+	}
+	selects = append(selects, toRoleIDNames(ctx, globalRoles.Roles)...)
+	return &response.RoleSelect{Select: selects}, nil
 }
 
 func AddOrgUser(ctx *gin.Context, orgID, userID, roleID string) error {
@@ -268,7 +279,7 @@ func CreateUserByFile(ctx *gin.Context, creatorID, orgID string) (*response.User
 	result := &response.UserBatchImportResult{}
 	for i, user := range users {
 		// 跳过空行（所有字段都为空的行）
-		if user.UserName == "" && user.Password == "" && user.Phone == "" && user.Company == "" && user.Remark == "" && user.RoleName == "" {
+		if user.UserName == "" && user.Password == "" && user.Phone == "" && user.Email == "" && user.RoleName == "" {
 			skippedRows++
 			continue
 		}
@@ -309,13 +320,15 @@ func CreateUserByFile(ctx *gin.Context, creatorID, orgID string) (*response.User
 				continue
 			}
 		}
-		if user.Company == "" {
-			result.Errors = append(result.Errors, response.UserBatchImportError{
-				Row:      row,
-				Username: user.UserName,
-				Reason:   "单位不能为空",
-			})
-			continue
+		if user.Email != "" {
+			if err := validateEmail(user.Email); err != nil {
+				result.Errors = append(result.Errors, response.UserBatchImportError{
+					Row:      row,
+					Username: user.UserName,
+					Reason:   err.Error(),
+				})
+				continue
+			}
 		}
 
 		validUsers = append(validUsers, userWithRow{
@@ -410,10 +423,9 @@ func parseUserExcel(fileData []byte) ([]*iam_service.CreateUsersInfo, error) {
 		HeaderMapping: map[string]string{
 			ExcelHeaderUserName: "userName",
 			ExcelHeaderPassword: "password",
-			ExcelHeaderCompany:  "company",
 			ExcelHeaderPhone:    "phone",
 			ExcelHeaderRole:     "roleName",
-			ExcelHeaderRemark:   "remark",
+			ExcelHeaderEmail:    "email",
 		},
 	})
 	if err != nil {
@@ -426,10 +438,9 @@ func parseUserExcel(fileData []byte) ([]*iam_service.CreateUsersInfo, error) {
 		users = append(users, &iam_service.CreateUsersInfo{
 			UserName: record["userName"],
 			Password: record["password"],
-			Company:  record["company"],
 			Phone:    record["phone"],
+			Email:    record["email"],
 			RoleName: record["roleName"],
-			Remark:   record["remark"],
 		})
 	}
 	if len(users) == 0 {
@@ -441,6 +452,7 @@ func parseUserExcel(fileData []byte) ([]*iam_service.CreateUsersInfo, error) {
 var (
 	usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9\x{4e00}-\x{9fa5}_().]+$`)
 	phoneRegex    = regexp.MustCompile(`^1[3-9]\d{9}$`)
+	emailRegex    = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 )
 
 func validateUsername(username string) error {
@@ -479,18 +491,21 @@ func validatePhone(phone string) error {
 	return nil
 }
 
+func validateEmail(email string) error {
+	if !emailRegex.MatchString(email) {
+		return fmt.Errorf("邮箱格式不正确")
+	}
+	return nil
+}
+
 // --- internal ---
 
 func toUserInfo(ctx *gin.Context, user *iam_service.UserInfo) *response.UserInfo {
 	ret := &response.UserInfo{
 		UserID:    user.UserId,
 		Username:  user.UserName,
-		Nickname:  user.NickName,
 		Phone:     user.Phone,
 		Email:     user.Email,
-		Gender:    user.Gender,
-		Remark:    user.Remark,
-		Company:   user.Company,
 		CreatedAt: util.Time2Str(user.CreatedAt),
 		Creator:   toIDName(user.Creator),
 		Status:    user.Status,

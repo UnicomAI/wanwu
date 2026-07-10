@@ -5666,6 +5666,9 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
@@ -6038,6 +6041,10 @@ const docTemplate = `{
                 },
                 "title": {
                     "description": "对话标题",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
                     "type": "string"
                 }
             }

@@ -596,6 +596,7 @@ message ConversationInfo{
   string assistantId = 2;
   string title = 3;
   int64 createdAt = 4;
+  int64 updatedAt = 5;
 }
 
 message GetConversationDetailListReq {
@@ -921,6 +922,7 @@ message WgaConversationInfo {
   string threadId = 1;
   string title = 2;
   int64 createdAt = 3;
+  int64 updatedAt = 4;
 }
 
 message WgaConversationExistsReq {

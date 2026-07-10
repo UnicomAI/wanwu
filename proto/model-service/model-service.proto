@@ -162,6 +162,7 @@ message ModelExperienceDialog {
     string title = 4;
     string modelSetting = 5;  // 模型参数配置
     int64 createdAt = 6;
+    int64 updatedAt = 7;
 }
 
 message ModelExperienceDialogs {

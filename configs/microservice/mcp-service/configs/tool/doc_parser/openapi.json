@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "文档解析",
-    "description": "接收文档 URL，对文档进行解析并返回完整文档内容，不支持图片和压缩包",
+    "description": "接收文档 URL，对文档进行解析并返回完整文档内容，支持文件类型.pdf/.docx/.pptx/.doc/.wps/.ofd/.xlsx/.xls/.csv/.txt/.html/.md",
     "version": "1.0.0"
   },
   "tags": [],
@@ -12,7 +12,7 @@
         "summary": "解析文档返回内容",
         "operationId": "chatdoc",
         "deprecated": false,
-        "description": "接收文档 URL，对文档进行解析并返回完整文档内容，不支持图片和压缩包",
+        "description": "接收文档 URL，对文档进行解析并返回完整文档内容，支持文件类型.pdf/.docx/.pptx/.doc/.wps/.ofd/.xlsx/.xls/.csv/.txt/.html/.md",
         "tags": ["callback"],
         "parameters": [],
         "requestBody": {

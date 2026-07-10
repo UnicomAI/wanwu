@@ -125,6 +125,7 @@ func (s *Service) GetConversationList(ctx context.Context, req *assistant_servic
 			AssistantId:    util.Int2Str(conversation.AssistantId),
 			Title:          conversation.Title,
 			CreatedAt:      conversation.CreatedAt,
+			UpdatedAt:      conversation.UpdatedAt,
 		})
 	}
 
@@ -196,6 +197,12 @@ func (s *Service) GetConversationDetailList(ctx context.Context, req *assistant_
 }
 
 func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConversionStreamReq, stream assistant_service.AssistantService_AssistantConversionStreamServer) error {
+	// 刷新会话 updated_at，使会话列表按最近聊天排序
+	if convID := util.MustU32(req.ConversationId); convID > 0 {
+		if status := s.cli.UpdateConversation(stream.Context(), &model.Conversation{ID: convID}); status != nil {
+			log.Errorf("[Conversation] touch conversation updated_at failed, id: %s, err: %v", req.ConversationId, status)
+		}
+	}
 	//会话处理
 	conversationProcessor := &service.ConversationProcessor{
 		SSEWriter: sse_util.NewGrpcSSEWriter(stream, "AssistantConversionStreamNew", nil),

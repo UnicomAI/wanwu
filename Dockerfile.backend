@@ -31,6 +31,7 @@ COPY --from=builder /app/bin/$WANWU_ARCH/tidb-setup ./bin/tidb-setup
 
 # bff-service
 COPY --from=builder /app/bin/$WANWU_ARCH/bff-service ./bin/bff-service
+EXPOSE 6667
 EXPOSE 6668
 
 # iam-service

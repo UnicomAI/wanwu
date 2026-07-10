@@ -203,6 +203,23 @@ func GetReleaseNotes() *response.ReleaseNotesResp {
 }
 
 // --- internal ---
+func isAdminInAnyOrg(ctx *gin.Context, userID string) bool {
+	isAdmin, err := iam.IsUserOrgAdmin(ctx.Request.Context(), &iam_service.IsUserOrgAdminReq{UserId: userID})
+	if err != nil {
+		return false
+	}
+	return isAdmin.IsOrgAdmin
+}
+
+// IsAdminInOrgs 校验用户对指定组织列表是否都拥有管理员权限（含祖先组织继承）。
+// 用于 admin_center 跨组织操作：校验目标组织列表的管理权，避免越权。
+func IsAdminInOrgs(ctx *gin.Context, userID string, orgIDs ...string) bool {
+	resp, err := iam.IsAdminInOrgs(ctx.Request.Context(), &iam_service.IsAdminInOrgsReq{UserId: userID, OrgIds: orgIDs})
+	if err != nil {
+		return false
+	}
+	return resp.IsAdmin
+}
 
 func getLanguageByCode(languageCode string) response.Language {
 	langs := config.Cfg().I18n.Langs
@@ -221,28 +238,22 @@ func toOrgPermission(ctx *gin.Context, orgPerm *iam_service.UserPermission) resp
 		IsSystem:    orgPerm.IsSystem,
 		Org:         toOrgIDName(ctx, orgPerm.Org),
 		Roles:       toRoleIDNames(ctx, orgPerm.Roles),
-		Permissions: toPermissions(orgPerm.IsAdmin, orgPerm.IsSystem, orgPerm.Perms),
+		Permissions: toPermissions(orgPerm.IsAdmin, orgPerm.IsSystem, isAdminInAnyOrg(ctx, orgPerm.UserId), orgPerm.Perms),
 	}
 }
 
-func toPermissions(isAdmin, isSystem bool, perms []*iam_service.Perm) []response.Permission {
+func toPermissions(isAdmin, isSystem, isOrgAdmin bool, perms []*iam_service.Perm) []response.Permission {
 	routes := mid.CollectPerms()
 	var ret []response.Permission
 	if isAdmin {
 		for _, r := range routes {
-			if isSystem && r.Tag == "permission.role" {
+			if !isSystem && r.Tag == "admin_center.setting" {
 				continue
 			}
-			if !isSystem && r.Tag == "setting" {
+			if !isSystem && r.Tag == "admin_center.oauth" {
 				continue
 			}
 			if !isSystem && r.Tag == "statistic_client" || config.Cfg().WorkflowTemplate.ServerMode == "remote" {
-				continue
-			}
-			if !isSystem && r.Tag == "operation" {
-				continue
-			}
-			if !isSystem && r.Tag == "operation.oauth" {
 				continue
 			}
 			if config.Cfg().Ontology.Enable == 0 {
@@ -267,13 +278,22 @@ func toPermissions(isAdmin, isSystem bool, perms []*iam_service.Perm) []response
 		return ret
 	}
 	for _, r := range routes {
-		if r.Tag == "setting" {
+		if r.Tag == "admin_center" {
+			if isOrgAdmin {
+				ret = append(ret, response.Permission{
+					Perm: r.Tag,
+					Name: r.Name,
+				})
+			}
+			continue
+		}
+		if r.Tag == "admin_center.setting" {
 			continue
 		}
 		if r.Tag == "statistic_client" {
 			continue
 		}
-		if r.Tag == "oauth" {
+		if r.Tag == "admin_center.oauth" {
 			continue
 		}
 		if config.Cfg().Ontology.Enable == 0 {

@@ -34,6 +34,7 @@ func (c *Client) SaveModelExperienceDialog(ctx context.Context, dialog *model_cl
 		Apply(c.db).WithContext(ctx).Model(&model_client.ModelExperienceDialog{}).
 		Updates(map[string]interface{}{
 			"model_setting": dialog.ModelSetting,
+			"updated_at":    time.Now().UnixMilli(),
 		}).Error; err != nil {
 		return nil, toErrStatus("model_experience_dialog_update_err", err.Error())
 	}
@@ -62,7 +63,7 @@ func (c *Client) ListModelExperienceDialogs(ctx context.Context, userId, orgId s
 	var dialogs []*model_client.ModelExperienceDialog
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithUserID(userId),
-	).Apply(c.db.WithContext(ctx)).Order("created_at desc").Find(&dialogs).Error; err != nil {
+	).Apply(c.db.WithContext(ctx)).Order("updated_at desc").Find(&dialogs).Error; err != nil {
 		return nil, toErrStatus("model_experience_dialog_list_err", err.Error())
 	}
 	return dialogs, nil

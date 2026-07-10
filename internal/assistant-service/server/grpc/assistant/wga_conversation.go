@@ -65,6 +65,7 @@ func (s *Service) WgaConversationList(ctx context.Context, req *assistant_servic
 			ThreadId:  config.ThreadID,
 			Title:     config.Title,
 			CreatedAt: config.CreatedAt,
+			UpdatedAt: config.UpdatedAt,
 		})
 	}
 

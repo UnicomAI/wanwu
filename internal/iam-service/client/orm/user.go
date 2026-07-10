@@ -63,14 +63,46 @@ func (c *Client) GetUser(ctx context.Context, userID, orgID uint32) (*UserInfo, 
 
 }
 
-func (c *Client) GetUsers(ctx context.Context, orgID uint32, name string, offset, limit int32) ([]*UserInfo, int64, *errs.Status) {
+func (c *Client) GetUsers(ctx context.Context, orgID uint32, name, email string, roleIDs []uint32, offset, limit int32) ([]*UserInfo, int64, *errs.Status) {
 	var ret []*UserInfo
 	var count int64
 	return ret, count, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+		// 系统组织(顶级组织)下返回全系统用户：org_users / user_roles 查询不限组织；
+		// 非系统组织只返回本组织用户。与 toUserInfoTx 的 allOrg 判断保持一致。
+		allOrg := orgID == config.TopOrgID()
 		// users
 		var users []*model.User
-		orgUsersQuery := sqlopt.WithOrgID(orgID).Apply(tx).Select("user_id").Table("org_users")
-		if err := sqlopt.LikeName(name).Apply(tx).Where("id IN (?)", orgUsersQuery).
+		var orgUsersQuery *gorm.DB
+		if allOrg {
+			orgUsersQuery = tx.Select("user_id").Table("org_users")
+		} else {
+			orgUsersQuery = sqlopt.WithOrgID(orgID).Apply(tx).Select("user_id").Table("org_users")
+		}
+		query := tx.Where("id IN (?)", orgUsersQuery)
+		// name and email filter: when name == email, use OR (name LIKE ? OR email LIKE ?)
+		if name != "" && email != "" && name == email {
+			query = query.Where("name LIKE ? OR email LIKE ?", "%"+name+"%", "%"+email+"%")
+		} else {
+			if name != "" {
+				query = query.Where("name LIKE ?", "%"+name+"%")
+			}
+			if email != "" {
+				query = query.Where("email LIKE ?", "%"+email+"%")
+			}
+		}
+		if len(roleIDs) > 0 {
+			var roleUsersQuery *gorm.DB
+			if allOrg {
+				roleUsersQuery = sqlopt.WithRoles(roleIDs).Apply(tx).Select("user_id").Table("user_roles")
+			} else {
+				roleUsersQuery = sqlopt.SQLOptions(
+					sqlopt.WithOrgID(orgID),
+					sqlopt.WithRoles(roleIDs),
+				).Apply(tx).Select("user_id").Table("user_roles")
+			}
+			query = query.Where("id IN (?)", roleUsersQuery)
+		}
+		if err := query.
 			Offset(int(offset)).Limit(int(limit)).Order("id DESC").Find(&users).
 			Offset(-1).Limit(-1).Count(&count).Error; err != nil {
 			return toErrStatus("iam_users_get", util.Int2Str(orgID), err.Error())
@@ -121,6 +153,50 @@ func (c *Client) SelectUsersByUserIDs(ctx context.Context, userIDs []uint32) ([]
 	return ret, nil
 }
 
+// IsUserOrgAdmin 查询用户在系统任一组织中是否拥有组织管理员角色。
+// user_roles.is_admin 在分配组织内置管理员角色时置 true，故只要存在任一 is_admin=true 记录即为 true。
+// 同时排除用户在该组织被禁用（org_users.status=disable）的记录，与 checkUserIsAdmin 语义保持一致。
+func (c *Client) IsUserOrgAdmin(ctx context.Context, userID uint32) (bool, *errs.Status) {
+	var count int64
+	if err := c.db.WithContext(ctx).Model(&model.UserRole{}).
+		Joins("JOIN org_users ON org_users.user_id = user_roles.user_id AND org_users.org_id = user_roles.org_id").
+		Where("user_roles.user_id = ?", userID).
+		Where("user_roles.is_admin = ?", true).
+		Where("org_users.status IS NULL OR org_users.status != ?", sqlopt.OrgUserStatusDisabled).
+		Count(&count).Error; err != nil {
+		return false, toErrStatus("iam_user_is_org_admin", util.Int2Str(userID), err.Error())
+	}
+	return count > 0, nil
+}
+
+// IsAdminInOrgs 查询用户对指定组织列表是否都拥有管理员权限（含祖先组织继承）。
+// 所有组织都通过才返回 true。
+func (c *Client) IsAdminInOrgs(ctx context.Context, userID uint32, orgIDs []uint32) (bool, *errs.Status) {
+	if len(orgIDs) == 0 {
+		return false, toErrStatus("iam_user_is_admin_in_orgs", "orgIDs empty")
+	}
+	var isAdmin bool
+	return isAdmin, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+		for _, orgID := range orgIDs {
+			org := &model.Org{}
+			if err := sqlopt.WithID(orgID).Apply(tx).First(org).Error; err != nil {
+				return toErrStatus("iam_user_is_admin_of_org", util.Int2Str(userID), util.Int2Str(orgID), err.Error())
+			}
+			var admin bool
+			var err error
+			admin, _, err = checkUserIsAdmin(tx, userID, org)
+			if err != nil {
+				return toErrStatus("iam_user_is_admin_of_org", util.Int2Str(userID), util.Int2Str(orgID), err.Error())
+			}
+			if !admin {
+				return nil
+			}
+		}
+		isAdmin = true
+		return nil
+	})
+}
+
 func (c *Client) CreateUser(ctx context.Context, user *model.User, orgID uint32, roleIDs []uint32) (uint32, *errs.Status) {
 	if user.ID != 0 {
 		return 0, toErrStatus("iam_user_create", "create user but id not 0")
@@ -149,7 +225,7 @@ func createUsersTx(tx *gorm.DB, users []*UsersInfo, creatorID, orgID uint32) (*C
 		}
 	}
 
-	// 获取角色映射
+	// 获取角色映射（组织角色 + 全局角色）
 	var orgRoles []*model.OrgRole
 	if err := sqlopt.WithOrgID(orgID).Apply(tx).Find(&orgRoles).Error; err != nil {
 		return nil, toErrStatus("iam_roles_get", util.Int2Str(orgID), err.Error())
@@ -157,6 +233,14 @@ func createUsersTx(tx *gorm.DB, users []*UsersInfo, creatorID, orgID uint32) (*C
 	roleNameMap := make(map[string]*model.OrgRole)
 	for i := range orgRoles {
 		roleNameMap[orgRoles[i].Name] = orgRoles[i]
+	}
+	var globalRoles []*model.GlobalRole
+	if err := tx.Find(&globalRoles).Error; err != nil {
+		return nil, toErrStatus("iam_global_roles_get", err.Error())
+	}
+	globalRoleNameMap := make(map[string]*model.GlobalRole)
+	for i := range globalRoles {
+		globalRoleNameMap[globalRoles[i].Name] = globalRoles[i]
 	}
 
 	// 预先查询已存在的用户名和电话号码
@@ -208,15 +292,28 @@ func createUsersTx(tx *gorm.DB, users []*UsersInfo, creatorID, orgID uint32) (*C
 		var isAdmin bool
 		if userInfo.RoleName != "" {
 			orgRole, ok := roleNameMap[userInfo.RoleName]
-			if !ok {
-				result.Errors = append(result.Errors, CreateUserError{
-					Index:  i,
-					Reason: fmt.Sprintf("角色'%s'不存在", userInfo.RoleName),
-				})
-				continue
+			if ok {
+				roleID = orgRole.RoleID
+				isAdmin = orgRole.IsAdmin
+			} else {
+				// not found in org roles, check global roles
+				globalRole, ok := globalRoleNameMap[userInfo.RoleName]
+				if !ok {
+					result.Errors = append(result.Errors, CreateUserError{
+						Index:  i,
+						Reason: fmt.Sprintf("角色'%s'不存在", userInfo.RoleName),
+					})
+					continue
+				}
+				if !globalRole.Status {
+					result.Errors = append(result.Errors, CreateUserError{
+						Index:  i,
+						Reason: fmt.Sprintf("角色'%s'已禁用", userInfo.RoleName),
+					})
+					continue
+				}
+				roleID = globalRole.RoleID
 			}
-			roleID = orgRole.RoleID
-			isAdmin = orgRole.IsAdmin
 		}
 
 		// 创建用户（使用保存点，失败不影响其他用户）
@@ -229,6 +326,7 @@ func createUsersTx(tx *gorm.DB, users []*UsersInfo, creatorID, orgID uint32) (*C
 			CreatorID: creatorID,
 			Name:      userInfo.UserName,
 			Phone:     userInfo.Phone,
+			Email:     userInfo.Email,
 			Company:   userInfo.Company,
 			Remark:    userInfo.Remark,
 			Password:  util.SHA256(userInfo.Password),
@@ -289,23 +387,35 @@ func createUsersTx(tx *gorm.DB, users []*UsersInfo, creatorID, orgID uint32) (*C
 
 func createUserTx(tx *gorm.DB, user *model.User, orgID uint32, roleIDs []uint32) *errs.Status {
 	// check org
-	var adminRoles, nonAdminRoles []uint32
+	var adminRoles, nonAdminRoles, globalRoles []uint32
 	if err := sqlopt.WithID(orgID).Apply(tx).First(&model.Org{}).Error; err != nil {
 		return toErrStatus("iam_user_create", err.Error())
 	} else if len(roleIDs) > 0 {
-		// check org role
+		// check roles: org roles first, then global roles
 		for _, roleID := range roleIDs {
 			orgRole := &model.OrgRole{}
 			if err := sqlopt.SQLOptions(
 				sqlopt.WithOrgID(orgID),
 				sqlopt.WithRoleID(roleID),
-			).Apply(tx).First(orgRole).Error; err != nil {
+			).Apply(tx).First(orgRole).Error; err == nil {
+				// org role found
+				if orgRole.IsAdmin {
+					adminRoles = append(adminRoles, roleID)
+				} else {
+					nonAdminRoles = append(nonAdminRoles, roleID)
+				}
+			} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return toErrStatus("iam_user_create", err.Error())
-			}
-			if orgRole.IsAdmin {
-				adminRoles = append(adminRoles, roleID)
 			} else {
-				nonAdminRoles = append(nonAdminRoles, roleID)
+				// not found in org_roles, check global_roles
+				globalRole := &model.GlobalRole{}
+				if err := sqlopt.WithRoleID(roleID).Apply(tx).First(globalRole).Error; err != nil {
+					return toErrStatus("iam_user_create", util.Int2Str(orgID), util.Int2Str(roleID), err.Error())
+				}
+				if !globalRole.Status {
+					return toErrStatus("iam_user_create", util.Int2Str(orgID), util.Int2Str(roleID), "global role disabled")
+				}
+				globalRoles = append(globalRoles, roleID)
 			}
 		}
 	}
@@ -385,6 +495,13 @@ func createUserTx(tx *gorm.DB, user *model.User, orgID uint32, roleIDs []uint32)
 				RoleID: roleID,
 			})
 		}
+		for _, roleID := range globalRoles {
+			userRoles = append(userRoles, &model.UserRole{
+				OrgID:  orgID,
+				UserID: user.ID,
+				RoleID: roleID,
+			})
+		}
 		if err := tx.Create(userRoles).Error; err != nil {
 			return toErrStatus("iam_user_create", err.Error())
 		}
@@ -421,20 +538,62 @@ func (c *Client) UpdateUser(ctx context.Context, user *model.User, orgID uint32,
 				return toErrStatus("iam_user_update", "cannot remove admin role")
 			}
 		}
-		var adminRoles, nonAdminRoles []uint32
+		// check org creator: 不能移除组织创建者在该组织的管理员角色
+		if orgID != config.TopOrgID() {
+			org := &model.Org{}
+			if err := sqlopt.WithID(orgID).Apply(tx).First(org).Error; err != nil {
+				return toErrStatus("iam_user_update", err.Error())
+			}
+			if org.CreatorID == user.ID {
+				// 查找当前用户在该组织的管理员角色
+				var currentUserRoles []*model.UserRole
+				if err := sqlopt.SQLOptions(
+					sqlopt.WithOrgID(orgID),
+					sqlopt.WithUserID(user.ID),
+					sqlopt.WithAdmin(true),
+				).Apply(tx).Find(&currentUserRoles).Error; err != nil {
+					return toErrStatus("iam_user_update", err.Error())
+				}
+				for _, ur := range currentUserRoles {
+					var found bool
+					for _, roleID := range roleIDs {
+						if roleID == ur.RoleID {
+							found = true
+							break
+						}
+					}
+					if !found {
+						return toErrStatus("iam_user_update", util.Int2Str(orgID), util.Int2Str(user.ID), "cannot remove org creator admin role")
+					}
+				}
+			}
+		}
+		var adminRoles, nonAdminRoles, globalRoles []uint32
 		if len(roleIDs) > 0 {
 			for _, roleID := range roleIDs {
 				orgRole := &model.OrgRole{}
 				if err := sqlopt.SQLOptions(
 					sqlopt.WithOrgID(orgID),
 					sqlopt.WithRoleID(roleID),
-				).Apply(tx).First(orgRole).Error; err != nil {
+				).Apply(tx).First(orgRole).Error; err == nil {
+					// org role found
+					if orgRole.IsAdmin {
+						adminRoles = append(adminRoles, roleID)
+					} else {
+						nonAdminRoles = append(nonAdminRoles, roleID)
+					}
+				} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 					return toErrStatus("iam_user_update", err.Error())
-				}
-				if orgRole.IsAdmin {
-					adminRoles = append(adminRoles, roleID)
 				} else {
-					nonAdminRoles = append(nonAdminRoles, roleID)
+					// not found in org_roles, check global_roles
+					globalRole := &model.GlobalRole{}
+					if err := sqlopt.WithRoleID(roleID).Apply(tx).First(globalRole).Error; err != nil {
+						return toErrStatus("iam_user_update", util.Int2Str(user.ID), util.Int2Str(roleID), err.Error())
+					}
+					if !globalRole.Status {
+						return toErrStatus("iam_user_update", util.Int2Str(user.ID), util.Int2Str(roleID), "global role disabled")
+					}
+					globalRoles = append(globalRoles, roleID)
 				}
 			}
 		}
@@ -514,6 +673,13 @@ func (c *Client) UpdateUser(ctx context.Context, user *model.User, orgID uint32,
 						RoleID: roleID,
 					})
 				}
+				for _, roleID := range globalRoles {
+					userRoles = append(userRoles, &model.UserRole{
+						OrgID:  orgID,
+						UserID: user.ID,
+						RoleID: roleID,
+					})
+				}
 				if err := tx.Create(userRoles).Error; err != nil {
 					return toErrStatus("iam_user_update_err", util.Int2Str(user.ID), err.Error())
 				}
@@ -561,6 +727,15 @@ func (c *Client) ChangeUserStatus(ctx context.Context, userID, orgID uint32, sta
 		// check user
 		if userID == config.AdminUserID() {
 			return toErrStatus("iam_user_change_status", util.Int2Str(userID), "cannot change admin user status")
+		}
+		// check org creator: 不能禁用组织创建者在该组织的状态
+		if !status && orgID != config.TopOrgID() {
+			org := &model.Org{}
+			if err := sqlopt.WithID(orgID).Apply(tx).First(org).Error; err == nil {
+				if org.CreatorID == userID {
+					return toErrStatus("iam_user_change_status", util.Int2Str(userID), "cannot disable org creator")
+				}
+			}
 		}
 		// change status
 		if orgID == config.TopOrgID() {
@@ -750,6 +925,29 @@ func toUserInfoTx(tx *gorm.DB, user *model.User, orgTree *model.OrgNode, allOrg 
 	if err := orgRolesOpt.Apply(tx).Find(&orgRoles).Error; err != nil {
 		return nil, fmt.Errorf("get org roles %v err: %v", roleIDs, err)
 	}
+	// global role: user_roles may reference global roles not present in org_roles.
+	// Resolve any roleIDs not covered by org_roles against global_roles so users
+	// with global roles don't break the read path.
+	orgRoleExist := make(map[uint32]bool)
+	for _, orgRole := range orgRoles {
+		orgRoleExist[orgRole.RoleID] = true
+	}
+	var missingRoleIDs []uint32
+	for _, roleID := range roleIDs {
+		if !orgRoleExist[roleID] {
+			missingRoleIDs = append(missingRoleIDs, roleID)
+		}
+	}
+	globalRoleMap := make(map[uint32]*model.GlobalRole)
+	if len(missingRoleIDs) > 0 {
+		var globalRoles []*model.GlobalRole
+		if err := sqlopt.WithRoles(missingRoleIDs).Apply(tx).Find(&globalRoles).Error; err != nil {
+			return nil, fmt.Errorf("get global roles %v err: %v", missingRoleIDs, err)
+		}
+		for i := range globalRoles {
+			globalRoleMap[globalRoles[i].RoleID] = globalRoles[i]
+		}
+	}
 	for _, userRole := range userRoles {
 		var orgExist bool
 		var currentOrg *UserOrg
@@ -772,6 +970,17 @@ func toUserInfoTx(tx *gorm.DB, user *model.User, orgTree *model.OrgNode, allOrg 
 					Name:     orgRole.Name,
 					IsAdmin:  orgRole.IsAdmin,
 					IsSystem: orgRole.OrgID == config.TopOrgID(),
+				})
+			}
+		}
+		if !roleExist {
+			// not an org role, check global roles
+			if globalRole, ok := globalRoleMap[userRole.RoleID]; ok {
+				roleExist = true
+				currentOrg.Roles = append(currentOrg.Roles, RoleIDName{
+					ID:       globalRole.RoleID,
+					Name:     globalRole.Name,
+					IsGlobal: true,
 				})
 			}
 		}
@@ -824,16 +1033,34 @@ func checkUserIsAdmin(tx *gorm.DB, userID uint32, org *model.Org) (bool, []*mode
 	if userID == config.AdminUserID() {
 		return true, nil, nil
 	}
-	// user role
+	// check org user status：用户在该组织被禁用则不视为该组织管理员（超级管理员不受影响，可兜底恢复）
+	orgUser := &model.OrgUser{}
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithUserID(userID),
+		sqlopt.WithOrgID(org.ID),
+	).Apply(tx).First(orgUser).Error; err != nil {
+		if err != gorm.ErrRecordNotFound {
+			return false, nil, fmt.Errorf("get org %v user %v err: %v", org.ID, userID, err)
+		}
+	} else if orgUser.Status == sqlopt.OrgUserStatusDisabled {
+		return false, nil, nil
+	}
+	// user role (org roles + global roles, both enabled)
 	var userRoles []*model.UserRole
 	orgRolesQuery := sqlopt.WithStatus(true).Apply(tx).Select("role_id").Table("org_roles")
 	if err := sqlopt.WithUserID(userID).Apply(tx).Where("role_id IN (?)", orgRolesQuery).Find(&userRoles).Error; err != nil {
 		return false, nil, fmt.Errorf("get user %v role err: %v", userID, err)
 	}
-	if len(userRoles) == 0 {
+	// also include global roles (enabled) assigned to this user
+	var globalUserRoles []*model.UserRole
+	globalRolesQuery := sqlopt.WithStatus(true).Apply(tx).Select("role_id").Table("global_roles")
+	if err := sqlopt.WithUserID(userID).Apply(tx).Where("role_id IN (?)", globalRolesQuery).Find(&globalUserRoles).Error; err != nil {
+		return false, nil, fmt.Errorf("get user %v global role err: %v", userID, err)
+	}
+	if len(userRoles) == 0 && len(globalUserRoles) == 0 {
 		return false, nil, nil
 	}
-	// check if user is org admin
+	// check if user is org admin (org roles only — global roles are never admin)
 	orgTree, err := getOrgTree(tx)
 	if err != nil {
 		return false, nil, err
@@ -843,6 +1070,12 @@ func checkUserIsAdmin(tx *gorm.DB, userID uint32, org *model.Org) (bool, []*mode
 	}
 	var ret []*model.UserRole
 	for _, userRole := range userRoles {
+		if userRole.OrgID == org.ID {
+			ret = append(ret, userRole)
+		}
+	}
+	// global roles apply across orgs; include those assigned in this org
+	for _, userRole := range globalUserRoles {
 		if userRole.OrgID == org.ID {
 			ret = append(ret, userRole)
 		}
@@ -888,6 +1121,28 @@ func getUserPermission(tx *gorm.DB, userID, orgID uint32) (*Permission, error) {
 	).Apply(tx).Find(&orgRoles).Error; err != nil {
 		return nil, fmt.Errorf("get org %v roles %v err: %v", orgID, roleIDs, err)
 	}
+	// global role: resolve roleIDs not covered by org_roles against global_roles
+	// so users with global roles get their roles and permissions.
+	orgRoleExist := make(map[uint32]bool)
+	for _, orgRole := range orgRoles {
+		orgRoleExist[orgRole.RoleID] = true
+	}
+	var missingRoleIDs []uint32
+	for _, roleID := range roleIDs {
+		if !orgRoleExist[roleID] {
+			missingRoleIDs = append(missingRoleIDs, roleID)
+		}
+	}
+	globalRoleMap := make(map[uint32]*model.GlobalRole)
+	if len(missingRoleIDs) > 0 {
+		var globalRoles []*model.GlobalRole
+		if err := sqlopt.WithRoles(missingRoleIDs).Apply(tx).Find(&globalRoles).Error; err != nil {
+			return nil, fmt.Errorf("get global roles %v err: %v", missingRoleIDs, err)
+		}
+		for i := range globalRoles {
+			globalRoleMap[globalRoles[i].RoleID] = globalRoles[i]
+		}
+	}
 	// check if user is org admin
 	isAdmin, validUserRoles, err := checkUserIsAdmin(tx, userID, org)
 	if err != nil {
@@ -906,13 +1161,25 @@ func getUserPermission(tx *gorm.DB, userID, orgID uint32) (*Permission, error) {
 	ret.LastUpdatePasswordAt = user.LastUpdatePasswordAt
 
 	for _, userRole := range userRoles {
+		var matched bool
 		for _, orgRole := range orgRoles {
 			if orgRole.RoleID == userRole.RoleID {
+				matched = true
 				ret.Roles = append(ret.Roles, RoleIDName{
 					ID:       orgRole.RoleID,
 					Name:     orgRole.Name,
 					IsAdmin:  orgRole.IsAdmin,
 					IsSystem: orgRole.OrgID == config.TopOrgID(),
+				})
+			}
+		}
+		if !matched {
+			if globalRole, ok := globalRoleMap[userRole.RoleID]; ok {
+				ret.Roles = append(ret.Roles, RoleIDName{
+					ID:       globalRole.RoleID,
+					Name:     globalRole.Name,
+					IsGlobal: true,
+					IsSystem: true,
 				})
 			}
 		}

@@ -69,8 +69,8 @@ func ListWanwuWGASubAgents(ctx *gin.Context) {
 	// 首部置入“无”选项：agentId 用固定哨兵 "wu"，创建通道时选它即忽略子智能体、使用通用智能体
 	// （agent_id 存 "wu"，channel-service 调 WGA 时归一化为空串走 Supervisor 默认路由）。
 	filtered = append(filtered, response.GeneralAgentInfo{
-		AgentID:   "wu",
-		AgentName: "无",
+		AgentID:     "wu",
+		AgentName:   "无",
 		Avatar:      request.Avatar{Key: "", Path: ""},
 		Placeholder: "选择一款模型，和我对话吧",
 	})

@@ -78,13 +78,24 @@ func (s *Service) GetFirstClassOrgAndSubs(ctx context.Context, req *iam_service.
 	}, nil
 }
 
+func (s *Service) GetAdminOrgSubTree(ctx context.Context, req *iam_service.GetAdminOrgSubTreeReq) (*iam_service.AdminOrgSubTreeResp, error) {
+	nodes, status := s.cli.GetAdminOrgSubTree(ctx, util.MustU32(req.UserId))
+	if status != nil {
+		return nil, errStatus(errs.Code_IAMOrg, status)
+	}
+	return &iam_service.AdminOrgSubTreeResp{
+		Orgs: toAdminOrgTreeNodes(nodes),
+	}, nil
+}
+
 func (s *Service) CreateOrg(ctx context.Context, req *iam_service.CreateOrgReq) (*iam_service.IDName, error) {
 	orgID, err := s.cli.CreateOrg(ctx, &model.Org{
-		Status:    true,
-		CreatorID: util.MustU32(req.CreatorId),
-		ParentID:  util.MustU32(req.ParentId),
-		Name:      req.Name,
-		Remark:    req.Remark,
+		Status:     true,
+		CreatorID:  util.MustU32(req.CreatorId),
+		ParentID:   util.MustU32(req.ParentId),
+		Name:       req.Name,
+		Remark:     req.Remark,
+		AvatarPath: req.AvatarPath,
 	})
 	if err != nil {
 		return nil, errStatus(errs.Code_IAMOrg, err)
@@ -94,10 +105,10 @@ func (s *Service) CreateOrg(ctx context.Context, req *iam_service.CreateOrgReq) 
 
 func (s *Service) UpdateOrg(ctx context.Context, req *iam_service.UpdateOrgReq) (*emptypb.Empty, error) {
 	if err := s.cli.UpdateOrg(ctx, &model.Org{
-		ID:       util.MustU32(req.OrgId),
-		ParentID: util.MustU32(req.ParentId),
-		Name:     req.Name,
-		Remark:   req.Remark,
+		ID:         util.MustU32(req.OrgId),
+		Name:       req.Name,
+		Remark:     req.Remark,
+		AvatarPath: req.AvatarPath,
 	}); err != nil {
 		return nil, errStatus(errs.Code_IAMOrg, err)
 	}
@@ -136,11 +147,34 @@ func (s *Service) RemoveOrgUser(ctx context.Context, req *iam_service.RemoveOrgU
 
 func toOrgInfo(org *orm.OrgInfo) *iam_service.OrgInfo {
 	return &iam_service.OrgInfo{
-		OrgId:     strconv.Itoa(int(org.ID)),
-		Name:      org.Name,
-		Remark:    org.Remark,
-		Status:    org.Status,
-		CreatedAt: org.CreatedAt,
-		Creator:   toIDName(org.Creator),
+		OrgId:      strconv.Itoa(int(org.ID)),
+		Name:       org.Name,
+		Remark:     org.Remark,
+		Status:     org.Status,
+		CreatedAt:  org.CreatedAt,
+		Creator:    toIDName(org.Creator),
+		UserCount:  org.UserCount,
+		AvatarPath: org.AvatarPath,
+		Admins:     org.Admins,
+	}
+}
+
+func toAdminOrgTreeNodes(nodes []*orm.AdminOrgTreeNode) []*iam_service.AdminOrgTreeNode {
+	if len(nodes) == 0 {
+		return nil
+	}
+	var ret []*iam_service.AdminOrgTreeNode
+	for _, node := range nodes {
+		ret = append(ret, toAdminOrgTreeNode(node))
+	}
+	return ret
+}
+
+func toAdminOrgTreeNode(node *orm.AdminOrgTreeNode) *iam_service.AdminOrgTreeNode {
+	return &iam_service.AdminOrgTreeNode{
+		OrgId:    strconv.Itoa(int(node.ID)),
+		Name:     node.Name,
+		HasPerm:  node.HasPerm,
+		Children: toAdminOrgTreeNodes(node.Children),
 	}
 }

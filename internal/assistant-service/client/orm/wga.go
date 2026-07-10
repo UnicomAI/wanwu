@@ -3,6 +3,7 @@ package orm
 import (
 	"context"
 	"errors"
+	"time"
 
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
@@ -31,18 +32,18 @@ func (c *Client) UpdateWgaConversationConfig(ctx context.Context, config *model.
 	).Apply(c.db.WithContext(ctx)).First(&existing).Error
 
 	if err == nil {
-		updates := map[string]interface{}{}
+		updates := map[string]interface{}{
+			"updated_at": time.Now().UnixMilli(),
+		}
 		if config.ModelConfig != "" {
 			updates["model_config"] = config.ModelConfig
 		}
 		if config.Title != "" {
 			updates["title"] = config.Title
 		}
-		if len(updates) > 0 {
-			result := c.db.WithContext(ctx).Model(&existing).Updates(updates)
-			if result.Error != nil {
-				return toErrStatus("wga_config_update", result.Error.Error())
-			}
+		result := c.db.WithContext(ctx).Model(&existing).Updates(updates)
+		if result.Error != nil {
+			return toErrStatus("wga_config_update", result.Error.Error())
 		}
 		return nil
 	}
@@ -78,7 +79,7 @@ func (c *Client) GetWgaConversationConfigList(ctx context.Context, userID, orgID
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithUserID(userID),
 		sqlopt.WithOrgID(orgID),
-	).Apply(c.db.WithContext(ctx).Model(&model.WgaConversationConfig{})).Offset(int(offset)).Limit(int(limit)).Order("created_at DESC").Find(&configs).Error; err != nil {
+	).Apply(c.db.WithContext(ctx).Model(&model.WgaConversationConfig{})).Offset(int(offset)).Limit(int(limit)).Order("updated_at DESC").Find(&configs).Error; err != nil {
 		return configs, count, toErrStatus("wga_conversation_list", err.Error())
 	}
 

@@ -107,17 +107,11 @@ func Init(r *gin.Engine) {
 	// operation.statistic_client
 	//mid.Sub("operation").NewSub("statistic_client", "用户统计", route.PermNeedCheck, true, true)
 
-	// operation.oauth
-	mid.Sub("operation").NewSub("oauth", "OAuth密钥管理", route.PermNeedCheck, true, true)
-
 	// --- api_key ---
 	mid.NewSub("api_key", "API Key管理", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// api_key.api_key_management
 	mid.Sub("api_key").NewSub("api_key_management", "API Key管理", route.PermNeedCheck, true, true)
-
-	// --- channel ---
-	mid.NewSub("channel", "通道管理", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// --- app_observability ---
 	mid.NewSub("app_observability", "应用观测", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
@@ -125,19 +119,16 @@ func Init(r *gin.Engine) {
 	// --- app_observability.statistic ---
 	mid.Sub("app_observability").NewSub("statistic", "统计看板", route.PermNeedCheck, true, true)
 
-	// --- permission ---
-	mid.NewSub("permission", "组织管理", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	// --- admin_center ---
+	mid.NewSub("admin_center", "管理员中心", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
-	// permission.user
-	mid.Sub("permission").NewSub("user", "用户", route.PermNeedCheck, true, true)
+	// admin_center.oauth
+	mid.Sub("admin_center").NewSub("oauth", "OAuth密钥管理", route.PermNeedCheck, true, true)
 
-	// permission.org
-	mid.Sub("permission").NewSub("org", "组织", route.PermNeedCheck, true, true)
+	// admin_center.setting
+	mid.Sub("admin_center").NewSub("setting", "平台配置", route.PermNeedCheck, true, true)
 
-	// permission.role
-	mid.Sub("permission").NewSub("role", "角色", route.PermNeedCheck, true, true)
-
-	// --- setting ---
-	mid.NewSub("setting", "平台配置", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
+	// open_source
+	mid.NewSub("open_source", "开源仓库", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 }

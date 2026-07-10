@@ -74,6 +74,7 @@ type GeneralAgentConversationInfo struct {
 	ThreadID            string `json:"threadId"`            // 对话ID
 	Title               string `json:"title"`               // 对话标题
 	CreatedAt           string `json:"createdAt"`           // 创建时间
+	UpdatedAt           string `json:"updatedAt"`           // 更新时间
 	IsSkillConversation bool   `json:"isSkillConversation"` // 是否为skill对话
 	SkillID             string `json:"skillId,omitempty"`   // custom skill ID
 	PreviewID           string `json:"previewId,omitempty"` // skill preview conversation ID

@@ -276,6 +276,7 @@ func GetGeneralAgentConversationList(ctx *gin.Context, userId, orgId string, req
 			ThreadID:            info.ThreadId,
 			Title:               info.Title,
 			CreatedAt:           util.Time2Str(info.CreatedAt),
+			UpdatedAt:           util.Time2Str(info.UpdatedAt),
 			IsSkillConversation: skill != nil,
 		}
 		if skill != nil {

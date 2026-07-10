@@ -13,6 +13,7 @@ type ModelExperienceDialog struct {
 	Title        string `json:"title"`
 	ModelSetting string `json:"modelSetting"`
 	CreatedAt    int64  `json:"createdAt"`
+	UpdatedAt    int64  `json:"updatedAt"`
 }
 
 // ModelExperienceDialogRecord 模型体验对话记录

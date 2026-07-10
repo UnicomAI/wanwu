@@ -9,7 +9,7 @@ import (
 
 // CreateOauthApp
 //
-//	@Tags			oauth
+//	@Tags			admin_center.oauth
 //	@Summary		创建OAuth应用
 //	@Description	创建新的OAuth应用
 //	@Security		JWT
@@ -28,7 +28,7 @@ func CreateOauthApp(ctx *gin.Context) {
 
 // DeleteOauthApp
 //
-//	@Tags			oauth
+//	@Tags			admin_center.oauth
 //	@Summary		删除OAuth应用
 //	@Description	删除指定的OAuth应用
 //	@Security		JWT
@@ -47,7 +47,7 @@ func DeleteOauthApp(ctx *gin.Context) {
 
 // UpdateOauthApp
 //
-//	@Tags			oauth
+//	@Tags			admin_center.oauth
 //	@Summary		更新OAuth应用
 //	@Description	更新OAuth应用信息
 //	@Security		JWT
@@ -66,7 +66,7 @@ func UpdateOauthApp(ctx *gin.Context) {
 
 // GetOauthAppList
 //
-//	@Tags			oauth
+//	@Tags			admin_center.oauth
 //	@Summary		获取OAuth应用列表
 //	@Description	获取OAuth应用分页列表
 //	@Security		JWT
@@ -85,7 +85,7 @@ func GetOauthAppList(ctx *gin.Context) {
 
 // UpdateOauthAppStatus
 //
-//	@Tags			oauth
+//	@Tags			admin_center.oauth
 //	@Summary		更新OAuth应用状态
 //	@Description	启用或禁用OAuth应用
 //	@Security		JWT

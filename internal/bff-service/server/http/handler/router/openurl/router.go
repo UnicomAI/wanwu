@@ -11,6 +11,7 @@ import (
 func Register(openUrl *gin.RouterGroup) {
 	// --- openurl ---
 	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix", http.MethodGet, openurl.GetUrlAgentDetail, "获取智能体Url信息")
+	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix/llm", http.MethodGet, openurl.GetUrlAgentLLM, "获取智能体模型配置")
 
 	// --- conversation ---
 	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix/conversation", http.MethodPost, openurl.UrlConversationCreate, "创建智能体对话")

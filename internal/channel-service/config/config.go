@@ -40,7 +40,7 @@ type LogConfig struct {
 
 // BFFConfig 万悟 BFF 服务地址，用于代理调用 OpenAPI
 type BFFConfig struct {
-	BaseURL string `json:"base_url" mapstructure:"base_url"`
+	ApiBaseUrl string `json:"api_base_url" mapstructure:"api_base_url"`
 }
 
 // DingTalkConfig 钉钉通道配置

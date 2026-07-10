@@ -1018,7 +1018,17 @@ func GetConversationList(ctx *gin.Context, userId, orgId string, req request.Con
 	if err != nil {
 		return response.PageResult{}, err
 	}
-	return response.PageResult{Total: resp.Total, List: resp.Data}, nil
+	var list []response.ConversationInfo
+	for _, item := range resp.Data {
+		list = append(list, response.ConversationInfo{
+			ConversationId: item.ConversationId,
+			AssistantId:    item.AssistantId,
+			Title:          item.Title,
+			CreatedAt:      util.Time2Str(item.CreatedAt),
+			UpdatedAt:      util.Time2Str(item.UpdatedAt),
+		})
+	}
+	return response.PageResult{Total: resp.Total, List: list}, nil
 }
 
 func GetConversationDetailList(ctx *gin.Context, userId, orgId string, req request.ConversationGetDetailListRequest) (response.PageResult, error) {

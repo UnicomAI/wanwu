@@ -106,6 +106,15 @@ func LikeName(name string) SQLOption {
 	})
 }
 
+func LikeEmail(email string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if email != "" {
+			return db.Where("email LIKE ?", "%"+email+"%")
+		}
+		return db
+	})
+}
+
 func WithEmail(email string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		return db.Where("email = ?", email)

@@ -30,10 +30,11 @@ func GetUserPermission(ctx *gin.Context) {
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Success	200	{object}	response.Response{data=response.UserInfo}
+//	@Param		orgId	query		string	true	"组织ID"
+//	@Success	200		{object}	response.Response{data=response.UserInfo}
 //	@Router		/user/info [get]
 func GetUserInfo(ctx *gin.Context) {
-	resp, err := service.GetUserInfo(ctx, getUserID(ctx), getOrgID(ctx))
+	resp, err := service.GetUserInfo(ctx, getUserID(ctx), ctx.Query("orgId"))
 	gin_util.Response(ctx, resp, err)
 }
 

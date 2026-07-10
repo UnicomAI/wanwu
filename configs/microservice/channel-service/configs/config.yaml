@@ -50,7 +50,7 @@ redis:
   master_name: mymaster
 
 bff:
-  base_url: "http://bff-service:6668"
+  api_base_url: "http://bff-service:6667"
 
 dingtalk:
   stream_mode: true

@@ -97,7 +97,7 @@ func toIDNames(idNames []orm.IDName) []*iam_service.IDName {
 }
 
 func toRoleIDName(roleIDName orm.RoleIDName) *iam_service.RoleIDName {
-	return &iam_service.RoleIDName{Id: strconv.Itoa(int(roleIDName.ID)), Name: roleIDName.Name, IsAdmin: roleIDName.IsAdmin, IsSystem: roleIDName.IsSystem}
+	return &iam_service.RoleIDName{Id: strconv.Itoa(int(roleIDName.ID)), Name: roleIDName.Name, IsAdmin: roleIDName.IsAdmin, IsSystem: roleIDName.IsSystem, IsGlobal: roleIDName.IsGlobal}
 }
 
 func toRoleIDNames(roleIDNames []orm.RoleIDName) []*iam_service.RoleIDName {

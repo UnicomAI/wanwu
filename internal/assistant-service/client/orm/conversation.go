@@ -2,6 +2,7 @@ package orm
 
 import (
 	"context"
+	"time"
 
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
@@ -25,12 +26,11 @@ func (c *Client) UpdateConversation(ctx context.Context, conversation *model.Con
 		return toErrStatus("assistant_conversation_update", "update conversation but id 0")
 	}
 	if err := c.db.WithContext(ctx).Model(conversation).Updates(map[string]interface{}{
-		"title": conversation.Title,
+		"updated_at": time.Now().UnixMilli(),
 	}).Error; err != nil {
 		return toErrStatus("assistant_conversation_update", err.Error())
 	}
 	return nil
-
 }
 
 func (c *Client) DeleteConversation(ctx context.Context, conversationID uint32) *err_code.Status {
@@ -80,7 +80,7 @@ func (c *Client) GetConversationList(ctx context.Context, assistantID, conversat
 			return toErrStatus("assistant_conversations_get_list", err.Error())
 		}
 
-		if err := query.Offset(int(offset)).Limit(int(limit)).Order("created_at DESC").Find(&conversations).Error; err != nil {
+		if err := query.Offset(int(offset)).Limit(int(limit)).Order("updated_at DESC").Find(&conversations).Error; err != nil {
 			return toErrStatus("assistant_conversations_get_list", err.Error())
 		}
 

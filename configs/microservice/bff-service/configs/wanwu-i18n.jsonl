@@ -16,6 +16,7 @@
 {"code":110007,"key":"","langs":{"zh":"忘记密码已禁用"}}
 {"code":110008,"key":"","langs":{"zh":"邮箱登录已禁用"}}
 {"code":110009,"key":"","langs":{"zh":"单因子登录禁用"}}
+{"code":110013,"key":"","langs":{"en":"Rate limit error: %v","zh":"限流错误：%v"}}
 {"code":0,"key":"------ auth ------","langs":{}}
 {"code":110004,"key":"bff_auth_server_authorized","langs":{"en":"authorized","zh":"已授权"}}
 {"code":110004,"key":"bff_auth_server_error","langs":{"en":"auth-service err","zh":"授权服务异常"}}
@@ -31,11 +32,14 @@
 {"code":110000,"key":"bff_org_cannot_delete","langs":{"en":"cannot delete organization","zh":"无法删除组织"}}
 {"code":110000,"key":"bff_org_cannot_change_status","langs":{"en":"cannot modify organization status","zh":"无法修改组织状态"}}
 {"code":110000,"key":"bff_org_cannot_create","langs":{"en":"cannot create organization","zh":"无法新增组织"}}
+{"code":110000,"key":"bff_role_must_select_org","langs":{"zh":"请选择组织"}}
+{"code":110000,"key":"bff_system_org_required","langs":{"zh":"非系统下无法操作"}}
 {"code":0,"key":"------ role ------","langs":{}}
 {"code":110000,"key":"bff_role_cannot_change","langs":{"en":"cannot modify role","zh":"无法编辑用户"}}
 {"code":110000,"key":"bff_role_cannot_create","langs":{"en":"cannot create role","zh":"无法新增角色"}}
 {"code":110000,"key":"bff_role_cannot_delete","langs":{"en":"cannot delete role","zh":"无法删除角色"}}
 {"code":110000,"key":"bff_role_cannot_change_status","langs":{"en":"cannot modify role status","zh":"无法修改角色状态"}}
+{"code":110000,"key":"bff_global_role_cannot_operate","langs":{"zh":"无法操作全局角色"}}
 {"code":0,"key":"------ user ------","langs":{}}
 {"code":110000,"key":"bff_user_cannot_change_other_password","langs":{"en":"cannot modify another user's password","zh":"无法修改他人密码"}}
 {"code":110000,"key":"bff_user_cannot_delete","langs":{"en":"only system administrators can delete users","zh":"非系统管理员无法删除用户"}}
@@ -46,6 +50,7 @@
 {"code":110000,"key":"bff_user_cannot_change_status","langs":{"en":"cannot modify user status","zh":"无法修改用户状态"}}
 {"code":110000,"key":"bff_user_cannot_change_password","langs":{"en":"cannot modify user's password","zh":"无法修改密码"}}
 {"code":110000,"key":"bff_user_batch_import_file","langs":{"zh":"批量创建用户失败: %v"}}
+{"code":110000,"key":"bff_org_admin_required","langs":{"zh":"非该组织管理员无法操作"}}
 {"code":0,"key":"------ file upload ------","langs":{}}
 {"code":110000,"key":"bff_file_upload_check","langs":{"en":"file verification failed, please try again later!","zh":"文件校验失败，请稍后重试！(%v)"}}
 {"code":110000,"key":"bff_file_upload_merge","langs":{"en":"file merge failed, please try again later!","zh":"文件合并失败，请稍后重试！(%v)"}}
@@ -84,6 +89,8 @@
 {"code":110000,"key":"bff_chatflow_application_info","langs":{"zh":"获取对话流应用信息错误:%v"}}
 {"code":110000,"key":"bff_app_publish_version","langs":{"zh":"最新版本(%v)，发布版本(%v)，版本号应递增，需大于上一个版本: %v"}}
 {"code":110010,"key":"","langs":{"zh":"应用类型错误"}}
+{"code":110010,"key":"bff_workflow_name_exists","langs":{"zh":"工作流或对话流已存在，请修改名称后重试"}}
+{"code":110000,"key":"bff_workflow_app_create","langs":{"zh":"工作流、对话流创建错误: %v"}}
 {"code":0,"key":"------ doc ------","langs":{}}
 {"code":110000,"key":"bff_doc_center_file_unescape","langs":{"en":"path unescape error: %v","zh":"路径去除转义错误: %v"}}
 {"code":110000,"key":"bff_doc_center_file_md","langs":{"en":"no markdown files found: %v","zh":"未含有md文件: %v"}}
@@ -121,8 +128,6 @@
 {"code":110000,"key":"bff_model_perm","langs":{"zh":"模型(%v)权限校验失败，请更换模型重试"}}
 {"code":110011,"key":"","langs":{"zh":"模型(%v)已禁用"}}
 {"code":110012,"key":"","langs":{"zh":"Skill解析错误: %v"}}
-{"code":110013,"key":"bff_rate_limited_failed_with_attempts","langs":{"en":"%v. You have %v attempt(s) remaining.","zh":"%v，您还有%v次尝试的机会"}}
-{"code":110013,"key":"bff_rate_limited_too_many_attempts","langs":{"en":"Too many attempts. Please try again in %v minute(s).","zh":"访问太频繁，请%v分钟之后重试"}}
 {"code":0,"key":"------ skill ------","langs":{}}
 {"code":110000,"key":"bff_skill_acquired_no_permission","langs":{"en":"No permission to access this skill.","zh":"当前无权限访问该技能"}}
 {"code":110000,"key":"bff_skill_acquired_source_inaccessible","langs":{"en":"source skill not found","zh":"源技能不存在"}}
@@ -151,7 +156,6 @@
 {"code":110000,"key":"bff_skill_workspace_git_status_failed","langs":{"en":"git status failed","zh":"git状态查询失败"}}
 {"code":110000,"key":"bff_skill_workspace_git_add_failed","langs":{"en":"git add failed","zh":"git暂存失败"}}
 {"code":110000,"key":"bff_skill_workspace_git_reset_failed","langs":{"en":"git reset failed","zh":"git取消暂存失败"}}
-{"code":110000,"key":"bff_skill_workspace_git_restore_failed","langs":{"en":"git restore failed","zh":"git恢复失败"}}
 {"code":110000,"key":"bff_skill_workspace_git_commit_failed","langs":{"en":"git commit failed","zh":"git提交失败"}}
 {"code":110000,"key":"bff_skill_workspace_git_diff_failed","langs":{"en":"git diff failed","zh":"git差异查询失败"}}
 {"code":110000,"key":"bff_skill_workspace_git_diff_staged_failed","langs":{"en":"git diff --cached failed","zh":"git已暂存差异查询失败"}}
@@ -159,6 +163,10 @@
 {"code":110000,"key":"bff_skill_workspace_check_git_status_failed","langs":{"en":"check git status failed","zh":"检查git状态失败"}}
 {"code":110000,"key":"bff_skill_uncommitted_changes","langs":{"en":"workspace has uncommitted changes please commit before publishing","zh":"工作区有未提交的更改请先提交后再发布"}}
 {"code":110000,"key":"bff_skill_version_exists","langs":{"en":"version already exists please use another version","zh":"版本已存在请使用其他版本号"}}
+{"code":110000,"key":"bff_skill_workspace_git_restore_failed","langs":{"en":"git restore failed","zh":"git恢复失败"}}
+{"code":0,"key":"---- ratelimit ----","langs":{}}
+{"code":110013,"key":"bff_rate_limited_failed_with_attempts","langs":{"en":"%v. You have %v attempt(s) remaining.","zh":"%v，您还有%v次尝试的机会"}}
+{"code":110013,"key":"bff_rate_limited_too_many attempts","langs":{"en":"Too many attempts. Please try again in %v minute(s).","zh":"访问太频繁，请%v分钟之后重试"}}
 {"code":0,"key":"------ custom ------","langs":{}}
 {"code":0,"key":"bff_custom_home_title","langs":{"en":"Yuanjing Wanwu Intelligent Body Platform","zh":"元景万悟智能体平台"}}
 {"code":0,"key":"bff_custom_tab_title","langs":{"en":"Yuanjing Wanwu","zh":"元景万悟"}}
@@ -193,6 +201,7 @@
 {"code":120011,"key":"iam_org_user_remove_top","langs":{"en":"remove org user but remove from top org","zh":"无法从系统中移除用户"}}
 {"code":120011,"key":"iam_org_user_remove","langs":{"en":"remove org %v user %v err: %v","zh":"移除组织(%v) 用户(%v) 错误: %v"}}
 {"code":120011,"key":"iam_orgs_get_by_ids","langs":{"en":"get orgs by org id err: %v","zh":"通过组织id获取组织错误: %v"}}
+{"code":120011,"key":"iam_admin_org_sub_tree","langs":{"en":"get admin org sub tree err: %v","zh":"获取管理组织子树错误: %v"}}
 {"code":120011,"key":"iam_perm_check_user_ok","langs":{"en":"check user %v status  err: %v","zh":"检查用户(%v) 状态错误: %v"}}
 {"code":130002,"key":"iam_perm_relogin","langs":{"en":"relogin required","zh":"需要重新登录"}}
 {"code":120011,"key":"iam_perm_user_disable","langs":{"en":"account has been deactivated","zh":"账号已被停用"}}
@@ -203,6 +212,9 @@
 {"code":120021,"key":"iam_role_update","langs":{"en":"update org %v role %v err: %v","zh":"更新组织(%v) 角色(%v) 错误: %v"}}
 {"code":120021,"key":"iam_role_delete","langs":{"en":"delete org %v role %v err: %v","zh":"删除组织(%v) 角色(%v) 错误: %v"}}
 {"code":120021,"key":"iam_role_change","langs":{"en":"change org %v role %v status %v err: %v","zh":"修改组织(%v) 角色(%v) 状态(%v) 错误: %v"}}
+{"code":120021,"key":"iam_role_user_remove","langs":{"en":"remove role %v user %v err: %v","zh":"移除角色(%v) 用户(%v) 错误: %v"}}
+{"code":120021,"key":"iam_role_users_get","langs":{"en":"get role %v users err: %v","zh":"获取角色(%v) 用户列表错误: %v"}}
+{"code":120021,"key":"iam_global_roles_get","langs":{"en":"get global roles err: %v","zh":"获取全局角色列表错误: %v"}}
 {"code":120031,"key":"iam_user_org_check","langs":{"en":"get user %v check org %v user err: %v","zh":"获取用户(%v) 时检查组织(%v) 用户错误: %v"}}
 {"code":120031,"key":"iam_user_get","langs":{"en":"get user %v err: %v","zh":"获取用户(%v) 错误: %v"}}
 {"code":120031,"key":"iam_users_get","langs":{"en":"get org %v users err: %v","zh":"获取组织(%v) 用户错误: %v"}}
@@ -230,6 +242,8 @@
 {"code":120031,"key":"iam_user_batch_create_name","langs":{"zh":"用户(%v)已存在"}}
 {"code":120031,"key":"iam_user_batch_create_phone","langs":{"zh":"用户(%v)电话(%v)已存在"}}
 {"code":120031,"key":"iam_user_batch_create","langs":{"zh":"批量创建用户失败: %v"}}
+{"code":120031,"key":"iam_user_is_admin_of_org","langs":{"en":"check user %v is admin of org %v err: %v","zh":"校验用户(%v) 是否组织(%v) 管理员错误: %v"}}
+{"code":120031,"key":"iam_user_is_org_admin","langs":{"en":"check user %v is org admin err: %v","zh":"校验用户(%v) 是否组织管理员错误: %v"}}
 {"code":120002,"key":"iam_login_captcha","langs":{"en":"refresh captcha err:  %v","zh":"刷新验证码错误: %v"}}
 {"code":120021,"key":"iam_role_create","langs":{"en":"create role err: %v","zh":"创建角色错误: %v"}}
 {"code":120031,"key":"iam_user_overview","langs":{"en":"get user over view err: %v","zh":"获取用户总览错误: %v"}}

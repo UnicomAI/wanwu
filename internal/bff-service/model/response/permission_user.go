@@ -9,12 +9,8 @@ type UserID struct {
 type UserInfo struct {
 	UserID    string         `json:"userId"`
 	Username  string         `json:"username"`
-	Nickname  string         `json:"nickname"`
 	Phone     string         `json:"phone"`
 	Email     string         `json:"email"`
-	Gender    string         `json:"gender"`
-	Remark    string         `json:"remark"`
-	Company   string         `json:"company"`
 	CreatedAt string         `json:"createdAt"`
 	Creator   IDName         `json:"creator"` // 创建人
 	Status    bool           `json:"status"`
@@ -24,8 +20,8 @@ type UserInfo struct {
 }
 
 type OrgRole struct {
-	Org   IDName   `json:"org"`   // 组织
-	Roles []IDName `json:"roles"` // 角色列表
+	Org   IDName       `json:"org"`   // 组织
+	Roles []RoleIDName `json:"roles"` // 角色列表
 }
 
 // UserBatchImportResult 批量导入用户结果

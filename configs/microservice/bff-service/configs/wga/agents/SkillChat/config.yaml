@@ -13,6 +13,26 @@ configure:
 prompt_relative_path: ./prompt.md
 
 tool_categories:
+  - category: wga_tool_category_search
+    condition: none
+    tools:
+      - path: configs/microservice/mcp-service/configs/tool/bochasearch/openapi.json
+        auth_required: true
+        operations:
+          - operation_id: bocha_comprehensive_search
+          - operation_id: bocha_web_search_only
+          - operation_id: bocha_search_structured
+          - operation_id: bocha_search_day
+          - operation_id: bocha_search_last_week
+      - path: configs/microservice/mcp-service/configs/tool/tavilysearch/openapi.json
+        auth_required: true
+        operations:
+          - operation_id: tavily_basic_search
+          - operation_id: tavily_deep_search
+          - operation_id: tavily_day_search
+          - operation_id: tavily_week_search
+          - operation_id: tavily_image_search
+          - operation_id: tavily_date_search
 
 skills:
   - dir: configs/microservice/bff-service/configs/agent-skills/anthropics/skill-creator

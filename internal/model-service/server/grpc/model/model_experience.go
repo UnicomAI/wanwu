@@ -101,6 +101,7 @@ func toModelExperienceDialog(dialog *model.ModelExperienceDialog) *model_service
 		Title:             dialog.Title,
 		ModelSetting:      dialog.ModelSetting,
 		CreatedAt:         dialog.CreatedAt,
+		UpdatedAt:         dialog.UpdatedAt,
 	}
 }
 

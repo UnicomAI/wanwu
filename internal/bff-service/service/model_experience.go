@@ -454,6 +454,7 @@ func toModelExperienceDialog(dialog *model_service.ModelExperienceDialog) *respo
 		Title:        dialog.Title,
 		ModelSetting: dialog.ModelSetting,
 		CreatedAt:    dialog.CreatedAt,
+		UpdatedAt:    dialog.UpdatedAt,
 	}
 }
 

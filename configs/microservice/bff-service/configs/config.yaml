@@ -1,9 +1,10 @@
 server:
   host: bff-service
-  port: 6668
+  port: 6667
+  callback_port: 6668
   web_base_url: http://localhost:8081
-  api_base_url: http://localhost:6668
-  app_open_base_url: http://localhost:6668
+  api_base_url: http://localhost:6667
+  app_open_base_url: http://localhost:6667
   callback_url: http://bff-service:6668
 
 log:
@@ -110,6 +111,10 @@ default-icon:
   knowledge: "/v1/static/icon/knowledge-default-icon.png"
   qa: "/v1/static/icon/qa-default-icon.png"
   model: "/v1/static/icon/model-default-icon.png"
+  org: "/v1/static/icon/org-default-icon.png"
+  role: "/v1/static/icon/role-default-icon.png"
+  system: "/v1/static/icon/system-default-icon.png"
+  admin: "/v1/static/icon/admin-default-icon.png"
 
 doc-center:
   frontend_prefix: /aibase/docCenter/pages

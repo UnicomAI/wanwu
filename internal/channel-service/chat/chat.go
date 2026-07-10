@@ -46,7 +46,7 @@ func NewHandler(cfg config.Config, cli client.IClient, manager adapterManager) *
 		cli:         cli,
 		manager:     manager,
 		convManager: wanwu.NewConversationManager(cli),
-		questionMgr: NewQuestionManager(cfg.BFF.BaseURL),
+		questionMgr: NewQuestionManager(cfg.BFF.ApiBaseUrl),
 	}
 }
 
@@ -97,7 +97,7 @@ func (h *Handler) handleAgentMessage(ctx context.Context, ch *model.Channel, msg
 	apiKey := ch.ApiKey
 
 	// 获取或创建万悟会话 ID（同一用户同一通道复用同一会话，保持上下文记忆）
-	wanwuClient := wanwu.NewClient(h.cfg.BFF.BaseURL)
+	wanwuClient := wanwu.NewClient(h.cfg.BFF.ApiBaseUrl)
 	conversationID, ok := h.convManager.GetConversationID(ctx, msg.ChannelID, msg.UserID, "agent")
 	if !ok {
 		// 首次对话，创建会话
@@ -171,7 +171,7 @@ func (h *Handler) doWGAChat(ctx context.Context, ch *model.Channel, msg *types.P
 	}
 
 	// 获取或创建 WGA 会话（threadId）
-	wanwuClient := wanwu.NewClient(h.cfg.BFF.BaseURL)
+	wanwuClient := wanwu.NewClient(h.cfg.BFF.ApiBaseUrl)
 	threadID, ok := h.convManager.GetConversationID(ctx, msg.ChannelID, msg.UserID, appTypeKey)
 	if !ok {
 		// 首次对话，创建 WGA 会话
@@ -696,7 +696,7 @@ func (h *Handler) handleWGAQuestion(ctx context.Context, ch *model.Channel, msg 
 // - 序号 → 解析为 answers 调 question/reply；成功后 Complete（不 close CancelCh，SSE 继续读后续事件）。
 // - 格式错 → 发格式提示，保留 pending 等用户重发。
 func (h *Handler) handleQuestionReply(ctx context.Context, ch *model.Channel, msg *types.PlatformMessage, pq *PendingQuestion) error {
-	wanwuClient := wanwu.NewClient(h.cfg.BFF.BaseURL)
+	wanwuClient := wanwu.NewClient(h.cfg.BFF.ApiBaseUrl)
 	content := strings.TrimSpace(msg.Content)
 
 	// 取消：放弃该 question
@@ -968,7 +968,7 @@ func (h *Handler) sendWorkspaceFiles(ctx context.Context, ch *model.Channel, msg
 		return nil
 	}
 
-	wanwuClient := wanwu.NewClient(h.cfg.BFF.BaseURL)
+	wanwuClient := wanwu.NewClient(h.cfg.BFF.ApiBaseUrl)
 	ws, err := wanwuClient.WGAWorkspace(ctx, ch.ApiKey, threadID, runID)
 	if err != nil {
 		log.Warnf("[WGA-WS] channel=%s user=%s failed to get workspace: %v", msg.ChannelID, msg.UserID, err)
@@ -1014,9 +1014,19 @@ func (h *Handler) sendWorkspaceFiles(ctx context.Context, ch *model.Channel, msg
 		for _, m := range mentionedFiles {
 			mentionedSet[m] = struct{}{}
 		}
+		// 每个 mentioned 文件名只回发一份：工作区是递归目录树，同一文件名可能在不同目录
+		// 出现多份（如 output/西施.pptx 与子目录副本），按名字去重避免同一产物重复发送。
+		matched := make(map[string]struct{}, len(mentionedFiles))
 		for _, f := range allFiles {
-			if _, ok := mentionedSet[f.name]; ok && isFinalArtifact(f.name, f.mime) {
+			if _, ok := mentionedSet[f.name]; !ok {
+				continue
+			}
+			if _, dup := matched[f.name]; dup {
+				continue
+			}
+			if isFinalArtifact(f.name, f.mime) {
 				files = append(files, f)
+				matched[f.name] = struct{}{}
 			}
 		}
 		log.Infof("[WGA-WS] channel=%s user=%s matched %d/%d mentioned file(s) in workspace (mentioned=%v)",
@@ -1026,8 +1036,15 @@ func (h *Handler) sendWorkspaceFiles(ctx context.Context, ch *model.Channel, msg
 		// 智能体本次正文未提到任何产物文件名：视为纯聊天/无本次产物。
 		// 工作区是 thread 级历史累积（无修改时间、无本次新增信号），回发会把历史文件
 		// （README/LICENSE/CHANGELOG 等）误推给用户并触发 IM 频控。产物不丢失，仍在万悟工作区网页端。
-		log.Infof("[WGA-WS] channel=%s user=%s skip workspace files: no mentioned artifact this run (workspace=%d, mentioned=%v)",
-			msg.ChannelID, msg.UserID, len(allFiles), mentionedFiles)
+		// [诊断] 打印工作区最终产物清单，用于排查"正文未点名但确有产物"的漏发场景（如 PPT Agent）。
+		var artifacts []string
+		for _, f := range allFiles {
+			if isFinalArtifact(f.name, f.mime) {
+				artifacts = append(artifacts, f.path)
+			}
+		}
+		log.Infof("[WGA-WS] channel=%s user=%s skip workspace files: no mentioned artifact this run (workspace=%d, mentioned=%v); final artifacts in workspace: %v",
+			msg.ChannelID, msg.UserID, len(allFiles), mentionedFiles, artifacts)
 		return nil
 	}
 

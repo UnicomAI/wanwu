@@ -92,6 +92,7 @@ type ConversationInfo struct {
 	AssistantId    string `json:"assistantId"`
 	Title          string `json:"title"`
 	CreatedAt      string `json:"createdAt"`
+	UpdatedAt      string `json:"updatedAt"`
 }
 
 type ConversationResponse struct {

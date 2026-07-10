@@ -13,6 +13,12 @@ type UrlConversationIdRequest struct {
 
 func (c *UrlConversationIdRequest) Check() error { return nil }
 
+type GetUrlConversationListReq struct {
+	PageSearch
+}
+
+func (c *GetUrlConversationListReq) Check() error { return nil }
+
 type UrlConversionStreamRequest struct {
 	ConversationId string                 `json:"conversationId" form:"conversionId"`
 	Prompt         string                 `json:"prompt" form:"prompt"  validate:"required"`

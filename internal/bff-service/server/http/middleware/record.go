@@ -44,6 +44,11 @@ func getFieldValue(ctx *gin.Context, fieldName string) string {
 	if len(value) > 0 {
 		return value
 	}
+	// 再从 form（multipart/url-encoded）提取
+	value = ctx.PostForm(fieldName)
+	if len(value) > 0 {
+		return value
+	}
 	if binding.MIMEJSON != ctx.ContentType() {
 		return ""
 	}

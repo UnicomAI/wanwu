@@ -37,7 +37,7 @@ func NewChannelService(cfg *config.Config, cli client.IClient, mgr *adapter.Mana
 		cli:      cli,
 		manager:  mgr,
 		qrMgr:    qrcode.NewQRLoginManager(*cfg, cli),
-		wanwuCli: wanwu.NewClient(cfg.BFF.BaseURL),
+		wanwuCli: wanwu.NewClient(cfg.BFF.ApiBaseUrl),
 	}
 }
 

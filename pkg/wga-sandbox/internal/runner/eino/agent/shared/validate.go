@@ -3,69 +3,7 @@ package shared
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
-)
-
-// --- 通用安全校验 ---
-//
-// 设计原则：
-//   1. wga-sandbox 本身已是隔离容器，本层不再承担"防止一切危险字符串"的职责，
-//      只防"破坏沙箱自身 + 泄露宿主敏感信息"。
-//   2. 区分读/写：cat /proc/cpuinfo、cat /etc/hosts 这类只读操作不拦，只在
-//      写入或删除时拦截敏感路径。
-//   3. 高危且无合法替代的动作（mkfs、shutdown、写块设备、反向 shell 通道、
-//      rm 系统目录）无条件拦截。
-
-var dangerousPatterns = []*regexp.Regexp{
-	// 无可逆/无合法用途的系统破坏命令
-	regexp.MustCompile(`(?i)\bmkfs\b`),
-	regexp.MustCompile(`(?i)\b(shutdown|reboot|halt|poweroff|init\s+[06])\b`),
-
-	// 直接向块设备写入
-	regexp.MustCompile(`(?i)\bdd\b[^|;&]*\bof=/dev/(sd|nvme|hd|mmcblk|loop|mapper)`),
-	regexp.MustCompile(`(?i)>\s*/dev/(sd|nvme|hd|mmcblk)`),
-
-	// bash 反向 shell 通道
-	regexp.MustCompile(`/dev/(tcp|udp)/`),
-
-	// 删除根目录或系统目录（工作目录内 rm -rf 放行）。
-	// 注意：故意不列 /home —— 工作区前缀就是 /home/root/workspace/...，列了会误杀。
-	// /root\b 是兜底；走到 sensitiveWritePatterns 的 /root/ + writeAction 也会再拦一次。
-	regexp.MustCompile(`(?i)\brm\s+-[a-zA-Z]*[rRf][a-zA-Z]*\s+(/\s|/$|/\*|\$HOME\b|~/?\*?\s|~/?\*?$|/etc\b|/var\b|/usr\b|/bin\b|/sbin\b|/lib\b|/lib64\b|/boot\b|/root\b)`),
-
-	// 明显的代码注入
-	regexp.MustCompile(`(?i)\b__import__\s*\(\s*['"]os['"]\s*\)`),
-}
-
-// sensitiveReadPatterns：无论读写，命中即拦。
-// 真正存放凭证/秘密的位置才进来。
-var sensitiveReadPatterns = []*regexp.Regexp{
-	regexp.MustCompile(`/etc/(shadow|sudoers)\b`),
-	regexp.MustCompile(`\.ssh/(id_rsa|id_ed25519|id_ecdsa|id_dsa)\b`),
-	regexp.MustCompile(`\.aws/credentials\b`),
-	regexp.MustCompile(`/var/lib/(mysql|postgresql)\b`),
-	regexp.MustCompile(`/proc/\d+/(mem|maps|environ)\b`),
-	regexp.MustCompile(`/proc/sys/kernel/`),
-}
-
-// sensitiveWritePatterns：仅当紧邻写动作（>, >>, tee, rm, mv, cp, chmod, chown）时拦截。
-var sensitiveWritePatterns = []*regexp.Regexp{
-	regexp.MustCompile(`/etc/`),
-	regexp.MustCompile(`/proc/`),
-	regexp.MustCompile(`/sys/`),
-	regexp.MustCompile(`/var/lib/`),
-	regexp.MustCompile(`/boot/`),
-	regexp.MustCompile(`/root/`),
-}
-
-// writeActionPattern：命中点之前若以这些动作结尾，则视为"对该路径写"。
-// 用 $ 锚点配合"取前缀子串"的方式判定。
-var writeActionPattern = regexp.MustCompile(`(?i)(>\s*|>>\s*|\|\s*tee\s+(-[a-zA-Z]+\s+)*|\btee\s+(-[a-zA-Z]+\s+)*|\brm\s+(-[a-zA-Z]+\s+)*|\bmv\s+\S+\s+|\bcp\s+(-[a-zA-Z]+\s+)*\S+\s+|\bchmod\s+\S+\s+|\bchown\s+\S+\s+)$`)
-
-var (
-	pathTraversalPattern = regexp.MustCompile(`\.\./`)
-	symlinkPattern       = regexp.MustCompile(`(?i)\bln\s+-[a-z]*s`)
 )
 
 // hasWriteActionBefore 判断 command[:idx] 末尾是否以"写动作"结束。

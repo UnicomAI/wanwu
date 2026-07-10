@@ -1,19 +1,17 @@
 package v1
 
 import (
-	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
-	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/gin-gonic/gin"
 )
 
 // CreateOrg
 //
-//	@Tags			permission.org
+//	@Tags			admin_center
 //	@Summary		创建下级组织
-//	@Description	创建X-Org-Id组织的下级组织
+//	@Description	创建指定组织的下级组织
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
@@ -25,17 +23,13 @@ func CreateOrg(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	if !isAdmin(ctx) {
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_org_cannot_create"))
-		return
-	}
-	resp, err := service.CreateOrg(ctx, getUserID(ctx), getOrgID(ctx), &req)
+	resp, err := service.CreateOrg(ctx, getUserID(ctx), req.OrgID.OrgID, &req)
 	gin_util.Response(ctx, resp, err)
 }
 
 // ChangeOrg
 //
-//	@Tags		permission.org
+//	@Tags		admin_center
 //	@Summary	编辑下级组织
 //	@Security	JWT
 //	@Accept		json
@@ -48,17 +42,13 @@ func ChangeOrg(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	if !isAdmin(ctx) {
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_org_cannot_change"))
-		return
-	}
-	err := service.ChangeOrg(ctx, getOrgID(ctx), &req)
+	err := service.ChangeOrg(ctx, &req)
 	gin_util.Response(ctx, nil, err)
 }
 
 // DeleteOrg
 //
-//	@Tags		permission.org
+//	@Tags		admin_center
 //	@Summary	删除下级组织
 //	@Security	JWT
 //	@Accept		json
@@ -71,17 +61,13 @@ func DeleteOrg(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	if !isAdmin(ctx) {
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_org_cannot_delete"))
-		return
-	}
 	err := service.DeleteOrg(ctx, getOrgID(ctx), req.OrgID)
 	gin_util.Response(ctx, nil, err)
 }
 
 // GetOrgInfo
 //
-//	@Tags		permission.org
+//	@Tags		admin_center
 //	@Summary	获取组织信息
 //	@Security	JWT
 //	@Accept		json
@@ -96,25 +82,26 @@ func GetOrgInfo(ctx *gin.Context) {
 
 // GetOrgList
 //
-//	@Tags			permission.org
+//	@Tags			admin_center
 //	@Summary		获取下级组织列表
 //	@Description	获取X-Org-Id组织的下级组织列表
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
 //	@Param			name		query		string	false	"组织名(模糊查询)"
+//	@Param			orgId		query		string	true	"组织ID"
 //	@Param			pageNo		query		int		true	"页面编号，从1开始"
 //	@Param			pageSize	query		int		true	"单页数量，从1开始"
 //	@Success		200			{object}	response.Response{data=response.PageResult{list=[]response.OrgInfo}}
 //	@Router			/org/list [get]
 func GetOrgList(ctx *gin.Context) {
-	resp, err := service.GetOrgList(ctx, getOrgID(ctx), ctx.Query("name"), getPageNo(ctx), getPageSize(ctx))
+	resp, err := service.GetOrgList(ctx, ctx.Query("orgId"), ctx.Query("name"), getPageNo(ctx), getPageSize(ctx))
 	gin_util.Response(ctx, resp, err)
 }
 
 // ChangeOrgStatus
 //
-//	@Tags		permission.org
+//	@Tags		admin_center
 //	@Summary	修改下级组织状态
 //	@Security	JWT
 //	@Accept		json
@@ -127,10 +114,21 @@ func ChangeOrgStatus(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	if !isAdmin(ctx) {
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_org_cannot_change_status"))
-		return
-	}
 	err := service.ChangeOrgStatus(ctx, getOrgID(ctx), req.OrgID.OrgID, req.Status)
 	gin_util.Response(ctx, nil, err)
+}
+
+// GetAdminOrgSubTree
+//
+//	@Tags			admin_center
+//	@Summary		获取管理员组织及下级组织列表
+//	@Description	返回当前用户具有组织管理员角色的组织及其下级所有组织的树形结构
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	response.Response{data=response.AdminOrgTreeNode}
+//	@Router			/org/tree [get]
+func GetAdminOrgSubTree(ctx *gin.Context) {
+	resp, err := service.GetAdminOrgSubTree(ctx, getUserID(ctx))
+	gin_util.Response(ctx, resp, err)
 }

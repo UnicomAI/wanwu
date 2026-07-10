@@ -12,4 +12,6 @@ type OrgRole struct {
 	Status bool `gorm:"index:idx_org_role_status"`
 	// 角色名
 	Name string `gorm:"index:idx_org_role_name"`
+	// 角色头像
+	AvatarPath string
 }

@@ -33,7 +33,11 @@ func (s *Service) GetUserSelectByUserIDs(ctx context.Context, req *iam_service.G
 }
 
 func (s *Service) GetUserList(ctx context.Context, req *iam_service.GetUserListReq) (*iam_service.GetUserListResp, error) {
-	users, count, err := s.cli.GetUsers(ctx, util.MustU32(req.OrgId), req.UserName, toOffset(req), req.PageSize)
+	var roleIDs []uint32
+	for _, roleID := range req.RoleIds {
+		roleIDs = append(roleIDs, util.MustU32(roleID))
+	}
+	users, count, err := s.cli.GetUsers(ctx, util.MustU32(req.OrgId), req.UserName, req.Email, roleIDs, toOffset(req), req.PageSize)
 	if err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
@@ -68,6 +72,7 @@ func (s *Service) CreateUser(ctx context.Context, req *iam_service.CreateUserReq
 		Nick:      req.NickName,
 		Gender:    req.Gender,
 		Phone:     req.Phone,
+		Email:     req.Email,
 		Company:   req.Company,
 		Remark:    req.Remark,
 		Password:  req.Password,
@@ -103,13 +108,11 @@ func (s *Service) UpdateUser(ctx context.Context, req *iam_service.UpdateUserReq
 		roleIDs = append(roleIDs, util.MustU32(roleID))
 	}
 	if err := s.cli.UpdateUser(ctx, &model.User{
-		ID:      util.MustU32(req.UserId),
-		Name:    req.UserName,
-		Nick:    req.NickName,
-		Gender:  req.Gender,
-		Phone:   req.Phone,
-		Company: req.Company,
-		Remark:  req.Remark,
+		ID:     util.MustU32(req.UserId),
+		Name:   req.UserName,
+		Phone:  req.Phone,
+		Email:  req.Email,
+		Remark: req.Remark,
 	}, util.MustU32(req.OrgId), roleIDs); err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
@@ -149,7 +152,29 @@ func (s *Service) GetUserPermission(ctx context.Context, req *iam_service.GetUse
 	if err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
-	return toPermission(permission), nil
+	ret := toPermission(permission)
+	ret.UserId = req.UserId
+	return ret, nil
+}
+
+func (s *Service) IsUserOrgAdmin(ctx context.Context, req *iam_service.IsUserOrgAdminReq) (*iam_service.IsUserOrgAdminResp, error) {
+	isOrgAdmin, status := s.cli.IsUserOrgAdmin(ctx, util.MustU32(req.UserId))
+	if status != nil {
+		return nil, errStatus(errs.Code_IAMUser, status)
+	}
+	return &iam_service.IsUserOrgAdminResp{IsOrgAdmin: isOrgAdmin}, nil
+}
+
+func (s *Service) IsAdminInOrgs(ctx context.Context, req *iam_service.IsAdminInOrgsReq) (*iam_service.IsAdminInOrgsResp, error) {
+	var orgIDs []uint32
+	for _, orgID := range req.OrgIds {
+		orgIDs = append(orgIDs, util.MustU32(orgID))
+	}
+	isAdmin, status := s.cli.IsAdminInOrgs(ctx, util.MustU32(req.UserId), orgIDs)
+	if status != nil {
+		return nil, errStatus(errs.Code_IAMUser, status)
+	}
+	return &iam_service.IsAdminInOrgsResp{IsAdmin: isAdmin}, nil
 }
 
 func (s *Service) ChangeUserLanguage(ctx context.Context, req *iam_service.ChangeUserLanguageReq) (*emptypb.Empty, error) {
@@ -219,6 +244,7 @@ func toUsersInfo(req []*iam_service.CreateUsersInfo) []*orm.UsersInfo {
 		ret = append(ret, &orm.UsersInfo{
 			UserName: user.UserName,
 			Phone:    user.Phone,
+			Email:    user.Email,
 			Company:  user.Company,
 			Remark:   user.Remark,
 			Password: user.Password,

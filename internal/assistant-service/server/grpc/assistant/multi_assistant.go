@@ -47,6 +47,12 @@ func (s *Service) GetMultiAssistantById(ctx context.Context, req *assistant_serv
 }
 
 func (s *Service) MultiAssistantConversionStream(req *assistant_service.MultiAssistantConversionStreamReq, stream grpc.ServerStreamingServer[assistant_service.AssistantConversionStreamResp]) error {
+	// 刷新会话 updated_at，使会话列表按最近聊天排序
+	if convID := util.MustU32(req.ConversationId); convID > 0 {
+		if status := s.cli.UpdateConversation(stream.Context(), &model.Conversation{ID: convID}); status != nil {
+			log.Errorf("[Conversation] touch conversation updated_at failed, id: %s, err: %v", req.ConversationId, status)
+		}
+	}
 	//会话处理
 	conversationProcessor := &service.ConversationProcessor{
 		SSEWriter: sse_util.NewGrpcSSEWriter(stream, "MultiAssistantConversionStreamNew", nil),

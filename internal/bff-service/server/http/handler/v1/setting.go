@@ -10,7 +10,7 @@ import (
 
 // UploadCustomTab
 //
-//	@Tags			setting
+//	@Tags			admin_center.setting
 //	@Summary		标签页自定义配置
 //	@Description	上传标签页图标、标签页标题
 //	@Security		JWT
@@ -31,7 +31,7 @@ func UploadCustomTab(ctx *gin.Context) {
 
 // UploadCustomLogin
 //
-//	@Tags			setting
+//	@Tags			admin_center.setting
 //	@Summary		登录页自定义配置
 //	@Description	上传登录页背景图、登录页欢迎语、登录按钮颜色
 //	@Security		JWT
@@ -51,7 +51,7 @@ func UploadCustomLogin(ctx *gin.Context) {
 
 // UploadCustomHome
 //
-//	@Tags			setting
+//	@Tags			admin_center.setting
 //	@Summary		平台自定义配置
 //	@Description	配置平台名称、平台图标、平台背景色
 //	@Security		JWT
@@ -71,7 +71,7 @@ func UploadCustomHome(ctx *gin.Context) {
 
 // UploadCustomGeneralAgent
 //
-//	@Tags			setting
+//	@Tags			admin_center.setting
 //	@Summary		通用智能体自定义配置
 //	@Description	配置通用智能体图标
 //	@Security		JWT

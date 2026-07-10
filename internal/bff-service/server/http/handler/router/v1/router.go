@@ -62,12 +62,6 @@ func Register(apiV1 *gin.RouterGroup) {
 	// channel
 	registerChannel(apiV1)
 
-	// permission
-	registerPermission(apiV1)
-
-	// setting
-	registerSetting(apiV1)
-
-	// oauth
-	registerOauth(apiV1)
+	// admin_center
+	registerAdminCenter(apiV1)
 }

@@ -43,7 +43,7 @@ tools:
     schema_path: "tool/unarchivefile/openapi.json"
   - tool_square_id: "doc_parser"
     name: "文档解析"
-    desc: "接收文档 URL，对文档进行解析并返回完整文档内容，不支持图片和压缩包"
+    desc: "接收文档 URL，对文档进行解析并返回完整文档内容，支持文件类型.pdf/.docx/.pptx/.doc/.wps/.ofd/.xlsx/.xls/.csv/.txt/.html/.md"
     avatar_path: "tool/doc_parser/logo.png"
     detail: "支持解析各类文档格式，将文档内容完整解析返回，便于智能体理解和处理文档信息"
     tags: "文档解析"
