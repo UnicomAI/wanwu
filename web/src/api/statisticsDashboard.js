@@ -232,6 +232,25 @@ export const exportApiData = (data, type) => {
   });
 };
 
+// 获取API应用统计列表
+export const fetchApiAppList = data => {
+  return service({
+    url: `${USER_API}/statistic/api/app/list`,
+    method: 'post',
+    data,
+  });
+};
+
+// 导出API应用统计数据
+export const exportApiAppData = data => {
+  return service({
+    url: `${USER_API}/statistic/api/app/export`,
+    method: 'post',
+    data,
+    responseType: 'blob',
+  });
+};
+
 /**
  * 全局组织和用户接口
  */

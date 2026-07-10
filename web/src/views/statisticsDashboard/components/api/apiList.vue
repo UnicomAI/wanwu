@@ -20,10 +20,12 @@
         </el-radio-group>
         <el-table
           v-if="type === 'list'"
+          ref="listTable"
           :data="tableData"
           :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
           v-loading="loading"
           style="width: 100%"
+          @sort-change="handleSortChange"
         >
           <el-table-column
             prop="name"
@@ -85,6 +87,7 @@
             prop="callCount"
             :label="$t('statisticsDashboard.appCallCount')"
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.callCount) }}
@@ -94,6 +97,7 @@
             prop="callFailure"
             :label="$t('statisticsDashboard.appCallFailure')"
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.callFailure) }}
@@ -103,6 +107,7 @@
             prop="avgStreamCosts"
             :label="$t('statisticsDashboard.avgStreamCosts')"
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.avgStreamCosts) }}ms
@@ -112,6 +117,7 @@
             prop="avgNonStreamCosts"
             :label="$t('statisticsDashboard.avgCosts')"
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.avgNonStreamCosts) }}ms
@@ -121,6 +127,7 @@
             prop="streamCount"
             :label="$t('statisticsDashboard.streamCount')"
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.streamCount) }}
@@ -130,29 +137,37 @@
             prop="nonStreamCount"
             :label="$t('statisticsDashboard.nonStreamCount')"
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.nonStreamCount) }}
             </template>
           </el-table-column>
           <el-table-column
-            width="50"
-            align="left"
+            width="90"
+            align="center"
             :label="$t('common.table.operation')"
           >
             <template slot-scope="scope">
-              <el-button type="text" @click="showDetail(scope.row)">
-                {{ $t('common.table.detail') }}
+              <el-button
+                class="btn-app"
+                size="mini"
+                icon="el-icon-s-grid"
+                @click="showAppModal(scope.row)"
+              >
+                {{ $t('common.button.app') }}
               </el-button>
             </template>
           </el-table-column>
         </el-table>
         <el-table
           v-else
+          ref="recordTable"
           :data="tableData"
           :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
           v-loading="loading"
           style="width: 100%"
+          @sort-change="handleSortChange"
         >
           <el-table-column
             prop="name"
@@ -214,6 +229,7 @@
             prop="callTime"
             :label="$t('statisticsDashboard.callTime')"
             align="left"
+            sortable="custom"
           ></el-table-column>
           <el-table-column
             prop="responseStatus"
@@ -224,6 +240,7 @@
             prop="streamCosts"
             :label="$t('statisticsDashboard.streamCosts')"
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.streamCosts) }}ms
@@ -233,18 +250,24 @@
             prop="nonStreamCosts"
             :label="$t('statisticsDashboard.nonStreamCosts')"
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.nonStreamCosts) }}ms
             </template>
           </el-table-column>
           <el-table-column
-            width="50"
-            align="left"
+            width="100"
+            align="center"
             :label="$t('common.table.operation')"
           >
             <template slot-scope="scope">
-              <el-button type="text" @click="showDetail(scope.row)">
+              <el-button
+                class="btn-detail"
+                size="mini"
+                icon="el-icon-view"
+                @click="showDetail(scope.row)"
+              >
                 {{ $t('common.table.detail') }}
               </el-button>
             </template>
@@ -258,7 +281,12 @@
         @refreshData="refreshData"
       />
     </div>
-    <RecordDetail :type="type" ref="recordDetail" />
+    <ApiAppModal
+      :visible.sync="appModalVisible"
+      :params="params"
+      :api-info="currentRow"
+    />
+    <RecordDetail :visible.sync="detailVisible" :row="currentRow" />
   </div>
 </template>
 
@@ -268,9 +296,10 @@ import { formatAmount, resDownloadFile } from '@/utils/util.js';
 import { fetchApiList, exportApiData } from '@/api/statisticsDashboard';
 import { PROVIDER_OBJ } from '@/views/modelAccess/constants';
 import RecordDetail from './recordDetail.vue';
+import ApiAppModal from './apiAppModal.vue';
 
 export default {
-  components: { Pagination, RecordDetail },
+  components: { Pagination, RecordDetail, ApiAppModal },
   props: {
     params: {},
   },
@@ -281,12 +310,31 @@ export default {
       tableData: [],
       providerObj: PROVIDER_OBJ,
       type: 'list',
+      sortField: '',
+      sortOrder: '',
+      appModalVisible: false,
+      detailVisible: false,
+      currentRow: null,
     };
   },
   methods: {
     formatAmount,
     handleRadio(val) {
       this.type = val;
+      this.sortField = '';
+      this.sortOrder = '';
+      this.$nextTick(() => {
+        const table = this.$refs.listTable || this.$refs.recordTable;
+        if (table) {
+          table.clearSort();
+        }
+      });
+      this.getTableData({ ...this.params, pageNo: 1 });
+    },
+    handleSortChange({ prop, order }) {
+      this.sortField = prop || '';
+      this.sortOrder =
+        order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : '';
       this.getTableData({ ...this.params, pageNo: 1 });
     },
     async getTableData(params) {
@@ -296,14 +344,21 @@ export default {
           this.tableData = await this.$refs.pagination.getTableData({
             ...params,
             type: this.type,
+            sortField: this.sortField,
+            sortOrder: this.sortOrder,
           });
         } finally {
           this.loading = false;
         }
       }
     },
+    showAppModal(row) {
+      this.currentRow = row;
+      this.appModalVisible = true;
+    },
     showDetail(row) {
-      this.$refs.recordDetail.openDialog(row);
+      this.currentRow = row;
+      this.detailVisible = true;
     },
     refreshData(data) {
       this.tableData = data;
@@ -325,6 +380,33 @@ export default {
   .add-bt {
     margin: 0 0 16px;
     float: right;
+  }
+}
+.btn-app {
+  color: #a55fef;
+  border: 1px solid #eedfff;
+  background: #faf5ff;
+  padding: 5px 8px;
+
+  &:hover,
+  &:focus {
+    color: #a55fef;
+    border: 1px solid #eedfff;
+    background: #faf5ff !important;
+  }
+}
+
+.btn-detail {
+  color: #5951e7;
+  border: 1px solid #d2dafe;
+  background: #eef2ff;
+  padding: 5px 8px;
+
+  &:hover,
+  &:focus {
+    color: #5951e7;
+    border: 1px solid #d2dafe;
+    background: #eef2ff !important;
   }
 }
 </style>

@@ -276,10 +276,6 @@ export default {
       type: Object,
       default: () => ({ time: [] }),
     },
-    scope: {
-      type: String,
-      default: '',
-    },
   },
   data() {
     return {

@@ -31,7 +31,7 @@
         </div>
       </div>
 
-      <div class="tabs">
+      <div class="tabs" v-if="activeDimension !== STATISTIC.API">
         <div
           v-for="item in scopeList"
           :key="item.type"
@@ -60,7 +60,6 @@
         v-if="activeDimension === STATISTIC.API"
         :global-filter-params="globalFilterParams"
         :time-params="searchTime"
-        :scope="activeScope"
       />
     </div>
   </div>

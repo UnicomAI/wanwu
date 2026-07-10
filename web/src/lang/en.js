@@ -198,6 +198,7 @@ export default {
       convertToSkill: '转化为Skill',
       user: 'User',
       model: 'Model',
+      app: 'App',
     },
     switch: {
       start: '开启',
@@ -1820,6 +1821,7 @@ export default {
     userUsageStats: 'User Usage Stats',
     appUsageStats: 'App Usage Stats',
     modelUsageStats: 'Model Usage Stats',
+    apiAppUsageStats: 'API App Call Stats',
     source: '来源',
     module: '板块',
     author: '作者',
