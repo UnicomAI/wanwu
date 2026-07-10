@@ -1810,6 +1810,8 @@ export default {
     undateTime: '更新时间',
   },
   statisticsDashboard: {
+    success: '成功',
+    error: '失败',
     model: '模型',
     modelSelect: '模型筛选',
     modelList: '模型列表',
@@ -1830,7 +1832,7 @@ export default {
     callCount: '模型调用次数',
     frequency: '次',
     callFailure: '模型调用失败次数',
-    failureRate: '失败率 (%)',
+    failureRate: '失败率',
     promptTokens: '输入Tokens',
     quantity: '个',
     completionTokens: '输出Tokens',

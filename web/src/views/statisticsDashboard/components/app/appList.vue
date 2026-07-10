@@ -133,8 +133,8 @@
             </template>
           </el-table-column>
           <el-table-column
-            width="180"
-            align="left"
+            width="160"
+            align="center"
             :label="$t('common.table.operation')"
           >
             <template slot-scope="scope">
@@ -261,8 +261,8 @@
             </template>
           </el-table-column>
           <el-table-column
-            width="120"
-            align="left"
+            width="100"
+            align="center"
             :label="$t('common.table.operation')"
           >
             <template slot-scope="scope">

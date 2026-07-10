@@ -1996,7 +1996,7 @@ export default {
     callCount: '模型调用次数',
     frequency: '次',
     callFailure: '模型调用失败次数',
-    failureRate: '失败率 (%)',
+    failureRate: '失败率',
     promptTokens: '输入Tokens',
     quantity: '个',
     completionTokens: '输出Tokens',
