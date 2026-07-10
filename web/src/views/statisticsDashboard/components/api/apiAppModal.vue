@@ -21,6 +21,7 @@
         v-loading="loading"
         :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
         style="width: 100%"
+        @sort-change="handleSortChange"
       >
         <el-table-column
           prop="name"
@@ -29,7 +30,7 @@
           min-width="140"
         >
           <template slot-scope="scope">
-            {{ apiInfo.name || '--' }}
+            {{ scope.row.apiName || '--' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -41,7 +42,9 @@
           <template slot-scope="scope">
             <span>
               {{
-                apiInfo.apiKey ? apiInfo.apiKey.slice(0, 6) + '******' : '--'
+                scope.row.apiKey
+                  ? scope.row.apiKey.slice(0, 6) + '******'
+                  : '--'
               }}
             </span>
           </template>
@@ -53,7 +56,7 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ apiInfo.orgName || '--' }}
+            {{ scope.row.orgName || '--' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -63,7 +66,7 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ apiInfo.userName || '--' }}
+            {{ scope.row.userName || '--' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -73,7 +76,7 @@
           min-width="200"
         >
           <template slot-scope="scope">
-            {{ apiInfo.methodPath || '--' }}
+            {{ scope.row.methodPath || '--' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -116,22 +119,22 @@
         </el-table-column>
         <el-table-column
           prop="author"
-          :label="$t('statisticsDashboard.author')"
+          :label="$t('statisticsDashboard.appAuthor')"
           align="left"
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ scope.row.author || scope.row.userName || '--' }}
+            {{ scope.row.moduleCreatorUserMame || '--' }}
           </template>
         </el-table-column>
         <el-table-column
           prop="orgName"
-          :label="$t('statisticsDashboard.org')"
+          :label="$t('statisticsDashboard.appOrg')"
           align="left"
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ scope.row.orgName || '--' }}
+            {{ scope.row.moduleCreatorOrgName || '--' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -157,25 +160,25 @@
           </template>
         </el-table-column>
         <el-table-column
-          prop="avgStreamCosts"
-          :label="$t('statisticsDashboard.avgStreamCosts')"
-          align="left"
-          sortable="custom"
-          min-width="150"
-        >
-          <template slot-scope="scope">
-            {{ formatAmount(scope.row.avgStreamCosts) }}ms
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="avgNonStreamCosts"
+          prop="avgCosts"
           :label="$t('statisticsDashboard.avgCosts')"
           align="left"
           sortable="custom"
           min-width="150"
         >
           <template slot-scope="scope">
-            {{ formatAmount(scope.row.avgNonStreamCosts) }}ms
+            {{ formatAmount(scope.row.avgCosts) }}ms
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="avgFirstTokenLatency"
+          :label="$t('statisticsDashboard.avgFirstTokenLatency')"
+          align="left"
+          sortable="custom"
+          min-width="150"
+        >
+          <template slot-scope="scope">
+            {{ formatAmount(scope.row.avgFirstTokenLatency) }}ms
           </template>
         </el-table-column>
         <el-table-column
@@ -239,15 +242,17 @@ export default {
       loading: false,
       tableData: [],
       appTypeObj: AppType,
+      sortField: '',
+      sortOrder: '',
     };
   },
   computed: {
-    modalParams() {
-      const { apiKeyIds, methodPaths, ...rest } = this.params || {};
+    apiParams() {
       return {
-        ...rest,
+        ...this.params,
+        sortField: this.sortField,
+        sortOrder: this.sortOrder,
         apiKeyId: this.apiInfo?.apiKeyId || this.apiInfo?.keyId || '',
-        apiKey: this.apiInfo?.apiKey || '',
         methodPath: this.apiInfo?.methodPath || '',
       };
     },
@@ -256,12 +261,7 @@ export default {
     formatAmount,
     handleOpen() {
       this.$nextTick(() => {
-        if (this.$refs.pagination) {
-          this.$refs.pagination.pageNo = 1;
-          this.$refs.pagination.pageSize = 10;
-          this.$refs.pagination.searchInfo = {};
-        }
-        this.getTableData({ ...this.modalParams, pageNo: 1 });
+        this.getTableData({ pageNo: 1 });
       });
     },
     handleClose() {
@@ -272,7 +272,10 @@ export default {
       if (this.$refs.pagination) {
         this.loading = true;
         try {
-          this.tableData = await this.$refs.pagination.getTableData(params);
+          this.tableData = await this.$refs.pagination.getTableData({
+            ...this.apiParams,
+            ...params,
+          });
         } finally {
           this.loading = false;
         }
@@ -281,11 +284,17 @@ export default {
     refreshData(data) {
       this.tableData = data;
     },
+    handleSortChange({ prop, order }) {
+      this.sortField = prop || '';
+      this.sortOrder =
+        order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : '';
+      this.getTableData({ pageNo: 1 });
+    },
     async exportData() {
-      const response = await exportApiAppData(this.modalParams);
+      const response = await exportApiAppData(this.apiParams);
       resDownloadFile(
         response,
-        `${this.$t('statisticsDashboard.apiAppUsageStats')}.xlsx`,
+        `API${this.$t('statisticsDashboard.apiAppUsageStats')}.xlsx`,
       );
     },
     getAppTypeTagClass(row) {

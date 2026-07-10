@@ -211,6 +211,15 @@ export const getApiData = data => {
   });
 };
 
+// 获取API统计图表数据+排行
+export const getApiChart = data => {
+  return service({
+    url: `${USER_API}/statistic/api/chart`,
+    method: 'post',
+    data,
+  });
+};
+
 // 获取API列表
 export const fetchApiList = data => {
   const type = data.type;
@@ -235,7 +244,7 @@ export const exportApiData = (data, type) => {
 // 获取API应用统计列表
 export const fetchApiAppList = data => {
   return service({
-    url: `${USER_API}/statistic/api/app/list`,
+    url: `${USER_API}/statistic/api/app`,
     method: 'post',
     data,
   });

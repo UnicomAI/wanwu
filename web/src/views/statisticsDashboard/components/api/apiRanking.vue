@@ -8,7 +8,9 @@
         <div class="ranking-avatar-wrap">
           <img
             class="ranking-avatar"
-            :src="item.avatar || defaultAvatar"
+            :src="
+              item.avatar?.path ? avatarSrc(item.avatar.path) : defaultAvatar
+            "
             alt=""
           />
           <div
@@ -32,7 +34,7 @@
             </div>
           </div>
         </div>
-        <div class="ranking-value">{{ formatValue(item.value) }}</div>
+        <div class="ranking-value">{{ formatAmount(item.value) }}</div>
       </div>
       <div v-if="!list.length" class="ranking-empty">
         {{ $t('common.noData') }}
@@ -42,7 +44,7 @@
 </template>
 
 <script>
-import { formatAmount } from '@/utils/util.js';
+import { formatAmount, avatarSrc } from '@/utils/util.js';
 
 export default {
   props: {
@@ -64,31 +66,19 @@ export default {
       return require('@/assets/imgs/avatar_default.png');
     },
     list() {
-      const groupMap = {};
       const data = Array.isArray(this.data) ? this.data : [];
-      data.forEach(row => {
-        if (!row) return;
-        const key = row.apiKeyId || row.name || '--';
-        if (!groupMap[key]) {
-          groupMap[key] = {
-            name: row.name || '--',
-            value: 0,
-            apiKeyId: row.apiKeyId,
-            description: row.description || '',
-            userName: row.userName || '',
-          };
-        }
-        groupMap[key].value += Number(row.callCount || 0);
-      });
-      return Object.values(groupMap)
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 5);
+      return data.map(row => ({
+        name: row.apiName || '--',
+        value: row.callCount,
+        description: row.description || '',
+        userName: row.userName || '',
+        avatar: row.userAvatar || '',
+      }));
     },
   },
   methods: {
-    formatValue(val) {
-      return formatAmount(val);
-    },
+    avatarSrc,
+    formatAmount,
   },
 };
 </script>

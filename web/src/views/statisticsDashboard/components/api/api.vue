@@ -90,7 +90,7 @@
         </div>
 
         <div v-if="activeTab === 'overview'" class="dataOverview">
-          <div class="client_dataOverview_content" v-loading="loading">
+          <div class="client_dataOverview_content" v-loading="dataLoading">
             <div v-for="(item, index) in count" :key="index" class="card">
               <div class="card-left">
                 <div class="card-title">{{ item.name }}</div>
@@ -146,11 +146,11 @@
             <div class="data_echart">
               <UserEchart
                 :content="
-                  echartContent.apiCalls ? echartContent.apiCalls.lines : []
+                  echartContent.callResult ? echartContent.callResult.lines : []
                 "
                 :name="
-                  echartContent.apiCalls
-                    ? echartContent.apiCalls.tableName
+                  echartContent.callResult
+                    ? echartContent.callResult.tableName
                     : $t('statisticsDashboard.apiCallCountChartName')
                 "
                 v-loading="loading"
@@ -175,8 +175,8 @@
           <div v-if="rankingVisible" class="chart-modules">
             <ApiRanking
               :title="$t('statisticsDashboard.apiRanking')"
-              :data="rankingData"
-              :loading="rankingLoading"
+              :data="rankingData?.byApi || []"
+              :loading="loading"
             />
             <div
               class="data_echart data_echart_ranking"
@@ -184,11 +184,11 @@
             >
               <UserEchart
                 :content="
-                  echartContent.apiCalls ? echartContent.apiCalls.lines : []
+                  echartContent.callResult ? echartContent.callResult.lines : []
                 "
                 :name="
-                  echartContent.apiCalls
-                    ? echartContent.apiCalls.tableName
+                  echartContent.callResult
+                    ? echartContent.callResult.tableName
                     : $t('statisticsDashboard.apiCallCountChartName')
                 "
                 v-loading="loading"
@@ -257,7 +257,7 @@ import {
   getApiData,
   getApiRoutes,
   getApiSelect,
-  fetchApiList,
+  getApiChart,
 } from '@/api/statisticsDashboard';
 import { DEFAULT_APP_ITEM, ALL } from '../../constants';
 
@@ -292,10 +292,10 @@ export default {
         DEFAULT: '#909399',
       },
       loading: false,
-      rankingLoading: false,
+      dataLoading: false,
       content: {}, // 存储返回的总揽数据
       echartContent: {}, // 存储返回的echart数据
-      rankingData: [],
+      rankingData: {},
       count: [
         {
           name: this.$t('statisticsDashboard.appCallCountTotal'),
@@ -372,28 +372,8 @@ export default {
     isApiSelectedAll() {
       return this.apiParams.apiKeyIds.includes(ALL);
     },
-    visibleModules() {
-      return this.moduleList.filter(item => item.visible);
-    },
     rankingVisible() {
       return this.moduleList.some(item => item.visible);
-    },
-    // 提取 apiCalls 趋势中"调用总次数"折线，供"API调用次数"图表复用
-    apiCallCountLines() {
-      const apiCalls = this.echartContent.apiCalls;
-      if (!apiCalls || !apiCalls.lines) return [];
-      const totalLine = (apiCalls.lines || []).find(
-        line => line.lineName === 'app_statistic_api_call_count_total',
-      );
-      if (!totalLine) {
-        return apiCalls.lines || [];
-      }
-      return [
-        {
-          lineName: this.$t('statisticsDashboard.apiCallCountChartName'),
-          items: totalLine.items,
-        },
-      ];
     },
   },
   watch: {
@@ -462,8 +442,8 @@ export default {
     handleSearch() {
       this.refreshData();
     },
-    fetchData(params) {
-      this.loading = true;
+    fetchApiData(params) {
+      this.dataLoading = true;
       getApiData(params)
         .then(res => {
           const { overview, trend } = res.data || {};
@@ -478,27 +458,29 @@ export default {
           });
         })
         .finally(() => {
-          this.loading = false;
+          this.dataLoading = false;
         });
+    },
+    fetchData(params) {
+      this.fetchApiData(params);
       this.fetchRankingData(params);
       this.$nextTick(() => {
         this.$refs.apiList && this.$refs.apiList.getTableData(params);
       });
     },
     async fetchRankingData(params) {
-      this.rankingLoading = true;
+      this.loading = true;
       try {
-        const res = await fetchApiList({
+        const res = await getApiChart({
           ...params,
-          type: 'list',
-          pageNo: 1,
-          pageSize: 99999,
         });
-        this.rankingData = res?.data?.list || [];
+        const { rank, trend } = res.data || {};
+        this.rankingData = rank || {};
+        this.echartContent = trend || {};
       } catch (err) {
-        this.rankingData = [];
+        this.rankingData = {};
       } finally {
-        this.rankingLoading = false;
+        this.loading = false;
       }
     },
     openManageDialog() {
