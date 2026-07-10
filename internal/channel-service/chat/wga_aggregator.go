@@ -11,10 +11,11 @@ import (
 
 // 本文件是前端 web/src/views/generalAgent/utils/message-aggregator.js 的 Go 移植。
 // 把 WGA AG-UI SSE 事件（思考/工具调用/子智能体/工作区/文本/提问）聚合成 fragment 树，
-// 再渲染成 markdown 推到钉钉流式卡片，让 IM 用户也能看到完整生成过程。
+// 供 chat.go 在事件完成时读取 fragment 字段、渲染成纯文本里程碑下发到 IM。
 //
-// 与前端的差异：前端每个 fragment 有独立 Vue 组件分轨渲染；钉钉卡片只有一个 markdown 正文，
-// 故 renderMarkdown 把 fragment 树扁平化成带 emoji/分隔线的 markdown 文本。
+// 与前端的差异：前端每个 fragment 有独立 Vue 组件分轨渲染；IM 侧不发完整卡片，
+// 只把正文段（TEXT_MESSAGE）逐条实时发、关键里程碑（子智能体/委派 transfer）即时下发，
+// 思考与常规工具调用不下发（避免过程刷屏撞 IM 频控）。
 
 // wgaFragmentKind fragment 类型
 type wgaFragmentKind int
@@ -111,7 +112,7 @@ func (a *wgaAggregator) lastFragment() *wgaFragment {
 
 // handleEvent 处理一个 AG-UI 事件，更新聚合状态。
 // 返回 completed：若该事件使一个 fragment 完成（REASONING_MESSAGE_END / TOOL_CALL_RESULT /
-// ACTIVITY_SNAPSHOT sub_agent finished），返回该 fragment 指针（仍在树中，renderMarkdown 仍可用）；
+// ACTIVITY_SNAPSHOT sub_agent finished），返回该 fragment 指针（仍在树中，供调用方读取字段渲染）；
 // 否则 nil。调用方可据此把完整过程内容下发到 IM。
 // 返回 contentChanged：是否为内容事件（需重渲染），保留原语义。
 func (a *wgaAggregator) handleEvent(ev *wgaEvent) (completed *wgaFragment, contentChanged bool) {
@@ -204,14 +205,15 @@ func (a *wgaAggregator) handleActivitySnapshot(ev *wgaEvent, ts int64) (complete
 			Status    string `json:"status"`
 		}
 		_ = json.Unmarshal(ev.content, &c)
-		if c.Status == "started" {
+		switch c.Status {
+		case "started":
 			a.activityStack = append(a.activityStack, &wgaFragment{
 				kind:      fragActivity,
 				agentName: c.AgentName,
 				startTime: ts,
 			})
 			return nil, true
-		} else if c.Status == "finished" {
+		case "finished":
 			// 子智能体结束：pop 出栈，算出耗时，挂回树，返回该 fragment 供 IM 下发进度。
 			if n := len(a.activityStack); n > 0 {
 				act := a.activityStack[n-1]
@@ -279,46 +281,6 @@ func (a *wgaAggregator) unfinishedToolCalls() []*wgaFragment {
 		out = append(out, f)
 	}
 	return out
-}
-
-// renderMarkdown 把 fragment 树渲染成 markdown（钉钉卡片正文）。
-//
-// 卡片只展示 TEXT_MESSAGE 段（fragText）和提问提示（fragQuestion），
-// 按 API 返回的时间顺序排列；思考/工具调用/子智能体进度/工作区产出等
-// 过程类内容不展示到卡片（工作区产物仍通过 sendWorkspaceFiles 以文件形式单独发回 IM）。
-// sub_agent（activity）内部发出的 TEXT_MESSAGE 段也按时间顺序并入正文，故递归收集。
-// text 段之间用一个空行分隔；末尾多余换行裁掉。
-func (a *wgaAggregator) renderMarkdown() string {
-	var ordered []*wgaFragment
-	for _, f := range a.topFragments {
-		collectTextAndQuestion(f, &ordered)
-	}
-	var b strings.Builder
-	for _, f := range ordered {
-		switch f.kind {
-		case fragText:
-			b.WriteString(f.content.String())
-			b.WriteString("\n\n")
-		case fragQuestion:
-			if f.status == "pending" {
-				b.WriteString("❓ 智能体需要你确认，请在钉钉回复序号选择（见上方消息）\n\n")
-			}
-		}
-	}
-	return strings.TrimRight(b.String(), "\n")
-}
-
-// collectTextAndQuestion 按出现顺序收集 text 与 question fragment；
-// activity 递归进 children（子智能体内部的文本段也属于会话正文），其余 kind 跳过。
-func collectTextAndQuestion(f *wgaFragment, out *[]*wgaFragment) {
-	switch f.kind {
-	case fragText, fragQuestion:
-		*out = append(*out, f)
-	case fragActivity:
-		for _, child := range f.children {
-			collectTextAndQuestion(child, out)
-		}
-	}
 }
 
 // formatDurationMs 把毫秒格式化成可读时长（如 "3s"、"1.2s"、"1m5s"）

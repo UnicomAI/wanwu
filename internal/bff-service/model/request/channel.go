@@ -63,11 +63,11 @@ func (r *CreateChannelRequest) Check() error { return nil }
 
 // UpdateChannelRequest 更新通道请求
 type UpdateChannelRequest struct {
-	Name      string            `json:"name"`
-	AppID     string            `json:"appId"`
-	ApiKeyId  string            `json:"apiKeyId"`
-	ApiKey    string            `json:"apiKey"`
-	ModelUuid string            `json:"modelUuid"` // WGA 通道使用的模型 UUID
+	Name      string `json:"name"`
+	AppID     string `json:"appId"`
+	ApiKeyId  string `json:"apiKeyId"`
+	ApiKey    string `json:"apiKey"`
+	ModelUuid string `json:"modelUuid"` // WGA 通道使用的模型 UUID
 	// AgentId 用指针以区分三态（JSON 字段缺失→nil，传空串→&""，传值→&id）：
 	//   wga: nil=不改 / &""=清空（切回默认 Supervisor）/ &子智能体id=换子智能体
 	//   dip: nil=不改 / &员工id=换员工（dip 不支持清空，&"" 视为不改）

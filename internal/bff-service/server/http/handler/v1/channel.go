@@ -1,12 +1,6 @@
 package v1
 
 import (
-	"io"
-	"mime"
-	"net/http"
-	"net/url"
-	"path/filepath"
-
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
@@ -66,16 +60,16 @@ func ListWanwuWGASubAgents(ctx *gin.Context) {
 		return
 	}
 	filtered := make([]response.GeneralAgentInfo, 0, len(resp.WgaAgentList)+1)
-	// 首部置入“无”选项：agentId 用固定哨兵 "wu"，创建通道时选它即忽略子智能体、使用通用智能体
-	// （agent_id 存 "wu"，channel-service 调 WGA 时归一化为空串走 Supervisor 默认路由）。
+	// 首部置入“无”选项：agentId 用固定哨兵 "null"，创建通道时选它即忽略子智能体、使用通用智能体
+	// （agent_id 存 "null"，channel-service 调 WGA 时归一化为空串走 Supervisor 默认路由）。
 	filtered = append(filtered, response.GeneralAgentInfo{
-		AgentID:     "wu",
+		AgentID:     "null",
 		AgentName:   "无",
 		Avatar:      request.Avatar{Key: "", Path: ""},
 		Placeholder: "选择一款模型，和我对话吧",
 	})
 	for _, a := range resp.WgaAgentList {
-		if a.AgentID == "DIP Agent" || a.AgentID == "Skill Chat Agent" {
+		if a.AgentID == "DIP Agent" || a.AgentID == "Skill Chat Agent" || a.AgentID == "Data Analysis Agent" {
 			continue
 		}
 		filtered = append(filtered, a)
@@ -240,69 +234,5 @@ func DisconnectChannel(ctx *gin.Context) {
 		return
 	}
 	resp, err := service.DisconnectChannel(ctx, id)
-	gin_util.Response(ctx, resp, err)
-}
-
-// --- WGA（通用智能体）工作区 / 上传 ---
-
-// GetWGAWorkspace WGA 工作区目录树
-func GetWGAWorkspace(ctx *gin.Context) {
-	channelID := ctx.Query("channelId")
-	threadID := ctx.Query("threadId")
-	if channelID == "" || threadID == "" {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_id_and_thread_id_required")
-		return
-	}
-	resp, err := service.GetWGAWorkspace(ctx, channelID, getUserID(ctx), threadID, ctx.Query("runId"))
-	gin_util.Response(ctx, resp, err)
-}
-
-// DownloadWGAWorkspace WGA 工作区文件下载（不传 path 下载整个工作区 ZIP）
-func DownloadWGAWorkspace(ctx *gin.Context) {
-	channelID := ctx.Query("channelId")
-	threadID := ctx.Query("threadId")
-	if channelID == "" || threadID == "" {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_id_and_thread_id_required")
-		return
-	}
-	fileName, data, err := service.DownloadWGAWorkspace(ctx, channelID, getUserID(ctx), threadID, ctx.Query("runId"), ctx.Query("path"))
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
-	ctx.Header("Content-Disposition", "attachment; filename*=utf-8''"+url.QueryEscape(fileName))
-	ctx.Header("Content-Type", "application/octet-stream")
-	ctx.Header("Access-Control-Expose-Headers", "Content-Disposition")
-	ctx.Data(http.StatusOK, "application/octet-stream", data)
-}
-
-// UploadWGAFile 通过通道上传文件给 WGA，返回 filePath 供多模态 binary.url 引用
-func UploadWGAFile(ctx *gin.Context) {
-	channelID := ctx.Query("channelId")
-	if channelID == "" {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_id_required")
-		return
-	}
-	fileHeader, err := ctx.FormFile("file")
-	if err != nil {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "file_required")
-		return
-	}
-	file, err := fileHeader.Open()
-	if err != nil {
-		gin_util.ResponseErr(ctx, err)
-		return
-	}
-	defer func() { _ = file.Close() }()
-	data, err := io.ReadAll(file)
-	if err != nil {
-		gin_util.ResponseErr(ctx, err)
-		return
-	}
-	mimeType := fileHeader.Header.Get("Content-Type")
-	if mimeType == "" {
-		mimeType = mime.TypeByExtension(filepath.Ext(fileHeader.Filename))
-	}
-	resp, err := service.UploadWGAFile(ctx, channelID, getUserID(ctx), fileHeader.Filename, mimeType, data)
 	gin_util.Response(ctx, resp, err)
 }

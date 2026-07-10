@@ -349,14 +349,14 @@ func UpdateChannel(ctx *gin.Context, channelID, userID, orgID string, req reques
 	)
 	switch existing.AppType {
 	case "wga":
-		// 「无」选项用固定哨兵 "wu" 表示通用智能体（不绑子智能体）：agent_id 存 "wu"，
-		// app_id/app_name 留空，运行时调 WGA 前会把 "wu" 归一化为空串走 Supervisor 默认。
-		// 空串 "" 与 "wu" 同语义（统一归到 "wu" 存库，避免 DB 里出现两种"通用智能体"表示）。
+		// 「无」选项用固定哨兵 "null" 表示通用智能体（不绑子智能体）：agent_id 存 "null"，
+		// app_id/app_name 留空，运行时调 WGA 前会把 "null" 归一化为空串走 Supervisor 默认。
+		// 空串 "" 与 "null" 同语义（统一归到 "null" 存库，避免 DB 里出现两种"通用智能体"表示）。
 		switch {
 		case req.AgentId == nil:
 			// 不改 agentId，appID/appName 也不下发（nil→保留旧值）
 		case *req.AgentId == wgaNoneAgentID || *req.AgentId == "":
-			// 选「无」/清空：通用智能体，不绑子智能体。agent_id 存哨兵 "wu"，app_id/app_name 清空。
+			// 选「无」/清空：通用智能体，不绑子智能体。agent_id 存哨兵 "null"，app_id/app_name 清空。
 			appIDPtr, appNamePtr, agentIDPtr = strPtr(""), strPtr(""), strPtr(wgaNoneAgentID)
 		default:
 			// 换子智能体
@@ -440,92 +440,6 @@ func DisconnectChannel(ctx *gin.Context, channelID string) (*response.Disconnect
 	return &response.DisconnectChannelResponse{Message: "通道已断开"}, nil
 }
 
-// --- WGA（通用智能体）工作区 / 上传 ---
-
-// GetWGAWorkspace 获取 WGA 工作区目录树（按 threadId + runId 隔离）。
-// channel-service 侧校验通道归属与 threadId 归属，防越权。
-func GetWGAWorkspace(ctx *gin.Context, channelID, userID, threadID, runID string) (*response.WGAWorkspaceResponse, error) {
-	resp, err := channel.GetWGAWorkspace(ctx.Request.Context(), &channel_service.GetWGAWorkspaceReq{
-		ChannelId: channelID,
-		ThreadId:  threadID,
-		RunId:     runID,
-		UserId:    userID,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return wgaWorkspaceProtoToResp(resp), nil
-}
-
-// DownloadWGAWorkspace 下载 WGA 工作区文件（path 为空则下载整个工作区 ZIP）。
-// 返回文件名 + 二进制字节，由 handler 写 octet-stream 响应。
-func DownloadWGAWorkspace(ctx *gin.Context, channelID, userID, threadID, runID, path string) (string, []byte, error) {
-	resp, err := channel.DownloadWGAWorkspace(ctx.Request.Context(), &channel_service.DownloadWGAWorkspaceReq{
-		ChannelId: channelID,
-		ThreadId:  threadID,
-		RunId:     runID,
-		Path:      path,
-		UserId:    userID,
-	})
-	if err != nil {
-		return "", nil, err
-	}
-	return resp.FileName, resp.Data, nil
-}
-
-// UploadWGAFile 上传文件到万悟 minio，返回 filePath 供 WGA 多模态对话 binary.url 引用。
-func UploadWGAFile(ctx *gin.Context, channelID, userID, fileName, mimeType string, data []byte) (*response.WGAUploadFileResponse, error) {
-	resp, err := channel.UploadWGAFile(ctx.Request.Context(), &channel_service.UploadWGAFileReq{
-		ChannelId: channelID,
-		FileName:  fileName,
-		MimeType:  mimeType,
-		Data:      data,
-		UserId:    userID,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &response.WGAUploadFileResponse{
-		FileName: resp.FileName,
-		FileId:   resp.FileId,
-		FilePath: resp.FilePath,
-		FileSize: resp.FileSize,
-	}, nil
-}
-
-// wgaWorkspaceProtoToResp 将 proto 工作区响应转换为 bff 响应
-func wgaWorkspaceProtoToResp(resp *channel_service.GetWGAWorkspaceResp) *response.WGAWorkspaceResponse {
-	if resp == nil {
-		return &response.WGAWorkspaceResponse{}
-	}
-	return &response.WGAWorkspaceResponse{
-		ThreadID:  resp.ThreadId,
-		RunID:     resp.RunId,
-		FileCount: resp.FileCount,
-		TotalSize: resp.TotalSize,
-		IsDisplay: resp.IsDisplay,
-		Path:      resp.Path,
-		Files:     wgaFileNodesProtoToResp(resp.Files),
-	}
-}
-
-func wgaFileNodesProtoToResp(nodes []*channel_service.WGAFileNode) []*response.WGAFileNode {
-	if len(nodes) == 0 {
-		return nil
-	}
-	out := make([]*response.WGAFileNode, 0, len(nodes))
-	for _, n := range nodes {
-		out = append(out, &response.WGAFileNode{
-			Name:     n.Name,
-			Type:     n.Type,
-			Size:     n.Size,
-			MimeType: n.MimeType,
-			Children: wgaFileNodesProtoToResp(n.Children),
-		})
-	}
-	return out
-}
-
 // --- 内部方法 ---
 
 // resolveApiKeyByID 通过 apiKeyId 查询完整的 apiKey 值
@@ -556,7 +470,7 @@ func strPtr(s string) *string { return &s }
 // wgaNoneAgentID 是 WGA 子智能体列表「无」选项的 agentId 固定值（见 ListWanwuWGASubAgents）。
 // 表示通用智能体（不绑子智能体）：创建/更新通道时 agent_id 直接存该值，app_id/app_name 留空；
 // 运行时 channel-service 调 WGA 前会把它归一化为空串，走 Supervisor 默认路由。
-const wgaNoneAgentID = "wu"
+const wgaNoneAgentID = "null"
 
 // resolveChannelAppFields 按 AppType 分流解析创建通道的 AppID/AppName/AgentId（仅 Create 用）。
 //   - agent：AppID=智能体UUID，AppName=resolveAppName（智能体名），AgentId 留空
@@ -569,8 +483,8 @@ const wgaNoneAgentID = "wu"
 func resolveChannelAppFields(ctx *gin.Context, appType, appID, agentID, userID, orgID string) (string, string, string) {
 	switch appType {
 	case "wga":
-		// 「无」选项用固定哨兵 "wu" 表示通用智能体（不绑子智能体）：agent_id 存 "wu"，
-		// app_id/app_name 留空，运行时调 WGA 前会把 "wu" 归一化为空串走 Supervisor 默认。
+		// 「无」选项用固定哨兵 "null" 表示通用智能体（不绑子智能体）：agent_id 存 "null"，
+		// app_id/app_name 留空，运行时调 WGA 前会把 "null" 归一化为空串走 Supervisor 默认。
 		if agentID == wgaNoneAgentID {
 			return "", "", wgaNoneAgentID
 		}

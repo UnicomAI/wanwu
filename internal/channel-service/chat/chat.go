@@ -138,10 +138,10 @@ func (h *Handler) handleWGAMessage(ctx context.Context, ch *model.Channel, msg *
 	return h.doWGAChat(ctx, ch, msg, "wga", wgaAgentID(ch.AgentId), false)
 }
 
-// wgaAgentID 把"通用智能体"哨兵 "wu" 归一化为空串（WGA 端留空走 Supervisor 默认路由），
-// 其余子智能体 id 原样返回。哨兵 "wu" 由 bff 在选「无」子智能体时存入 channels.agent_id。
+// wgaAgentID 把"通用智能体"哨兵 "null" 归一化为空串（WGA 端留空走 Supervisor 默认路由），
+// 其余子智能体 id 原样返回。哨兵 "null" 由 bff 在选「无」子智能体时存入 channels.agent_id。
 func wgaAgentID(id string) string {
-	if id == "wu" {
+	if id == "null" {
 		return ""
 	}
 	return id
@@ -491,7 +491,7 @@ func (h *Handler) handleWGASSEResponse(ctx context.Context, ch *model.Channel, m
 			}
 
 			// 打印 WGA 返回的原始 SSE data 行（排查上游无响应/事件丢失等问题）
-			log.Debugf("[WGA-SSE-RAW] channel=%s user=%s data: %s", ch.ChannelID, msg.UserID, data)
+			// log.Debugf("[WGA-SSE-RAW] channel=%s user=%s data: %s", ch.ChannelID, msg.UserID, data)
 
 			// 解析 AG-UI 事件（按 WGA 对话流协议，字段随事件类型不同）
 			var event struct {
@@ -604,7 +604,7 @@ func (h *Handler) handleWGASSEResponse(ctx context.Context, ch *model.Channel, m
 				}
 			case "REASONING_MESSAGE_START", "REASONING_MESSAGE_CONTENT":
 				// 推理消息：仅喂聚合器（思考过程不下发到 IM，避免刷屏）
-				log.Debugf("[WGA-SSE] channel=%s user=%s %s", ch.ChannelID, msg.UserID, event.Type)
+				// log.Debugf("[WGA-SSE] channel=%s user=%s %s", ch.ChannelID, msg.UserID, event.Type)
 				agg.handleEvent(wgaEv)
 			case "REASONING_MESSAGE_END":
 				// 思考段结束：不下发（思考过程不再推到 IM）
@@ -646,7 +646,6 @@ wgaDone:
 // handleWGAQuestion 处理 SSE 收到的 WGA question（人机交互）事件。
 // 把问题选项拼成「请回复序号」文本发到钉钉（独立消息），并把 pending question 存入 manager，
 // 等用户回复序号后由 handleQuestionReply 调 question/reply。
-// 卡片侧的「请回复序号」提示由聚合器 renderMarkdown 统一输出（question fragment），不走本方法。
 // 返回该 pending 的 CancelCh，赋给 SSE 循环用于超时/放弃时退出。
 // 已有 pending 时先复用其 CancelCh（同 user 不会并发两条 question，正常只会有一个）。
 func (h *Handler) handleWGAQuestion(ctx context.Context, ch *model.Channel, msg *types.PlatformMessage,

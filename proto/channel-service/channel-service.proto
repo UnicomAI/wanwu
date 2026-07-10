@@ -43,14 +43,6 @@ service ChannelService {
   rpc DeleteChannel(DeleteChannelReq) returns (google.protobuf.Empty) {}
   // 断开通道连接
   rpc DisconnectChannel(DisconnectChannelReq) returns (google.protobuf.Empty) {}
-
-  // --- 通用智能体（WGA）工作区与文件 ---
-  // 获取 WGA 工作区目录树
-  rpc GetWGAWorkspace(GetWGAWorkspaceReq) returns (GetWGAWorkspaceResp) {}
-  // 下载 WGA 工作区文件（不传 path 下载整个工作区 ZIP）
-  rpc DownloadWGAWorkspace(DownloadWGAWorkspaceReq) returns (DownloadWGAWorkspaceResp) {}
-  // 上传文件到万悟 minio，返回 filePath（供 WGA 多模态对话 binary.url 使用）
-  rpc UploadWGAFile(UploadWGAFileReq) returns (UploadWGAFileResp) {}
 }
 
 // ============================================================
@@ -228,62 +220,3 @@ message ListChannelsResp {
   int32 total = 2;
 }
 
-// ============================================================
-// 通用智能体（WGA）工作区与文件
-// ============================================================
-
-message GetWGAWorkspaceReq {
-  string channel_id = 1;  // 通道 ID（用于取 apiKey + 归属校验）
-  string thread_id = 2;   // WGA 对话 ID
-  string run_id = 3;      // 运行 ID（可选）
-  string user_id = 4;     // 内部：用户 ID（从 JWT 获取）
-  string org_id = 5;      // 内部：组织 ID
-}
-
-message WGAFileNode {
-  string name = 1;
-  string type = 2;            // file / directory
-  int64 size = 3;
-  string mime_type = 4;
-  repeated WGAFileNode children = 5;
-}
-
-message GetWGAWorkspaceResp {
-  string thread_id = 1;
-  string run_id = 2;
-  int32 file_count = 3;
-  int64 total_size = 4;
-  bool is_display = 5;
-  string path = 6;
-  repeated WGAFileNode files = 7;
-}
-
-message DownloadWGAWorkspaceReq {
-  string channel_id = 1;
-  string thread_id = 2;
-  string run_id = 3;
-  string path = 4;         // 工作区内文件路径，为空则下载整个工作区 ZIP
-  string user_id = 5;
-  string org_id = 6;
-}
-
-message DownloadWGAWorkspaceResp {
-  string file_name = 1;    // 文件名（用于 Content-Disposition）
-  bytes data = 2;          // 文件二进制内容
-}
-
-message UploadWGAFileReq {
-  string channel_id = 1;   // 通道 ID（用于取 apiKey + 归属校验）
-  string file_name = 2;    // 原始文件名
-  string mime_type = 3;    // MIME 类型
-  bytes data = 4;           // 文件二进制内容
-  string user_id = 5;
-  string org_id = 6;
-}
-
-message UploadWGAFileResp {
-  string file_name = 1;    // 原始文件名
-  string file_id = 2;      // minio 文件名
-  string file_path = 3;    // minio 完整 URL，可作为 WGA 多模态 binary.url
-  int64 file_size = 4;     // 文件大小
-}

@@ -29,11 +29,8 @@ func registerChannel(apiV1 *gin.RouterGroup) {
 	mid.Sub("operation").Reg(apiV1, "/channel/channels/:id", http.MethodDelete, v1.DeleteChannel, "删除通道")
 	mid.Sub("operation").Reg(apiV1, "/channel/channels/:id/disconnect", http.MethodPost, v1.DisconnectChannel, "断开通道")
 
-	// WGA（通用智能体）工作区 / 上传
+	// WGA（通用智能体）子智能体列表
 	mid.Sub("operation").Reg(apiV1, "/channel/wga/sub-agents", http.MethodGet, v1.ListWanwuWGASubAgents, "WGA子智能体列表")
-	mid.Sub("operation").Reg(apiV1, "/channel/wga/workspace", http.MethodGet, v1.GetWGAWorkspace, "WGA工作区目录树")
-	mid.Sub("operation").Reg(apiV1, "/channel/wga/workspace/download", http.MethodGet, v1.DownloadWGAWorkspace, "WGA工作区文件下载")
-	mid.Sub("operation").Reg(apiV1, "/channel/wga/upload", http.MethodPost, v1.UploadWGAFile, "上传文件给WGA")
 
 	// DIP（数字员工）下拉
 	mid.Sub("operation").Reg(apiV1, "/channel/dip/employees", http.MethodGet, v1.ListWanwuDIPAgents, "数字员工列表")
