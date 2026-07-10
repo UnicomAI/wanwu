@@ -185,6 +185,7 @@ export default {
       edit: '编辑',
       delete: '删除',
       remove: '移除',
+      close: '关闭',
       copy: '复制',
       publish: '发布',
       search: '查询',

@@ -4,7 +4,7 @@
     append-to-body
     :close-on-click-modal="false"
     width="720px"
-    custom-class="model-record-detail-dialog"
+    custom-class="app-record-detail-dialog"
   >
     <div slot="title" class="dialog-title-wrap">
       <span class="dialog-title">{{ title }}</span>
@@ -30,54 +30,6 @@
       <div class="section info-section">
         <div class="info-grid">
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.modelName') }}</label>
-            <div>{{ currentRow.model || '--' }}</div>
-          </div>
-          <div class="info-item">
-            <label>{{ $t('statisticsDashboard.provider') }}</label>
-            <div>{{ providerName }}</div>
-          </div>
-          <div class="info-item">
-            <label>{{ $t('modelAccess.table.modelType') }}</label>
-            <div>
-              <span :class="['type-tag', modelTypeTagClass]">
-                {{ modelTypeName }}
-              </span>
-            </div>
-          </div>
-          <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appName') }}</label>
-            <div>{{ currentRow.appName || '--' }}</div>
-          </div>
-          <div class="info-item">
-            <label>{{ $t('statisticsDashboard.modelTypeLabel') }}</label>
-            <div>{{ currentRow.modelTypeLabel || '--' }}</div>
-          </div>
-          <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appType') }}</label>
-            <div>
-              <span
-                v-if="currentRow.appType"
-                :class="['type-tag', appTypeTagClass]"
-              >
-                {{ appTypeName }}
-              </span>
-              <span v-else>--</span>
-            </div>
-          </div>
-          <div class="info-item">
-            <label>{{ $t('statisticsDashboard.org') }}</label>
-            <div>{{ currentRow.orgName || '--' }}</div>
-          </div>
-          <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appSystem') }}</label>
-            <div>{{ currentRow.appSystem || '--' }}</div>
-          </div>
-          <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appName') }}</label>
-            <div>{{ currentRow.appName || '--' }}</div>
-          </div>
-          <div class="info-item">
             <label>{{ $t('statisticsDashboard.appType') }}</label>
             <div>
               <span
@@ -94,10 +46,12 @@
             <div>{{ currentRow.creator || currentRow.userName || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.createTime') }}</label>
-            <div>
-              {{ currentRow.createTime || currentRow.callTime || '--' }}
-            </div>
+            <label>{{ $t('statisticsDashboard.org') }}</label>
+            <div>{{ currentRow.orgName || '--' }}</div>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('statisticsDashboard.userName') }}</label>
+            <div>{{ currentRow.userName || '--' }}</div>
           </div>
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.userDept') }}</label>
@@ -112,39 +66,6 @@
         </div>
       </div>
 
-      <!-- Token 统计 -->
-      <div class="section token-section">
-        <div class="section-title">
-          {{ $t('statisticsDashboard.tokenStats') }}
-        </div>
-        <div class="token-cards">
-          <div class="token-card">
-            <div class="token-label">
-              {{ $t('statisticsDashboard.totalTokens') }}
-            </div>
-            <div class="token-value purple">
-              {{ formatAmount(currentRow.totalTokens) }}
-            </div>
-          </div>
-          <div class="token-card">
-            <div class="token-label">
-              {{ $t('statisticsDashboard.promptTokens') }}
-            </div>
-            <div class="token-value blue">
-              {{ formatAmount(currentRow.promptTokens) }}
-            </div>
-          </div>
-          <div class="token-card">
-            <div class="token-label">
-              {{ $t('statisticsDashboard.completionTokens') }}
-            </div>
-            <div class="token-value primary">
-              {{ formatAmount(currentRow.completionTokens) }}
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- 性能指标 -->
       <div class="section perf-section">
         <div class="section-title">
@@ -152,26 +73,21 @@
         </div>
         <div class="perf-grid">
           <div class="perf-item">
-            <label>{{ $t('statisticsDashboard.totalCosts') }}</label>
+            <label>{{ $t('statisticsDashboard.streamCosts') }}</label>
             <span class="perf-value">
-              {{ formatTime(currentRow.avgCosts, 'avgCosts') }}
-            </span>
-            <span class="perf-unit">
-              {{ $t('statisticsDashboard.singleMode') }}
-            </span>
-          </div>
-          <div class="perf-item">
-            <label>{{ $t('statisticsDashboard.firstTokenTime') }}</label>
-            <span class="perf-value">
-              {{
-                formatTime(
-                  currentRow.avgFirstTokenLatency,
-                  'avgFirstTokenLatency',
-                )
-              }}
+              {{ formatTime(currentRow.streamCosts) }}
             </span>
             <span class="perf-unit">
               {{ $t('statisticsDashboard.streamMode') }}
+            </span>
+          </div>
+          <div class="perf-item">
+            <label>{{ $t('statisticsDashboard.nonStreamCosts') }}</label>
+            <span class="perf-value">
+              {{ formatTime(currentRow.nonStreamCosts) }}
+            </span>
+            <span class="perf-unit">
+              {{ $t('statisticsDashboard.singleMode') }}
             </span>
           </div>
         </div>
@@ -214,19 +130,6 @@
 
 <script>
 import { formatAmount } from '@/utils/util.js';
-import {
-  MODEL_TYPE_OBJ,
-  PROVIDER_OBJ,
-  LLM,
-  RERANK,
-  EMBEDDING,
-  OCR,
-  GUI,
-  PDF_PARSER,
-  ASR,
-  MULTIMODAL_RERANK,
-  MULTIMODAL_EMBEDDING,
-} from '@/views/modelAccess/constants';
 import { AGENT, AppType, CHAT, RAG, WORKFLOW } from '@/utils/commonSet';
 
 export default {
@@ -236,10 +139,6 @@ export default {
       default: false,
     },
     row: {
-      type: Object,
-      default: () => ({}),
-    },
-    modelMap: {
       type: Object,
       default: () => ({}),
     },
@@ -257,30 +156,10 @@ export default {
       return this.row || {};
     },
     title() {
-      const name = this.currentRow?.model || '';
+      const name = this.currentRow?.appName || '';
       return name
         ? `${name} - ${this.$t('statisticsDashboard.detailTitle')}`
         : this.$t('statisticsDashboard.detailTitle');
-    },
-    providerName() {
-      const provider = this.currentRow?.provider || '';
-      return PROVIDER_OBJ[provider] || provider || '--';
-    },
-    modelTypeName() {
-      const modelId = this.currentRow?.modelId || this.currentRow?.model || '';
-      const modelInfo = this.modelMap[modelId] || {};
-      const type = modelInfo.modelType || this.currentRow?.modelType || '';
-      return MODEL_TYPE_OBJ[type] || '--';
-    },
-    modelTypeTagClass() {
-      const modelId = this.currentRow?.modelId || this.currentRow?.model || '';
-      const modelInfo = this.modelMap[modelId] || {};
-      const type = modelInfo.modelType || this.currentRow?.modelType || '';
-      if (type === LLM) return 'tag-blue';
-      if ([RERANK, MULTIMODAL_RERANK].includes(type)) return 'tag-orange';
-      if ([EMBEDDING, MULTIMODAL_EMBEDDING].includes(type)) return 'tag-green';
-      if ([OCR, ASR, GUI, PDF_PARSER].includes(type)) return 'tag-purple';
-      return 'tag-gray';
     },
     appTypeName() {
       return (
@@ -302,10 +181,10 @@ export default {
   },
   methods: {
     formatAmount,
-    formatTime(val, type) {
+    formatTime(val) {
       if (!val) return '0';
       const num = Number(val);
-      if (type === 'avgCosts' && num >= 1000) {
+      if (num >= 1000) {
         return (num / 1000).toFixed(1) + 's';
       }
       return num + 'ms';
@@ -315,7 +194,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.model-record-detail-dialog {
+.app-record-detail-dialog {
   ::v-deep .el-dialog__body {
     padding: 0 20px;
   }
@@ -354,10 +233,6 @@ export default {
     padding: 0;
   }
 
-  &.token-section {
-    background: #f5f7ff;
-  }
-
   &.perf-section {
     background: #fff8f0;
   }
@@ -385,7 +260,7 @@ export default {
     margin-right: 8px;
   }
 
-  span {
+  div {
     color: #303133;
     flex: 1;
     min-width: 0;
@@ -401,43 +276,6 @@ export default {
 
   &.fail-title {
     color: #bd3d3e;
-  }
-}
-
-.token-cards {
-  display: flex;
-  gap: 16px;
-}
-
-.token-card {
-  flex: 1;
-  text-align: center;
-  padding: 16px 8px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-
-  .token-label {
-    font-size: 12px;
-    color: #909399;
-    margin-bottom: 8px;
-  }
-
-  .token-value {
-    font-size: 22px;
-    font-weight: 700;
-
-    &.purple {
-      color: #5951e7;
-    }
-
-    &.blue {
-      color: #2563eb;
-    }
-
-    &.primary {
-      color: #9233e9;
-    }
   }
 }
 
@@ -503,12 +341,6 @@ export default {
   justify-content: flex-end;
   align-items: center;
   gap: 12px;
-}
-
-.page-info {
-  font-size: 13px;
-  color: #909399;
-  margin-right: auto;
 }
 
 .type-tag {

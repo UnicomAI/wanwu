@@ -20,10 +20,12 @@
         </el-radio-group>
         <el-table
           v-if="type === 'list'"
+          ref="listTable"
           :data="tableData"
           :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
           v-loading="loading"
           style="width: 100%"
+          @sort-change="handleSortChange"
         >
           <el-table-column
             prop="appName"
@@ -68,6 +70,7 @@
               ` (${$t('statisticsDashboard.frequency')})`
             "
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.callCount) }}
@@ -80,6 +83,7 @@
               ` (${$t('statisticsDashboard.frequency')})`
             "
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.callFailure) }}
@@ -89,11 +93,13 @@
             prop="failureRate"
             :label="$t('statisticsDashboard.failureRate')"
             align="left"
+            sortable="custom"
           />
           <el-table-column
             prop="avgStreamCosts"
             :label="$t('statisticsDashboard.avgFirstCosts') + ` (ms)`"
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.avgStreamCosts) }}
@@ -103,6 +109,7 @@
             prop="avgNonStreamCosts"
             :label="$t('statisticsDashboard.avgCosts') + ` (ms)`"
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.avgNonStreamCosts) }}
@@ -115,6 +122,7 @@
               ` (${$t('statisticsDashboard.frequency')})`
             "
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.streamCount) }}
@@ -127,6 +135,7 @@
               ` (${$t('statisticsDashboard.frequency')})`
             "
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.nonStreamCount) }}
@@ -159,10 +168,12 @@
         </el-table>
         <el-table
           v-else
+          ref="recordTable"
           :data="tableData"
           :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
           v-loading="loading"
           style="width: 100%"
+          @sort-change="handleSortChange"
         >
           <el-table-column
             prop="source"
@@ -222,6 +233,7 @@
             prop="streamCosts"
             :label="$t('statisticsDashboard.streamCosts') + ` (ms)`"
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.streamCosts) }}
@@ -231,6 +243,7 @@
             prop="nonStreamCosts"
             :label="$t('statisticsDashboard.nonStreamCosts') + ` (ms)`"
             align="left"
+            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.nonStreamCosts) }}
@@ -240,6 +253,7 @@
             prop="callTime"
             :label="$t('statisticsDashboard.callTime')"
             align="left"
+            sortable="custom"
           />
           <el-table-column
             prop="status"
@@ -295,6 +309,7 @@
       :params="params"
       :app-info="currentRow"
     />
+    <AppRecordDetail :visible.sync="detailVisible" :row="currentRow" />
   </div>
 </template>
 
@@ -310,9 +325,10 @@ import {
 import { AppType } from '@/utils/commonSet';
 import AppUserModal from './appUserModal.vue';
 import AppModelModal from './appModelModal.vue';
+import AppRecordDetail from './appRecordDetail.vue';
 
 export default {
-  components: { Pagination, AppUserModal, AppModelModal },
+  components: { Pagination, AppUserModal, AppModelModal, AppRecordDetail },
   props: {
     params: {},
   },
@@ -323,8 +339,11 @@ export default {
       tableData: [],
       appTypeObj: AppType,
       type: 'list',
+      sortField: '',
+      sortOrder: '',
       userModalVisible: false,
       modelModalVisible: false,
+      detailVisible: false,
       currentRow: null,
     };
   },
@@ -332,14 +351,32 @@ export default {
     formatAmount,
     handleRadio(val) {
       this.type = val;
+      this.sortField = '';
+      this.sortOrder = '';
+      this.$nextTick(() => {
+        const table = this.$refs.listTable || this.$refs.recordTable;
+        if (table) {
+          table.clearSort();
+        }
+      });
       this.listApi = val === 'list' ? fetchAppList : fetchAppRecordList;
+      this.getTableData({ ...this.params, pageNo: 1 });
+    },
+    handleSortChange({ prop, order }) {
+      this.sortField = prop || '';
+      this.sortOrder =
+        order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : '';
       this.getTableData({ ...this.params, pageNo: 1 });
     },
     async getTableData(params) {
       if (this.$refs.pagination) {
         this.loading = true;
         try {
-          this.tableData = await this.$refs.pagination.getTableData(params);
+          this.tableData = await this.$refs.pagination.getTableData({
+            ...params,
+            sortField: this.sortField,
+            sortOrder: this.sortOrder,
+          });
         } finally {
           this.loading = false;
         }
@@ -357,7 +394,8 @@ export default {
       this.modelModalVisible = true;
     },
     showDetail(row) {
-      this.$message.info(this.$t('statisticsDashboard.detailTitle'));
+      this.currentRow = row;
+      this.detailVisible = true;
     },
     async exportData() {
       if (this.type === 'list') {
