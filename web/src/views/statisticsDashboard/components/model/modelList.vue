@@ -331,7 +331,7 @@
                 class="btn-detail"
                 size="mini"
                 icon="el-icon-view"
-                @click="showDetail(scope.row, scope.$index)"
+                @click="showDetail(scope.row)"
               >
                 {{ $t('common.table.detail') }}
               </el-button>
@@ -362,8 +362,6 @@
     <ModelRecordDetail
       :visible.sync="detailVisible"
       :row="currentRow"
-      :list="tableData"
-      :start-index="detailIndex"
       :model-map="modelMap"
     />
   </div>
@@ -413,7 +411,6 @@ export default {
       userModalVisible: false,
       appModalVisible: false,
       detailVisible: false,
-      detailIndex: 0,
       currentRow: null,
     };
   },
@@ -506,9 +503,8 @@ export default {
       }
       return orgName || userName || '--';
     },
-    showDetail(row, index) {
+    showDetail(row) {
       this.currentRow = row;
-      this.detailIndex = index;
       this.detailVisible = true;
     },
     showUserDetail(row) {

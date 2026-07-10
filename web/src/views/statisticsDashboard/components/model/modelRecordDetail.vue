@@ -9,20 +9,20 @@
     <div slot="title" class="dialog-title-wrap">
       <span class="dialog-title">{{ title }}</span>
       <el-tag
-        v-if="currentRow.status === '成功'"
+        v-if="currentRow.status === 'success'"
         type="success"
         size="small"
         class="status-tag"
       >
-        {{ currentRow.status }}
+        {{ $t('statisticsDashboard.success') }}
       </el-tag>
       <el-tag
-        v-else-if="currentRow.status"
+        v-else-if="currentRow.status === 'error'"
         type="danger"
         size="small"
         class="status-tag"
       >
-        {{ currentRow.status }}
+        {{ $t('statisticsDashboard.error') }}
       </el-tag>
     </div>
     <div v-if="currentRow" class="detail-body">
@@ -30,32 +30,32 @@
       <div class="section info-section">
         <div class="info-grid">
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.modelName') }}:</label>
-            <span>{{ currentRow.model || '--' }}</span>
+            <label>{{ $t('statisticsDashboard.modelName') }}</label>
+            <div>{{ currentRow.model || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.provider') }}:</label>
-            <span>{{ providerName }}</span>
+            <label>{{ $t('statisticsDashboard.provider') }}</label>
+            <div>{{ providerName }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('modelAccess.table.modelType') }}:</label>
-            <span>
+            <label>{{ $t('modelAccess.table.modelType') }}</label>
+            <div>
               <span :class="['type-tag', modelTypeTagClass]">
                 {{ modelTypeName }}
               </span>
-            </span>
+            </div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appName') }}:</label>
-            <span>{{ currentRow.appName || '--' }}</span>
+            <label>{{ $t('statisticsDashboard.appName') }}</label>
+            <div>{{ currentRow.appName || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.modelTypeLabel') }}:</label>
-            <span>{{ currentRow.modelTypeLabel || '--' }}</span>
+            <label>{{ $t('statisticsDashboard.modelTypeLabel') }}</label>
+            <div>{{ currentRow.modelTypeLabel || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appType') }}:</label>
-            <span>
+            <label>{{ $t('statisticsDashboard.appType') }}</label>
+            <div>
               <span
                 v-if="currentRow.appType"
                 :class="['type-tag', appTypeTagClass]"
@@ -63,23 +63,23 @@
                 {{ appTypeName }}
               </span>
               <span v-else>--</span>
-            </span>
+            </div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.org') }}:</label>
-            <span>{{ currentRow.orgName || '--' }}</span>
+            <label>{{ $t('statisticsDashboard.org') }}</label>
+            <div>{{ currentRow.orgName || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appSystem') }}:</label>
-            <span>{{ currentRow.appSystem || '--' }}</span>
+            <label>{{ $t('statisticsDashboard.appSystem') }}</label>
+            <div>{{ currentRow.appSystem || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appName') }}:</label>
-            <span>{{ currentRow.appName || '--' }}</span>
+            <label>{{ $t('statisticsDashboard.appName') }}</label>
+            <div>{{ currentRow.appName || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appType') }}:</label>
-            <span>
+            <label>{{ $t('statisticsDashboard.appType') }}</label>
+            <div>
               <span
                 v-if="currentRow.appType"
                 :class="['type-tag', appTypeTagClass]"
@@ -87,27 +87,27 @@
                 {{ appTypeName }}
               </span>
               <span v-else>--</span>
-            </span>
+            </div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.creator') }}:</label>
-            <span>{{ currentRow.creator || currentRow.userName || '--' }}</span>
+            <label>{{ $t('statisticsDashboard.creator') }}</label>
+            <div>{{ currentRow.creator || currentRow.userName || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.createTime') }}:</label>
-            <span>
+            <label>{{ $t('statisticsDashboard.createTime') }}</label>
+            <div>
               {{ currentRow.createTime || currentRow.callTime || '--' }}
-            </span>
+            </div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.userDept') }}:</label>
-            <span>
+            <label>{{ $t('statisticsDashboard.userDept') }}</label>
+            <div>
               {{ currentRow.userDept || currentRow.userName || '--' }}
-            </span>
+            </div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.callTime') }}:</label>
-            <span>{{ currentRow.callTime || '--' }}</span>
+            <label>{{ $t('statisticsDashboard.callTime') }}</label>
+            <div>{{ currentRow.callTime || '--' }}</div>
           </div>
         </div>
       </div>
@@ -120,9 +120,17 @@
         <div class="token-cards">
           <div class="token-card">
             <div class="token-label">
-              {{ $t('statisticsDashboard.promptTokens') }}
+              {{ $t('statisticsDashboard.totalTokens') }}
             </div>
             <div class="token-value purple">
+              {{ formatAmount(currentRow.totalTokens) }}
+            </div>
+          </div>
+          <div class="token-card">
+            <div class="token-label">
+              {{ $t('statisticsDashboard.promptTokens') }}
+            </div>
+            <div class="token-value blue">
               {{ formatAmount(currentRow.promptTokens) }}
             </div>
           </div>
@@ -130,16 +138,8 @@
             <div class="token-label">
               {{ $t('statisticsDashboard.completionTokens') }}
             </div>
-            <div class="token-value blue">
-              {{ formatAmount(currentRow.completionTokens) }}
-            </div>
-          </div>
-          <div class="token-card">
-            <div class="token-label">
-              {{ $t('statisticsDashboard.totalTokens') }}
-            </div>
             <div class="token-value primary">
-              {{ formatAmount(currentRow.totalTokens) }}
+              {{ formatAmount(currentRow.completionTokens) }}
             </div>
           </div>
         </div>
@@ -204,38 +204,7 @@
       </div>
     </div>
 
-    <!-- 底部导航 -->
     <div slot="footer" class="dialog-footer">
-      <span class="page-info">
-        {{ currentIndex + 1 }} / {{ list.length }}
-        {{ $t('statisticsDashboard.pieces') }}
-      </span>
-      <el-button-group>
-        <el-button
-          size="mini"
-          icon="el-icon-s-home"
-          :disabled="currentIndex === 0"
-          @click="goFirst"
-        />
-        <el-button
-          size="mini"
-          icon="el-icon-arrow-left"
-          :disabled="currentIndex === 0"
-          @click="goPrev"
-        />
-        <el-button
-          size="mini"
-          icon="el-icon-arrow-right"
-          :disabled="currentIndex === list.length - 1"
-          @click="goNext"
-        />
-        <el-button
-          size="mini"
-          icon="el-icon-s-promotion"
-          :disabled="currentIndex === list.length - 1"
-          @click="goLast"
-        />
-      </el-button-group>
       <el-button size="mini" @click="dialogVisible = false">
         {{ $t('common.button.cancel') }}
       </el-button>
@@ -270,23 +239,10 @@ export default {
       type: Object,
       default: () => ({}),
     },
-    list: {
-      type: Array,
-      default: () => [],
-    },
-    startIndex: {
-      type: Number,
-      default: 0,
-    },
     modelMap: {
       type: Object,
       default: () => ({}),
     },
-  },
-  data() {
-    return {
-      currentIndex: 0,
-    };
   },
   computed: {
     dialogVisible: {
@@ -298,14 +254,7 @@ export default {
       },
     },
     currentRow() {
-      if (
-        this.list.length > 0 &&
-        this.currentIndex >= 0 &&
-        this.currentIndex < this.list.length
-      ) {
-        return this.list[this.currentIndex];
-      }
-      return this.row;
+      return this.row || {};
     },
     title() {
       const name = this.currentRow?.model || '';
@@ -347,18 +296,8 @@ export default {
       };
       return typeTag[this.currentRow?.appType] || 'tag-gray';
     },
-    statusTagType() {
-      return this.currentRow?.status === '成功' ? 'success' : 'danger';
-    },
     isFailed() {
-      return this.currentRow?.status && this.currentRow.status !== '成功';
-    },
-  },
-  watch: {
-    visible(val) {
-      if (val) {
-        this.currentIndex = this.startIndex;
-      }
+      return this.currentRow?.status && this.currentRow.status !== 'success';
     },
   },
   methods: {
@@ -370,22 +309,6 @@ export default {
         return (num / 1000).toFixed(1) + 's';
       }
       return num + 'ms';
-    },
-    goFirst() {
-      this.currentIndex = 0;
-    },
-    goPrev() {
-      if (this.currentIndex > 0) {
-        this.currentIndex--;
-      }
-    },
-    goNext() {
-      if (this.currentIndex < this.list.length - 1) {
-        this.currentIndex++;
-      }
-    },
-    goLast() {
-      this.currentIndex = this.list.length - 1;
     },
   },
 };
@@ -412,13 +335,12 @@ export default {
 
   .status-tag {
     font-weight: 500;
+    border-radius: 12px;
   }
 }
 
 .detail-body {
-  max-height: 60vh;
-  overflow-y: auto;
-  padding-right: 4px;
+  margin-top: -22px;
 }
 
 .section {
@@ -452,10 +374,8 @@ export default {
 }
 
 .info-item {
-  display: flex;
-  align-items: center;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.6;
 
   label {
     color: #909399;
@@ -480,7 +400,7 @@ export default {
   margin-bottom: 12px;
 
   &.fail-title {
-    color: #f56c6c;
+    color: #bd3d3e;
   }
 }
 
@@ -512,11 +432,11 @@ export default {
     }
 
     &.blue {
-      color: #409eff;
+      color: #2563eb;
     }
 
     &.primary {
-      color: #67c23a;
+      color: #9233e9;
     }
   }
 }
@@ -531,6 +451,11 @@ export default {
   align-items: center;
   gap: 8px;
   font-size: 13px;
+  width: 50%;
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 
   label {
     color: #909399;
@@ -550,11 +475,12 @@ export default {
 
 .fail-content {
   font-size: 13px;
-  color: #f56c6c;
+  color: #bd3d3e;
   word-break: break-all;
   padding: 8px 12px;
   background: #fff;
-  border-radius: 4px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .content-box {
@@ -563,8 +489,8 @@ export default {
   line-height: 1.6;
   padding: 12px;
   background: #fff;
-  border-radius: 4px;
-  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   white-space: pre-wrap;
   word-break: break-all;
   min-height: 60px;
@@ -594,8 +520,8 @@ export default {
 }
 
 .tag-blue {
-  color: $tag_color;
-  background: $tag_bg;
+  color: $tag_color !important;
+  background: $tag_bg !important;
 }
 
 .tag-green {

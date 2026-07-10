@@ -1974,6 +1974,8 @@ export default {
     add: '新增关键词',
   },
   statisticsDashboard: {
+    success: '成功',
+    error: '失败',
     model: '模型',
     modelSelect: '模型筛选',
     modelList: '模型列表',
@@ -2047,7 +2049,7 @@ export default {
     creator: '创建人',
     createTime: '创建时间',
     userDept: '应用人/所在部门',
-    tokenStats: 'Token 统计',
+    tokenStats: 'Token 消耗',
     perfMetrics: '性能指标',
     totalCosts: '总耗时',
     singleMode: '（单体式）',
