@@ -244,7 +244,7 @@ export const exportApiData = (data, type) => {
 // 获取API应用统计列表
 export const fetchApiAppList = data => {
   return service({
-    url: `${USER_API}/statistic/api/app`,
+    url: `${USER_API}/statistic/api/list/app`,
     method: 'post',
     data,
   });
@@ -253,7 +253,7 @@ export const fetchApiAppList = data => {
 // 导出API应用统计数据
 export const exportApiAppData = data => {
   return service({
-    url: `${USER_API}/statistic/api/app/export`,
+    url: `${USER_API}/statistic/api/list/app/export`,
     method: 'post',
     data,
     responseType: 'blob',

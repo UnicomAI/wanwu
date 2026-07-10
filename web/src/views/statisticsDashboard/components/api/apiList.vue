@@ -387,7 +387,14 @@ export default {
       this.tableData = data;
     },
     async exportData() {
-      const response = await exportApiData(this.params, this.type);
+      const response = await exportApiData(
+        {
+          ...this.params,
+          sortField: this.sortField,
+          sortOrder: this.sortOrder,
+        },
+        this.type,
+      );
       resDownloadFile(
         response,
         `${this.type === 'list' ? this.$t('statisticsDashboard.apiStatistics') : this.$t('statisticsDashboard.apiDetail')}.xlsx`,
