@@ -27,7 +27,7 @@
         >
           <el-table-column
             prop="name"
-            :label="$t('statisticsDashboard.name')"
+            :label="'API Key' + $t('statisticsDashboard.name')"
             align="left"
           >
             <template slot-scope="scope">
@@ -43,15 +43,6 @@
                     : '--'
                 }}
               </span>
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="methodPath"
-            :label="$t('statisticsDashboard.apiPath')"
-            align="left"
-          >
-            <template slot-scope="scope">
-              {{ scope.row.methodPath || '--' }}
             </template>
           </el-table-column>
           <el-table-column
@@ -72,6 +63,15 @@
               {{ scope.row.userName || '--' }}
             </template>
           </el-table-column>
+          <el-table-column
+            prop="methodPath"
+            :label="$t('statisticsDashboard.apiPath')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ scope.row.methodPath || '--' }}
+            </template>
+          </el-table-column>
           <!--<el-table-column
             prop="model"
             :label="$t('statisticsDashboard.model')"
@@ -83,10 +83,7 @@
           </el-table-column>-->
           <el-table-column
             prop="callCount"
-            :label="
-              $t('statisticsDashboard.appCallCount') +
-              ` (${$t('statisticsDashboard.frequency')})`
-            "
+            :label="$t('statisticsDashboard.appCallCount')"
             align="left"
           >
             <template slot-scope="scope">
@@ -95,10 +92,7 @@
           </el-table-column>
           <el-table-column
             prop="callFailure"
-            :label="
-              $t('statisticsDashboard.appCallFailure') +
-              ` (${$t('statisticsDashboard.frequency')})`
-            "
+            :label="$t('statisticsDashboard.appCallFailure')"
             align="left"
           >
             <template slot-scope="scope">
@@ -107,28 +101,25 @@
           </el-table-column>
           <el-table-column
             prop="avgStreamCosts"
-            :label="$t('statisticsDashboard.avgStreamCosts') + ` (ms)`"
+            :label="$t('statisticsDashboard.avgStreamCosts')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.avgStreamCosts) }}
+              {{ formatAmount(scope.row.avgStreamCosts) }}ms
             </template>
           </el-table-column>
           <el-table-column
             prop="avgNonStreamCosts"
-            :label="$t('statisticsDashboard.avgCosts') + ` (ms)`"
+            :label="$t('statisticsDashboard.avgCosts')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.avgNonStreamCosts) }}
+              {{ formatAmount(scope.row.avgNonStreamCosts) }}ms
             </template>
           </el-table-column>
           <el-table-column
             prop="streamCount"
-            :label="
-              $t('statisticsDashboard.streamCount') +
-              ` (${$t('statisticsDashboard.frequency')})`
-            "
+            :label="$t('statisticsDashboard.streamCount')"
             align="left"
           >
             <template slot-scope="scope">
@@ -137,10 +128,7 @@
           </el-table-column>
           <el-table-column
             prop="nonStreamCount"
-            :label="
-              $t('statisticsDashboard.nonStreamCount') +
-              ` (${$t('statisticsDashboard.frequency')})`
-            "
+            :label="$t('statisticsDashboard.nonStreamCount')"
             align="left"
           >
             <template slot-scope="scope">
@@ -168,7 +156,7 @@
         >
           <el-table-column
             prop="name"
-            :label="$t('statisticsDashboard.name')"
+            :label="'API Key' + $t('statisticsDashboard.name')"
             align="left"
           >
             <template slot-scope="scope">
@@ -187,15 +175,6 @@
             </template>
           </el-table-column>
           <el-table-column
-            prop="methodPath"
-            :label="$t('statisticsDashboard.apiPath')"
-            align="left"
-          >
-            <template slot-scope="scope">
-              {{ scope.row.methodPath || '--' }}
-            </template>
-          </el-table-column>
-          <el-table-column
             prop="orgName"
             :label="$t('statisticsDashboard.org')"
             align="left"
@@ -211,6 +190,15 @@
           >
             <template slot-scope="scope">
               {{ scope.row.userName || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="methodPath"
+            :label="$t('statisticsDashboard.apiPath')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ scope.row.methodPath || '--' }}
             </template>
           </el-table-column>
           <!--<el-table-column
@@ -234,20 +222,20 @@
           ></el-table-column>
           <el-table-column
             prop="streamCosts"
-            :label="$t('statisticsDashboard.streamCosts') + ` (ms)`"
+            :label="$t('statisticsDashboard.streamCosts')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.streamCosts) }}
+              {{ formatAmount(scope.row.streamCosts) }}ms
             </template>
           </el-table-column>
           <el-table-column
             prop="nonStreamCosts"
-            :label="$t('statisticsDashboard.nonStreamCosts') + ` (ms)`"
+            :label="$t('statisticsDashboard.nonStreamCosts')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.nonStreamCosts) }}
+              {{ formatAmount(scope.row.nonStreamCosts) }}ms
             </template>
           </el-table-column>
           <el-table-column

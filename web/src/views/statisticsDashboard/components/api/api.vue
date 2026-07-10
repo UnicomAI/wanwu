@@ -196,17 +196,11 @@
             </div>
           </div>
         </div>
-
-        <div class="model-list-section">
-          <span class="title">
-            {{ $t('statisticsDashboard.apiList') }}
-          </span>
-          <div class="model-list-wrap">
-            <ApiList
-              :params="formatParams({ ...params, ...apiParams })"
-              ref="apiList"
-            />
-          </div>
+        <div class="model-list-wrap">
+          <ApiList
+            :params="formatParams({ ...params, ...apiParams })"
+            ref="apiList"
+          />
         </div>
       </div>
     </div>
@@ -468,7 +462,6 @@ export default {
           }
         }
       }
-      this.refreshData();
     },
     handleSearch() {
       this.refreshData();
@@ -492,7 +485,9 @@ export default {
           this.loading = false;
         });
       this.fetchRankingData(params);
-      this.$refs.apiList.getTableData(params);
+      this.$nextTick(() => {
+        this.$refs.apiList && this.$refs.apiList.getTableData(params);
+      });
     },
     async fetchRankingData(params) {
       this.rankingLoading = true;
