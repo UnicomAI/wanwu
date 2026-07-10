@@ -191,16 +191,11 @@
           </div>
         </div>
 
-        <div class="model-list-section">
-          <span class="title">
-            {{ $t('statisticsDashboard.appList') }}
-          </span>
-          <div class="model-list-wrap">
-            <AppList
-              :params="formatParams({ ...params, ...appParams })"
-              ref="appList"
-            />
-          </div>
+        <div class="model-list-wrap">
+          <AppList
+            :params="formatParams({ ...params, ...appParams })"
+            ref="appList"
+          />
         </div>
       </div>
     </div>

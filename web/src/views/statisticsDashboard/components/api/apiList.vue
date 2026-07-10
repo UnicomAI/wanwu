@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="table-wrap list-common wrap-fullheight">
-      <div class="table-box" style="margin-top: 36px">
+      <div class="table-box">
         <el-button
           class="add-bt"
           size="mini"
@@ -28,12 +28,12 @@
           @sort-change="handleSortChange"
         >
           <el-table-column
-            prop="name"
+            prop="apiName"
             :label="'API Key' + $t('statisticsDashboard.name')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ scope.row.name || '--' }}
+              {{ scope.row.apiName || '--' }}
             </template>
           </el-table-column>
           <el-table-column prop="apiKey" label="API Key" align="left">
@@ -104,23 +104,23 @@
             </template>
           </el-table-column>
           <el-table-column
-            prop="avgStreamCosts"
-            :label="$t('statisticsDashboard.avgStreamCosts')"
+            prop="avgFirstTokenLatency"
+            :label="$t('statisticsDashboard.avgFirstTokenLatency')"
             align="left"
             sortable="custom"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.avgStreamCosts) }}ms
+              {{ formatAmount(scope.row.avgFirstTokenLatency) }}ms
             </template>
           </el-table-column>
           <el-table-column
-            prop="avgNonStreamCosts"
+            prop="avgCosts"
             :label="$t('statisticsDashboard.avgCosts')"
             align="left"
             sortable="custom"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.avgNonStreamCosts) }}ms
+              {{ formatAmount(scope.row.avgCosts) }}ms
             </template>
           </el-table-column>
           <el-table-column
@@ -170,12 +170,12 @@
           @sort-change="handleSortChange"
         >
           <el-table-column
-            prop="name"
+            prop="apiName"
             :label="'API Key' + $t('statisticsDashboard.name')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ scope.row.name || '--' }}
+              {{ scope.row.apiName || '--' }}
             </template>
           </el-table-column>
           <el-table-column prop="apiKey" label="API Key" align="left">
@@ -226,34 +226,57 @@
             </template>
           </el-table-column>-->
           <el-table-column
-            prop="callTime"
+            prop="calledAt"
             :label="$t('statisticsDashboard.callTime')"
             align="left"
-            sortable="custom"
-          ></el-table-column>
+          >
+            <template slot-scope="scope">
+              {{ scope.row.calledAt || '--' }}
+            </template>
+          </el-table-column>
           <el-table-column
             prop="responseStatus"
             :label="$t('statisticsDashboard.responseStatus')"
             align="left"
-          ></el-table-column>
-          <el-table-column
-            prop="streamCosts"
-            :label="$t('statisticsDashboard.streamCosts')"
-            align="left"
-            sortable="custom"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.streamCosts) }}ms
+              <el-tag
+                v-if="scope.row.isSuccess"
+                type="success"
+                size="small"
+                class="status-tag"
+              >
+                {{ $t('statisticsDashboard.success') }}
+              </el-tag>
+              <el-tag
+                v-else-if="scope.row.isSuccess === false"
+                type="danger"
+                size="small"
+                class="status-tag"
+              >
+                {{ $t('statisticsDashboard.error') }}
+              </el-tag>
+              <div v-else>--</div>
             </template>
           </el-table-column>
           <el-table-column
-            prop="nonStreamCosts"
-            :label="$t('statisticsDashboard.nonStreamCosts')"
+            prop="costs"
+            :label="$t('statisticsDashboard.costs')"
             align="left"
             sortable="custom"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.nonStreamCosts) }}ms
+              {{ formatAmount(scope.row.costs) }}ms
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="firstTokenLatency"
+            :label="$t('statisticsDashboard.firstTokenLatency')"
+            align="left"
+            sortable="custom"
+          >
+            <template slot-scope="scope">
+              {{ formatAmount(scope.row.firstTokenLatency) }}ms
             </template>
           </el-table-column>
           <el-table-column
@@ -376,10 +399,14 @@ export default {
 
 <style lang="scss" scoped>
 .table-wrap {
-  padding: 0 12px;
+  margin-top: 24px;
   .add-bt {
     margin: 0 0 16px;
     float: right;
+  }
+  .status-tag {
+    font-weight: 500;
+    border-radius: 12px;
   }
 }
 .btn-app {

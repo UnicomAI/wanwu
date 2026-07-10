@@ -418,7 +418,7 @@ export default {
 
 <style lang="scss" scoped>
 .table-wrap {
-  padding: 0 12px;
+  margin-top: 24px;
   .add-bt {
     margin: 0 0 16px;
     float: right;
