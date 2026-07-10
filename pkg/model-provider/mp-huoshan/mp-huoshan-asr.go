@@ -16,9 +16,10 @@ import (
 
 // 需要额外修改config的配置
 type SyncAsr struct {
-	AppKey      string `json:"appKey"` // AppKey
-	AccessKey   string `json:"accessKey"`
-	EndpointUrl string `json:"endpointUrl"` // 推理url
+	AppKey         string `json:"appKey"` // AppKey
+	AccessKey      string `json:"accessKey"`
+	EndpointUrl    string `json:"endpointUrl"` // 推理url
+	MaxAsrFileSize *int64 `json:"maxAsrFileSize"`
 }
 
 func (cfg *SyncAsr) Tags() []mp_common.Tag {

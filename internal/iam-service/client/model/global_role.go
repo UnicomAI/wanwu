@@ -4,6 +4,7 @@ package model
 // 全局角色由系统管理员创建，可跨组织分配给用户
 type GlobalRole struct {
 	CreatedAt int64 `gorm:"autoCreateTime:milli"`
+	UpdatedAt int64 `gorm:"autoUpdateTime:milli"`
 	// 角色ID（联合主键）
 	RoleID uint32 `gorm:"primaryKey;index:idx_global_role_role_id;autoIncrement:false"`
 	// 角色名（全局唯一）

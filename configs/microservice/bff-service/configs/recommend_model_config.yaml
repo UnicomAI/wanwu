@@ -238,3 +238,6 @@ recommend_models:
     embedding:
       - model: "qwen3-embed-0.6b"
         display_name: "qwen3-embed-0.6b"
+    sync-asr:
+      - model: "Qwen3-ASR-1.7B"
+        display_name: "Qwen3-ASR-1.7B"

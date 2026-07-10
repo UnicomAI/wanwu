@@ -161,20 +161,22 @@ func (n *OrgNode) GetAncestorIDs(orgID uint32) []uint32 {
 	return ancestors
 }
 
-// CollectDescendants 收集指定组织及其所有后代的ID到集合中
-func (n *OrgNode) CollectDescendants(orgID uint32, ids map[uint32]bool) {
+// CollectDescendants 收集指定组织及其所有后代的ID列表
+func (n *OrgNode) CollectDescendants(orgID uint32) []uint32 {
 	node := n.getOrg(orgID)
 	if node == nil {
-		return
+		return nil
 	}
-	collectDescendantsFromNode(node, ids)
+	var ids []uint32
+	collectDescendantsFromNode(node, &ids)
+	return ids
 }
 
-func collectDescendantsFromNode(node *OrgNode, ids map[uint32]bool) {
+func collectDescendantsFromNode(node *OrgNode, ids *[]uint32) {
 	if node == nil {
 		return
 	}
-	ids[node.id] = true
+	*ids = append(*ids, node.id)
 	for _, sub := range node.subs {
 		collectDescendantsFromNode(sub, ids)
 	}

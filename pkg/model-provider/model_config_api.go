@@ -106,6 +106,12 @@ func ToModelTags(provider, modelType, cfg string) ([]mp_common.Tag, error) {
 				return nil, fmt.Errorf("unmarshal model config err: %v", err)
 			}
 			tags = embedding.Tags()
+		case ModelTypeSyncAsr:
+			asr := &mp_openai_compatible.SyncAsr{}
+			if err := json.Unmarshal([]byte(cfg), asr); err != nil {
+				return nil, fmt.Errorf("unmarshal model config err: %v", err)
+			}
+			tags = asr.Tags()
 		default:
 			return nil, fmt.Errorf("ToModelTags:invalid provider %v model type %v", provider, modelType)
 		}
@@ -392,6 +398,10 @@ func ToModelConfig(provider, modelType, cfg string) (interface{}, error) {
 			ret = &mp_openai_compatible.Rerank{}
 		case ModelTypeTextEmbedding:
 			ret = &mp_openai_compatible.Embedding{}
+		case ModelTypeSyncAsr:
+			ret = &mp_openai_compatible.SyncAsr{
+				MaxAsrFileSize: &maxAsrFileSize,
+			}
 		default:
 			return nil, fmt.Errorf("ToModelConfig:invalid provider %v model type %v", provider, modelType)
 		}
@@ -441,7 +451,9 @@ func ToModelConfig(provider, modelType, cfg string) (interface{}, error) {
 		case ModelTypeTextEmbedding:
 			ret = &mp_huoshan.Embedding{}
 		case ModelTypeSyncAsr:
-			ret = &mp_huoshan.SyncAsr{}
+			ret = &mp_huoshan.SyncAsr{
+				MaxAsrFileSize: &maxAsrFileSize,
+			}
 		default:
 			return nil, fmt.Errorf("ToModelConfig:invalid provider %v model type %v", provider, modelType)
 		}
@@ -461,7 +473,9 @@ func ToModelConfig(provider, modelType, cfg string) (interface{}, error) {
 				SupportFileTypes: []string{"image"},
 			}
 		case ModelTypeSyncAsr:
-			ret = &mp_qwen.SyncAsr{}
+			ret = &mp_qwen.SyncAsr{
+				MaxAsrFileSize: &maxAsrFileSize,
+			}
 		case ModelTypeMultiRerank:
 			ret = &mp_qwen.MultiModalRerank{
 				MaxTextLength:       &maxTextLength,
@@ -570,6 +584,7 @@ type ProviderModelByOpenAICompatible struct {
 	Llm       mp_openai_compatible.LLM       `json:"llm"`
 	Rerank    mp_openai_compatible.Rerank    `json:"rerank"`
 	Embedding mp_openai_compatible.Embedding `json:"embedding"`
+	Asr       mp_openai_compatible.SyncAsr   `json:"asr"`
 }
 
 type ProviderModelByYuanjing struct {

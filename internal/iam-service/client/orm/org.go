@@ -581,7 +581,9 @@ func buildAdminOrgSubTree(orgTree *model.OrgNode, adminOrgIDs map[uint32]bool) [
 	// 计算 adminScopeIDs: 管理员组织及其所有后代（这些 hasPerm=true）
 	adminScopeIDs := make(map[uint32]bool)
 	for orgID := range adminOrgIDs {
-		orgTree.CollectDescendants(orgID, adminScopeIDs)
+		for _, id := range orgTree.CollectDescendants(orgID) {
+			adminScopeIDs[id] = true
+		}
 	}
 
 	if isSysAdmin {

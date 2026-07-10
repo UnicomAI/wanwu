@@ -9,7 +9,7 @@ import (
 func Init(r *gin.Engine) {
 
 	mid.InitWrapper([]gin.HandlerFunc{Record}, []gin.HandlerFunc{TraceUser})
-	r.Use(CacheAvatar())
+	r.Use(CacheAvatar)
 
 	// --- openapi ---
 	mid.NewSub("openapi", "对外提供原子能力", route.PermNone, false, false)
@@ -30,7 +30,7 @@ func Init(r *gin.Engine) {
 	mid.NewSub("wga", "通用智能体", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
 	// wga.wanwu_bot
-	mid.Sub("wga").NewSub("wanwu_bot", "WanwuBot", route.PermNeedCheck, true, true)
+	mid.Sub("wga").NewSub("wanwu_bot", "快速对话", route.PermNeedCheck, true, true)
 
 	// wga.openclaw
 	mid.Sub("wga").NewSub("openclaw", "OpenClaw", route.PermNeedCheck, true, true)

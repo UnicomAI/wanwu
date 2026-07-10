@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
+	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	"github.com/UnicomAI/wanwu/pkg/gin-util/route"
@@ -88,6 +89,26 @@ func CheckUserPerm(ctx *gin.Context) {
 	if !ok {
 		gin_util.ResponseErrCodeKeyWithStatus(ctx, httpStatus, err_code.Code_BFFGeneral, "", fmt.Sprintf("auth path [%v]%v not found", ctx.Request.Method, ctx.FullPath()))
 		ctx.Abort()
+		return
+	}
+	// admin_center 一级命名空间：权限已由路由层中间件（CheckOrgAdmin 等）校验，
+	// CheckUserPerm 只需校验用户有效性并设置上下文。
+	// 子模块（admin_center.xxx）走正常权限校验。
+	if len(tags) == 1 && tags[0] == "admin_center" {
+		resp, err := service.CheckUserEnable(ctx, userID, genTokenTS)
+		if err != nil {
+			gin_util.ResponseErrWithStatus(ctx, httpStatus, err)
+			ctx.Abort()
+			return
+		}
+		err = checkPasswordUpdateAccess(ctx, resp.LastUpdatePasswordAt)
+		if err != nil {
+			gin_util.ResponseErrCodeKeyWithStatus(ctx, httpStatus, err_code.Code_BFFAuth, "", err.Error())
+			ctx.Abort()
+			return
+		}
+		ctx.Set(gin_util.IS_ADMIN, true)
+		ctx.Set(gin_util.IS_SYSTEM, orgID == config.TopOrgID)
 		return
 	}
 	// check

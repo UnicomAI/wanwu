@@ -12,8 +12,9 @@ import (
 )
 
 type SyncAsr struct {
-	ApiKey      string `json:"apiKey"`      // ApiKey
-	EndpointUrl string `json:"endpointUrl"` // 推理url
+	ApiKey         string `json:"apiKey"`      // ApiKey
+	EndpointUrl    string `json:"endpointUrl"` // 推理url
+	MaxAsrFileSize *int64 `json:"maxAsrFileSize"`
 }
 
 func (cfg *SyncAsr) Tags() []mp_common.Tag {

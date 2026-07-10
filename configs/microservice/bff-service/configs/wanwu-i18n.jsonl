@@ -32,7 +32,6 @@
 {"code":110000,"key":"bff_org_cannot_delete","langs":{"en":"cannot delete organization","zh":"无法删除组织"}}
 {"code":110000,"key":"bff_org_cannot_change_status","langs":{"en":"cannot modify organization status","zh":"无法修改组织状态"}}
 {"code":110000,"key":"bff_org_cannot_create","langs":{"en":"cannot create organization","zh":"无法新增组织"}}
-{"code":110000,"key":"bff_role_must_select_org","langs":{"zh":"请选择组织"}}
 {"code":110000,"key":"bff_system_org_required","langs":{"zh":"非系统下无法操作"}}
 {"code":0,"key":"------ role ------","langs":{}}
 {"code":110000,"key":"bff_role_cannot_change","langs":{"en":"cannot modify role","zh":"无法编辑用户"}}
@@ -168,12 +167,12 @@
 {"code":110013,"key":"bff_rate_limited_failed_with_attempts","langs":{"en":"%v. You have %v attempt(s) remaining.","zh":"%v，您还有%v次尝试的机会"}}
 {"code":110013,"key":"bff_rate_limited_too_many attempts","langs":{"en":"Too many attempts. Please try again in %v minute(s).","zh":"访问太频繁，请%v分钟之后重试"}}
 {"code":0,"key":"------ custom ------","langs":{}}
-{"code":0,"key":"bff_custom_home_title","langs":{"en":"Yuanjing Wanwu Intelligent Body Platform","zh":"元景万悟智能体平台"}}
-{"code":0,"key":"bff_custom_tab_title","langs":{"en":"Yuanjing Wanwu","zh":"元景万悟"}}
-{"code":0,"key":"bff_custom_login_welcome_text","langs":{"en":"Hi! Welcome to Yuanjing Wanwu Intelligent Body Platform","zh":"嗨！欢迎来到元景万悟智能体平台"}}
+{"code":0,"key":"bff_custom_home_title","langs":{"en":"Intelligent Body Platform","zh":"智能体平台"}}
+{"code":0,"key":"bff_custom_tab_title","langs":{"en":"Intelligent Body Platform","zh":"智能体平台"}}
+{"code":0,"key":"bff_custom_login_welcome_text","langs":{"en":"Hi! Welcome to Intelligent Body Platform","zh":"嗨！欢迎来到智能体平台"}}
 {"code":0,"key":"bff_custom_about_copyright","langs":{"zh":"© 大模型开源平台"}}
 {"code":0,"key":"bff_custom_login_platform_desc","langs":{}}
-{"code":0,"key":"bff_custom_general_agent_welcome","langs":{"en":"Hi, I am Wanwu","zh":"你好，我是万悟"}}
+{"code":0,"key":"bff_custom_general_agent_welcome","langs":{"en":"Hi, What Can I Do For You？","zh":"您好，有什么可以帮您？"}}
 {"code":120002,"key":"iam_captcha_refresh","langs":{"en":"refresh but key or code empty","zh":"刷新验证码时 key 或 code 为空"}}
 {"code":120002,"key":"iam_captcha_create","langs":{"en":"code not created,  please refresh: %v","zh":"验证码未生成，请刷新: %v"}}
 {"code":120002,"key":"iam_captcha_check","langs":{"en":"check captcha but key or code empty","zh":"检查验证码时 key 或 code 为空"}}
