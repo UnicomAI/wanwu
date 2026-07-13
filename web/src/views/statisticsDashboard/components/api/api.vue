@@ -105,19 +105,19 @@
                   :style="{
                     background:
                       item.des_value < 0
-                        ? 'rgba(26, 250, 41, 0.1)'
-                        : 'rgba(216, 30, 6, 0.1)',
-                    color: item.des_value < 0 ? '#1afa29' : '#d81e06',
+                        ? 'rgb(253,239,241)'
+                        : 'rgb(234,251,244)',
+                    color: item.des_value < 0 ? '#df1d48' : '#059569',
                   }"
                 >
                   <img
                     v-if="item.des_value < 0"
-                    src="@/assets/imgs/descend.png"
+                    src="@/assets/imgs/desc_icon.png"
                     alt=""
                   />
                   <img
                     v-if="item.des_value > 0"
-                    src="@/assets/imgs/rise.png"
+                    src="@/assets/imgs/asc_icon.png"
                     alt=""
                   />
                   {{ (item.des_value > 0 ? '+' : '') + item.des_value + '%' }}
@@ -133,11 +133,13 @@
             <div class="data_echart" v-if="!rankingVisible">
               <UserEchart
                 :content="
-                  echartContent.apiCalls ? echartContent.apiCalls.lines : []
+                  echartContent.apiKeyCalls
+                    ? echartContent.apiKeyCalls.lines
+                    : []
                 "
                 :name="
-                  echartContent.apiCalls
-                    ? echartContent.apiCalls.tableName
+                  echartContent.apiKeyCalls
+                    ? echartContent.apiKeyCalls.tableName
                     : $t('statisticsDashboard.apiLineName')
                 "
                 v-loading="loading"
@@ -161,11 +163,13 @@
             <div class="data_echart full-width" v-if="rankingVisible">
               <UserEchart
                 :content="
-                  echartContent.apiCalls ? echartContent.apiCalls.lines : []
+                  echartContent.apiKeyCalls
+                    ? echartContent.apiKeyCalls.lines
+                    : []
                 "
                 :name="
-                  echartContent.apiCalls
-                    ? echartContent.apiCalls.tableName
+                  echartContent.apiKeyCalls
+                    ? echartContent.apiKeyCalls.tableName
                     : $t('statisticsDashboard.apiLineName')
                 "
                 v-loading="loading"
@@ -348,7 +352,7 @@ export default {
       ],
       moduleList: [
         {
-          id: 'rankingByApi',
+          id: 'byApi',
           name: this.$t('statisticsDashboard.apiRanking'),
           type: 'ranking',
           visible: true,
@@ -446,9 +450,8 @@ export default {
       this.dataLoading = true;
       getApiData(params)
         .then(res => {
-          const { overview, trend } = res.data || {};
+          const { overview } = res.data || {};
           this.content = overview || {};
-          this.echartContent = trend || {};
           // 解构后台返回的数据，暂存和 count 数组中key对应的数据
           this.count.map(item => {
             item.value = overview[item.key] ? overview[item.key].value : 0;

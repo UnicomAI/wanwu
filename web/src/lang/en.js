@@ -1865,7 +1865,7 @@ export default {
     apiList: '统计列表',
     apiStatistics: 'API调用统计',
     apiDetail: 'API调用详情',
-    apiLineName: 'API调用次数统计表',
+    apiLineName: 'APIKey调用趋势表',
     apiCallCountChartName: 'API Call Count Statistics',
     apiRanking: 'API Call Count Ranking',
     name: '名称',

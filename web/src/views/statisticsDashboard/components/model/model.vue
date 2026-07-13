@@ -108,19 +108,19 @@
                   :style="{
                     background:
                       item.des_value < 0
-                        ? 'rgba(26, 250, 41, 0.1)'
-                        : 'rgba(216, 30, 6, 0.1)',
-                    color: item.des_value < 0 ? '#1afa29' : '#d81e06',
+                        ? 'rgb(253,239,241)'
+                        : 'rgb(234,251,244)',
+                    color: item.des_value < 0 ? '#df1d48' : '#059569',
                   }"
                 >
                   <img
                     v-if="item.des_value < 0"
-                    src="@/assets/imgs/descend.png"
+                    src="@/assets/imgs/desc_icon.png"
                     alt=""
                   />
                   <img
                     v-if="item.des_value > 0"
-                    src="@/assets/imgs/rise.png"
+                    src="@/assets/imgs/asc_icon.png"
                     alt=""
                   />
                   {{ (item.des_value > 0 ? '+' : '') + item.des_value + '%' }}
