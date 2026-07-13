@@ -17,6 +17,21 @@
         />
       </el-select>
       <el-select
+        v-model="appParams.source"
+        :placeholder="$t('statisticsDashboard.sourceFilter')"
+        class="no-border-select"
+        style="margin-left: 15px"
+        clearable
+        @change="handleSourceChange"
+      >
+        <el-option
+          v-for="item in sourceOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
+      <el-select
         v-if="showSelectAppList.includes(appParams.module)"
         v-model="appParams.apps"
         :placeholder="$t('statisticsDashboard.app')"
@@ -137,13 +152,11 @@
             <div class="data_echart">
               <UserEchart
                 :content="
-                  echartContent.failureTrend
-                    ? echartContent.failureTrend.lines
-                    : []
+                  echartContent.callResult ? echartContent.callResult.lines : []
                 "
                 :name="
-                  echartContent.failureTrend
-                    ? echartContent.failureTrend.tableName
+                  echartContent.callResult
+                    ? echartContent.callResult.tableName
                     : $t('statisticsDashboard.appFailureLineName')
                 "
                 v-loading="loading"
@@ -283,6 +296,11 @@ export default {
       manageDialogVisible: false,
       appTypeObj: TotalTypeObj,
       showSelectAppList: ShowSelectAppList,
+      sourceOptions: [
+        { label: 'Web', value: 'web' },
+        { label: 'OpenAPI', value: 'openapi' },
+        { label: 'WebURL', value: 'webURL' },
+      ],
       appList: [],
       loading: false,
       dataLoading: false,
@@ -307,10 +325,42 @@ export default {
           unit: this.$t('statisticsDashboard.frequency'),
         },
         {
-          name: this.$t('statisticsDashboard.avgFirstCosts'),
+          name: this.$t('statisticsDashboard.dailyCallCount'),
           value: 0,
           des: this.$t('statistics.percentage'),
-          key: 'avgStreamCosts',
+          key: 'dailyAvgCallCount',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.frequency'),
+        },
+        {
+          name: this.$t('statisticsDashboard.dailyCallFailure'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'dailyAvgCallFailure',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.frequency'),
+        },
+        {
+          name: this.$t('statisticsDashboard.dailyStreamCount'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'dailyAvgStreamCount',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.frequency'),
+        },
+        {
+          name: this.$t('statisticsDashboard.dailyNonStreamCount'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'dailyAvgNonStreamCount',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.frequency'),
+        },
+        {
+          name: this.$t('statisticsDashboard.avgFirstTokenLatency'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'avgFirstTokenLatency',
           des_value: -9999,
           unit: 'ms',
         },
@@ -318,7 +368,7 @@ export default {
           name: this.$t('statisticsDashboard.avgCosts'),
           value: 0,
           des: this.$t('statistics.percentage'),
-          key: 'avgNonStreamCosts',
+          key: 'avgCosts',
           des_value: -9999,
           unit: 'ms',
         },
@@ -370,6 +420,7 @@ export default {
       appParams: {
         module: AGENT,
         apps: [],
+        source: '',
       },
     };
   },
@@ -433,6 +484,9 @@ export default {
       this.fetchApps();
       this.refreshData();
     },
+    handleSourceChange() {
+      this.refreshData();
+    },
     handleSearch() {
       this.refreshData();
     },
@@ -440,9 +494,12 @@ export default {
       this.appList = [];
       this.appParams.apps = [];
 
-      const res = await getAppSelect(
-        this.formatParams({ appType: this.appParams.module }),
-      );
+      const params = this.formatParams({
+        appType: this.appParams.module,
+        module: this.appParams.module,
+      });
+      delete params.apps;
+      const res = await getAppSelect(params);
       this.appList = res.data ? res.data.list || [] : [];
     },
     fetchAppList(params) {
@@ -464,13 +521,6 @@ export default {
           this.dataLoading = false;
         });
     },
-    fetchData(params) {
-      this.fetchAppList(params);
-      this.fetchRankingData(params);
-      this.$nextTick(() => {
-        this.$refs.appList && this.$refs.appList.getTableData(params);
-      });
-    },
     async fetchRankingData(params) {
       this.loading = true;
       try {
@@ -483,6 +533,13 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    fetchData(params) {
+      this.fetchAppList(params);
+      this.fetchRankingData(params);
+      this.$nextTick(() => {
+        this.$refs.appList && this.$refs.appList.getTableData(params);
+      });
     },
     openManageDialog() {
       this.dialogModuleList = JSON.parse(JSON.stringify(this.moduleList));

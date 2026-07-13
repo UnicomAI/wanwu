@@ -1857,6 +1857,7 @@ export default {
     appSelect: '板块筛选',
     appName: '应用名称',
     appType: '应用类型',
+    sourceFilter: '筛选来源',
     appList: '应用列表',
     appLineName: '应用调用次数统计表',
     appCallCountTotal: '调用总次数',

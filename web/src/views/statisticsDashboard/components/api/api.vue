@@ -493,13 +493,6 @@ export default {
           this.dataLoading = false;
         });
     },
-    fetchData(params) {
-      this.fetchApiData(params);
-      this.fetchRankingData(params);
-      this.$nextTick(() => {
-        this.$refs.apiList && this.$refs.apiList.getTableData(params);
-      });
-    },
     async fetchRankingData(params) {
       this.loading = true;
       try {
@@ -512,6 +505,13 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    fetchData(params) {
+      this.fetchApiData(params);
+      this.fetchRankingData(params);
+      this.$nextTick(() => {
+        this.$refs.apiList && this.$refs.apiList.getTableData(params);
+      });
     },
     openManageDialog() {
       this.dialogModuleList = JSON.parse(JSON.stringify(this.moduleList));

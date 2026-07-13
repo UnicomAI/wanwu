@@ -28,6 +28,24 @@
           @sort-change="handleSortChange"
         >
           <el-table-column
+            prop="source"
+            :label="$t('statisticsDashboard.source')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ scope.row.source || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="module"
+            :label="$t('statisticsDashboard.module')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ scope.row.module || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column
             prop="appName"
             :label="$t('statisticsDashboard.appName')"
             align="left"
@@ -233,7 +251,6 @@
             prop="streamCosts"
             :label="$t('statisticsDashboard.streamCosts') + ` (ms)`"
             align="left"
-            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.streamCosts) }}
@@ -243,7 +260,6 @@
             prop="nonStreamCosts"
             :label="$t('statisticsDashboard.nonStreamCosts') + ` (ms)`"
             align="left"
-            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.nonStreamCosts) }}
@@ -253,7 +269,6 @@
             prop="callTime"
             :label="$t('statisticsDashboard.callTime')"
             align="left"
-            sortable="custom"
           />
           <el-table-column
             prop="status"
