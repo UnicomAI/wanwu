@@ -12,10 +12,10 @@
         </el-button>
         <el-radio-group v-model="type" size="mini" @change="handleRadio">
           <el-radio-button :label="'list'">
-            {{ $t('statisticsDashboard.apiStatistics') }}
+            {{ $t('statisticsDashboard.tabStatistics') }}
           </el-radio-button>
           <el-radio-button :label="'record'">
-            {{ $t('statisticsDashboard.apiDetail') }}
+            {{ $t('statisticsDashboard.tabDetail') }}
           </el-radio-button>
         </el-radio-group>
         <el-table
@@ -167,7 +167,6 @@
           :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
           v-loading="loading"
           style="width: 100%"
-          @sort-change="handleSortChange"
         >
           <el-table-column
             prop="apiName"
@@ -235,8 +234,8 @@
             </template>
           </el-table-column>
           <el-table-column
-            prop="responseStatus"
-            :label="$t('statisticsDashboard.responseStatus')"
+            prop="isSuccess"
+            :label="$t('statisticsDashboard.status')"
             align="left"
           >
             <template slot-scope="scope">
@@ -263,7 +262,6 @@
             prop="costs"
             :label="$t('statisticsDashboard.costs')"
             align="left"
-            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.costs) }}ms
@@ -273,7 +271,6 @@
             prop="firstTokenLatency"
             :label="$t('statisticsDashboard.firstTokenLatency')"
             align="left"
-            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.firstTokenLatency) }}ms
@@ -346,6 +343,9 @@ export default {
       this.type = val;
       this.sortField = '';
       this.sortOrder = '';
+      // 列表数据初始化
+      this.tableData = [];
+      if (this.$refs.pagination) this.$refs.pagination.total = 0;
       this.$nextTick(() => {
         const table = this.$refs.listTable || this.$refs.recordTable;
         if (table) {

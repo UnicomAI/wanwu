@@ -12,10 +12,10 @@
         </el-button>
         <el-radio-group v-model="type" size="mini" @change="handleRadio">
           <el-radio-button label="list">
-            {{ $t('statisticsDashboard.modelStatistics') }}
+            {{ $t('statisticsDashboard.tabStatistics') }}
           </el-radio-button>
           <el-radio-button label="record">
-            {{ $t('statisticsDashboard.modelDetail') }}
+            {{ $t('statisticsDashboard.tabDetail') }}
           </el-radio-button>
         </el-radio-group>
         <el-table

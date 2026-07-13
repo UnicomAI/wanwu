@@ -33,7 +33,6 @@
         multiple
         collapse-tags
         filterable
-        @change="refreshData"
       >
         <el-option
           v-for="item in apiRoutesList"
@@ -318,10 +317,42 @@ export default {
           unit: this.$t('statisticsDashboard.frequency'),
         },
         {
-          name: this.$t('statisticsDashboard.avgStreamCosts'),
+          name: this.$t('statisticsDashboard.dailyCallCount'),
           value: 0,
           des: this.$t('statistics.percentage'),
-          key: 'avgStreamCosts',
+          key: 'dailyAvgCallCount',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.frequency'),
+        },
+        {
+          name: this.$t('statisticsDashboard.dailyCallFailure'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'dailyAvgCallFailure',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.frequency'),
+        },
+        {
+          name: this.$t('statisticsDashboard.dailyStreamCount'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'dailyAvgStreamCount',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.frequency'),
+        },
+        {
+          name: this.$t('statisticsDashboard.dailyNonStreamCount'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'dailyAvgNonStreamCount',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.frequency'),
+        },
+        {
+          name: this.$t('statisticsDashboard.avgFirstTokenLatency'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'avgFirstTokenLatency',
           des_value: -9999,
           unit: 'ms',
         },
@@ -329,7 +360,7 @@ export default {
           name: this.$t('statisticsDashboard.avgCosts'),
           value: 0,
           des: this.$t('statistics.percentage'),
-          key: 'avgNonStreamCosts',
+          key: 'avgCosts',
           des_value: -9999,
           unit: 'ms',
         },

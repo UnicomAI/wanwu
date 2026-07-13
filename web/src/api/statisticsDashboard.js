@@ -202,10 +202,10 @@ export const getApiRoutes = params => {
   });
 };
 
-// 获取API统计数据
+// 获取API统计数据概览
 export const getApiData = data => {
   return service({
-    url: `${USER_API}/statistic/api`,
+    url: `${USER_API}/statistic/api/overview`,
     method: 'post',
     data,
   });
@@ -224,8 +224,9 @@ export const getApiChart = data => {
 export const fetchApiList = data => {
   const type = data.type;
   delete data.type;
+  const path = type === 'list' ? '' : `${type}/`;
   return service({
-    url: `${USER_API}/statistic/api/${type || 'list'}`,
+    url: `${USER_API}/statistic/api/${path}list`,
     method: 'post',
     data,
   });

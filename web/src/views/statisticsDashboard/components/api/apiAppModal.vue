@@ -294,7 +294,7 @@ export default {
       const response = await exportApiAppData(this.apiParams);
       resDownloadFile(
         response,
-        `API${this.$t('statisticsDashboard.apiAppUsageStats')}.xlsx`,
+        `${this.$t('statisticsDashboard.apiStatistics')}_${this.$t('statisticsDashboard.apiAppUsageStats')}.xlsx`,
       );
     },
     getAppTypeTagClass(row) {
