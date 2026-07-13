@@ -37,7 +37,7 @@
         <div class="ranking-value">{{ formatAmount(item.value) }}</div>
       </div>
       <div v-if="!list.length" class="ranking-empty">
-        {{ $t('common.noData') }}
+        <el-empty :description="$t('common.noData')"></el-empty>
       </div>
     </div>
   </div>
