@@ -305,40 +305,5 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.modal-toolbar {
-  margin-bottom: 16px;
-}
-
-.type-tag {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.tag-blue {
-  color: $tag_color;
-  background: $tag_bg;
-}
-
-.tag-green {
-  color: #67c23a;
-  background: rgba(103, 194, 58, 0.1);
-}
-
-.tag-orange {
-  color: #e6a23c;
-  background: rgba(230, 162, 60, 0.1);
-}
-
-.tag-purple {
-  color: #a55fef;
-  background: rgba(165, 95, 239, 0.1);
-}
-
-.tag-gray {
-  color: #909399;
-  background: rgba(144, 147, 153, 0.1);
-}
+@import '@/style/statisticsTag.scss';
 </style>

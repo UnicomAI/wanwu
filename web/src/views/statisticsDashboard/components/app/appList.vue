@@ -158,7 +158,7 @@
               <el-button
                 class="btn-model"
                 size="mini"
-                icon="el-icon-s-grid"
+                icon="el-icon-menu"
                 @click="showModelModal(scope.row)"
               >
                 {{ $t('common.button.model') }}
@@ -419,53 +419,12 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '@/style/statisticsTag.scss';
 .table-wrap {
   margin-top: 24px;
   .add-bt {
     margin: 0 0 16px;
     float: right;
-  }
-}
-
-.btn-user {
-  color: #366fed;
-  border: 1px solid #dcebfe;
-  background: #eff6ff;
-  padding: 5px 8px;
-
-  &:hover,
-  &:focus {
-    color: #366fed;
-    border: 1px solid #dcebfe;
-    background: #eff6ff !important;
-  }
-}
-
-.btn-model {
-  color: #a55fef;
-  border: 1px solid #eedfff;
-  background: #faf5ff;
-  padding: 5px 8px;
-
-  &:hover,
-  &:focus {
-    color: #a55fef;
-    border: 1px solid #eedfff;
-    background: #faf5ff !important;
-  }
-}
-
-.btn-detail {
-  color: #5951e7;
-  border: 1px solid #d2dafe;
-  background: #eef2ff;
-  padding: 5px 8px;
-
-  &:hover,
-  &:focus {
-    color: #5951e7;
-    border: 1px solid #d2dafe;
-    background: #eef2ff !important;
   }
 }
 </style>

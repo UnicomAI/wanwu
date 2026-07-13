@@ -408,6 +408,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '@/style/statisticsTag.scss';
 .table-wrap {
   margin-top: 24px;
   .add-bt {
@@ -417,33 +418,6 @@ export default {
   .status-tag {
     font-weight: 500;
     border-radius: 12px;
-  }
-}
-.btn-app {
-  color: #a55fef;
-  border: 1px solid #eedfff;
-  background: #faf5ff;
-  padding: 5px 8px;
-
-  &:hover,
-  &:focus {
-    color: #a55fef;
-    border: 1px solid #eedfff;
-    background: #faf5ff !important;
-  }
-}
-
-.btn-detail {
-  color: #5951e7;
-  border: 1px solid #d2dafe;
-  background: #eef2ff;
-  padding: 5px 8px;
-
-  &:hover,
-  &:focus {
-    color: #5951e7;
-    border: 1px solid #d2dafe;
-    background: #eef2ff !important;
   }
 }
 </style>
