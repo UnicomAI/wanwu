@@ -120,7 +120,7 @@
 
 <script>
 import { formatAmount } from '@/utils/util.js';
-import { AppType } from '@/utils/commonSet';
+import { TotalTypeObj } from '@/utils/commonSet';
 
 export default {
   props: {
@@ -156,7 +156,9 @@ export default {
     },
     appTypeName() {
       return (
-        AppType[this.currentRow?.appType] || this.currentRow?.appType || '--'
+        TotalTypeObj[this.currentRow?.appType] ||
+        this.currentRow?.appType ||
+        '--'
       );
     },
   },

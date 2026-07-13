@@ -104,38 +104,31 @@ export const getAppData = data => {
   });
 };
 
+// 获取应用统计图表数据+排行
+export const getAppChart = data => {
+  return service({
+    url: `${USER_API}/statistic/app/chart`,
+    method: 'post',
+    data,
+  });
+};
+
 // 获取应用统计列表
 export const fetchAppList = data => {
+  const type = data.type;
+  delete data.type;
+  const path = type === 'list' ? '' : `${type}/`;
   return service({
-    url: `${USER_API}/statistic/app/list`,
+    url: `${USER_API}/statistic/app/${path}list`,
     method: 'post',
     data,
   });
 };
 
 // 应用数据导出
-export const exportAppData = data => {
+export const exportAppData = (data, type) => {
   return service({
-    url: `${USER_API}/statistic/app/export`,
-    method: 'post',
-    data,
-    responseType: 'blob',
-  });
-};
-
-// 获取应用明细列表
-export const fetchAppRecordList = data => {
-  return service({
-    url: `${USER_API}/statistic/app/record`,
-    method: 'post',
-    data,
-  });
-};
-
-// 应用明细导出
-export const exportAppRecordData = data => {
-  return service({
-    url: `${USER_API}/statistic/app/record/export`,
+    url: `${USER_API}/statistic/${type || 'list'}/export`,
     method: 'post',
     data,
     responseType: 'blob',

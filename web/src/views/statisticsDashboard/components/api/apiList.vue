@@ -354,6 +354,13 @@ export default {
       });
       this.getTableData({ ...this.params, pageNo: 1 });
     },
+    formatParams(params) {
+      return {
+        ...params,
+        sortField: this.sortField,
+        sortOrder: this.sortOrder,
+      };
+    },
     handleSortChange({ prop, order }) {
       this.sortField = prop || '';
       this.sortOrder =
@@ -364,12 +371,12 @@ export default {
       if (this.$refs.pagination) {
         this.loading = true;
         try {
-          this.tableData = await this.$refs.pagination.getTableData({
-            ...params,
-            type: this.type,
-            sortField: this.sortField,
-            sortOrder: this.sortOrder,
-          });
+          this.tableData = await this.$refs.pagination.getTableData(
+            this.formatParams({
+              ...params,
+              type: this.type,
+            }),
+          );
         } finally {
           this.loading = false;
         }
@@ -388,11 +395,7 @@ export default {
     },
     async exportData() {
       const response = await exportApiData(
-        {
-          ...this.params,
-          sortField: this.sortField,
-          sortOrder: this.sortOrder,
-        },
+        this.formatParams(this.params),
         this.type,
       );
       resDownloadFile(

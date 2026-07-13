@@ -236,7 +236,7 @@ import {
   fetchModelAppList,
   exportModelAppData,
 } from '@/api/statisticsDashboard';
-import { AppType, AGENT, CHAT, RAG, WORKFLOW } from '@/utils/commonSet';
+import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
 import {
   MODEL_TYPE_OBJ,
   PROVIDER_OBJ,
@@ -276,7 +276,7 @@ export default {
       listApi: fetchModelAppList,
       loading: false,
       tableData: [],
-      appTypeObj: AppType,
+      appTypeObj: TotalTypeObj,
     };
   },
   computed: {
@@ -381,13 +381,7 @@ export default {
       return 'tag-gray';
     },
     getAppTypeTagClass(row) {
-      const typeTag = {
-        [AGENT]: 'tag-purple',
-        [WORKFLOW]: 'tag-green',
-        [RAG]: 'tag-blue',
-        [CHAT]: 'tag-orange',
-      };
-      return typeTag[row.appType] || 'tag-gray';
+      return TagColorObj[row.appType] || 'tag-gray';
     },
   },
 };

@@ -17,6 +17,13 @@
     h4 {
       // margin: 10px 0 !important
     }
+
+    ::v-deep .el-empty {
+      .el-empty__image {
+        width: 120px !important;
+        height: auto;
+      }
+    }
   }
 
   .title {

@@ -296,7 +296,6 @@ export default {
       },
       loading: false,
       dataLoading: false,
-      content: {}, // 存储返回的总揽数据
       echartContent: {}, // 存储返回的echart数据
       rankingData: {},
       count: [
@@ -481,8 +480,7 @@ export default {
       this.dataLoading = true;
       getApiData(params)
         .then(res => {
-          const { overview } = res.data || {};
-          this.content = overview || {};
+          const overview = res.data || {};
           // 解构后台返回的数据，暂存和 count 数组中key对应的数据
           this.count.map(item => {
             item.value = overview[item.key] ? overview[item.key].value : 0;
@@ -505,9 +503,7 @@ export default {
     async fetchRankingData(params) {
       this.loading = true;
       try {
-        const res = await getApiChart({
-          ...params,
-        });
+        const res = await getApiChart(params);
         const { rank, trend } = res.data || {};
         this.rankingData = rank || {};
         this.echartContent = trend || {};

@@ -9,7 +9,9 @@
           <div class="ranking-avatar-wrap">
             <img
               class="ranking-avatar"
-              :src="item.avatar || defaultAvatar"
+              :src="
+                item.avatar?.path ? avatarSrc(item.avatar.path) : defaultAvatar
+              "
               alt=""
             />
             <div
@@ -70,37 +72,20 @@ export default {
       return require('@/assets/imgs/avatar_default.png');
     },
     list() {
-      const groupMap = {};
       const data = Array.isArray(this.data) ? this.data : [];
-      data.forEach(row => {
-        if (!row) return;
-        let key = '';
-        let item = {};
-        key = row.appId || row.appName || '--';
-        item = {
-          name: row.appName || '--',
-          value: 0,
-          appId: row.appId,
-          userName: row.userName || '',
-          avatar: this.getAppAvatar(row),
-        };
-        if (!groupMap[key]) {
-          groupMap[key] = item;
-        }
-        groupMap[key].value += Number(row.callCount || 0);
-      });
-      return Object.values(groupMap)
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 5);
+      return data.map(row => ({
+        name: row.appName || '--',
+        value: row.callCount,
+        appId: row.appId,
+        userName: row.moduleCreatorUserName || '--',
+        avatar: row.avatar,
+      }));
     },
   },
   methods: {
+    avatarSrc,
     formatValue(val) {
       return formatAmount(val);
-    },
-    getAppAvatar(row) {
-      const path = row.avatar;
-      return path ? avatarSrc(path) : '';
     },
   },
 };

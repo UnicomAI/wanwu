@@ -3,7 +3,7 @@
     <div style="padding: 5px 24px">
       <label>{{ $t('statisticsDashboard.appSelect') }}:</label>
       <el-select
-        v-model="appParams.appType"
+        v-model="appParams.module"
         :placeholder="$t('statisticsDashboard.appType')"
         class="no-border-select"
         style="margin-left: 15px"
@@ -17,6 +17,7 @@
         />
       </el-select>
       <el-select
+        v-if="showSelectAppList.includes(appParams.module)"
         v-model="appParams.apps"
         :placeholder="$t('statisticsDashboard.app')"
         class="no-border-select scroll-select"
@@ -80,7 +81,7 @@
         </div>
 
         <div v-if="activeTab === 'overview'" class="dataOverview">
-          <div class="client_dataOverview_content" v-loading="loading">
+          <div class="client_dataOverview_content" v-loading="dataLoading">
             <div v-for="(item, index) in count" :key="index" class="card">
               <div class="card-left">
                 <div class="card-title">{{ item.name }}</div>
@@ -155,36 +156,36 @@
               :key="module.id"
               class="ranking-module"
             >
-              <template v-if="module.id === 'rankingByAgent'">
+              <template v-if="module.id === 'byAgent'">
                 <AppRanking
                   :title="$t('statisticsDashboard.appRankingByAgent')"
                   dimension="app"
-                  :data="getFilteredRankingData(AGENT)"
-                  :loading="rankingLoading"
+                  :data="rankingData.byAgent || []"
+                  :loading="loading"
                 />
               </template>
-              <template v-else-if="module.id === 'rankingByWorkflow'">
+              <template v-else-if="module.id === 'byWorkflow'">
                 <AppRanking
                   :title="$t('statisticsDashboard.appRankingByWorkflow')"
                   dimension="app"
-                  :data="getFilteredRankingData(WORKFLOW)"
-                  :loading="rankingLoading"
+                  :data="rankingData.byWorkflow || []"
+                  :loading="loading"
                 />
               </template>
-              <template v-else-if="module.id === 'rankingByChat'">
+              <template v-else-if="module.id === 'byChat'">
                 <AppRanking
                   :title="$t('statisticsDashboard.appRankingByChat')"
                   dimension="app"
-                  :data="getFilteredRankingData(CHAT)"
-                  :loading="rankingLoading"
+                  :data="rankingData.byChatflow || []"
+                  :loading="loading"
                 />
               </template>
-              <template v-else-if="module.id === 'rankingByRag'">
+              <template v-else-if="module.id === 'byRag'">
                 <AppRanking
                   :title="$t('statisticsDashboard.appRankingByRag')"
                   dimension="app"
-                  :data="getFilteredRankingData(RAG)"
-                  :loading="rankingLoading"
+                  :data="rankingData.byRag || []"
+                  :loading="loading"
                 />
               </template>
             </div>
@@ -251,9 +252,9 @@ import { avatarSrc, formatAmount } from '@/utils/util.js';
 import {
   getAppData,
   getAppSelect,
-  fetchAppList,
+  getAppChart,
 } from '@/api/statisticsDashboard';
-import { AGENT, AppType, CHAT, WORKFLOW, RAG } from '@/utils/commonSet';
+import { AGENT, ShowSelectAppList, TotalTypeObj } from '@/utils/commonSet';
 
 export default {
   components: {
@@ -278,18 +279,16 @@ export default {
   data() {
     return {
       AGENT,
-      WORKFLOW,
-      CHAT,
-      RAG,
       activeTab: 'visual',
       manageDialogVisible: false,
-      appTypeObj: AppType,
+      appTypeObj: TotalTypeObj,
+      showSelectAppList: ShowSelectAppList,
       appList: [],
       loading: false,
-      rankingLoading: false,
+      dataLoading: false,
       content: {}, // 存储返回的总揽数据
       echartContent: {}, // 存储返回的echart数据
-      rankingData: [],
+      rankingData: {},
       count: [
         {
           name: this.$t('statisticsDashboard.appCallCountTotal'),
@@ -342,25 +341,25 @@ export default {
       ],
       moduleList: [
         {
-          id: 'rankingByAgent',
+          id: 'byAgent',
           name: this.$t('statisticsDashboard.appRankingByAgent'),
           type: 'ranking',
           visible: true,
         },
         {
-          id: 'rankingByWorkflow',
+          id: 'byWorkflow',
           name: this.$t('statisticsDashboard.appRankingByWorkflow'),
           type: 'ranking',
           visible: true,
         },
         {
-          id: 'rankingByChat',
+          id: 'byChat',
           name: this.$t('statisticsDashboard.appRankingByChat'),
           type: 'ranking',
           visible: true,
         },
         {
-          id: 'rankingByRag',
+          id: 'byRag',
           name: this.$t('statisticsDashboard.appRankingByRag'),
           type: 'ranking',
           visible: true,
@@ -369,7 +368,7 @@ export default {
       dialogModuleList: [],
       dragIndex: -1,
       appParams: {
-        appType: AGENT,
+        module: AGENT,
         apps: [],
       },
     };
@@ -402,6 +401,13 @@ export default {
       deep: true,
       immediate: true,
     },
+    scope: {
+      handler() {
+        this.fetchApps();
+        this.refreshData();
+      },
+      deep: true,
+    },
   },
   mounted() {
     this.fetchApps();
@@ -412,6 +418,7 @@ export default {
       return {
         ...params,
         ...this.globalFilterParams,
+        viewScope: this.scope,
       };
     },
     refreshData() {
@@ -421,7 +428,6 @@ export default {
         ...this.appParams,
       });
       this.fetchData(params);
-      this.fetchRankingData(params);
     },
     changeAppType() {
       this.fetchApps();
@@ -435,12 +441,12 @@ export default {
       this.appParams.apps = [];
 
       const res = await getAppSelect(
-        this.formatParams({ appType: this.appParams.appType }),
+        this.formatParams({ appType: this.appParams.module }),
       );
       this.appList = res.data ? res.data.list || [] : [];
     },
-    fetchData(params) {
-      this.loading = true;
+    fetchAppList(params) {
+      this.dataLoading = true;
       getAppData(params)
         .then(res => {
           const { overview, trend } = res.data || {};
@@ -455,33 +461,28 @@ export default {
           });
         })
         .finally(() => {
-          this.loading = false;
+          this.dataLoading = false;
         });
+    },
+    fetchData(params) {
+      this.fetchAppList(params);
+      this.fetchRankingData(params);
       this.$nextTick(() => {
-        if (this.$refs.appList) {
-          this.$refs.appList.getTableData(params);
-        }
+        this.$refs.appList && this.$refs.appList.getTableData(params);
       });
     },
     async fetchRankingData(params) {
-      this.rankingLoading = true;
+      this.loading = true;
       try {
-        // 移除 appType 过滤，一次性获取所有应用类型的数据，前端按类型分组
-        const { appType: _ignore, apps: _ignore2, ...rest } = params;
-        const res = await fetchAppList({
-          ...rest,
-          pageNo: 1,
-          pageSize: 99999,
-        });
-        this.rankingData = res?.data?.list || [];
+        const res = await getAppChart(params);
+        const { rank, trend } = res.data || {};
+        this.rankingData = rank || {};
+        this.echartContent = trend || {};
       } catch (err) {
-        this.rankingData = [];
+        this.rankingData = {};
       } finally {
-        this.rankingLoading = false;
+        this.loading = false;
       }
-    },
-    getFilteredRankingData(appType) {
-      return this.rankingData; //this.rankingData.filter(item => item.appType === appType);
     },
     openManageDialog() {
       this.dialogModuleList = JSON.parse(JSON.stringify(this.moduleList));

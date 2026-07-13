@@ -418,6 +418,13 @@ export default {
       deep: true,
       immediate: true,
     },
+    scope: {
+      handler(val, oldVal) {
+        console.log('scope', val, oldVal);
+        this.fetchModels();
+        this.refreshData();
+      },
+    },
   },
   mounted() {
     this.fetchModels();
@@ -428,6 +435,7 @@ export default {
       return {
         ...params,
         ...this.globalFilterParams,
+        viewScope: this.scope,
       };
     },
     refreshData() {

@@ -387,7 +387,7 @@ import {
   MULTIMODAL_RERANK,
   MULTIMODAL_EMBEDDING,
 } from '@/views/modelAccess/constants';
-import { AGENT, AppType, CHAT, RAG, WORKFLOW } from '@/utils/commonSet';
+import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
 
 export default {
   components: { Pagination, ModelUserModal, ModelAppModal, ModelRecordDetail },
@@ -404,7 +404,7 @@ export default {
       loading: false,
       tableData: [],
       providerObj: PROVIDER_OBJ,
-      appTypeObj: AppType,
+      appTypeObj: TotalTypeObj,
       type: 'list',
       sortField: '',
       sortOrder: '',
@@ -484,13 +484,7 @@ export default {
       return 'tag-gray';
     },
     getAppTypeTagClass(row) {
-      const typeTag = {
-        [AGENT]: 'tag-purple',
-        [WORKFLOW]: 'tag-green',
-        [RAG]: 'tag-blue',
-        [CHAT]: 'tag-orange',
-      };
-      return typeTag[row.appType] || 'tag-gray';
+      return TagColorObj[row.appType] || 'tag-gray';
     },
     getPublisher(row) {
       if (row.publisher) {

@@ -130,7 +130,7 @@
 
 <script>
 import { formatAmount } from '@/utils/util.js';
-import { AGENT, AppType, CHAT, RAG, WORKFLOW } from '@/utils/commonSet';
+import { AGENT, TotalTypeObj, CHAT, RAG, WORKFLOW } from '@/utils/commonSet';
 
 export default {
   props: {
@@ -163,7 +163,9 @@ export default {
     },
     appTypeName() {
       return (
-        AppType[this.currentRow?.appType] || this.currentRow?.appType || '--'
+        TotalTypeObj[this.currentRow?.appType] ||
+        this.currentRow?.appType ||
+        '--'
       );
     },
     appTypeTagClass() {

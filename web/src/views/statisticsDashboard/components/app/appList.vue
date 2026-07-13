@@ -316,13 +316,8 @@
 <script>
 import Pagination from '@/components/pagination.vue';
 import { formatAmount, resDownloadFile } from '@/utils/util.js';
-import {
-  fetchAppList,
-  exportAppData,
-  fetchAppRecordList,
-  exportAppRecordData,
-} from '@/api/statisticsDashboard';
-import { AppType } from '@/utils/commonSet';
+import { fetchAppList, exportAppData } from '@/api/statisticsDashboard';
+import { TotalTypeObj } from '@/utils/commonSet';
 import AppUserModal from './appUserModal.vue';
 import AppModelModal from './appModelModal.vue';
 import AppRecordDetail from './appRecordDetail.vue';
@@ -337,7 +332,7 @@ export default {
       listApi: fetchAppList,
       loading: false,
       tableData: [],
-      appTypeObj: AppType,
+      appTypeObj: TotalTypeObj,
       type: 'list',
       sortField: '',
       sortOrder: '',
@@ -353,14 +348,23 @@ export default {
       this.type = val;
       this.sortField = '';
       this.sortOrder = '';
+      // 列表数据初始化
+      this.tableData = [];
+      if (this.$refs.pagination) this.$refs.pagination.total = 0;
       this.$nextTick(() => {
         const table = this.$refs.listTable || this.$refs.recordTable;
         if (table) {
           table.clearSort();
         }
       });
-      this.listApi = val === 'list' ? fetchAppList : fetchAppRecordList;
       this.getTableData({ ...this.params, pageNo: 1 });
+    },
+    formatParams(params) {
+      return {
+        ...params,
+        sortField: this.sortField,
+        sortOrder: this.sortOrder,
+      };
     },
     handleSortChange({ prop, order }) {
       this.sortField = prop || '';
@@ -372,11 +376,12 @@ export default {
       if (this.$refs.pagination) {
         this.loading = true;
         try {
-          this.tableData = await this.$refs.pagination.getTableData({
-            ...params,
-            sortField: this.sortField,
-            sortOrder: this.sortOrder,
-          });
+          this.tableData = await this.$refs.pagination.getTableData(
+            this.formatParams({
+              ...params,
+              type: this.type,
+            }),
+          );
         } finally {
           this.loading = false;
         }
@@ -398,19 +403,16 @@ export default {
       this.detailVisible = true;
     },
     async exportData() {
-      if (this.type === 'list') {
-        const response = await exportAppData(this.params);
-        resDownloadFile(
-          response,
-          `${this.$t('statisticsDashboard.appStatistics')}.xlsx`,
-        );
-      } else {
-        const response = await exportAppRecordData(this.params);
-        resDownloadFile(
-          response,
-          `${this.$t('statisticsDashboard.appDetail')}.xlsx`,
-        );
-      }
+      const response = await exportAppData(
+        this.formatParams(this.params),
+        this.type,
+      );
+      resDownloadFile(
+        response,
+        this.type === 'list'
+          ? `${this.$t('statisticsDashboard.appStatistics')}.xlsx`
+          : `${this.$t('statisticsDashboard.appDetail')}.xlsx`,
+      );
     },
   },
 };

@@ -227,7 +227,7 @@ import {
   MULTIMODAL_RERANK,
   MULTIMODAL_EMBEDDING,
 } from '@/views/modelAccess/constants';
-import { AGENT, AppType, CHAT, RAG, WORKFLOW } from '@/utils/commonSet';
+import { AGENT, TotalTypeObj, CHAT, RAG, WORKFLOW } from '@/utils/commonSet';
 
 export default {
   props: {
@@ -284,7 +284,9 @@ export default {
     },
     appTypeName() {
       return (
-        AppType[this.currentRow?.appType] || this.currentRow?.appType || '--'
+        TotalTypeObj[this.currentRow?.appType] ||
+        this.currentRow?.appType ||
+        '--'
       );
     },
     appTypeTagClass() {
