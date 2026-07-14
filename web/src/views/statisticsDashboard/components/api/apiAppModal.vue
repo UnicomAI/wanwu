@@ -124,12 +124,12 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ scope.row.moduleCreatorUserMame || '--' }}
+            {{ scope.row.moduleCreatorUserName || '--' }}
           </template>
         </el-table-column>
         <el-table-column
           prop="orgName"
-          :label="$t('statisticsDashboard.appOrg')"
+          :label="$t('statisticsDashboard.appAuthorOrg')"
           align="left"
           min-width="120"
         >
@@ -139,7 +139,7 @@
         </el-table-column>
         <el-table-column
           prop="callCount"
-          :label="$t('statisticsDashboard.appCallCount')"
+          :label="$t('statisticsDashboard.callCount')"
           align="left"
           sortable="custom"
           min-width="120"
@@ -150,7 +150,7 @@
         </el-table-column>
         <el-table-column
           prop="callFailure"
-          :label="$t('statisticsDashboard.appCallFailure')"
+          :label="$t('statisticsDashboard.callFailure')"
           align="left"
           sortable="custom"
           min-width="120"
@@ -164,7 +164,7 @@
           :label="$t('statisticsDashboard.avgCosts')"
           align="left"
           sortable="custom"
-          min-width="150"
+          min-width="120"
         >
           <template slot-scope="scope">
             {{ formatAmount(scope.row.avgCosts) }}ms
@@ -175,7 +175,7 @@
           :label="$t('statisticsDashboard.avgFirstTokenLatency')"
           align="left"
           sortable="custom"
-          min-width="150"
+          min-width="120"
         >
           <template slot-scope="scope">
             {{ formatAmount(scope.row.avgFirstTokenLatency) }}ms
@@ -247,7 +247,7 @@ export default {
     };
   },
   computed: {
-    apiParams() {
+    apiAppParams() {
       return {
         ...this.params,
         sortField: this.sortField,
@@ -261,19 +261,22 @@ export default {
     formatAmount,
     handleOpen() {
       this.$nextTick(() => {
-        this.getTableData({ pageNo: 1 });
+        this.initTableData();
       });
     },
     handleClose() {
       this.$emit('update:visible', false);
       this.tableData = [];
     },
+    initTableData() {
+      this.getTableData({ pageNo: 1 });
+    },
     async getTableData(params) {
       if (this.$refs.pagination) {
         this.loading = true;
         try {
           this.tableData = await this.$refs.pagination.getTableData({
-            ...this.apiParams,
+            ...this.apiAppParams,
             ...params,
           });
         } finally {
@@ -288,10 +291,10 @@ export default {
       this.sortField = prop || '';
       this.sortOrder =
         order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : '';
-      this.getTableData({ pageNo: 1 });
+      this.initTableData();
     },
     async exportData() {
-      const response = await exportApiAppData(this.apiParams);
+      const response = await exportApiAppData(this.apiAppParams);
       resDownloadFile(
         response,
         `${this.$t('statisticsDashboard.apiStatistics')}_${this.$t('statisticsDashboard.apiAppUsageStats')}.xlsx`,

@@ -25,6 +25,7 @@ export const WorkflowTypeList = [
 export const TotalTypeObj = {
   [AGENT]: i18n.t('appSpace.agent'),
   [WORKFLOW]: i18n.t('appSpace.workflow'),
+  [CHAT]: i18n.t('appSpace.chat'),
   [RAG]: i18n.t('appSpace.rag'),
   [WGA]: i18n.t('appSpace.generalAgent'),
   [MODEL]: i18n.t('appSpace.model'),

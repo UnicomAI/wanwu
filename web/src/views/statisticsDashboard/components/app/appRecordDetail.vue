@@ -9,7 +9,7 @@
     <div slot="title" class="dialog-title-wrap">
       <span class="dialog-title">{{ title }}</span>
       <el-tag
-        v-if="currentRow.status === 'success'"
+        v-if="currentRow.isSuccess"
         type="success"
         size="small"
         class="status-tag"
@@ -17,7 +17,7 @@
         {{ $t('statisticsDashboard.success') }}
       </el-tag>
       <el-tag
-        v-else-if="currentRow.status === 'error'"
+        v-else-if="isFailed"
         type="danger"
         size="small"
         class="status-tag"
@@ -32,36 +32,30 @@
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.appType') }}</label>
             <div>
-              <span
-                v-if="currentRow.appType"
-                :class="['type-tag', appTypeTagClass]"
-              >
-                {{ appTypeName }}
-              </span>
-              <span v-else>--</span>
+              {{ appTypeName }}
             </div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.creator') }}</label>
-            <div>{{ currentRow.creator || currentRow.userName || '--' }}</div>
+            <label>{{ $t('statisticsDashboard.appAuthor') }}</label>
+            <div>{{ currentRow.moduleCreatorUserName || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.org') }}</label>
-            <div>{{ currentRow.orgName || '--' }}</div>
+            <label>{{ $t('statisticsDashboard.appAuthorOrg') }}</label>
+            <div>{{ currentRow.moduleCreatorOrgName || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.userName') }}</label>
+            <label>{{ $t('statisticsDashboard.user') }}</label>
             <div>{{ currentRow.userName || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.userDept') }}</label>
+            <label>{{ $t('statisticsDashboard.userOrg') }}</label>
             <div>
-              {{ currentRow.userDept || currentRow.userName || '--' }}
+              {{ currentRow.orgName || '--' }}
             </div>
           </div>
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.callTime') }}</label>
-            <div>{{ currentRow.callTime || '--' }}</div>
+            <div>{{ currentRow.calledAt || '--' }}</div>
           </div>
         </div>
       </div>
@@ -73,21 +67,15 @@
         </div>
         <div class="perf-grid">
           <div class="perf-item">
-            <label>{{ $t('statisticsDashboard.streamCosts') }}</label>
+            <label>{{ $t('statisticsDashboard.costs') }}</label>
             <span class="perf-value">
-              {{ formatTime(currentRow.streamCosts) }}
-            </span>
-            <span class="perf-unit">
-              {{ $t('statisticsDashboard.streamMode') }}
+              {{ formatAmount(currentRow.costs) }}ms
             </span>
           </div>
           <div class="perf-item">
-            <label>{{ $t('statisticsDashboard.nonStreamCosts') }}</label>
+            <label>{{ $t('statisticsDashboard.firstTokenLatency') }}</label>
             <span class="perf-value">
-              {{ formatTime(currentRow.nonStreamCosts) }}
-            </span>
-            <span class="perf-unit">
-              {{ $t('statisticsDashboard.singleMode') }}
+              {{ formatAmount(currentRow.firstTokenLatency) }}ms
             </span>
           </div>
         </div>
@@ -99,7 +87,7 @@
           {{ $t('statisticsDashboard.failReason') }}
         </div>
         <div class="fail-content">
-          {{ currentRow.failReason || currentRow.errorMsg || '--' }}
+          {{ currentRow.failureReason || '--' }}
         </div>
       </div>
 
@@ -168,29 +156,12 @@ export default {
         '--'
       );
     },
-    appTypeTagClass() {
-      const typeTag = {
-        [AGENT]: 'tag-purple',
-        [WORKFLOW]: 'tag-green',
-        [RAG]: 'tag-blue',
-        [CHAT]: 'tag-orange',
-      };
-      return typeTag[this.currentRow?.appType] || 'tag-gray';
-    },
     isFailed() {
-      return this.currentRow?.status && this.currentRow.status !== 'success';
+      return this.currentRow.isSuccess === false;
     },
   },
   methods: {
     formatAmount,
-    formatTime(val) {
-      if (!val) return '0';
-      const num = Number(val);
-      if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 's';
-      }
-      return num + 'ms';
-    },
   },
 };
 </script>

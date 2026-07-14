@@ -85,7 +85,7 @@
           </el-table-column>-->
           <el-table-column
             prop="callCount"
-            :label="$t('statisticsDashboard.appCallCount')"
+            :label="$t('statisticsDashboard.callCount')"
             align="left"
             sortable="custom"
           >
@@ -95,7 +95,7 @@
           </el-table-column>
           <el-table-column
             prop="callFailure"
-            :label="$t('statisticsDashboard.appCallFailure')"
+            :label="$t('statisticsDashboard.callFailure')"
             align="left"
             sortable="custom"
           >

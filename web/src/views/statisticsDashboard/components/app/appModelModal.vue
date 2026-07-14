@@ -21,6 +21,7 @@
         v-loading="loading"
         :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
         style="width: 100%"
+        @sort-change="handleSortChange"
       >
         <el-table-column
           prop="source"
@@ -65,23 +66,79 @@
           </template>
         </el-table-column>
         <el-table-column
-          prop="author"
-          :label="$t('statisticsDashboard.author')"
+          prop="moduleCreatorUserName"
+          :label="$t('statisticsDashboard.appAuthor')"
           align="left"
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ scope.row.author || scope.row.userName || '--' }}
+            {{ scope.row.moduleCreatorUserName || '--' }}
           </template>
         </el-table-column>
         <el-table-column
-          prop="orgName"
-          :label="$t('statisticsDashboard.org')"
+          prop="moduleCreatorOrgName"
+          :label="$t('statisticsDashboard.appAuthorOrg')"
           align="left"
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ scope.row.orgName || '--' }}
+            {{ scope.row.moduleCreatorOrgName || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="model"
+          :label="$t('statisticsDashboard.modelName')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            {{ scope.row.model || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="provider"
+          :label="$t('statisticsDashboard.provider')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            {{ scope.row.provider || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="modelType"
+          :label="$t('statisticsDashboard.modelType')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            <span
+              :class="['type-tag', getModelTypeTagClass(scope.row.modelType)]"
+            >
+              {{
+                modelTypeObj[scope.row.modelType] || scope.row.modelType || '--'
+              }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="modelCreatorUserName"
+          :label="$t('statisticsDashboard.modelPublisher')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            {{ scope.row.modelCreatorUserName || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="modelCreatorOrgName"
+          :label="$t('statisticsDashboard.fromOrg')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            {{ scope.row.modelCreatorOrgName || '--' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -158,7 +215,7 @@
           min-width="150"
         >
           <template slot-scope="scope">
-            {{ formatTime(scope.row.avgCosts, 'avgCosts') }}
+            {{ formatAmount(scope.row.avgCosts) }}ms
           </template>
         </el-table-column>
         <el-table-column
@@ -166,12 +223,10 @@
           :label="$t('statisticsDashboard.avgFirstTokenLatency')"
           align="left"
           sortable="custom"
-          min-width="170"
+          min-width="150"
         >
           <template slot-scope="scope">
-            {{
-              formatTime(scope.row.avgFirstTokenLatency, 'avgFirstTokenLatency')
-            }}
+            {{ formatAmount(scope.row.avgFirstTokenLatency) }}ms
           </template>
         </el-table-column>
       </el-table>
@@ -193,6 +248,8 @@ import {
   exportAppModelData,
 } from '@/api/statisticsDashboard';
 import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
+import { MODEL_TYPE_OBJ } from '@/views/modelAccess/constants';
+import { MODEL_TAG_COLOR } from '@/views/statisticsDashboard/constants';
 
 export default {
   components: { Pagination },
@@ -216,6 +273,9 @@ export default {
       loading: false,
       tableData: [],
       appTypeObj: TotalTypeObj,
+      modelTypeObj: MODEL_TYPE_OBJ,
+      sortField: '',
+      sortOrder: '',
     };
   },
   computed: {
@@ -227,11 +287,12 @@ export default {
         this.$emit('update:visible', val);
       },
     },
-    modalParams() {
-      const { apps, ...rest } = this.params || {};
+    appModelParams() {
       return {
-        ...rest,
-        appId: this.appInfo?.appId || this.appInfo?.app || '',
+        ...this.params,
+        sortField: this.sortField,
+        sortOrder: this.sortOrder,
+        appId: this.appInfo?.appId || '',
       };
     },
   },
@@ -245,25 +306,29 @@ export default {
       }
       return num + 'ms';
     },
+    getModelTypeTagClass(type) {
+      return MODEL_TAG_COLOR[type] || 'tag-gray';
+    },
     handleOpen() {
       this.$nextTick(() => {
-        if (this.$refs.pagination) {
-          this.$refs.pagination.pageNo = 1;
-          this.$refs.pagination.pageSize = 10;
-          this.$refs.pagination.searchInfo = {};
-        }
-        this.getTableData({ ...this.modalParams, pageNo: 1 });
+        this.initTableData();
       });
     },
     handleClose() {
       this.$emit('update:visible', false);
       this.tableData = [];
     },
+    initTableData() {
+      this.getTableData({ pageNo: 1 });
+    },
     async getTableData(params) {
       if (this.$refs.pagination) {
         this.loading = true;
         try {
-          this.tableData = await this.$refs.pagination.getTableData(params);
+          this.tableData = await this.$refs.pagination.getTableData({
+            ...this.appModelParams,
+            ...params,
+          });
         } finally {
           this.loading = false;
         }
@@ -272,8 +337,14 @@ export default {
     refreshData(data) {
       this.tableData = data;
     },
+    handleSortChange({ prop, order }) {
+      this.sortField = prop || '';
+      this.sortOrder =
+        order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : '';
+      this.initTableData();
+    },
     async exportData() {
-      const response = await exportAppModelData(this.modalParams);
+      const response = await exportAppModelData(this.appModelParams);
       resDownloadFile(
         response,
         `${this.$t('statisticsDashboard.modelUsageStats')}.xlsx`,

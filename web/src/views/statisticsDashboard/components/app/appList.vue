@@ -64,29 +64,66 @@
             </template>
           </el-table-column>
           <el-table-column
-            prop="orgName"
-            :label="$t('statisticsDashboard.org')"
+            prop="moduleCreatorUserName"
+            :label="$t('statisticsDashboard.appAuthor')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ scope.row.orgName || '--' }}
+              {{ scope.row.moduleCreatorUserName || '--' }}
             </template>
           </el-table-column>
           <el-table-column
-            prop="userName"
-            :label="$t('statisticsDashboard.userName')"
+            prop="moduleCreatorOrgName"
+            :label="$t('statisticsDashboard.appAuthorOrg')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ scope.row.userName || '--' }}
+              {{ scope.row.moduleCreatorOrgName || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="avgFirstTokenLatency"
+            :label="$t('statisticsDashboard.avgFirstTokenLatency')"
+            align="left"
+            sortable="custom"
+          >
+            <template slot-scope="scope">
+              {{ formatAmount(scope.row.avgFirstTokenLatency) }}ms
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="avgCosts"
+            :label="$t('statisticsDashboard.avgCosts')"
+            align="left"
+            sortable="custom"
+          >
+            <template slot-scope="scope">
+              {{ formatAmount(scope.row.avgCosts) }}ms
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="streamCount"
+            :label="$t('statisticsDashboard.streamCount')"
+            align="left"
+            sortable="custom"
+          >
+            <template slot-scope="scope">
+              {{ formatAmount(scope.row.streamCount) }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="nonStreamCount"
+            :label="$t('statisticsDashboard.nonStreamCount')"
+            align="left"
+            sortable="custom"
+          >
+            <template slot-scope="scope">
+              {{ formatAmount(scope.row.nonStreamCount) }}
             </template>
           </el-table-column>
           <el-table-column
             prop="callCount"
-            :label="
-              $t('statisticsDashboard.appCallCount') +
-              ` (${$t('statisticsDashboard.frequency')})`
-            "
+            :label="$t('statisticsDashboard.callCountTotal')"
             align="left"
             sortable="custom"
           >
@@ -96,10 +133,7 @@
           </el-table-column>
           <el-table-column
             prop="callFailure"
-            :label="
-              $t('statisticsDashboard.appCallFailure') +
-              ` (${$t('statisticsDashboard.frequency')})`
-            "
+            :label="$t('statisticsDashboard.callFailure')"
             align="left"
             sortable="custom"
           >
@@ -112,51 +146,9 @@
             :label="$t('statisticsDashboard.failureRate')"
             align="left"
             sortable="custom"
-          />
-          <el-table-column
-            prop="avgStreamCosts"
-            :label="$t('statisticsDashboard.avgFirstCosts') + ` (ms)`"
-            align="left"
-            sortable="custom"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.avgStreamCosts) }}
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="avgNonStreamCosts"
-            :label="$t('statisticsDashboard.avgCosts') + ` (ms)`"
-            align="left"
-            sortable="custom"
-          >
-            <template slot-scope="scope">
-              {{ formatAmount(scope.row.avgNonStreamCosts) }}
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="streamCount"
-            :label="
-              $t('statisticsDashboard.streamCount') +
-              ` (${$t('statisticsDashboard.frequency')})`
-            "
-            align="left"
-            sortable="custom"
-          >
-            <template slot-scope="scope">
-              {{ formatAmount(scope.row.streamCount) }}
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="nonStreamCount"
-            :label="
-              $t('statisticsDashboard.nonStreamCount') +
-              ` (${$t('statisticsDashboard.frequency')})`
-            "
-            align="left"
-            sortable="custom"
-          >
-            <template slot-scope="scope">
-              {{ formatAmount(scope.row.nonStreamCount) }}
+              {{ formatAmount(scope.row.failureRate) }}%
             </template>
           </el-table-column>
           <el-table-column
@@ -231,7 +223,7 @@
           </el-table-column>
           <el-table-column
             prop="userName"
-            :label="$t('statisticsDashboard.userName')"
+            :label="$t('statisticsDashboard.user')"
             align="left"
           >
             <template slot-scope="scope">
@@ -239,54 +231,57 @@
             </template>
           </el-table-column>
           <el-table-column
-            prop="modelName"
-            :label="$t('statisticsDashboard.modelName')"
+            prop="costs"
+            :label="$t('statisticsDashboard.costs')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ scope.row.modelName || '--' }}
+              {{ formatAmount(scope.row.costs) }}ms
             </template>
           </el-table-column>
           <el-table-column
-            prop="streamCosts"
-            :label="$t('statisticsDashboard.streamCosts') + ` (ms)`"
+            prop="firstTokenLatency"
+            :label="$t('statisticsDashboard.firstTokenLatency')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.streamCosts) }}
+              {{ formatAmount(scope.row.firstTokenLatency) }}ms
             </template>
           </el-table-column>
           <el-table-column
-            prop="nonStreamCosts"
-            :label="$t('statisticsDashboard.nonStreamCosts') + ` (ms)`"
-            align="left"
-          >
-            <template slot-scope="scope">
-              {{ formatAmount(scope.row.nonStreamCosts) }}
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="callTime"
+            prop="calledAt"
             :label="$t('statisticsDashboard.callTime')"
             align="left"
-          />
+          >
+            <template slot-scope="scope">
+              {{ scope.row.calledAt || '--' }}
+            </template>
+          </el-table-column>
           <el-table-column
-            prop="status"
-            :label="$t('statisticsDashboard.responseStatus')"
+            prop="isSuccess"
+            :label="$t('statisticsDashboard.status')"
             align="left"
           >
             <template slot-scope="scope">
-              <el-tag
-                v-if="scope.row.status === '成功'"
-                type="success"
-                size="small"
-              >
-                {{ scope.row.status }}
-              </el-tag>
-              <el-tag v-else-if="scope.row.status" type="danger" size="small">
-                {{ scope.row.status }}
-              </el-tag>
-              <span v-else>--</span>
+              <template slot-scope="scope">
+                <el-tag
+                  v-if="scope.row.isSuccess"
+                  type="success"
+                  size="small"
+                  class="status-tag"
+                >
+                  {{ $t('statisticsDashboard.success') }}
+                </el-tag>
+                <el-tag
+                  v-else-if="scope.row.isSuccess === false"
+                  type="danger"
+                  size="small"
+                  class="status-tag"
+                >
+                  {{ $t('statisticsDashboard.error') }}
+                </el-tag>
+                <div v-else>--</div>
+              </template>
             </template>
           </el-table-column>
           <el-table-column
@@ -440,6 +435,10 @@ export default {
   .add-bt {
     margin: 0 0 16px;
     float: right;
+  }
+  .status-tag {
+    font-weight: 500;
+    border-radius: 12px;
   }
 }
 </style>

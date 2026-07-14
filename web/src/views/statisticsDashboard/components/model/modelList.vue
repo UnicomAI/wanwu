@@ -72,8 +72,10 @@
             width="110px"
           >
             <template slot-scope="scope">
-              <span :class="['type-tag', getModelTypeTagClass(scope.row)]">
-                {{ getModelTypeName(scope.row) }}
+              <span
+                :class="['type-tag', getModelTypeTagClass(scope.row.modelType)]"
+              >
+                {{ getModelTypeName(scope.row.modelType) }}
               </span>
             </template>
           </el-table-column>
@@ -388,6 +390,7 @@ import {
   MULTIMODAL_EMBEDDING,
 } from '@/views/modelAccess/constants';
 import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
+import { MODEL_TAG_COLOR } from '../../constants';
 
 export default {
   components: { Pagination, ModelUserModal, ModelAppModal, ModelRecordDetail },
@@ -468,20 +471,11 @@ export default {
           : this.$t('statisticsDashboard.modelDetail');
       resDownloadFile(response, `${fileName}.xlsx`);
     },
-    getModelTypeName(row) {
-      const modelId = row.modelId || row.model;
-      const modelInfo = this.modelMap[modelId] || {};
-      return MODEL_TYPE_OBJ[modelInfo.modelType || row.modelType] || '--';
+    getModelTypeName(type) {
+      return MODEL_TYPE_OBJ[type] || type || '--';
     },
-    getModelTypeTagClass(row) {
-      const modelId = row.modelId || row.model;
-      const modelInfo = this.modelMap[modelId] || {};
-      const type = modelInfo.modelType || row.modelType || '';
-      if (type === LLM) return 'tag-blue';
-      if ([RERANK, MULTIMODAL_RERANK].includes(type)) return 'tag-orange';
-      if ([EMBEDDING, MULTIMODAL_EMBEDDING].includes(type)) return 'tag-green';
-      if ([OCR, ASR, GUI, PDF_PARSER].includes(type)) return 'tag-purple';
-      return 'tag-gray';
+    getModelTypeTagClass(type) {
+      return MODEL_TAG_COLOR[type] || 'tag-gray';
     },
     getAppTypeTagClass(row) {
       return TagColorObj[row.appType] || 'tag-gray';

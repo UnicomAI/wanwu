@@ -95,10 +95,10 @@ export const getAppSelect = data => {
   });
 };
 
-// 获取应用统计数据
+// 获取应用统计数据概览
 export const getAppData = data => {
   return service({
-    url: `${USER_API}/statistic/app`,
+    url: `${USER_API}/statistic/app/overview`,
     method: 'post',
     data,
   });
@@ -138,7 +138,7 @@ export const exportAppData = (data, type) => {
 // 获取应用用户统计列表
 export const fetchAppUserList = data => {
   return service({
-    url: `${USER_API}/statistic/app/user/list`,
+    url: `${USER_API}/statistic/app/list/user`,
     method: 'post',
     data,
   });
@@ -147,7 +147,7 @@ export const fetchAppUserList = data => {
 // 导出应用用户统计数据
 export const exportAppUserData = data => {
   return service({
-    url: `${USER_API}/statistic/app/user/export`,
+    url: `${USER_API}/statistic/app/list/user/export`,
     method: 'post',
     data,
     responseType: 'blob',
@@ -157,7 +157,7 @@ export const exportAppUserData = data => {
 // 获取应用模型统计列表
 export const fetchAppModelList = data => {
   return service({
-    url: `${USER_API}/statistic/app/model/list`,
+    url: `${USER_API}/statistic/app/list/model`,
     method: 'post',
     data,
   });
@@ -166,7 +166,7 @@ export const fetchAppModelList = data => {
 // 导出应用模型统计数据
 export const exportAppModelData = data => {
   return service({
-    url: `${USER_API}/statistic/app/model/export`,
+    url: `${USER_API}/statistic/app/list/model/export`,
     method: 'post',
     data,
     responseType: 'blob',

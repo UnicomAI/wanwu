@@ -300,7 +300,7 @@ export default {
       rankingData: {},
       count: [
         {
-          name: this.$t('statisticsDashboard.appCallCountTotal'),
+          name: this.$t('statisticsDashboard.callCountTotal'),
           value: 0,
           des: this.$t('statistics.percentage'),
           key: 'callCount',
@@ -308,7 +308,7 @@ export default {
           unit: this.$t('statisticsDashboard.frequency'),
         },
         {
-          name: this.$t('statisticsDashboard.appCallFailure'),
+          name: this.$t('statisticsDashboard.callFailure'),
           value: 0,
           des: this.$t('statistics.percentage'),
           key: 'callFailure',

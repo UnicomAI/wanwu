@@ -21,6 +21,7 @@
         v-loading="loading"
         :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
         style="width: 100%"
+        @sort-change="handleSortChange"
       >
         <el-table-column
           prop="source"
@@ -33,8 +34,60 @@
           </template>
         </el-table-column>
         <el-table-column
+          prop="module"
+          :label="$t('statisticsDashboard.module')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            {{ scope.row.module || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="appName"
+          :label="$t('statisticsDashboard.appName')"
+          align="left"
+          min-width="140"
+        >
+          <template slot-scope="scope">
+            {{ scope.row.appName || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="appType"
+          :label="$t('statisticsDashboard.appType')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            <span :class="['type-tag', getAppTypeTagClass(scope.row)]">
+              {{ appTypeObj[scope.row.appType] || scope.row.appType || '--' }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="moduleCreatorUserName"
+          :label="$t('statisticsDashboard.appAuthor')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            {{ scope.row.moduleCreatorUserName || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="moduleCreatorOrgName"
+          :label="$t('statisticsDashboard.appAuthorOrg')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            {{ scope.row.moduleCreatorOrgName || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column
           prop="userName"
-          :label="$t('statisticsDashboard.userName')"
+          :label="$t('statisticsDashboard.user')"
           align="left"
           min-width="120"
         >
@@ -44,7 +97,7 @@
         </el-table-column>
         <el-table-column
           prop="orgName"
-          :label="$t('statisticsDashboard.org')"
+          :label="$t('statisticsDashboard.fromOrg')"
           align="left"
           min-width="120"
         >
@@ -54,10 +107,7 @@
         </el-table-column>
         <el-table-column
           prop="callCount"
-          :label="
-            $t('statisticsDashboard.appCallCount') +
-            ` (${$t('statisticsDashboard.frequency')})`
-          "
+          :label="$t('statisticsDashboard.callCount')"
           align="left"
           sortable="custom"
           min-width="120"
@@ -68,10 +118,7 @@
         </el-table-column>
         <el-table-column
           prop="callFailure"
-          :label="
-            $t('statisticsDashboard.appCallFailure') +
-            ` (${$t('statisticsDashboard.frequency')})`
-          "
+          :label="$t('statisticsDashboard.callFailure')"
           align="left"
           sortable="custom"
           min-width="120"
@@ -90,33 +137,30 @@
           <template slot-scope="scope">{{ scope.row.failureRate }}%</template>
         </el-table-column>
         <el-table-column
-          prop="avgStreamCosts"
-          :label="$t('statisticsDashboard.avgFirstCosts') + ` (ms)`"
+          prop="avgFirstTokenLatency"
+          :label="$t('statisticsDashboard.avgFirstTokenLatency')"
           align="left"
           sortable="custom"
-          min-width="170"
+          min-width="120"
         >
           <template slot-scope="scope">
-            {{ formatTime(scope.row.avgStreamCosts, 'avgStreamCosts') }}
+            {{ formatAmount(scope.row.avgFirstTokenLatency) }}ms
           </template>
         </el-table-column>
         <el-table-column
-          prop="avgNonStreamCosts"
-          :label="$t('statisticsDashboard.avgCosts') + ` (ms)`"
+          prop="avgCosts"
+          :label="$t('statisticsDashboard.avgCosts')"
           align="left"
           sortable="custom"
-          min-width="150"
+          min-width="120"
         >
           <template slot-scope="scope">
-            {{ formatTime(scope.row.avgNonStreamCosts, 'avgCosts') }}
+            {{ formatAmount(scope.row.avgCosts) }}ms
           </template>
         </el-table-column>
         <el-table-column
           prop="streamCount"
-          :label="
-            $t('statisticsDashboard.streamCount') +
-            ` (${$t('statisticsDashboard.frequency')})`
-          "
+          :label="$t('statisticsDashboard.streamCount')"
           align="left"
           sortable="custom"
           min-width="120"
@@ -127,10 +171,7 @@
         </el-table-column>
         <el-table-column
           prop="nonStreamCount"
-          :label="
-            $t('statisticsDashboard.nonStreamCount') +
-            ` (${$t('statisticsDashboard.frequency')})`
-          "
+          :label="$t('statisticsDashboard.nonStreamCount')"
           align="left"
           sortable="custom"
           min-width="120"
@@ -154,6 +195,7 @@
 import Pagination from '@/components/pagination.vue';
 import { formatAmount, resDownloadFile } from '@/utils/util.js';
 import { fetchAppUserList, exportAppUserData } from '@/api/statisticsDashboard';
+import { TagColorObj, TotalTypeObj } from '@/utils/commonSet';
 
 export default {
   components: { Pagination },
@@ -176,6 +218,9 @@ export default {
       listApi: fetchAppUserList,
       loading: false,
       tableData: [],
+      appTypeObj: TotalTypeObj,
+      sortField: '',
+      sortOrder: '',
     };
   },
   computed: {
@@ -187,43 +232,37 @@ export default {
         this.$emit('update:visible', val);
       },
     },
-    modalParams() {
-      const { apps, ...rest } = this.params || {};
+    appUserParams() {
       return {
-        ...rest,
-        appId: this.appInfo?.appId || this.appInfo?.app || '',
+        ...this.params,
+        sortField: this.sortField,
+        sortOrder: this.sortOrder,
+        appId: this.appInfo?.appId || '',
       };
     },
   },
   methods: {
     formatAmount,
-    formatTime(val, type) {
-      if (!val) return '0';
-      const num = Number(val);
-      if (type === 'avgCosts' && num >= 1000) {
-        return (num / 1000).toFixed(1) + 's';
-      }
-      return num + 'ms';
-    },
     handleOpen() {
       this.$nextTick(() => {
-        if (this.$refs.pagination) {
-          this.$refs.pagination.pageNo = 1;
-          this.$refs.pagination.pageSize = 10;
-          this.$refs.pagination.searchInfo = {};
-        }
-        this.getTableData({ ...this.modalParams, pageNo: 1 });
+        this.initTableData();
       });
     },
     handleClose() {
       this.$emit('update:visible', false);
       this.tableData = [];
     },
+    initTableData() {
+      this.getTableData({ pageNo: 1 });
+    },
     async getTableData(params) {
       if (this.$refs.pagination) {
         this.loading = true;
         try {
-          this.tableData = await this.$refs.pagination.getTableData(params);
+          this.tableData = await this.$refs.pagination.getTableData({
+            ...this.appUserParams,
+            ...params,
+          });
         } finally {
           this.loading = false;
         }
@@ -232,19 +271,26 @@ export default {
     refreshData(data) {
       this.tableData = data;
     },
+    handleSortChange({ prop, order }) {
+      this.sortField = prop || '';
+      this.sortOrder =
+        order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : '';
+      this.initTableData();
+    },
     async exportData() {
-      const response = await exportAppUserData(this.modalParams);
+      const response = await exportAppUserData(this.appUserParams);
       resDownloadFile(
         response,
-        `${this.$t('statisticsDashboard.userUsageStats')}.xlsx`,
+        `${this.$t('statisticsDashboard.appStatistics')}_${this.$t('statisticsDashboard.userUsageStats')}.xlsx`,
       );
+    },
+    getAppTypeTagClass(row) {
+      return TagColorObj[row.appType] || 'tag-gray';
     },
   },
 };
 </script>
 
 <style lang="scss" scoped>
-.modal-toolbar {
-  margin-bottom: 16px;
-}
+@import '@/style/statisticsTag.scss';
 </style>

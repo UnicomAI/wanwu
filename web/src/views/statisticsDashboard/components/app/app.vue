@@ -11,6 +11,7 @@
       >
         <el-option
           v-for="key in Object.keys(appTypeObj)"
+          v-if="key !== CHAT"
           :key="key"
           :label="appTypeObj[key]"
           :value="key"
@@ -267,7 +268,12 @@ import {
   getAppSelect,
   getAppChart,
 } from '@/api/statisticsDashboard';
-import { AGENT, ShowSelectAppList, TotalTypeObj } from '@/utils/commonSet';
+import {
+  AGENT,
+  CHAT,
+  ShowSelectAppList,
+  TotalTypeObj,
+} from '@/utils/commonSet';
 
 export default {
   components: {
@@ -292,6 +298,7 @@ export default {
   data() {
     return {
       AGENT,
+      CHAT,
       activeTab: 'visual',
       manageDialogVisible: false,
       appTypeObj: TotalTypeObj,
@@ -304,12 +311,11 @@ export default {
       appList: [],
       loading: false,
       dataLoading: false,
-      content: {}, // 存储返回的总揽数据
       echartContent: {}, // 存储返回的echart数据
       rankingData: {},
       count: [
         {
-          name: this.$t('statisticsDashboard.appCallCountTotal'),
+          name: this.$t('statisticsDashboard.callCountTotal'),
           value: 0,
           des: this.$t('statistics.percentage'),
           key: 'callCount',
@@ -317,7 +323,7 @@ export default {
           unit: this.$t('statisticsDashboard.frequency'),
         },
         {
-          name: this.$t('statisticsDashboard.appCallFailure'),
+          name: this.$t('statisticsDashboard.callFailure'),
           value: 0,
           des: this.$t('statistics.percentage'),
           key: 'callFailure',
@@ -495,7 +501,6 @@ export default {
       this.appParams.apps = [];
 
       const params = this.formatParams({
-        appType: this.appParams.module,
         module: this.appParams.module,
       });
       delete params.apps;
@@ -506,9 +511,7 @@ export default {
       this.dataLoading = true;
       getAppData(params)
         .then(res => {
-          const { overview, trend } = res.data || {};
-          this.content = overview || {};
-          this.echartContent = trend || {};
+          const overview = res.data || {};
           // 解构后台返回的数据，暂存和 count 数组中key对应的数据
           this.count.map(item => {
             item.value = overview[item.key] ? overview[item.key].value : 0;

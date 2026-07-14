@@ -41,10 +41,10 @@
           </div>
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.appAuthor') }}</label>
-            <div>{{ currentRow.moduleCreatorUserMame || '--' }}</div>
+            <div>{{ currentRow.moduleCreatorUserName || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appOrg') }}</label>
+            <label>{{ $t('statisticsDashboard.appAuthorOrg') }}</label>
             <div>{{ currentRow.moduleCreatorOrgName || '--' }}</div>
           </div>
           <div class="info-item">
@@ -71,13 +71,13 @@
           <div class="perf-item">
             <label>{{ $t('statisticsDashboard.costs') }}</label>
             <span class="perf-value">
-              {{ formatTime(currentRow.costs) }}
+              {{ formatAmount(currentRow.costs) }}ms
             </span>
           </div>
           <div class="perf-item">
             <label>{{ $t('statisticsDashboard.firstTokenLatency') }}</label>
             <span class="perf-value">
-              {{ formatTime(currentRow.firstTokenLatency) }}
+              {{ formatAmount(currentRow.firstTokenLatency) }}ms
             </span>
           </div>
         </div>
@@ -164,14 +164,6 @@ export default {
   },
   methods: {
     formatAmount,
-    formatTime(val) {
-      if (!val) return '0ms';
-      const num = Number(val);
-      if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 's';
-      }
-      return num + 'ms';
-    },
   },
 };
 </script>
