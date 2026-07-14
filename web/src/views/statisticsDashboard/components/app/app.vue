@@ -507,7 +507,7 @@ export default {
       const res = await getAppSelect(params);
       this.appList = res.data ? res.data.list || [] : [];
     },
-    fetchAppList(params) {
+    fetchAppData(params) {
       this.dataLoading = true;
       getAppData(params)
         .then(res => {
@@ -538,7 +538,7 @@ export default {
       }
     },
     fetchData(params) {
-      this.fetchAppList(params);
+      this.fetchAppData(params);
       this.fetchRankingData(params);
       this.$nextTick(() => {
         this.$refs.appList && this.$refs.appList.getTableData(params);

@@ -25,7 +25,9 @@
           <div class="ranking-avatar-wrap">
             <img
               class="ranking-avatar"
-              :src="item.avatar || defaultAvatar"
+              :src="
+                item.avatar?.path ? avatarSrc(item.avatar.path) : defaultAvatar
+              "
               alt=""
             />
             <div
@@ -65,7 +67,7 @@
             </div>
           </div>
         </template>
-        <div class="ranking-value">{{ formatValue(item.value) }}</div>
+        <div class="ranking-value">{{ formatAmount(item.value) }}</div>
       </div>
       <div v-if="!list.length" class="ranking-empty">
         <el-empty :description="$t('common.noData')"></el-empty>
@@ -106,74 +108,41 @@ export default {
       return require('@/assets/imgs/avatar_default.png');
     },
     list() {
-      const groupMap = {};
-      this.data.forEach(row => {
-        let key = '';
-        let item = {};
+      const data = Array.isArray(this.data) ? this.data : [];
+      return data.map(row => {
         if (this.dimension === 'model') {
-          const modelId = row.modelId || row.model;
-          const modelInfo = this.modelMap[modelId] || {};
-          key = row.model || '--';
-          item = {
+          return {
             name: row.model || '--',
-            value: 0,
-            modelId,
+            value: row.totalTokens,
+            modelId: row.modelId,
             provider: PROVIDER_OBJ[row.provider] || row.provider || '--',
-            publisher: this.buildPublisher(row),
-            modelTypeName: this.getModelTypeName(
-              row.modelType || modelInfo.modelType,
-            ),
-            avatar: this.getModelAvatar(modelInfo, row),
+            publisher: row.modelCreatorUserName || '--',
+            modelTypeName: this.getModelTypeName(row.modelType),
+            avatar: row.modelAvatar,
           };
         } else if (this.dimension === 'user') {
-          key = row.userId || row.userName || '--';
-          item = {
+          return {
             name: row.userName || '--',
-            value: 0,
+            value: row.totalTokens,
             userId: row.userId,
             orgName: row.orgName || '--',
-            avatar: this.getUserAvatar(row),
+            avatar: row.avatar,
           };
         } else if (this.dimension === 'org') {
-          key = row.orgId || row.orgName || '--';
-          item = {
+          return {
             name: row.orgName || '--',
-            value: 0,
+            value: row.totalTokens,
             orgId: row.orgId,
           };
         }
-        if (!groupMap[key]) {
-          groupMap[key] = item;
-        }
-        groupMap[key].value += Number(row.totalTokens || 0);
       });
-      return Object.values(groupMap)
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 5);
     },
   },
   methods: {
-    formatValue(val) {
-      return formatAmount(val);
-    },
-    buildPublisher(row) {
-      const orgName = row.orgName || '';
-      const userName = row.userName || '';
-      if (orgName && userName) {
-        return `${orgName} ${userName}`;
-      }
-      return orgName || userName || '--';
-    },
+    avatarSrc,
+    formatAmount,
     getModelTypeName(modelType) {
       return MODEL_TYPE_OBJ[modelType] || modelType || '';
-    },
-    getModelAvatar(modelInfo, row) {
-      const path = row.modelAvatar || row.avatar || modelInfo?.avatar?.path;
-      return path ? avatarSrc(path) : getModelDefaultIcon();
-    },
-    getUserAvatar(row) {
-      const path = row.userAvatar || row.avatar;
-      return path ? avatarSrc(path) : '';
     },
   },
 };

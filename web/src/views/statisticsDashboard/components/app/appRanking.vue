@@ -35,7 +35,7 @@
             </div>
           </div>
         </template>
-        <div class="ranking-value">{{ formatValue(item.value) }}</div>
+        <div class="ranking-value">{{ formatAmount(item.value) }}</div>
       </div>
       <div v-if="!list.length" class="ranking-empty">
         <el-empty :description="$t('common.noData')"></el-empty>
@@ -46,7 +46,6 @@
 
 <script>
 import { formatAmount, avatarSrc } from '@/utils/util.js';
-import { AGENT, WORKFLOW } from '@/utils/commonSet';
 
 export default {
   props: {
@@ -84,9 +83,7 @@ export default {
   },
   methods: {
     avatarSrc,
-    formatValue(val) {
-      return formatAmount(val);
-    },
+    formatAmount,
   },
 };
 </script>

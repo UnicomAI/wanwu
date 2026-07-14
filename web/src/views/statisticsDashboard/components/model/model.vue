@@ -168,30 +168,30 @@
               :key="module.id"
               class="ranking-module"
             >
-              <template v-if="module.id === 'rankingByModel'">
+              <template v-if="module.id === 'byModel'">
                 <ModelRanking
                   :title="$t('statisticsDashboard.modelRankingByModel')"
                   dimension="model"
-                  :data="rankingData"
-                  :loading="rankingLoading"
+                  :data="rankingData.byModel"
+                  :loading="loading"
                   :model-map="modelMap"
                 />
               </template>
-              <template v-else-if="module.id === 'rankingByUser'">
+              <template v-else-if="module.id === 'byUser'">
                 <ModelRanking
                   :title="$t('statisticsDashboard.modelRankingByUser')"
                   dimension="user"
-                  :data="rankingData"
-                  :loading="rankingLoading"
+                  :data="rankingData.byUser || []"
+                  :loading="loading"
                   :model-map="modelMap"
                 />
               </template>
-              <template v-else-if="module.id === 'rankingByOrg'">
+              <template v-else-if="module.id === 'byOrg'">
                 <ModelRanking
                   :title="$t('statisticsDashboard.modelRankingByOrg')"
                   dimension="org"
-                  :data="rankingData"
-                  :loading="rankingLoading"
+                  :data="rankingData.byOrg || []"
+                  :loading="loading"
                   :model-map="modelMap"
                 />
               </template>
@@ -260,7 +260,7 @@ import { avatarSrc, formatAmount, getModelDefaultIcon } from '@/utils/util.js';
 import {
   getModelData,
   getModelSelect,
-  fetchModelList,
+  getModelChart,
 } from '@/api/statisticsDashboard';
 import { MODEL_TYPE, LLM } from '@/views/modelAccess/constants';
 
@@ -291,10 +291,10 @@ export default {
       modelTypeList: MODEL_TYPE,
       modelList: [],
       loading: false,
-      rankingLoading: false,
+      dataLoading: false,
       content: {},
       echartContent: {},
-      rankingData: [],
+      rankingData: {},
       count: [
         {
           name: this.$t('statisticsDashboard.tokenTotals'),
@@ -355,19 +355,19 @@ export default {
       ],
       moduleList: [
         {
-          id: 'rankingByModel',
+          id: 'byModel',
           name: this.$t('statisticsDashboard.modelRankingByModel'),
           type: 'ranking',
           visible: true,
         },
         {
-          id: 'rankingByUser',
+          id: 'byUser',
           name: this.$t('statisticsDashboard.modelRankingByUser'),
           type: 'ranking',
           visible: true,
         },
         {
-          id: 'rankingByOrg',
+          id: 'byOrg',
           name: this.$t('statisticsDashboard.modelRankingByOrg'),
           type: 'ranking',
           visible: true,
@@ -419,11 +419,11 @@ export default {
       immediate: true,
     },
     scope: {
-      handler(val, oldVal) {
-        console.log('scope', val, oldVal);
+      handler() {
         this.fetchModels();
         this.refreshData();
       },
+      deep: true,
     },
   },
   mounted() {
@@ -445,7 +445,6 @@ export default {
         ...this.modelParams,
       });
       this.fetchData(params);
-      this.fetchRankingData(params);
     },
     changeModelType() {
       this.fetchModels();
@@ -463,13 +462,11 @@ export default {
       );
       this.modelList = res.data ? res.data.list || [] : [];
     },
-    fetchData(params) {
-      this.loading = true;
+    fetchModelData(params) {
+      this.dataLoading = true;
       getModelData(params)
         .then(res => {
-          const { overview, trend } = res.data || {};
-          this.content = overview || {};
-          this.echartContent = trend || {};
+          const overview = res.data || {};
           this.count.map(item => {
             item.value = overview[item.key] ? overview[item.key].value : 0;
             item.des_value = overview[item.key]
@@ -478,26 +475,28 @@ export default {
           });
         })
         .finally(() => {
-          this.loading = false;
+          this.dataLoading = false;
         });
-      this.$nextTick(() => {
-        if (this.$refs.modelList) {
-          this.$refs.modelList.getTableData(params);
-        }
-      });
     },
     async fetchRankingData(params) {
-      this.rankingLoading = true;
+      this.loading = true;
       try {
-        const res = await fetchModelList({
-          ...params,
-          pageNo: 1,
-          pageSize: 99999,
-        });
-        this.rankingData = res.data?.list || [];
+        const res = await getModelChart(params);
+        const { rank, trend } = res.data || {};
+        this.rankingData = rank || {};
+        this.echartContent = trend || {};
+      } catch (err) {
+        this.rankingData = {};
       } finally {
-        this.rankingLoading = false;
+        this.loading = false;
       }
+    },
+    fetchData(params) {
+      this.fetchModelData(params);
+      this.fetchRankingData(params);
+      this.$nextTick(() => {
+        this.$refs.modelList && this.$refs.modelList.getTableData(params);
+      });
     },
     openManageDialog() {
       this.dialogModuleList = JSON.parse(JSON.stringify(this.moduleList));

@@ -14,10 +14,19 @@ export const getModelSelect = data => {
   });
 };
 
-// 获取模型统计数据
+// 获取模型统计数据概览
 export const getModelData = data => {
   return service({
-    url: `${USER_API}/statistic/model`,
+    url: `${USER_API}/statistic/model/overview`,
+    method: 'post',
+    data,
+  });
+};
+
+// 获取模型统计图表数据+排行
+export const getModelChart = data => {
+  return service({
+    url: `${USER_API}/statistic/model/chart`,
     method: 'post',
     data,
   });

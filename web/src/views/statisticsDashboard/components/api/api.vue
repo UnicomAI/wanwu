@@ -236,7 +236,6 @@
           <el-switch
             v-model="module.visible"
             active-color="#4C7CF6"
-            @change="handleModuleVisibleChange"
           ></el-switch>
         </div>
       </div>
