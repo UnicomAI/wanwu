@@ -21,14 +21,17 @@
         v-loading="loading"
         :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
         style="width: 100%"
+        @sort-change="handleSortChange"
       >
         <el-table-column
-          prop="modelName"
+          prop="model"
           :label="$t('statisticsDashboard.modelName')"
           align="left"
-          min-width="140"
+          min-width="120"
         >
-          <template slot-scope="scope">{{ getModelName(scope.row) }}</template>
+          <template slot-scope="scope">
+            {{ scope.row.model || '--' }}
+          </template>
         </el-table-column>
         <el-table-column
           prop="provider"
@@ -37,47 +40,63 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ getProviderName(scope.row) }}
+            {{ scope.row.provider || '--' }}
           </template>
-        </el-table-column>
-        <el-table-column
-          prop="publisher"
-          :label="$t('statisticsDashboard.publisher')"
-          align="left"
-          min-width="140"
-        >
-          <template slot-scope="scope">
-            {{ getPublisherName(scope.row) }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="orgName"
-          :label="$t('statisticsDashboard.org')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">{{ getOrgName(scope.row) }}</template>
         </el-table-column>
         <el-table-column
           prop="modelType"
-          :label="$t('modelAccess.table.modelType')"
+          :label="$t('statisticsDashboard.modelType')"
           align="left"
-          width="110px"
+          min-width="120"
         >
           <template slot-scope="scope">
-            <span :class="['type-tag', getModelTypeTagClass(scope.row)]">
-              {{ getModelTypeName(scope.row) }}
+            <span
+              :class="['type-tag', getModelTypeTagClass(scope.row.modelType)]"
+            >
+              {{
+                modelTypeObj[scope.row.modelType] || scope.row.modelType || '--'
+              }}
             </span>
           </template>
         </el-table-column>
         <el-table-column
+          prop="modelCreatorUserName"
+          :label="$t('statisticsDashboard.modelPublisher')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            {{ scope.row.modelCreatorUserName || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="modelCreatorOrgName"
+          :label="$t('statisticsDashboard.fromOrg')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            {{ scope.row.modelCreatorOrgName || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column
           prop="userName"
-          :label="$t('statisticsDashboard.userName')"
+          :label="$t('statisticsDashboard.user')"
           align="left"
           min-width="120"
         >
           <template slot-scope="scope">
             {{ scope.row.userName || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="orgName"
+          :label="$t('statisticsDashboard.userOrg')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            {{ scope.row.orgName || '--' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -154,7 +173,7 @@
           min-width="150"
         >
           <template slot-scope="scope">
-            {{ formatTime(scope.row.avgCosts, 'avgCosts') }}
+            {{ formatSec(scope.row.avgCosts) }}
           </template>
         </el-table-column>
         <el-table-column
@@ -165,9 +184,7 @@
           min-width="170"
         >
           <template slot-scope="scope">
-            {{
-              formatTime(scope.row.avgFirstTokenLatency, 'avgFirstTokenLatency')
-            }}
+            {{ formatSec(scope.row.avgFirstTokenLatency) }}
           </template>
         </el-table-column>
       </el-table>
@@ -183,24 +200,13 @@
 
 <script>
 import Pagination from '@/components/pagination.vue';
-import { formatAmount, resDownloadFile } from '@/utils/util.js';
+import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import {
   fetchModelUserList,
   exportModelUserData,
 } from '@/api/statisticsDashboard';
-import {
-  MODEL_TYPE_OBJ,
-  PROVIDER_OBJ,
-  LLM,
-  RERANK,
-  EMBEDDING,
-  OCR,
-  GUI,
-  PDF_PARSER,
-  ASR,
-  MULTIMODAL_RERANK,
-  MULTIMODAL_EMBEDDING,
-} from '@/views/modelAccess/constants';
+import { MODEL_TAG_COLOR } from '../../constants';
+import { MODEL_TYPE_OBJ } from '@/views/modelAccess/constants';
 
 export default {
   components: { Pagination },
@@ -217,50 +223,41 @@ export default {
       type: Object,
       default: () => ({}),
     },
-    modelMap: {
-      type: Object,
-      default: () => ({}),
-    },
   },
   data() {
     return {
       listApi: fetchModelUserList,
       loading: false,
       tableData: [],
+      modelTypeObj: MODEL_TYPE_OBJ,
+      sortField: '',
+      sortOrder: '',
     };
   },
   computed: {
-    modalParams() {
-      const { models, ...rest } = this.params || {};
+    modalUserParams() {
       return {
-        ...rest,
-        modelId: this.modelInfo?.modelId || this.modelInfo?.model || '',
+        ...this.params,
+        sortField: this.sortField,
+        sortOrder: this.sortOrder,
+        modelId: this.modelInfo?.modelId || '',
       };
     },
   },
   methods: {
     formatAmount,
-    formatTime(val, type) {
-      if (!val) return '0';
-      const num = Number(val);
-      if (type === 'avgCosts' && num >= 1000) {
-        return (num / 1000).toFixed(1) + 's';
-      }
-      return num + 'ms';
-    },
+    formatSec,
     handleOpen() {
       this.$nextTick(() => {
-        if (this.$refs.pagination) {
-          this.$refs.pagination.pageNo = 1;
-          this.$refs.pagination.pageSize = 10;
-          this.$refs.pagination.searchInfo = {};
-        }
-        this.getTableData({ ...this.modalParams, pageNo: 1 });
+        this.initTableData();
       });
     },
     handleClose() {
       this.$emit('update:visible', false);
       this.tableData = [];
+    },
+    initTableData() {
+      this.getTableData({ pageNo: 1 });
     },
     async getTableData(params) {
       if (this.$refs.pagination) {
@@ -275,60 +272,21 @@ export default {
     refreshData(data) {
       this.tableData = data;
     },
+    handleSortChange({ prop, order }) {
+      this.sortField = prop || '';
+      this.sortOrder =
+        order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : '';
+      this.initTableData();
+    },
     async exportData() {
-      const response = await exportModelUserData(this.modalParams);
+      const response = await exportModelUserData(this.modalUserParams);
       resDownloadFile(
         response,
-        `${this.$t('statisticsDashboard.userUsageStats')}.xlsx`,
+        `${this.$t('statisticsDashboard.modelStatistics')}_${this.$t('statisticsDashboard.userUsageStats')}.xlsx`,
       );
     },
-    getModelId(row) {
-      return (
-        row.modelId ||
-        this.modelInfo?.modelId ||
-        row.model ||
-        this.modelInfo?.model ||
-        ''
-      );
-    },
-    getModelName(row) {
-      return row.modelName || row.model || this.modelInfo?.model || '--';
-    },
-    getProviderName(row) {
-      const provider = row.provider || this.modelInfo?.provider || '';
-      return PROVIDER_OBJ[provider] || provider || '--';
-    },
-    getPublisherName(row) {
-      if (row.publisher) {
-        return row.publisher;
-      }
-      const orgName = row.orgName || this.modelInfo?.orgName || '';
-      const userName = row.userName || '';
-      if (orgName && userName) {
-        return `${orgName} ${userName}`;
-      }
-      return orgName || userName || '--';
-    },
-    getOrgName(row) {
-      return row.orgName || this.modelInfo?.orgName || '--';
-    },
-    getModelTypeName(row) {
-      const modelId = this.getModelId(row);
-      const modelInfo = this.modelMap[modelId] || {};
-      const type =
-        row.modelType || modelInfo.modelType || this.modelInfo?.modelType || '';
-      return MODEL_TYPE_OBJ[type] || '--';
-    },
-    getModelTypeTagClass(row) {
-      const modelId = this.getModelId(row);
-      const modelInfo = this.modelMap[modelId] || {};
-      const type =
-        row.modelType || modelInfo.modelType || this.modelInfo?.modelType || '';
-      if (type === LLM) return 'tag-blue';
-      if ([RERANK, MULTIMODAL_RERANK].includes(type)) return 'tag-orange';
-      if ([EMBEDDING, MULTIMODAL_EMBEDDING].includes(type)) return 'tag-green';
-      if ([OCR, ASR, GUI, PDF_PARSER].includes(type)) return 'tag-purple';
-      return 'tag-gray';
+    getModelTypeTagClass(type) {
+      return MODEL_TAG_COLOR[type] || 'tag-gray';
     },
   },
 };

@@ -74,7 +74,7 @@
           </el-table-column>
           <el-table-column
             prop="moduleCreatorOrgName"
-            :label="$t('statisticsDashboard.appAuthorOrg')"
+            :label="$t('statisticsDashboard.fromOrg')"
             align="left"
           >
             <template slot-scope="scope">
@@ -88,7 +88,7 @@
             sortable="custom"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.avgFirstTokenLatency) }}ms
+              {{ formatSec(scope.row.avgFirstTokenLatency) }}
             </template>
           </el-table-column>
           <el-table-column
@@ -98,7 +98,7 @@
             sortable="custom"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.avgCosts) }}ms
+              {{ formatSec(scope.row.avgCosts) }}
             </template>
           </el-table-column>
           <el-table-column
@@ -236,7 +236,7 @@
             align="left"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.costs) }}ms
+              {{ formatSec(scope.row.costs) }}
             </template>
           </el-table-column>
           <el-table-column
@@ -245,7 +245,7 @@
             align="left"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.firstTokenLatency) }}ms
+              {{ formatSec(scope.row.firstTokenLatency) }}
             </template>
           </el-table-column>
           <el-table-column
@@ -263,25 +263,23 @@
             align="left"
           >
             <template slot-scope="scope">
-              <template slot-scope="scope">
-                <el-tag
-                  v-if="scope.row.isSuccess"
-                  type="success"
-                  size="small"
-                  class="status-tag"
-                >
-                  {{ $t('statisticsDashboard.success') }}
-                </el-tag>
-                <el-tag
-                  v-else-if="scope.row.isSuccess === false"
-                  type="danger"
-                  size="small"
-                  class="status-tag"
-                >
-                  {{ $t('statisticsDashboard.error') }}
-                </el-tag>
-                <div v-else>--</div>
-              </template>
+              <el-tag
+                v-if="scope.row.isSuccess"
+                type="success"
+                size="small"
+                class="status-tag"
+              >
+                {{ $t('statisticsDashboard.success') }}
+              </el-tag>
+              <el-tag
+                v-else-if="scope.row.isSuccess === false"
+                type="danger"
+                size="small"
+                class="status-tag"
+              >
+                {{ $t('statisticsDashboard.error') }}
+              </el-tag>
+              <div v-else>--</div>
             </template>
           </el-table-column>
           <el-table-column
@@ -325,7 +323,7 @@
 
 <script>
 import Pagination from '@/components/pagination.vue';
-import { formatAmount, resDownloadFile } from '@/utils/util.js';
+import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import { fetchAppList, exportAppData } from '@/api/statisticsDashboard';
 import { TotalTypeObj } from '@/utils/commonSet';
 import AppUserModal from './appUserModal.vue';
@@ -354,6 +352,7 @@ export default {
   },
   methods: {
     formatAmount,
+    formatSec,
     handleRadio(val) {
       this.type = val;
       this.sortField = '';

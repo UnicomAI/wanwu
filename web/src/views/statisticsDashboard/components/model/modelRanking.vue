@@ -98,10 +98,6 @@ export default {
       type: Boolean,
       default: false,
     },
-    modelMap: {
-      type: Object,
-      default: () => ({}),
-    },
   },
   computed: {
     defaultAvatar() {

@@ -77,7 +77,7 @@
         </el-table-column>
         <el-table-column
           prop="moduleCreatorOrgName"
-          :label="$t('statisticsDashboard.appAuthorOrg')"
+          :label="$t('statisticsDashboard.fromOrg')"
           align="left"
           min-width="120"
         >
@@ -133,7 +133,7 @@
         </el-table-column>
         <el-table-column
           prop="modelCreatorOrgName"
-          :label="$t('statisticsDashboard.fromOrg')"
+          :label="$t('statisticsDashboard.modelOrg')"
           align="left"
           min-width="120"
         >
@@ -215,7 +215,7 @@
           min-width="150"
         >
           <template slot-scope="scope">
-            {{ formatAmount(scope.row.avgCosts) }}ms
+            {{ formatSec(scope.row.avgCosts) }}
           </template>
         </el-table-column>
         <el-table-column
@@ -226,7 +226,7 @@
           min-width="150"
         >
           <template slot-scope="scope">
-            {{ formatAmount(scope.row.avgFirstTokenLatency) }}ms
+            {{ formatSec(scope.row.avgFirstTokenLatency) }}
           </template>
         </el-table-column>
       </el-table>
@@ -242,7 +242,7 @@
 
 <script>
 import Pagination from '@/components/pagination.vue';
-import { formatAmount, resDownloadFile } from '@/utils/util.js';
+import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import {
   fetchAppModelList,
   exportAppModelData,
@@ -298,14 +298,7 @@ export default {
   },
   methods: {
     formatAmount,
-    formatTime(val, type) {
-      if (!val) return '0';
-      const num = Number(val);
-      if (type === 'avgCosts' && num >= 1000) {
-        return (num / 1000).toFixed(1) + 's';
-      }
-      return num + 'ms';
-    },
+    formatSec,
     getModelTypeTagClass(type) {
       return MODEL_TAG_COLOR[type] || 'tag-gray';
     },
@@ -347,7 +340,7 @@ export default {
       const response = await exportAppModelData(this.appModelParams);
       resDownloadFile(
         response,
-        `${this.$t('statisticsDashboard.modelUsageStats')}.xlsx`,
+        `${this.$t('statisticsDashboard.appStatistics')}_${this.$t('statisticsDashboard.modelUsageStats')}.xlsx`,
       );
     },
     getAppTypeTagClass(row) {

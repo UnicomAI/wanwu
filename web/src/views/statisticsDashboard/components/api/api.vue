@@ -93,8 +93,11 @@
             <div v-for="(item, index) in count" :key="index" class="card">
               <div class="card-left">
                 <div class="card-title">{{ item.name }}</div>
-                <div class="card-value">
+                <div class="card-value" v-if="item.unit !== 'ms'">
                   <strong>{{ formatAmount(item.value) }}{{ item.unit }}</strong>
+                </div>
+                <div class="card-value" v-else>
+                  <strong>{{ formatSec(item.value) }}</strong>
                 </div>
               </div>
               <div class="card-right">
@@ -254,7 +257,7 @@
 import UserEchart from '@/components/echart/userEchart.vue';
 import ApiList from './apiList.vue';
 import ApiRanking from './apiRanking.vue';
-import { formatAmount } from '@/utils/util.js';
+import { formatAmount, formatSec } from '@/utils/util.js';
 import {
   getApiData,
   getApiRoutes,
@@ -433,6 +436,7 @@ export default {
   },
   methods: {
     formatAmount,
+    formatSec,
     formatParams(params) {
       return {
         ...params,

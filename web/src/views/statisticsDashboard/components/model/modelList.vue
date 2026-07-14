@@ -48,21 +48,21 @@
             </template>
           </el-table-column>
           <el-table-column
-            prop="publisher"
+            prop="modelCreatorUserName"
             :label="$t('statisticsDashboard.publisher')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ getPublisher(scope.row) }}
+              {{ scope.row.modelCreatorUserName || '--' }}
             </template>
           </el-table-column>
           <el-table-column
-            prop="orgName"
-            :label="$t('statisticsDashboard.org')"
+            prop="modelCreatorOrgName"
+            :label="$t('statisticsDashboard.fromOrg')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ scope.row.orgName || '--' }}
+              {{ scope.row.modelCreatorOrgName || '--' }}
             </template>
           </el-table-column>
           <el-table-column
@@ -146,7 +146,7 @@
             sortable="custom"
           >
             <template slot-scope="scope">
-              {{ formatTime(scope.row.avgCosts, 'avgCosts') }}
+              {{ formatSec(scope.row.avgCosts) }}
             </template>
           </el-table-column>
           <el-table-column
@@ -156,12 +156,7 @@
             sortable="custom"
           >
             <template slot-scope="scope">
-              {{
-                formatTime(
-                  scope.row.avgFirstTokenLatency,
-                  'avgFirstTokenLatency',
-                )
-              }}
+              {{ formatSec(scope.row.avgFirstTokenLatency) }}
             </template>
           </el-table-column>
           <el-table-column
@@ -214,7 +209,7 @@
           >
             <template slot-scope="scope">
               <span :class="['type-tag', getModelTypeTagClass(scope.row)]">
-                {{ getModelTypeName(scope.row) }}
+                {{ getModelTypeName(scope.row.modelType) }}
               </span>
             </template>
           </el-table-column>
@@ -251,7 +246,6 @@
             prop="totalTokens"
             :label="$t('statisticsDashboard.totalTokens')"
             align="left"
-            sortable="custom"
           >
             <template slot-scope="scope">
               <span class="token-purple">
@@ -263,7 +257,6 @@
             prop="promptTokens"
             :label="$t('statisticsDashboard.promptTokens')"
             align="left"
-            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.promptTokens) }}
@@ -273,54 +266,43 @@
             prop="completionTokens"
             :label="$t('statisticsDashboard.completionTokens')"
             align="left"
-            sortable="custom"
           >
             <template slot-scope="scope">
               {{ formatAmount(scope.row.completionTokens) }}
             </template>
           </el-table-column>
           <el-table-column
-            prop="avgCosts"
-            :label="$t('statisticsDashboard.avgCosts')"
-            align="left"
-            sortable="custom"
-          >
-            <template slot-scope="scope">
-              {{ formatTime(scope.row.avgCosts, 'avgCosts') }}
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="avgFirstTokenLatency"
-            :label="$t('statisticsDashboard.avgFirstTokenLatency')"
-            align="left"
-            sortable="custom"
-          >
-            <template slot-scope="scope">
-              {{
-                formatTime(
-                  scope.row.avgFirstTokenLatency,
-                  'avgFirstTokenLatency',
-                )
-              }}
-            </template>
-          </el-table-column>
-          <el-table-column
             prop="callTime"
             :label="$t('statisticsDashboard.callTime')"
             align="left"
-            sortable="custom"
           >
             <template slot-scope="scope">
-              {{ scope.row.callTime || '--' }}
+              {{ scope.row.calledAt || '--' }}
             </template>
           </el-table-column>
           <el-table-column
             prop="status"
-            :label="$t('common.status')"
+            :label="$t('statisticsDashboard.status')"
             align="left"
           >
             <template slot-scope="scope">
-              {{ scope.row.status || '--' }}
+              <el-tag
+                v-if="scope.row.isSuccess"
+                type="success"
+                size="small"
+                class="status-tag"
+              >
+                {{ $t('statisticsDashboard.success') }}
+              </el-tag>
+              <el-tag
+                v-else-if="scope.row.isSuccess === false"
+                type="danger"
+                size="small"
+                class="status-tag"
+              >
+                {{ $t('statisticsDashboard.error') }}
+              </el-tag>
+              <div v-else>--</div>
             </template>
           </el-table-column>
           <el-table-column
@@ -353,42 +335,24 @@
       :visible.sync="userModalVisible"
       :params="params"
       :model-info="currentRow"
-      :model-map="modelMap"
     />
     <ModelAppModal
       :visible.sync="appModalVisible"
       :params="params"
       :model-info="currentRow"
-      :model-map="modelMap"
     />
-    <ModelRecordDetail
-      :visible.sync="detailVisible"
-      :row="currentRow"
-      :model-map="modelMap"
-    />
+    <ModelRecordDetail :visible.sync="detailVisible" :row="currentRow" />
   </div>
 </template>
 
 <script>
 import Pagination from '@/components/pagination.vue';
-import { formatAmount, resDownloadFile } from '@/utils/util.js';
+import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import { fetchModelList, exportModelData } from '@/api/statisticsDashboard';
 import ModelUserModal from './modelUserModal.vue';
 import ModelAppModal from './modelAppModal.vue';
 import ModelRecordDetail from './modelRecordDetail.vue';
-import {
-  MODEL_TYPE_OBJ,
-  PROVIDER_OBJ,
-  LLM,
-  RERANK,
-  EMBEDDING,
-  OCR,
-  GUI,
-  PDF_PARSER,
-  ASR,
-  MULTIMODAL_RERANK,
-  MULTIMODAL_EMBEDDING,
-} from '@/views/modelAccess/constants';
+import { MODEL_TYPE_OBJ, PROVIDER_OBJ } from '@/views/modelAccess/constants';
 import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
 import { MODEL_TAG_COLOR } from '../../constants';
 
@@ -396,10 +360,6 @@ export default {
   components: { Pagination, ModelUserModal, ModelAppModal, ModelRecordDetail },
   props: {
     params: {},
-    modelMap: {
-      type: Object,
-      default: () => ({}),
-    },
   },
   data() {
     return {
@@ -418,19 +378,15 @@ export default {
     };
   },
   methods: {
-    formatTime(val, type) {
-      if (!val) return '0';
-      const num = Number(val);
-      if (type === 'avgCosts' && num >= 1000) {
-        return (num / 1000).toFixed(1) + 's';
-      }
-      return num + 'ms';
-    },
+    formatSec,
     formatAmount,
     handleRadio(val) {
       this.type = val;
       this.sortField = '';
       this.sortOrder = '';
+      // 列表数据初始化
+      this.tableData = [];
+      if (this.$refs.pagination) this.$refs.pagination.total = 0;
       this.$nextTick(() => {
         const table = this.$refs.listTable || this.$refs.recordTable;
         if (table) {
@@ -480,17 +436,6 @@ export default {
     getAppTypeTagClass(row) {
       return TagColorObj[row.appType] || 'tag-gray';
     },
-    getPublisher(row) {
-      if (row.publisher) {
-        return row.publisher;
-      }
-      const orgName = row.orgName || '';
-      const userName = row.userName || '';
-      if (orgName && userName) {
-        return `${orgName} ${userName}`;
-      }
-      return orgName || userName || '--';
-    },
     showDetail(row) {
       this.currentRow = row;
       this.detailVisible = true;
@@ -514,6 +459,10 @@ export default {
   .add-bt {
     margin: 0 0 16px;
     float: right;
+  }
+  .status-tag {
+    font-weight: 500;
+    border-radius: 12px;
   }
 }
 </style>

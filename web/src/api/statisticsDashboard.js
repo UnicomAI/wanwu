@@ -56,7 +56,7 @@ export const exportModelData = (data, type) => {
 // 获取模型用户统计列表
 export const fetchModelUserList = data => {
   return service({
-    url: `${USER_API}/statistic/model/user/list`,
+    url: `${USER_API}/statistic/model/list/user`,
     method: 'post',
     data,
   });
@@ -65,7 +65,7 @@ export const fetchModelUserList = data => {
 // 导出模型用户统计数据
 export const exportModelUserData = data => {
   return service({
-    url: `${USER_API}/statistic/model/user/export`,
+    url: `${USER_API}/statistic/model/list/user/export`,
     method: 'post',
     data,
     responseType: 'blob',
@@ -75,7 +75,7 @@ export const exportModelUserData = data => {
 // 获取模型应用统计列表
 export const fetchModelAppList = data => {
   return service({
-    url: `${USER_API}/statistic/model/app/list`,
+    url: `${USER_API}/statistic/model/list/app`,
     method: 'post',
     data,
   });
@@ -84,7 +84,7 @@ export const fetchModelAppList = data => {
 // 导出模型应用统计数据
 export const exportModelAppData = data => {
   return service({
-    url: `${USER_API}/statistic/model/app/export`,
+    url: `${USER_API}/statistic/model/list/app/export`,
     method: 'post',
     data,
     responseType: 'blob',

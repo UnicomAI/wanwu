@@ -101,8 +101,11 @@
             <div v-for="(item, index) in count" :key="index" class="card">
               <div class="card-left">
                 <div class="card-title">{{ item.name }}</div>
-                <div class="card-value">
+                <div class="card-value" v-if="item.unit !== 'ms'">
                   <strong>{{ formatAmount(item.value) }}{{ item.unit }}</strong>
+                </div>
+                <div class="card-value" v-else>
+                  <strong>{{ formatSec(item.value) }}</strong>
                 </div>
               </div>
               <div class="card-right">
@@ -140,11 +143,11 @@
             <div class="data_echart">
               <UserEchart
                 :content="
-                  echartContent.callTrend ? echartContent.callTrend.lines : []
+                  echartContent.callResult ? echartContent.callResult.lines : []
                 "
                 :name="
-                  echartContent.callTrend
-                    ? echartContent.callTrend.tableName
+                  echartContent.callResult
+                    ? echartContent.callResult.tableName
                     : $t('statisticsDashboard.appLineName')
                 "
                 v-loading="loading"
@@ -153,12 +156,12 @@
             <div class="data_echart">
               <UserEchart
                 :content="
-                  echartContent.callResult ? echartContent.callResult.lines : []
+                  echartContent.callTrend ? echartContent.callTrend.lines : []
                 "
                 :name="
-                  echartContent.callResult
-                    ? echartContent.callResult.tableName
-                    : $t('statisticsDashboard.appFailureLineName')
+                  echartContent.callTrend
+                    ? echartContent.callTrend.tableName
+                    : $t('statisticsDashboard.appTrendLineName')
                 "
                 v-loading="loading"
               ></UserEchart>
@@ -262,7 +265,7 @@
 import UserEchart from '@/components/echart/userEchart.vue';
 import AppRanking from './appRanking.vue';
 import AppList from './appList.vue';
-import { avatarSrc, formatAmount } from '@/utils/util.js';
+import { avatarSrc, formatSec, formatAmount } from '@/utils/util.js';
 import {
   getAppData,
   getAppSelect,
@@ -471,6 +474,7 @@ export default {
   },
   methods: {
     formatAmount,
+    formatSec,
     formatParams(params) {
       return {
         ...params,

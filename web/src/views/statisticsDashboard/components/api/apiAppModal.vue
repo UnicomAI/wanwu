@@ -118,7 +118,7 @@
           </template>
         </el-table-column>
         <el-table-column
-          prop="author"
+          prop="moduleCreatorUserName"
           :label="$t('statisticsDashboard.appAuthor')"
           align="left"
           min-width="120"
@@ -129,7 +129,7 @@
         </el-table-column>
         <el-table-column
           prop="orgName"
-          :label="$t('statisticsDashboard.appAuthorOrg')"
+          :label="$t('statisticsDashboard.fromOrg')"
           align="left"
           min-width="120"
         >
@@ -167,7 +167,7 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ formatAmount(scope.row.avgCosts) }}ms
+            {{ formatSec(scope.row.avgCosts) }}
           </template>
         </el-table-column>
         <el-table-column
@@ -178,7 +178,7 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ formatAmount(scope.row.avgFirstTokenLatency) }}ms
+            {{ formatSec(scope.row.avgFirstTokenLatency) }}
           </template>
         </el-table-column>
         <el-table-column
@@ -216,7 +216,7 @@
 
 <script>
 import Pagination from '@/components/pagination.vue';
-import { formatAmount, resDownloadFile } from '@/utils/util.js';
+import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import { fetchApiAppList, exportApiAppData } from '@/api/statisticsDashboard';
 import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
 
@@ -259,6 +259,7 @@ export default {
   },
   methods: {
     formatAmount,
+    formatSec,
     handleOpen() {
       this.$nextTick(() => {
         this.initTableData();

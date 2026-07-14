@@ -143,7 +143,7 @@
                 :name="
                   echartContent.tokensUsage
                     ? echartContent.tokensUsage.tableName
-                    : ''
+                    : this.$t('statisticsDashboard.modelTokenChartName')
                 "
                 v-loading="loading"
               ></UserEchart>
@@ -156,7 +156,7 @@
                 :name="
                   echartContent.modelCalls
                     ? echartContent.modelCalls.tableName
-                    : ''
+                    : this.$t('statisticsDashboard.modelTrendChartName')
                 "
                 v-loading="loading"
               ></UserEchart>
@@ -174,7 +174,6 @@
                   dimension="model"
                   :data="rankingData.byModel"
                   :loading="loading"
-                  :model-map="modelMap"
                 />
               </template>
               <template v-else-if="module.id === 'byUser'">
@@ -183,7 +182,6 @@
                   dimension="user"
                   :data="rankingData.byUser || []"
                   :loading="loading"
-                  :model-map="modelMap"
                 />
               </template>
               <template v-else-if="module.id === 'byOrg'">
@@ -192,7 +190,6 @@
                   dimension="org"
                   :data="rankingData.byOrg || []"
                   :loading="loading"
-                  :model-map="modelMap"
                 />
               </template>
             </div>
@@ -202,7 +199,6 @@
         <div class="model-list-wrap">
           <ModelList
             :params="formatParams({ ...params, ...modelParams })"
-            :model-map="modelMap"
             ref="modelList"
           />
         </div>
@@ -300,7 +296,7 @@ export default {
           name: this.$t('statisticsDashboard.tokenTotals'),
           value: 0,
           des: this.$t('statistics.percentage'),
-          key: 'totalTokensTotal',
+          key: 'totalTokens',
           des_value: -9999,
           unit: this.$t('statisticsDashboard.quantity'),
         },
@@ -308,7 +304,7 @@ export default {
           name: this.$t('statisticsDashboard.promptTokensTotals'),
           value: 0,
           des: this.$t('statistics.percentage'),
-          key: 'promptTokensTotal',
+          key: 'promptTokens',
           des_value: -9999,
           unit: this.$t('statisticsDashboard.quantity'),
         },
@@ -316,9 +312,49 @@ export default {
           name: this.$t('statisticsDashboard.completionTokensTotals'),
           value: 0,
           des: this.$t('statistics.percentage'),
-          key: 'completionTokensTotal',
+          key: 'completionTokens',
           des_value: -9999,
           unit: this.$t('statisticsDashboard.quantity'),
+        },
+        {
+          name: this.$t('statisticsDashboard.dailyTotalTokens'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'dailyAvgTotalTokens',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.quantity'),
+        },
+        {
+          name: this.$t('statisticsDashboard.dailyPromptTokens'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'dailyAvgPromptTokens',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.quantity'),
+        },
+        {
+          name: this.$t('statisticsDashboard.dailyCompletionTokens'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'dailyAvgCompletionTokens',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.quantity'),
+        },
+        {
+          name: this.$t('statisticsDashboard.callCount'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'callCount',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.frequency'),
+        },
+        {
+          name: this.$t('statisticsDashboard.callFailure'),
+          value: 0,
+          des: this.$t('statistics.percentage'),
+          key: 'callFailure',
+          des_value: -9999,
+          unit: this.$t('statisticsDashboard.frequency'),
         },
         {
           name: this.$t('statisticsDashboard.avgCosts'),
@@ -327,22 +363,6 @@ export default {
           key: 'avgCosts',
           des_value: -9999,
           unit: 'ms',
-        },
-        {
-          name: this.$t('statisticsDashboard.callCount'),
-          value: 0,
-          des: this.$t('statistics.percentage'),
-          key: 'callCountTotal',
-          des_value: -9999,
-          unit: this.$t('statisticsDashboard.frequency'),
-        },
-        {
-          name: this.$t('statisticsDashboard.callFailure'),
-          value: 0,
-          des: this.$t('statistics.percentage'),
-          key: 'callFailureTotal',
-          des_value: -9999,
-          unit: this.$t('statisticsDashboard.frequency'),
         },
         {
           name: this.$t('statisticsDashboard.avgFirstTokenLatency'),
@@ -390,15 +410,6 @@ export default {
     },
     visibleModules() {
       return this.moduleList.filter(item => item.visible);
-    },
-    modelMap() {
-      const map = {};
-      this.modelList.forEach(item => {
-        if (item.modelId) {
-          map[item.modelId] = item;
-        }
-      });
-      return map;
     },
   },
   watch: {

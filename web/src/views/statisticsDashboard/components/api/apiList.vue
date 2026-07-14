@@ -110,7 +110,7 @@
             sortable="custom"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.avgFirstTokenLatency) }}ms
+              {{ formatSec(scope.row.avgFirstTokenLatency) }}
             </template>
           </el-table-column>
           <el-table-column
@@ -120,7 +120,7 @@
             sortable="custom"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.avgCosts) }}ms
+              {{ formatSec(scope.row.avgCosts) }}
             </template>
           </el-table-column>
           <el-table-column
@@ -264,7 +264,7 @@
             align="left"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.costs) }}ms
+              {{ formatSec(scope.row.costs) }}
             </template>
           </el-table-column>
           <el-table-column
@@ -273,7 +273,7 @@
             align="left"
           >
             <template slot-scope="scope">
-              {{ formatAmount(scope.row.firstTokenLatency) }}ms
+              {{ formatSec(scope.row.firstTokenLatency) }}
             </template>
           </el-table-column>
           <el-table-column
@@ -312,7 +312,7 @@
 
 <script>
 import Pagination from '@/components/pagination.vue';
-import { formatAmount, resDownloadFile } from '@/utils/util.js';
+import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import { fetchApiList, exportApiData } from '@/api/statisticsDashboard';
 import { PROVIDER_OBJ } from '@/views/modelAccess/constants';
 import RecordDetail from './recordDetail.vue';
@@ -338,6 +338,7 @@ export default {
     };
   },
   methods: {
+    formatSec,
     formatAmount,
     handleRadio(val) {
       this.type = val;

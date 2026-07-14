@@ -35,43 +35,33 @@
           </div>
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.provider') }}</label>
-            <div>{{ providerName }}</div>
+            <div>{{ currentRow.provider || '--' }}</div>
           </div>
           <div class="info-item">
             <label>{{ $t('modelAccess.table.modelType') }}</label>
             <div>
-              <span :class="['type-tag', modelTypeTagClass]">
-                {{ modelTypeName }}
-              </span>
+              {{ modelTypeName }}
             </div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appName') }}</label>
-            <div>{{ currentRow.appName || '--' }}</div>
+            <label>{{ $t('statisticsDashboard.modelPublisher') }}</label>
+            <div>{{ currentRow.modelCreatorUserName || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.modelTypeLabel') }}</label>
-            <div>{{ currentRow.modelTypeLabel || '--' }}</div>
+            <label>{{ $t('statisticsDashboard.modelOrg') }}</label>
+            <div>{{ currentRow.modelCreatorOrgName || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appType') }}</label>
+            <label>{{ $t('statisticsDashboard.source') }}</label>
             <div>
-              <span
-                v-if="currentRow.appType"
-                :class="['type-tag', appTypeTagClass]"
-              >
-                {{ appTypeName }}
-              </span>
-              <span v-else>--</span>
+              {{ currentRow.source || '--' }}
             </div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.org') }}</label>
-            <div>{{ currentRow.orgName || '--' }}</div>
-          </div>
-          <div class="info-item">
-            <label>{{ $t('statisticsDashboard.appSystem') }}</label>
-            <div>{{ currentRow.appSystem || '--' }}</div>
+            <label>{{ $t('statisticsDashboard.module') }}</label>
+            <div>
+              {{ currentRow.module || '--' }}
+            </div>
           </div>
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.appName') }}</label>
@@ -80,34 +70,32 @@
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.appType') }}</label>
             <div>
-              <span
-                v-if="currentRow.appType"
-                :class="['type-tag', appTypeTagClass]"
-              >
-                {{ appTypeName }}
-              </span>
-              <span v-else>--</span>
+              {{ appTypeName }}
             </div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.creator') }}</label>
-            <div>{{ currentRow.creator || currentRow.userName || '--' }}</div>
+            <label>{{ $t('statisticsDashboard.appAuthor') }}</label>
+            <div>{{ currentRow.moduleCreatorUserName || '--' }}</div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.createTime') }}</label>
+            <label>{{ $t('statisticsDashboard.appAuthorOrg') }}</label>
+            <div>{{ currentRow.moduleCreatorOrgName || '--' }}</div>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('statisticsDashboard.user') }}</label>
             <div>
-              {{ currentRow.createTime || currentRow.callTime || '--' }}
+              {{ currentRow.userName || '--' }}
             </div>
           </div>
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.userDept') }}</label>
+            <label>{{ $t('statisticsDashboard.userOrg') }}</label>
             <div>
-              {{ currentRow.userDept || currentRow.userName || '--' }}
+              {{ currentRow.orgName || '--' }}
             </div>
           </div>
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.callTime') }}</label>
-            <div>{{ currentRow.callTime || '--' }}</div>
+            <div>{{ currentRow.calledAt || '--' }}</div>
           </div>
         </div>
       </div>
@@ -152,26 +140,15 @@
         </div>
         <div class="perf-grid">
           <div class="perf-item">
-            <label>{{ $t('statisticsDashboard.totalCosts') }}</label>
+            <label>{{ $t('statisticsDashboard.costs') }}</label>
             <span class="perf-value">
-              {{ formatTime(currentRow.avgCosts, 'avgCosts') }}
-            </span>
-            <span class="perf-unit">
-              {{ $t('statisticsDashboard.singleMode') }}
+              {{ formatSec(currentRow.costs) }}
             </span>
           </div>
           <div class="perf-item">
-            <label>{{ $t('statisticsDashboard.firstTokenTime') }}</label>
+            <label>{{ $t('statisticsDashboard.firstTokenLatency') }}</label>
             <span class="perf-value">
-              {{
-                formatTime(
-                  currentRow.avgFirstTokenLatency,
-                  'avgFirstTokenLatency',
-                )
-              }}
-            </span>
-            <span class="perf-unit">
-              {{ $t('statisticsDashboard.streamMode') }}
+              {{ formatSec(currentRow.firstTokenLatency) }}
             </span>
           </div>
         </div>
@@ -183,7 +160,7 @@
           {{ $t('statisticsDashboard.failReason') }}
         </div>
         <div class="fail-content">
-          {{ currentRow.failReason || currentRow.errorMsg || '--' }}
+          {{ currentRow.failureReason || '--' }}
         </div>
       </div>
 
@@ -213,21 +190,9 @@
 </template>
 
 <script>
-import { formatAmount } from '@/utils/util.js';
-import {
-  MODEL_TYPE_OBJ,
-  PROVIDER_OBJ,
-  LLM,
-  RERANK,
-  EMBEDDING,
-  OCR,
-  GUI,
-  PDF_PARSER,
-  ASR,
-  MULTIMODAL_RERANK,
-  MULTIMODAL_EMBEDDING,
-} from '@/views/modelAccess/constants';
-import { AGENT, TotalTypeObj, CHAT, RAG, WORKFLOW } from '@/utils/commonSet';
+import { formatAmount, formatSec } from '@/utils/util.js';
+import { MODEL_TYPE_OBJ } from '@/views/modelAccess/constants';
+import { TotalTypeObj } from '@/utils/commonSet';
 
 export default {
   props: {
@@ -236,10 +201,6 @@ export default {
       default: false,
     },
     row: {
-      type: Object,
-      default: () => ({}),
-    },
-    modelMap: {
       type: Object,
       default: () => ({}),
     },
@@ -262,25 +223,12 @@ export default {
         ? `${name} - ${this.$t('statisticsDashboard.detailTitle')}`
         : this.$t('statisticsDashboard.detailTitle');
     },
-    providerName() {
-      const provider = this.currentRow?.provider || '';
-      return PROVIDER_OBJ[provider] || provider || '--';
-    },
     modelTypeName() {
-      const modelId = this.currentRow?.modelId || this.currentRow?.model || '';
-      const modelInfo = this.modelMap[modelId] || {};
-      const type = modelInfo.modelType || this.currentRow?.modelType || '';
-      return MODEL_TYPE_OBJ[type] || '--';
-    },
-    modelTypeTagClass() {
-      const modelId = this.currentRow?.modelId || this.currentRow?.model || '';
-      const modelInfo = this.modelMap[modelId] || {};
-      const type = modelInfo.modelType || this.currentRow?.modelType || '';
-      if (type === LLM) return 'tag-blue';
-      if ([RERANK, MULTIMODAL_RERANK].includes(type)) return 'tag-orange';
-      if ([EMBEDDING, MULTIMODAL_EMBEDDING].includes(type)) return 'tag-green';
-      if ([OCR, ASR, GUI, PDF_PARSER].includes(type)) return 'tag-purple';
-      return 'tag-gray';
+      return (
+        MODEL_TYPE_OBJ[this.currentRow?.modelType] ||
+        this.currentRow?.modelType ||
+        '--'
+      );
     },
     appTypeName() {
       return (
@@ -289,29 +237,13 @@ export default {
         '--'
       );
     },
-    appTypeTagClass() {
-      const typeTag = {
-        [AGENT]: 'tag-purple',
-        [WORKFLOW]: 'tag-green',
-        [RAG]: 'tag-blue',
-        [CHAT]: 'tag-orange',
-      };
-      return typeTag[this.currentRow?.appType] || 'tag-gray';
-    },
     isFailed() {
-      return this.currentRow?.status && this.currentRow.status !== 'success';
+      return this.currentRow.isSuccess === false;
     },
   },
   methods: {
     formatAmount,
-    formatTime(val, type) {
-      if (!val) return '0';
-      const num = Number(val);
-      if (type === 'avgCosts' && num >= 1000) {
-        return (num / 1000).toFixed(1) + 's';
-      }
-      return num + 'ms';
-    },
+    formatSec,
   },
 };
 </script>

@@ -71,13 +71,13 @@
           <div class="perf-item">
             <label>{{ $t('statisticsDashboard.costs') }}</label>
             <span class="perf-value">
-              {{ formatAmount(currentRow.costs) }}ms
+              {{ formatSec(currentRow.costs) }}
             </span>
           </div>
           <div class="perf-item">
             <label>{{ $t('statisticsDashboard.firstTokenLatency') }}</label>
             <span class="perf-value">
-              {{ formatAmount(currentRow.firstTokenLatency) }}ms
+              {{ formatSec(currentRow.firstTokenLatency) }}
             </span>
           </div>
         </div>
@@ -119,7 +119,7 @@
 </template>
 
 <script>
-import { formatAmount } from '@/utils/util.js';
+import { formatAmount, formatSec } from '@/utils/util.js';
 import { TotalTypeObj } from '@/utils/commonSet';
 
 export default {
@@ -164,6 +164,7 @@ export default {
   },
   methods: {
     formatAmount,
+    formatSec,
   },
 };
 </script>
