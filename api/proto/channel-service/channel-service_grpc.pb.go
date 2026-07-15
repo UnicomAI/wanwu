@@ -20,19 +20,22 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ChannelService_ListWanwuAgents_FullMethodName     = "/channel_service.ChannelService/ListWanwuAgents"
-	ChannelService_ListWanwuApiKeys_FullMethodName    = "/channel_service.ChannelService/ListWanwuApiKeys"
-	ChannelService_CreateQRLogin_FullMethodName       = "/channel_service.ChannelService/CreateQRLogin"
-	ChannelService_GetQRLoginStatus_FullMethodName    = "/channel_service.ChannelService/GetQRLoginStatus"
-	ChannelService_CancelQRLogin_FullMethodName       = "/channel_service.ChannelService/CancelQRLogin"
-	ChannelService_CompleteQRLogin_FullMethodName     = "/channel_service.ChannelService/CompleteQRLogin"
-	ChannelService_CreateChannel_FullMethodName       = "/channel_service.ChannelService/CreateChannel"
-	ChannelService_ListChannels_FullMethodName        = "/channel_service.ChannelService/ListChannels"
-	ChannelService_GetChannel_FullMethodName          = "/channel_service.ChannelService/GetChannel"
-	ChannelService_UpdateChannel_FullMethodName       = "/channel_service.ChannelService/UpdateChannel"
-	ChannelService_UpdateChannelStatus_FullMethodName = "/channel_service.ChannelService/UpdateChannelStatus"
-	ChannelService_DeleteChannel_FullMethodName       = "/channel_service.ChannelService/DeleteChannel"
-	ChannelService_DisconnectChannel_FullMethodName   = "/channel_service.ChannelService/DisconnectChannel"
+	ChannelService_ListWanwuAgents_FullMethodName        = "/channel_service.ChannelService/ListWanwuAgents"
+	ChannelService_ListWanwuApiKeys_FullMethodName       = "/channel_service.ChannelService/ListWanwuApiKeys"
+	ChannelService_CreateQRLogin_FullMethodName          = "/channel_service.ChannelService/CreateQRLogin"
+	ChannelService_GetQRLoginStatus_FullMethodName       = "/channel_service.ChannelService/GetQRLoginStatus"
+	ChannelService_CancelQRLogin_FullMethodName          = "/channel_service.ChannelService/CancelQRLogin"
+	ChannelService_CompleteQRLogin_FullMethodName        = "/channel_service.ChannelService/CompleteQRLogin"
+	ChannelService_CreateChannel_FullMethodName          = "/channel_service.ChannelService/CreateChannel"
+	ChannelService_ListChannels_FullMethodName           = "/channel_service.ChannelService/ListChannels"
+	ChannelService_GetChannel_FullMethodName             = "/channel_service.ChannelService/GetChannel"
+	ChannelService_UpdateChannel_FullMethodName          = "/channel_service.ChannelService/UpdateChannel"
+	ChannelService_UpdateChannelStatus_FullMethodName    = "/channel_service.ChannelService/UpdateChannelStatus"
+	ChannelService_DeleteChannel_FullMethodName          = "/channel_service.ChannelService/DeleteChannel"
+	ChannelService_DisconnectChannel_FullMethodName      = "/channel_service.ChannelService/DisconnectChannel"
+	ChannelService_SendTestMessage_FullMethodName        = "/channel_service.ChannelService/SendTestMessage"
+	ChannelService_GetChannelConnectivity_FullMethodName = "/channel_service.ChannelService/GetChannelConnectivity"
+	ChannelService_SendMessage_FullMethodName            = "/channel_service.ChannelService/SendMessage"
 )
 
 // ChannelServiceClient is the client API for ChannelService service.
@@ -68,6 +71,18 @@ type ChannelServiceClient interface {
 	DeleteChannel(ctx context.Context, in *DeleteChannelReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 断开通道连接
 	DisconnectChannel(ctx context.Context, in *DisconnectChannelReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// --- 通道连通性 / 测试消息 ---
+	// 发送测试消息：给指定通道的收件人发一条消息，验证通道出站可用并预置会话映射。
+	// 既用于建通道后自检连通性，也用于"建通道后给通道发消息"的首次投递。
+	SendTestMessage(ctx context.Context, in *SendTestMessageReq, opts ...grpc.CallOption) (*SendTestMessageResp, error)
+	// 查询通道实时连通状态（从适配器内存读，非 DB 快照），供前端展示 / 推送前自检。
+	GetChannelConnectivity(ctx context.Context, in *GetChannelConnectivityReq, opts ...grpc.CallOption) (*Connectivity, error)
+	// --- 内部服务发消息 ---
+	// 供内部服务（经 bff callback）给指定通道发消息。无权限校验、不预置会话映射，
+	// 仅做出站投递。user_id 不传时自动取该通道最近互动过的 IM 用户作为收件人。
+	// msg_type 支持 text/markdown/file：file 时传 file_url（minio 下载地址）+ file_name，
+	// channel-service 下载字节后经适配器 SendFile 投递（钉钉/微信支持，飞书不支持返回错误）。
+	SendMessage(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*SendMessageResp, error)
 }
 
 type channelServiceClient struct {
@@ -208,6 +223,36 @@ func (c *channelServiceClient) DisconnectChannel(ctx context.Context, in *Discon
 	return out, nil
 }
 
+func (c *channelServiceClient) SendTestMessage(ctx context.Context, in *SendTestMessageReq, opts ...grpc.CallOption) (*SendTestMessageResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendTestMessageResp)
+	err := c.cc.Invoke(ctx, ChannelService_SendTestMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *channelServiceClient) GetChannelConnectivity(ctx context.Context, in *GetChannelConnectivityReq, opts ...grpc.CallOption) (*Connectivity, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Connectivity)
+	err := c.cc.Invoke(ctx, ChannelService_GetChannelConnectivity_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *channelServiceClient) SendMessage(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*SendMessageResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendMessageResp)
+	err := c.cc.Invoke(ctx, ChannelService_SendMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChannelServiceServer is the server API for ChannelService service.
 // All implementations must embed UnimplementedChannelServiceServer
 // for forward compatibility.
@@ -241,6 +286,18 @@ type ChannelServiceServer interface {
 	DeleteChannel(context.Context, *DeleteChannelReq) (*emptypb.Empty, error)
 	// 断开通道连接
 	DisconnectChannel(context.Context, *DisconnectChannelReq) (*emptypb.Empty, error)
+	// --- 通道连通性 / 测试消息 ---
+	// 发送测试消息：给指定通道的收件人发一条消息，验证通道出站可用并预置会话映射。
+	// 既用于建通道后自检连通性，也用于"建通道后给通道发消息"的首次投递。
+	SendTestMessage(context.Context, *SendTestMessageReq) (*SendTestMessageResp, error)
+	// 查询通道实时连通状态（从适配器内存读，非 DB 快照），供前端展示 / 推送前自检。
+	GetChannelConnectivity(context.Context, *GetChannelConnectivityReq) (*Connectivity, error)
+	// --- 内部服务发消息 ---
+	// 供内部服务（经 bff callback）给指定通道发消息。无权限校验、不预置会话映射，
+	// 仅做出站投递。user_id 不传时自动取该通道最近互动过的 IM 用户作为收件人。
+	// msg_type 支持 text/markdown/file：file 时传 file_url（minio 下载地址）+ file_name，
+	// channel-service 下载字节后经适配器 SendFile 投递（钉钉/微信支持，飞书不支持返回错误）。
+	SendMessage(context.Context, *SendMessageReq) (*SendMessageResp, error)
 	mustEmbedUnimplementedChannelServiceServer()
 }
 
@@ -289,6 +346,15 @@ func (UnimplementedChannelServiceServer) DeleteChannel(context.Context, *DeleteC
 }
 func (UnimplementedChannelServiceServer) DisconnectChannel(context.Context, *DisconnectChannelReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DisconnectChannel not implemented")
+}
+func (UnimplementedChannelServiceServer) SendTestMessage(context.Context, *SendTestMessageReq) (*SendTestMessageResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendTestMessage not implemented")
+}
+func (UnimplementedChannelServiceServer) GetChannelConnectivity(context.Context, *GetChannelConnectivityReq) (*Connectivity, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChannelConnectivity not implemented")
+}
+func (UnimplementedChannelServiceServer) SendMessage(context.Context, *SendMessageReq) (*SendMessageResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
 }
 func (UnimplementedChannelServiceServer) mustEmbedUnimplementedChannelServiceServer() {}
 func (UnimplementedChannelServiceServer) testEmbeddedByValue()                        {}
@@ -545,6 +611,60 @@ func _ChannelService_DisconnectChannel_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChannelService_SendTestMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendTestMessageReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChannelServiceServer).SendTestMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChannelService_SendTestMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChannelServiceServer).SendTestMessage(ctx, req.(*SendTestMessageReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChannelService_GetChannelConnectivity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChannelConnectivityReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChannelServiceServer).GetChannelConnectivity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChannelService_GetChannelConnectivity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChannelServiceServer).GetChannelConnectivity(ctx, req.(*GetChannelConnectivityReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChannelService_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendMessageReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChannelServiceServer).SendMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChannelService_SendMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChannelServiceServer).SendMessage(ctx, req.(*SendMessageReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ChannelService_ServiceDesc is the grpc.ServiceDesc for ChannelService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -603,6 +723,18 @@ var ChannelService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DisconnectChannel",
 			Handler:    _ChannelService_DisconnectChannel_Handler,
+		},
+		{
+			MethodName: "SendTestMessage",
+			Handler:    _ChannelService_SendTestMessage_Handler,
+		},
+		{
+			MethodName: "GetChannelConnectivity",
+			Handler:    _ChannelService_GetChannelConnectivity_Handler,
+		},
+		{
+			MethodName: "SendMessage",
+			Handler:    _ChannelService_SendMessage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

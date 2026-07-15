@@ -183,6 +183,9 @@ func NewDingTalkAdapter() *DingTalkAdapter {
 	return &DingTalkAdapter{}
 }
 
+// nowMilli 返回当前 Unix 毫秒时间戳，用于 ChannelStatus.Checked。
+func nowMilli() int64 { return time.Now().UnixMilli() }
+
 // Connect 连接到钉钉平台
 // 根据配置选择 Stream 或 Webhook 模式
 func (d *DingTalkAdapter) Connect(config types.AdapterConfig) error {
@@ -312,6 +315,69 @@ func (d *DingTalkAdapter) IsConnected() bool {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 	return d.connected
+}
+
+// Status 返回钉钉通道当前结构化连通状态（供前端实时展示 / 推送前自检）。
+// 聚合 stream/webhook client 的内部 status 字段，归一化为统一 ChannelState 语义。
+// 这是被动状态（读最近一次连接/断开事件置的值），不发起网络请求；主动探测用 Probe。
+func (d *DingTalkAdapter) Status() types.ChannelStatus {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+
+	if !d.connected {
+		return types.ChannelStatus{State: types.ChannelStateOffline, Detail: "adapter not connected", Checked: nowMilli()}
+	}
+
+	var raw string
+	if d.stream != nil {
+		raw = d.stream.GetStatus()
+	} else if d.webhook != nil {
+		raw = d.webhook.GetStatus()
+	}
+	return types.ChannelStatus{State: mapDingTalkState(raw), Detail: raw, Checked: nowMilli()}
+}
+
+// mapDingTalkState 将钉钉 client 内部 status 字符串归一化为统一 ChannelState。
+// 钉钉内部取值：online / offline / auth_failed（stream）；online/offline（webhook）。
+func mapDingTalkState(raw string) types.ChannelState {
+	switch raw {
+	case "online":
+		return types.ChannelStateConnected
+	case "auth_failed":
+		return types.ChannelStateAuthFailed
+	default:
+		return types.ChannelStateOffline
+	}
+}
+
+// Probe 主动探测钉钉通道"还在通"：验证出站 API Token 可获取（appSecret 有效）。
+// stream 模式额外确认入站长连接 connected。token 拿不到即视为 auth_failed（凭据失效）。
+// 实现 types.Prober，供心跳巡检发现"stream 连着但 token 过期"等半死状态。
+func (d *DingTalkAdapter) Probe(ctx context.Context) types.ChannelStatus {
+	d.mu.RLock()
+	stream, webhook := d.stream, d.webhook
+	d.mu.RUnlock()
+
+	if stream == nil && webhook == nil {
+		return types.ChannelStatus{State: types.ChannelStateOffline, Detail: "no dingtalk client", Checked: nowMilli()}
+	}
+
+	// 入站连接（仅 stream 模式有长连接；webhook 模式靠钉钉回调，无入站连接可探）
+	if stream != nil && !stream.IsConnected() {
+		return types.ChannelStatus{State: types.ChannelStateOffline, Detail: "stream not connected", Checked: nowMilli()}
+	}
+
+	// 出站 token：stream/webhook 各自 GetAccessToken，失败=凭据失效
+	if stream != nil {
+		if _, err := stream.GetAccessToken(ctx); err != nil {
+			return types.ChannelStatus{State: types.ChannelStateAuthFailed, Detail: "get access token: " + err.Error(), Checked: nowMilli()}
+		}
+	} else if webhook != nil {
+		if _, err := webhook.GetAccessToken(ctx); err != nil {
+			return types.ChannelStatus{State: types.ChannelStateAuthFailed, Detail: "get access token: " + err.Error(), Checked: nowMilli()}
+		}
+	}
+	return types.ChannelStatus{State: types.ChannelStateConnected, Detail: "probe ok", Checked: nowMilli()}
 }
 
 // GetAccountInfo 获取钉钉账号信息

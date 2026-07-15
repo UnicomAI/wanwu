@@ -25,6 +25,7 @@ type IClient interface {
 
 	// --- ChannelConversation 会话映射（持久化 threadId/conversationId） ---
 	GetConversation(ctx context.Context, channelID, userID, appType string) (*model.ChannelConversation, error)
+	ListConversationsByChannel(ctx context.Context, channelID string, limit int) ([]*model.ChannelConversation, error)
 	UpsertConversation(ctx context.Context, conv *model.ChannelConversation) error
 	DeleteConversationsByChannel(ctx context.Context, channelID string) error
 }

@@ -264,22 +264,23 @@ enum Code {
   OperateRecord = 320002; // 客户端统计错误
 
   // --- channel-service ---
-  // [180000, 189999]
-  ChannelGeneral = 180000; // 通道通用错误
-  ChannelNotFound = 180001; // 通道不存在
-  ChannelInvalidArg = 180002; // 参数错误
-  ChannelTypeNotSupported = 180003; // 不支持的通道类型
-  ChannelAdapterInitFailed = 180004; // 适配器初始化失败
-  ChannelQRSessionExpired = 180005; // 扫码会话不存在或已过期
-  ChannelQRLoginFailed = 180006; // 扫码登录失败
-  ChannelNotConnected = 180007; // 通道未连接/未登录
-  ChannelAlreadyExists = 180008; // 通道已存在
-  ChannelApiKeyNotSet = 180009; // 通道未绑定 API Key
-  WanwuAPIError = 180030; // 调用万悟平台 API 失败
-  WanwuAPIAuthFailed = 180031; // 万悟平台 API Key 无效或过期
-  WanwuAPINotFound = 180032; // 万悟平台资源不存在
-  WanwuAgentNotPublished = 180040; // 选中的智能体未发布，无法用于通道对话
-  WanwuApiKeyDisabled = 180041; // 选中的 API Key 已被禁用
-  WanwuApiKeyExpired = 180042; // 选中的 API Key 已过期
+  // [420000, 429999]
+  ChannelGeneral = 420000; // 通道通用错误
+  ChannelNotFound = 420001; // 通道不存在
+  ChannelInvalidArg = 420002; // 参数错误
+  ChannelTypeNotSupported = 420003; // 不支持的通道类型
+  ChannelAdapterInitFailed = 420004; // 适配器初始化失败
+  ChannelQRSessionExpired = 420005; // 扫码会话不存在或已过期
+  ChannelQRLoginFailed = 420006; // 扫码登录失败
+  ChannelNotConnected = 420007; // 通道未连接/未登录
+  ChannelAlreadyExists = 420008; // 通道已存在
+  ChannelApiKeyNotSet = 420009; // 通道未绑定 API Key
+  ChannelRateLimited = 420010; // IM 平台发送频控（限流），调用方可退避重试
+  WanwuAPIError = 420030; // 调用万悟平台 API 失败
+  WanwuAPIAuthFailed = 420031; // 万悟平台 API Key 无效或过期
+  WanwuAPINotFound = 420032; // 万悟平台资源不存在
+  WanwuAgentNotPublished = 420040; // 选中的智能体未发布，无法用于通道对话
+  WanwuApiKeyDisabled = 420041; // 选中的 API Key 已被禁用
+  WanwuApiKeyExpired = 420042; // 选中的 API Key 已过期
 }
 

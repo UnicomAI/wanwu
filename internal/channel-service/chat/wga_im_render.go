@@ -3,6 +3,7 @@ package chat
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -141,4 +142,79 @@ func durationOrUnknown(d string) string {
 		return "用时未知"
 	}
 	return d
+}
+
+// lsLongLineRe 匹配 `ls -l` 长格式输出的一行，捕获文件名（最后一列）。
+// 形如 "-rw-r--r-- 1 root root 285741 Jul 10 16:17 鹰.pptx"。
+// 权限位 10 字符（含目录 d/链接 l），后跟链接数、属主、属组、大小、日期时间、文件名。
+// 文件名可含空格/中文，故日期时间后整体捕获到行尾（再 TrimSpace）。
+var lsLongLineRe = regexp.MustCompile(`^[-dlrwxstST]{10}\s+\d+\s+\S+\s+\S+\s+\d+\s+\S+\s+\d+\s+[\d:]{4,5}\s+(.+)$`)
+
+// extractProducedFiles 从已完成的聚合 fragment 树中提取"本次 run 实际产生的产物文件名"。
+//
+// PPT Agent 等智能体在生成产物后，会用 bash 执行 `ls -l <file>` 确认产物（TOOL_CALL_RESULT
+// 返回 ls 长格式输出）。这比"正文子串匹配历史文件名"可靠得多：它直接反映本次 run 操作的文件，
+// 不会把正文里偶然出现的多字词（如"日本"）误匹配成历史文件 日本.pptx。
+//
+// 遍历 fragment 树（含子智能体嵌套），收集所有 toolName=bash 且 result 含 ls -l 行的文件名（basename）。
+// 返回去重后的 basename 列表，作为回发工作区文件的强信号白名单。
+func extractProducedFiles(topFragments []*wgaFragment) []string {
+	seen := make(map[string]struct{})
+	var names []string
+	var walk func(fs []*wgaFragment)
+	walk = func(fs []*wgaFragment) {
+		for _, f := range fs {
+			if f == nil {
+				continue
+			}
+			if f.kind == fragToolCall && strings.EqualFold(f.toolCallName, "bash") {
+				for _, n := range parseLsLongOutput(f.toolCallResult) {
+					if n == "" {
+						continue
+					}
+					if _, ok := seen[n]; !ok {
+						seen[n] = struct{}{}
+						names = append(names, n)
+					}
+				}
+			}
+			// 递归子片段（sub_agent 嵌套的 tool_call）
+			walk(f.children)
+		}
+	}
+	walk(topFragments)
+	return names
+}
+
+// parseLsLongOutput 从工具结果文本中解析 `ls -l` 长格式行的文件名（basename）。
+// 输入是 TOOL_CALL_RESULT.content 的原始 JSON 文本（常为 JSON 字符串字面量），
+// 先按 JSON 字符串 unquote 还原原始文本（保留换行），再逐行匹配权限位开头的长格式行。
+// 注意：不能用 cleanToolResult——它会 collapseWhitespace 把多行 ls 输出压成一行，破坏逐行解析。
+// 非长格式行（如 ls 报错、其他命令输出）不匹配，天然忽略。
+func parseLsLongOutput(raw string) []string {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return nil
+	}
+	// TOOL_CALL_RESULT.content 常是 JSON 字符串字面量（如 "\"-rw... 鹰.pptx\\n\""），unquote 还原。
+	if len(s) >= 2 && s[0] == '"' {
+		if unq, err := jsonUnquote(s); err == nil {
+			s = unq
+		}
+	}
+	var names []string
+	for _, line := range strings.Split(s, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		if m := lsLongLineRe.FindStringSubmatch(line); len(m) == 2 {
+			name := strings.TrimSpace(m[1])
+			// "total N" 汇总行不匹配权限位正则，无需特判；空名/符号链接目标跳过
+			if name != "" && !strings.HasPrefix(name, "->") {
+				names = append(names, name)
+			}
+		}
+	}
+	return names
 }

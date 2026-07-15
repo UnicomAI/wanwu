@@ -13,7 +13,6 @@ var (
 
 type Config struct {
 	Server   ServerConfig   `json:"server" mapstructure:"server"`
-	Callback CallbackConfig `json:"callback" mapstructure:"callback"`
 	Log      LogConfig      `json:"log" mapstructure:"log"`
 	DB       db.Config      `json:"db" mapstructure:"db"`
 	Redis    redis.Config   `json:"redis" mapstructure:"redis"`
@@ -25,11 +24,6 @@ type Config struct {
 type ServerConfig struct {
 	GrpcEndpoint   string `json:"grpc_endpoint" mapstructure:"grpc_endpoint"`
 	MaxRecvMsgSize int    `json:"max_recv_msg_size" mapstructure:"max_recv_msg_size"`
-}
-
-// CallbackConfig HTTP 回调服务器配置（用于接收平台 Webhook 推送）
-type CallbackConfig struct {
-	Endpoint string `json:"endpoint" mapstructure:"endpoint"`
 }
 
 type LogConfig struct {
@@ -47,15 +41,11 @@ type BFFConfig struct {
 type DingTalkConfig struct {
 	// StreamMode 默认使用 Stream 模式
 	StreamMode bool `json:"stream_mode" mapstructure:"stream_mode"`
-	// OAuthCallbackURL 扫码登录回调地址
-	OAuthCallbackURL string `json:"oauth_callback_url" mapstructure:"oauth_callback_url"`
 }
 
 // WeChatConfig 微信通道配置
 type WeChatConfig struct {
 	BaseURL string `json:"base_url" mapstructure:"base_url"`
-	// CallbackURL 消息回调地址
-	CallbackURL string `json:"callback_url" mapstructure:"callback_url"`
 }
 
 func LoadConfig(in string) error {

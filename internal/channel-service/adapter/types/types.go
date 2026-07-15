@@ -32,6 +32,10 @@ type Adapter interface {
 	Disconnect() error
 	// IsConnected 检查是否已连接
 	IsConnected() bool
+	// Status 返回通道当前的结构化连通状态（供前端实时展示 / 推送前自检）。
+	// 与 IsConnected 的布尔不同，Status 携带具体 state（如 auth_failed / waiting_login）
+	// 及失败原因，供调用方判断"为什么不通"。实现需并发安全。
+	Status() ChannelStatus
 	// GetAccountInfo 获取平台账号信息
 	GetAccountInfo() (accountId, nickname, avatar string, err error)
 	// SendMessage 向平台用户发送消息
@@ -41,6 +45,40 @@ type Adapter interface {
 	// CreateStreamSender 创建流式回复发送器
 	// 返回 nil 表示该平台不支持流式回复，调用方应降级为 SendMessage
 	CreateStreamSender(ctx context.Context, userID string, extra map[string]string) StreamSender
+}
+
+// ChannelState 通道连通状态枚举。
+// 统一各平台异构的内部状态字符串（钉钉 online/offline/auth_failed、
+// 微信 logged_in/waiting_login/offline/session_expired 等）为对外一致的语义。
+type ChannelState string
+
+const (
+	// ChannelStateConnected 已连通：入站长连接 alive 或出站 token 有效。
+	ChannelStateConnected ChannelState = "connected"
+	// ChannelStateConnecting 连接中：刚启动或重连中，尚未确认。
+	ChannelStateConnecting ChannelState = "connecting"
+	// ChannelStateAuthFailed 鉴权失败：凭据（appKey/appSecret/token）无效，不可自愈。
+	ChannelStateAuthFailed ChannelState = "auth_failed"
+	// ChannelStateWaitingLogin 等待登录：需扫码登录（如微信未登录）。
+	ChannelStateWaitingLogin ChannelState = "waiting_login"
+	// ChannelStateOffline 离线：未连接或已断开。
+	ChannelStateOffline ChannelState = "offline"
+)
+
+// ChannelStatus 通道连通状态（结构化）。
+// Manager.GetChannelStatus 聚合后供 gRPC/bff 透传给前端实时展示，以及推送 API 调用前自检。
+type ChannelStatus struct {
+	State   ChannelState // 连通状态
+	Detail  string       // 人类可读补充（如失败原因、登录提示）
+	Checked int64        // 最近一次状态采集时间（Unix 毫秒）
+}
+
+// Prober 主动探测能力接口（可选实现）。
+// 心跳巡检调用 Probe 主动验证通道"还在通"（钉钉验出站 token + 入站连接、微信验 token），
+// 而非仅读被动状态字段——可发现 stream 连着但发不出 / token 静默过期等半死状态。
+// 未实现时心跳巡检降级为读 Status()。
+type Prober interface {
+	Probe(ctx context.Context) ChannelStatus
 }
 
 // MessageHandler 平台消息回调处理函数
@@ -108,3 +146,15 @@ type FileSender interface {
 // ErrFileSendUnsupported 当前平台适配器不支持发送文件。
 // Manager.SendFile 在适配器未实现 FileSender 时返回，调用方据此降级为文本提示。
 var ErrFileSendUnsupported = errors.New("file send not supported on this platform")
+
+// MarkdownSender Markdown 消息发送接口（可选实现）。
+// 仅钉钉实现（sampleMarkdown 卡片）；微信个人号不支持 md 卡片，
+// Manager.SendMarkdown 在适配器未实现时会降级为 SendMessage 纯文本投递。
+type MarkdownSender interface {
+	SendMarkdownMessage(ctx context.Context, userID, title, content string) error
+}
+
+// ErrIMRateLimited IM 平台发送频控（如微信 ilink sendmessage 返回 ret=-2）。
+// 适配器在命中平台限流时返回此错误（以 %w 包装，保留原始 errmsg），调用方据此
+// 做指数退避重试，而非当作永久失败丢弃。区别于 ErrFileSendUnsupported（不支持，不可重试）。
+var ErrIMRateLimited = errors.New("im platform rate limited")

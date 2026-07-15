@@ -15,7 +15,6 @@ import (
 	"github.com/UnicomAI/wanwu/internal/channel-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/channel-service/config"
 	"github.com/UnicomAI/wanwu/internal/channel-service/server/grpc"
-	callbackhttp "github.com/UnicomAI/wanwu/internal/channel-service/server/http"
 	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/redis"
@@ -89,12 +88,6 @@ func main() {
 		log.Fatalf("start grpc server err: %s", err)
 	}
 
-	// init callback http server（用于接收平台 Webhook 推送）
-	callbackServer := callbackhttp.NewCallbackServer(config.Cfg(), s.GetManager())
-	if err := callbackServer.Start(ctx); err != nil {
-		log.Fatalf("start callback server err: %s", err)
-	}
-
 	log.Infof("channel-service started successfully")
 
 	sc := make(chan os.Signal, 1)
@@ -105,7 +98,6 @@ func main() {
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownCancel()
 
-	callbackServer.Stop(shutdownCtx)
 	s.Stop(shutdownCtx)
 	redis.OP().Stop()
 

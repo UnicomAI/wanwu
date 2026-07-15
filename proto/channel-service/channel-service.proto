@@ -43,6 +43,20 @@ service ChannelService {
   rpc DeleteChannel(DeleteChannelReq) returns (google.protobuf.Empty) {}
   // 断开通道连接
   rpc DisconnectChannel(DisconnectChannelReq) returns (google.protobuf.Empty) {}
+
+  // --- 通道连通性 / 测试消息 ---
+  // 发送测试消息：给指定通道的收件人发一条消息，验证通道出站可用并预置会话映射。
+  // 既用于建通道后自检连通性，也用于"建通道后给通道发消息"的首次投递。
+  rpc SendTestMessage(SendTestMessageReq) returns (SendTestMessageResp) {}
+  // 查询通道实时连通状态（从适配器内存读，非 DB 快照），供前端展示 / 推送前自检。
+  rpc GetChannelConnectivity(GetChannelConnectivityReq) returns (Connectivity) {}
+
+  // --- 内部服务发消息 ---
+  // 供内部服务（经 bff callback）给指定通道发消息。无权限校验、不预置会话映射，
+  // 仅做出站投递。user_id 不传时自动取该通道最近互动过的 IM 用户作为收件人。
+  // msg_type 支持 text/markdown/file：file 时传 file_url（minio 下载地址）+ file_name，
+  // channel-service 下载字节后经适配器 SendFile 投递（钉钉/微信支持，飞书不支持返回错误）。
+  rpc SendMessage(SendMessageReq) returns (SendMessageResp) {}
 }
 
 // ============================================================
@@ -190,12 +204,60 @@ message DisconnectChannelReq {
   string channel_id = 1;
 }
 
+// ============================================================
+// 通道连通性 / 测试消息
+// ============================================================
+
+// Connectivity 通道连通状态（结构化）。
+// state 取值：connected / connecting / auth_failed / waiting_login / offline。
+message Connectivity {
+  string state = 1;     // 连通状态枚举字符串
+  string detail = 2;    // 人类可读补充（失败原因 / 登录提示）
+  bool ok = 3;          // 是否可用（state==connected 即 true，便于前端判断）
+  int64 checked = 4;    // 最近一次状态采集时间（Unix 毫秒）
+}
+
+message SendTestMessageReq {
+  string channel_id = 1;  // 目标通道 ID
+  string user_id = 2;     // IM 平台收件人 ID（钉钉 staffId / 微信 wxid）。可选：不传时微信用机器人自身账号自测，钉钉/飞书仅做连通性自检
+  string content = 3;     // 测试消息内容（空则用默认"通道连通测试"）
+  string operator_id = 4; // 操作者万悟用户 ID（用于权限校验，从 JWT 获取）
+  string org_id = 5;      // 组织 ID
+}
+
+message SendTestMessageResp {
+  Connectivity connectivity = 1;  // 发送后的连通状态
+  bool message_sent = 2;          // 消息是否成功投递
+  string error = 3;               // 失败原因（message_sent=false 时填）
+}
+
+message SendMessageReq {
+  string channel_id = 1;  // 目标通道 ID（必填）
+  string content = 2;     // 消息内容（text/markdown 必填；file 场景可空，作为文件附带文案）
+  string user_id = 3;     // IM 平台收件人 ID（钉钉 staffId / 微信 wxid）。可选：不传时自动取该通道最近互动过的 IM 用户
+  string msg_type = 4;    // 消息类型：text（默认，纯文本）/ markdown（钉钉渲染为 md 卡片，微信降级纯文本）/ file（发送文件附件）
+  string title = 5;       // markdown 消息标题（钉钉 sampleMarkdown 卡片必填）。msg_type=markdown 且为空时由 gRPC 层从 content 自动生成
+  string file_url = 6;    // 文件下载 URL（万悟 minio 文件地址，msg_type=file 必填）。channel-service 下载字节后经适配器 SendFile 投递，不占 gRPC 消息体
+  string file_name = 7;   // 文件名（含扩展名，msg_type=file 必填）。用于 IM 端展示与类型识别
+  string file_mime_type = 8;  // 文件 MIME 类型（msg_type=file 可选，留空则按 file_name 扩展名推断）
+}
+
+message SendMessageResp {
+  bool ok = 1;            // 消息是否成功投递
+  string user_id = 2;     // 实际使用的收件人（自动取历史互动用户时回填）
+  string error = 3;       // 失败原因（ok=false 时填）
+}
+
+message GetChannelConnectivityReq {
+  string channel_id = 1;
+}
+
 // Channel 通道完整信息
 message Channel {
   string id = 1;            // 通道 ID (UUID)
   string name = 2;
   string channel_type = 3;  // wechat/dingtalk/feishu
-  string status = 4;        // loggedIn/offline
+  string status = 4;        // loggedIn/offline（DB 快照，建通道时写，心跳异常回写）
   string account_id = 5;
   string nickname = 6;
   string avatar = 7;
@@ -213,6 +275,7 @@ message Channel {
   string org_id = 19;
   string model_uuid = 20;   // WGA 通道使用的模型 UUID
   string agent_id = 21;     // WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）
+  Connectivity connectivity = 22;  // 实时连通状态（从适配器内存读，非 DB 快照）
 }
 
 message ListChannelsResp {

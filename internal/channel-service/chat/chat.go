@@ -24,11 +24,12 @@ import (
 // Handler 消息对话处理器
 // 接收平台消息 → 查找通道配置 → 获取 API Key → 调用万悟 OpenAPI → 流式回传
 type Handler struct {
-	cfg         config.Config
-	cli         client.IClient
-	manager     adapterManager
-	convManager *wanwu.ConversationManager
-	questionMgr *QuestionManager
+	cfg             config.Config
+	cli             client.IClient
+	manager         adapterManager
+	convManager     *wanwu.ConversationManager
+	questionMgr     *QuestionManager
+	attachmentCache *AttachmentCache
 }
 
 // adapterManager 适配器管理接口（避免循环依赖）
@@ -42,11 +43,12 @@ type adapterManager interface {
 // NewHandler 创建消息处理器
 func NewHandler(cfg config.Config, cli client.IClient, manager adapterManager) *Handler {
 	return &Handler{
-		cfg:         cfg,
-		cli:         cli,
-		manager:     manager,
-		convManager: wanwu.NewConversationManager(cli),
-		questionMgr: NewQuestionManager(cfg.BFF.ApiBaseUrl),
+		cfg:             cfg,
+		cli:             cli,
+		manager:         manager,
+		convManager:     wanwu.NewConversationManager(cli),
+		questionMgr:     NewQuestionManager(cfg.BFF.ApiBaseUrl),
+		attachmentCache: NewAttachmentCache(),
 	}
 }
 
@@ -159,8 +161,16 @@ func (h *Handler) handleDIPMessage(ctx context.Context, ch *model.Channel, msg *
 }
 
 // doWGAChat WGA/DIP 共用的对话处理：建会话 → 构造消息 → 调 WGA 对话接口 → 处理 SSE。
+// 支持"先发附件、再发文字"的分两步操作：
+//
+//   - 纯附件消息（无有效文字指令）：上传 minio → 存待用附件缓存 → 回提示 → 不调 WGA。
+//
+//   - 有文字指令：把暂存附件 + 本条附件 + 文字拼进同一条 WGA 消息发出，清空缓存。
+//
 //   - appTypeKey: 会话隔离 key（"wga" / "dip"）
+//
 //   - agentID: 传给 WGA 的 agentId（wga 用 ch.AgentId 直连子智能体；dip 固定 "DIP Agent"）
+//
 //   - rewriteWithEmployee: dip 场景给消息文本前缀 "@员工名 "（员工名取自 ch.AppName，仅当原文不以 @ 开头）
 func (h *Handler) doWGAChat(ctx context.Context, ch *model.Channel, msg *types.PlatformMessage, appTypeKey, agentID string, rewriteWithEmployee bool) error {
 	apiKey := ch.ApiKey
@@ -187,18 +197,41 @@ func (h *Handler) doWGAChat(ctx context.Context, ch *model.Channel, msg *types.P
 		log.Infof("created wga conversation %s for channel %s user %s (appType=%s)", threadID, msg.ChannelID, msg.UserID, appTypeKey)
 	}
 
-	// DIP：消息文本前缀 "@员工名 "，使 BFF 解析出执行者（仅在原文不以 @ 开头时改写，避免重复）
-	// 员工名取自 ch.AppName（员工 id 存 ch.AgentId）
-	if rewriteWithEmployee && ch.AppName != "" && msg.Content != "" && !strings.HasPrefix(strings.TrimSpace(msg.Content), "@") {
-		origContent := msg.Content
-		msg.Content = "@" + ch.AppName + " " + msg.Content
-		defer func() { msg.Content = origContent }() // 构造完毕后恢复，避免污染后续流程
+	// 上传本条附件到 minio（纯附件消息也要上传，才能存 URL 进待用缓存）
+	currentAtts, err := uploadAttachments(ctx, wanwuClient, apiKey, msg.ChannelID, msg.UserID, msg.Attachments)
+	if err != nil {
+		return fmt.Errorf("failed to upload attachments for channel %s user %s: %w", msg.ChannelID, msg.UserID, err)
 	}
 
-	// 构造消息内容：有附件时走多模态（先上传文件到 minio 拿 filePath，再拼 binary 引用）
-	content, err := h.buildWGAContent(ctx, wanwuClient, apiKey, msg)
-	if err != nil {
-		return fmt.Errorf("failed to build wga message content for channel %s user %s: %w", msg.ChannelID, msg.UserID, err)
+	// 提取有效文字指令：排除空白、微信占位符（[图片]/[语音] 等）、等于附件文件名的 Content
+	text := effectiveText(msg.Content, msg.Attachments)
+
+	if text == "" {
+		// 纯附件消息：存入待用缓存 + 回提示，不调 WGA
+		for _, a := range currentAtts {
+			h.attachmentCache.Append(msg.ChannelID, msg.UserID, a)
+		}
+		tip := fmt.Sprintf("已收到 %d 个文件，请说明要做什么（%d 分钟内有效）",
+			len(currentAtts), int(pendingAttachmentTTL.Minutes()))
+		if err := h.manager.SendMessage(ctx, msg.ChannelID, msg.UserID, tip, msg.Extra); err != nil {
+			log.Warnf("[WGA] send attachment-received tip failed: channel=%s user=%s err=%v",
+				msg.ChannelID, msg.UserID, err)
+		}
+		return nil
+	}
+
+	// DIP：消息文本前缀 "@员工名 "，使 BFF 解析出执行者（仅在原文不以 @ 开头时改写，避免重复）
+	// 员工名取自 ch.AppName（员工 id 存 ch.AgentId）。仅在有文字指令时改写。
+	if rewriteWithEmployee && ch.AppName != "" && !strings.HasPrefix(strings.TrimSpace(text), "@") {
+		text = "@" + ch.AppName + " " + text
+	}
+
+	// 取出暂存附件，与本条附件一起拼进同一条 WGA 消息
+	pending := h.attachmentCache.Drain(msg.ChannelID, msg.UserID)
+	content := buildWGAContentFromPending(text, pending, currentAtts)
+	if len(pending) > 0 {
+		log.Infof("[WGA] drained %d pending attachments for channel %s user %s",
+			len(pending), msg.ChannelID, msg.UserID)
 	}
 
 	// 调用 WGA 对话接口
@@ -228,34 +261,80 @@ func (h *Handler) doWGAChat(ctx context.Context, ch *model.Channel, msg *types.P
 	return h.handleWGASSEResponse(ctx, ch, msg, resp, threadID)
 }
 
-// buildWGAContent 构造 WGA 消息内容。
-// 无附件时返回纯文本 string；有附件时返回多模态数组：
-// 先把附件上传到万悟 minio（/file/upload/direct）拿 filePath，再拼成 binary 引用，
-// 供 WGA 识别文件内容。文本部分取 msg.Content（附件消息可能为空）。
-func (h *Handler) buildWGAContent(ctx context.Context, wanwuClient *wanwu.Client, apiKey string, msg *types.PlatformMessage) (interface{}, error) {
-	if len(msg.Attachments) == 0 {
-		return msg.Content, nil
-	}
+// placeholderContents 微信附件消息 Content 会填的占位文本，不作为文字指令。
+// 微信文件消息 Content 填文件名（由 effectiveText 比对附件名排除），图片/语音/视频填这些占位符。
+var placeholderContents = map[string]bool{
+	"[图片]":   true,
+	"[语音]":   true,
+	"[视频]":   true,
+	"[未知消息]": true,
+}
 
-	parts := make([]wanwu.WGAMessageContentPart, 0, len(msg.Attachments)+1)
-	if msg.Content != "" {
-		parts = append(parts, wanwu.WGAMessageContentPart{Type: "text", Text: msg.Content})
+// effectiveText 提取消息中的有效文字指令；无有效指令返回空串。
+// 排除：空白、微信占位符、等于某个附件文件名的 Content（微信文件消息 Content=文件名，当附件名不当指令）。
+func effectiveText(content string, attachments []types.Attachment) string {
+	t := strings.TrimSpace(content)
+	if t == "" || placeholderContents[t] {
+		return ""
 	}
-	for _, att := range msg.Attachments {
+	for _, a := range attachments {
+		if t == strings.TrimSpace(a.Name) {
+			return ""
+		}
+	}
+	return t
+}
+
+// uploadAttachments 把附件上传到万悟 minio（/file/upload/direct），返回待用附件列表（含 minio URL）。
+// 无附件返回 nil。供 doWGAChat 在纯附件分支存缓存、在有指令分支拼装 content 共用。
+func uploadAttachments(ctx context.Context, wanwuClient *wanwu.Client, apiKey, channelID, userID string, attachments []types.Attachment) ([]*PendingAttachment, error) {
+	if len(attachments) == 0 {
+		return nil, nil
+	}
+	out := make([]*PendingAttachment, 0, len(attachments))
+	for _, att := range attachments {
 		uf, err := wanwuClient.UploadFile(ctx, apiKey, att.Name, att.MimeType, att.Data)
 		if err != nil {
 			return nil, fmt.Errorf("upload attachment %s failed: %w", att.Name, err)
 		}
-		parts = append(parts, wanwu.WGAMessageContentPart{
-			Type:     "binary",
-			MimeType: att.MimeType,
+		out = append(out, &PendingAttachment{
 			URL:      uf.FilePath,
 			FileName: att.Name,
+			MimeType: att.MimeType,
 		})
 		log.Infof("[WGA] uploaded attachment %s (%d bytes) -> %s for channel %s user %s",
-			att.Name, len(att.Data), uf.FilePath, msg.ChannelID, msg.UserID)
+			att.Name, len(att.Data), uf.FilePath, channelID, userID)
 	}
-	return parts, nil
+	return out, nil
+}
+
+// buildWGAContentFromPending 把文字指令与附件（暂存 + 本条）拼成 WGA 消息内容。
+// 无附件时返回纯文本 string；有附件时返回多模态 []WGAMessageContentPart（先 text，再所有 binary）。
+func buildWGAContentFromPending(text string, pending, current []*PendingAttachment) interface{} {
+	if len(pending) == 0 && len(current) == 0 {
+		return text
+	}
+	parts := make([]wanwu.WGAMessageContentPart, 0, len(pending)+len(current)+1)
+	if text != "" {
+		parts = append(parts, wanwu.WGAMessageContentPart{Type: "text", Text: text})
+	}
+	for _, a := range pending {
+		parts = append(parts, wanwu.WGAMessageContentPart{
+			Type:     "binary",
+			MimeType: a.MimeType,
+			URL:      a.URL,
+			FileName: a.FileName,
+		})
+	}
+	for _, a := range current {
+		parts = append(parts, wanwu.WGAMessageContentPart{
+			Type:     "binary",
+			MimeType: a.MimeType,
+			URL:      a.URL,
+			FileName: a.FileName,
+		})
+	}
+	return parts
 }
 
 // handleAgentSSEResponse 处理普通智能体 SSE 流式响应
@@ -408,6 +487,9 @@ func (h *Handler) handleWGASSEResponse(ctx context.Context, ch *model.Channel, m
 	// mentionedFiles 本次 SSE 流中智能体在正文里提到过的产物文件名（如 武则天.pptx），
 	// RUN_FINISHED 后据此去工作区精确匹配并回发，不依赖快照 diff（diff 对固定路径覆盖写不可靠）。
 	var mentionedFiles []string
+	// fullText 累积本次 SSE 流全部正文（跨段），供 sendWorkspaceFiles 做文件名主干兜底匹配
+	// （PPT Agent 等正文只写标题不带扩展名，靠主干子串命中产物）。
+	var fullText strings.Builder
 	// questionCancelCh 在收到 ACTIVITY_SNAPSHOT(question,pending) 后被赋值；
 	// 用户超时未答或放弃时被 close，通知本循环退出（避免 WGA 不再推事件时永久阻塞）。
 	var questionCancelCh chan struct{}
@@ -536,6 +618,7 @@ func (h *Handler) handleWGASSEResponse(ctx context.Context, ch *model.Channel, m
 				if event.Delta != "" {
 					agg.handleEvent(wgaEv)
 					textBuf.WriteString(event.Delta)
+					fullText.WriteString(event.Delta)
 				}
 			case "TEXT_MESSAGE_END":
 				// 一段正文结束：逐段下发（正文照常实时发，过程类才只发里程碑）。
@@ -639,7 +722,15 @@ wgaDone:
 			ch.ChannelID, msg.UserID, f.toolCallName, f.toolCallID)
 	}
 
-	_ = h.sendWorkspaceFiles(ctx, ch, msg, threadID, runID, mentionedFiles)
+	// 提取本次 run 实际产生的产物文件名（智能体用 bash `ls -l` 确认产物的 TOOL_CALL_RESULT）。
+	// 作为回发工作区文件的强信号，优先于正文文件名/stem 兜底，避免正文子串误命中历史文件。
+	producedFiles := extractProducedFiles(agg.topFragments)
+	if len(producedFiles) > 0 {
+		log.Infof("[WGA-SSE] channel=%s user=%s extracted produced files from bash ls: %v",
+			ch.ChannelID, msg.UserID, producedFiles)
+	}
+
+	_ = h.sendWorkspaceFiles(ctx, ch, msg, threadID, runID, mentionedFiles, fullText.String(), producedFiles)
 	return nil
 }
 
@@ -884,35 +975,60 @@ const maxWorkspaceFileSize = 100 * 1024 * 1024
 var mentionedFileRe = regexp.MustCompile(`[\w一-龥.\-]+\.(?:pptx?|docx?|xlsx?|pdf|png|jpe?g|gif|zip|rar|md|txt|csv|html?)`)
 
 // workspaceFileSendGap 工作区产物文件之间的下发间隔（及失败兜底提示前的等待）。
-// 微信 ilink sendmessage 在短时间密集推送时会返回 ret=-2（频控），留 1.5s 间隔降低撞频控概率。
-const workspaceFileSendGap = 1500 * time.Millisecond
+// 微信 ilink sendmessage 在短时间密集推送时会返回 ret=-2（频控），留 2.5s 间隔降低撞频控概率。
+const workspaceFileSendGap = 2500 * time.Millisecond
 
 // workspaceFileSendRetry 文件下发失败的重试次数（不含首次）。
-// 针对 IM 平台瞬时频控（如微信 ret=-2）：间隔后重试，仍失败则跳过。
-const workspaceFileSendRetry = 2
+// 针对 IM 平台频控（如微信 ret=-2）：指数退避重试，仍失败则跳过。
+const workspaceFileSendRetry = 3
 
-// sendFileWithRetry 发送工作区文件，失败时间隔重试（应对 IM 平台瞬时频控，如微信 ret=-2）。
-// ErrFileSendUnsupported 不重试（平台根本不支持，直接返回让调用方降级）。
+// workspaceRateLimitBackoff 命中 IM 频控（types.ErrIMRateLimited）时的指数退避序列。
+// 微信 ilink sendmessage 的 ret=-2 是配额冷却型限流（非瞬时抖动），1.5s 间隔仍在冷却窗内，
+// 故用较长退避：5s → 15s → 30s。索引对应首次失败后的第 1/2/3 次重试前等待。
+var workspaceRateLimitBackoff = []time.Duration{
+	5 * time.Second,
+	15 * time.Second,
+	30 * time.Second,
+}
+
+// sendFileWithRetry 发送工作区文件，按错误类型决定是否重试：
+//   - ErrIMRateLimited（平台频控，如微信 ret=-2）：指数退避重试（5s→15s→30s），冷却窗外大概率可发；
+//   - ErrFileSendUnsupported：平台不支持，不重试，直接返回让调用方降级文本提示；
+//   - 其他错误：不重试（多为永久性失败，退避无意义），直接返回。
 func (h *Handler) sendFileWithRetry(ctx context.Context, msg *types.PlatformMessage, name, mime string, data []byte) error {
-	var lastErr error
-	for attempt := 0; attempt <= workspaceFileSendRetry; attempt++ {
-		err := h.manager.SendFile(ctx, msg.ChannelID, msg.UserID, name, mime, data, msg.Extra)
+	err := h.manager.SendFile(ctx, msg.ChannelID, msg.UserID, name, mime, data, msg.Extra)
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, types.ErrFileSendUnsupported) {
+		return err // 平台不支持，不重试
+	}
+	if !errors.Is(err, types.ErrIMRateLimited) {
+		return err // 非频控的永久性错误，不重试
+	}
+
+	// 频控：指数退避重试
+	var lastErr = err
+	for attempt := 0; attempt < workspaceFileSendRetry; attempt++ {
+		backoff := workspaceRateLimitBackoff[attempt]
+		log.Warnf("[WGA-WS] channel=%s user=%s send file %s rate-limited, retry %d/%d after %v: %v",
+			msg.ChannelID, msg.UserID, name, attempt+1, workspaceFileSendRetry, backoff, err)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(backoff):
+		}
+		err = h.manager.SendFile(ctx, msg.ChannelID, msg.UserID, name, mime, data, msg.Extra)
 		if err == nil {
 			return nil
 		}
 		if errors.Is(err, types.ErrFileSendUnsupported) {
-			return err // 平台不支持，不重试
+			return err
+		}
+		if !errors.Is(err, types.ErrIMRateLimited) {
+			return err // 退避后变成非频控错误，不再重试
 		}
 		lastErr = err
-		log.Warnf("[WGA-WS] channel=%s user=%s send file %s attempt %d/%d failed: %v",
-			msg.ChannelID, msg.UserID, name, attempt+1, workspaceFileSendRetry+1, err)
-		if attempt < workspaceFileSendRetry {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-time.After(workspaceFileSendGap):
-			}
-		}
 	}
 	return lastErr
 }
@@ -957,11 +1073,14 @@ func extractMentionedFiles(text string) []string {
 
 // sendWorkspaceFiles 在 WGA 对话结束后，把智能体本次生成的产物下载并回发 IM。
 // 工作区是 thread 级累积（含历史 run 的文件，无修改时间字段），无法靠快照 diff 区分本次新增
-// （PPT Agent 用固定路径覆盖写，diff 永远判"无新增"会漏发）。改为按 mentionedFiles（本次 SSE 流中
-// 智能体正文里提到的产物文件名）去工作区精确匹配回发；mentionedFiles 为空时降级用白名单+
-// 用户请求关键词匹配兜底。钉钉/微信实现 FileSender 真实发文件；飞书不实现，降级文本提示。
-// 任何失败只记日志，不影响已发文本回复。
-func (h *Handler) sendWorkspaceFiles(ctx context.Context, ch *model.Channel, msg *types.PlatformMessage, threadID, runID string, mentionedFiles []string) error {
+// （PPT Agent 用固定路径覆盖写，diff 永远判"无新增"会漏发）。改为两类精确匹配，命中即发：
+//  1. 主路径：mentionedFiles（本次 SSE 正文里带扩展名的文件名，如 武则天.pptx）去工作区精确匹配。
+//  2. 兜底：正文 fullText 里出现了产物文件名主干（去扩展名），用于 PPT Agent 这类"产物是
+//     xxx.pptx 但正文只写标题 xxx、不带扩展名"的场景；要求主干≥3 rune，避免短名（如 a.pdf
+//     主干 "a"）在正文里子串误命中历史文件。纯聊天正文不含文件名主干，天然不命中，不误推。
+//
+// 钉钉/微信实现 FileSender 真实发文件；飞书不实现，降级文本提示。任何失败只记日志，不影响已发文本。
+func (h *Handler) sendWorkspaceFiles(ctx context.Context, ch *model.Channel, msg *types.PlatformMessage, threadID, runID string, mentionedFiles []string, fullText string, producedFiles []string) error {
 	if threadID == "" || runID == "" {
 		log.Infof("[WGA-WS] channel=%s user=%s skip workspace files: threadID or runID empty", msg.ChannelID, msg.UserID)
 		return nil
@@ -1004,33 +1123,68 @@ func (h *Handler) sendWorkspaceFiles(ctx context.Context, ch *model.Channel, msg
 		return nil
 	}
 
-	// 仅回发智能体本次正文明确点名的产物文件。工作区是 thread 级历史累积（无修改时间、无本次
-	// 新增信号），任何"按用户请求关键词匹配 / 全发候选"的兜底都会误推历史文件并触发 IM 频控；
-	// 故未点名文件名即视为纯聊天/无本次产物，静默不发。产物不丢失，仍在万悟工作区网页端。
+	// 回发产物：工作区是 thread 级历史累积（无修改时间、无本次新增信号），全发候选会误推历史
+	// 文件并触发 IM 频控，故按优先级精确匹配，命中即发：
+	//  1. 强信号 producedFiles：本次 run 智能体用 bash `ls -l` 确认过的产物文件名（basename 精确匹配）。
+	//     最可靠——直接反映本次 run 操作的文件，不会把正文里偶然出现的多字词（如"日本"）误匹配成
+	//     历史文件 日本.pptx。
+	//  2. 主路径 mentionedFiles：正文出现带扩展名的完整文件名（basename 精确匹配）。
+	//  3. 兜底 stem：仅当 1、2 都未命中任何文件时才启用。正文出现文件名主干（去扩展名）——用于
+	//     PPT Agent "产物 xxx.pptx 但正文只写标题 xxx 且未用 ls 确认"的少数场景。主干阈值见
+	//     stemAcceptable（中文≥2、拉丁/数字≥3）。因强信号已覆盖大部分 PPT 场景，stem 误命中风险显著降低。
+	// 纯聊天场景正文不含任何文件名主干，且无 producedFiles，天然不命中，不误推历史文件。
+	producedSet := make(map[string]struct{}, len(producedFiles))
+	for _, p := range producedFiles {
+		producedSet[p] = struct{}{}
+	}
+	mentionedSet := make(map[string]struct{}, len(mentionedFiles))
+	for _, m := range mentionedFiles {
+		mentionedSet[m] = struct{}{}
+	}
+	// 每个文件名只回发一份：工作区是递归目录树，同一文件名可能在不同目录出现多份
+	// （如 output/西施.pptx 与子目录副本），按名字去重避免同一产物重复发送。
+	matched := make(map[string]struct{})
 	var files []wgaFileItem
-	if len(mentionedFiles) > 0 {
-		mentionedSet := make(map[string]struct{}, len(mentionedFiles))
-		for _, m := range mentionedFiles {
-			mentionedSet[m] = struct{}{}
+	// 第一轮：强信号 + 主路径（basename 精确匹配）
+	for _, f := range allFiles {
+		if !isFinalArtifact(f.name, f.mime) {
+			continue
 		}
-		// 每个 mentioned 文件名只回发一份：工作区是递归目录树，同一文件名可能在不同目录
-		// 出现多份（如 output/西施.pptx 与子目录副本），按名字去重避免同一产物重复发送。
-		matched := make(map[string]struct{}, len(mentionedFiles))
+		if _, dup := matched[f.name]; dup {
+			continue
+		}
+		// 强信号：本次 bash ls 确认过的产物
+		if _, ok := producedSet[f.name]; ok {
+			files = append(files, f)
+			matched[f.name] = struct{}{}
+			continue
+		}
+		// 主路径：正文明确点名了带扩展名的文件名
+		if _, ok := mentionedSet[f.name]; ok {
+			files = append(files, f)
+			matched[f.name] = struct{}{}
+			continue
+		}
+	}
+	// 第二轮：仅当强信号+主路径都没命中时，才回退 stem 兜底。
+	// 避免在已有可靠强信号时，仍因正文子串误命中历史文件（如 鹰.pptx 已由强信号命中，
+	// 但正文表格里的"日本"又把 日本.pptx 拖进来重复/误发）。
+	if len(files) == 0 && fullText != "" {
 		for _, f := range allFiles {
-			if _, ok := mentionedSet[f.name]; !ok {
+			if !isFinalArtifact(f.name, f.mime) {
 				continue
 			}
 			if _, dup := matched[f.name]; dup {
 				continue
 			}
-			if isFinalArtifact(f.name, f.mime) {
+			if stem := strings.TrimSuffix(f.name, filepathExt(f.name)); stemAcceptable(stem) && strings.Contains(fullText, stem) {
 				files = append(files, f)
 				matched[f.name] = struct{}{}
 			}
 		}
-		log.Infof("[WGA-WS] channel=%s user=%s matched %d/%d mentioned file(s) in workspace (mentioned=%v)",
-			msg.ChannelID, msg.UserID, len(files), len(mentionedFiles), mentionedFiles)
 	}
+	log.Infof("[WGA-WS] channel=%s user=%s matched %d file(s) in workspace (produced=%d, mentioned=%d, fallbackStem=%v)",
+		msg.ChannelID, msg.UserID, len(files), len(producedFiles), len(mentionedFiles), len(files) == 0)
 	if len(files) == 0 {
 		// 智能体本次正文未提到任何产物文件名：视为纯聊天/无本次产物。
 		// 工作区是 thread 级历史累积（无修改时间、无本次新增信号），回发会把历史文件
@@ -1144,7 +1298,8 @@ func (h *Handler) sendWorkspaceFallbackTip(ctx context.Context, msg *types.Platf
 
 // selectWorkspaceFiles / artifactNameScore 已移除：
 // 原先"未点名文件名时按用户请求关键词匹配、全部不命中则全发候选"的兜底会把工作区历史文件
-// 误推给用户并触发 IM 频控。改为仅回发正文明确点名的产物文件，未点名即静默不发。
+// 误推给用户并触发 IM 频控。现改为：主路径回发正文明确点名的带扩展名文件名；兜底回发正文里
+// 出现文件名主干（去扩展名）的产物（见 sendWorkspaceFiles）——主干命中比关键词匹配精确得多。
 
 // isFinalArtifact 判定是否最终产物（用户可直接打开的文档/图片/压缩包/网页）。
 // 过滤中间产物：脚本（js/ts/py/go…）、配置（json/yaml）、样式（css/scss）、日志等。
@@ -1182,4 +1337,29 @@ func filepathExt(name string) string {
 		}
 	}
 	return ""
+}
+
+// stemAcceptable 判定文件名主干（去扩展名）是否足够特异，可在正文里做子串兜底匹配。
+// 中文字符信息密度高，两字（如 台湾/老舍/美元）已足够特异，阈值放低到 2；
+// 拉丁/数字字符信息密度低，保持 ≥3，避免 a.pdf→"a"、go 这类短主干在正文误命中历史文件。
+// 判定依据：主干中是否含 CJK 字符（含中日韩统一表意及扩展区）。
+func stemAcceptable(stem string) bool {
+	runes := []rune(stem)
+	if len(runes) == 0 {
+		return false
+	}
+	for _, r := range runes {
+		if isCJKRune(r) {
+			return len(runes) >= 2
+		}
+	}
+	return len(runes) >= 3
+}
+
+// isCJKRune 判定 rune 是否为 CJK 字符（中日韩统一表意文字主区及扩展A区，
+// 覆盖常见中文文件名用字）。扩展B及以上区罕见用于文件名，未纳入。
+func isCJKRune(r rune) bool {
+	return (r >= 0x4E00 && r <= 0x9FFF) || // CJK 统一表意文字主区
+		(r >= 0x3400 && r <= 0x4DBF) || // CJK 扩展A
+		(r >= 0xF900 && r <= 0xFAFF) // CJK 兼容表意
 }

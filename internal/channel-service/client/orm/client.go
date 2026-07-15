@@ -173,6 +173,21 @@ func (c *Client) GetConversation(ctx context.Context, channelID, userID, appType
 	return &conv, nil
 }
 
+// ListConversationsByChannel 按 channelID 查询所有会话映射，按 updated_at 倒序（最近互动的在前）。
+// 用于主动推送/测试消息时自动选取最近互动过的 IM 用户作为收件人（路径1：收件人来自历史互动）。
+// limit<=0 时不限制条数。
+func (c *Client) ListConversationsByChannel(ctx context.Context, channelID string, limit int) ([]*model.ChannelConversation, error) {
+	q := c.db.WithContext(ctx).Where("channel_id = ?", channelID).Order("updated_at DESC")
+	if limit > 0 {
+		q = q.Limit(limit)
+	}
+	var convs []*model.ChannelConversation
+	if err := q.Find(&convs).Error; err != nil {
+		return nil, fmt.Errorf("conversation_list_by_channel: %w", err)
+	}
+	return convs, nil
+}
+
 // UpsertConversation 按 (channelID, userID, appType) 插入或更新会话映射。
 // 同一 channel+user+appType 复用同一行，仅更新 conversation_id。
 func (c *Client) UpsertConversation(ctx context.Context, conv *model.ChannelConversation) error {

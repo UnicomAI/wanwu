@@ -1,6 +1,7 @@
 package v1
 
 import (
+	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
@@ -92,11 +93,11 @@ func ListWanwuDIPAgents(ctx *gin.Context) {
 func CreateQRLogin(ctx *gin.Context) {
 	channelType := ctx.Param("channelType")
 	if channelType == "" {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_type_required")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_type_required")
 		return
 	}
 	if !isValidChannelType(channelType) {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_type_invalid")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_type_invalid")
 		return
 	}
 	resp, err := service.CreateQRLogin(ctx, channelType, getUserID(ctx), getOrgID(ctx))
@@ -108,11 +109,11 @@ func GetQRLoginStatus(ctx *gin.Context) {
 	channelType := ctx.Param("channelType")
 	sessionID := ctx.Param("sessionId")
 	if channelType == "" || sessionID == "" {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_type_and_session_id_required")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_type_and_session_id_required")
 		return
 	}
 	if !isValidChannelType(channelType) {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_type_invalid")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_type_invalid")
 		return
 	}
 	resp, err := service.GetQRLoginStatus(ctx, channelType, sessionID)
@@ -124,11 +125,11 @@ func CancelQRLogin(ctx *gin.Context) {
 	channelType := ctx.Param("channelType")
 	sessionID := ctx.Param("sessionId")
 	if channelType == "" || sessionID == "" {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_type_and_session_id_required")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_type_and_session_id_required")
 		return
 	}
 	if !isValidChannelType(channelType) {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_type_invalid")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_type_invalid")
 		return
 	}
 	err := service.CancelQRLogin(ctx, channelType, sessionID)
@@ -140,11 +141,11 @@ func CompleteQRLogin(ctx *gin.Context) {
 	channelType := ctx.Param("channelType")
 	sessionID := ctx.Param("sessionId")
 	if channelType == "" || sessionID == "" {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_type_and_session_id_required")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_type_and_session_id_required")
 		return
 	}
 	if !isValidChannelType(channelType) {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_type_invalid")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_type_invalid")
 		return
 	}
 	resp, err := service.CompleteQRLogin(ctx, channelType, sessionID, getUserID(ctx), getOrgID(ctx))
@@ -160,7 +161,7 @@ func CreateChannel(ctx *gin.Context) {
 		return
 	}
 	if !isValidChannelType(req.ChannelType) {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_type_invalid")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_type_invalid")
 		return
 	}
 	resp, err := service.CreateChannel(ctx, getUserID(ctx), getOrgID(ctx), req)
@@ -178,7 +179,7 @@ func ListChannels(ctx *gin.Context) {
 func GetChannel(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_id_required")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_id_required")
 		return
 	}
 	resp, err := service.GetChannel(ctx, id)
@@ -189,7 +190,7 @@ func GetChannel(ctx *gin.Context) {
 func UpdateChannel(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_id_required")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_id_required")
 		return
 	}
 	var req request.UpdateChannelRequest
@@ -204,7 +205,7 @@ func UpdateChannel(ctx *gin.Context) {
 func UpdateChannelStatus(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_id_required")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_id_required")
 		return
 	}
 	var req request.UpdateChannelStatusRequest
@@ -219,7 +220,7 @@ func UpdateChannelStatus(ctx *gin.Context) {
 func DeleteChannel(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_id_required")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_id_required")
 		return
 	}
 	err := service.DeleteChannel(ctx, id, getUserID(ctx), getOrgID(ctx))
@@ -230,7 +231,7 @@ func DeleteChannel(ctx *gin.Context) {
 func DisconnectChannel(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
-		gin_util.ResponseErrCodeKey(ctx, 110001, "channel_id_required")
+		gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "channel_id_required")
 		return
 	}
 	resp, err := service.DisconnectChannel(ctx, id)

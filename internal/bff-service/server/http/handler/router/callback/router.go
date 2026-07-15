@@ -58,4 +58,7 @@ func Register(callbackAPI *gin.RouterGroup) {
 	mid.Sub("callback").Reg(callbackAPI, "/skill/custom/list", http.MethodPost, callback.SearchCustomSkillList, "自定义skill详情列表")
 	mid.Sub("callback").Reg(callbackAPI, "/skill/acquired/list", http.MethodPost, callback.SearchAcquiredSkillList, "我添加skill详情列表")
 	mid.Sub("callback").Reg(callbackAPI, "/skill/detail", http.MethodGet, callback.GetSkillDetail, "获取技能详情")
+
+	// --- 通道内部发消息（无鉴权，供内部服务调用）---
+	mid.Sub("callback").Reg(callbackAPI, "/channel/send-message", http.MethodPost, callback.SendMessage, "内部服务发消息（无鉴权）")
 }

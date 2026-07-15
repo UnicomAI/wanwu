@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -53,6 +54,16 @@ type WeChatAdapter struct {
 	// 消息去重：记录最近处理过的消息指纹
 	seenMsgs map[string]struct{}
 
+	// contextToken 缓存：按 from_user_id 记录最近一条入站消息的 context_token。
+	// 主动推送（gRPC SendMessage / SendTestMessage，extra 为空）出站时回退用之，
+	// 避免空 contextToken 触发 sendmessage ret=-2 卡死（参考 openclaw-weixin：contextToken 为回复会话的关键凭证）。
+	contextTokens map[string]string
+
+	// 出站节流：sendMu 串行化所有 sendmessage（含并发请求），lastSendAt 强制最小间隔 wechatSendGap，
+	// 避免密集发送撞 ret=-2 频控（撞后卡死，仅用户发入站消息可恢复）。
+	sendMu     sync.Mutex
+	lastSendAt time.Time
+
 	// HTTP 客户端
 	httpClient *http.Client
 }
@@ -60,10 +71,11 @@ type WeChatAdapter struct {
 // NewWeChatAdapter 创建微信适配器
 func NewWeChatAdapter() *WeChatAdapter {
 	return &WeChatAdapter{
-		status:     "offline",
-		httpClient: &http.Client{Timeout: 60 * time.Second},
-		stopChan:   make(chan struct{}),
-		seenMsgs:   make(map[string]struct{}),
+		status:        "offline",
+		httpClient:    &http.Client{Timeout: 60 * time.Second},
+		stopChan:      make(chan struct{}),
+		seenMsgs:      make(map[string]struct{}),
+		contextTokens: make(map[string]string),
 	}
 }
 
@@ -124,6 +136,39 @@ func (w *WeChatAdapter) IsConnected() bool {
 	return w.connected
 }
 
+// Status 返回微信通道当前结构化连通状态（供前端实时展示 / 推送前自检）。
+// 归一化内部 status（logged_in / waiting_login / offline / session_expired）为统一 ChannelState。
+// 被动状态，不发起网络请求；主动探测用 Probe。
+func (w *WeChatAdapter) Status() types.ChannelStatus {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	raw := w.status
+	return types.ChannelStatus{State: mapWeChatState(raw), Detail: raw, Checked: time.Now().UnixMilli()}
+}
+
+// mapWeChatState 将微信内部 status 归一化为统一 ChannelState。
+func mapWeChatState(raw string) types.ChannelState {
+	switch raw {
+	case "logged_in":
+		return types.ChannelStateConnected
+	case "waiting_login":
+		return types.ChannelStateWaitingLogin
+	case "session_expired":
+		return types.ChannelStateAuthFailed
+	default:
+		return types.ChannelStateOffline
+	}
+}
+
+// Probe 主动探测微信通道"还在通"：token 为空→waiting_login；
+// status 为 session_expired→auth_failed；否则读当前登录态（微信无轻量验 token 接口，
+// long-poll getUpdates 超时 60s 过重，故降级为读被动状态）。
+// 实现 types.Prober。
+func (w *WeChatAdapter) Probe(ctx context.Context) types.ChannelStatus {
+	_ = ctx
+	return w.Status()
+}
+
 // GetAccountInfo 获取微信账号信息
 func (w *WeChatAdapter) GetAccountInfo() (accountId, nickname, avatar string, err error) {
 	return w.accountID, "", "", nil
@@ -140,21 +185,62 @@ func (w *WeChatAdapter) SendMessage(ctx context.Context, userID, content string,
 		return fmt.Errorf("wechat not logged in")
 	}
 
-	// 提取 contextToken
+	// 提取 contextToken：优先用调用方传入（chat 对话路径经 msg.Extra 透传）；
+	// 主动推送路径（gRPC SendMessage/SendTestMessage，extra 为空）回退用最近入站缓存的 token，
+	// 避免空 contextToken 触发 sendmessage ret=-2 卡死。
 	contextToken := ""
 	if extra != nil {
 		contextToken = extra["contextToken"]
 	}
+	if contextToken == "" {
+		contextToken = w.getLastContextToken(userID)
+	}
 
-	// 分块发送（微信消息长度限制）
+	// 分块发送（微信消息长度限制）。每次发送前全局节流（见 throttleSend），
+	// 串行化所有出站（含并发请求），避免密集 sendmessage 撞 ret=-2 频控。
 	chunks := chunkText(content, MaxTextChunkSize)
 	for i, chunk := range chunks {
-		if err := w.sendTextMessage(ctx, baseURL, token, userID, chunk, contextToken); err != nil {
+		if err := w.throttleAndSend(ctx, baseURL, token, userID, chunk, contextToken); err != nil {
 			return fmt.Errorf("send chunk %d failed: %w", i, err)
 		}
 	}
 
 	return nil
+}
+
+// wechatSendGap 微信 ilink sendmessage 的最小发送间隔。
+// 短时间密集推送会触发 ret=-2 频控（且触发后卡死，仅用户发入站消息可恢复），故出站留间隔降低撞频控概率。
+// 对齐 chat.go workspaceFileSendGap 的 2.5s 经验值。
+const wechatSendGap = 2500 * time.Millisecond
+
+// throttleAndSend 全局节流后发送：sendMu 串行化所有 sendmessage（含并发请求），
+// 强制距上次发送至少 wechatSendGap，避免密集发送撞 ret=-2。
+func (w *WeChatAdapter) throttleAndSend(ctx context.Context, baseURL, token, toUserID, content, contextToken string) error {
+	w.sendMu.Lock()
+	defer w.sendMu.Unlock()
+
+	// 距上次发送不足间隔则等待（响应 ctx 取消）
+	if !w.lastSendAt.IsZero() {
+		wait := wechatSendGap - time.Since(w.lastSendAt)
+		if wait > 0 {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(wait):
+			}
+		}
+	}
+	err := w.sendTextMessage(ctx, baseURL, token, toUserID, content, contextToken)
+	w.lastSendAt = time.Now()
+	return err
+}
+
+// getLastContextToken 取最近一条入站消息缓存的 contextToken（按 userID）。
+// 供主动推送出站回退使用；无缓存返回空串。
+func (w *WeChatAdapter) getLastContextToken(userID string) string {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.contextTokens[userID]
 }
 
 // OnMessage 注册消息回调
@@ -316,33 +402,39 @@ func (w *WeChatAdapter) pollLoop(ctx context.Context) {
 		backoff = 1 * time.Second
 		w.pollBuf = resp.GetUpdatesBuf
 
-		for _, msg := range resp.Msgs {
-			// 消息去重：用 from_user_id + context_token + create_time_ms 组合指纹
-			msgFingerprint := fmt.Sprintf("%s:%s:%d", msg.FromUserID, msg.ContextToken, msg.CreateTimeMs)
-			w.mu.Lock()
-			if _, seen := w.seenMsgs[msgFingerprint]; seen {
-				w.mu.Unlock()
-				continue
-			}
-			w.seenMsgs[msgFingerprint] = struct{}{}
-			// 限制去重缓存大小，避免内存泄漏
-			if len(w.seenMsgs) > 1000 {
-				w.seenMsgs = make(map[string]struct{})
-			}
-			w.mu.Unlock()
-
-			platformMsg := w.convertMessage(&msg)
-			if w.handler != nil {
-				go func() {
-					if err := w.handler(ctx, platformMsg); err != nil {
-						log.Errorf("[WeChat] Message handler error: %v", err)
-					}
-				}()
-			}
-		}
+		w.handleUpdatesMsgs(ctx, resp)
 	}
 
 	log.Infof("[WeChat] Poll loop stopped for account %s", w.accountID)
+}
+
+// handleUpdatesMsgs 处理 getupdates 返回的消息：去重后转交 handler。
+// pollLoop 与 unlockByPoll 共用，避免入站消息处理逻辑重复。
+func (w *WeChatAdapter) handleUpdatesMsgs(ctx context.Context, resp *GetUpdatesResponse) {
+	for _, msg := range resp.Msgs {
+		// 消息去重：用 from_user_id + context_token + create_time_ms 组合指纹
+		msgFingerprint := fmt.Sprintf("%s:%s:%d", msg.FromUserID, msg.ContextToken, msg.CreateTimeMs)
+		w.mu.Lock()
+		if _, seen := w.seenMsgs[msgFingerprint]; seen {
+			w.mu.Unlock()
+			continue
+		}
+		w.seenMsgs[msgFingerprint] = struct{}{}
+		// 限制去重缓存大小，避免内存泄漏
+		if len(w.seenMsgs) > 1000 {
+			w.seenMsgs = make(map[string]struct{})
+		}
+		w.mu.Unlock()
+
+		platformMsg := w.convertMessage(&msg)
+		if w.handler != nil {
+			go func() {
+				if err := w.handler(ctx, platformMsg); err != nil {
+					log.Errorf("[WeChat] Message handler error: %v", err)
+				}
+			}()
+		}
+	}
 }
 
 // getUpdates 获取更新
@@ -412,6 +504,9 @@ func (w *WeChatAdapter) sendTextMessage(ctx context.Context, baseURL, token, toU
 	}
 	w.setHeaders(httpReq, token)
 
+	log.Infof("[WeChat] sendTextMessage req: to=%s contentLen=%d contextTokenLen=%d body=%s",
+		toUserID, len(content), len(contextToken), string(body))
+
 	resp, err := w.httpClient.Do(httpReq)
 	if err != nil {
 		return err
@@ -419,6 +514,8 @@ func (w *WeChatAdapter) sendTextMessage(ctx context.Context, baseURL, token, toU
 	defer func() { _ = resp.Body.Close() }()
 
 	respBody, _ := io.ReadAll(resp.Body)
+	log.Infof("[WeChat] sendTextMessage resp: to=%s httpStatus=%d body=%s",
+		toUserID, resp.StatusCode, string(respBody))
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("send message failed: %s", string(respBody))
 	}
@@ -426,11 +523,25 @@ func (w *WeChatAdapter) sendTextMessage(ctx context.Context, baseURL, token, toU
 	var sendResp SendResponse
 	if err := json.Unmarshal(respBody, &sendResp); err == nil {
 		if sendResp.Ret != 0 {
-			return fmt.Errorf("send message failed: ret=%d, errmsg=%s", sendResp.Ret, sendResp.ErrMsg)
+			return classifyWeChatSendErr(sendResp.Ret, sendResp.ErrMsg, "send message failed")
 		}
 	}
 
 	return nil
+}
+
+// classifyWeChatSendErr 按微信 sendmessage 的 ret 归类发送错误：
+//   - ret=-2：平台频控（冷却型限流），包装为 types.ErrIMRateLimited（%w 保留 errmsg），供上层指数退避重试；
+//   - 其他非零 ret：普通错误，原样透传。
+//
+// prefix 区分文本/文件发送场景（"send message failed" / "send file message failed"），
+// 错误信息形如 "{prefix}: ret={ret}, errmsg={errmsg}"。
+func classifyWeChatSendErr(ret int, errmsg, prefix string) error {
+	msg := fmt.Sprintf("%s: ret=%d, errmsg=%s", prefix, ret, errmsg)
+	if ret == -2 {
+		return fmt.Errorf("%w: %s", types.ErrIMRateLimited, msg)
+	}
+	return errors.New(msg)
 }
 
 // wechatILinkAppID iLink-App-Id，固定值（对齐 openclaw-weixin package.json 的 ilink_appid）。
@@ -468,16 +579,14 @@ func randomWechatUIN() string {
 }
 
 // wechatBaseInfo 每个请求体都需携带的 base_info（对齐 openclaw-weixin buildBaseInfo）。
-// channel_version 对齐插件版本，bot_agent 为默认 UA。
+// channel_version 对齐插件版本（与 openclaw-weixin buildBaseInfo 一致，base_info 仅含 channel_version）。
 type wechatBaseInfo struct {
 	ChannelVersion string `json:"channel_version"`
-	BotAgent       string `json:"bot_agent"`
 }
 
 func buildWeChatBaseInfo() wechatBaseInfo {
 	return wechatBaseInfo{
 		ChannelVersion: wechatChannelVersion,
-		BotAgent:       "OpenClaw",
 	}
 }
 
@@ -527,6 +636,13 @@ func (w *WeChatAdapter) convertMessage(msg *WeixinMessage) *types.PlatformMessag
 	result.Extra["contextToken"] = msg.ContextToken
 	result.Extra["fromUserId"] = msg.FromUserID
 
+	// 缓存最近入站 contextToken（按 from_user_id），供主动推送出站回退使用
+	if msg.ContextToken != "" && msg.FromUserID != "" {
+		w.mu.Lock()
+		w.contextTokens[msg.FromUserID] = msg.ContextToken
+		w.mu.Unlock()
+	}
+
 	return result
 }
 
@@ -574,8 +690,8 @@ type QRStatusResult struct {
 type WeixinMessage struct {
 	FromUserID   string        `json:"from_user_id"`
 	ToUserID     string        `json:"to_user_id"`
-	MessageType  int           `json:"msg_type"`
-	MessageState int           `json:"msg_state"`
+	MessageType  int           `json:"message_type"`
+	MessageState int           `json:"message_state"`
 	ContextToken string        `json:"context_token"`
 	CreateTimeMs int64         `json:"create_time_ms"`
 	ItemList     []MessageItem `json:"item_list"`
@@ -640,8 +756,8 @@ type SendMsg struct {
 	FromUserID   string        `json:"from_user_id,omitempty"`
 	ToUserID     string        `json:"to_user_id"`
 	ClientID     string        `json:"client_id"`
-	MessageType  int           `json:"msg_type"`
-	MessageState int           `json:"msg_state"`
+	MessageType  int           `json:"message_type"`
+	MessageState int           `json:"message_state"`
 	ContextToken string        `json:"context_token,omitempty"`
 	ItemList     []MessageItem `json:"item_list"`
 }
@@ -877,7 +993,7 @@ func (w *WeChatAdapter) sendFileMessage(ctx context.Context, baseURL, token, toU
 	var sendResp SendResponse
 	if err := json.Unmarshal(respBody, &sendResp); err == nil {
 		if sendResp.Ret != 0 {
-			return fmt.Errorf("send file message failed: ret=%d, errmsg=%s", sendResp.Ret, sendResp.ErrMsg)
+			return classifyWeChatSendErr(sendResp.Ret, sendResp.ErrMsg, "send file message failed")
 		}
 	}
 	log.Infof("[WeChat] SendFile ok: user=%s, fileName=%s, isImage=%v, rawSize=%d", toUserID, fileName, isImage, rawSize)

@@ -440,6 +440,26 @@ func DisconnectChannel(ctx *gin.Context, channelID string) (*response.Disconnect
 	return &response.DisconnectChannelResponse{Message: "通道已断开"}, nil
 }
 
+// SendMessage 内部服务发消息：经 channel-service gRPC SendMessage 给指定通道发消息。
+// 无鉴权（callback 接口）。userId 不传时由 channel-service 自动取该通道最近互动过的 IM 用户。
+// msgType 支持 text/markdown/file：file 时传 fileUrl（minio 下载地址）+ fileName，channel-service 下载字节后投递。
+// 错误透传 gRPC status（携带 err_code.Code：ChannelInvalidArg 入参缺失 / ChannelNotConnected 通道未启用 /
+// ChannelRateLimited IM 平台频控（调用方可退避重试）/ ChannelGeneral 其它失败含飞书不支持文件）。
+// 成功无返回体：收件人平台 ID 属内部寻址细节，不外泄给调用方，调用方凭 err 判定投递结果。
+func SendMessage(ctx context.Context, req *request.SendMessageRequest) error {
+	_, err := channel.SendMessage(ctx, &channel_service.SendMessageReq{
+		ChannelId:    req.ChannelID,
+		Content:      req.Content,
+		UserId:       req.UserID,
+		MsgType:      req.MsgType,
+		Title:        req.Title,
+		FileUrl:      req.FileUrl,
+		FileName:     req.FileName,
+		FileMimeType: req.FileMimeType,
+	})
+	return err
+}
+
 // --- 内部方法 ---
 
 // resolveApiKeyByID 通过 apiKeyId 查询完整的 apiKey 值
@@ -580,25 +600,39 @@ func resolveAppName(ctx *gin.Context, appID, userID, orgID string) (string, erro
 
 func protoToChannelResponse(ch *channel_service.Channel) *response.ChannelResponse {
 	return &response.ChannelResponse{
-		ID:          ch.Id,
-		Name:        ch.Name,
-		ChannelType: ch.ChannelType,
-		Status:      ch.Status,
-		AccountId:   ch.AccountId,
-		Nickname:    ch.Nickname,
-		Avatar:      ch.Avatar,
-		Enabled:     ch.Enabled,
-		AppType:     ch.AppType,
-		AppId:       ch.AppId,
-		AppName:     ch.AppName,
-		ApiKeyId:    ch.ApiKeyId,
-		ApiKeyName:  ch.ApiKeyName,
-		HasApiKey:   ch.HasApiKey,
-		ModelUuid:   ch.ModelUuid,
-		AgentId:     ch.AgentId,
-		Config:      ch.Config,
-		CreatedAt:   ch.CreatedAt,
-		UpdatedAt:   ch.UpdatedAt,
+		ID:           ch.Id,
+		Name:         ch.Name,
+		ChannelType:  ch.ChannelType,
+		Status:       ch.Status,
+		AccountId:    ch.AccountId,
+		Nickname:     ch.Nickname,
+		Avatar:       ch.Avatar,
+		Enabled:      ch.Enabled,
+		AppType:      ch.AppType,
+		AppId:        ch.AppId,
+		AppName:      ch.AppName,
+		ApiKeyId:     ch.ApiKeyId,
+		ApiKeyName:   ch.ApiKeyName,
+		HasApiKey:    ch.HasApiKey,
+		ModelUuid:    ch.ModelUuid,
+		AgentId:      ch.AgentId,
+		Config:       ch.Config,
+		CreatedAt:    ch.CreatedAt,
+		UpdatedAt:    ch.UpdatedAt,
+		Connectivity: protoToConnectivity(ch.Connectivity),
+	}
+}
+
+// protoToConnectivity 将 protobuf Connectivity 转换为 response 结构。
+func protoToConnectivity(c *channel_service.Connectivity) *response.Connectivity {
+	if c == nil {
+		return nil
+	}
+	return &response.Connectivity{
+		State:   c.State,
+		Detail:  c.Detail,
+		Ok:      c.Ok,
+		Checked: c.Checked,
 	}
 }
 

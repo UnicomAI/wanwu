@@ -2,9 +2,6 @@ server:
   grpc_endpoint: 0.0.0.0:9990
   max_recv_msg_size: 4294967296  # 4G
 
-callback:
-  endpoint: "0.0.0.0:8090"  # HTTP 回调服务器地址，用于接收平台 Webhook 推送
-
 log:
   std: true
   level: debug
@@ -54,8 +51,6 @@ bff:
 
 dingtalk:
   stream_mode: true
-  oauth_callback_url: ""
 
 wechat:
   base_url: "https://ilinkai.weixin.qq.com"
-  callback_url: ""

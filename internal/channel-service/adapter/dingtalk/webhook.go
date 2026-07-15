@@ -365,13 +365,17 @@ func (c *WebhookClient) SendText(ctx context.Context, receiver string, content s
 	}
 
 	apiURL := "https://api.dingtalk.com/v1.0/robot/oToMessages/batchSend"
+	msgParam, err := json.Marshal(map[string]string{
+		"content": content,
+	})
+	if err != nil {
+		return fmt.Errorf("marshal msgParam failed: %w", err)
+	}
 	reqBody := map[string]interface{}{
 		"robotCode": c.appKey,
 		"userIds":   []string{receiver},
 		"msgKey":    "sampleText",
-		"msgParam": map[string]string{
-			"content": content,
-		},
+		"msgParam":  string(msgParam),
 	}
 
 	return c.sendAPI(ctx, token, apiURL, reqBody)
@@ -385,13 +389,17 @@ func (c *WebhookClient) SendGroupText(ctx context.Context, conversationID string
 	}
 
 	apiURL := "https://api.dingtalk.com/v1.0/robot/groupMessages/send"
+	groupMsgParam, err := json.Marshal(map[string]string{
+		"content": content,
+	})
+	if err != nil {
+		return fmt.Errorf("marshal msgParam failed: %w", err)
+	}
 	reqBody := map[string]interface{}{
 		"robotCode":          c.appKey,
 		"openConversationId": conversationID,
 		"msgKey":             "sampleText",
-		"msgParam": map[string]string{
-			"content": content,
-		},
+		"msgParam":           string(groupMsgParam),
 	}
 
 	return c.sendAPI(ctx, token, apiURL, reqBody)
@@ -417,14 +425,18 @@ func (c *WebhookClient) SendMarkdown(ctx context.Context, receiver string, title
 	}
 
 	apiURL := "https://api.dingtalk.com/v1.0/robot/oToMessages/batchSend"
+	msgParam, err := json.Marshal(map[string]string{
+		"title": title,
+		"text":  content,
+	})
+	if err != nil {
+		return fmt.Errorf("marshal msgParam failed: %w", err)
+	}
 	reqBody := map[string]interface{}{
 		"robotCode": c.appKey,
 		"userIds":   []string{receiver},
 		"msgKey":    "sampleMarkdown",
-		"msgParam": map[string]string{
-			"title": title,
-			"text":  content,
-		},
+		"msgParam":  string(msgParam),
 	}
 
 	return c.sendAPI(ctx, token, apiURL, reqBody)
@@ -749,7 +761,7 @@ func (c *WebhookClient) sendViaWebhook(ctx context.Context, webhookURL string, m
 	}
 
 	if result.ErrCode != 0 {
-		return fmt.Errorf("send message via webhook failed: errcode=%d, errmsg=%s", result.ErrCode, result.ErrMsg)
+		return classifyDingTalkSendErr(result.ErrCode, result.ErrMsg, "send message via webhook failed")
 	}
 
 	return nil
@@ -792,7 +804,7 @@ func (c *WebhookClient) sendAPI(ctx context.Context, token, apiURL string, reqBo
 	}
 
 	if result.ErrCode != 0 {
-		return fmt.Errorf("send message via API failed: errcode=%d, errmsg=%s", result.ErrCode, result.ErrMsg)
+		return classifyDingTalkSendErr(result.ErrCode, result.ErrMsg, "send message via API failed")
 	}
 
 	return nil

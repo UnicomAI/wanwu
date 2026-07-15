@@ -500,7 +500,6 @@ services:
       - ${WANWU_DOCKER_NETWORK}
     ports:
       - 9990:9990
-      - 8090:8090
     volumes:
       - /etc/localtime:/etc/localtime
       - ./bin/${WANWU_ARCH}/channel-service:/app/bin/channel-service

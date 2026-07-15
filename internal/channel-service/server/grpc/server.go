@@ -20,13 +20,14 @@ import (
 )
 
 type Server struct {
-	cfg           *config.Config
-	serv          *grpc.Server
-	cli           client.IClient
-	channel       *ChannelService
-	manager       *adapter.Manager
-	handler       *chat.Handler
-	qrCleanupStop func() // 过期扫码会话清理协程的停止函数
+	cfg             *config.Config
+	serv            *grpc.Server
+	cli             client.IClient
+	channel         *ChannelService
+	manager         *adapter.Manager
+	handler         *chat.Handler
+	qrCleanupStop   func() // 过期扫码会话清理协程的停止函数
+	healthCheckStop func() // 通道心跳巡检协程的停止函数
 }
 
 func NewServer(cfg *config.Config, cli client.IClient) (*Server, error) {
@@ -49,11 +50,6 @@ func NewServer(cfg *config.Config, cli client.IClient) (*Server, error) {
 	s.channel = NewChannelService(cfg, cli, mgr)
 
 	return s, nil
-}
-
-// GetManager 获取适配器管理器（用于 HTTP callback server）
-func (s *Server) GetManager() *adapter.Manager {
-	return s.manager
 }
 
 func (s *Server) Start(ctx context.Context) error {
@@ -82,6 +78,9 @@ func (s *Server) Start(ctx context.Context) error {
 	// 启动过期扫码会话定时清理（每 1 小时一次，随 ctx 退出而停止）
 	s.qrCleanupStop = s.channel.qrMgr.StartCleanup(ctx, time.Hour)
 
+	// 启动通道心跳巡检（每 2 分钟探测所有已启动通道，状态异常时回写 DB 供前端感知）
+	s.healthCheckStop = s.manager.StartHealthCheck(ctx, 2*time.Minute)
+
 	// listen
 	lis, err := net.Listen("tcp", s.cfg.Server.GrpcEndpoint)
 	if err != nil {
@@ -107,6 +106,11 @@ func (s *Server) Stop(ctx context.Context) {
 	// 停止过期扫码会话清理协程
 	if s.qrCleanupStop != nil {
 		s.qrCleanupStop()
+	}
+
+	// 停止通道心跳巡检协程
+	if s.healthCheckStop != nil {
+		s.healthCheckStop()
 	}
 
 	// 停止所有适配器
