@@ -4,11 +4,17 @@ import (
 	"net/http"
 
 	v1 "github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/v1"
+	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/middleware"
 	mid "github.com/UnicomAI/wanwu/pkg/gin-util/mid-wrap"
 	"github.com/gin-gonic/gin"
 )
 
 func registerCommon(apiV1 *gin.RouterGroup) {
+	// 需鉴权的静态文件服务（JWTUser + CheckUserEnable）
+	filesGroup := apiV1.Group("/files")
+	filesGroup.Use(middleware.JWTUser, middleware.CheckUserEnable)
+	filesGroup.Static("/", "./configs/microservice/bff-service/configs/files")
+
 	mid.Sub("common").Reg(apiV1, "/user/permission", http.MethodGet, v1.GetUserPermission, "获取用户权限")
 	mid.Sub("common").Reg(apiV1, "/user/info", http.MethodGet, v1.GetUserInfo, "获取用户信息")
 	mid.Sub("common").Reg(apiV1, "/org/select", http.MethodGet, v1.GetOrgSelect, "获取用户组织列表")

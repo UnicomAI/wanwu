@@ -239,7 +239,7 @@ func GenAgentRecommendQuestions(ctx *gin.Context, userId, orgId, assistantId, co
 }
 
 func buildPublishRecommendParams(ctx *gin.Context, userId string, orgId string, streamValue bool, req *request.QuestionRecommendRequest, agentInfo *assistant_service.AssistantInfo) (mp_common.LLMReq, error) {
-	history, err := assistant.GetConversationDetailList(ctx, &assistant_service.GetConversationDetailListReq{
+	history, err := assistant.GetConversationDetailList(ctx.Request.Context(), &assistant_service.GetConversationDetailListReq{
 		ConversationId: req.ConversationId,
 		PageSize:       1000,
 		PageNo:         1,
@@ -331,11 +331,11 @@ func searchAssistantInfo(ctx *gin.Context, userId, orgId, assistantId string, pu
 	var agentInfo *assistant_service.AssistantInfo
 	var err error
 	if publish {
-		agentInfo, err = assistant.AssistantSnapshotInfo(ctx, &assistant_service.AssistantSnapshotInfoReq{
+		agentInfo, err = assistant.AssistantSnapshotInfo(ctx.Request.Context(), &assistant_service.AssistantSnapshotInfoReq{
 			AssistantId: assistantId,
 		})
 	} else {
-		agentInfo, err = assistant.GetAssistantInfo(ctx, &assistant_service.GetAssistantInfoReq{
+		agentInfo, err = assistant.GetAssistantInfo(ctx.Request.Context(), &assistant_service.GetAssistantInfoReq{
 			AssistantId: assistantId,
 			Identity: &assistant_service.Identity{ //草稿只能看自己的
 				UserId: userId,

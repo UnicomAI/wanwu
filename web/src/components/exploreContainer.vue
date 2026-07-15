@@ -11,7 +11,7 @@
             </el-button>
           </div>
         </div>
-        <div class="aside-content">
+        <div class="aside-content" @scroll="handleAsideScroll">
           <slot name="aside-content"></slot>
         </div>
       </slot>
@@ -55,6 +55,9 @@ export default {
   methods: {
     handleClick() {
       this.$emit('handleBtnClick');
+    },
+    handleAsideScroll(event) {
+      this.$emit('aside-scroll', event);
     },
   },
 };

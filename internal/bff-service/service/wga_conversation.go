@@ -253,8 +253,9 @@ func deleteGeneralAgentConversationCore(ctx *gin.Context, userId, orgId, threadI
 
 func GetGeneralAgentConversationList(ctx *gin.Context, userId, orgId string, req request.GetGeneralAgentConversationListReq) (*response.ListResult, error) {
 	resp, err := assistant.WgaConversationList(ctx.Request.Context(), &assistant_service.WgaConversationListReq{
-		PageSize: int32(req.PageSize),
-		PageNo:   int32(req.PageNo),
+		PageSize:   int32(req.PageSize),
+		PageNo:     int32(req.PageNo),
+		SearchText: strings.TrimSpace(req.SearchText),
 		Identity: &assistant_service.Identity{
 			UserId: userId,
 			OrgId:  orgId,

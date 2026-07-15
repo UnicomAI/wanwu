@@ -15,6 +15,7 @@ func (c *UrlConversationIdRequest) Check() error { return nil }
 
 type GetUrlConversationListReq struct {
 	PageSearch
+	SearchText string `json:"searchText" form:"searchText"` // 标题关键词，模糊匹配，空则不过滤
 }
 
 func (c *GetUrlConversationListReq) Check() error { return nil }

@@ -124,8 +124,9 @@ func UrlConversationClear(ctx *gin.Context) {
 //	@Param			suffix								path		string	true	"Url后缀"
 //	@Param			pageNo								query		int		true	"页码"
 //	@Param			pageSize							query		int		true	"每页数量"
+//	@Param			searchText							query		string	false	"检索词"
 //	@Success		200									{object}	response.Response{data=response.ListResult{list=[]response.ConversationInfo}}
-//	@Router			/agent/{suffix}/conversation/list 				[get]
+//	@Router			/agent/{suffix}/conversation/list 								[get]
 func GetUrlConversationList(ctx *gin.Context) {
 	var req request.GetUrlConversationListReq
 	if !gin_util.BindQuery(ctx, &req) {

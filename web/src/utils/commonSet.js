@@ -15,6 +15,22 @@ export const WorkflowTypeList = [
   { value: WORKFLOW, name: i18n.t('appSpace.workflow') },
   { value: CHAT, name: i18n.t('appSpace.chat') },
 ];
+export const TagColorList = [
+  { color: '#3562E7', backgroundColor: '#E6F0FF' },
+  { color: '#00A56E', backgroundColor: 'rgba(92, 192, 103, 0.15)' },
+  { color: '#E87B00', backgroundColor: '#FFF3E5' },
+  { color: '#0DA5A5', backgroundColor: '#E7F7F7' },
+  { color: '#6349E8', backgroundColor: '#F1EDFF' },
+  { color: '#67C23A', backgroundColor: '#F0F9EB' },
+  { color: '#E6A23C', backgroundColor: '#FDF6EC' },
+];
+export const OrgTagColorList = [
+  { color: '#3562E7', backgroundColor: '#E6F0FF' },
+  { color: '#6349E8', backgroundColor: '#F1EDFF' },
+  { color: '#00A56E', backgroundColor: 'rgba(92, 192, 103, 0.15)' },
+  { color: '#E87B00', backgroundColor: '#FFF3E5' },
+  { color: '#0DA5A5', backgroundColor: '#E7F7F7' },
+];
 export const SafetyType = {
   Political: i18n.t('common.safetyType.political'),
   Revile: i18n.t('common.safetyType.revile'),

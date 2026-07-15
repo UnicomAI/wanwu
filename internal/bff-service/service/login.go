@@ -152,7 +152,7 @@ func getLoginResp(ctx *gin.Context, resp *iam_service.LoginResp) (*response.Logi
 		Token:            token,
 		ExpiresAt:        claims.ExpiresAt * 1000, // 超时事件戳毫秒
 		ExpireIn:         strconv.FormatInt(jwt_util.UserTokenTimeout, 10),
-		Orgs:             toOrgIDNames(ctx, orgs.Selects, resp.User.GetUserId() == config.SystemAdminUserID),
+		Orgs:             toOrgIDNamesWithAvatar(ctx, orgs.Selects, resp.User.GetUserId() == config.SystemAdminUserID),
 		OrgPermission:    toOrgPermission(ctx, resp.Permission),
 		Language:         getLanguageByCode(resp.User.Language),
 		IsUpdatePassword: resp.Permission.LastUpdatePasswordAt != 0,

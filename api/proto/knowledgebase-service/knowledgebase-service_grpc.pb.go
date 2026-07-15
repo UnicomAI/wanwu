@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	KnowledgeBaseService_SelectKnowledgeList_FullMethodName             = "/knowledgebase_service.KnowledgeBaseService/SelectKnowledgeList"
+	KnowledgeBaseService_SelectKnowledgeListByUserList_FullMethodName   = "/knowledgebase_service.KnowledgeBaseService/SelectKnowledgeListByUserList"
 	KnowledgeBaseService_SelectKnowledgeListByIdList_FullMethodName     = "/knowledgebase_service.KnowledgeBaseService/SelectKnowledgeListByIdList"
 	KnowledgeBaseService_SelectKnowledgeDetailById_FullMethodName       = "/knowledgebase_service.KnowledgeBaseService/SelectKnowledgeDetailById"
 	KnowledgeBaseService_SelectKnowledgeDetailByIdList_FullMethodName   = "/knowledgebase_service.KnowledgeBaseService/SelectKnowledgeDetailByIdList"
@@ -56,6 +57,8 @@ const (
 type KnowledgeBaseServiceClient interface {
 	// 获取知识库列表
 	SelectKnowledgeList(ctx context.Context, in *KnowledgeSelectReq, opts ...grpc.CallOption) (*KnowledgeSelectListResp, error)
+	// 根据组织id的列表和userid的列表获取知识库列表
+	SelectKnowledgeListByUserList(ctx context.Context, in *KnowledgeSelectUserListReq, opts ...grpc.CallOption) (*KnowledgeSelectListResp, error)
 	// 获取知识库列表
 	SelectKnowledgeListByIdList(ctx context.Context, in *BatchKnowledgeSelectReq, opts ...grpc.CallOption) (*KnowledgeSelectListResp, error)
 	// 获取知识库详情
@@ -124,6 +127,16 @@ func (c *knowledgeBaseServiceClient) SelectKnowledgeList(ctx context.Context, in
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(KnowledgeSelectListResp)
 	err := c.cc.Invoke(ctx, KnowledgeBaseService_SelectKnowledgeList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *knowledgeBaseServiceClient) SelectKnowledgeListByUserList(ctx context.Context, in *KnowledgeSelectUserListReq, opts ...grpc.CallOption) (*KnowledgeSelectListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(KnowledgeSelectListResp)
+	err := c.cc.Invoke(ctx, KnowledgeBaseService_SelectKnowledgeListByUserList_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -406,6 +419,8 @@ func (c *knowledgeBaseServiceClient) GetDocByKnowledgeNameAndDocName(ctx context
 type KnowledgeBaseServiceServer interface {
 	// 获取知识库列表
 	SelectKnowledgeList(context.Context, *KnowledgeSelectReq) (*KnowledgeSelectListResp, error)
+	// 根据组织id的列表和userid的列表获取知识库列表
+	SelectKnowledgeListByUserList(context.Context, *KnowledgeSelectUserListReq) (*KnowledgeSelectListResp, error)
 	// 获取知识库列表
 	SelectKnowledgeListByIdList(context.Context, *BatchKnowledgeSelectReq) (*KnowledgeSelectListResp, error)
 	// 获取知识库详情
@@ -472,6 +487,9 @@ type UnimplementedKnowledgeBaseServiceServer struct{}
 
 func (UnimplementedKnowledgeBaseServiceServer) SelectKnowledgeList(context.Context, *KnowledgeSelectReq) (*KnowledgeSelectListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SelectKnowledgeList not implemented")
+}
+func (UnimplementedKnowledgeBaseServiceServer) SelectKnowledgeListByUserList(context.Context, *KnowledgeSelectUserListReq) (*KnowledgeSelectListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SelectKnowledgeListByUserList not implemented")
 }
 func (UnimplementedKnowledgeBaseServiceServer) SelectKnowledgeListByIdList(context.Context, *BatchKnowledgeSelectReq) (*KnowledgeSelectListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SelectKnowledgeListByIdList not implemented")
@@ -589,6 +607,24 @@ func _KnowledgeBaseService_SelectKnowledgeList_Handler(srv interface{}, ctx cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KnowledgeBaseServiceServer).SelectKnowledgeList(ctx, req.(*KnowledgeSelectReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KnowledgeBaseService_SelectKnowledgeListByUserList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(KnowledgeSelectUserListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KnowledgeBaseServiceServer).SelectKnowledgeListByUserList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KnowledgeBaseService_SelectKnowledgeListByUserList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KnowledgeBaseServiceServer).SelectKnowledgeListByUserList(ctx, req.(*KnowledgeSelectUserListReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1089,6 +1125,10 @@ var KnowledgeBaseService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SelectKnowledgeList",
 			Handler:    _KnowledgeBaseService_SelectKnowledgeList_Handler,
+		},
+		{
+			MethodName: "SelectKnowledgeListByUserList",
+			Handler:    _KnowledgeBaseService_SelectKnowledgeListByUserList_Handler,
 		},
 		{
 			MethodName: "SelectKnowledgeListByIdList",

@@ -164,6 +164,25 @@ export async function fetchDownload(url, filename = '') {
   }
 }
 
+// 带鉴权的文件下载（/v1/files/* 路由要求 JWT）
+export async function authDownload(url, fileName = '') {
+  const token = store.getters['user/token'] || '';
+  const user = store.getters['user/userInfo'] || {};
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'x-user-id': user.uid || '',
+      'x-org-id': user.orgId || '',
+      'X-Client-ID': getXClientId(),
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`下载失败: ${response.status} ${response.statusText}`);
+  }
+  const blob = await response.blob();
+  resDownloadFile(blob, fileName);
+}
+
 export function convertLatexSyntax(inputText) {
   // 1. 匹配块级公式，将 `\[` 和 `\]` 替换为 `$$`，支持 `\\[` `\\]` 或单个 `\[` `\]`
   inputText = inputText.replaceAll(

@@ -4621,6 +4621,12 @@ const docTemplate = `{
                         "name": "pageSize",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "检索词",
+                        "name": "searchText",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -7900,6 +7906,12 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "每页数量，默认20",
                         "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "检索词",
+                        "name": "searchText",
                         "in": "query"
                     }
                 ],
@@ -15457,7 +15469,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/response.Select"
+                                            "$ref": "#/definitions/response.UserSelect"
                                         }
                                     }
                                 }
@@ -15618,6 +15630,57 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/org/users": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "传入多个orgId，返回所选组织全部用户userid（去重、不过滤禁用状态）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center"
+                ],
+                "summary": "根据组织ID列表获取用户ID",
+                "parameters": [
+                    {
+                        "description": "组织ID列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OrgIDsReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.Users"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -20898,6 +20961,9 @@ const docTemplate = `{
         "mp.ProviderModelByOpenAICompatible": {
             "type": "object",
             "properties": {
+                "asr": {
+                    "$ref": "#/definitions/mp_openai_compatible.SyncAsr"
+                },
                 "embedding": {
                     "$ref": "#/definitions/mp_openai_compatible.Embedding"
                 },
@@ -21409,6 +21475,22 @@ const docTemplate = `{
                 "endpointUrl": {
                     "description": "推理url",
                     "type": "string"
+                }
+            }
+        },
+        "mp_openai_compatible.SyncAsr": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "endpointUrl": {
+                    "description": "推理url（完整地址，含 /v1/chat/completions）",
+                    "type": "string"
+                },
+                "maxAsrFileSize": {
+                    "type": "integer"
                 }
             }
         },
@@ -26491,6 +26573,22 @@ const docTemplate = `{
                 }
             }
         },
+        "request.OrgIDsReq": {
+            "type": "object",
+            "properties": {
+                "isAllOrg": {
+                    "description": "是否查询全部组织（用户有权限的组织）",
+                    "type": "boolean"
+                },
+                "orgIdList": {
+                    "description": "组织ID列表，isAllOrg=false 时必填",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.OrgStatus": {
             "type": "object",
             "required": [
@@ -26956,7 +27054,8 @@ const docTemplate = `{
         "request.RoleCreate": {
             "type": "object",
             "required": [
-                "name"
+                "name",
+                "orgId"
             ],
             "properties": {
                 "avatar": {
@@ -27033,6 +27132,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "name",
+                "orgId",
                 "roleId"
             ],
             "properties": {
@@ -31289,6 +31389,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.IDNameWithAvatar": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "$ref": "#/definitions/request.Avatar"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "response.ImportGeneralAgentSkillConversationResp": {
             "type": "object",
             "properties": {
@@ -32218,7 +32332,7 @@ const docTemplate = `{
                     "description": "用户所在组织列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.IDName"
+                        "$ref": "#/definitions/response.IDNameWithAvatar"
                     }
                 },
                 "token": {
@@ -33930,7 +34044,7 @@ const docTemplate = `{
                 "select": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.IDName"
+                        "$ref": "#/definitions/response.IDNameWithAvatar"
                     }
                 }
             }
@@ -35015,6 +35129,29 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "response.UserSelect": {
+            "type": "object",
+            "properties": {
+                "select": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.IDName"
+                    }
+                }
+            }
+        },
+        "response.Users": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "description": "去重后的用户列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.IDName"
+                    }
                 }
             }
         },

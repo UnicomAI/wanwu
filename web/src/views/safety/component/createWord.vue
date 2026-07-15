@@ -82,9 +82,7 @@
                   </span>
                   <a
                     class="clickUpload template"
-                    :href="basePath + `/user/api/v1/static/docs/sensitive.xlsx`"
-                    download
-                    @click.stop
+                    @click.stop="handleDownloadTemplate"
                   >
                     {{ $t('common.fileUpload.templateClick') }}
                   </a>
@@ -161,7 +159,7 @@
 import uploadChunk from '@/mixins/uploadChunk';
 import { delfile } from '@/api/chunkFile';
 import { uploadSensitiveWord } from '@/api/safety';
-import { filterSize } from '@/utils/util';
+import { filterSize, authDownload } from '@/utils/util';
 
 export default {
   mixins: [uploadChunk],
@@ -233,6 +231,16 @@ export default {
     };
   },
   methods: {
+    async handleDownloadTemplate() {
+      try {
+        await authDownload(
+          this.basePath + '/user/api/v1/files/docs/sensitive.xlsx',
+          'sensitive.xlsx',
+        );
+      } catch (error) {
+        this.$message.error(this.$t('common.fileUpload.downloadError'));
+      }
+    },
     uploadOnChange(file, fileList) {
       if (!fileList.length) return;
       const newFileList = fileList[fileList.length - 1];

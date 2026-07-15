@@ -65,7 +65,7 @@ type IClient interface {
 	UpdateConversation(ctx context.Context, conversation *model.Conversation) *err_code.Status
 	DeleteConversation(ctx context.Context, conversationID uint32) *err_code.Status
 	GetConversationByAssistantID(ctx context.Context, assistantID, conversationType string) (*model.Conversation, *err_code.Status)
-	GetConversationList(ctx context.Context, assistantID, conversationType, userID, orgID string, offset, limit int32) ([]*model.Conversation, int64, *err_code.Status)
+	GetConversationList(ctx context.Context, assistantID, conversationType, userID, orgID, searchText string, offset, limit int32) ([]*model.Conversation, int64, *err_code.Status)
 
 	//================CustomPrompt================
 	CreateCustomPrompt(ctx context.Context, avatarPath, name, desc, prompt, userId, orgID string) (string, *err_code.Status)
@@ -89,7 +89,7 @@ type IClient interface {
 	UpdateWgaConversationConfig(ctx context.Context, config *model.WgaConversationConfig) *err_code.Status
 	CreateWgaConversationConfig(ctx context.Context, config *model.WgaConversationConfig) *err_code.Status
 	DeleteWgaConversationConfig(ctx context.Context, threadId string) *err_code.Status
-	GetWgaConversationConfigList(ctx context.Context, userID, orgID string, offset, limit int32) ([]*model.WgaConversationConfig, int64, *err_code.Status)
+	GetWgaConversationConfigList(ctx context.Context, userID, orgID, searchText string, offset, limit int32) ([]*model.WgaConversationConfig, int64, *err_code.Status)
 	WgaConversationConfigExists(ctx context.Context, threadId, userID, orgID string) (bool, *err_code.Status)
 
 	//=================WgaConfig================

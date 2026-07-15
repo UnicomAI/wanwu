@@ -134,6 +134,8 @@ export const TYPE_OBJ = {
     [`${ASR}_${QWEN}`]: 'https://dashscope.aliyuncs.com/api/v1',
     [`${ASR}_${HUOSHAN}`]:
       'https://openspeech.bytedance.com/api/v3/auc/bigmodel/recognize/flash',
+    [`${ASR}_${OPENAI_API}`]: '',
+    [`${OCR}_${QIANFAN}`]: '',
     [`${RERANK}_${YUAN_JING}`]: 'https://maas-api.ai-yuanjing.com/openapi/v1',
     [`${MULTIMODAL_EMBEDDING}_${YUAN_JING}`]:
       'https://maas-api.ai-yuanjing.com/openapi/compatible-mode/v1',

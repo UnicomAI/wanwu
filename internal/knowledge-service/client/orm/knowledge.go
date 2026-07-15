@@ -31,7 +31,35 @@ func SelectKnowledgeList(ctx context.Context, userId, orgId, name string, catego
 		}
 	}
 	//查询有权限的知识库列表，获取有权限的知识库id，目前是getALL，没有通过连表实现
-	permissionKnowledgeList, err := SelectKnowledgeIdByPermission(ctx, userId, orgId, model.PermissionTypeView)
+	permissionKnowledgeList, err := SelectKnowledgeIdByPermission(ctx, userId, orgId, model.PermissionTypeView, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(permissionKnowledgeList) == 0 {
+		return make([]*model.KnowledgeBase, 0), nil, nil
+	}
+	knowledgeIdList = intersectionKnowledgeIdList(knowledgeIdList, buildPermissionKnowledgeIdList(permissionKnowledgeList))
+	if len(knowledgeIdList) == 0 {
+		return make([]*model.KnowledgeBase, 0), nil, nil
+	}
+	var knowledgeList []*model.KnowledgeBase
+	err = sqlopt.SQLOptions(sqlopt.WithKnowledgeIDList(knowledgeIdList), sqlopt.LikeName(name), sqlopt.WithDelete(0), sqlopt.WithCategoryList(category), sqlopt.WithExternal(external)).
+		Apply(db.GetHandle(ctx), &model.KnowledgeBase{}).
+		Order("update_at desc").
+		Find(&knowledgeList).
+		Error
+	if err != nil {
+		return nil, nil, err
+	}
+	return knowledgeList, buildPermissionKnowledgeIdMap(permissionKnowledgeList), nil
+}
+
+// SelectKnowledgeListByOrgList 根据批量组织查询知识库列表
+func SelectKnowledgeListByOrgList(ctx context.Context, userId []string, orgId []string, name string, category []int, external int) ([]*model.KnowledgeBase, map[string]int, error) {
+	var knowledgeIdList []string
+	var err error
+	//查询有权限的知识库列表，获取有权限的知识库id，目前是getALL，没有通过连表实现
+	permissionKnowledgeList, err := SelectKnowledgeIdByPermissionOrgList(ctx, userId, orgId, model.PermissionTypeView)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -69,17 +97,26 @@ func SelectKnowledgeById(ctx context.Context, knowledgeId, userId, orgId string)
 
 // SelectKnowledgeByIdList 查询知识库信息
 func SelectKnowledgeByIdList(ctx context.Context, knowledgeIdList []string, userId, orgId string) ([]*model.KnowledgeBase, map[string]int, error) {
-	//查询有权限的知识库列表，获取有权限的知识库id，目前是getALL，没有通过连表实现
-	permissionKnowledgeList, err := SelectKnowledgeIdByPermission(ctx, userId, orgId, model.PermissionTypeView)
-	if err != nil {
-		return nil, nil, err
-	}
-	if len(permissionKnowledgeList) == 0 {
-		return make([]*model.KnowledgeBase, 0), nil, nil
-	}
-	knowledgeIdList = intersectionKnowledgeIdList(knowledgeIdList, buildPermissionKnowledgeIdList(permissionKnowledgeList))
-	if len(knowledgeIdList) == 0 {
-		return make([]*model.KnowledgeBase, 0), nil, nil
+	return SelectKnowledgeByIdListPermission(ctx, knowledgeIdList, userId, orgId, false)
+}
+
+// SelectKnowledgeByIdListPermission 查询知识库信息
+func SelectKnowledgeByIdListPermission(ctx context.Context, knowledgeIdList []string, userId, orgId string, noPermission bool) ([]*model.KnowledgeBase, map[string]int, error) {
+	var permissionKnowledgeList []*model.KnowledgePermission
+	var err error
+	if !noPermission {
+		//查询有权限的知识库列表，获取有权限的知识库id，目前是getALL，没有通过连表实现
+		permissionKnowledgeList, err = SelectKnowledgeIdByPermission(ctx, userId, orgId, model.PermissionTypeView, knowledgeIdList)
+		if err != nil {
+			return nil, nil, err
+		}
+		if len(permissionKnowledgeList) == 0 {
+			return make([]*model.KnowledgeBase, 0), nil, nil
+		}
+		knowledgeIdList = buildPermissionKnowledgeIdList(permissionKnowledgeList)
+		if len(knowledgeIdList) == 0 {
+			return make([]*model.KnowledgeBase, 0), nil, nil
+		}
 	}
 	var knowledgeList []*model.KnowledgeBase
 	err = sqlopt.SQLOptions(sqlopt.WithKnowledgeIDList(knowledgeIdList), sqlopt.WithDelete(0)).
@@ -432,6 +469,9 @@ func buildPermissionKnowledgeIdList(permissionList []*model.KnowledgePermission)
 }
 
 func buildPermissionKnowledgeIdMap(permissionList []*model.KnowledgePermission) map[string]int {
+	if len(permissionList) == 0 {
+		return make(map[string]int)
+	}
 	var permissionMap = make(map[string]int)
 	for _, permission := range permissionList {
 		permissionMap[permission.KnowledgeId] = permission.PermissionType

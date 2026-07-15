@@ -228,3 +228,12 @@ func WithThreadID(threadId string) SQLOption {
 		return db
 	})
 }
+
+func WithTitleLike(title string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if title != "" {
+			return db.Where("title LIKE ? ", "%"+title+"%")
+		}
+		return db
+	})
+}

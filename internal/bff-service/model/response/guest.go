@@ -11,16 +11,16 @@ type RSAPublicKey struct {
 }
 
 type Login struct {
-	UID              string            `json:"uid"`
-	Username         string            `json:"username"`
-	Token            string            `json:"token"`
-	ExpiresAt        int64             `json:"expiresAt"`
-	ExpireIn         string            `json:"expireIn"`
-	Nickname         string            `json:"nickname"`
-	OrgPermission    UserOrgPermission `json:"orgPermission"`    // 用户所在组织权限
-	Orgs             []IDName          `json:"orgs"`             // 用户所在组织列表
-	Language         Language          `json:"language"`         // 语言
-	IsUpdatePassword bool              `json:"isUpdatePassword"` // 是否已更新密码
+	UID              string             `json:"uid"`
+	Username         string             `json:"username"`
+	Token            string             `json:"token"`
+	ExpiresAt        int64              `json:"expiresAt"`
+	ExpireIn         string             `json:"expireIn"`
+	Nickname         string             `json:"nickname"`
+	OrgPermission    UserOrgPermission  `json:"orgPermission"`    // 用户所在组织权限
+	Orgs             []IDNameWithAvatar `json:"orgs"`             // 用户所在组织列表
+	Language         Language           `json:"language"`         // 语言
+	IsUpdatePassword bool               `json:"isUpdatePassword"` // 是否已更新密码
 }
 
 type LoginByEmail struct {

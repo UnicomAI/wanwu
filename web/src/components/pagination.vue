@@ -48,19 +48,19 @@ export default {
     border-color: #cccccc;
   }
 
-  .el-pagination .el-select .el-input .el-input__inner {
-    padding-right: 25px;
-    width: 109px;
-    border-color: #cccccc;
-  }
-
   .el-pager li:hover {
     color: $color;
   }
+
   .el-pager li.active {
     color: $color;
     cursor: default;
     border: 1px solid $color;
+  }
+
+  .el-pager .number,
+  button {
+    background: #ffffff !important;
   }
 
   .el-pagination__editor.el-input .el-input__inner {

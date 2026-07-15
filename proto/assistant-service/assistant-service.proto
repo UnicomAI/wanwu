@@ -582,6 +582,7 @@ message GetConversationListReq {
   int32 pageSize = 3;
   int32 pageNo = 4;
   Identity identity = 5;
+  string searchText = 6; // 标题关键词，模糊匹配，空则不过滤
 }
 
 message GetConversationListResp {
@@ -909,6 +910,7 @@ message WgaConversationListReq {
   int32 pageSize = 1;
   int32 pageNo = 2;
   Identity identity = 3;
+  string searchText = 4; // 标题关键词，模糊匹配，空则不过滤
 }
 
 message WgaConversationListResp {

@@ -32,7 +32,7 @@ func OAuthLogin(ctx *gin.Context, req *request.OAuthLoginRequest) (string, error
 	// 将 []string 转为以空格分隔的字符串
 	scopeStr := strings.Join(req.Scopes, " ")
 
-	oauthApp, err := iam.GetOauthApp(ctx, &iam_service.GetOauthAppReq{
+	oauthApp, err := iam.GetOauthApp(ctx.Request.Context(), &iam_service.GetOauthAppReq{
 		ClientId: req.ClientID,
 	})
 	if err != nil {
@@ -61,7 +61,7 @@ func OAuthAuthorize(ctx *gin.Context, req *request.OAuthRequest) (string, error)
 	if err != nil {
 		return "", grpc_util.ErrorStatus(err_code.Code_BFFJWT, err.Error())
 	}
-	oauthApp, err := iam.GetOauthApp(ctx, &iam_service.GetOauthAppReq{
+	oauthApp, err := iam.GetOauthApp(ctx.Request.Context(), &iam_service.GetOauthAppReq{
 		ClientId: req.ClientID,
 	})
 	if err != nil {
@@ -89,7 +89,7 @@ func OAuthAuthorize(ctx *gin.Context, req *request.OAuthRequest) (string, error)
 }
 
 func OAuthToken(ctx *gin.Context, req *request.OAuthTokenRequest) (*response.OAuthTokenResponse, error) {
-	oauthApp, err := iam.GetOauthApp(ctx, &iam_service.GetOauthAppReq{
+	oauthApp, err := iam.GetOauthApp(ctx.Request.Context(), &iam_service.GetOauthAppReq{
 		ClientId: req.ClientID,
 	})
 	if err != nil {
@@ -103,7 +103,7 @@ func OAuthToken(ctx *gin.Context, req *request.OAuthTokenRequest) (*response.OAu
 	if err != nil {
 		return nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_oauth_err", err.Error())
 	}
-	user, err := iam.GetUserInfo(ctx, &iam_service.GetUserInfoReq{
+	user, err := iam.GetUserInfo(ctx.Request.Context(), &iam_service.GetUserInfoReq{
 		UserId: codePayload.UserID,
 		OrgId:  "",
 	})
@@ -137,7 +137,7 @@ func OAuthToken(ctx *gin.Context, req *request.OAuthTokenRequest) (*response.OAu
 }
 
 func OAuthRefresh(ctx *gin.Context, req *request.OAuthRefreshRequest) (*response.OAuthRefreshTokenResponse, error) {
-	oauthApp, err := iam.GetOauthApp(ctx, &iam_service.GetOauthAppReq{
+	oauthApp, err := iam.GetOauthApp(ctx.Request.Context(), &iam_service.GetOauthAppReq{
 		ClientId: req.ClientID,
 	})
 	if err != nil {
@@ -195,7 +195,7 @@ func OAuthJWKS(ctx *gin.Context) (*response.OAuthJWKS, error) {
 }
 
 func OAuthGetUserInfo(ctx *gin.Context, userID string) (*response.OAuthGetUserInfo, error) {
-	user, err := iam.GetUserInfo(ctx, &iam_service.GetUserInfoReq{
+	user, err := iam.GetUserInfo(ctx.Request.Context(), &iam_service.GetUserInfoReq{
 		UserId: userID,
 		OrgId:  "",
 	})
@@ -248,7 +248,7 @@ func CreateOauthApp(ctx *gin.Context, userId string, req *request.CreateOauthApp
 	if !isURI {
 		return grpc_util.ErrorStatus(err_code.Code_BFFGeneral, "redirect uri invalid")
 	}
-	_, err := iam.CreateOauthApp(ctx, &iam_service.CreateOauthAppReq{
+	_, err := iam.CreateOauthApp(ctx.Request.Context(), &iam_service.CreateOauthAppReq{
 		UserId:      userId,
 		Name:        req.Name,
 		Desc:        req.Desc,
@@ -261,7 +261,7 @@ func CreateOauthApp(ctx *gin.Context, userId string, req *request.CreateOauthApp
 }
 
 func DeleteOauthApp(ctx *gin.Context, req *request.DeleteOauthAppReq) error {
-	_, err := iam.DeleteOauthApp(ctx, &iam_service.DeleteOauthAppReq{
+	_, err := iam.DeleteOauthApp(ctx.Request.Context(), &iam_service.DeleteOauthAppReq{
 		ClientId: req.ClientID,
 	})
 	if err != nil {
@@ -275,7 +275,7 @@ func UpdateOauthApp(ctx *gin.Context, req *request.UpdateOauthAppReq) error {
 	if !isURI {
 		return grpc_util.ErrorStatus(err_code.Code_BFFGeneral, "redirect uri invalid")
 	}
-	_, err := iam.UpdateOauthApp(ctx, &iam_service.UpdateOauthAppReq{
+	_, err := iam.UpdateOauthApp(ctx.Request.Context(), &iam_service.UpdateOauthAppReq{
 		ClientId:    req.ClientID,
 		Name:        req.Name,
 		Desc:        req.Desc,
@@ -288,7 +288,7 @@ func UpdateOauthApp(ctx *gin.Context, req *request.UpdateOauthAppReq) error {
 }
 
 func GetOauthAppList(ctx *gin.Context, userId, name string, pageNo, pageSize int32) (*response.PageResult, error) {
-	resp, err := iam.GetOauthAppList(ctx, &iam_service.GetOauthAppListReq{
+	resp, err := iam.GetOauthAppList(ctx.Request.Context(), &iam_service.GetOauthAppListReq{
 		UserId:   userId,
 		Name:     name,
 		PageNo:   pageNo,
@@ -317,7 +317,7 @@ func GetOauthAppList(ctx *gin.Context, userId, name string, pageNo, pageSize int
 }
 
 func UpdateOauthAppStatus(ctx *gin.Context, req *request.UpdateOauthAppStatusReq) error {
-	_, err := iam.UpdateOauthAppStatus(ctx, &iam_service.UpdateOauthAppStatusReq{
+	_, err := iam.UpdateOauthAppStatus(ctx.Request.Context(), &iam_service.UpdateOauthAppStatusReq{
 		ClientId: req.ClientID,
 		Status:   req.Status,
 	})

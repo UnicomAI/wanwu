@@ -1757,6 +1757,9 @@ const docTemplate = `{
         "mp.ProviderModelByOpenAICompatible": {
             "type": "object",
             "properties": {
+                "asr": {
+                    "$ref": "#/definitions/mp_openai_compatible.SyncAsr"
+                },
                 "embedding": {
                     "$ref": "#/definitions/mp_openai_compatible.Embedding"
                 },
@@ -3443,6 +3446,22 @@ const docTemplate = `{
                 "endpointUrl": {
                     "description": "推理url",
                     "type": "string"
+                }
+            }
+        },
+        "mp_openai_compatible.SyncAsr": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "endpointUrl": {
+                    "description": "推理url（完整地址，含 /v1/chat/completions）",
+                    "type": "string"
+                },
+                "maxAsrFileSize": {
+                    "type": "integer"
                 }
             }
         },

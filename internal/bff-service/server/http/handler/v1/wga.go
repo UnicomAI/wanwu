@@ -355,8 +355,9 @@ func DeleteGeneralAgentConversation(ctx *gin.Context) {
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int	false	"页码，默认1"
-//	@Param			pageSize	query		int	false	"每页数量，默认20"
+//	@Param			page		query		int		false	"页码，默认1"
+//	@Param			pageSize	query		int		false	"每页数量，默认20"
+//	@Param			searchText	query		string	false	"检索词"
 //	@Success		200			{object}	response.Response{data=response.ListResult{list=[]response.GeneralAgentConversationInfo}}
 //	@Router			/general/agent/conversation/list [get]
 func GetGeneralAgentConversationList(ctx *gin.Context) {

@@ -393,7 +393,7 @@ func GetRag(ctx *gin.Context, req request.RagReq, needPublished bool) (*response
 	if err != nil {
 		log.Errorf("ragId: %v gets config fail: %v", req.RagID, err.Error())
 	}
-	appInfo, _ := app.GetAppInfo(ctx, &app_service.GetAppInfoReq{AppId: req.RagID, AppType: constant.AppTypeRag})
+	appInfo, _ := app.GetAppInfo(ctx.Request.Context(), &app_service.GetAppInfoReq{AppId: req.RagID, AppType: constant.AppTypeRag})
 	ragInfo := &response.RagInfo{
 		RagID:                 resp.RagId,
 		AppBriefConfig:        appBriefConfigProto2Model(ctx, resp.BriefConfig, constant.AppTypeRag),
@@ -451,7 +451,7 @@ func ragSafetyConfigProto2Model(ctx *gin.Context, sensitiveCfg *rag_service.RagS
 	tableIds := sensitiveCfg.GetTableIds()
 
 	if len(tableIds) != 0 {
-		sensitiveWordTable, _ := safety.GetSensitiveWordTableListByIDs(ctx, &safety_service.GetSensitiveWordTableListByIDsReq{TableIds: tableIds})
+		sensitiveWordTable, _ := safety.GetSensitiveWordTableListByIDs(ctx.Request.Context(), &safety_service.GetSensitiveWordTableListByIDsReq{TableIds: tableIds})
 
 		if sensitiveWordTable != nil {
 			for _, table := range sensitiveWordTable.List {
@@ -494,7 +494,7 @@ func ragKBConfigProto2Model(ctx *gin.Context, kbConfig *rag_service.RagKnowledge
 
 	// 转换每个知识库的单独配置
 	for _, perConfig := range kbConfig.PerKnowledgeConfigs {
-		kbInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx, &knowledgeBase_service.KnowledgeDetailSelectReq{
+		kbInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx.Request.Context(), &knowledgeBase_service.KnowledgeDetailSelectReq{
 			KnowledgeId: perConfig.KnowledgeId,
 		})
 		if err != nil {
@@ -505,7 +505,7 @@ func ragKBConfigProto2Model(ctx *gin.Context, kbConfig *rag_service.RagKnowledge
 		share := kbInfo.ShareCount > 1
 		var orgName string
 		if share {
-			orgInfo, err := iam.GetOrgInfo(ctx, &iam_service.GetOrgInfoReq{OrgId: kbInfo.CreateOrgId})
+			orgInfo, err := iam.GetOrgInfo(ctx.Request.Context(), &iam_service.GetOrgInfoReq{OrgId: kbInfo.CreateOrgId})
 			if err != nil {
 				log.Errorf("get org info error: %v", err)
 			} else {
@@ -562,7 +562,7 @@ func ragKBQAConfigProto2Model(ctx *gin.Context, kbConfig *rag_service.RagQAKnowl
 
 	// 转换每个问答库的单独配置
 	for _, perConfig := range kbConfig.PerKnowledgeConfigs {
-		kbInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx, &knowledgeBase_service.KnowledgeDetailSelectReq{
+		kbInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx.Request.Context(), &knowledgeBase_service.KnowledgeDetailSelectReq{
 			KnowledgeId: perConfig.KnowledgeId,
 		})
 		if err != nil {
@@ -573,7 +573,7 @@ func ragKBQAConfigProto2Model(ctx *gin.Context, kbConfig *rag_service.RagQAKnowl
 		share := kbInfo.ShareCount > 1
 		var orgName string
 		if share {
-			orgInfo, err := iam.GetOrgInfo(ctx, &iam_service.GetOrgInfoReq{OrgId: kbInfo.CreateOrgId})
+			orgInfo, err := iam.GetOrgInfo(ctx.Request.Context(), &iam_service.GetOrgInfoReq{OrgId: kbInfo.CreateOrgId})
 			if err != nil {
 				log.Errorf("get org info error: %v", err)
 			} else {

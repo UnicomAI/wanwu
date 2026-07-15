@@ -10,6 +10,7 @@ const (
 	ReportStoreFail     ReportStatus = 123 //社区报告持久化存储失败
 	ReportProcessing    ReportStatus = 130 //社区报告生成中
 	ReportInterruptFail ReportStatus = 139 //社区报告处理中断
+	CategoryALL                      = -1  // 知识库
 	CategoryKnowledge                = 0   // 知识库
 	CategoryQA                       = 1   // 问答库
 	CategoryMultimodal               = 2   // 多模态知识库

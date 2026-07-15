@@ -2,21 +2,23 @@
   <div>
     <div class="table-wrap list-common wrap-fullheight">
       <div class="table-box">
-        <search-input
-          style="margin-right: 2px; margin-bottom: 20px"
-          :placeholder="$t('oauth.name')"
-          ref="searchInput"
-          @handleSearch="getTableData"
-        />
-        <el-button
-          size="mini"
-          type="primary"
-          @click="preInsert"
-          icon="el-icon-plus"
-          class="add-btn"
-        >
-          {{ $t('common.button.create') }}
-        </el-button>
+        <div class="table-box-header">
+          <search-input
+            style="margin-right: 2px; margin-bottom: 20px"
+            :placeholder="$t('oauth.name')"
+            ref="searchInput"
+            @handleSearch="getTableData"
+          />
+          <el-button
+            size="mini"
+            type="primary"
+            @click="preInsert"
+            icon="el-icon-plus"
+            class="add-btn"
+          >
+            {{ $t('common.button.create') }}
+          </el-button>
+        </div>
         <el-table
           :data="tableData"
           :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
@@ -273,7 +275,15 @@ export default {
 
 <style lang="scss" scoped>
 .table-box {
-  text-align: right;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  padding: 5px 10px 10px 20px;
+
+  .table-box-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
   .add-btn {
     margin-left: 20px;

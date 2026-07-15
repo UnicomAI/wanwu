@@ -62,7 +62,7 @@ func (c *Client) GetConversation(ctx context.Context, conversationID uint32) (*m
 	})
 }
 
-func (c *Client) GetConversationList(ctx context.Context, assistantID, conversationType, userID, orgID string, offset, limit int32) ([]*model.Conversation, int64, *err_code.Status) {
+func (c *Client) GetConversationList(ctx context.Context, assistantID, conversationType, userID, orgID, searchText string, offset, limit int32) ([]*model.Conversation, int64, *err_code.Status) {
 	var conversations []*model.Conversation
 	var count int64
 	return conversations, count, c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
@@ -75,6 +75,8 @@ func (c *Client) GetConversationList(ctx context.Context, assistantID, conversat
 		if conversationType != "" {
 			query = query.Where("conversation_type = ?", conversationType)
 		}
+
+		query = sqlopt.WithTitleLike(searchText).Apply(query)
 
 		if err := query.Count(&count).Error; err != nil {
 			return toErrStatus("assistant_conversations_get_list", err.Error())

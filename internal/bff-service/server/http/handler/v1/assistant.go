@@ -483,6 +483,7 @@ func ClearPublishedAssistantConversation(ctx *gin.Context) {
 //	@Param			assistantId	query		string	true	"智能体id"
 //	@Param			pageNo		query		int		true	"页面编号，从1开始"
 //	@Param			pageSize	query		int		true	"单页数量，从1开始"
+//	@Param			searchText	query		string	false	"检索词"
 //	@Success		200			{object}	response.Response{data=response.PageResult{list=[]response.ConversationInfo}}
 //	@Router			/assistant/conversation/list [get]
 func GetConversationList(ctx *gin.Context) {

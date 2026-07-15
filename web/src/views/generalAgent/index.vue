@@ -24,7 +24,11 @@
 
         <div class="sidebar-divider"></div>
 
-        <div class="conversation-list" @scroll="handleConversationListScroll">
+        <div
+          ref="conversationList"
+          class="conversation-list"
+          @scroll="handleConversationListScroll"
+        >
           <div
             v-for="item in conversationList"
             :key="item.threadId"
@@ -898,6 +902,7 @@ export default {
           skillId: this.customSkillId,
           previewId: this.previewId,
         });
+        this.scrollConversationListToTop();
       }
 
       this.syncConversationRoute(
@@ -1024,6 +1029,7 @@ export default {
             previewId: this.previewId,
           };
           this.conversationList.unshift(newConversation);
+          this.scrollConversationListToTop();
           this.syncConversationRoute(threadId, newConversation);
 
           return threadId;
@@ -1162,6 +1168,25 @@ export default {
       }
     },
 
+    /** 将指定会话移到列表顶部，用于历史会话有新消息时按更新时间置顶 */
+    moveConversationToTop(threadId) {
+      if (!threadId) return;
+      const index = this.conversationList.findIndex(
+        c => c.threadId === threadId,
+      );
+      if (index <= 0) return; // 已在顶部或不在列表中
+      const [conversation] = this.conversationList.splice(index, 1);
+      this.conversationList.unshift(conversation);
+      this.scrollConversationListToTop();
+    },
+
+    /** 历史对话列表滚动到顶部 */
+    scrollConversationListToTop() {
+      const el = this.$refs.conversationList;
+      if (!el) return;
+      el.scrollTop = 0;
+    },
+
     /** 侧边栏会话列表滚动加载 */
     handleConversationListScroll(e) {
       const el = e.target;
@@ -1261,6 +1286,7 @@ export default {
               : {}),
           };
           this.conversationList.unshift(newConversation);
+          this.scrollConversationListToTop();
           this.syncConversationRoute(threadId, newConversation);
           return threadId;
         } else {
@@ -1370,10 +1396,10 @@ export default {
         this.loadConfig();
 
         // detail 加载完成后，检查是否有运行中的对话需要重连 connect
-        if (!this.isSkillType) {
-          await this.checkAndResumePending(this.currentThreadId);
-        } else {
+        if (this.isSkillType) {
           await this.checkAndResumeSkillPending(this.currentThreadId);
+        } else {
+          await this.checkAndResumePending(this.currentThreadId);
         }
       } finally {
         this.isLoadingHistory = false;
@@ -1736,6 +1762,9 @@ export default {
       const agentId = this.selectedMode?.value ?? '';
       const currentMode = this.skillChatMode || 'normal';
 
+      // 历史会话有新消息时置顶，与后端按更新时间排序保持一致
+      this.moveConversationToTop(streamingThreadId);
+
       // 使用 mixin 初始化流式状态
       const { abortController, assistantMessage } =
         this.initStreamState(streamingThreadId);
@@ -1982,7 +2011,13 @@ export default {
           this.syncConversationRoute();
           this.hidePanel();
         }
-        this.fetchConversationList();
+        // 保留已加载的多页数据与滚动位置
+        const index = this.conversationList.findIndex(
+          c => c.threadId === item.threadId,
+        );
+        if (index !== -1) {
+          this.conversationList.splice(index, 1);
+        }
       }
     },
 

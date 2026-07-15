@@ -37,7 +37,7 @@ func GetClientStatistic(ctx *gin.Context, startDate, endDate string) (*response.
 }
 
 func getClientStatistic(ctx *gin.Context, startDate, endDate string) (*response.ClientStatistic, error) {
-	resp, err := operate.GetClientStatistic(ctx, &operate_service.GetClientStatisticReq{
+	resp, err := operate.GetClientStatistic(ctx.Request.Context(), &operate_service.GetClientStatisticReq{
 		StartDate: startDate,
 		EndDate:   endDate,
 	})

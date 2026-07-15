@@ -3,10 +3,11 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	ag_ui_util "github.com/UnicomAI/wanwu/pkg/ag-ui-util"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	aguievents "github.com/ag-ui-protocol/ag-ui/sdks/community/go/pkg/core/events"
-	"time"
 )
 
 // --- AG-UI 事件名常量（RAG 专属）---

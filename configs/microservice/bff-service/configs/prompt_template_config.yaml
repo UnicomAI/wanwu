@@ -4,7 +4,7 @@ prompts:
     avatar: ""
     name: "翻译"
     desc: "将中文翻译成英文"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "现在你是一个专业翻译人员，你的目标是把中文翻译成英文。现在请翻译{给我推荐三本中文科幻小说}这句话"
 
   - templateId: "paper_writing"
@@ -12,7 +12,7 @@ prompts:
     avatar: ""
     name: "写论文"
     desc: "撰写学术论文"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "写一篇以{学生心理发展}为主题的论文，要求有标题、内容摘要、关键词、正文、参考文献、注释等内容"
 
   - templateId: "study_plan"
@@ -20,7 +20,7 @@ prompts:
     avatar: ""
     name: "学习计划"
     desc: "制定学习计划"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是我的学习指导老师，我需要{通过英语四级考试}，请为我制定一份详细的学习计划"
 
   - templateId: "reading_comprehension"
@@ -28,7 +28,7 @@ prompts:
     avatar: ""
     name: "阅读理解"
     desc: "理解文字表达的场景"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是我的语文家教，我将给到你一段文字{金色的霞光，犹如一只神奇的巨手，徐徐拉开了柔软的帷幕，整个大地豁然开朗了}，请描述下所要表达的场景。"
 
   - templateId: "language_learning"
@@ -36,7 +36,7 @@ prompts:
     avatar: ""
     name: "外语学习"
     desc: "外语学习练习"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我想让你扮演一个{英语}老师，我会用{英语}和你交流，你用{英语}回复我。现在我们开始练习"
 
   - templateId: "study_skills"
@@ -44,7 +44,7 @@ prompts:
     avatar: ""
     name: "学习技巧"
     desc: "获取学习技巧"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你非常聪明，有很多学习技巧，请告诉我{5}个关于{学好高中物理}的学习技巧"
 
   - templateId: "composition"
@@ -52,7 +52,7 @@ prompts:
     avatar: ""
     name: "写作文"
     desc: "撰写小学生作文"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我需要你写一篇小学生作文，300字左右，作文主题是{乌鸦喝水的故事}，要求文字表达流畅，分段表述，有层次，有寓意。"
 
   - templateId: "polishing"
@@ -60,7 +60,7 @@ prompts:
     avatar: ""
     name: "文章润色"
     desc: "修改润色文章"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你是一位文章改写助手，我给出一段话，你对文本内容进行修改润色，以达到{更为简洁、有吸引力}的目标，要{用到成语和修辞手法}。文本内容为：{今天的天气真是好极了，我在上学路上看到了一只小猫在花丛里玩耍，它看起来非常开心。放学回家后，我向妈妈分享了这个有趣的经历。}"
 
   - templateId: "speech"
@@ -68,7 +68,7 @@ prompts:
     avatar: ""
     name: "演讲稿"
     desc: "撰写演讲稿"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "现在你准备参加{时间的重量}的主题演讲，给出一份800字演讲稿，要求文字简洁、情真意切。"
 
   - templateId: "lyrics"
@@ -76,7 +76,7 @@ prompts:
     avatar: ""
     name: "歌词创作"
     desc: "创作歌词"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "请帮我写首歌词。歌曲是{民谣}风格，歌曲中需要包括的元素有{故乡、流水、理想}"
 
   - templateId: "song_recommendation"
@@ -84,7 +84,7 @@ prompts:
     avatar: ""
     name: "歌曲推荐"
     desc: "推荐歌曲"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "给我推荐{8}首适合在{婚礼}上播放的中文歌曲，要求{轻松舒缓、有男女对唱}"
 
   - templateId: "movie_sequel"
@@ -92,7 +92,7 @@ prompts:
     avatar: ""
     name: "电影续集"
     desc: "编写电影续集"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是一位电影编剧，请为{《 哪吒之魔童降世 》}这部电影，编写一部续集电影，要求延续前一部的风格，故事内容丰富，情节紧凑吸引人。"
 
   - templateId: "rap"
@@ -100,7 +100,7 @@ prompts:
     avatar: ""
     name: "写RAP"
     desc: "创作RAP歌词"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是一位说唱歌手，现在需要结合{成长}主题，创作一段rap，要求注意押韵，内容朗朗上口。"
 
   - templateId: "video_script"
@@ -108,7 +108,7 @@ prompts:
     avatar: ""
     name: "视频脚本"
     desc: "创作视频脚本"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "写一个{5}分钟的视频脚本，脚本以{毕业季}为主题，场景要包括{操场、教室、篮球场、楼顶、自行车，有男女主角之间的对话}"
 
   - templateId: "movie_review"
@@ -116,7 +116,7 @@ prompts:
     avatar: ""
     name: "电影评论"
     desc: "撰写电影评论"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你充当一位电影评论家。请为{流浪地球}这部电影写一篇引人入胜且有创意的影评，重点强调电影的观感。"
 
   - templateId: "emergency_expert"
@@ -124,7 +124,7 @@ prompts:
     avatar: ""
     name: "应急专家"
     desc: "应急处理指导"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你是我的应急处理专家，请告诉我{突发地震}我应该如何应急？"
 
   - templateId: "game_npc"
@@ -132,7 +132,7 @@ prompts:
     avatar: ""
     name: "游戏NPC"
     desc: "设计游戏NPC对话"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我想让你充当一个{荒岛求生大冒险}游戏的NPC，这位NPC是{一个拥有很多技能的太阳花小精灵}，请为这位NPC设定与身份相匹配的对话内容。"
 
   - templateId: "parenting"
@@ -140,7 +140,7 @@ prompts:
     avatar: ""
     name: "育儿师"
     desc: "制定育儿计划"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你是一位育儿师，请为一位{3岁的女宝宝}制定一份{健康的日常饮食作息计划}。"
 
   - templateId: "beauty_consultant"
@@ -148,7 +148,7 @@ prompts:
     avatar: ""
     name: "美容顾问"
     desc: "美容护肤建议"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是我的专属美容顾问，我的皮肤情况是{25岁女性，干性皮肤，有细纹}，我希望的改善是{能够保湿补水，减少细纹}，请给我一个合理的建议。"
 
   - templateId: "idea_generator"
@@ -156,7 +156,7 @@ prompts:
     avatar: ""
     name: "点子创意器"
     desc: "提供创意点子"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你是一个点子创意器，请提供{3}个关于{让孩子过个充实的暑假}的好点子"
 
   - templateId: "financial_planner"
@@ -164,7 +164,7 @@ prompts:
     avatar: ""
     name: "理财规划师"
     desc: "制定理财规划"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是我的理财规划师，我的财务情况是{有5万存款，每个月工资收入8000元}，请为我制定一份行之有效的理财规划，让我能够实现稳步的财务增长。"
 
   - templateId: "makeup_artist"
@@ -172,7 +172,7 @@ prompts:
     avatar: ""
     name: "化妆师"
     desc: "推荐妆容和化妆步骤"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你是一位化妆师，我要参加{朋友的婚礼}，为我推荐{3}种适合的妆容并给出详细的化妆步骤"
 
   - templateId: "advertiser"
@@ -180,7 +180,7 @@ prompts:
     avatar: ""
     name: "广告商"
     desc: "创建广告活动"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你充当广告商。您将创建一个广告系列来推广您选择的产品或服务。您将选择目标受众，制定关键信息和口号，选择要推广的媒体渠道，并决定实现目标所需的任何其他活动。我的第一个建议请求是{我需要帮助为针对18-30岁年轻人的新型能量饮料创建广告活动}。"
 
   - templateId: "screenwriter_1"
@@ -188,7 +188,7 @@ prompts:
     avatar: ""
     name: "编剧"
     desc: "创作剧本"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "请您担任编剧，为一部长篇电影或者一部吸引观众的网络系列创作一个令人兴奋且富有创意的剧本。您需要先设计有趣的角色、设置故事情节和角色之间的对话，然后创建一个扣人心弦且充满悬念的故事线，直到最后时刻仍能保持观众的兴趣。剧本中的角色应具有独特而引人入胜的特点，他们的行为和对话应该令人信服，与故事情节和主题相契合。同时，剧本的故事情节应该有足够的发展和转折，以保持观众的关注和期待。您可以使用不同的情节手法和设定来增加剧本的吸引力，比如悬疑、冒险、爱情等元素。我的第一个要求是{我需要写一部以巴黎为背景的浪漫剧情电影}。"
 
   - templateId: "news_commentator"
@@ -196,7 +196,7 @@ prompts:
     avatar: ""
     name: "新闻评论员"
     desc: "撰写评论文章"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你充当评论员。我将为您提供与新闻相关的故事或主题，您将撰写一篇评论文章，对手头的主题提供有见地的评论。你应该利用自己的经验，深思熟虑地解释为什么某件事很重要，用事实支持主张，并讨论故事中提出的任何问题的潜在解决方案。"
 
   - templateId: "linux_terminal"
@@ -204,7 +204,7 @@ prompts:
     avatar: ""
     name: "Linux终端"
     desc: "模拟Linux终端"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你充当Linux终端。我将键入命令，您将完全按照linxu操作系统命令行输出的方式回复终端应显示的内容。我希望你只回复一个唯一代码块中的终端英文输出，没有别的。不要写解释。当我需要用英语告诉你一些事情时，我会把文本放在大括号里{像这样}。如果我输入的不是一条命令，输出命令无法执行。如果不理解我输入的命令，输出命令无法执行。不需要做出任何解释。"
 
   - templateId: "debater"
@@ -212,7 +212,7 @@ prompts:
     avatar: ""
     name: "辩手"
     desc: "参与辩论"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你扮演一个辩手。我将为您提供一些与时事相关的主题，您的任务是研究辩论的双方，为每一方提出多角度、丰富、深刻的论据和驳斥相反的观点，并根据证据得出有说服力的结论。您的目标是帮助人们从讨论中走出来，增加主题的知识和洞察力。"
 
   - templateId: "screenwriter_2"
@@ -220,7 +220,7 @@ prompts:
     avatar: ""
     name: "编剧"
     desc: "创作剧本"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "请您担任编剧，为一部长篇电影或者一部吸引观众的网络系列创作一个令人兴奋且富有创意的剧本。您需要先设计有趣的角色、设置故事情节和角色之间的对话，然后创建一个扣人心弦且充满悬念的故事线，直到最后时刻仍能保持观众的兴趣。剧本中的角色应具有独特而引人入胜的特点，他们的行为和对话应该令人信服，与故事情节和主题相契合。同时，剧本的故事情节应该有足够的发展和转折，以保持观众的关注和期待。您可以使用不同的情节手法和设定来增加剧本的吸引力，比如悬疑、冒险、爱情等元素。"
 
   - templateId: "etymologist"
@@ -228,7 +228,7 @@ prompts:
     avatar: ""
     name: "词源学家"
     desc: "研究词源"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你充当词源学家。我会给你一个词，你会研究这个词的起源，追溯它的古老根源，并提供有关该词的含义如何随时间变化的信息。"
 
   - templateId: "socrates"
@@ -236,7 +236,7 @@ prompts:
     avatar: ""
     name: "苏格拉底"
     desc: "哲学讨论"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "您将扮演苏格拉底并参与哲学讨论，探索正义、美德、美丽、勇气和其他道德问题等主题。你的任务是使用苏格拉底式的提问来引导讨论，激发对这些话题的深入思考和探索。在回答中，应使用适当的提问方式，如反问、定义概念、跟进、归纳、概括等，以利于讨论的深度和思维的发展。您还可以使用历史事件，故事，示例等。支持和解释您的观点，并引导其他参与者提供他们的观点和见解。"
 
   - templateId: "standup_comedian"
@@ -244,7 +244,7 @@ prompts:
     avatar: ""
     name: "单口喜剧演员"
     desc: "创作喜剧例程"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "请扮演一个单口喜剧演员，并根据我提供的与时事相关的主题，展示您的智慧、创造力和观众吸引能力。您应基于这些主题创作出令人捧腹大笑的例程，并将个人故事或经历巧妙地融入其中，以提高与观众的相关性和吸引力。您的回答应该包括与提供的主题相关的搞笑段子、观点和洞察力。您还可以使用幽默的方式描述自己的个人轶事或经历，并与观众建立共鸣和联系。请注意，您的回答应该具有灵活性和创造力，以鼓励生成独特而相关的搞笑例程，并将个人故事与时事主题相结合。"
 
   - templateId: "financial_management"
@@ -252,7 +252,7 @@ prompts:
     avatar: ""
     name: "财务管理"
     desc: "设立报销流程"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是一家公司的财务，请为该公司设立一套{报销流程}，要求{方便实用，效率高，审批流程短}"
 
   - templateId: "crisis_pr"
@@ -260,7 +260,7 @@ prompts:
     avatar: ""
     name: "危机公关"
     desc: "处理危机事件"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是一家{化妆品}公司的公关负责人，你将负责做出适当的策略，以应对{市场上出现使用本公司产品过敏的危机事件}的情境和挑战。请做出专业的决定。"
 
   - templateId: "resume"
@@ -268,7 +268,7 @@ prompts:
     avatar: ""
     name: "写简历"
     desc: "设计简历"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是一位求职者，即将要参加一场面试，你的工作经历是{2年国企会计经验}，教育背景是{国内211本科毕业，会计学专业}，请基于上述内容设计一份简历，要求加上自我评价"
 
   - templateId: "recruitment"
@@ -276,7 +276,7 @@ prompts:
     avatar: ""
     name: "招聘需求"
     desc: "设计职位描述"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是一位HR，需要发布招聘需求，请你根据对候选人的几个关键要求，设计一份完整的职位描述。要求为：{大学及以上学历，3年以上小红书账号运营经验。过往有过成功的小红书账号运营案例。有良好的文字策划、视频剪辑和粉丝运营能力。有较好的沟通能力和团队协作能力}"
 
   - templateId: "social_media"
@@ -284,7 +284,7 @@ prompts:
     avatar: ""
     name: "社交媒体"
     desc: "编辑微博文案"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "针对公司即将推出的{学习机新品}，编辑一条微博文案，文字在{150字}之内，突出：{课程资源多、护眼、性价比高}的特点"
 
   - templateId: "product_review"
@@ -292,7 +292,7 @@ prompts:
     avatar: ""
     name: "产品使用评论"
     desc: "设计用户评论"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "为{电子阅读器产品}设计{3}个用户评论，评论中要{体现真实的使用体验和对产品的积极评价}"
 
   - templateId: "interviewer"
@@ -300,7 +300,7 @@ prompts:
     avatar: ""
     name: "面试官"
     desc: "模拟面试"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你扮演面试官的角色。我将成为候选人，你会问我这个职位的面试问题。我希望你只以面试官的身份回答。不要一次写下所有的问题。我希望你只接受我的面试。问我问题并等待我的回答。不要写解释。像面试官一样一个接一个地问我问题，然后等待我的回答。"
 
   - templateId: "love_letter"
@@ -308,7 +308,7 @@ prompts:
     avatar: ""
     name: "写情书"
     desc: "撰写情书"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "明天是情人节，请给我的女朋友写一封感人的情书"
 
   - templateId: "date_planning"
@@ -316,7 +316,7 @@ prompts:
     avatar: ""
     name: "情感策划"
     desc: "策划约会"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "帮我策划一场情人节的约会"
 
   - templateId: "confession"
@@ -324,7 +324,7 @@ prompts:
     avatar: ""
     name: "情感表白"
     desc: "写告白信"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望向暗恋的女生表白，帮我写一封{情真意切的告白信}"
 
   - templateId: "sales_contract"
@@ -332,7 +332,7 @@ prompts:
     avatar: ""
     name: "销售合同"
     desc: "拟订销售合同"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是公司的法务，现在需要拟一份销售合同模板，要求内容包括{双方权益、违约条款、保密性等}"
 
   - templateId: "rental_contract"
@@ -340,7 +340,7 @@ prompts:
     avatar: ""
     name: "租房合同"
     desc: "提供租房合同"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "现在给我一份规范的租房合同，合同中要包含{入住和退租时间、房租和水电费用、双方权利和违约责任的内容}"
 
   - templateId: "food_review"
@@ -348,7 +348,7 @@ prompts:
     avatar: ""
     name: "美食点评"
     desc: "点评餐厅"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你是一位美食家，从{餐厅环境、食物口感、服务角度}出发，点评你去过的一家西餐厅，{300字}之内。"
 
   - templateId: "fortune_analysis"
@@ -356,7 +356,7 @@ prompts:
     avatar: ""
     name: "运势分析"
     desc: "解读星座运势"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你是一位占星师，你将学习十二星座知识，能够准确解读星座给出今日运势，下面我将告诉你需要解读的星座是{金牛座}。"
 
   - templateId: "cold_joke"
@@ -364,7 +364,7 @@ prompts:
     avatar: ""
     name: "冷笑话"
     desc: "讲冷笑话"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是我的一位非常幽默的朋友，我现在心情不好，希望你能讲一个与{动物}有关的冷笑话，希望能够有吸引力，有想象力。"
 
   - templateId: "travel_plan"
@@ -372,7 +372,7 @@ prompts:
     avatar: ""
     name: "旅游计划"
     desc: "制定旅游计划"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你现在是一位专业导游，为我制定一个{三天两晚}在{西安}的旅游计划，行程要有{陕西历史博物馆、大雁塔、芙蓉园}"
 
   - templateId: "nutritionist"
@@ -380,7 +380,7 @@ prompts:
     avatar: ""
     name: "营养师"
     desc: "制定减肥食谱"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "作为一名营养师，我希望你为{正处于减肥期的人}制定一份食谱，要求热量控制在500卡之内"
 
   - templateId: "cooking"
@@ -388,7 +388,7 @@ prompts:
     avatar: ""
     name: "美食制作"
     desc: "推荐菜品和做法"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你现在是位厨师，给我推荐{5道}{10分钟}之内可完成的菜品，并给出具体做法"
 
   - templateId: "fitness_plan"
@@ -396,7 +396,7 @@ prompts:
     avatar: ""
     name: "健身计划"
     desc: "制定训练计划"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是一位私人教练，我现在想{减去腿部赘肉}，给我制定一份针对性的训练计划"
 
   - templateId: "fashion"
@@ -404,7 +404,7 @@ prompts:
     avatar: ""
     name: "时尚穿搭"
     desc: "提供穿搭建议"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是一位时尚穿搭博主，你会给我穿搭的建议，我的需求是{搭配一身适合春末夏初的服装，需要用到白衬衫}，风格是{复古风}"
 
   - templateId: "travel_guide"
@@ -412,7 +412,7 @@ prompts:
     avatar: ""
     name: "旅行指南"
     desc: "提供旅行建议"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你充当旅行指南。我会写给你我的位置，你会建议一个靠近我的位置的地方。在某些情况下，我也会给你我将要去的地方的类型。您还会向我推荐靠近我的第一个位置的类似类型的地方。我的第一个建议请求是{我在伊斯坦布尔/贝伊奥卢，我只想参观博物馆}。"
 
   - templateId: "interior_designer"
@@ -420,7 +420,7 @@ prompts:
     avatar: ""
     name: "室内装饰师"
     desc: "室内设计建议"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我想让你担任室内设计师。告诉我我选择的房间应该使用什么样的主题和设计方法;卧室，大厅等，提供有关配色方案，家具放置和其他最适合所述主题/设计方法的装饰选项的建议，以增强空间内的美感和舒适性。"
 
   - templateId: "health_knowledge"
@@ -428,7 +428,7 @@ prompts:
     avatar: ""
     name: "健康常识"
     desc: "医疗处理建议"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你现在是一位家庭医生，我在{跑马拉松过程中扭伤了}，该如何快速处理，后期如何恢复，给出合理建议。"
 
   - templateId: "disease_prevention"
@@ -436,7 +436,7 @@ prompts:
     avatar: ""
     name: "疾病预防"
     desc: "预防疾病复发"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我是一名{过敏性鼻炎}患者，春天鲜花盛开、柳絮乱飞的情况下，我该如何避免{鼻炎复发}"
 
   - templateId: "university_application"
@@ -444,7 +444,7 @@ prompts:
     avatar: ""
     name: "大学申请邮件"
     desc: "撰写大学申请邮件"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我正在申请就读一所国外大学，用{英文}写一封邮件给该学校，邮件中需要有{我的个人教育经历、申请学校的理由及未来的学习规划}"
 
   - templateId: "leave_letter"
@@ -452,7 +452,7 @@ prompts:
     avatar: ""
     name: "请假信"
     desc: "撰写请假信"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我是一位{在校学生}，因为{周五有重要的事无法参加周五晚上的导师的开组会}，请帮我给导师写一封请假信。信中说明{我不能去的原因，并告诉导师我会按时提交报告，最后替我致歉。}"
 
   - templateId: "invitation_email"
@@ -460,7 +460,7 @@ prompts:
     avatar: ""
     name: "邀请邮件"
     desc: "撰写邀请邮件"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你现在是一个{商务经理}，写一封邮件邀请{客户参加你们公司的开业典礼}，邮件中要告诉客户具体时间及当天的详细安排"
 
   - templateId: "moment_copy"
@@ -468,7 +468,7 @@ prompts:
     avatar: ""
     name: "朋友圈文案"
     desc: "撰写朋友圈文案"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "你是一位文案小助理，我需要你帮我写朋友圈文案，我的要求是{表达我外出游玩的好心情，我将会配一张日出的照片}，50字左右，风格俏皮有趣"
 
   - templateId: "title_generator"
@@ -476,7 +476,7 @@ prompts:
     avatar: ""
     name: "标题生成器"
     desc: "生成标题"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我想让你充当标题生成器。请以{文房四宝}为主题，{传承、匠心}为关键词，你将生成五个吸引人的标题。要求保持标题简洁，不超过{20}个字"
 
   - templateId: "article_outline"
@@ -484,7 +484,7 @@ prompts:
     avatar: ""
     name: "文章大纲"
     desc: "根据文章生成大纲的提示词"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你是一位文案助理，帮助我生成文章大纲，这篇大纲的主题是{人工智能发展史}，要求逻辑清晰，分条表述。"
 
   - templateId: "red_book"
@@ -492,7 +492,7 @@ prompts:
     avatar: ""
     name: "小红书"
     desc: "关于小红书产品文案的提示词"
-    author: "中国联通"
+    author: "Wanwu"
     prompt: "我希望你是一位文案助理，你将针对{保湿防晒霜}这一产品，写一篇小红书风格的种草文案，要求包含产品功效、特点以及使用体验。"
 
 prompt-engineering:

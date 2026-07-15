@@ -261,7 +261,7 @@ func CallRagChatStream(ctx *gin.Context, userId, orgId string, req request.ChatR
 // rag流式会话
 func ragStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool) func() (ch <-chan string, callback func(string, string), err error) {
 	return func() (ch <-chan string, callback func(string, string), err error) {
-		stream, err := rag.ChatRag(ctx, buildRagStreamParams(userId, orgId, req, needLatestPublished))
+		stream, err := rag.ChatRag(ctx.Request.Context(), buildRagStreamParams(userId, orgId, req, needLatestPublished))
 		if err != nil {
 			return nil, nil, err
 		}
@@ -283,7 +283,7 @@ func ragStream(ctx *gin.Context, userId, orgId string, req request.ChatRagReques
 
 func buildRagInfo(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool) (*rag_service.RagInfo, map[string]string, error) {
 	// 根据 ragID 获取敏感词配置
-	ragInfo, err := rag.GetRagDetail(ctx, &rag_service.RagDetailReq{
+	ragInfo, err := rag.GetRagDetail(ctx.Request.Context(), &rag_service.RagDetailReq{
 		RagId:   req.RagID,
 		Publish: util.IfElse(needLatestPublished, int32(1), int32(0)),
 	})

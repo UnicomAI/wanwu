@@ -103,13 +103,24 @@ func toOrgIDName(ctx *gin.Context, org *iam_service.IDName) response.IDName {
 	}
 }
 
-func toOrgIDNames(ctx *gin.Context, orgs []*iam_service.IDName, isSystemAdmin bool) []response.IDName {
-	var ret []response.IDName
+func toOrgIDNameWithAvatar(ctx *gin.Context, org *iam_service.IDNameWithAvatar) response.IDNameWithAvatar {
+	if org.Id == config.TopOrgID {
+		org.Name = gin_util.I18nKey(ctx, "bff_top_org_name")
+	}
+	return response.IDNameWithAvatar{
+		ID:     org.Id,
+		Name:   org.Name,
+		Avatar: cacheOrgAvatar(org.AvatarPath),
+	}
+}
+
+func toOrgIDNamesWithAvatar(ctx *gin.Context, orgs []*iam_service.IDNameWithAvatar, isSystemAdmin bool) []response.IDNameWithAvatar {
+	var ret []response.IDNameWithAvatar
 	for _, org := range orgs {
 		if len(orgs) > 1 && org.Id == config.TopOrgID && !isSystemAdmin {
 			continue
 		}
-		ret = append(ret, toOrgIDName(ctx, org))
+		ret = append(ret, toOrgIDNameWithAvatar(ctx, org))
 	}
 	return ret
 }

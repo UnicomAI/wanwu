@@ -18,6 +18,7 @@
       @handleBtnClick="handleBtnClick"
       :class="[chatType === 'webChat' ? 'chatBg' : '']"
       :showAside="showAside"
+      @aside-scroll="handleHistoryScroll"
     >
       <template #aside-content>
         <transition name="fade">
@@ -30,7 +31,7 @@
               @touchstart="historyClick(n)"
               @mouseenter="mouseEnter(n)"
               @mouseleave="mouseLeave(n)"
-              :key="'history' + i"
+              :key="n.conversationId || 'history' + i"
             >
               <span class="appName">
                 <span class="appTag"></span>
@@ -41,6 +42,12 @@
                 v-if="n.hover || n.active"
                 @click.stop="deleteConversation(n)"
               ></span>
+            </div>
+            <div
+              v-if="historyPageConf.loading && historyList.length"
+              class="history-loading"
+            >
+              <i class="el-icon-loading"></i>
             </div>
           </div>
         </transition>
@@ -59,6 +66,8 @@
             :maxFileSize="100"
             ref="agentChat"
             @reloadList="reloadList"
+            @conversationDeleted="handleConversationDeleted"
+            @conversationPromoted="handleConversationPromoted"
             @setHistoryStatus="setHistoryStatus"
           />
         </div>
@@ -73,6 +82,7 @@ import { mapGetters } from 'vuex';
 import {
   getAgentPublishedInfo,
   getOpenurlInfo,
+  getOpenurlAgentLlm,
   OpenurlConverList,
   getConversationlist,
 } from '@/api/agent';
@@ -98,6 +108,13 @@ export default {
       asideTitle: this.$t('app.createConversation'),
       assistantId: '',
       historyList: [],
+      historyPageConf: {
+        pageNo: 1,
+        pageSize: 50,
+        total: 0,
+        hasMore: true,
+        loading: false,
+      },
       appUrlInfo: {},
       modelOptions: [],
       editForm: {
@@ -207,10 +224,16 @@ export default {
       } else {
         this.showAside = true;
       }
+      this.$nextTick(() => {
+        this.ensureHistoryScrollable();
+      });
     },
     toggleMobileMenu() {
       this.showMobileMenu = true;
       this.showAside = true;
+      this.$nextTick(() => {
+        this.ensureHistoryScrollable();
+      });
     },
     closeMobileMenu() {
       this.showMobileMenu = false;
@@ -225,8 +248,63 @@ export default {
       this.xClientId = xClientId;
       return xClientId;
     },
-    reloadList(val) {
-      this.getList(val);
+    // 重置会话列表，创建新会话后可激活第一条
+    reloadList(activateFirst) {
+      this.getList({ reset: true, activateFirst });
+    },
+    // 按当前会话类型请求指定页的历史会话
+    fetchHistoryPage(pageNo) {
+      const params = {
+        pageNo,
+        pageSize: this.historyPageConf.pageSize,
+      };
+      if (this.chatType === 'agentChat') {
+        return getConversationlist({
+          assistantId: this.assistantId,
+          ...params,
+        });
+      }
+      const config = this.headerConfig();
+      return OpenurlConverList(this.assistantId, params, config);
+    },
+    // 给历史会话补齐侧栏交互状态
+    normalizeHistoryItem(item) {
+      return { ...item, hover: false, active: false };
+    },
+    // 追加分页数据并按 conversationId 去重
+    mergeHistoryList(list) {
+      const existedMap = new Map(
+        this.historyList.map(item => [item.conversationId, item]),
+      );
+      list.forEach(item => {
+        const oldItem = existedMap.get(item.conversationId);
+        if (oldItem) {
+          Object.assign(oldItem, {
+            ...item,
+            hover: oldItem.hover,
+            active: oldItem.active,
+          });
+        } else {
+          this.historyList.push(item);
+        }
+      });
+    },
+    // 根据 total 或本页数量判断是否还有更多
+    updateHistoryHasMore(rawList) {
+      if (this.historyPageConf.total > 0) {
+        this.historyPageConf.hasMore =
+          this.historyList.length < this.historyPageConf.total;
+        return;
+      }
+      if (
+        this.chatType === 'webChat' &&
+        rawList.length > this.historyPageConf.pageSize
+      ) {
+        this.historyPageConf.hasMore = false;
+        return;
+      }
+      this.historyPageConf.hasMore =
+        rawList.length >= this.historyPageConf.pageSize;
     },
     headerConfig() {
       const config = {
@@ -235,6 +313,9 @@ export default {
       return config;
     },
     async getModelData() {
+      if (this.chatType === 'webChat') {
+        return this.getOpenurlModelData();
+      }
       try {
         const res = await selectModelList();
         if (res.code === 0) {
@@ -243,6 +324,27 @@ export default {
         }
       } catch (error) {
         console.warn('[agent chat] get model list failed', error);
+      }
+    },
+    async getOpenurlModelData() {
+      try {
+        const config = this.headerConfig();
+        const res = await getOpenurlAgentLlm(this.assistantId, config);
+        if (res.code === 0) {
+          const modelConfig = res.data?.modelConfig || res.data || {};
+          this.modelOptions = Object.keys(modelConfig).length
+            ? [modelConfig]
+            : [];
+          this.$set(this.editForm, 'modelConfig', {
+            ...(this.editForm.modelConfig || {}),
+            ...modelConfig,
+            fullConfig: modelConfig.config || {},
+          });
+        }
+        return res;
+      } catch (error) {
+        console.warn('[agent webChat] get openurl llm config failed', error);
+        return null;
       }
     },
     applyModelFullConfig() {
@@ -288,33 +390,153 @@ export default {
         await this.getModelData();
       }
     },
-    async getList(noInit) {
-      let res = null;
-      if (this.chatType === 'agentChat') {
-        res = await getConversationlist({
-          assistantId: this.assistantId,
-          pageNo: 1,
-          pageSize: 1000,
-        });
-      } else {
-        const config = this.headerConfig();
-        res = await OpenurlConverList(this.assistantId, config);
-      }
-      if (res.code === 0) {
-        if (res.data.list && res.data.list.length > 0) {
-          this.historyList = res.data.list.map(n => {
-            return { ...n, hover: false, active: false };
-          });
-          if (noInit) {
-            this.historyList[0].active = true;
+    // 获取历史会话列表，支持首次加载和滚动加载
+    async getList(options = {}) {
+      const opts =
+        typeof options === 'boolean' ? { activateFirst: options } : options;
+      const loadMore = !!opts.loadMore;
+      const activateFirst = !!opts.activateFirst;
+      if (this.historyPageConf.loading) return;
+      if (loadMore && !this.historyPageConf.hasMore) return;
+
+      const pageNo = loadMore ? this.historyPageConf.pageNo + 1 : 1;
+      this.historyPageConf.loading = true;
+      try {
+        const res = await this.fetchHistoryPage(pageNo);
+        if (res.code === 0) {
+          const rawList = res.data?.list || [];
+          this.historyPageConf.total = Number(res.data?.total) || 0;
+          const list = rawList.map(item => this.normalizeHistoryItem(item));
+
+          if (loadMore) {
+            this.mergeHistoryList(list);
           } else {
-            this.historyClick[this.historyList[0]];
+            this.historyList = list;
           }
-        } else {
+
+          this.historyPageConf.pageNo = pageNo;
+          if (activateFirst && this.historyList[0]) {
+            this.historyList[0].active = true;
+          }
+          this.updateHistoryHasMore(rawList);
+        } else if (!loadMore) {
           this.historyList = [];
+          this.historyPageConf.hasMore = false;
+          this.historyPageConf.total = 0;
         }
-      } else {
-        this.historyList = [];
+      } catch (error) {
+        console.warn('[agent chat] get conversation list failed', error);
+        if (!loadMore) {
+          this.historyList = [];
+          this.historyPageConf.hasMore = false;
+          this.historyPageConf.total = 0;
+        }
+      } finally {
+        this.historyPageConf.loading = false;
+      }
+      if (!loadMore && !opts.skipEnsure) {
+        this.$nextTick(() => {
+          this.ensureHistoryScrollable();
+        });
+      }
+    },
+    // 获取侧栏滚动容器，用于判断首屏是否已出现滚动条
+    getHistoryScrollEl() {
+      return this.$el && this.$el.querySelector('.aside-content');
+    },
+    // 首屏列表不足一屏时自动补拉，避免无滚动条无法触底加载
+    async ensureHistoryScrollable() {
+      const el = this.getHistoryScrollEl();
+      if (!el) return;
+
+      let loadCount = 0;
+      const maxAutoLoadCount = 5;
+      while (
+        this.historyPageConf.hasMore &&
+        !this.historyPageConf.loading &&
+        el.scrollHeight <= el.clientHeight &&
+        loadCount < maxAutoLoadCount
+      ) {
+        loadCount += 1;
+        await this.getList({ loadMore: true, skipEnsure: true });
+        await this.$nextTick();
+      }
+    },
+    // 侧栏滚动接近底部时加载下一页
+    handleHistoryScroll(event) {
+      const el = event && event.target;
+      if (!el || this.historyPageConf.loading || !this.historyPageConf.hasMore)
+        return;
+      const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+      if (distanceToBottom < 120) {
+        this.getList({ loadMore: true });
+      }
+    },
+    // 已有会话再次提问后置顶，保持侧栏顺序与最近对话一致
+    handleConversationPromoted(item) {
+      const conversationId = item && item.conversationId;
+      const index = this.historyList.findIndex(
+        history => history.conversationId === conversationId,
+      );
+      if (index <= 0) return;
+      const [current] = this.historyList.splice(index, 1);
+      this.historyList.unshift(current);
+      this.$nextTick(() => {
+        const el = this.getHistoryScrollEl();
+        if (el) {
+          el.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    },
+    // 删除成功后本地移除并补位，保持已加载列表连续
+    async handleConversationDeleted(item) {
+      const conversationId = item && item.conversationId;
+      if (!conversationId) {
+        this.getList({ reset: true });
+        return;
+      }
+
+      this.historyList = this.historyList.filter(
+        history => history.conversationId !== conversationId,
+      );
+      if (this.historyPageConf.total > 0) {
+        this.historyPageConf.total = Math.max(
+          this.historyPageConf.total - 1,
+          this.historyList.length,
+        );
+      }
+
+      if (
+        this.historyPageConf.hasMore ||
+        (this.historyPageConf.total > 0 &&
+          this.historyList.length < this.historyPageConf.total)
+      ) {
+        await this.refillHistoryAfterDelete();
+      }
+      this.$nextTick(() => {
+        this.ensureHistoryScrollable();
+      });
+    },
+    // 删除后重新拉当前最后页，补齐 offset 分页产生的缺口
+    async refillHistoryAfterDelete() {
+      if (this.historyPageConf.loading) return;
+      this.historyPageConf.loading = true;
+      try {
+        const res = await this.fetchHistoryPage(
+          Math.max(this.historyPageConf.pageNo, 1),
+        );
+        if (res.code === 0) {
+          const rawList = res.data?.list || [];
+          this.historyPageConf.total =
+            Number(res.data?.total) || this.historyPageConf.total;
+          const list = rawList.map(item => this.normalizeHistoryItem(item));
+          this.mergeHistoryList(list);
+          this.updateHistoryHasMore(rawList);
+        }
+      } catch (error) {
+        console.warn('[agent chat] refill conversation list failed', error);
+      } finally {
+        this.historyPageConf.loading = false;
       }
     },
     setHistoryStatus() {
@@ -420,6 +642,11 @@ export default {
   }
 }
 .explore-aside-app {
+  .history-loading {
+    padding: 10px 0;
+    text-align: center;
+    color: $color;
+  }
   .appList:hover {
     background-color: $color_opacity !important;
   }

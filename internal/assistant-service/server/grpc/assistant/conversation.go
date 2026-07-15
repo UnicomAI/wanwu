@@ -112,7 +112,7 @@ func (s *Service) GetConversationList(ctx context.Context, req *assistant_servic
 	offset := (req.PageNo - 1) * req.PageSize
 
 	// 调用client方法获取对话列表
-	conversations, total, status := s.cli.GetConversationList(ctx, req.AssistantId, req.ConversationType, req.Identity.UserId, req.Identity.OrgId, offset, req.PageSize)
+	conversations, total, status := s.cli.GetConversationList(ctx, req.AssistantId, req.ConversationType, req.Identity.UserId, req.Identity.OrgId, req.SearchText, offset, req.PageSize)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantConversationErr, status)
 	}

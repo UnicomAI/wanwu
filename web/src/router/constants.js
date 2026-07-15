@@ -1,9 +1,9 @@
 export const PERMS = {
-  PERMISSION: 'permission', // 权限管理
-  PERMISSION_USER: 'permission.user', // 权限管理-用户管理
-  PERMISSION_ORG: 'permission.org', // 权限管理-组织管理
-  PERMISSION_ROLE: 'permission.role', // 权限管理-角色管理
-  SETTING: 'setting', // 平台配置
+  ADMIN_CENTER: 'admin_center', // 管理员中心（用户、组织、角色有此权限则展示）
+  SETTING: 'admin_center.setting', // 管理员中心-平台配置
+  OAUTH: 'admin_center.oauth', // 管理员中心-OAuth密钥管理
+
+  OPEN_SOURCE: 'open_source', // 开源仓库
 
   WGA: 'wga', // 通用智能体
   WGA_WANWU_BOT: 'wga.wanwu_bot', // 通用智能体-WanwuBot
@@ -37,7 +37,6 @@ export const PERMS = {
 
   OPERATION: 'operation', // 运营管理
   STATISTIC: 'operation.statistic_client', // 运营管理-统计分析
-  OAUTH: 'operation.oauth', // 运营管理-OAuth密钥管理
 
   APP_OBSERVATION: 'app_observability', // 应用观测
   OBSERVATION_STATISTIC: 'app_observability.statistic', // 应用观测-统计看板

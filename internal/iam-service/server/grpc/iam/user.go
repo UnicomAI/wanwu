@@ -191,6 +191,37 @@ func (s *Service) UpdateUserAvatar(ctx context.Context, req *iam_service.UpdateU
 	return &emptypb.Empty{}, nil
 }
 
+func (s *Service) GetUsersByOrgIDs(ctx context.Context, req *iam_service.GetUsersByOrgIDsReq) (*iam_service.GetUsersByOrgIDsResp, error) {
+	var orgIDs []uint32
+	if req.IsAllOrg {
+		// 查询用户有权限的所有组织
+		adminOrgIDs, err := s.cli.GetAdminOrgIDs(ctx, util.MustU32(req.UserId))
+		if err != nil {
+			return nil, errStatus(errs.Code_IAMUser, err)
+		}
+		if len(adminOrgIDs) == 0 {
+			return &iam_service.GetUsersByOrgIDsResp{}, nil
+		}
+		orgIDs = adminOrgIDs
+	} else {
+		for _, orgID := range req.OrgIds {
+			orgIDs = append(orgIDs, util.MustU32(orgID))
+		}
+	}
+	users, err := s.cli.GetUsersByOrgIDs(ctx, orgIDs)
+	if err != nil {
+		return nil, errStatus(errs.Code_IAMUser, err)
+	}
+	resp := &iam_service.GetUsersByOrgIDsResp{}
+	for _, user := range users {
+		resp.Users = append(resp.Users, &iam_service.IDName{
+			Id:   strconv.Itoa(int(user.ID)),
+			Name: user.Name,
+		})
+	}
+	return resp, nil
+}
+
 // --- internal function ---
 
 func toUserInfo(user *orm.UserInfo) *iam_service.UserInfo {

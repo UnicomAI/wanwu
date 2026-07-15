@@ -333,7 +333,7 @@ func buildQAPairAuthorMap(ctx *gin.Context, dataList []*knowledgebase_qa_service
 	for userId := range userIdSet {
 		userIdList = append(userIdList, userId)
 	}
-	userInfoList, err := iam.GetUserSelectByUserIDs(ctx, &iam_service.GetUserSelectByUserIDsReq{
+	userInfoList, err := iam.GetUserSelectByUserIDs(ctx.Request.Context(), &iam_service.GetUserSelectByUserIDsReq{
 		UserIds: userIdList,
 	})
 	if err != nil {
@@ -364,7 +364,7 @@ func buildKnowledgeExportAuthorMap(ctx *gin.Context, dataList []*knowledgebase_s
 	for userId := range userIdSet {
 		userIdList = append(userIdList, userId)
 	}
-	userInfoList, err := iam.GetUserSelectByUserIDs(ctx, &iam_service.GetUserSelectByUserIDsReq{
+	userInfoList, err := iam.GetUserSelectByUserIDs(ctx.Request.Context(), &iam_service.GetUserSelectByUserIDsReq{
 		UserIds: userIdList,
 	})
 	if err != nil {

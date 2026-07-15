@@ -1641,6 +1641,11 @@ func checkDocFile(ctx context.Context, req *knowledgebase_doc_service.ReImportDo
 			log.Errorf("文件 '%s' 文件名非法，不支持重导入", doc.Name)
 			continue
 		}
+		//4.1 文件名长度校验：过长会导致 RAG 落盘失败
+		if !pkgUtil.ValidateFileNameLength(doc.Name) {
+			log.Errorf("文件 '%s' 文件名过长，不支持重导入", doc.Name)
+			continue
+		}
 		//5.文档重名校验
 		err = orm.CheckKnowledgeDocSameName(ctx, req.UserId, req.KnowledgeId, doc.Name, "", doc.DocId)
 		if err != nil {

@@ -12,8 +12,6 @@ import (
 	"strings"
 
 	"github.com/UnicomAI/wanwu/pkg/log"
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/transform"
 )
 
 // ZipDir 将目录打包为 zip 格式数据。
@@ -61,14 +59,10 @@ func UnzipDir(ctx context.Context, localFilePath string, destDir string) (extrac
 	}()
 
 	for _, f := range fileReader.File {
-		var decodeFileName string
-		if f.Flags == 0 { //本地编码，默认GBK，转换成UTF-8
-			i := bytes.NewReader([]byte(f.Name))
-			decoder := transform.NewReader(i, simplifiedchinese.GB18030.NewDecoder())
-			content, _ := io.ReadAll(decoder)
-			decodeFileName = string(content)
-		} else {
-			decodeFileName = f.Name
+		// EFS(bit 11)未置位 → 本地编码，默认按 GBK/GB18030 解码成 UTF-8
+		decodeFileName := f.Name
+		if f.Flags&ZipEFSFlag == 0 {
+			decodeFileName = DecodeGBKToUTF8(decodeFileName)
 		}
 		// 构建完整的文件路径
 		destFilePath := filepath.Join(destDir, decodeFileName)
@@ -278,7 +272,14 @@ func UnzipSubDir(reader *zip.Reader, subDir, destDir string) error {
 	cleanDestWithSep := cleanDest + string(os.PathSeparator)
 
 	for _, file := range reader.File {
-		cleanName, err := CleanZipEntryName(file.Name)
+		// EFS(bit 11)未置位 → 本地编码，先按 GBK/GB18030 解码成 UTF-8，再做路径清理。
+		// 必须先解码再 CleanZipEntryName：GBK 双字节字符第二字节可能为 0x5C('\')，
+		// 否则 CleanZipEntryName 的 ReplaceAll("\\","/") 会截坏 GBK 字符。
+		entryName := file.Name
+		if file.Flags&ZipEFSFlag == 0 {
+			entryName = DecodeGBKToUTF8(entryName)
+		}
+		cleanName, err := CleanZipEntryName(entryName)
 		if err != nil {
 			return err
 		}

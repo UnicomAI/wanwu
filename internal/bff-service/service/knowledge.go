@@ -169,7 +169,7 @@ func CreateKnowledge(ctx *gin.Context, userId, orgId string, r *request.CreateKn
 }
 
 func CreateKnowledgeOpenapi(ctx *gin.Context, userId, orgId string, r *request.CreateKnowledgeReq) (*response.CreateKnowledgeResp, error) {
-	embModel, err := model.GetModelByUuid(ctx, &model_service.GetModelByUuidReq{Uuid: r.EmbeddingModel.ModelId})
+	embModel, err := model.GetModelByUuid(ctx.Request.Context(), &model_service.GetModelByUuidReq{Uuid: r.EmbeddingModel.ModelId})
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func CreateKnowledgeOpenapi(ctx *gin.Context, userId, orgId string, r *request.C
 	r.EmbeddingModel.ModelId = embModel.ModelId
 	if r.Category == request.CategoryKnowledge || r.Category == request.CategoryMultimodalKnowledge {
 		if r.KnowledgeGraph.Switch {
-			llmModel, err := model.GetModelByUuid(ctx, &model_service.GetModelByUuidReq{Uuid: r.KnowledgeGraph.LLMModelId})
+			llmModel, err := model.GetModelByUuid(ctx.Request.Context(), &model_service.GetModelByUuidReq{Uuid: r.KnowledgeGraph.LLMModelId})
 			if err != nil {
 				return nil, err
 			}
@@ -282,7 +282,7 @@ func checkRerank(ctx *gin.Context, rerankModelId, question string, hasImage bool
 		return errors.New("只输入图片必须选择多模态reranker")
 	}
 	if rerankModelId != "" {
-		rerankModel, err = model.GetModel(ctx, &model_service.GetModelReq{ModelId: rerankModelId})
+		rerankModel, err = model.GetModel(ctx.Request.Context(), &model_service.GetModelReq{ModelId: rerankModelId})
 		if err != nil {
 			return err
 		}
@@ -546,7 +546,7 @@ func buildOtherOrgInfoMap(ctx *gin.Context, knowledgeListResp *knowledgebase_ser
 	}
 	var dataMap = make(map[string]string)
 	if len(shareOrgIdList) > 0 {
-		orgInfoList, err := iam.GetOrgByOrgIDs(ctx, &iam_service.GetOrgByOrgIDsReq{
+		orgInfoList, err := iam.GetOrgByOrgIDs(ctx.Request.Context(), &iam_service.GetOrgByOrgIDsReq{
 			OrgIds: shareOrgIdList,
 		})
 		if err != nil {

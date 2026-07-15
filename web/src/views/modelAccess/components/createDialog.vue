@@ -516,7 +516,6 @@ export default {
         RERANK,
         MULTIMODAL_RERANK,
         MULTIMODAL_EMBEDDING,
-        ASR,
       ],
       customModelId: CUSTOM_MODEL_ID,
       modelIdList: [DEFAULT_MODEL_ITEM],

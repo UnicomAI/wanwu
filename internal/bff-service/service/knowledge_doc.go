@@ -274,7 +274,7 @@ func UpdateDocStatus(ctx *gin.Context, r *request.CallbackUpdateDocStatusReq) er
 }
 
 func DocStatusInit(ctx *gin.Context, userId, orgId string) (interface{}, error) {
-	_, err := knowledgeBaseDoc.InitDocStatus(ctx, &knowledgebase_doc_service.InitDocStatusReq{
+	_, err := knowledgeBaseDoc.InitDocStatus(ctx.Request.Context(), &knowledgebase_doc_service.InitDocStatusReq{
 		UserId: userId,
 		OrgId:  orgId,
 	})
@@ -406,7 +406,7 @@ func buildAuthorMap(ctx *gin.Context, dataList []*knowledgebase_doc_service.DocI
 	for userId := range userIdSet {
 		userIdList = append(userIdList, userId)
 	}
-	userInfoList, err := iam.GetUserSelectByUserIDs(ctx, &iam_service.GetUserSelectByUserIDsReq{
+	userInfoList, err := iam.GetUserSelectByUserIDs(ctx.Request.Context(), &iam_service.GetUserSelectByUserIDsReq{
 		UserIds: userIdList,
 	})
 	if err != nil {

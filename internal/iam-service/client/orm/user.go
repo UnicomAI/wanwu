@@ -147,6 +147,30 @@ func (c *Client) SelectUsersByUserIDs(ctx context.Context, userIDs []uint32) ([]
 	return ret, nil
 }
 
+// GetUsersByOrgIDs 根据多个组织ID查询对应的用户列表（去重）。
+// 不过滤禁用状态，包含所有 org_users 记录。
+func (c *Client) GetUsersByOrgIDs(ctx context.Context, orgIDs []uint32) ([]IDName, *errs.Status) {
+	if len(orgIDs) == 0 {
+		return nil, nil
+	}
+	var orgUsers []*model.OrgUser
+	if err := sqlopt.WithOrgs(orgIDs).Apply(c.db.WithContext(ctx)).Find(&orgUsers).Error; err != nil {
+		return nil, toErrStatus("iam_org_user_ids_get", err.Error())
+	}
+	seen := make(map[uint32]bool)
+	var userIDs []uint32
+	for _, ou := range orgUsers {
+		if !seen[ou.UserID] {
+			userIDs = append(userIDs, ou.UserID)
+			seen[ou.UserID] = true
+		}
+	}
+	if len(userIDs) == 0 {
+		return nil, nil
+	}
+	return c.SelectUsersByUserIDs(ctx, userIDs)
+}
+
 // IsUserOrgAdmin 查询用户在系统任一组织中是否拥有组织管理员角色。
 // user_roles.is_admin 在分配组织内置管理员角色时置 true，故只要存在任一 is_admin=true 记录即为 true。
 // 同时排除用户在该组织被禁用（org_users.status=disable）的记录，与 checkUserIsAdmin 语义保持一致。

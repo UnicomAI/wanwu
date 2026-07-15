@@ -112,6 +112,11 @@ func checkOneFile(ctx context.Context, importTask *model.KnowledgeImportTask, do
 		log.Errorf("文件 '%s' 文件名非法", doc.DocName)
 		return false, util.KnowledgeImportInvalidNameErr
 	}
+	//3.1 文件名长度校验：RAG 落盘时以文档名为本地文件名，过长会触发系统"文件名过长"报错
+	if !wanwu_util.ValidateFileNameLength(doc.DocName) {
+		log.Errorf("文件 '%s' 文件名过长", doc.DocName)
+		return false, util.KnowledgeImportNameTooLongErr
+	}
 	//4.文档重名校验
 	err = orm.CheckKnowledgeDocSameName(ctx, importTask.UserId, importTask.KnowledgeId, doc.DocName, "", "")
 	if err != nil {

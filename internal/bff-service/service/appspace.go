@@ -371,7 +371,7 @@ func fillAppPublishInfo(ctx *gin.Context, userId, orgId string, apps []response.
 	}
 
 	// 批量获取 app 信息
-	appInfos, err := app.GetAppListByIds(ctx, &app_service.GetAppListByIdsReq{
+	appInfos, err := app.GetAppListByIds(ctx.Request.Context(), &app_service.GetAppListByIdsReq{
 		AppIdsList: appIds,
 		AppType:    "",
 	})

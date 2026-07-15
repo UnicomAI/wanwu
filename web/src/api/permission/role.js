@@ -49,10 +49,27 @@ export const changeRoleStatus = data => {
     data,
   });
 };
+// 获取关联用户
+export const fetchRoleUsers = params => {
+  return service({
+    url: `${USER_API}/role/users`,
+    method: 'get',
+    params,
+  });
+};
+// 移除关联用户
+export const removeRoleUser = data => {
+  return service({
+    url: `${USER_API}/role/user`,
+    method: 'delete',
+    data,
+  });
+};
 // 获取权限树
-export const fetchPermTree = () => {
+export const fetchPermTree = params => {
   return service({
     url: `${USER_API}/role/template`,
     method: 'get',
+    params,
   });
 };

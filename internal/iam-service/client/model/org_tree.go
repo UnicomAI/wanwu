@@ -7,18 +7,20 @@ import (
 )
 
 type OrgNode struct {
-	id       uint32
-	parentID uint32
-	roleID   uint32 // 当前org内置管理员角色
-	name     string
-	status   bool
-	parent   *OrgNode
-	subs     []*OrgNode
+	id         uint32
+	parentID   uint32
+	roleID     uint32 // 当前org内置管理员角色
+	name       string
+	status     bool
+	avatarPath string
+	parent     *OrgNode
+	subs       []*OrgNode
 }
 
-type idName struct {
-	ID   uint32
-	Name string
+type idNameWithAvatar struct {
+	ID         uint32
+	Name       string
+	AvatarPath string
 }
 
 func NewOrgTree(orgs []*Org, orgRoles []*OrgRole) (*OrgNode, error) {
@@ -32,10 +34,11 @@ func NewOrgTree(orgs []*Org, orgRoles []*OrgRole) (*OrgNode, error) {
 		}
 		// current
 		currNode := &OrgNode{
-			id:       org.ID,
-			parentID: org.ParentID,
-			name:     org.Name,
-			status:   org.Status,
+			id:         org.ID,
+			parentID:   org.ParentID,
+			name:       org.Name,
+			avatarPath: org.AvatarPath,
+			status:     org.Status,
 		}
 		// parent
 		for _, node := range nodes {
@@ -86,7 +89,7 @@ func (n *OrgNode) GetOrg(orgID uint32) *OrgNode {
 	return n.getOrg(orgID)
 }
 
-func (n *OrgNode) Select(userOrgs []*OrgUser, userRoles []*UserRole) []idName {
+func (n *OrgNode) Select(userOrgs []*OrgUser, userRoles []*UserRole) []idNameWithAvatar {
 	var roleIDs []uint32
 	for _, userRole := range userRoles {
 		if userRole.IsAdmin {
@@ -97,7 +100,7 @@ func (n *OrgNode) Select(userOrgs []*OrgUser, userRoles []*UserRole) []idName {
 	for _, userOrg := range userOrgs {
 		orgIDs = append(orgIDs, userOrg.OrgID)
 	}
-	var ret []idName
+	var ret []idNameWithAvatar
 	n.sel(orgIDs, roleIDs, &ret)
 	return ret
 }
@@ -184,12 +187,12 @@ func collectDescendantsFromNode(node *OrgNode, ids *[]uint32) {
 
 // --- internal ---
 
-func (n *OrgNode) sel(orgIDs, roleIDs []uint32, list *[]idName) {
+func (n *OrgNode) sel(orgIDs, roleIDs []uint32, list *[]idNameWithAvatar) {
 	if n == nil || !n.status {
 		return
 	}
 	if n.isAdmin(roleIDs) || util.Exist(orgIDs, n.id) {
-		*list = append(*list, idName{ID: n.id, Name: n.getFullName()})
+		*list = append(*list, idNameWithAvatar{ID: n.id, Name: n.getFullName(), AvatarPath: n.avatarPath})
 	}
 	for _, org := range n.subs {
 		org.sel(orgIDs, roleIDs, list)

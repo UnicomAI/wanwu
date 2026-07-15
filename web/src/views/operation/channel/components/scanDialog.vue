@@ -12,11 +12,7 @@
     <!-- 扫码中 -->
     <div v-if="status === 'scanning'" class="scan-content">
       <div class="scan-header">
-        <i
-          class="scan-icon"
-          :class="iconClass"
-          :style="{ color: iconColor }"
-        ></i>
+        <img class="scan-icon" :src="iconImg" alt="" />
         <span class="scan-title">{{ scanTitle }}</span>
       </div>
       <div ref="qrCodeRef" class="qr-code-wrap">
@@ -97,13 +93,10 @@ export default {
     };
   },
   computed: {
-    iconClass() {
+    iconImg() {
       return this.channelType === WECHAT
-        ? 'el-icon-chat-dot-round'
-        : 'el-icon-message-solid';
-    },
-    iconColor() {
-      return this.channelType === WECHAT ? '#07C160' : '#3385FF';
+        ? require('@/assets/imgs/wechat.png')
+        : require('@/assets/imgs/dingtalk.png');
     },
     scanTitle() {
       const key =
@@ -289,7 +282,9 @@ export default {
   margin-bottom: 22px;
 }
 .scan-icon {
-  font-size: 24px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
 }
 .scan-title {
   font-size: 17px;

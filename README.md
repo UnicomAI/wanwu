@@ -232,7 +232,12 @@ The platform has been successfully applied in multiple industries such as **fina
 
 - **Model Requirements:**
   - When using WanwuBot (General Agent) or creating Skills with a single command, the selected model must have a context length >= 32000 when importing.
-  
+
+- **Security Statement:**
+  - All middleware components (MySQL, Redis, MinIO, Kafka, Elasticsearch, etc.) support custom passwords configured in the `.env` file.
+  - For front-end and back-end user password transmission, RSA asymmetric encryption is used to encrypt passwords. The key pair is automatically generated on first service startup; custom key pairs can also be configured via `WANWU_BFF_LOGIN_RSA_PATH` in `.env`.
+  - It is strongly recommended to change all default passwords and keep them secure before deploying in a production environment to avoid security risks associated with default credentials.
+
 - **Docker Installation (Recommended)**
 
 1. Before the first run
@@ -488,6 +493,6 @@ The Yuanjing Wanwu AI Agent Platform is released under the Apache License 2.0.
 ------
 
 ### &#x1F4E9; Contact Us
-| QQ Group1(Full):490071123                                    | QQ Group2(Full):1026898615                                         | QQ Group3:1019579243                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/163d6580-af84-4fe4-9b51-7effb4153dd8" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/03d10f7c-7460-485e-9f17-b3135d460dd0" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/6cf67753-899c-418d-971b-f43fc9b5bada" /> |
+| QQ Group1(Full):490071123                                    | QQ Group2(Full):1026898615                                         | QQ Group3(Full):1019579243                                         | QQ Group3:967463724                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/163d6580-af84-4fe4-9b51-7effb4153dd8" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/03d10f7c-7460-485e-9f17-b3135d460dd0" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/6cf67753-899c-418d-971b-f43fc9b5bada" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/f5aef62d-61ca-4bc1-9217-ba4a358a7d08" /> |

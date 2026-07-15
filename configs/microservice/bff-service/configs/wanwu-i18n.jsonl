@@ -287,6 +287,7 @@
 {"code":140001,"key":"know_doc_embedding_error","langs":{"zh":"向量导入失败"}}
 {"code":140001,"key":"know_doc_text_error","langs":{"zh":"文本导入失败"}}
 {"code":140001,"key":"know_doc_parsing_interrupted","langs":{"zh":"RAG重启"}}
+{"code":140001,"key":"know_doc_file_name_too_long","langs":{"zh":"文件名过长，请缩短后重试（最长80个字符）"}}
 {"code":141001,"key":"","langs":{"zh":"新建失败，请稍后重试"}}
 {"code":141002,"key":"","langs":{"zh":"删除失败，请稍后重试"}}
 {"code":141003,"key":"","langs":{"zh":"修改信息失败，请稍后重试"}}

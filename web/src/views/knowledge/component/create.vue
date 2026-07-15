@@ -169,7 +169,7 @@
           </el-form-item>
           <el-form-item
             :label="$t('knowledgeManage.create.uploadSchema') + ':'"
-            v-if="ruleForm.knowledgeGraph.switch"
+            v-if="ruleForm.knowledgeGraph.switch && !isEdit"
           >
             <el-upload
               action=""
@@ -366,7 +366,7 @@ import {
   DB,
 } from '@/views/knowledge/constants';
 import uploadAvatar from '@/components/uploadAvatar.vue';
-import { filterSize } from '@/utils/util';
+import { filterSize, authDownload } from '@/utils/util';
 
 export default {
   props: {
@@ -572,22 +572,11 @@ export default {
       }
     },
     async downloadTemplate() {
-      const url = '/user/api/v1/static/docs/graph_schema.xlsx';
-      const fileName = 'graph_schema.xlsx';
       try {
-        const response = await fetch(url);
-        if (!response.ok)
-          throw new Error(this.$t('knowledgeManage.create.fileNotExist'));
-
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = fileName;
-        a.click();
-
-        URL.revokeObjectURL(blobUrl); // 释放内存
+        await authDownload(
+          '/user/api/v1/files/docs/graph_schema.xlsx',
+          'graph_schema.xlsx',
+        );
       } catch (error) {
         this.$message.error(this.$t('knowledgeManage.create.downloadFailed'));
       }
@@ -854,6 +843,7 @@ export default {
       });
     },
     showDialog(row) {
+      console.log(row);
       this.dialogVisible = true;
       this.isEdit = Boolean(row);
       this.tabActive = INTERNAL;

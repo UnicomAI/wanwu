@@ -1,154 +1,186 @@
 <template>
-  <div>
-    <div class="table-wrap list-common wrap-fullheight">
-      <div class="table-box">
-        <search-input
-          style="margin-right: 2px; margin-bottom: 20px"
-          :placeholder="$t('user.form.user')"
-          ref="searchInput"
-          @handleSearch="getTableData"
-        />
-        <el-dropdown v-if="!isSystem && isAdmin" @command="handleCommand">
-          <el-button
-            style="margin-left: 13px; margin-bottom: 0"
-            class="add-bt"
-            size="mini"
-            type="primary"
+  <div class="user-page">
+    <org-switcher
+      v-model="selectedOrgId"
+      class="user-page__switcher"
+      @change="handleOrgChange"
+    />
+    <div class="table-wrap list-common wrap-fullheight user-page__main">
+      <div class="user-page__content">
+        <div class="section-title">{{ $t('user.title') }}</div>
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <search-input
+              :placeholder="$t('user.form.user')"
+              ref="searchInput"
+              @handleSearch="getTableData"
+            />
+            <el-select
+              v-model="filterRoleIds"
+              :placeholder="$t('user.form.roleFilter')"
+              multiple
+              collapse-tags
+              clearable
+              class="role-filter no-border-select"
+              @change="searchData"
+            >
+              <el-option
+                v-for="item in roleList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </div>
+          <div class="toolbar-actions">
+            <el-dropdown v-if="!isSystem" @command="handleCommand">
+              <el-button class="add-bt" size="mini" type="primary">
+                <img src="@/assets/imgs/addUser.png" alt="" />
+                {{ $t('user.button.create') }}
+                <i class="el-icon-arrow-down"></i>
+              </el-button>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item command="onceAdd">
+                  {{ $t('user.button.onceAdd') }}
+                </el-dropdown-item>
+                <el-dropdown-item command="batchAdd">
+                  {{ $t('user.button.batchAdd') }}
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+            <el-button
+              v-if="!isSystem"
+              class="add-bt invite-bt"
+              size="mini"
+              @click="handleInviteUser"
+            >
+              <img src="@/assets/imgs/inviteUser.png" alt="" />
+              <span>{{ $t('user.button.invite') }}</span>
+            </el-button>
+          </div>
+        </div>
+        <div class="table-box">
+          <el-table
+            :data="tableData"
+            :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
+            v-loading="loading"
+            style="width: 100%"
           >
-            <img src="@/assets/imgs/addUser.png" alt="" />
-            {{ $t('user.button.create') }}
-            <i class="el-icon-arrow-down"></i>
-          </el-button>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="onceAdd">
-              {{ $t('user.button.onceAdd') }}
-            </el-dropdown-item>
-            <el-dropdown-item command="batchAdd">
-              {{ $t('user.button.batchAdd') }}
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-        <el-button
-          v-if="!isSystem && isAdmin"
-          class="add-bt invite-bt"
-          size="mini"
-          @click="handleInviteUser"
-        >
-          <img src="@/assets/imgs/inviteUser.png" alt="" />
-          <span>{{ $t('user.button.invite') }}</span>
-        </el-button>
-        <el-table
-          :data="tableData"
-          :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
-          v-loading="loading"
-          style="width: 100%"
-        >
-          <el-table-column
-            prop="username"
-            :label="$t('user.table.username')"
-            align="left"
+            <el-table-column :label="$t('user.table.username')" align="left">
+              <template slot-scope="scope">
+                <div class="user-cell">
+                  <div class="user-cell__avatar">
+                    <img
+                      v-if="scope.row.avatar && scope.row.avatar.path"
+                      :src="avatarSrc(scope.row.avatar.path)"
+                      alt=""
+                    />
+                  </div>
+                  <div
+                    class="user-cell__info"
+                    @click="showUserDetail(scope.row)"
+                  >
+                    <span class="user-cell__username">
+                      {{ scope.row.username }}
+                    </span>
+                    <span class="user-cell__email">
+                      {{ scope.row.email || '--' }}
+                    </span>
+                  </div>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column
+              v-if="!isSystem"
+              :label="$t('user.detail.role')"
+              align="left"
+            >
+              <template slot-scope="scope">
+                <div
+                  v-if="scope.row.orgs && scope.row.orgs.length"
+                  v-for="(orgItem, orgIndex) in scope.row.orgs"
+                  :key="orgItem.org.id + orgIndex"
+                >
+                  {{
+                    Array.isArray(orgItem.roles)
+                      ? orgItem.roles.map(item => item.name).join(',') || '--'
+                      : '--'
+                  }}
+                </div>
+              </template>
+            </el-table-column>
+
+            <el-table-column
+              prop="phone"
+              :label="$t('user.dialog.phone')"
+              align="left"
+            >
+              <template slot-scope="scope">
+                {{ scope.row.phone || '--' }}
+              </template>
+            </el-table-column>
+            <el-table-column
+              align="left"
+              :label="$t('user.table.status')"
+              width="100"
+            >
+              <template slot-scope="scope">
+                <div style="height: 26px">
+                  <el-switch
+                    @change="
+                      val => {
+                        changeStatus(scope.row, val);
+                      }
+                    "
+                    style="display: block; height: 22px; line-height: 22px"
+                    v-model="scope.row.status"
+                  />
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="createdAt"
+              :label="$t('user.table.createAt')"
+              align="left"
+            />
+            <el-table-column
+              align="left"
+              :label="$t('common.table.operation')"
+              width="180"
+            >
+              <template slot-scope="scope">
+                <el-button
+                  class="operation"
+                  type="text"
+                  @click="preUpdate(scope.row)"
+                >
+                  {{ $t('common.button.edit') }}
+                </el-button>
+                <el-button
+                  class="operation"
+                  type="text"
+                  @click="preDel(scope.row)"
+                >
+                  {{
+                    isSystem
+                      ? $t('common.button.delete')
+                      : $t('common.button.remove')
+                  }}
+                </el-button>
+                <el-button type="text" @click="resetPsw(scope.row)">
+                  {{ $t('user.table.resetPassword') }}
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <Pagination
+            class="pagination"
+            ref="pagination"
+            :listApi="listApi"
+            @refreshData="refreshData"
           />
-          <el-table-column
-            v-if="isSystem"
-            :label="$t('user.table.company')"
-            align="left"
-          >
-            <template slot-scope="scope">
-              <div>{{ scope.row.company || '--' }}</div>
-            </template>
-          </el-table-column>
-          <el-table-column
-            v-if="!isSystem"
-            :label="$t('user.table.role')"
-            align="left"
-          >
-            <template slot-scope="scope">
-              <div
-                v-if="scope.row.orgs && scope.row.orgs.length"
-                v-for="(orgItem, orgIndex) in scope.row.orgs"
-                :key="orgItem.org.id + orgIndex"
-              >
-                {{
-                  Array.isArray(orgItem.roles)
-                    ? orgItem.roles.map(item => item.name).join(',') || '--'
-                    : '--'
-                }}
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="remark"
-            :label="$t('user.dialog.remark')"
-            align="left"
-          >
-            <template slot-scope="scope">
-              {{ scope.row.remark || '--' }}
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="createdAt"
-            :label="$t('user.table.createAt')"
-            align="left"
-          />
-          <el-table-column
-            v-if="isAdmin"
-            align="left"
-            :label="$t('user.table.status')"
-          >
-            <template slot-scope="scope">
-              <div style="height: 26px">
-                <el-switch
-                  @change="
-                    val => {
-                      changeStatus(scope.row, val);
-                    }
-                  "
-                  style="display: block; height: 22px; line-height: 22px"
-                  v-model="scope.row.status"
-                  :active-text="$t('common.switch.start')"
-                  :inactive-text="$t('common.switch.stop')"
-                />
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column
-            v-if="isAdmin"
-            align="left"
-            :label="$t('common.table.operation')"
-            width="300"
-          >
-            <template slot-scope="scope">
-              <el-button
-                class="operation"
-                type="text"
-                @click="preUpdate(scope.row)"
-              >
-                {{ $t('common.button.edit') }}
-              </el-button>
-              <el-button
-                class="operation"
-                type="text"
-                @click="preDel(scope.row)"
-              >
-                {{
-                  isSystem
-                    ? $t('common.button.delete')
-                    : $t('common.button.remove')
-                }}
-              </el-button>
-              <el-button type="text" @click="resetPsw(scope.row)">
-                {{ $t('user.table.resetPassword') }}
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+        </div>
       </div>
-      <Pagination
-        class="pagination"
-        ref="pagination"
-        :listApi="listApi"
-        @refreshData="refreshData"
-      />
     </div>
 
     <el-dialog
@@ -185,19 +217,20 @@
             clearable
           />
         </el-form-item>
-        <el-form-item :label="$t('user.dialog.company')" prop="company">
-          <el-input
-            v-model="form.company"
-            :placeholder="$t('common.input.placeholder')"
-            maxlength="50"
-            show-word-limit
-            clearable
-          />
-        </el-form-item>
         <el-form-item :label="$t('user.dialog.phone')" prop="phone">
           <el-input
             v-model="form.phone"
             :placeholder="$t('common.input.placeholder')"
+            clearable
+          />
+        </el-form-item>
+        <el-form-item :label="$t('user.dialog.email')" prop="email">
+          <el-input
+            :disabled="isEdit"
+            v-model="form.email"
+            :placeholder="
+              isEdit ? $t('common.noBindEmail') : $t('common.input.placeholder')
+            "
             clearable
           />
         </el-form-item>
@@ -220,33 +253,6 @@
               :value="item.id"
             />
           </el-select>
-        </el-form-item>
-        <el-form-item
-          v-if="isEdit"
-          :label="$t('user.dialog.email')"
-          prop="email"
-        >
-          <el-input
-            :disabled="isEdit"
-            v-model="form.email"
-            :placeholder="$t('common.noBindEmail')"
-            clearable
-          />
-        </el-form-item>
-        <el-form-item
-          :label="$t('user.dialog.remark')"
-          prop="remark"
-          class="mark-textArea"
-        >
-          <el-input
-            type="textarea"
-            :rows="3"
-            v-model="form.remark"
-            :placeholder="$t('common.input.placeholder')"
-            maxlength="100"
-            show-word-limit
-            clearable
-          />
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -312,8 +318,17 @@
         </el-button>
       </span>
     </el-dialog>
-    <reset-pwd ref="resetPwd" />
-    <BatchAddDialog ref="batchAdd" @reloadData="searchData" />
+    <resetPwd :orgId="selectedOrgId" ref="resetPwd" />
+    <BatchAddDialog
+      :orgId="selectedOrgId"
+      ref="batchAdd"
+      @reloadData="searchData"
+    />
+    <userDetailDialog
+      ref="userDetailDialog"
+      @resetPassword="handleDetailResetPassword"
+      @toggleStatus="handleDetailToggleStatus"
+    />
   </div>
 </template>
 
@@ -321,6 +336,8 @@
 import Pagination from '@/components/pagination.vue';
 import resetPwd from '../components/resetPwd';
 import SearchInput from '@/components/searchInput.vue';
+import OrgSwitcher from '../components/orgSwitcher.vue';
+import { avatarSrc } from '@/utils/util';
 import { rsaEncrypt } from '@/utils/crypto';
 import { debounce } from 'throttle-debounce';
 import {
@@ -337,9 +354,17 @@ import { mapActions } from 'vuex';
 import { checkPerm } from '@/router/permission';
 import { PERMS } from '@/router/constants';
 import BatchAddDialog from './batchAddDialog.vue';
+import UserDetailDialog from './userDetailDialog.vue';
 
 export default {
-  components: { Pagination, resetPwd, SearchInput, BatchAddDialog },
+  components: {
+    Pagination,
+    resetPwd,
+    SearchInput,
+    OrgSwitcher,
+    BatchAddDialog,
+    UserDetailDialog,
+  },
   data() {
     const checkPassword = (rule, value, callback) => {
       let reg =
@@ -359,22 +384,21 @@ export default {
       }
     };
     return {
-      isSystem: this.$store.state.user.permission.isSystem || false,
-      isAdmin: this.$store.state.user.permission.isAdmin || false,
+      isSystem: false, // 是否系统下的判断不依赖外部的 isSystem 判断了，只依赖左侧组织树返回的 isSystem 字段判断
+      selectedOrgId: '',
       listApi: fetchUserList,
       loading: false,
       isEdit: false,
       inviteLoading: false,
       inviteUserList: [],
       roleList: [],
+      filterRoleIds: [],
       form: {
         username: '',
         password: '',
-        company: '',
         phone: '',
         email: '',
         roleIds: '',
-        remark: '',
       },
       inviteForm: {
         userId: '',
@@ -406,31 +430,12 @@ export default {
           },
           { validator: checkPassword, trigger: 'blur' },
         ],
-        company: [
-          {
-            required: true,
-            message: this.$t('common.input.placeholder'),
-            trigger: 'blur',
-          },
-          {
-            max: 50,
-            message: this.$t('common.hint.companyLimit'),
-            trigger: 'blur',
-          },
-        ],
         phone: [{ validator: checkPhone, trigger: 'blur' }],
         email: [
           // { required: true, message: this.$t('common.input.placeholder'), trigger: 'blur' },
           {
             pattern: /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(.[a-zA-Z0-9_-]+)+$/,
             message: this.$t('common.hint.emailError'),
-            trigger: 'blur',
-          },
-        ],
-        remark: [
-          {
-            max: 100,
-            message: this.$t('common.hint.remarkLimit'),
             trigger: 'blur',
           },
         ],
@@ -463,16 +468,16 @@ export default {
   },
   created() {
     this.getInviteUserList = debounce(500, async name => {
-      const { data } = await fetchInviteUser({ name });
+      const { data } = await fetchInviteUser({
+        name,
+        orgId: this.selectedOrgId,
+      });
       this.inviteUserList = data.select || [];
     });
   },
-  mounted() {
-    this.getTableData();
-    if (!this.isSystem) this.getRoleList();
-  },
   methods: {
     ...mapActions('user', ['getPermissionInfo']),
+    avatarSrc,
     handleCommand(command) {
       switch (command) {
         case 'onceAdd':
@@ -487,16 +492,37 @@ export default {
       this.$refs.batchAdd.openDialog();
     },
     async getRoleList() {
-      const { data } = await fetchRoleList();
+      const { data } = await fetchRoleList({ orgId: this.selectedOrgId });
       this.roleList = data.select || [];
     },
     searchData() {
       this.getTableData({ pageNo: 1 });
     },
+    handleOrgChange(org) {
+      this.isSystem = org?.isSystem || false;
+      this.getTableData({ pageNo: 1 });
+      this.getRoleList();
+    },
+    showUserDetail(row) {
+      this.$refs.userDetailDialog.openDialog(row);
+    },
+    handleDetailResetPassword(user) {
+      this.$refs.resetPwd.openDialog(user);
+    },
+    handleDetailToggleStatus(user) {
+      const val = !user.status;
+      this.changeStatus(user, val, () => {
+        user.status = val;
+      });
+    },
     async getTableData(params) {
       const searchInput = this.$refs.searchInput;
       const searchInfo = {
         ...(searchInput.value && { name: searchInput.value }),
+        ...(this.selectedOrgId && { orgId: this.selectedOrgId }),
+        ...(this.filterRoleIds?.length && {
+          roleIds: this.filterRoleIds.join(','),
+        }),
         ...params,
       };
       this.loading = true;
@@ -522,7 +548,10 @@ export default {
         if (!valid) return;
         this.submitLoading = true;
         try {
-          const res = await inviteUser({ ...this.inviteForm });
+          const res = await inviteUser({
+            ...this.inviteForm,
+            orgId: this.selectedOrgId,
+          });
           if (res.code === 0) {
             this.$message.success(this.$t('user.inviteDialog.success'));
             this.handleInviteClose();
@@ -543,7 +572,8 @@ export default {
     setFormValue(row) {
       const obj = { ...this.form };
       for (let key in obj) {
-        obj[key] = row ? row[key] : Array.isArray(obj[key]) ? [] : '';
+        obj[key] =
+          row && row[key] ? row[key] : Array.isArray(obj[key]) ? [] : '';
       }
       this.form = obj;
     },
@@ -563,6 +593,7 @@ export default {
       } else {
         this.setFormValue();
       }
+
       const commonInfo = this.$store.state.user.commonInfo.data || {};
       this.rules = commonInfo.userPhoneRequired
         ? { ...this.rules, ...this.userPhoneRules }
@@ -584,7 +615,10 @@ export default {
           type: 'warning',
         },
       ).then(async () => {
-        let res = await deleteUser({ userId: row.userId });
+        let res = await deleteUser({
+          orgId: this.selectedOrgId,
+          userId: row.userId,
+        });
         if (res.code === 0) {
           this.$message.success(this.$t('common.message.success'));
           await this.getTableData();
@@ -594,7 +628,7 @@ export default {
     resetPsw(row) {
       this.$refs.resetPwd.openDialog(row);
     },
-    changeStatus(row, val) {
+    changeStatus(row, val, callback) {
       this.$confirm(
         val
           ? this.$t('user.switch.startHint')
@@ -607,9 +641,14 @@ export default {
         },
       )
         .then(async () => {
-          let res = await changeUserStatus({ userId: row.userId, status: val });
+          let res = await changeUserStatus({
+            orgId: this.selectedOrgId,
+            userId: row.userId,
+            status: val,
+          });
           if (res.code === 0) {
             this.$message.success(this.$t('common.message.success'));
+            callback && callback();
             await this.getTableData();
           }
         })
@@ -627,8 +666,8 @@ export default {
         params.cipher = cipher;
         params.keyId = keyId;
         delete params.password;
-        params.nickname = this.form.username;
         params.roleIds = params.roleIds ? [params.roleIds] : [];
+        params.orgId = this.selectedOrgId;
         if (this.isEdit) params.userId = this.row.userId;
 
         try {
@@ -643,7 +682,7 @@ export default {
             const useInfo = this.$store.state.user.userInfo || {};
             if (useInfo.uid === this.row.userId) {
               await this.getPermissionInfo();
-              if (checkPerm(PERMS.PERMISSION_USER)) {
+              if (checkPerm(PERMS.ADMIN_CENTER)) {
                 await this.getTableData();
                 return;
               }
@@ -662,19 +701,70 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.routerview-container {
-  top: 0;
-}
-.table-box {
-  margin-top: -20px;
-  text-align: right;
+.user-page {
+  display: flex;
+  align-items: flex-start;
+  height: 100%;
+
+  &__switcher {
+    flex-shrink: 0;
+    align-self: stretch;
+  }
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+    margin-left: 10px;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 14px 0;
+  }
+
+  &__content {
+    height: calc(100vh - 210px);
+    overflow-y: auto;
+    padding: 0 14px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 12px;
+  }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .role-filter {
+    width: 240px;
+  }
+
+  .toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-shrink: 0;
+  }
+
   .table-header {
     font-size: 16px;
     font-weight: bold;
     color: #555;
   }
+
   .add-bt {
-    margin: 0 0 20px;
     img {
       width: 16px;
       margin-right: 5px;
@@ -686,24 +776,76 @@ export default {
       vertical-align: middle;
     }
   }
+
   .invite-bt {
-    margin-left: 15px;
     color: $color;
     border-color: $color;
     background: rgba(255, 255, 255, 0) !important;
+    margin: 0;
   }
+
   ::v-deep .el-switch__label * {
     font-size: 13px;
   }
 }
+
 .mark-textArea ::v-deep {
   .el-textarea__inner {
     font-family: inherit;
     font-size: inherit;
   }
 }
+
 ::v-deep .operation.el-button--text.el-button {
   padding: 3px 10px 3px 0;
   border-right: 1px solid #eaeaea !important;
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 4px 0;
+
+  &__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: #f0f2f5;
+    margin-right: 10px;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.4;
+    cursor: pointer;
+  }
+
+  &__username {
+    color: #333;
+    cursor: pointer;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__email {
+    font-size: 12px;
+    color: #909399;
+    margin-top: 2px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 </style>

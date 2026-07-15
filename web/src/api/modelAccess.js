@@ -104,7 +104,7 @@ export const getMultiRerankList = () => {
   });
 };
 
-//获取下来选择模型列表
+//获取选择模型下拉列表
 export const selectModelList = () => {
   return service({
     url: `${USER_API}/model/select/llm`,

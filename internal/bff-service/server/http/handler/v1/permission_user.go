@@ -186,7 +186,7 @@ func AdminChangeUserPassword(ctx *gin.Context) {
 //	@Produce		json
 //	@Param			name	query		string	false	"用户名(模糊查询)"
 //	@Param			orgId	query		string	true	"组织ID"
-//	@Success		200		{object}	response.Response{data=response.Select}
+//	@Success		200		{object}	response.Response{data=response.UserSelect}
 //	@Router			/org/other/select [get]
 func GetOrgUserNotSelect(ctx *gin.Context) {
 	resp, err := service.GetOrgUserNotSelect(ctx, ctx.Query("orgId"), ctx.Query("name"))
@@ -244,5 +244,25 @@ func AddOrgUser(ctx *gin.Context) {
 func CreateUserByFile(ctx *gin.Context) {
 	orgID := ctx.PostForm("orgId")
 	resp, err := service.CreateUserByFile(ctx, getUserID(ctx), orgID)
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetUsersByOrgIDs
+//
+//	@Tags			admin_center
+//	@Summary		根据组织ID列表获取用户ID
+//	@Description	传入多个orgId，返回所选组织全部用户userid（去重、不过滤禁用状态）
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.OrgIDsReq	true	"组织ID列表"
+//	@Success		200		{object}	response.Response{data=response.Users}
+//	@Router			/org/users [post]
+func GetUsersByOrgIDs(ctx *gin.Context) {
+	var req request.OrgIDsReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.GetUsersByOrgIDs(ctx, getUserID(ctx), &req)
 	gin_util.Response(ctx, resp, err)
 }

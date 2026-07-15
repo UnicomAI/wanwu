@@ -54,7 +54,7 @@ func ModelExperienceLLM(ctx *gin.Context, userId, orgId, clientId string, req *r
 		return
 	}
 	// save query
-	if _, err := model.SaveModelExperienceDialogRecord(ctx, &model_service.SaveModelExperienceDialogRecordReq{
+	if _, err := model.SaveModelExperienceDialogRecord(ctx.Request.Context(), &model_service.SaveModelExperienceDialogRecordReq{
 		UserId:            userId,
 		OrgId:             orgId,
 		ModelExperienceId: req.ModelExperienceId,
@@ -69,7 +69,7 @@ func ModelExperienceLLM(ctx *gin.Context, userId, orgId, clientId string, req *r
 	}
 
 	// model info
-	modelInfo, err := model.GetModel(ctx, &model_service.GetModelReq{ModelId: req.ModelId})
+	modelInfo, err := model.GetModel(ctx.Request.Context(), &model_service.GetModelReq{ModelId: req.ModelId})
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
@@ -99,7 +99,7 @@ func ModelExperienceLLM(ctx *gin.Context, userId, orgId, clientId string, req *r
 	}
 
 	// dialog records
-	recordsResp, err := model.GetModelExperienceDialogRecords(ctx, &model_service.GetModelExperienceDialogRecordsReq{
+	recordsResp, err := model.GetModelExperienceDialogRecords(ctx.Request.Context(), &model_service.GetModelExperienceDialogRecordsReq{
 		UserId: userId,
 		OrgId:  orgId,
 		// 常规模型对话记录（非模型对比时），modelExperienceId与sessionId非空
@@ -410,7 +410,7 @@ func ListModelExperienceDialogs(ctx *gin.Context, userId, orgId string) (*respon
 }
 
 func DeleteModelExperienceDialog(ctx *gin.Context, userId, orgId, modelExperienceId string) error {
-	_, err := model.DeleteModelExperienceDialog(ctx, &model_service.ModelExperienceDialogReq{
+	_, err := model.DeleteModelExperienceDialog(ctx.Request.Context(), &model_service.ModelExperienceDialogReq{
 		ModelExperienceId: modelExperienceId,
 		UserId:            userId,
 		OrgId:             orgId,
@@ -419,7 +419,7 @@ func DeleteModelExperienceDialog(ctx *gin.Context, userId, orgId, modelExperienc
 }
 
 func ListModelExperienceDialogRecords(ctx *gin.Context, userId, orgId string, req *request.ModelExperienceDialogRecordRequest) (*response.ListResult, error) {
-	recordsResp, err := model.GetModelExperienceDialogRecords(ctx, &model_service.GetModelExperienceDialogRecordsReq{
+	recordsResp, err := model.GetModelExperienceDialogRecords(ctx.Request.Context(), &model_service.GetModelExperienceDialogRecordsReq{
 		UserId: userId,
 		OrgId:  orgId,
 		// 常规模型对话记录（非模型对比时），modelExperienceId非空，sessionId前端没传

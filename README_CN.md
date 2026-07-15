@@ -228,7 +228,12 @@ UniClaw下载地址：https://maas.ai-yuanjing.com/app/uniclaw/uniclaw-official.
 
 - **模型要求提示：**
   - 使用 WanwuBot（通用智能体）或一句话创建 Skills 功能时，所选模型在导入时的上下文长度必须 >= 32000
-  
+
+- **安全声明：**
+  - 平台所涉及的各类中间件（MySQL、Redis、MinIO、Kafka、Elasticsearch 等）均支持在 `.env` 文件中自定义密码。
+  - 前后端用户密码传输场景下，采用 RSA 非对称加密对密码进行加密传输，密钥对在服务首次启动时自动生成；同时也支持通过 `.env` 中的 `WANWU_BFF_LOGIN_RSA_PATH` 配置自定义密钥对。
+  - 强烈建议在生产环境部署前修改所有默认密码并妥善保管，避免因使用默认凭据带来的安全风险。
+
 - **Docker安装（推荐）**
 
 1. 首次运行前
@@ -499,6 +504,6 @@ UniClaw下载地址：https://maas.ai-yuanjing.com/app/uniclaw/uniclaw-official.
 ------
 
 ### &#x1F4E9; 联系我们
-| QQ 群1(已满):490071123                                       | QQ 群2(已满):1026898615                                            | QQ 群3:1019579243                                            |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/163d6580-af84-4fe4-9b51-7effb4153dd8" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/03d10f7c-7460-485e-9f17-b3135d460dd0" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/6cf67753-899c-418d-971b-f43fc9b5bada" /> |
+| QQ 群1(已满):490071123                                       | QQ 群2(已满):1026898615                                            | QQ 群3(已满):1019579243                                            | QQ 群4:967463724                                            |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/f20bcff4-63e7-4e07-9909-bbeee4bc50f6" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/11755b2f-80f9-454e-aa4e-01706d40d729" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/c1be21bb-2a85-43cc-b856-270501a04a94" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/f5aef62d-61ca-4bc1-9217-ba4a358a7d08" /> |

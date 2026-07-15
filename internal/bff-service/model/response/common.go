@@ -1,5 +1,7 @@
 package response
 
+import "github.com/UnicomAI/wanwu/internal/bff-service/model/request"
+
 type Response struct {
 	Code int64       `json:"code"`
 	Data interface{} `json:"data"`
@@ -21,6 +23,12 @@ type ListResult struct {
 type IDName struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type IDNameWithAvatar struct {
+	ID     string         `json:"id"`
+	Name   string         `json:"name"`
+	Avatar request.Avatar `json:"avatar,omitempty"`
 }
 
 type RoleIDName struct {
@@ -49,6 +57,10 @@ type Permission struct {
 }
 
 type Select struct {
+	Select []IDNameWithAvatar `json:"select"`
+}
+
+type UserSelect struct {
 	Select []IDName `json:"select"`
 }
 

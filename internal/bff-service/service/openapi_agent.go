@@ -36,7 +36,7 @@ func GetAgentListForOpenAPI(ctx *gin.Context, userID, orgID, name string) (*resp
 		}
 	}
 
-	appInfosResp, err := app.GetAppListByIds(ctx, &app_service.GetAppListByIdsReq{
+	appInfosResp, err := app.GetAppListByIds(ctx.Request.Context(), &app_service.GetAppListByIdsReq{
 		AppIdsList: appIds,
 		AppType:    constant.AppTypeAgent,
 	})

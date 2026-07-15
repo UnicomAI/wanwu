@@ -72,18 +72,25 @@ func (c *Client) DeleteWgaConversationConfig(ctx context.Context, threadId strin
 	return nil
 }
 
-func (c *Client) GetWgaConversationConfigList(ctx context.Context, userID, orgID string, offset, limit int32) ([]*model.WgaConversationConfig, int64, *err_code.Status) {
+func (c *Client) GetWgaConversationConfigList(ctx context.Context, userID, orgID, searchText string, offset, limit int32) ([]*model.WgaConversationConfig, int64, *err_code.Status) {
 	var configs []*model.WgaConversationConfig
 	var count int64
 
-	if err := sqlopt.SQLOptions(
+	db := sqlopt.SQLOptions(
 		sqlopt.WithUserID(userID),
 		sqlopt.WithOrgID(orgID),
-	).Apply(c.db.WithContext(ctx).Model(&model.WgaConversationConfig{})).Offset(int(offset)).Limit(int(limit)).Order("updated_at DESC").Find(&configs).Error; err != nil {
-		return configs, count, toErrStatus("wga_conversation_list", err.Error())
+		sqlopt.WithTitleLike(searchText),
+	).Apply(c.db.WithContext(ctx).Model(&model.WgaConversationConfig{}))
+
+	if err := db.Count(&count).Error; err != nil {
+		return nil, 0, toErrStatus("wga_conversation_list", err.Error())
 	}
 
-	return configs, int64(len(configs)), nil
+	if err := db.Offset(int(offset)).Limit(int(limit)).Order("updated_at DESC").Find(&configs).Error; err != nil {
+		return nil, 0, toErrStatus("wga_conversation_list", err.Error())
+	}
+
+	return configs, count, nil
 }
 
 func (c *Client) WgaConversationConfigExists(ctx context.Context, threadId, userID, orgID string) (bool, *err_code.Status) {

@@ -39,7 +39,7 @@ func buildStatisticOrgNameMap(ctx *gin.Context, orgIDs []string) (map[string]str
 	if len(orgIDs) == 0 {
 		return map[string]string{}, nil
 	}
-	orgResp, err := iam.GetOrgByOrgIDs(ctx, &iam_service.GetOrgByOrgIDsReq{OrgIds: orgIDs})
+	orgResp, err := iam.GetOrgByOrgIDs(ctx.Request.Context(), &iam_service.GetOrgByOrgIDsReq{OrgIds: orgIDs})
 	if err != nil {
 		return nil, err
 	}

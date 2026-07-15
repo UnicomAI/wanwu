@@ -21,6 +21,7 @@ func registerAdminCenter(apiV1 *gin.RouterGroup) {
 	mid.Sub("admin_center").Reg(apiV1, "/org/other/select", http.MethodGet, v1.GetOrgUserNotSelect, "获取不在组织中的用户列表（用于下拉选择）", middleware.CheckOrgAdmin)
 	mid.Sub("admin_center").Reg(apiV1, "/role/select", http.MethodGet, v1.GetRoleSelect, "获取组织角色列表（用于下拉选择）", middleware.CheckOrgAdmin)
 	mid.Sub("admin_center").Reg(apiV1, "/org/user", http.MethodPost, v1.AddOrgUser, "邀请用户加入组织", middleware.CheckOrgAdmin)
+	mid.Sub("admin_center").Reg(apiV1, "/org/users", http.MethodPost, v1.GetUsersByOrgIDs, "根据组织ID列表获取用户ID")
 	// org
 	mid.Sub("admin_center").Reg(apiV1, "/org", http.MethodPost, v1.CreateOrg, "创建下级组织", middleware.CheckOrgAdmin)
 	mid.Sub("admin_center").Reg(apiV1, "/org", http.MethodPut, v1.ChangeOrg, "编辑下级组织", middleware.CheckOrgAdmin)

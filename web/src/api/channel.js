@@ -95,3 +95,33 @@ export const getAppSelect = appType => {
     method: 'get',
   });
 };
+
+// 获取模型下拉列表
+export const getModelSelect = params => {
+  return service({
+    url: `${USER_API}/channel/models`,
+    method: 'get',
+    params: {
+      modelType: 'llm',
+      ...params,
+    },
+  });
+};
+
+// 获取场景下拉列表
+export const getSceneSelect = params => {
+  return service({
+    url: `${USER_API}/channel/wga/sub-agents`,
+    method: 'get',
+    params,
+  });
+};
+
+// 获取数字员工下拉列表
+export const getEmployeeSelect = params => {
+  return service({
+    url: `${USER_API}/channel/dip/employees`,
+    method: 'get',
+    params,
+  });
+};

@@ -234,6 +234,7 @@ func processCsvFileBatchLine(ctx context.Context, docInfo *model.DocInfo,
 			return 0, 0, nil
 		}
 		log.Errorf("read header line err: %v", err)
+		return 0, 0, err
 	}
 
 	var lineCount int64
@@ -248,7 +249,7 @@ func processCsvFileBatchLine(ctx context.Context, docInfo *model.DocInfo,
 		if err != nil {
 			// 可以选择记录错误并继续，或者直接返回错误
 			log.Errorf("解析CSV行时出错: %v, lineCount %d", err, lineCount)
-			continue
+			break
 		}
 		lineCount++
 		if lineCount > lineLimit {

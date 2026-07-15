@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	safety_service "github.com/UnicomAI/wanwu/api/proto/safety-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/pkg/ahocorasick"

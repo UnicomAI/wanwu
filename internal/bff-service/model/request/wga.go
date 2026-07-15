@@ -95,8 +95,9 @@ type DeleteGeneralAgentConversationReq struct {
 func (c *DeleteGeneralAgentConversationReq) Check() error { return nil }
 
 type GetGeneralAgentConversationListReq struct {
-	PageNo   int `json:"pageNo" form:"pageNo" validate:"required"`     // 页码
-	PageSize int `json:"pageSize" form:"pageSize" validate:"required"` // 每页数量
+	PageNo     int    `json:"pageNo" form:"pageNo" validate:"required"`     // 页码
+	PageSize   int    `json:"pageSize" form:"pageSize" validate:"required"` // 每页数量
+	SearchText string `json:"searchText" form:"searchText"`                 // 标题关键词，模糊匹配，空则不过滤
 }
 
 func (c *GetGeneralAgentConversationListReq) Check() error { return nil }

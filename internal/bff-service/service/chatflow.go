@@ -56,7 +56,7 @@ func CreateChatflowConversation(ctx *gin.Context, userId, orgId, workflowId, con
 	ret := &response.CozeCreateConversationResponse{}
 
 	// 1. 先查询是否已有 appId
-	appInfo, _ := app.GetChatflowApplication(ctx, &app_service.GetChatflowApplicationReq{
+	appInfo, _ := app.GetChatflowApplication(ctx.Request.Context(), &app_service.GetChatflowApplicationReq{
 		OrgId:      orgId,
 		UserId:     userId,
 		WorkflowId: workflowId,
@@ -97,7 +97,7 @@ func CreateChatflowConversation(ctx *gin.Context, userId, orgId, workflowId, con
 
 	appId := ret.ConversationData.MetaData["appId"]
 
-	_, err := app.CreateConversation(ctx, &app_service.CreateConversationReq{
+	_, err := app.CreateConversation(ctx.Request.Context(), &app_service.CreateConversationReq{
 		AppId:            appId,
 		AppType:          constant.AppTypeChatflow,
 		ConversationId:   strconv.Itoa(int(ret.ConversationData.Id)),
@@ -111,7 +111,7 @@ func CreateChatflowConversation(ctx *gin.Context, userId, orgId, workflowId, con
 
 	// 4. 首次创建时保存 workflowId 和 appId 的关联关系
 	if appInfo.GetApplicationId() == "" {
-		_, err = app.CreateChatflowApplication(ctx, &app_service.CreateChatflowApplicationReq{
+		_, err = app.CreateChatflowApplication(ctx.Request.Context(), &app_service.CreateChatflowApplicationReq{
 			WorkflowId:    workflowId,
 			ApplicationId: appId,
 			UserId:        userId,
@@ -175,7 +175,7 @@ func ChatflowChat(ctx *gin.Context, userId, orgId, workflowId, conversationId, m
 		hasErr = true
 		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_chatflow_chat", err.Error())
 	}
-	cvInfo, err := app.GetConversationByID(ctx, &app_service.GetConversationByIDReq{
+	cvInfo, err := app.GetConversationByID(ctx.Request.Context(), &app_service.GetConversationByIDReq{
 		ConversionId: conversationId,
 	})
 	if err != nil {
@@ -307,7 +307,7 @@ func ChatflowApplicationList(ctx *gin.Context, userId, orgId, workflowId string)
 		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_chatflow_application_list", fmt.Sprintf("code %v msg %v", getDraftRet.Code, getDraftRet.Msg))
 	}
 	// 2.查询app-service, 看是否有对应的chatflow_application记录
-	appRet, err := app.GetChatflowApplication(ctx, &app_service.GetChatflowApplicationReq{
+	appRet, err := app.GetChatflowApplication(ctx.Request.Context(), &app_service.GetChatflowApplicationReq{
 		OrgId:      orgId,
 		UserId:     userId,
 		WorkflowId: workflowId,
@@ -347,7 +347,7 @@ func ChatflowApplicationList(ctx *gin.Context, userId, orgId, workflowId string)
 	} else if ret.Code != 0 {
 		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_chatflow_application_list", fmt.Sprintf("code %v msg %v", ret.Code, ret.Msg))
 	}
-	_, err = app.CreateChatflowApplication(ctx, &app_service.CreateChatflowApplicationReq{
+	_, err = app.CreateChatflowApplication(ctx.Request.Context(), &app_service.CreateChatflowApplicationReq{
 		WorkflowId:    workflowId,
 		UserId:        userId,
 		OrgId:         orgId,
@@ -368,7 +368,7 @@ func ChatflowApplicationList(ctx *gin.Context, userId, orgId, workflowId string)
 
 func ChatflowApplicationInfo(ctx *gin.Context, userId, orgId string, req request.ChatflowApplicationInfoReq) (*response.CozeGetDraftIntelligenceInfoData, error) {
 	// 先去app通过applicationId和userId查出workflowId
-	resp, err := app.GetChatflowByApplicationID(ctx, &app_service.GetChatflowByApplicationIDReq{
+	resp, err := app.GetChatflowByApplicationID(ctx.Request.Context(), &app_service.GetChatflowByApplicationIDReq{
 		OrgId:         orgId,
 		UserId:        userId,
 		ApplicationId: req.IntelligenceID,
@@ -433,7 +433,7 @@ func DeleteChatflowConversation(ctx *gin.Context, orgId, projectId, uniqueId str
 
 func DeleteChatflowConversationByConversationId(ctx *gin.Context, userId, orgId, workflowId, conversationId string) error {
 	// 1. 获取 applicationId (projectId)
-	appInfo, err := app.GetChatflowApplication(ctx, &app_service.GetChatflowApplicationReq{
+	appInfo, err := app.GetChatflowApplication(ctx.Request.Context(), &app_service.GetChatflowApplicationReq{
 		OrgId:      orgId,
 		UserId:     userId,
 		WorkflowId: workflowId,
@@ -468,7 +468,7 @@ func DeleteChatflowConversationByConversationId(ctx *gin.Context, userId, orgId,
 
 func GetChatflowConversationList(ctx *gin.Context, userId, orgId, workflowId string) (*response.OpenAPIChatflowConversationListResponse, error) {
 	// 1. 获取 applicationId (projectId)
-	appInfo, err := app.GetChatflowApplication(ctx, &app_service.GetChatflowApplicationReq{
+	appInfo, err := app.GetChatflowApplication(ctx.Request.Context(), &app_service.GetChatflowApplicationReq{
 		OrgId:      orgId,
 		UserId:     userId,
 		WorkflowId: workflowId,

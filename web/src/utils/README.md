@@ -34,19 +34,19 @@
 
 ### 当前支持的模块
 
-| 模块       | 路由模式                                           | 优先级 | 描述                   |
-| ---------- | -------------------------------------------------- | ------ | ---------------------- |
-| preview    | `/doc`, `/pdf`, `/txtView`, `/jsExcel`, `/pdfView` | 10     | 文件预览模块           |
-| agent      | `/agent`, `/webChat`                               | 9      | 智能体模块             |
-| rag        | `/rag`, `/knowledge`                               | 8      | RAG 和知识库模块       |
-| workflow   | `/workflow`                                        | 7      | 工作流模块             |
-| mcp        | `/mcp`                                             | 6      | MCP 管理模块           |
-| permission | `/permission`, `/userCenter`                       | 5      | 权限管理和用户中心模块 |
-| safety     | `/safety`                                          | 4      | 安全护栏模块           |
-| model      | `/modelAccess`                                     | 3      | 模型访问模块           |
-| explore    | `/explore`                                         | 2      | 探索广场模块           |
-| doc        | `/docCenter`                                       | 1      | 文档中心模块           |
-| appspace   | `/appSpace`                                        | 0      | 应用空间模块           |
+| 模块         | 路由模式                           | 优先级 | 描述          |
+|------------|--------------------------------|-----|-------------|
+| preview    | `/doc`, `/txtView`, `/jsExcel` | 10  | 文件预览模块      |
+| agent      | `/agent`, `/webChat`           | 9   | 智能体模块       |
+| rag        | `/rag`, `/knowledge`           | 8   | RAG 和知识库模块  |
+| workflow   | `/workflow`                    | 7   | 工作流模块       |
+| mcp        | `/mcp`                         | 6   | MCP 管理模块    |
+| permission | `/permission`, `/userCenter`   | 5   | 权限管理和用户中心模块 |
+| safety     | `/safety`                      | 4   | 安全护栏模块      |
+| model      | `/modelAccess`                 | 3   | 模型访问模块      |
+| explore    | `/explore`                     | 2   | 探索广场模块      |
+| doc        | `/docCenter`                   | 1   | 文档中心模块      |
+| appspace   | `/appSpace`                    | 0   | 应用空间模块      |
 
 ## 使用方法
 

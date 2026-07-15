@@ -17,6 +17,52 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// resolveDiskPath 把前端传入的 UTF-8 相对路径映射到磁盘上的真实文件路径。
+//
+// 写入端修复后新导入的 skill 文件名已是 UTF-8，但磁盘上仍可能存在历史 GBK 文件名
+// （修复前导入的存量 skill）。前端从 files 接口拿到的是经 DecodeGBKToUTF8 转码后的
+// UTF-8 path，回传时若直接拼磁盘路径，对存量 GBK 文件会找不到。
+//
+// 策略：先按 UTF-8 原样 Lstat（命中新文件）；失败则把 path 反向 GB18030 编码后再 Lstat
+// （命中存量 GBK 文件）；都不存在则返回 UTF-8 原路径，让调用方按原逻辑报 not_found。
+// 反向编码后的路径必须仍在 basePath 内，复用 path_util 的越界判定逻辑防止逃逸。
+func resolveDiskPath(basePath, utf8RelPath string) (string, error) {
+	fullPath, cleanRel, err := path_util.JoinWithinBase(basePath, utf8RelPath, false)
+	if err != nil {
+		return "", err
+	}
+	if _, err := os.Lstat(fullPath); err == nil {
+		return fullPath, nil // UTF-8 路径直接命中
+	}
+	// 存量 GBK 兜底：把 UTF-8 path 反向编码为 GB18030
+	gbkRel := util.EncodeUTF8ToGBK(cleanRel)
+	if gbkRel == cleanRel {
+		return fullPath, nil // 编码无变化（ASCII 或含不可表示字符），放弃兜底
+	}
+	gbkFullPath := filepath.Join(basePath, filepath.FromSlash(gbkRel))
+	// 安全校验：反向编码后的路径须仍在 basePath 内
+	absGbk, err := filepath.Abs(gbkFullPath)
+	if err != nil {
+		return fullPath, nil
+	}
+	absBase, err := filepath.Abs(basePath)
+	if err != nil {
+		return fullPath, nil
+	}
+	rel, err := filepath.Rel(absBase, absGbk)
+	if err != nil {
+		return fullPath, nil
+	}
+	relSlash := filepath.ToSlash(rel)
+	if relSlash == ".." || strings.HasPrefix(relSlash, "../") || filepath.IsAbs(rel) {
+		return fullPath, nil // 越界，放弃兜底
+	}
+	if _, err := os.Lstat(absGbk); err == nil {
+		return absGbk, nil // GBK 路径命中
+	}
+	return fullPath, nil // 都没命中，返回 UTF-8 原路径（调用方按原逻辑报 not_found）
+}
+
 // buildFileTree 递归构建文件树，跳过隐藏文件。
 func buildFileTree(basePath, currentPath string, depth int, count *int) ([]*response.FileNode, error) {
 	if depth > maxFileTreeDepth || *count >= maxFileTreeNodes {
@@ -53,9 +99,15 @@ func buildFileTree(basePath, currentPath string, depth int, count *int) ([]*resp
 		if err != nil {
 			continue
 		}
+		// 磁盘上可能存在历史 GBK 文件名（写入端修复前导入的存量 skill）。
+		// entry.Name() 把磁盘字节当 UTF-8 解码，GBK 非法序列会变成不可逆的 U+FFFD。
+		// 这里对返回前端的 name/path 做兜底解码：非合法 UTF-8 则按 GBK/GB18030 解。
+		// 注意 fullPath 始终用原始 entry.Name()（磁盘字节），保证能访问磁盘文件。
+		name := util.DecodeGBKToUTF8(entry.Name())
+		relPathUTF8 := util.DecodeGBKToUTF8(filepath.ToSlash(relPath))
 		node := &response.FileNode{
-			Name:    entry.Name(),
-			Path:    filepath.ToSlash(relPath),
+			Name:    name,
+			Path:    relPathUTF8,
 			IsDir:   entry.IsDir(),
 			Size:    info.Size(),
 			ModTime: info.ModTime().UnixMilli(),
@@ -108,7 +160,7 @@ func GetSkillWorkspaceFile(ctx *gin.Context, userId, orgId string, req request.G
 		return nil, err
 	}
 
-	fullPath, _, err := workspaceFilePath(ws.workspaceDir, req.Path)
+	fullPath, err := resolveDiskPath(ws.workspaceDir, req.Path)
 	if err != nil {
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error())
 	}
@@ -153,13 +205,15 @@ func DownloadSkillWorkspace(ctx *gin.Context, userId, orgId string, req request.
 		return "", nil, err
 	}
 
-	fullPath, cleanRelPath, err := workspaceFilePath(ws.workspaceDir, req.Path)
+	fullPath, err := resolveDiskPath(ws.workspaceDir, req.Path)
 	if err != nil {
 		return "", nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error())
 	}
 	if err := path_util.EnsureNoSymlinkInPath(ws.workspaceDir, fullPath, true); err != nil {
 		return "", nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error())
 	}
+	// 下载文件名用前端 UTF-8 path 派生，避免存量 GBK 文件名导致的下载名乱码
+	downloadName := filepath.Base(filepath.ToSlash(req.Path))
 
 	info, err := os.Lstat(fullPath)
 	if err != nil {
@@ -178,7 +232,7 @@ func DownloadSkillWorkspace(ctx *gin.Context, userId, orgId string, req request.
 			log.Errorf("[Workspace] Download zip %s err: %v", fullPath, err)
 			return "", nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("failed to create zip: %v", err))
 		}
-		return fmt.Sprintf("workspace_%s_%s.zip", req.CustomSkillID, filepath.Base(cleanRelPath)), data, nil
+		return fmt.Sprintf("workspace_%s_%s.zip", req.CustomSkillID, downloadName), data, nil
 	}
 
 	data, err := os.ReadFile(fullPath)
@@ -186,7 +240,7 @@ func DownloadSkillWorkspace(ctx *gin.Context, userId, orgId string, req request.
 		log.Errorf("[Workspace] Download read %s err: %v", fullPath, err)
 		return "", nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_workspace_read_file_failed")
 	}
-	return filepath.Base(cleanRelPath), data, nil
+	return downloadName, data, nil
 }
 
 // DeleteSkillWorkspaceFile 删除工作区文件或目录。
@@ -197,7 +251,7 @@ func DeleteSkillWorkspaceFile(ctx *gin.Context, userId, orgId string, req reques
 		return err
 	}
 
-	fullPath, _, err := workspaceFilePath(ws.workspaceDir, req.Path)
+	fullPath, err := resolveDiskPath(ws.workspaceDir, req.Path)
 	if err != nil {
 		return grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error())
 	}
@@ -239,7 +293,7 @@ func UpdateSkillWorkspaceFile(ctx *gin.Context, userId, orgId string, req reques
 		return nil, err
 	}
 
-	fullPath, _, err := workspaceFilePath(ws.workspaceDir, req.Path)
+	fullPath, err := resolveDiskPath(ws.workspaceDir, req.Path)
 	if err != nil {
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error())
 	}

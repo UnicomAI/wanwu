@@ -54,7 +54,7 @@ func (s *Service) WgaConversationDelete(ctx context.Context, req *assistant_serv
 func (s *Service) WgaConversationList(ctx context.Context, req *assistant_service.WgaConversationListReq) (*assistant_service.WgaConversationListResp, error) {
 	offset := (req.PageNo - 1) * req.PageSize
 
-	configs, total, status := s.cli.GetWgaConversationConfigList(ctx, req.Identity.UserId, req.Identity.OrgId, offset, req.PageSize)
+	configs, total, status := s.cli.GetWgaConversationConfigList(ctx, req.Identity.UserId, req.Identity.OrgId, req.SearchText, offset, req.PageSize)
 	if status != nil {
 		return nil, errStatus(errs.Code_WgaConversationGetErr, status)
 	}

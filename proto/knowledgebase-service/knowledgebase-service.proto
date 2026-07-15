@@ -9,6 +9,8 @@ option go_package = "gitlab.ai-yuanjing.cn/ai-platform-private/backend-used-bff/
 service KnowledgeBaseService {
   // 获取知识库列表
   rpc SelectKnowledgeList(KnowledgeSelectReq) returns (KnowledgeSelectListResp) {}
+  // 根据组织id的列表和userid的列表获取知识库列表
+  rpc SelectKnowledgeListByUserList(KnowledgeSelectUserListReq) returns (KnowledgeSelectListResp) {}
   // 获取知识库列表
   rpc SelectKnowledgeListByIdList(BatchKnowledgeSelectReq) returns (KnowledgeSelectListResp) {}
   // 获取知识库详情
@@ -169,10 +171,19 @@ message KnowledgeSelectReq {
   int32 external = 6; //外部知识库标识，0:知识库，1:外部知识库
 }
 
+message KnowledgeSelectUserListReq {
+  repeated string userId = 1;
+  repeated string orgId = 2;
+  string name = 3; //知识库名称，支持模糊搜索
+  int32 category = 4; //分类信息，0:知识库，1：问答库
+  int32 external = 5; //外部知识库标识，0:知识库，1:外部知识库
+}
+
 message BatchKnowledgeSelectReq {
   string userId = 1;
   string orgId = 2;
   repeated string knowledgeIdList = 3; //知识库id列表
+  bool noPermission = 4; //不需要权限校验
 }
 
 message KnowledgeSelectListResp {
@@ -350,7 +361,7 @@ message ExportRecordInfo{
   int32 status = 3; //导出状态
   string filePath = 4; //导出文件路径
   string errorMsg = 5; //错误信息
-  string exportTime =6; //导出时间
+  string exportTime = 6; //导出时间
   string userId = 7;
   string knowledgeName = 8;
 }
@@ -492,7 +503,7 @@ message Weights{
 }
 
 message KeywordSetting {
-  float keywordWeight =1;
+  float keywordWeight = 1;
 }
 
 message VectorSetting {

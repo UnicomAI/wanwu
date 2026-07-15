@@ -232,7 +232,7 @@ func buildUserTransfer(userInfo *knowledgebase_permission_service.KnowledgeUserI
 }
 
 // 并发查询用户详情和组织详情
-func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool) (map[string]*iam_service.IDName, map[string]*iam_service.IDName) {
+func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool) (map[string]*iam_service.IDName, map[string]*iam_service.IDFullName) {
 	var userIdList, orgIdList []string
 	for userId := range userIdMap {
 		userIdList = append(userIdList, userId)
@@ -242,7 +242,7 @@ func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool)
 	}
 	var wg = &sync.WaitGroup{}
 	wg.Add(2)
-	orgInfoMap := make(map[string]*iam_service.IDName)
+	orgInfoMap := make(map[string]*iam_service.IDFullName)
 	userInfoMap := make(map[string]*iam_service.IDName)
 	//查询user详情信息
 	go func() {
@@ -268,13 +268,13 @@ func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool)
 		}()
 		defer util.PrintPanicStack()
 
-		userInfoList, err := iam.GetOrgByOrgIDs(ctx.Request.Context(), &iam_service.GetOrgByOrgIDsReq{
+		orgInfoList, err := iam.GetOrgByOrgIDs(ctx.Request.Context(), &iam_service.GetOrgByOrgIDsReq{
 			OrgIds: orgIdList,
 		})
 		if err != nil {
 			return
 		}
-		for _, info := range userInfoList.Orgs {
+		for _, info := range orgInfoList.Orgs {
 			orgInfoMap[info.Id] = info
 		}
 	}()

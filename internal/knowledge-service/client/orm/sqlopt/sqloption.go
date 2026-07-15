@@ -250,6 +250,19 @@ func WithPermit(orgID, userID string) SQLOption {
 	})
 }
 
+// WithPermitList 权限查询条件
+func WithPermitList(orgID, userID []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgID) > 0 {
+			db = db.Where("org_id IN ?", orgID)
+		}
+		if len(userID) > 0 {
+			db = db.Where("user_id IN ?", userID)
+		}
+		return db
+	})
+}
+
 func WithStatusList(status []int) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if len(status) == 0 {

@@ -12,6 +12,9 @@ const (
 	NameMinLen = 2
 	NameMaxLen = 50
 	DescMaxLen = 200
+	// FileNameMaxLen 上传文档名的最大长度，按 Unicode 字符数计。
+	// 文档会以文档名落盘，受 Linux 文件名 255 字节上限约束；按中文每字 3 字节估算，80 字约 240 字节，留有余量。
+	FileNameMaxLen = 80
 )
 
 // 各模块名称/描述校验时用作错误文案前缀的 subject 常量。
@@ -58,6 +61,11 @@ func ValidateName(name *string, subject string) error {
 		return fmt.Errorf("%s名称不能仅由下划线、中划线、小数点组成", subject)
 	}
 	return nil
+}
+
+// ValidateFileNameLength 仅按 Unicode 字符数限制上传文档名长度（原始名含扩展名/空格等，不套 ValidateName 白名单）。
+func ValidateFileNameLength(name string) bool {
+	return utf8.RuneCountInString(name) <= FileNameMaxLen
 }
 
 // ValidateDesc 规范化并校验描述： 检查 ≤ 200 字符（按 Unicode 字符数）

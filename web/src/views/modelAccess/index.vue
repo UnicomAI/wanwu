@@ -225,8 +225,8 @@
                 class="card-type"
                 v-for="(it, itIndex) in item.tags"
                 :style="{
-                  color: tagColorList[itIndex].color,
-                  background: tagColorList[itIndex].backgroundColor,
+                  color: getTagColor(itIndex).color,
+                  background: getTagColor(itIndex).backgroundColor,
                 }"
               >
                 {{ it.text }}
@@ -299,6 +299,7 @@ import {
   SCOPE_TYPE_OBJ,
 } from './constants';
 import { avatarSrc, getModelDefaultIcon } from '@/utils/util';
+import { TagColorList } from '@/utils/commonSet';
 
 export default {
   name: 'ModelAccess',
@@ -323,15 +324,6 @@ export default {
       },
       loading: false,
       modelSelection: [],
-      tagColorList: [
-        { color: '#3562E7', backgroundColor: '#E6F0FF' },
-        { color: '#00A56E', backgroundColor: 'rgba(92, 192, 103, 0.15)' },
-        { color: '#E87B00', backgroundColor: '#FFF3E5' },
-        { color: '#0DA5A5', backgroundColor: '#E7F7F7' },
-        { color: '#6349E8', backgroundColor: '#F1EDFF' },
-        { color: '#67C23A', backgroundColor: '#F0F9EB' },
-        { color: '#E6A23C', backgroundColor: '#FDF6EC' },
-      ],
       type: '',
       tabList: TAB_LIST,
     };
@@ -356,6 +348,9 @@ export default {
       return this.isSystem
         ? SCOPE_TYPE_LIST.filter(item => item.key !== ORG)
         : SCOPE_TYPE_OBJ[this.type] || SCOPE_TYPE_LIST;
+    },
+    getTagColor(index) {
+      return TagColorList[index % TagColorList.length];
     },
     tabClick(type) {
       this.type = type;

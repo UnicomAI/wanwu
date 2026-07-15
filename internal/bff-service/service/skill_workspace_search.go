@@ -147,6 +147,10 @@ func (s *searcher) run() (*response.SkillWorkspaceSearchResp, error) {
 			return nil
 		}
 		relPath = filepath.ToSlash(relPath)
+		// 兜底解码存量 GBK 文件名：磁盘字节当 UTF-8 解码会产生 U+FFFD，
+		// 这里转为 UTF-8，使搜索结果 path 与 files 接口 path 编码一致，前端可复用。
+		// 注意磁盘访问用原始 path（os.Open/读内容），仅结果 path 用解码后的 relPath。
+		relPath = util.DecodeGBKToUTF8(relPath)
 
 		if d.Type()&os.ModeSymlink != 0 {
 			return nil

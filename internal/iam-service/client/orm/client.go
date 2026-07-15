@@ -48,6 +48,18 @@ type IDName struct {
 	NameStatus *err_code.Status
 }
 
+type IDNameWithAvatar struct {
+	ID         uint32
+	Name       string
+	AvatarPath string
+	NameStatus *err_code.Status
+}
+
+type IDFullName struct {
+	IDName
+	FullName string
+}
+
 type OrgUserIDName struct {
 	IDName
 	Status bool

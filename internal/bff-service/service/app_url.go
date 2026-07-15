@@ -27,7 +27,7 @@ func AppUrlCreate(ctx *gin.Context, userId, orgId string, req request.AppUrlCrea
 			return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
 		}
 	}
-	_, err = app.AppUrlCreate(ctx, &app_service.AppUrlCreateReq{
+	_, err = app.AppUrlCreate(ctx.Request.Context(), &app_service.AppUrlCreateReq{
 		AppUrlInfo: &app_service.AppUrlInfo{
 			AppId:               req.AppId,
 			AppType:             req.AppType,
@@ -48,7 +48,7 @@ func AppUrlCreate(ctx *gin.Context, userId, orgId string, req request.AppUrlCrea
 }
 
 func AppUrlDelete(ctx *gin.Context, req request.AppUrlIdRequest) error {
-	_, err := app.AppUrlDelete(ctx, &app_service.AppUrlDeleteReq{
+	_, err := app.AppUrlDelete(ctx.Request.Context(), &app_service.AppUrlDeleteReq{
 		UrlId: req.UrlId,
 	})
 	return err
@@ -63,7 +63,7 @@ func AppUrlUpdate(ctx *gin.Context, req request.AppUrlUpdateRequest) error {
 			return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
 		}
 	}
-	_, err = app.AppUrlUpdate(ctx, &app_service.AppUrlUpdateReq{
+	_, err = app.AppUrlUpdate(ctx.Request.Context(), &app_service.AppUrlUpdateReq{
 		AppUrlInfo: &app_service.AppUrlInfo{
 			UrlId:               req.UrlId,
 			Name:                req.Name,
@@ -84,7 +84,7 @@ func GetAppUrlList(ctx *gin.Context, req request.AppUrlListRequest) ([]*response
 	if req.AppType != constant.AppTypeAgent {
 		return nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, "get app url list app type mismatch")
 	}
-	resp, err := app.GetAppUrlList(ctx, &app_service.GetAppUrlListReq{
+	resp, err := app.GetAppUrlList(ctx.Request.Context(), &app_service.GetAppUrlListReq{
 		AppId:   req.AppId,
 		AppType: req.AppType,
 	})
@@ -95,7 +95,7 @@ func GetAppUrlList(ctx *gin.Context, req request.AppUrlListRequest) ([]*response
 }
 
 func AppUrlStatusSwitch(ctx *gin.Context, req request.AppUrlStatusRequest) error {
-	_, err := app.AppUrlStatusSwitch(ctx, &app_service.AppUrlStatusSwitchReq{
+	_, err := app.AppUrlStatusSwitch(ctx.Request.Context(), &app_service.AppUrlStatusSwitchReq{
 		UrlId:  req.UrlId,
 		Status: req.Status,
 	})

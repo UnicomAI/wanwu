@@ -10,7 +10,7 @@ import (
 // CheckOpenAPIAccess 校验 OpenAPI 调用应用权限
 // OpenAPI 仅允许调用自己创建的已发布应用（私有、组织内、公开都可以）
 func CheckOpenAPIAccess(ctx *gin.Context, appId, appType, userId, orgId string) error {
-	appInfo, err := app.GetAppInfo(ctx, &app_service.GetAppInfoReq{
+	appInfo, err := app.GetAppInfo(ctx.Request.Context(), &app_service.GetAppInfoReq{
 		AppId:   appId,
 		AppType: appType,
 	})

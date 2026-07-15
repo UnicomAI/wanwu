@@ -6,6 +6,10 @@ type UserID struct {
 	UserID string `json:"userId"`
 }
 
+type Users struct {
+	Users []IDName `json:"users"` // 去重后的用户列表
+}
+
 type UserInfo struct {
 	UserID    string         `json:"userId"`
 	Username  string         `json:"username"`

@@ -721,7 +721,7 @@ import {
   FAT_SON_BLOCK,
   MODEL_TYPE_TIP,
 } from '../config';
-import { deepMerge, filterSize } from '@/utils/util';
+import { deepMerge, filterSize, authDownload } from '@/utils/util';
 import modelSelect from '@/components/modelSelect.vue';
 import { selectASRList, selectModelList } from '@/api/modelAccess';
 
@@ -1122,22 +1122,11 @@ export default {
       });
     },
     async downloadTemplate() {
-      const url = `${USER_API}/static/docs/url_import_template.xlsx`;
-      const fileName = 'url_import_template.xlsx';
       try {
-        const response = await fetch(url);
-        if (!response.ok)
-          throw new Error(this.$t('knowledgeManage.fileNotFoundOrServerError'));
-
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = fileName;
-        a.click();
-
-        URL.revokeObjectURL(blobUrl); // 释放内存
+        await authDownload(
+          `${USER_API}/files/docs/url_import_template.xlsx`,
+          'url_import_template.xlsx',
+        );
       } catch (error) {
         this.$message.error(this.$t('knowledgeManage.fileDownloadFailed'));
       }

@@ -385,11 +385,15 @@ export const OpenurlConverHistory = (data, suffix, config = {}) => {
   });
 };
 //智能体openurl对话列表
-export const OpenurlConverList = (suffix, config = {}) => {
+export const OpenurlConverList = (suffix, params = {}, config = {}) => {
+  const isOldConfig = params && (params.headers || params.isOpenUrl);
+  const requestParams = isOldConfig ? {} : params;
+  const requestConfig = isOldConfig ? params : config;
   return service({
     url: `${OPENURL_API}/agent/${suffix}/conversation/list`,
     method: 'get',
-    ...config,
+    params: requestParams,
+    ...requestConfig,
     isOpenUrl: true,
   });
 };
@@ -536,6 +540,16 @@ export const cancelOpenurlAgentStream = (suffix, data, config) => {
     url: `${OPENURL_API}/agent/${suffix}/stream/cancel`,
     method: 'post',
     data,
+    ...config,
+    isOpenUrl: true,
+  });
+};
+
+// 获取智能体openurl模型配置
+export const getOpenurlAgentLlm = (suffix, config = {}) => {
+  return service({
+    url: `${OPENURL_API}/agent/${suffix}/llm`,
+    method: 'get',
     ...config,
     isOpenUrl: true,
   });

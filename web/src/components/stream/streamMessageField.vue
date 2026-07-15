@@ -1316,53 +1316,6 @@ export default {
 
       return Array.from(citationsSet);
     },
-    goPreview(event, item) {
-      event.stopPropagation();
-      let { meta_data } = item;
-      let { file_name, download_link, page_num, row_num, sheet_name } =
-        meta_data;
-      let index = file_name.lastIndexOf('.');
-      let ext = file_name.substr(index + 1);
-      let openUrl = '';
-      let fileUrl = encodeURIComponent(download_link);
-      const fileType = ['docx', 'doc', 'txt', 'pdf', 'xlsx'];
-      if (fileType.includes(ext)) {
-        switch (ext) {
-          case 'docx':
-          case 'doc':
-            openUrl = `${location.origin}/doc?fileUrl=` + fileUrl;
-            break;
-          case 'txt':
-            openUrl = `${location.origin}/txtView?fileUrl=` + fileUrl;
-            break;
-          case 'pdf':
-            if (page_num.length > 0) {
-              openUrl =
-                `${location.origin}/pdfView?fileUrl=` +
-                fileUrl +
-                '&page=' +
-                page_num[0];
-            }
-            break;
-          case 'xlsx':
-            openUrl =
-              `${location.origin}/jsExcel?url=` +
-              fileUrl +
-              '&rownum=' +
-              row_num +
-              '&sheetName=' +
-              sheet_name;
-            break;
-          default:
-            this.$message.warning('暂不支持此格式查看');
-        }
-      }
-      if (openUrl === '') {
-        this.$message.warning('暂不支持此格式查看');
-      } else {
-        open(openUrl, '_blank', 'noopener,noreferrer');
-      }
-    },
     setupScrollListener() {
       const container = document.getElementById(this.scrollContainerId);
       container.addEventListener('scroll', this.handleScroll);

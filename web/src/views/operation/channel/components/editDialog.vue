@@ -16,12 +16,32 @@
       size="small"
       style="margin-top: -20px"
     >
+      <!-- 渠道类型 + 重新扫码绑定 -->
+      <el-form-item :label="$t('channel.table.channelType')">
+        <div class="channel-type-row">
+          <el-input :value="channelTypeLabel" disabled></el-input>
+          <el-button
+            style="margin-left: 10px"
+            type="primary"
+            size="small"
+            @click="handleReScan"
+          >
+            {{ $t('channel.reScanBind') }}
+          </el-button>
+        </div>
+      </el-form-item>
+
       <el-form-item :label="$t('channel.channelName')" prop="name">
         <el-input v-model="form.name" maxlength="50" />
       </el-form-item>
 
       <el-form-item :label="$t('channel.appType')" prop="appType">
-        <el-select v-model="form.appType" style="width: 100%">
+        <el-select
+          v-model="form.appType"
+          style="width: 100%"
+          @change="handleAppTypeChange"
+          disabled
+        >
           <el-option
             v-for="item in appTypeOptions"
             :key="item.value"
@@ -31,7 +51,11 @@
         </el-select>
       </el-form-item>
 
-      <el-form-item :label="$t('channel.bindApp')" prop="appId">
+      <el-form-item
+        v-if="isBindAppType"
+        :label="$t('channel.bindApp')"
+        prop="appId"
+      >
         <el-select
           v-model="form.appId"
           :placeholder="$t('channel.bindAppPlaceholder')"
@@ -43,6 +67,66 @@
             :key="item.appId"
             :label="item.name"
             :value="item.appId"
+          />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item
+        v-if="isModelType"
+        :label="$t('channel.bindModel')"
+        prop="modelUuid"
+      >
+        <el-select
+          v-model="form.modelUuid"
+          :placeholder="$t('common.select.placeholder')"
+          filterable
+          style="width: 100%"
+        >
+          <el-option
+            v-for="item in modelList"
+            :key="item.uuid"
+            :label="item.displayName"
+            :value="item.uuid"
+          />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item
+        v-if="form.appType === GENERAL_AGENT"
+        :label="$t('channel.bindScene')"
+        prop="agentId"
+      >
+        <el-select
+          v-model="form.agentId"
+          :placeholder="$t('common.select.placeholder')"
+          filterable
+          style="width: 100%"
+        >
+          <el-option
+            v-for="item in sceneList"
+            :key="item.agentId"
+            :label="item.agentName"
+            :value="item.agentId"
+          />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item
+        v-if="form.appType === DIGITAL_EMPLOYEE"
+        :label="$t('channel.bindDigitalEmployee')"
+        prop="agentId"
+      >
+        <el-select
+          v-model="form.agentId"
+          :placeholder="$t('common.select.placeholder')"
+          filterable
+          style="width: 100%"
+        >
+          <el-option
+            v-for="item in employeeList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
           />
         </el-select>
       </el-form-item>
@@ -83,23 +167,48 @@
         {{ $t('common.button.cancel') }}
       </el-button>
     </template>
+
+    <!-- 扫码绑定弹窗 -->
+    <scan-dialog ref="scanDialogRef" @success="onScanSuccess" />
   </el-dialog>
 </template>
 
 <script>
 import { AGENT } from '@/utils/commonSet';
-import { editChannel, getApiSelect, getAppSelect } from '@/api/channel';
+import {
+  editChannel,
+  getApiSelect,
+  getAppSelect,
+  getModelSelect,
+  getEmployeeSelect,
+  getSceneSelect,
+} from '@/api/channel';
+import {
+  WECHAT,
+  DING_TALK,
+  GENERAL_AGENT,
+  DIGITAL_EMPLOYEE,
+  APP_TYPE_OPTIONS,
+} from '../constants';
+import ScanDialog from './scanDialog.vue';
 
 export default {
   name: 'ChannelEditDialog',
+  components: {
+    ScanDialog,
+  },
   data() {
     return {
+      GENERAL_AGENT,
+      DIGITAL_EMPLOYEE,
       dialogVisible: false,
       saveLoading: false,
       form: {
         name: '',
         appType: AGENT,
         appId: '',
+        modelUuid: '',
+        agentId: '',
         apiKeyId: '',
         config: {},
       },
@@ -124,12 +233,33 @@ export default {
         ],
         appId: [
           {
+            validator: (rule, value, callback) => {
+              if (this.form.appType !== AGENT) return callback();
+              if (!value) {
+                return callback(
+                  new Error(this.$t('common.select.placeholder')),
+                );
+              }
+              callback();
+            },
+            trigger: 'change',
+          },
+        ],
+        appType: [
+          {
             required: true,
             message: this.$t('common.select.placeholder'),
             trigger: 'change',
           },
         ],
-        appType: [
+        modelUuid: [
+          {
+            required: true,
+            message: this.$t('common.select.placeholder'),
+            trigger: 'change',
+          },
+        ],
+        agentId: [
           {
             required: true,
             message: this.$t('common.select.placeholder'),
@@ -144,32 +274,60 @@ export default {
           },
         ],
       },
-      appTypeOptions: [{ value: AGENT, label: this.$t('channel.agent') }],
+      appTypeOptions: APP_TYPE_OPTIONS,
       appList: [],
+      modelList: [],
+      sceneList: [],
+      employeeList: [],
       apiKeyList: [],
       row: {},
     };
   },
-  watch: {
-    'form.appType': {
-      handler() {
-        this.fetchAppList();
-      },
-      immediate: false,
+  computed: {
+    channelTypeLabel() {
+      if (this.row.channelType === WECHAT) return this.$t('channel.wechat');
+      if (this.row.channelType === DING_TALK)
+        return this.$t('channel.dingtalk');
+      return this.row.channelType;
+    },
+    isBindAppType() {
+      return this.form.appType === AGENT;
+    },
+    isModelType() {
+      return (
+        this.form.appType === GENERAL_AGENT ||
+        this.form.appType === DIGITAL_EMPLOYEE
+      );
     },
   },
   methods: {
+    setFormValue(row) {
+      const obj = { ...this.form };
+      for (let key in obj) {
+        obj[key] =
+          row && row[key] ? row[key] : Array.isArray(obj[key]) ? [] : '';
+      }
+      this.form = obj;
+    },
+    fetchInit() {
+      const value = this.form.appType;
+      if (value === AGENT) {
+        this.fetchAppList();
+      } else if (value === GENERAL_AGENT || value === DIGITAL_EMPLOYEE) {
+        this.fetchModelList();
+      }
+      if (value === GENERAL_AGENT) {
+        this.fetchSceneList();
+      }
+      if (value === DIGITAL_EMPLOYEE) {
+        this.fetchEmployeeList();
+      }
+      this.fetchApiKeyList();
+    },
     open(row) {
       this.row = row;
-      this.form = {
-        name: row.name || '',
-        appType: row.appType || AGENT,
-        appId: row.appId || '',
-        apiKeyId: row.apiKeyId || '',
-        config: row.config || {},
-      };
-      this.fetchAppList();
-      this.fetchApiKeyList();
+      this.setFormValue({ ...row, appType: row.appType || AGENT });
+      this.fetchInit();
       this.dialogVisible = true;
       this.$nextTick(() => {
         this.$refs.formRef && this.$refs.formRef.clearValidate();
@@ -182,11 +340,21 @@ export default {
     justifyConfig() {
       return Object.keys(this.form.config || {}).length > 0;
     },
+    formatValue() {
+      const value = { ...this.form };
+      if (value.appType === AGENT) {
+        delete value.modelUuid;
+        delete value.agentId;
+      } else if ([GENERAL_AGENT, DIGITAL_EMPLOYEE].includes(value.appType)) {
+        delete value.appId;
+      }
+      return value;
+    },
     handleSave() {
       this.$refs.formRef.validate(valid => {
         if (!valid) return;
         this.saveLoading = true;
-        editChannel(this.row.id, this.form)
+        editChannel(this.row.id, this.formatValue())
           .then(() => {
             this.saveLoading = false;
             this.$message.success(this.$t('common.message.success'));
@@ -198,6 +366,22 @@ export default {
           });
       });
     },
+    handleAppTypeChange(newVal) {
+      this.form.appId = '';
+      this.form.modelUuid = '';
+      this.form.agentId = '';
+      if (newVal === AGENT) {
+        this.fetchAppList();
+      } else if (newVal === GENERAL_AGENT || newVal === DIGITAL_EMPLOYEE) {
+        this.fetchModelList();
+      }
+      if (newVal === GENERAL_AGENT) {
+        this.fetchSceneList();
+      }
+      if (newVal === DIGITAL_EMPLOYEE) {
+        this.fetchEmployeeList();
+      }
+    },
     async fetchAppList() {
       const res = await getAppSelect(this.form.appType);
       this.appList = res.data?.list || [];
@@ -205,6 +389,26 @@ export default {
     async fetchApiKeyList() {
       const res = await getApiSelect();
       this.apiKeyList = res.data?.list || [];
+    },
+    async fetchModelList() {
+      const res = await getModelSelect();
+      this.modelList = res.data?.list || [];
+    },
+    async fetchSceneList() {
+      const res = await getSceneSelect();
+      this.sceneList = res.data?.wgaAgentList || [];
+    },
+    async fetchEmployeeList() {
+      const res = await getEmployeeSelect();
+      this.employeeList = res.data?.list || res.data || [];
+    },
+    /** 重新扫码绑定 */
+    handleReScan() {
+      this.$refs.scanDialogRef.open(this.row.channelType);
+    },
+    /** 扫码成功回调，更新渠道配置 */
+    onScanSuccess(data) {
+      this.form.config = data.credentials || {};
     },
   },
 };
@@ -220,5 +424,11 @@ export default {
     padding: 12px 24px 20px;
     text-align: right;
   }
+}
+.channel-type-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 </style>

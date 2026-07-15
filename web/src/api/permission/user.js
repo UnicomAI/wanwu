@@ -11,10 +11,11 @@ export const fetchUserList = params => {
 };
 
 // 获取角色列表用户
-export const fetchRoleList = () => {
+export const fetchRoleList = params => {
   return service({
     url: `${USER_API}/role/select`,
     method: 'get',
+    params,
   });
 };
 // 创建用户

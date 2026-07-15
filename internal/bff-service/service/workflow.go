@@ -324,7 +324,7 @@ func WorkflowConvert(ctx *gin.Context, orgId, workflowId, flowMode string) error
 		oldAppType = constant.AppTypeChatflow
 		newAppType = constant.AppTypeWorkflow
 	}
-	_, err = app.ConvertAppType(ctx, &app_service.ConvertAppTypeReq{AppId: workflowId, OldAppType: oldAppType, NewAppType: newAppType})
+	_, err = app.ConvertAppType(ctx.Request.Context(), &app_service.ConvertAppTypeReq{AppId: workflowId, OldAppType: oldAppType, NewAppType: newAppType})
 	return err
 }
 
@@ -724,6 +724,9 @@ func toModelInfo4Workflow(modelInfo *response.ModelInfo) (*response.CozeWorkflow
 
 	ret := &response.CozeWorkflowModelInfo{
 		ModelInfo: *modelInfo,
+		ModelAbility: response.CozeWorkflowModelInfoAbility{
+			CotDisplay: true, // 固定给llm节点增加 reasoning_content 字段
+		},
 	}
 	if modelInfo.Config != nil {
 		cfg := make(map[string]interface{})

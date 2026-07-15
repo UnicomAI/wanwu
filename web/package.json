@@ -92,5 +92,10 @@
   "volta": {
     "node": "22.10.0",
     "pnpm": "9.15.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "lodash": "^4.18.1"
+    }
   }
 }

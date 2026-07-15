@@ -41,7 +41,7 @@
             :show-file-list="false"
             :auto-upload="false"
             :limit="2"
-            accept="image/*"
+            accept=".png,.jpg,.jpeg"
             :file-list="logoFileList"
             :on-change="uploadOnChange"
           >

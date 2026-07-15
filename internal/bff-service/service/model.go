@@ -71,7 +71,7 @@ func UpdateModel(ctx *gin.Context, userId, orgId string, req *request.ImportOrUp
 	if err = ValidateModel(ctx, clientReq); err != nil {
 		return grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("An error occurred during model update validation: Invalid model: %v, err : %v", clientReq.Model, err))
 	}
-	_, err = model.UpdateModel(ctx, clientReq)
+	_, err = model.UpdateModel(ctx.Request.Context(), clientReq)
 	if err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func CheckModelUserPermission(ctx *gin.Context, userId, orgId string, modelIds [
 }
 
 func GetModelIdByUuid(ctx *gin.Context, uuid string) (string, error) {
-	resp, err := model.GetModelByUuid(ctx, &model_service.GetModelByUuidReq{Uuid: uuid})
+	resp, err := model.GetModelByUuid(ctx.Request.Context(), &model_service.GetModelByUuidReq{Uuid: uuid})
 	if err != nil {
 		return "", err
 	}

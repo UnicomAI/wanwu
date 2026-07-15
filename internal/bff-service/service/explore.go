@@ -55,7 +55,7 @@ func GetExplorationAppList(ctx *gin.Context, userId, orgId string, req request.G
 	for _, app := range apps {
 		userIds = append(userIds, app.User.UserId)
 	}
-	ret, err := iam.GetUserSelectByUserIDs(ctx, &iam_service.GetUserSelectByUserIDsReq{
+	ret, err := iam.GetUserSelectByUserIDs(ctx.Request.Context(), &iam_service.GetUserSelectByUserIDsReq{
 		UserIds: userIds,
 	})
 	if err != nil {

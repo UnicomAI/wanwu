@@ -109,6 +109,8 @@ definitions:
     type: object
   mp.ProviderModelByOpenAICompatible:
     properties:
+      asr:
+        $ref: '#/definitions/mp_openai_compatible.SyncAsr'
       embedding:
         $ref: '#/definitions/mp_openai_compatible.Embedding'
       llm:
@@ -472,6 +474,17 @@ definitions:
       endpointUrl:
         description: 推理url
         type: string
+    type: object
+  mp_openai_compatible.SyncAsr:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      endpointUrl:
+        description: 推理url（完整地址，含 /v1/chat/completions）
+        type: string
+      maxAsrFileSize:
+        type: integer
     type: object
   mp_qianfan.Embedding:
     properties:
@@ -1711,16 +1724,6 @@ paths:
         name: suffix
         required: true
         type: string
-      - description: 页码
-        in: query
-        name: pageNo
-        required: true
-        type: integer
-      - description: 每页数量
-        in: query
-        name: pageSize
-        required: true
-        type: integer
       produces:
       - application/json
       responses:
@@ -1904,6 +1907,20 @@ paths:
         in: path
         name: suffix
         required: true
+        type: string
+      - description: 页码
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页数量
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      - description: 检索词
+        in: query
+        name: searchText
         type: string
       produces:
       - application/json

@@ -160,10 +160,12 @@ export default {
       this.isComposing = true;
     },
 
-    onCompositionEnd() {
+    onCompositionEnd(event) {
       // 输入法输入结束
       if (this.isComposing) {
         this.isComposing = false;
+        // 部分浏览器/输入法下，合成结束前的最终 input 带 isComposing 被 onInput 跳过，这里补处理一次
+        this.onInput(event);
       }
     },
 

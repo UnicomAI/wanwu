@@ -327,7 +327,7 @@ export default {
       }
 
       if (res.code === 0) {
-        this.$emit('reloadList');
+        this.$emit('conversationDeleted', n);
         if (this.conversationId === n.conversationId) {
           this.conversationId = '';
           this.$refs['session-com'].clearData();
@@ -381,6 +381,11 @@ export default {
           this.setParams();
         }
       } else {
+        if (this.chatType === 'chat' && this.conversationId) {
+          this.$emit('conversationPromoted', {
+            conversationId: this.conversationId,
+          });
+        }
         this.setParams();
       }
     },

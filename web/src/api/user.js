@@ -155,7 +155,7 @@ export const docDownload = () => {
   });
 };
 
-// 公用上传 avatar
+// 公用上传 avatar（仅支持jpg/jpeg/png）
 export const uploadAvatar = (data, config) => {
   return service({
     url: `${USER_API}/avatar`,

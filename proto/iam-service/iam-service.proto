@@ -47,19 +47,23 @@ service IAMService {
   // --- org ---
 
   // 获取组织列表（用于下拉选择）
-  rpc GetOrgSelect(GetOrgSelectReq) returns (Select) {}
+  rpc GetOrgSelect(GetOrgSelectReq) returns (OrgSelectResp) {}
   // 获取组织列表
   rpc GetOrgList(GetOrgListReq) returns (GetOrgListResp) {}
   // 获取组织
   rpc GetOrgInfo(GetOrgInfoReq) returns (OrgInfo) {}
   // 通过orgIds获取组织信息
   rpc GetOrgByOrgIDs(GetOrgByOrgIDsReq) returns (GetOrgByOrgIDsResp) {}
+  // 通过多个orgId获取用户列表（去重、不过滤禁用状态）
+  rpc GetUsersByOrgIDs(GetUsersByOrgIDsReq) returns (GetUsersByOrgIDsResp) {}
   // 获取子组织信息
   rpc GetOrgAndSubOrgSelectByUser(GetOrgAndSubOrgSelectByUserReq) returns (GetOrgAndSubOrgSelectByUserResp) {}
   // 获取组织树
   rpc GetFirstClassOrgAndSubs(GetFirstClassOrgAndSubsReq) returns (GetFirstClassOrgAndSubsResp) {}
   // 获取管理员组织及下级组织树
   rpc GetAdminOrgSubTree(GetAdminOrgSubTreeReq) returns (AdminOrgSubTreeResp) {}
+  // 获取用户有权限的组织ID列表（登录用户的管理员组织及其所有下级组织）
+  rpc GetAdminOrgIDs(GetAdminOrgIDsReq) returns (GetAdminOrgIDsResp) {}
   // 创建组织
   rpc CreateOrg(CreateOrgReq) returns (IDName) {}
   // 编辑组织
@@ -151,8 +155,26 @@ message IDName {
   err_code.Status nameStatus = 3;
 }
 
+message IDNameWithAvatar {
+  string id = 1;
+  string name = 2;
+  err_code.Status nameStatus = 3;
+  string avatarPath = 4;
+}
+
+message IDFullName {
+  string id = 1;
+  string name = 2;
+  string fullName = 3;
+  err_code.Status nameStatus = 4;
+}
+
 message Select {
   repeated IDName selects = 1;
+}
+
+message OrgSelectResp {
+  repeated IDNameWithAvatar selects = 1;
 }
 
 // --- user ---
@@ -343,7 +365,17 @@ message GetOrgByOrgIDsReq {
 }
 
 message GetOrgByOrgIDsResp {
-  repeated IDName orgs = 1;
+  repeated IDFullName orgs = 1;
+}
+
+message GetUsersByOrgIDsReq {
+  repeated string orgIds = 1;
+  bool isAllOrg = 2;     // 是否查询全部组织（用户有权限的组织）
+  string userId = 3;     // 用户ID，isAllOrg=true 时必填
+}
+
+message GetUsersByOrgIDsResp {
+  repeated IDName users = 1; // 去重后的用户列表
 }
 
 message GetOrgAndSubOrgSelectByUserReq {
@@ -366,6 +398,14 @@ message GetFirstClassOrgAndSubsResp {
 
 message GetAdminOrgSubTreeReq {
   string userId = 1;
+}
+
+message GetAdminOrgIDsReq {
+  string userId = 1;
+}
+
+message GetAdminOrgIDsResp {
+  repeated string orgIds = 1; // 用户有权限的组织ID列表
 }
 
 message AdminOrgTreeNode {

@@ -230,7 +230,7 @@ func GetAppLatestVersion(ctx *gin.Context, userID, orgID, appType, appID string)
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFAppType)
 	}
 
-	appInfo, _ := app.GetAppInfo(ctx, &app_service.GetAppInfoReq{
+	appInfo, _ := app.GetAppInfo(ctx.Request.Context(), &app_service.GetAppInfoReq{
 		AppId:   appID,
 		AppType: appType,
 	}) // 可能没有发布过，不返回错误

@@ -168,6 +168,7 @@ type ConversationGetListRequest struct {
 	AssistantId string `json:"assistantId" form:"assistantId"  validate:"required"`
 	PageSize    int    `json:"pageSize" form:"pageSize"  validate:"required"`
 	PageNo      int    `json:"pageNo" form:"pageNo"  validate:"required"`
+	SearchText  string `json:"searchText" form:"searchText"` // 标题关键词，模糊匹配，空则不过滤
 }
 
 func (c *ConversationGetListRequest) Check() error { return nil }

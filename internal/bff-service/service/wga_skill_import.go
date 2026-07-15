@@ -164,7 +164,14 @@ func findSkillRootInZip(reader *zip.Reader) (*importedSkillRoot, error) {
 		if file.FileInfo().IsDir() {
 			continue
 		}
-		cleanName, err := util.CleanZipEntryName(file.Name)
+		// EFS(bit 11)未置位 → 本地编码，先按 GBK/GB18030 解码成 UTF-8，再做路径清理。
+		// 必须与 UnzipSubDir 内的解码保持一致：此处得到的 zipPath 会作为 subDir 传给
+		// UnzipSubDir，若编码不一致（GBK vs UTF-8），IsZipEntryInSubDir 的 HasPrefix 匹配会失败。
+		entryName := file.Name
+		if file.Flags&util.ZipEFSFlag == 0 {
+			entryName = util.DecodeGBKToUTF8(entryName)
+		}
+		cleanName, err := util.CleanZipEntryName(entryName)
 		if err != nil {
 			return nil, err
 		}

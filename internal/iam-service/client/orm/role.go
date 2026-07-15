@@ -523,11 +523,11 @@ func (c *Client) RemoveRoleUser(ctx context.Context, roleID, userID, orgID uint3
 			opts = append(opts, sqlopt.WithOrgID(orgID))
 		}
 		// check system admin: 不能移除系统内置管理员(admin)的超级管理员角色
-	// （与 UpdateUser 中的保护一致）
-	if userID == config.AdminUserID() && roleID == config.AdminRoleID() {
-		return toErrStatus("iam_role_user_remove", util.Int2Str(roleID), util.Int2Str(userID), "cannot remove admin user's admin role")
-	}
-	// check org creator: 不能移除组织创建者在所属组织的管理员角色，否则创建者会失去自己组织的管理权限
+		// （与 UpdateUser 中的保护一致）
+		if userID == config.AdminUserID() && roleID == config.AdminRoleID() {
+			return toErrStatus("iam_role_user_remove", util.Int2Str(roleID), util.Int2Str(userID), "cannot remove admin user's admin role")
+		}
+		// check org creator: 不能移除组织创建者在所属组织的管理员角色，否则创建者会失去自己组织的管理权限
 		// （与 UpdateUser 中的保护一致；orgID 为 0/TopOrgID 的系统组织调用不在此限）
 		if orgID != 0 && orgID != config.TopOrgID() {
 			org := &model.Org{}

@@ -137,7 +137,7 @@ export default {
       },
       type: 'add',
       dialogVisible: false,
-      templateUrl: '/user/api/v1/static/docs/report.csv',
+      templateUrl: '/user/api/v1/files/docs/report.csv',
       title: '',
     };
   },

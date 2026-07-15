@@ -67,7 +67,7 @@ func GetOrgSelect(ctx *gin.Context, userID string) (*response.Select, error) {
 		return nil, err
 	}
 	return &response.Select{
-		Select: toOrgIDNames(ctx, resp.Selects, userID == config.SystemAdminUserID),
+		Select: toOrgIDNamesWithAvatar(ctx, resp.Selects, userID == config.SystemAdminUserID),
 	}, nil
 }
 

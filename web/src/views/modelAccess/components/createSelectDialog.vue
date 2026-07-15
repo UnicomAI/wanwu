@@ -11,7 +11,7 @@
       <template slot="title">
         <div class="dialog-title-wrapper">
           <span class="dialog-title">{{ $t('modelAccess.dialog.title') }}</span>
-          <LinkIcon type="model" />
+          <LinkText :text="$t('modelAccess.dialog.helpDoc')" type="model" />
         </div>
       </template>
       <div class="provider-search-wrapper">
@@ -112,11 +112,11 @@ import {
   PROVIDER_IMG_OBJ,
   MODEL_TYPE,
 } from '../constants';
-import LinkIcon from '@/components/linkIcon.vue';
+import LinkText from '@/components/linkText.vue';
 import { fetchProviderList } from '@/api/modelAccess';
 
 export default {
-  components: { LinkIcon },
+  components: { LinkText },
   data() {
     return {
       dialogVisible: false,
@@ -246,11 +246,12 @@ export default {
 }
 .dialog-title-wrapper {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   .dialog-title {
     color: $color_title;
     font-size: 18px;
     font-weight: bold;
+    margin-bottom: -2px;
   }
 }
 </style>
