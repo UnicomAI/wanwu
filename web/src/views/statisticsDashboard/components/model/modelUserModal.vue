@@ -263,7 +263,10 @@ export default {
       if (this.$refs.pagination) {
         this.loading = true;
         try {
-          this.tableData = await this.$refs.pagination.getTableData(params);
+          this.tableData = await this.$refs.pagination.getTableData({
+            ...this.modalUserParams,
+            ...params,
+          });
         } finally {
           this.loading = false;
         }
