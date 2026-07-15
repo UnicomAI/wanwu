@@ -1,5 +1,5 @@
 import service from '@/utils/request';
-import { USER_API } from '@/utils/requestConstants';
+import { USER_API, USER_API_V2 } from '@/utils/requestConstants';
 
 /**
  * 模型统计接口
@@ -8,7 +8,7 @@ import { USER_API } from '@/utils/requestConstants';
 // 获取模型下拉列表
 export const getModelSelect = data => {
   return service({
-    url: `${USER_API}/statistic/model/select`,
+    url: `${USER_API_V2}/statistic/model/select`,
     method: 'post',
     data,
   });
@@ -17,7 +17,7 @@ export const getModelSelect = data => {
 // 获取模型统计数据概览
 export const getModelData = data => {
   return service({
-    url: `${USER_API}/statistic/model/overview`,
+    url: `${USER_API_V2}/statistic/model/overview`,
     method: 'post',
     data,
   });
@@ -26,7 +26,7 @@ export const getModelData = data => {
 // 获取模型统计图表数据+排行
 export const getModelChart = data => {
   return service({
-    url: `${USER_API}/statistic/model/chart`,
+    url: `${USER_API_V2}/statistic/model/chart`,
     method: 'post',
     data,
   });
@@ -37,7 +37,7 @@ export const fetchModelList = data => {
   const type = data.type;
   delete data.type;
   return service({
-    url: `${USER_API}/statistic/model/${type || 'list'}`,
+    url: `${USER_API_V2}/statistic/model/${type || 'list'}`,
     method: 'post',
     data,
   });
@@ -46,7 +46,7 @@ export const fetchModelList = data => {
 // 模型数据导出
 export const exportModelData = (data, type) => {
   return service({
-    url: `${USER_API}/statistic/model/${type || 'list'}/export`,
+    url: `${USER_API_V2}/statistic/model/${type || 'list'}/export`,
     method: 'post',
     data,
     responseType: 'blob',
@@ -56,7 +56,7 @@ export const exportModelData = (data, type) => {
 // 获取模型用户统计列表
 export const fetchModelUserList = data => {
   return service({
-    url: `${USER_API}/statistic/model/list/user`,
+    url: `${USER_API_V2}/statistic/model/list/user`,
     method: 'post',
     data,
   });
@@ -65,7 +65,7 @@ export const fetchModelUserList = data => {
 // 导出模型用户统计数据
 export const exportModelUserData = data => {
   return service({
-    url: `${USER_API}/statistic/model/list/user/export`,
+    url: `${USER_API_V2}/statistic/model/list/user/export`,
     method: 'post',
     data,
     responseType: 'blob',
@@ -75,7 +75,7 @@ export const exportModelUserData = data => {
 // 获取模型应用统计列表
 export const fetchModelAppList = data => {
   return service({
-    url: `${USER_API}/statistic/model/list/app`,
+    url: `${USER_API_V2}/statistic/model/list/app`,
     method: 'post',
     data,
   });
@@ -84,7 +84,7 @@ export const fetchModelAppList = data => {
 // 导出模型应用统计数据
 export const exportModelAppData = data => {
   return service({
-    url: `${USER_API}/statistic/model/list/app/export`,
+    url: `${USER_API_V2}/statistic/model/list/app/export`,
     method: 'post',
     data,
     responseType: 'blob',
@@ -98,7 +98,7 @@ export const exportModelAppData = data => {
 // 获取应用下拉列表
 export const getAppSelect = data => {
   return service({
-    url: `${USER_API}/statistic/app/select`,
+    url: `${USER_API_V2}/statistic/app/select`,
     method: 'post',
     data,
   });
@@ -107,7 +107,7 @@ export const getAppSelect = data => {
 // 获取应用统计数据概览
 export const getAppData = data => {
   return service({
-    url: `${USER_API}/statistic/app/overview`,
+    url: `${USER_API_V2}/statistic/app/overview`,
     method: 'post',
     data,
   });
@@ -116,7 +116,7 @@ export const getAppData = data => {
 // 获取应用统计图表数据+排行
 export const getAppChart = data => {
   return service({
-    url: `${USER_API}/statistic/app/chart`,
+    url: `${USER_API_V2}/statistic/app/chart`,
     method: 'post',
     data,
   });
@@ -128,7 +128,7 @@ export const fetchAppList = data => {
   delete data.type;
   const path = type === 'list' ? '' : `${type}/`;
   return service({
-    url: `${USER_API}/statistic/app/${path}list`,
+    url: `${USER_API_V2}/statistic/app/${path}list`,
     method: 'post',
     data,
   });
@@ -137,7 +137,7 @@ export const fetchAppList = data => {
 // 应用数据导出
 export const exportAppData = (data, type) => {
   return service({
-    url: `${USER_API}/statistic/${type || 'list'}/export`,
+    url: `${USER_API_V2}/statistic/${type || 'list'}/export`,
     method: 'post',
     data,
     responseType: 'blob',
@@ -147,7 +147,7 @@ export const exportAppData = (data, type) => {
 // 获取应用用户统计列表
 export const fetchAppUserList = data => {
   return service({
-    url: `${USER_API}/statistic/app/list/user`,
+    url: `${USER_API_V2}/statistic/app/list/user`,
     method: 'post',
     data,
   });
@@ -156,7 +156,7 @@ export const fetchAppUserList = data => {
 // 导出应用用户统计数据
 export const exportAppUserData = data => {
   return service({
-    url: `${USER_API}/statistic/app/list/user/export`,
+    url: `${USER_API_V2}/statistic/app/list/user/export`,
     method: 'post',
     data,
     responseType: 'blob',
@@ -166,7 +166,7 @@ export const exportAppUserData = data => {
 // 获取应用模型统计列表
 export const fetchAppModelList = data => {
   return service({
-    url: `${USER_API}/statistic/app/list/model`,
+    url: `${USER_API_V2}/statistic/app/list/model`,
     method: 'post',
     data,
   });
@@ -175,7 +175,7 @@ export const fetchAppModelList = data => {
 // 导出应用模型统计数据
 export const exportAppModelData = data => {
   return service({
-    url: `${USER_API}/statistic/app/list/model/export`,
+    url: `${USER_API_V2}/statistic/app/list/model/export`,
     method: 'post',
     data,
     responseType: 'blob',
@@ -189,7 +189,7 @@ export const exportAppModelData = data => {
 // 获取API下拉列表
 export const getApiSelect = data => {
   return service({
-    url: `${USER_API}/statistic/api/select`,
+    url: `${USER_API_V2}/statistic/api/select`,
     method: 'post',
     data,
   });
@@ -198,7 +198,7 @@ export const getApiSelect = data => {
 // 获取API路径列表
 export const getApiRoutes = params => {
   return service({
-    url: `${USER_API}/statistic/api/routes`,
+    url: `${USER_API_V2}/statistic/api/routes`,
     method: 'get',
     params,
   });
@@ -207,7 +207,7 @@ export const getApiRoutes = params => {
 // 获取API统计数据概览
 export const getApiData = data => {
   return service({
-    url: `${USER_API}/statistic/api/overview`,
+    url: `${USER_API_V2}/statistic/api/overview`,
     method: 'post',
     data,
   });
@@ -216,7 +216,7 @@ export const getApiData = data => {
 // 获取API统计图表数据+排行
 export const getApiChart = data => {
   return service({
-    url: `${USER_API}/statistic/api/chart`,
+    url: `${USER_API_V2}/statistic/api/chart`,
     method: 'post',
     data,
   });
@@ -228,7 +228,7 @@ export const fetchApiList = data => {
   delete data.type;
   const path = type === 'list' ? '' : `${type}/`;
   return service({
-    url: `${USER_API}/statistic/api/${path}list`,
+    url: `${USER_API_V2}/statistic/api/${path}list`,
     method: 'post',
     data,
   });
@@ -237,7 +237,7 @@ export const fetchApiList = data => {
 // API数据导出
 export const exportApiData = (data, type) => {
   return service({
-    url: `${USER_API}/statistic/api/${type || 'list'}/export`,
+    url: `${USER_API_V2}/statistic/api/${type || 'list'}/export`,
     method: 'post',
     data,
     responseType: 'blob',
@@ -247,7 +247,7 @@ export const exportApiData = (data, type) => {
 // 获取API应用统计列表
 export const fetchApiAppList = data => {
   return service({
-    url: `${USER_API}/statistic/api/list/app`,
+    url: `${USER_API_V2}/statistic/api/list/app`,
     method: 'post',
     data,
   });
@@ -256,7 +256,7 @@ export const fetchApiAppList = data => {
 // 导出API应用统计数据
 export const exportApiAppData = data => {
   return service({
-    url: `${USER_API}/statistic/api/list/app/export`,
+    url: `${USER_API_V2}/statistic/api/list/app/export`,
     method: 'post',
     data,
     responseType: 'blob',
