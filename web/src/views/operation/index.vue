@@ -15,13 +15,6 @@
       v-if="checkPerm(operationPerm)"
     >
       <div
-        :class="['tab', { active: tabActive === 0 }]"
-        @click="tabClick(0)"
-        v-if="checkPerm(oauthPerm)"
-      >
-        {{ $t('oauth.title') }}
-      </div>
-      <div
         :class="['tab', { active: tabActive === 1 }]"
         @click="tabClick(1)"
         v-if="checkPerm(statisticsPerm)"
@@ -34,9 +27,6 @@
       </div>
     </div>
 
-    <div v-if="tabActive === 0" style="margin: 0 20px 0 20px">
-      <Oauth />
-    </div>
     <div v-if="tabActive === 1" style="margin: 30px 20px 0 20px">
       <Statistics />
     </div>
@@ -58,16 +48,13 @@ export default {
   data() {
     return {
       radio: '',
-      tabActive: 0,
+      tabActive: 1,
       operationPerm: PERMS.OPERATION,
-      oauthPerm: PERMS.OAUTH,
       statisticsPerm: PERMS.STATISTIC,
     };
   },
   created() {
-    if (checkPerm(this.oauthPerm)) {
-      this.tabActive = 0;
-    } else if (checkPerm(this.statisticsPerm)) {
+    if (checkPerm(this.statisticsPerm)) {
       this.tabActive = 1;
     } else {
       this.tabActive = 2;

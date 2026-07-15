@@ -156,7 +156,7 @@ export default {
         fileUploadId: '',
       },
       dialogVisible: false,
-      templateUrl: `${USER_API}/static/docs/segment.csv`,
+      templateUrl: `${USER_API}/files/docs/segment.csv`,
       isChildChunk: false,
       category: null,
     };

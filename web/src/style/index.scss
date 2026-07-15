@@ -36,6 +36,12 @@ body {
   color: #606266;
 }
 
+.el-button--danger.is-plain:focus, .el-button--danger.is-plain:hover {
+  color: #F56C6C !important;
+  background: #fef0f0 !important;
+  border-color: #fbc4c4 !important;
+}
+
 .el-button--mini {
   height: 30px;
 }
@@ -67,8 +73,8 @@ body {
 
 .el-button--primary.is-active,
 .el-button--primary:active {
-  background: #ee1e1f !important;
-  border-color: #ee1e1f !important;
+  background: $color !important;
+  border-color: $color !important;
   color: #fff !important;
 }
 

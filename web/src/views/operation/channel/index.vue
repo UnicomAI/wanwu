@@ -164,7 +164,7 @@
                 v-for="item in employeeList"
                 :key="item.id"
                 :label="item.name"
-                :value="item.name"
+                :value="item.id"
               />
             </el-select>
           </el-form-item>

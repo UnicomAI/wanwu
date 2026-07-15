@@ -134,10 +134,13 @@ export default {
       if (!this.verifiyFormParams()) {
         return;
       }
+      const requestFileInfo = Array.isArray(fileInfo)
+        ? fileInfo
+        : this.$refs['editable'].getFileIdList();
       // this.setParams()
       this.setSseParams({
         ragId: this.editForm.appId,
-        fileInfo: this.$refs['editable'].getFileIdList(),
+        fileInfo: requestFileInfo,
         question: this.inputVal,
         // RAG 配置里的最长上下文轮数，取 知识库 / 问答库 两处配置的较大值。
         // 0 表示不携带历史；sendRagEventSource 会据此裁剪 history 并在发请求前剔除该字段。

@@ -38,10 +38,15 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="handleClose">
+        <el-button size="small" @click="handleClose">
           {{ $t('common.button.cancel') }}
         </el-button>
-        <el-button :loading="uploading" type="primary" @click="handleSubmit">
+        <el-button
+          size="small"
+          :loading="uploading"
+          type="primary"
+          @click="handleSubmit"
+        >
           {{ $t('common.button.confirm') }}
         </el-button>
       </span>
@@ -85,8 +90,15 @@
 <script>
 import Pagination from '@/components/pagination.vue';
 import { batchCreateUser } from '@/api/permission/user';
+import { authDownload } from '@/utils/util';
 export default {
   components: { Pagination },
+  props: {
+    orgId: {
+      type: String,
+      default: '',
+    },
+  },
   data() {
     return {
       dialogVisible: false,
@@ -111,8 +123,15 @@ export default {
     openDialog() {
       this.dialogVisible = true;
     },
-    downloadTemp() {
-      window.open(this.$basePath + '/user/api/v1/static/docs/users.xlsx');
+    async downloadTemp() {
+      try {
+        await authDownload(
+          this.$basePath + '/user/api/v1/files/docs/users.xlsx',
+          'users.xlsx',
+        );
+      } catch (error) {
+        this.$message.error(this.$t('uploadDialog.uploadError'));
+      }
     },
     handleUpload(res) {
       if (res.file) {
@@ -138,6 +157,7 @@ export default {
           for (let key in this.uploadForm) {
             formData.append(key, this.uploadForm[key]);
           }
+          formData.append('orgId', this.orgId);
           this.uploading = true;
           batchCreateUser(formData, config)
             .then(res => {

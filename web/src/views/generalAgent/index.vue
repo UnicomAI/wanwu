@@ -12,14 +12,34 @@
       <!-- 左侧会话列表 - 固定宽度，可折叠 -->
       <div :class="['sidebar', { collapsed: sidebarCollapsed }]">
         <div class="sidebar-header">
-          <el-button
-            class="new-chat-btn"
-            type="primary"
-            @click="initNewConversation"
-          >
-            <i class="el-icon-plus"></i>
-            {{ $t('generalAgent.sidebar.newChat') }}
-          </el-button>
+          <div class="history-toolbar">
+            <el-tooltip
+              :content="$t('generalAgent.sidebar.newChat')"
+              effect="dark"
+              placement="bottom"
+            >
+              <el-button
+                circle
+                class="create-conversation-btn"
+                size="small"
+                type="primary"
+                @click="initNewConversation"
+              >
+                <svg-icon class-name="create-icon" icon-class="message-plus" />
+              </el-button>
+            </el-tooltip>
+            <el-input
+              v-model="searchText"
+              :placeholder="$t('generalAgent.sidebar.search') + '...'"
+              class="history-search-input"
+              clearable
+              size="small"
+              @clear="handleConversationSearch"
+              @keyup.enter.native="handleConversationSearch"
+            >
+              <i slot="prefix" class="el-input__icon el-icon-search"></i>
+            </el-input>
+          </div>
         </div>
 
         <div class="sidebar-divider"></div>
@@ -530,6 +550,8 @@ export default {
       sidebarCollapsed: true,
       conversationList: [],
       currentThreadId: '',
+      currentConversationTitle: '',
+      searchText: '',
       pageNo: 1,
       pageSize: 50,
       hasMoreConversations: true,
@@ -597,7 +619,7 @@ export default {
     currentTitle() {
       if (!this.currentThreadId) return '';
       return (
-        this.currentConversation?.title ||
+        this.currentConversationTitle ||
         this.$t('generalAgent.index.newConversation')
       );
     },
@@ -675,6 +697,12 @@ export default {
     },
   },
   watch: {
+    currentThreadId(val) {
+      if (!val) this.currentConversationTitle = '';
+    },
+    currentConversation(val) {
+      if (val?.title) this.currentConversationTitle = val.title;
+    },
     panelVisible(val) {
       if (val && this.activeWorkspace) {
         this.loadWorkspaceFiles();
@@ -1148,6 +1176,7 @@ export default {
         const res = await getGeneralAgentConversationList({
           pageNo: this.pageNo,
           pageSize: this.pageSize,
+          searchText: this.searchText.trim(),
         });
         if (res.code === 0) {
           const list = res.data?.list || [];
@@ -1197,6 +1226,12 @@ export default {
       if (distanceToBottom < threshold) {
         this.fetchConversationList(true);
       }
+    },
+
+    /** 按关键字搜索历史会话，重置分页后重新拉取 */
+    handleConversationSearch() {
+      this.searchText = this.searchText.trim();
+      this.fetchConversationList(false);
     },
 
     initNewConversation() {
@@ -2206,22 +2241,30 @@ export default {
 
   .sidebar-header {
     flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
+    padding: 12px 22px;
     border-bottom: 1px solid #f0f0f0;
 
-    .new-chat-btn {
-      width: 100%;
-      border-radius: 12px;
-      background: $wga-primary;
-      border-color: $wga-primary;
-      font-weight: 500;
+    .history-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
 
-      &:hover {
-        background: $wga-primary-dark;
-        border-color: $wga-primary-dark;
+      .create-conversation-btn {
+        flex: 0 0 auto;
+        padding: 6px;
+
+        .create-icon {
+          font-size: 16px;
+        }
+      }
+
+      ::v-deep .history-search-input {
+        flex: 1;
+        min-width: 0;
+
+        .el-input__inner {
+          border-radius: 12px;
+        }
       }
     }
   }

@@ -10,7 +10,7 @@
         ]"
       >
         <div class="left-header-container">
-          <div style="padding-top: 15px; text-align: center; height: 46px">
+          <div style="padding-top: 12px; text-align: center; height: 46px">
             <div v-if="homeLogoPath">
               <img
                 v-if="!isCollapse"
@@ -364,7 +364,7 @@ export default {
             img: require('@/assets/imgs/setting_icon.svg'),
             isTip: true,
             tipContent: this.$t('menu.settingTip'),
-            perm: PERMS.PERMISSION,
+            perm: PERMS.ADMIN_CENTER,
           },
           {
             name: this.$t('menu.operationManage'),
@@ -390,6 +390,7 @@ export default {
             name: this.$t('menu.openSource'),
             img: require('@/assets/imgs/openSource.svg'),
             icon: require('@/assets/imgs/link_icon.png'),
+            perm: PERMS.OPEN_SOURCE,
             children: [
               {
                 name: 'Github',

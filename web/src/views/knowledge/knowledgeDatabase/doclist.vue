@@ -669,6 +669,7 @@ export default {
     $route: {
       handler(val) {
         if (val.query.done) {
+          this.refreshCount = 0;
           this.startTimer();
         }
       },
@@ -697,6 +698,7 @@ export default {
   },
   deactivated() {
     this.clearTimer();
+    this.handleMetaCancel();
   },
   methods: {
     convertModelIcon(iconPath) {
@@ -711,7 +713,7 @@ export default {
         description: this.description,
         embeddingModelInfo: this.embeddingModel,
         llmModelId: this.llmModelId,
-        graphSwitch: this.graphSwitch,
+        graphSwitch: this.graphSwitch ? 1 : 0,
       });
     },
     handleCommand(command) {
@@ -774,24 +776,12 @@ export default {
       this.selectedDocIds = [];
       // 取消所有表格数据的选中状态
       this.$nextTick(() => {
-        const table = this.$refs.dataTable;
-        if (table) {
-          table.clearSelection();
-        }
+        this.$refs.dataTable?.clearSelection();
       });
     },
     reLoadDocList() {
       this.getTableData(this.docQuery);
-      this.selectedTableData = [];
-      this.selectedDocIds = [];
-
-      // 取消所有表格数据的选中状态
-      this.$nextTick(() => {
-        const table = this.$refs.dataTable;
-        if (table) {
-          table.clearSelection();
-        }
-      });
+      this.handleMetaCancel();
     },
     showBatchMeta() {
       if (!this.selectedTableData || this.selectedTableData.length === 0) {
@@ -877,15 +867,15 @@ export default {
         return;
       }
       const delay = this.refreshCount === 0 ? 1000 : 3000;
-      this.timer = setTimeout(() => {
-        this.getTableData(this.docQuery);
+      this.timer = setTimeout(async () => {
+        await this.getTableData(this.docQuery);
         this.refreshCount++;
         this.startTimer();
       }, delay);
     },
     clearTimer() {
       if (this.timer) {
-        clearInterval(this.timer);
+        clearTimeout(this.timer);
         this.timer = null;
       }
     },

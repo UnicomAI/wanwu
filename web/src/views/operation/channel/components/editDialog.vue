@@ -126,7 +126,7 @@
             v-for="item in employeeList"
             :key="item.id"
             :label="item.name"
-            :value="item.name"
+            :value="item.id"
           />
         </el-select>
       </el-form-item>
@@ -404,7 +404,7 @@ export default {
     },
     /** 重新扫码绑定 */
     handleReScan() {
-      this.$refs.scanDialogRef.open(this.form.channelType);
+      this.$refs.scanDialogRef.open(this.row.channelType);
     },
     /** 扫码成功回调，更新渠道配置 */
     onScanSuccess(data) {

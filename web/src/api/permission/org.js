@@ -49,7 +49,13 @@ export const changeOrgStatus = data => {
     data,
   });
 };
-
+// 获取组织管理左侧组织树
+export const fetchOrgTree = () => {
+  return service({
+    url: `${USER_API}/org/tree`,
+    method: 'get',
+  });
+};
 // 获取导航组织列表
 export const fetchOrgs = () => {
   return service({

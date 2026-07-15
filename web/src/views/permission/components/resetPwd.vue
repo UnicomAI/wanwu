@@ -45,6 +45,12 @@
 import { rsaEncrypt } from '@/utils/crypto';
 import { restUserPassword } from '@/api/user';
 export default {
+  props: {
+    orgId: {
+      type: String,
+      default: '',
+    },
+  },
   data() {
     let checkPwd = (rule, value, callback) => {
       if (this.form.newPassword !== this.form.newPasswordAgain)
@@ -129,6 +135,7 @@ export default {
           userId: this.row.userId,
           cipher,
           keyId,
+          ...(this.orgId && { orgId: this.orgId }),
         };
         let res = await restUserPassword(params);
         if (res.code === 0) {

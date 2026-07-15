@@ -55,6 +55,7 @@
 import fileUpload from '@/components/fileUpload.vue';
 import { qaDocImport } from '@/api/qaDatabase';
 import { USER_API } from '@/utils/requestConstants';
+import { authDownload } from '@/utils/util';
 
 export default {
   name: 'QaFileUpload',
@@ -73,7 +74,7 @@ export default {
       loading: false,
       uploadedFileId: null,
       uploadForm: {},
-      templateUrl: `${USER_API}/static/docs/qa_pair_template.csv`,
+      templateUrl: `${USER_API}/files/docs/qa_pair_template.csv`,
     };
   },
   methods: {
@@ -130,23 +131,11 @@ export default {
         });
     },
     async downloadTemplate() {
-      const url = `${USER_API}/static/docs/qa_import_template.xlsx`;
-      const fileName = 'qa_import_template.xlsx';
       try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(this.$t('knowledgeManage.create.fileNotExist'));
-        }
-
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = fileName;
-        a.click();
-
-        URL.revokeObjectURL(blobUrl);
+        await authDownload(
+          `${USER_API}/files/docs/qa_import_template.xlsx`,
+          'qa_import_template.xlsx',
+        );
       } catch (error) {
         this.$message.error(this.$t('knowledgeManage.create.downloadFailed'));
       }

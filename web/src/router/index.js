@@ -71,7 +71,7 @@ const constantRoutes = [
       {
         path: '/permission',
         component: resolve => require(['@/views/permission'], resolve),
-        meta: { perm: [PERMS.PERMISSION] },
+        meta: { perm: [PERMS.ADMIN_CENTER] },
       },
       {
         path: '/operation',

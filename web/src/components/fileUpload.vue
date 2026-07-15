@@ -24,9 +24,7 @@
             </span>
             <a
               class="clickUpload template"
-              :href="templateUrl"
-              download
-              @click.stop
+              @click.stop="handleDownloadTemplate"
             >
               {{ $t('common.fileUpload.templateClick') }}
             </a>
@@ -90,7 +88,7 @@
 <script>
 import uploadChunk from '@/mixins/uploadChunk';
 import { delfile } from '@/api/chunkFile';
-import { filterSize } from '@/utils/util';
+import { filterSize, authDownload } from '@/utils/util';
 
 export default {
   props: {
@@ -109,6 +107,15 @@ export default {
     };
   },
   methods: {
+    async handleDownloadTemplate() {
+      if (!this.templateUrl) return;
+      const fileName = this.templateUrl.split('/').pop();
+      try {
+        await authDownload(this.templateUrl, fileName);
+      } catch (error) {
+        this.$message.error(this.$t('common.fileUpload.downloadError'));
+      }
+    },
     uploadOnChange(file, fileList) {
       if (!fileList.length) return;
       // 验证文件大小，只有通过验证才继续上传

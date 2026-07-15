@@ -1,105 +1,190 @@
 <template>
-  <div>
-    <div class="table-wrap list-common wrap-fullheight">
-      <div class="table-box">
-        <search-input
-          style="margin-bottom: 20px"
-          :placeholder="$t('org.form.org')"
-          ref="searchInput"
-          @handleSearch="getTableData"
-        />
-        <el-button
-          v-if="isAdmin"
-          class="add-bt"
-          size="mini"
-          type="primary"
-          @click="preInsert"
-        >
-          <img src="@/assets/imgs/addOrg.png" alt="" />
-          <span>{{ $t('org.button.create') }}</span>
-        </el-button>
-        <el-table
-          :data="tableData"
-          :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
-          v-loading="loading"
-          style="width: 100%"
-        >
-          <el-table-column
-            prop="name"
-            :label="$t('org.table.name')"
-            align="left"
-          />
-          <el-table-column
-            prop="remark"
-            :label="$t('org.dialog.remark')"
-            align="left"
-          >
-            <template slot-scope="scope">
-              {{ scope.row.remark || '--' }}
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="creator.name"
-            :label="$t('org.table.creator')"
-            align="left"
-          >
-            <template slot-scope="scope">
-              {{ scope.row.creator ? scope.row.creator.name || '--' : '--' }}
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="createdAt"
-            :label="$t('org.table.createAt')"
-            align="left"
-          />
-          <el-table-column
-            v-if="isAdmin"
-            align="left"
-            :label="$t('org.table.status')"
-          >
-            <template slot-scope="scope">
-              <div style="height: 26px">
-                <el-switch
-                  @change="
-                    val => {
-                      changeStatus(scope.row, val);
-                    }
-                  "
-                  style="display: block; height: 22px; line-height: 22px"
-                  v-model="scope.row.status"
-                  :active-text="$t('common.switch.start')"
-                  :inactive-text="$t('common.switch.stop')"
-                />
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column
-            v-if="isAdmin"
-            align="left"
-            :label="$t('common.table.operation')"
-            width="240"
-          >
-            <template slot-scope="scope">
-              <el-button
-                class="operation"
-                type="text"
-                @click="preUpdate(scope.row)"
+  <div class="org-page">
+    <org-switcher
+      ref="orgSwitcher"
+      v-model="selectedOrgId"
+      class="org-page__switcher"
+      @change="handleOrgChange"
+    />
+    <div class="table-wrap list-common org-page__main">
+      <div class="org-page__content">
+        <div class="table-box">
+          <div class="org-section">
+            <div class="section-title">{{ $t('org.currentOrgTitle') }}</div>
+            <div class="section-desc">{{ $t('org.currentOrgDesc') }}</div>
+            <el-table
+              :data="currentOrgTableData"
+              :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
+              style="width: 100%"
+            >
+              <el-table-column :label="$t('org.table.name')" align="left">
+                <template slot-scope="scope">
+                  <div class="org-name-cell">
+                    <img
+                      class="org-name-cell__icon"
+                      :src="avatarSrc(scope.row.avatar?.path || defaultAvatar)"
+                      alt=""
+                    />
+                    <span>{{ scope.row.name }}</span>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="admins"
+                :label="$t('org.table.orgAdmin')"
+                align="left"
               >
-                {{ $t('common.button.edit') }}
+                <template slot-scope="scope">
+                  <template v-if="scope.row.admins?.length > 0">
+                    <el-tooltip :content="scope.row.admins.join('、')">
+                      <div class="table-org-admin">
+                        {{ scope.row.admins.join('、') }}
+                      </div>
+                    </el-tooltip>
+                  </template>
+                  <template v-else>--</template>
+                </template>
+              </el-table-column>
+              <el-table-column :label="$t('org.table.members')" align="left">
+                <template slot-scope="scope">
+                  {{ scope.row.userCount || 0 }}
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="createdAt"
+                :label="$t('org.table.createAt')"
+                align="left"
+              />
+              <el-table-column
+                align="left"
+                :label="$t('common.table.operation')"
+                width="120"
+              >
+                <template slot-scope="scope">
+                  <el-button
+                    class="operation"
+                    type="text"
+                    @click="preUpdate(scope.row)"
+                  >
+                    {{ $t('common.button.edit') }}
+                  </el-button>
+                  <el-button type="text" @click="preDel(scope.row)">
+                    {{ $t('common.button.delete') }}
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <div class="org-section sub-org-section">
+            <div class="section-title">{{ $t('org.subOrgTitle') }}</div>
+            <div class="section-desc">{{ $t('org.subOrgDesc') }}</div>
+            <div class="toolbar">
+              <search-input
+                :placeholder="$t('org.form.org')"
+                ref="searchInput"
+                @handleSearch="getTableData"
+              />
+              <el-button
+                class="add-bt"
+                size="mini"
+                type="primary"
+                @click="preUpdate()"
+              >
+                <img src="@/assets/imgs/addOrg.png" alt="" />
+                <span>{{ $t('org.button.create') }}</span>
               </el-button>
-              <el-button type="text" @click="preDel(scope.row)">
-                {{ $t('common.button.delete') }}
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+            </div>
+            <el-table
+              :data="tableData"
+              :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
+              v-loading="loading"
+              style="width: 100%"
+            >
+              <el-table-column :label="$t('org.table.name')" align="left">
+                <template slot-scope="scope">
+                  <div class="org-name-cell">
+                    <img
+                      class="org-name-cell__icon"
+                      :src="avatarSrc(scope.row.avatar?.path || defaultAvatar)"
+                      alt=""
+                    />
+                    <span>{{ scope.row.name }}</span>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="admins"
+                :label="$t('org.table.orgAdmin')"
+                align="left"
+              >
+                <template slot-scope="scope">
+                  <template v-if="scope.row.admins?.length > 0">
+                    <el-tooltip :content="scope.row.admins.join('、')">
+                      <div class="table-org-admin">
+                        {{ scope.row.admins.join('、') }}
+                      </div>
+                    </el-tooltip>
+                  </template>
+                  <template v-else>--</template>
+                </template>
+              </el-table-column>
+              <el-table-column :label="$t('org.table.members')" align="left">
+                <template slot-scope="scope">
+                  {{ scope.row.userCount || 0 }}
+                </template>
+              </el-table-column>
+              <el-table-column
+                align="left"
+                :label="$t('org.table.status')"
+                width="100"
+              >
+                <template slot-scope="scope">
+                  <div style="height: 26px">
+                    <el-switch
+                      @change="
+                        val => {
+                          changeStatus(scope.row, val);
+                        }
+                      "
+                      style="display: block; height: 22px; line-height: 22px"
+                      v-model="scope.row.status"
+                    />
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="createdAt"
+                :label="$t('org.table.createAt')"
+                align="left"
+              />
+              <el-table-column
+                align="left"
+                :label="$t('common.table.operation')"
+                width="120"
+              >
+                <template slot-scope="scope">
+                  <el-button
+                    class="operation"
+                    type="text"
+                    @click="preUpdate(scope.row)"
+                  >
+                    {{ $t('common.button.edit') }}
+                  </el-button>
+                  <el-button type="text" @click="preDel(scope.row)">
+                    {{ $t('common.button.delete') }}
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <Pagination
+              class="pagination"
+              ref="pagination"
+              :listApi="listApi"
+              @refreshData="refreshData"
+            />
+          </div>
+        </div>
       </div>
-      <Pagination
-        class="pagination"
-        ref="pagination"
-        :listApi="listApi"
-        @refreshData="refreshData"
-      />
     </div>
 
     <el-dialog
@@ -116,6 +201,9 @@
         ref="form"
         style="margin-top: -16px"
       >
+        <el-form-item :label="$t('org.table.avatar')" prop="avatar">
+          <upload-avatar v-model="form.avatar" />
+        </el-form-item>
         <el-form-item :label="$t('org.table.name')" prop="name">
           <el-input
             v-model="form.name"
@@ -138,6 +226,34 @@
             clearable
           />
         </el-form-item>
+        <!--组织管理员暂时不支持-->
+        <!--<el-form-item :label="$t('org.table.orgAdmin')" prop="adminIds">
+          <el-select
+            v-model="form.adminIds"
+            multiple
+            filterable
+            popper-class="org-admin-select-popper"
+            :placeholder="$t('common.select.placeholder')"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in userList"
+              :key="item.userId"
+              :label="item.name"
+              :value="item.userId"
+            >
+              <div class="admin-option">
+                <img
+                  v-if="item.avatar && item.avatar.path"
+                  class="admin-option__avatar"
+                  :src="avatarSrc(item.avatar.path)"
+                  alt=""
+                />
+                <span class="admin-option__name">{{ item.name }}</span>
+              </div>
+            </el-option>
+          </el-select>
+        </el-form-item>-->
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button size="small" @click="handleClose">
@@ -159,26 +275,39 @@
 <script>
 import Pagination from '@/components/pagination.vue';
 import SearchInput from '@/components/searchInput.vue';
+import OrgSwitcher from '@/views/permission/components/orgSwitcher.vue';
 import {
   fetchOrgList,
+  fetchOrgDetail,
   createOrg,
   editOrg,
   changeOrgStatus,
   deleteOrg,
 } from '@/api/permission/org';
 import { mapActions } from 'vuex';
+import { avatarSrc } from '@/utils/util';
+import UploadAvatar from '@/components/uploadAvatar.vue';
+
 export default {
-  components: { Pagination, SearchInput },
+  components: { Pagination, SearchInput, OrgSwitcher, UploadAvatar },
   data() {
     return {
-      isAdmin: this.$store.state.user.permission.isAdmin || false,
       listApi: fetchOrgList,
+      selectedOrgId: '',
+      currentOrg: {},
+      defaultAvatar: '/v1/static/icon/org-default-icon.png',
       loading: false,
       isEdit: false,
       form: {
         name: '',
+        // adminIds: [],
         remark: '',
+        avatar: {
+          path: '',
+          key: '',
+        },
       },
+      userList: [],
       rules: {
         name: [
           {
@@ -211,16 +340,35 @@ export default {
       submitLoading: false,
     };
   },
-  created() {},
-  mounted() {
-    this.getTableData();
+  computed: {
+    currentOrgTableData() {
+      return this.currentOrg && this.currentOrg.orgId ? [this.currentOrg] : [];
+    },
   },
+  created() {},
   methods: {
     ...mapActions('user', ['getOrgInfo']),
-    async getTableData() {
+    avatarSrc,
+    handleOrgChange(org) {
+      this.currentOrg = org || {};
+      this.fetchCurrentOrgDetail();
+      this.getTableData({ pageNo: 1 });
+    },
+    updateOrgTree(delId) {
+      this.$refs.orgSwitcher.getOrgTree(delId);
+    },
+    async fetchCurrentOrgDetail() {
+      const res = await fetchOrgDetail({ orgId: this.selectedOrgId });
+      if (res.code === 0 && res.data) {
+        this.currentOrg = res.data;
+      }
+    },
+    async getTableData(params) {
       const searchInput = this.$refs.searchInput;
       const searchInfo = {
         ...(searchInput.value && { name: searchInput.value }),
+        ...(this.selectedOrgId && { orgId: this.selectedOrgId }),
+        ...params,
       };
       this.loading = true;
       try {
@@ -236,7 +384,11 @@ export default {
     setFormValue(row) {
       const obj = { ...this.form };
       for (let key in obj) {
-        obj[key] = row ? row[key] : '';
+        if (row) {
+          obj[key] = row[key];
+        } else {
+          obj[key] = Array.isArray(obj[key]) ? [] : '';
+        }
       }
       this.form = obj;
     },
@@ -244,16 +396,13 @@ export default {
       this.$refs.form.resetFields();
       this.dialogVisible = false;
     },
-    preInsert() {
-      this.isEdit = false;
-      this.setFormValue();
-
-      this.dialogVisible = true;
-    },
     preUpdate(row) {
-      this.row = row;
-      this.isEdit = true;
-      this.setFormValue(row);
+      this.row = row || {};
+      this.isEdit = Boolean(row);
+      this.setFormValue({
+        ...row,
+        avatar: row?.avatar || { path: this.defaultAvatar, key: '' },
+      });
 
       this.dialogVisible = true;
     },
@@ -270,6 +419,8 @@ export default {
         let res = await deleteOrg({ orgId: row.orgId });
         if (res.code === 0) {
           this.$message.success(this.$t('common.message.success'));
+          // 删除组织后，更新左侧的组织树
+          this.updateOrgTree(row.orgId);
           await this.getTableData();
           await this.getOrgInfo();
         }
@@ -303,7 +454,11 @@ export default {
 
         this.submitLoading = true;
         const params = { ...this.form };
-        if (this.isEdit) params.orgId = this.row.orgId;
+        if (this.isEdit) {
+          params.orgId = this.row.orgId;
+        } else {
+          params.orgId = this.selectedOrgId;
+        }
         try {
           const res = this.isEdit
             ? await editOrg(params)
@@ -311,6 +466,8 @@ export default {
           if (res.code === 0) {
             this.$message.success(this.$t('common.message.success'));
             this.dialogVisible = false;
+            // 新增组织后，更新左侧的组织树
+            if (!this.isEdit) this.updateOrgTree();
             await this.getTableData();
             await this.getOrgInfo();
           }
@@ -324,19 +481,80 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.routerview-container {
-  top: 0;
-}
-.table-box {
-  text-align: right;
-  margin-top: -20px;
+.org-page {
+  display: flex;
+  align-items: flex-start;
+  height: 100%;
+
+  &__switcher {
+    flex-shrink: 0;
+    align-self: stretch;
+  }
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+    margin-left: 10px;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 14px 0;
+  }
+
+  &__content {
+    height: calc(100vh - 210px);
+    overflow-y: auto;
+    padding: 0 14px;
+  }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .org-section {
+    margin-bottom: 20px;
+
+    .section-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .section-desc {
+      font-size: 11px;
+      color: #999;
+      margin-bottom: 12px;
+    }
+  }
+
+  .sub-org-section {
+    margin-top: 24px;
+  }
+
+  .org-name-cell {
+    display: flex;
+    align-items: center;
+    &__icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      margin-right: 10px;
+      flex-shrink: 0;
+      object-fit: cover;
+    }
+  }
+
   .table-header {
     font-size: 16px;
     font-weight: bold;
     color: #555;
   }
+
   .add-bt {
-    margin: 0 0 20px;
+    flex-shrink: 0;
+    margin-left: 16px;
     img {
       width: 16px;
       margin-right: 5px;
@@ -348,16 +566,44 @@ export default {
       vertical-align: middle;
     }
   }
+
+  .table-org-admin {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   ::v-deep .el-switch__label * {
     font-size: 13px;
   }
 }
+
 .mark-textArea ::v-deep {
   .el-textarea__inner {
     font-family: inherit;
     font-size: inherit;
   }
 }
+
+.admin-option {
+  display: flex;
+  align-items: center;
+  &__avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    object-fit: cover;
+  }
+
+  &__name {
+    margin-left: 10px;
+    font-size: 13px;
+    color: #303133;
+  }
+}
+
 ::v-deep .operation.el-button--text.el-button {
   padding: 3px 10px 3px 0;
   border-right: 1px solid #eaeaea !important;
