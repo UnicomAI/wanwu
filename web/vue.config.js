@@ -11,7 +11,7 @@ function resolve(dir) {
 const CompressionWebpackPlugin = require('compression-webpack-plugin');
 const isProdOrTest = process.env.NODE_ENV !== 'development';
 
-const proxyUrl = 'http://192.168.0.21:8081';
+const proxyUrl = 'http://192.168.0.194:8081';
 
 module.exports = {
   // 基础配置 详情看文档

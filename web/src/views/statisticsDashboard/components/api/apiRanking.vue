@@ -30,7 +30,11 @@
               {{ item.description }}
             </div>
             <div v-if="item.userName">
-              {{ $t('statisticsDashboard.publisher') }}:{{ item.userName }}
+              {{ $t('statisticsDashboard.publisher') }}:
+              <span style="margin-right: 3px; margin-left: 2px">
+                {{ item.orgName }}
+              </span>
+              {{ item.userName }}
             </div>
           </div>
         </div>
@@ -71,6 +75,7 @@ export default {
         name: row.apiName || '--',
         value: row.callCount,
         description: row.description || '',
+        orgName: row.orgName,
         userName: row.userName || '',
         avatar: row.userAvatar || '',
       }));

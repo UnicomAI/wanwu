@@ -102,7 +102,7 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ scope.row.provider || '--' }}
+            {{ providerObj[scope.row.provider] || scope.row.provider || '--' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -248,7 +248,7 @@ import {
   exportAppModelData,
 } from '@/api/statisticsDashboard';
 import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
-import { MODEL_TYPE_OBJ } from '@/views/modelAccess/constants';
+import { MODEL_TYPE_OBJ, PROVIDER_OBJ } from '@/views/modelAccess/constants';
 import { MODEL_TAG_COLOR } from '@/views/statisticsDashboard/constants';
 
 export default {
@@ -274,6 +274,7 @@ export default {
       tableData: [],
       appTypeObj: TotalTypeObj,
       modelTypeObj: MODEL_TYPE_OBJ,
+      providerObj: PROVIDER_OBJ,
       sortField: '',
       sortOrder: '',
     };

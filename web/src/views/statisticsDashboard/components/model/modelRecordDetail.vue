@@ -35,7 +35,11 @@
           </div>
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.provider') }}</label>
-            <div>{{ currentRow.provider || '--' }}</div>
+            <div>
+              {{
+                providerObj[currentRow.provider] || currentRow.provider || '--'
+              }}
+            </div>
           </div>
           <div class="info-item">
             <label>{{ $t('modelAccess.table.modelType') }}</label>
@@ -191,7 +195,7 @@
 
 <script>
 import { formatAmount, formatSec } from '@/utils/util.js';
-import { MODEL_TYPE_OBJ } from '@/views/modelAccess/constants';
+import { MODEL_TYPE_OBJ, PROVIDER_OBJ } from '@/views/modelAccess/constants';
 import { TotalTypeObj } from '@/utils/commonSet';
 
 export default {
@@ -204,6 +208,11 @@ export default {
       type: Object,
       default: () => ({}),
     },
+  },
+  data() {
+    return {
+      providerObj: PROVIDER_OBJ,
+    };
   },
   computed: {
     dialogVisible: {

@@ -36,8 +36,9 @@ export const getModelChart = data => {
 export const fetchModelList = data => {
   const type = data.type;
   delete data.type;
+  const path = type === 'list' ? '' : `${type}/`;
   return service({
-    url: `${USER_API_V2}/statistic/model/${type || 'list'}`,
+    url: `${USER_API_V2}/statistic/model/${path}/list`,
     method: 'post',
     data,
   });

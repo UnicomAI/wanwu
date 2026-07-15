@@ -40,7 +40,7 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ scope.row.provider || '--' }}
+            {{ providerObj[scope.row.provider] || scope.row.provider || '--' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -245,7 +245,7 @@ import {
 } from '@/api/statisticsDashboard';
 import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
 import { MODEL_TAG_COLOR } from '../../constants';
-import { MODEL_TYPE_OBJ } from '@/views/modelAccess/constants';
+import { MODEL_TYPE_OBJ, PROVIDER_OBJ } from '@/views/modelAccess/constants';
 
 export default {
   components: { Pagination },
@@ -270,6 +270,7 @@ export default {
       tableData: [],
       modelTypeObj: MODEL_TYPE_OBJ,
       appTypeObj: TotalTypeObj,
+      providerObj: PROVIDER_OBJ,
       sortField: '',
       sortOrder: '',
     };

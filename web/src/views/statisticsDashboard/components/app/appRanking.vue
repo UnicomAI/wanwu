@@ -29,7 +29,11 @@
             <div class="ranking-desc">
               <template>
                 <div v-if="item.userName">
-                  {{ $t('statisticsDashboard.publisher') }}：{{ item.userName }}
+                  {{ $t('statisticsDashboard.publisher') }}:
+                  <span style="margin-right: 3px; margin-left: 2px">
+                    {{ item.orgName }}
+                  </span>
+                  {{ item.userName }}
                 </div>
               </template>
             </div>
@@ -76,6 +80,7 @@ export default {
         name: row.appName || '--',
         value: row.callCount,
         appId: row.appId,
+        orgName: row.modelCreatorOrgName,
         userName: row.moduleCreatorUserName || '--',
         avatar: row.avatar,
       }));

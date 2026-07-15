@@ -54,9 +54,11 @@
                   {{ item.provider }}
                 </div>
                 <div v-if="item.publisher">
-                  {{ $t('statisticsDashboard.publisher') }}：{{
-                    item.publisher
-                  }}
+                  {{ $t('statisticsDashboard.publisher') }}:
+                  <span style="margin-right: 3px; margin-left: 2px">
+                    {{ item.orgName }}
+                  </span>
+                  {{ item.publisher }}
                 </div>
               </template>
               <template v-else-if="dimension === 'user'">
@@ -112,6 +114,7 @@ export default {
             value: row.totalTokens,
             modelId: row.modelId,
             provider: PROVIDER_OBJ[row.provider] || row.provider || '--',
+            orgName: row.modelCreatorOrgName,
             publisher: row.modelCreatorUserName || '--',
             modelTypeName: this.getModelTypeName(row.modelType),
             avatar: row.modelAvatar,
