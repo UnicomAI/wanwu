@@ -1,7 +1,7 @@
 <template>
   <div class="global-filter-wrapper">
     <span class="global-filter-label">
-      {{ $t('statisticsDashboard.global') }}:
+      {{ $t('statisticsDashboard.select') }}:
     </span>
     <el-select
       v-model="filterParams.orgIds"

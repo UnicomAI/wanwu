@@ -80,7 +80,8 @@
               {{ $t('statisticsDashboard.statisticsOverview') }}
             </el-radio-button>
           </el-radio-group>
-          <el-button
+          <!--不上线管理-->
+          <!--<el-button
             v-if="activeTab === 'visual'"
             class="manage-btn"
             size="mini"
@@ -89,7 +90,7 @@
             @click="openManageDialog"
           >
             {{ $t('statisticsDashboard.manage') }}
-          </el-button>
+          </el-button>-->
         </div>
 
         <div v-if="activeTab === 'overview'" class="dataOverview">
