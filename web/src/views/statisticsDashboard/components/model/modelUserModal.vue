@@ -44,24 +44,8 @@
           </template>
         </el-table-column>
         <el-table-column
-          prop="modelType"
-          :label="$t('statisticsDashboard.modelType')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            <span
-              :class="['type-tag', getModelTypeTagClass(scope.row.modelType)]"
-            >
-              {{
-                modelTypeObj[scope.row.modelType] || scope.row.modelType || '--'
-              }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column
           prop="modelCreatorUserName"
-          :label="$t('statisticsDashboard.modelPublisher')"
+          :label="$t('statisticsDashboard.publisher')"
           align="left"
           min-width="120"
         >
@@ -77,6 +61,22 @@
         >
           <template slot-scope="scope">
             {{ scope.row.modelCreatorOrgName || '--' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="modelType"
+          :label="$t('statisticsDashboard.modelType')"
+          align="left"
+          min-width="120"
+        >
+          <template slot-scope="scope">
+            <span
+              :class="['type-tag', getModelTypeTagClass(scope.row.modelType)]"
+            >
+              {{
+                modelTypeObj[scope.row.modelType] || scope.row.modelType || '--'
+              }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column

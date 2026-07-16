@@ -138,7 +138,7 @@ export const fetchAppList = data => {
 // 应用数据导出
 export const exportAppData = (data, type) => {
   return service({
-    url: `${USER_API_V2}/statistic/${type || 'list'}/export`,
+    url: `${USER_API_V2}/statistic/app/${type || 'list'}/export`,
     method: 'post',
     data,
     responseType: 'blob',

@@ -123,7 +123,7 @@
         </el-table-column>
         <el-table-column
           prop="moduleCreatorUserName"
-          :label="$t('statisticsDashboard.appAuthor')"
+          :label="$t('statisticsDashboard.author')"
           align="left"
           min-width="120"
         >

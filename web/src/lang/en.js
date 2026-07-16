@@ -255,6 +255,7 @@ export default {
     table: {
       operation: '操作',
       detail: '详情',
+      showDetail: '查看详情',
       total: '合计',
       num: '序号',
     },
@@ -1917,6 +1918,7 @@ export default {
     publisher: '发布人',
     modelType: '模型类型',
     modelPublisher: '模型发布人',
+    authorOrg: '作者所属组织',
     fromOrg: '所属组织',
     org: '组织',
     userName: '用户',

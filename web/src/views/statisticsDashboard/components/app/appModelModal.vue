@@ -67,7 +67,7 @@
         </el-table-column>
         <el-table-column
           prop="moduleCreatorUserName"
-          :label="$t('statisticsDashboard.appAuthor')"
+          :label="$t('statisticsDashboard.author')"
           align="left"
           min-width="120"
         >
@@ -77,7 +77,7 @@
         </el-table-column>
         <el-table-column
           prop="moduleCreatorOrgName"
-          :label="$t('statisticsDashboard.fromOrg')"
+          :label="$t('statisticsDashboard.authorOrg')"
           align="left"
           min-width="120"
         >
@@ -133,7 +133,7 @@
         </el-table-column>
         <el-table-column
           prop="modelCreatorOrgName"
-          :label="$t('statisticsDashboard.modelOrg')"
+          :label="$t('statisticsDashboard.fromOrg')"
           align="left"
           min-width="120"
         >

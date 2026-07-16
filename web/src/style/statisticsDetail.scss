@@ -34,7 +34,7 @@
 }
 
 .detail-body {
-  margin-top: -22px;
+  margin-top: -16px;
 }
 
 .dashboard-section {
@@ -143,6 +143,7 @@
 .perf-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   font-size: 13px;
   width: 50%;

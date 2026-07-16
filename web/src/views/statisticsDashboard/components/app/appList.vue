@@ -60,12 +60,14 @@
             align="left"
           >
             <template slot-scope="scope">
-              {{ appTypeObj[scope.row.appType] || '--' }}
+              <span :class="['type-tag', getAppTypeTagClass(scope.row)]">
+                {{ appTypeObj[scope.row.appType] || scope.row.appType || '--' }}
+              </span>
             </template>
           </el-table-column>
           <el-table-column
             prop="moduleCreatorUserName"
-            :label="$t('statisticsDashboard.appAuthor')"
+            :label="$t('statisticsDashboard.author')"
             align="left"
           >
             <template slot-scope="scope">
@@ -218,7 +220,9 @@
             align="left"
           >
             <template slot-scope="scope">
-              {{ appTypeObj[scope.row.appType] || '--' }}
+              <span :class="['type-tag', getAppTypeTagClass(scope.row)]">
+                {{ appTypeObj[scope.row.appType] || scope.row.appType || '--' }}
+              </span>
             </template>
           </el-table-column>
           <el-table-column
@@ -284,7 +288,7 @@
             </template>
           </el-table-column>
           <el-table-column
-            width="100"
+            width="110"
             align="center"
             :label="$t('common.table.operation')"
           >
@@ -295,7 +299,7 @@
                 icon="el-icon-view"
                 @click="showDetail(scope.row)"
               >
-                {{ $t('common.table.detail') }}
+                {{ $t('common.table.showDetail') }}
               </el-button>
             </template>
           </el-table-column>
@@ -326,7 +330,7 @@
 import Pagination from '@/components/pagination.vue';
 import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import { fetchAppList, exportAppData } from '@/api/statisticsDashboard';
-import { TotalTypeObj } from '@/utils/commonSet';
+import { TagColorObj, TotalTypeObj } from '@/utils/commonSet';
 import AppUserModal from './appUserModal.vue';
 import AppModelModal from './appModelModal.vue';
 import AppRecordDetail from './appRecordDetail.vue';
@@ -354,6 +358,9 @@ export default {
   methods: {
     formatAmount,
     formatSec,
+    getAppTypeTagClass(row) {
+      return TagColorObj[row.appType] || 'tag-gray';
+    },
     handleRadio(val) {
       this.type = val;
       this.sortField = '';

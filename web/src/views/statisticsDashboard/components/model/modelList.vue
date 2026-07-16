@@ -237,7 +237,7 @@
           </el-table-column>
           <el-table-column
             prop="userName"
-            :label="$t('statisticsDashboard.userName')"
+            :label="$t('statisticsDashboard.user')"
             align="left"
           >
             <template slot-scope="scope">
@@ -309,7 +309,7 @@
             </template>
           </el-table-column>
           <el-table-column
-            width="100"
+            width="110"
             align="center"
             :label="$t('common.table.operation')"
           >
@@ -320,7 +320,7 @@
                 icon="el-icon-view"
                 @click="showDetail(scope.row)"
               >
-                {{ $t('common.table.detail') }}
+                {{ $t('common.table.showDetail') }}
               </el-button>
             </template>
           </el-table-column>
