@@ -225,6 +225,24 @@
             </template>
           </el-table-column>-->
           <el-table-column
+            prop="costs"
+            :label="$t('statisticsDashboard.costs')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ formatSec(scope.row.costs) }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="firstTokenLatency"
+            :label="$t('statisticsDashboard.firstTokenLatency')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ formatSec(scope.row.firstTokenLatency) }}
+            </template>
+          </el-table-column>
+          <el-table-column
             prop="calledAt"
             :label="$t('statisticsDashboard.callTime')"
             align="left"
@@ -237,6 +255,7 @@
             prop="isSuccess"
             :label="$t('statisticsDashboard.status')"
             align="left"
+            width="70"
           >
             <template slot-scope="scope">
               <el-tag
@@ -256,24 +275,6 @@
                 {{ $t('statisticsDashboard.error') }}
               </el-tag>
               <div v-else>--</div>
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="costs"
-            :label="$t('statisticsDashboard.costs')"
-            align="left"
-          >
-            <template slot-scope="scope">
-              {{ formatSec(scope.row.costs) }}
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="firstTokenLatency"
-            :label="$t('statisticsDashboard.firstTokenLatency')"
-            align="left"
-          >
-            <template slot-scope="scope">
-              {{ formatSec(scope.row.firstTokenLatency) }}
             </template>
           </el-table-column>
           <el-table-column
@@ -415,10 +416,6 @@ export default {
   .add-bt {
     margin: 0 0 16px;
     float: right;
-  }
-  .status-tag {
-    font-weight: 500;
-    border-radius: 12px;
   }
 }
 </style>

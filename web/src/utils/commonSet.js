@@ -43,13 +43,13 @@ export const TagColorObj = {
   [RAG]: 'tag-blue',
   [CHAT]: 'tag-orange',
   [WGA]: 'tag-purple',
-  [MODEL]: 'tag-green',
-  [KNOWLEDGE]: 'tag-blue',
+  [MODEL]: 'tag-cyan',
+  [KNOWLEDGE]: 'tag-yellow',
   [MCP]: 'tag-orange',
   [TOOL]: 'tag-purple',
   [PROMPT]: 'tag-green',
   [SKILL]: 'tag-blue',
-  [SAFETY]: 'tag-orange',
+  [SAFETY]: 'tag-ltGreen',
 };
 export const TagColorList = [
   { color: '#3562E7', backgroundColor: '#E6F0FF' },

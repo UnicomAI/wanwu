@@ -27,7 +27,7 @@
     </div>
     <div v-if="currentRow" class="detail-body">
       <!-- 基本信息 -->
-      <div class="section info-section">
+      <div class="dashboard-section info-section">
         <div class="info-grid">
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.module') }}</label>
@@ -63,7 +63,7 @@
       </div>
 
       <!-- 性能指标 -->
-      <div class="section perf-section">
+      <div class="dashboard-section perf-section">
         <div class="section-title">
           {{ $t('statisticsDashboard.perfMetrics') }}
         </div>
@@ -84,7 +84,7 @@
       </div>
 
       <!-- 失败原因 -->
-      <div v-if="isFailed" class="section fail-section">
+      <div v-if="isFailed" class="dashboard-section fail-section">
         <div class="section-title fail-title">
           {{ $t('statisticsDashboard.failReason') }}
         </div>
@@ -94,7 +94,7 @@
       </div>
 
       <!-- 输入内容 -->
-      <div class="section content-section">
+      <div class="dashboard-section content-section">
         <div class="section-title">
           {{ $t('statisticsDashboard.reqContent') }}
         </div>
@@ -102,7 +102,7 @@
       </div>
 
       <!-- 输出内容 -->
-      <div class="section content-section">
+      <div class="dashboard-section content-section">
         <div class="section-title">
           {{ $t('statisticsDashboard.resContent') }}
         </div>

@@ -16,18 +16,33 @@
 }
 
 .tag-green {
-  color: #67c23a;
-  background: rgba(103, 194, 58, 0.1);
+  color: #00A56E;
+  background: rgba(92, 192, 103, 0.15);
 }
 
 .tag-orange {
-  color: #e6a23c;
-  background: rgba(230, 162, 60, 0.1);
+  color: #E87B00;
+  background: #FFF3E5;
 }
 
 .tag-purple {
-  color: #a55fef;
-  background: rgba(165, 95, 239, 0.1);
+  color: #6349E8;
+  background: #F1EDFF;
+}
+
+.tag-yellow {
+  color: #E6A23C;
+  background: #FDF6EC;
+}
+
+.tag-cyan {
+  color: #0DA5A5;
+  background: #E7F7F7;
+}
+
+.tag-ltGreen {
+  color: #67C23A;
+  background: #F0F9EB;
 }
 
 .tag-gray {
@@ -80,4 +95,20 @@
     border: 1px solid #d2dafe;
     background: #eef2ff !important;
   }
+}
+
+.status-tag {
+  font-weight: 500;
+  border-radius: 12px;
+  border: none !important;
+}
+
+::v-deep .status-tag.el-tag--success {
+  background-color: #eefbf3 !important;
+  color: #16a24a !important;
+}
+
+::v-deep .status-tag.el-tag--danger {
+  background-color: #fcf0f1 !important;
+  color: #dd3637 !important;
 }

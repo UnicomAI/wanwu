@@ -261,6 +261,7 @@
             prop="isSuccess"
             :label="$t('statisticsDashboard.status')"
             align="left"
+            width="70"
           >
             <template slot-scope="scope">
               <el-tag
@@ -434,10 +435,6 @@ export default {
   .add-bt {
     margin: 0 0 16px;
     float: right;
-  }
-  .status-tag {
-    font-weight: 500;
-    border-radius: 12px;
   }
 }
 </style>

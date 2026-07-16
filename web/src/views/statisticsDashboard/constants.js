@@ -33,9 +33,9 @@ export const MODEL_TAG_COLOR = {
   [RERANK]: 'tag-orange',
   [EMBEDDING]: 'tag-green',
   [OCR]: 'tag-purple',
-  [ASR]: 'tag-purple',
-  [GUI]: 'tag-purple',
-  [PDF_PARSER]: 'tag-purple',
+  [ASR]: 'tag-yellow',
+  [GUI]: 'tag-cyan',
+  [PDF_PARSER]: 'tag-ltGreen',
   [MULTIMODAL_RERANK]: 'tag-orange',
   [MULTIMODAL_EMBEDDING]: 'tag-green',
 };

@@ -9,7 +9,7 @@
     <div slot="title" class="dialog-title-wrap">
       <span class="dialog-title">{{ title }}</span>
       <el-tag
-        v-if="currentRow.status === 'success'"
+        v-if="currentRow.isSuccess"
         type="success"
         size="small"
         class="status-tag"
@@ -17,7 +17,7 @@
         {{ $t('statisticsDashboard.success') }}
       </el-tag>
       <el-tag
-        v-else-if="currentRow.status === 'error'"
+        v-else-if="isFailed"
         type="danger"
         size="small"
         class="status-tag"
@@ -27,7 +27,7 @@
     </div>
     <div v-if="currentRow" class="detail-body">
       <!-- 基本信息 -->
-      <div class="section info-section">
+      <div class="dashboard-section info-section">
         <div class="info-grid">
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.modelName') }}</label>
@@ -105,7 +105,7 @@
       </div>
 
       <!-- Token 统计 -->
-      <div class="section token-section">
+      <div class="dashboard-section token-section">
         <div class="section-title">
           {{ $t('statisticsDashboard.tokenStats') }}
         </div>
@@ -138,7 +138,7 @@
       </div>
 
       <!-- 性能指标 -->
-      <div class="section perf-section">
+      <div class="dashboard-section perf-section">
         <div class="section-title">
           {{ $t('statisticsDashboard.perfMetrics') }}
         </div>
@@ -158,8 +158,16 @@
         </div>
       </div>
 
+      <!-- 输入内容 -->
+      <div class="dashboard-section content-section">
+        <div class="section-title">
+          {{ $t('statisticsDashboard.reqContent') }}
+        </div>
+        <div class="content-box">{{ currentRow.requestBody || '--' }}</div>
+      </div>
+
       <!-- 失败原因 -->
-      <div v-if="isFailed" class="section fail-section">
+      <div v-if="isFailed" class="dashboard-section fail-section">
         <div class="section-title fail-title">
           {{ $t('statisticsDashboard.failReason') }}
         </div>
@@ -168,16 +176,11 @@
         </div>
       </div>
 
-      <!-- 输入内容 -->
-      <div class="section content-section">
-        <div class="section-title">
-          {{ $t('statisticsDashboard.reqContent') }}
-        </div>
-        <div class="content-box">{{ currentRow.requestBody || '--' }}</div>
-      </div>
-
       <!-- 输出内容 -->
-      <div class="section content-section">
+      <div
+        v-if="currentRow.isSuccess"
+        class="dashboard-section content-section"
+      >
         <div class="section-title">
           {{ $t('statisticsDashboard.resContent') }}
         </div>

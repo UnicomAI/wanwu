@@ -208,7 +208,9 @@
             align="left"
           >
             <template slot-scope="scope">
-              <span :class="['type-tag', getModelTypeTagClass(scope.row)]">
+              <span
+                :class="['type-tag', getModelTypeTagClass(scope.row.modelType)]"
+              >
                 {{ getModelTypeName(scope.row.modelType) }}
               </span>
             </template>
@@ -284,6 +286,7 @@
             prop="status"
             :label="$t('statisticsDashboard.status')"
             align="left"
+            width="70"
           >
             <template slot-scope="scope">
               <el-tag
@@ -459,10 +462,6 @@ export default {
   .add-bt {
     margin: 0 0 16px;
     float: right;
-  }
-  .status-tag {
-    font-weight: 500;
-    border-radius: 12px;
   }
 }
 </style>
