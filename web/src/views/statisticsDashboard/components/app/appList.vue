@@ -33,7 +33,7 @@
             align="left"
           >
             <template slot-scope="scope">
-              {{ scope.row.source || '--' }}
+              {{ scope.row.sourceName || '--' }}
             </template>
           </el-table-column>
           <el-table-column
@@ -42,7 +42,7 @@
             align="left"
           >
             <template slot-scope="scope">
-              {{ scope.row.module || '--' }}
+              {{ scope.row.moduleName || '--' }}
             </template>
           </el-table-column>
           <el-table-column
@@ -191,7 +191,7 @@
             align="left"
           >
             <template slot-scope="scope">
-              {{ scope.row.source || '--' }}
+              {{ scope.row.sourceName || '--' }}
             </template>
           </el-table-column>
           <el-table-column
@@ -200,7 +200,7 @@
             align="left"
           >
             <template slot-scope="scope">
-              {{ scope.row.module || '--' }}
+              {{ scope.row.moduleName || '--' }}
             </template>
           </el-table-column>
           <el-table-column

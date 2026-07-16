@@ -31,7 +31,7 @@
         <div class="info-grid">
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.module') }}</label>
-            <div>{{ currentRow.module || '--' }}</div>
+            <div>{{ currentRow.moduleName || '--' }}</div>
           </div>
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.appType') }}</label>

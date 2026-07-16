@@ -58,13 +58,13 @@
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.source') }}</label>
             <div>
-              {{ currentRow.source || '--' }}
+              {{ currentRow.sourceName || '--' }}
             </div>
           </div>
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.module') }}</label>
             <div>
-              {{ currentRow.module || '--' }}
+              {{ currentRow.moduleName || '--' }}
             </div>
           </div>
           <div class="info-item">

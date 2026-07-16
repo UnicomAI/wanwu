@@ -85,7 +85,9 @@
           align="left"
           min-width="120"
         >
-          <template slot-scope="scope">{{ scope.row.source || '--' }}</template>
+          <template slot-scope="scope">
+            {{ scope.row.sourceName || '--' }}
+          </template>
         </el-table-column>
         <el-table-column
           prop="module"
@@ -93,7 +95,9 @@
           align="left"
           min-width="120"
         >
-          <template slot-scope="scope">{{ scope.row.module || '--' }}</template>
+          <template slot-scope="scope">
+            {{ scope.row.moduleName || '--' }}
+          </template>
         </el-table-column>
         <el-table-column
           prop="appName"

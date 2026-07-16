@@ -30,7 +30,7 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ scope.row.source || '--' }}
+            {{ scope.row.sourceName || '--' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -40,7 +40,7 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ scope.row.module || '--' }}
+            {{ scope.row.moduleName || '--' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -289,11 +289,17 @@ export default {
       },
     },
     appModelParams() {
+      const { appId, source, module, moduleCreatorOrgId, moduleCreatorUserId } =
+        this.appInfo || {};
       return {
         ...this.params,
         sortField: this.sortField,
         sortOrder: this.sortOrder,
-        appId: this.appInfo?.appId || '',
+        appId,
+        source,
+        module,
+        moduleCreatorOrgId,
+        moduleCreatorUserId,
       };
     },
   },
