@@ -23,7 +23,17 @@ func isValidChannelType(channelType string) bool {
 
 // --- 万悟平台代理 ---
 
-// ListWanwuAgents 获取万悟智能体列表（含 UUID，供通道绑定使用）
+// ListWanwuAgents
+//
+//	@Tags			channel
+//	@Summary		获取万悟智能体列表
+//	@Description	获取万悟智能体列表（含 UUID，供通道绑定使用）
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	query		request.ListWanwuAgentsRequest	true	"万悟智能体列表查询参数"
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.WanwuAgentResponse}}
+//	@Router			/channel/agent [get]
 func ListWanwuAgents(ctx *gin.Context) {
 	var req request.ListWanwuAgentsRequest
 	if !gin_util.BindQuery(ctx, &req) {
@@ -33,13 +43,32 @@ func ListWanwuAgents(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// ListWanwuApiKeys 获取万悟 API Key 列表（用于通道选择下拉）
+// ListWanwuApiKeys
+//
+//	@Tags			channel
+//	@Summary		获取万悟 API Key 列表
+//	@Description	获取万悟 API Key 列表（用于通道选择下拉）
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	response.Response{data=response.ListResult{list=[]response.WanwuApiKeyResponse}}
+//	@Router			/channel/apikeys [get]
 func ListWanwuApiKeys(ctx *gin.Context) {
 	resp, err := service.ListWanwuApiKeys(ctx, getUserID(ctx), getOrgID(ctx))
 	gin_util.Response(ctx, resp, err)
 }
 
-// ListWanwuModels 获取万悟模型列表（用于 WGA 通道选择 modelUuid）
+// ListWanwuModels
+//
+//	@Tags			channel
+//	@Summary		获取万悟模型列表
+//	@Description	获取万悟模型列表（用于 WGA 通道选择 modelUuid）
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	query		request.ListModelsRequest	true	"万悟模型列表查询参数"
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.OpenAPIModelListItem}}
+//	@Router			/channel/models [get]
 func ListWanwuModels(ctx *gin.Context) {
 	var req request.ListModelsRequest
 	if !gin_util.BindQuery(ctx, &req) {
@@ -49,11 +78,16 @@ func ListWanwuModels(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// ListWanwuWGASubAgents 获取 WGA 子智能体列表（用于 WGA 通道选择 agentId）
-// 复用 service.GetGeneralAgentSubList，数据源为 WGA 配置 sub_agents。
-// 过滤掉不应对外开放的子智能体：
-//   - 数字员工（DIP Agent）：已单独配置通道（走 /channel/dip/employees），不返回给通道侧。
-//   - Skill Chat Agent（创建Skill）：内部智能体，走独立的 skill 创建入口，不在通道选择列表展示。
+// ListWanwuWGASubAgents
+//
+//	@Tags			channel
+//	@Summary		获取 WGA 子智能体列表
+//	@Description	获取 WGA 子智能体列表（用于 WGA 通道选择 agentId），首部置入“无”选项，过滤数字员工、Skill Chat Agent、Data Analysis Agent 等内部智能体
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	response.Response{data=response.GetGeneralAgentSubListResp}
+//	@Router			/channel/wga/sub-agents [get]
 func ListWanwuWGASubAgents(ctx *gin.Context) {
 	resp, err := service.GetGeneralAgentSubList(ctx)
 	if err != nil {
@@ -79,8 +113,17 @@ func ListWanwuWGASubAgents(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, nil)
 }
 
-// ListWanwuDIPAgents 获取数字员工列表（用于 DIP 通道选择绑定的数字员工）
-// 复用 service.ListWanwuDIPAgents → GetGeneralAgentOntologyEmployeeSelect。
+// ListWanwuDIPAgents
+//
+//	@Tags			channel
+//	@Summary		获取数字员工列表
+//	@Description	获取数字员工列表（用于 DIP 通道选择绑定的数字员工）
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	query		string	false	"数字员工名称"
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.GeneralAgentOntologyEmployee}}
+//	@Router			/channel/dip/employees [get]
 func ListWanwuDIPAgents(ctx *gin.Context) {
 	name := ctx.Query("name")
 	resp, err := service.ListWanwuDIPAgents(ctx, getUserID(ctx), getOrgID(ctx), name)
@@ -89,7 +132,17 @@ func ListWanwuDIPAgents(ctx *gin.Context) {
 
 // --- 扫码登录 ---
 
-// CreateQRLogin 发起扫码登录
+// CreateQRLogin
+//
+//	@Tags			channel
+//	@Summary		发起扫码登录
+//	@Description	发起扫码登录，返回二维码地址与会话ID
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			channelType	path		string	true	"通道类型：wechat/dingtalk/feishu"
+//	@Success		200			{object}	response.Response{data=response.QRLoginResponse}
+//	@Router			/channel/qrcode/{channelType} [post]
 func CreateQRLogin(ctx *gin.Context) {
 	channelType := ctx.Param("channelType")
 	if channelType == "" {
@@ -104,7 +157,18 @@ func CreateQRLogin(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// GetQRLoginStatus 查询扫码状态
+// GetQRLoginStatus
+//
+//	@Tags			channel
+//	@Summary		查询扫码状态
+//	@Description	查询扫码状态
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			channelType	path		string	true	"通道类型：wechat/dingtalk/feishu"
+//	@Param			sessionId	path		string	true	"扫码会话ID"
+//	@Success		200			{object}	response.Response{data=response.QRLoginStatusResponse}
+//	@Router			/channel/qrcode/{channelType}/status/{sessionId} [get]
 func GetQRLoginStatus(ctx *gin.Context) {
 	channelType := ctx.Param("channelType")
 	sessionID := ctx.Param("sessionId")
@@ -120,7 +184,18 @@ func GetQRLoginStatus(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// CancelQRLogin 取消扫码登录
+// CancelQRLogin
+//
+//	@Tags			channel
+//	@Summary		取消扫码登录
+//	@Description	取消扫码登录
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			channelType	path		string	true	"通道类型：wechat/dingtalk/feishu"
+//	@Param			sessionId	path		string	true	"扫码会话ID"
+//	@Success		200			{object}	response.Response
+//	@Router			/channel/qrcode/{channelType}/{sessionId} [delete]
 func CancelQRLogin(ctx *gin.Context) {
 	channelType := ctx.Param("channelType")
 	sessionID := ctx.Param("sessionId")
@@ -136,7 +211,18 @@ func CancelQRLogin(ctx *gin.Context) {
 	gin_util.Response(ctx, nil, err)
 }
 
-// CompleteQRLogin 完成扫码登录（扫码成功后创建通道）
+// CompleteQRLogin
+//
+//	@Tags			channel
+//	@Summary		完成扫码登录
+//	@Description	完成扫码登录（扫码成功后创建通道）
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			channelType	path		string	true	"通道类型：wechat/dingtalk/feishu"
+//	@Param			sessionId	path		string	true	"扫码会话ID"
+//	@Success		200			{object}	response.Response{data=response.ChannelResponse}
+//	@Router			/channel/qrcode/{channelType}/complete/{sessionId} [post]
 func CompleteQRLogin(ctx *gin.Context) {
 	channelType := ctx.Param("channelType")
 	sessionID := ctx.Param("sessionId")
@@ -154,7 +240,17 @@ func CompleteQRLogin(ctx *gin.Context) {
 
 // --- 通道管理 ---
 
-// CreateChannel 创建通道
+// CreateChannel
+//
+//	@Tags			channel
+//	@Summary		创建通道
+//	@Description	创建通道
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.CreateChannelRequest	true	"创建通道请求参数"
+//	@Success		200		{object}	response.Response{data=response.ChannelResponse}
+//	@Router			/channel/channels [post]
 func CreateChannel(ctx *gin.Context) {
 	var req request.CreateChannelRequest
 	if !gin_util.Bind(ctx, &req) {
@@ -168,14 +264,36 @@ func CreateChannel(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// ListChannels 获取通道列表
+// ListChannels
+//
+//	@Tags			channel
+//	@Summary		获取通道列表
+//	@Description	获取通道列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			name		query		string	false	"通道名称"
+//	@Param			pageNo		query		int		true	"页面编号，从1开始"
+//	@Param			pageSize	query		int		true	"单页数量，从1开始"
+//	@Success		200			{object}	response.Response{data=response.PageResult{list=[]response.ChannelResponse}}
+//	@Router			/channel/channels [get]
 func ListChannels(ctx *gin.Context) {
 	name := ctx.Query("name")
 	resp, err := service.ListChannels(ctx, getUserID(ctx), getOrgID(ctx), name, getPageNo(ctx), getPageSize(ctx))
 	gin_util.Response(ctx, resp, err)
 }
 
-// GetChannel 获取通道详情
+// GetChannel
+//
+//	@Tags			channel
+//	@Summary		获取通道详情
+//	@Description	获取通道详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"通道ID"
+//	@Success		200	{object}	response.Response{data=response.ChannelResponse}
+//	@Router			/channel/channels/{id} [get]
 func GetChannel(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
@@ -186,7 +304,18 @@ func GetChannel(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// UpdateChannel 更新通道
+// UpdateChannel
+//
+//	@Tags			channel
+//	@Summary		更新通道
+//	@Description	更新通道
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string							true	"通道ID"
+//	@Param			data	body		request.UpdateChannelRequest	true	"更新通道请求参数"
+//	@Success		200		{object}	response.Response{data=response.ChannelResponse}
+//	@Router			/channel/channels/{id} [put]
 func UpdateChannel(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
@@ -201,7 +330,18 @@ func UpdateChannel(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// UpdateChannelStatus 启用/停用通道
+// UpdateChannelStatus
+//
+//	@Tags			channel
+//	@Summary		启用/停用通道
+//	@Description	启用/停用通道
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string								true	"通道ID"
+//	@Param			data	body		request.UpdateChannelStatusRequest	true	"启用/停用通道请求参数"
+//	@Success		200		{object}	response.Response{data=response.ChannelResponse}
+//	@Router			/channel/channels/{id}/status [post]
 func UpdateChannelStatus(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
@@ -216,7 +356,17 @@ func UpdateChannelStatus(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// DeleteChannel 删除通道
+// DeleteChannel
+//
+//	@Tags			channel
+//	@Summary		删除通道
+//	@Description	删除通道
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"通道ID"
+//	@Success		200	{object}	response.Response
+//	@Router			/channel/channels/{id} [delete]
 func DeleteChannel(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
@@ -227,7 +377,17 @@ func DeleteChannel(ctx *gin.Context) {
 	gin_util.Response(ctx, nil, err)
 }
 
-// DisconnectChannel 断开通道
+// DisconnectChannel
+//
+//	@Tags			channel
+//	@Summary		断开通道
+//	@Description	断开通道
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"通道ID"
+//	@Success		200	{object}	response.Response{data=response.DisconnectChannelResponse}
+//	@Router			/channel/channels/{id}/disconnect [post]
 func DisconnectChannel(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {

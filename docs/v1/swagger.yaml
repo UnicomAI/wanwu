@@ -2054,6 +2054,38 @@ definitions:
     required:
     - name
     type: object
+  request.CreateChannelRequest:
+    properties:
+      agentId:
+        description: WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）
+        type: string
+      apiKey:
+        description: API Key 完整值，创建时传入
+        type: string
+      apiKeyId:
+        type: string
+      appId:
+        type: string
+      appType:
+        description: agent（默认）/ wga（通用智能体）
+        type: string
+      channelType:
+        description: wechat/dingtalk/feishu
+        type: string
+      config:
+        additionalProperties:
+          type: string
+        type: object
+      modelUuid:
+        description: WGA 通道使用的模型 UUID
+        type: string
+      name:
+        type: string
+    required:
+    - channelType
+    - config
+    - name
+    type: object
   request.CreateChatflowReq:
     properties:
       avatar:
@@ -4645,6 +4677,37 @@ definitions:
     - appType
     - publishType
     type: object
+  request.UpdateChannelRequest:
+    properties:
+      agentId:
+        description: |-
+          AgentId 用指针以区分三态（JSON 字段缺失→nil，传空串→&""，传值→&id）：
+            wga: nil=不改 / &""=清空（切回默认 Supervisor）/ &子智能体id=换子智能体
+            dip: nil=不改 / &员工id=换员工（dip 不支持清空，&"" 视为不改）
+        type: string
+      apiKey:
+        type: string
+      apiKeyId:
+        type: string
+      appId:
+        type: string
+      config:
+        additionalProperties:
+          type: string
+        type: object
+      modelUuid:
+        description: WGA 通道使用的模型 UUID
+        type: string
+      name:
+        type: string
+    type: object
+  request.UpdateChannelStatusRequest:
+    properties:
+      enabled:
+        type: boolean
+    required:
+    - enabled
+    type: object
   request.UpdateCustomPrompt:
     properties:
       avatar:
@@ -5879,6 +5942,54 @@ definitions:
         description: 客户端key
         type: string
     type: object
+  response.ChannelResponse:
+    properties:
+      accountId:
+        type: string
+      agentId:
+        description: WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）
+        type: string
+      apiKeyId:
+        type: string
+      apiKeyName:
+        type: string
+      appId:
+        type: string
+      appName:
+        type: string
+      appType:
+        type: string
+      avatar:
+        type: string
+      channelType:
+        type: string
+      config:
+        additionalProperties:
+          type: string
+        type: object
+      connectivity:
+        allOf:
+        - $ref: '#/definitions/response.Connectivity'
+        description: 实时连通状态（从适配器内存读，非 DB 快照）
+      createdAt:
+        type: string
+      enabled:
+        type: boolean
+      hasApiKey:
+        type: boolean
+      id:
+        type: string
+      modelUuid:
+        type: string
+      name:
+        type: string
+      nickname:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   response.CheckFileListResp:
     properties:
       uploadedFileSequences:
@@ -5987,6 +6098,17 @@ definitions:
         allOf:
         - $ref: '#/definitions/response.StatisticChart'
         description: 客户端
+    type: object
+  response.Connectivity:
+    properties:
+      checked:
+        type: integer
+      detail:
+        type: string
+      ok:
+        type: boolean
+      state:
+        type: string
     type: object
   response.ConversationCreateResp:
     properties:
@@ -6578,6 +6700,11 @@ definitions:
           $ref: '#/definitions/response.DirectUploadFileInfo'
         type: array
     type: object
+  response.DisconnectChannelResponse:
+    properties:
+      message:
+        type: string
+    type: object
   response.DocAnalyzerTextInfo:
     properties:
       displayName:
@@ -7016,6 +7143,22 @@ definitions:
         description: logo
       placeholder:
         description: 占位提示文本
+        type: string
+    type: object
+  response.GeneralAgentOntologyEmployee:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 数字员工头像
+      desc:
+        description: 数字员工描述
+        type: string
+      id:
+        description: 数字员工ID
+        type: string
+      name:
+        description: 数字员工姓名
         type: string
     type: object
   response.GeneralAgentResourceSelectItem:
@@ -8533,6 +8676,21 @@ definitions:
         description: oauth应用开关
         type: boolean
     type: object
+  response.OpenAPIModelListItem:
+    properties:
+      displayName:
+        type: string
+      model:
+        type: string
+      modelType:
+        type: string
+      provider:
+        type: string
+      scopeType:
+        type: string
+      uuid:
+        type: string
+    type: object
   response.OrgID:
     properties:
       orgId:
@@ -8748,6 +8906,31 @@ definitions:
       permissionType:
         description: 当前用户对该问答库的权限类型 -1:无权限 0:查看 10:编辑 20:授权 30:系统管理授权
         type: integer
+    type: object
+  response.QRLoginResponse:
+    properties:
+      expireAt:
+        type: integer
+      expireTime:
+        type: integer
+      qrUrl:
+        type: string
+      sessionId:
+        type: string
+    type: object
+  response.QRLoginStatusResponse:
+    properties:
+      baseUrl:
+        description: 微信扫码成功时返回的平台 baseUrl
+        type: string
+      credentials:
+        additionalProperties:
+          type: string
+        type: object
+      error:
+        type: string
+      status:
+        type: string
     type: object
   response.RSAPublicKey:
     properties:
@@ -9792,6 +9975,30 @@ definitions:
         description: 视觉配置图片数量
         type: integer
     type: object
+  response.WanwuAgentResponse:
+    properties:
+      appId:
+        type: string
+      appType:
+        type: string
+      avatar:
+        type: string
+      desc:
+        type: string
+      name:
+        type: string
+    type: object
+  response.WanwuApiKeyResponse:
+    properties:
+      desc:
+        type: string
+      key:
+        type: string
+      keyId:
+        type: string
+      name:
+        type: string
+    type: object
   response.WgaConversationPendingResp:
     properties:
       hasPendingConversation:
@@ -9903,24 +10110,51 @@ definitions:
     type: object
 info:
   contact: {}
-  description: "## HTTP Header\r\n| Header        | 说明      |\r\n| ------------- |
-    --------- |\r\n| Authorization | JWT token |\r\n| X-Language    | 语言Code  |\r\n|
-    X-Org-Id      | 组织ID    |\r\n| X-Client-Id   | 客户端标识|\r\n\r\n## HTTP Status\r\n|
-    HTTP Status             | 说明                   |\r\n| -----------------------
-    | ---------------------- |\r\n| 200, StatusOK           | 请求返回成功           |\r\n|
-    400, StatusBadRequest   | 请求返回失败，用于业务 |\r\n| 401, StatusUnauthorized | JWT认证失败
-    \           |\r\n| 403, StatusForbidden    | 没有权限               |\r\n\r\n## 权限-菜单对应表\r\n|
-    一级权限        | 二级权限  | 三级权限 | 一级菜单 | 二级菜单 | 三级菜单 |\r\n|-------------|-------|------|------|------|------|\r\n|
-    guest       |       |      | 【访客】 |      |      |\r\n| common      |       |      |
-    【通用】 |      |      |\r\n| permission  |       |      | 权限管理 |      |      |\r\n|
-    permission  | user  |      | 权限管理 | 用户管理 |      |\r\n| permission  | org   |      |
-    权限管理 | 组织管理 |      |\r\n| permission  | role  |      | 权限管理 | 角色管理 |      |\r\n\r\n##
-    `/v1/user/permission`返回用例\r\n```json\r\n{\r\n  \"code\": 0,\r\n  \"data\": {\r\n
-    \   \"orgPermission\": {\r\n      \"org\": {\"id\": \"test-org-id\", \"name\":
-    \"test-org-name\"},\r\n      \"permissions\": [\r\n        {\"perm\": \"permission\"},\r\n
-    \       {\"perm\": \"permission.user\"},\r\n        {\"perm\": \"permission.org\"},\r\n
-    \       {\"perm\": \"permission.role\"}\r\n      ]\r\n    }\r\n  },\r\n  \"msg\":
-    \"操作成功\"\r\n}\r\n```"
+  description: |-
+    ## HTTP Header
+    | Header        | 说明      |
+    | ------------- | --------- |
+    | Authorization | JWT token |
+    | X-Language    | 语言Code  |
+    | X-Org-Id      | 组织ID    |
+    | X-Client-Id   | 客户端标识|
+
+    ## HTTP Status
+    | HTTP Status             | 说明                   |
+    | ----------------------- | ---------------------- |
+    | 200, StatusOK           | 请求返回成功           |
+    | 400, StatusBadRequest   | 请求返回失败，用于业务 |
+    | 401, StatusUnauthorized | JWT认证失败            |
+    | 403, StatusForbidden    | 没有权限               |
+
+    ## 权限-菜单对应表
+    | 一级权限        | 二级权限  | 三级权限 | 一级菜单 | 二级菜单 | 三级菜单 |
+    |-------------|-------|------|------|------|------|
+    | guest       |       |      | 【访客】 |      |      |
+    | common      |       |      | 【通用】 |      |      |
+    | permission  |       |      | 权限管理 |      |      |
+    | permission  | user  |      | 权限管理 | 用户管理 |      |
+    | permission  | org   |      | 权限管理 | 组织管理 |      |
+    | permission  | role  |      | 权限管理 | 角色管理 |      |
+
+    ## `/v1/user/permission`返回用例
+    ```json
+    {
+      "code": 0,
+      "data": {
+        "orgPermission": {
+          "org": {"id": "test-org-id", "name": "test-org-name"},
+          "permissions": [
+            {"perm": "permission"},
+            {"perm": "permission.user"},
+            {"perm": "permission.org"},
+            {"perm": "permission.role"}
+          ]
+        }
+      },
+      "msg": "操作成功"
+    }
+    ```
   title: AI Agent Productivity Platform API
   version: v0.0.1
 paths:
@@ -13676,6 +13910,527 @@ paths:
       summary: 下载内置skill
       tags:
       - resource.skill
+  /channel/agent:
+    get:
+      consumes:
+      - application/json
+      description: 获取万悟智能体列表（含 UUID，供通道绑定使用）
+      parameters:
+      - description: agent / rag
+        in: query
+        name: appType
+        type: string
+      - description: 搜索名称
+        in: query
+        name: name
+        type: string
+      - description: all / favorite / private / history
+        in: query
+        name: searchType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.WanwuAgentResponse'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取万悟智能体列表
+      tags:
+      - channel
+  /channel/apikeys:
+    get:
+      consumes:
+      - application/json
+      description: 获取万悟 API Key 列表（用于通道选择下拉）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.WanwuApiKeyResponse'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取万悟 API Key 列表
+      tags:
+      - channel
+  /channel/channels:
+    get:
+      consumes:
+      - application/json
+      description: 获取通道列表
+      parameters:
+      - description: 通道名称
+        in: query
+        name: name
+        type: string
+      - description: 页面编号，从1开始
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 单页数量，从1开始
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ChannelResponse'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取通道列表
+      tags:
+      - channel
+    post:
+      consumes:
+      - application/json
+      description: 创建通道
+      parameters:
+      - description: 创建通道请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateChannelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ChannelResponse'
+              type: object
+      security:
+      - JWT: []
+      summary: 创建通道
+      tags:
+      - channel
+  /channel/channels/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除通道
+      parameters:
+      - description: 通道ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 删除通道
+      tags:
+      - channel
+    get:
+      consumes:
+      - application/json
+      description: 获取通道详情
+      parameters:
+      - description: 通道ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ChannelResponse'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取通道详情
+      tags:
+      - channel
+    put:
+      consumes:
+      - application/json
+      description: 更新通道
+      parameters:
+      - description: 通道ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新通道请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateChannelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ChannelResponse'
+              type: object
+      security:
+      - JWT: []
+      summary: 更新通道
+      tags:
+      - channel
+  /channel/channels/{id}/disconnect:
+    post:
+      consumes:
+      - application/json
+      description: 断开通道
+      parameters:
+      - description: 通道ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.DisconnectChannelResponse'
+              type: object
+      security:
+      - JWT: []
+      summary: 断开通道
+      tags:
+      - channel
+  /channel/channels/{id}/status:
+    post:
+      consumes:
+      - application/json
+      description: 启用/停用通道
+      parameters:
+      - description: 通道ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 启用/停用通道请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateChannelStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ChannelResponse'
+              type: object
+      security:
+      - JWT: []
+      summary: 启用/停用通道
+      tags:
+      - channel
+  /channel/dip/employees:
+    get:
+      consumes:
+      - application/json
+      description: 获取数字员工列表（用于 DIP 通道选择绑定的数字员工）
+      parameters:
+      - description: 数字员工名称
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.GeneralAgentOntologyEmployee'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取数字员工列表
+      tags:
+      - channel
+  /channel/models:
+    get:
+      consumes:
+      - application/json
+      description: 获取万悟模型列表（用于 WGA 通道选择 modelUuid）
+      parameters:
+      - description: 模型显示名称
+        in: query
+        name: displayName
+        type: string
+      - description: '模型作用域类型(public: 公有模型，private: 我的模型)'
+        in: query
+        name: filterScope
+        type: string
+      - description: '启用状态（true: 启用）'
+        in: query
+        name: isActive
+        type: boolean
+      - description: 模型类型
+        in: query
+        name: modelType
+        type: string
+      - description: 模型供应商
+        in: query
+        name: provider
+        type: string
+      - description: 模型公开范围(1-私有 2-公开 3-组织)
+        in: query
+        name: scopeType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.OpenAPIModelListItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取万悟模型列表
+      tags:
+      - channel
+  /channel/qrcode/{channelType}:
+    post:
+      consumes:
+      - application/json
+      description: 发起扫码登录，返回二维码地址与会话ID
+      parameters:
+      - description: 通道类型：wechat/dingtalk/feishu
+        in: path
+        name: channelType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.QRLoginResponse'
+              type: object
+      security:
+      - JWT: []
+      summary: 发起扫码登录
+      tags:
+      - channel
+  /channel/qrcode/{channelType}/{sessionId}:
+    delete:
+      consumes:
+      - application/json
+      description: 取消扫码登录
+      parameters:
+      - description: 通道类型：wechat/dingtalk/feishu
+        in: path
+        name: channelType
+        required: true
+        type: string
+      - description: 扫码会话ID
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 取消扫码登录
+      tags:
+      - channel
+  /channel/qrcode/{channelType}/complete/{sessionId}:
+    post:
+      consumes:
+      - application/json
+      description: 完成扫码登录（扫码成功后创建通道）
+      parameters:
+      - description: 通道类型：wechat/dingtalk/feishu
+        in: path
+        name: channelType
+        required: true
+        type: string
+      - description: 扫码会话ID
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ChannelResponse'
+              type: object
+      security:
+      - JWT: []
+      summary: 完成扫码登录
+      tags:
+      - channel
+  /channel/qrcode/{channelType}/status/{sessionId}:
+    get:
+      consumes:
+      - application/json
+      description: 查询扫码状态
+      parameters:
+      - description: 通道类型：wechat/dingtalk/feishu
+        in: path
+        name: channelType
+        required: true
+        type: string
+      - description: 扫码会话ID
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.QRLoginStatusResponse'
+              type: object
+      security:
+      - JWT: []
+      summary: 查询扫码状态
+      tags:
+      - channel
+  /channel/wga/sub-agents:
+    get:
+      consumes:
+      - application/json
+      description: 获取 WGA 子智能体列表（用于 WGA 通道选择 agentId），首部置入“无”选项，过滤数字员工、Skill Chat
+        Agent、Data Analysis Agent 等内部智能体
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GetGeneralAgentSubListResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取 WGA 子智能体列表
+      tags:
+      - channel
   /chatflow/application/info:
     post:
       consumes:
@@ -18091,6 +18846,7 @@ paths:
       description: 获取模型体验对话记录列表
       parameters:
       - description: 模型体验对话ID
+        format: int32
         in: query
         name: modelExperienceId
         required: true

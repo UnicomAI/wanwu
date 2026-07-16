@@ -574,6 +574,8 @@ func (s *ChannelService) selfProbeOnly(ctx context.Context, channelID, hint stri
 //   - markdown：钉钉 md 卡片，微信降级纯文本（content 必填，title 留空自动生成）
 //   - file：文件附件（file_url+file_name 必填，content 可空作附带文案）。file_url 为万悟 minio 下载地址，
 //     channel-service 下载字节后经适配器 SendFile 投递。钉钉/微信支持，飞书未实现返回错误（不降级）。
+//     content 非空时先发文案再发文件（两条独立投递）：文案失败文件不发；文案已发而文件失败时返回错误
+//     （不回滚文案，错误信息可据此判断是否重试，重试会重复发文案）。
 //
 // 错误用 err_code 表达：Code_ChannelInvalidArg 入参缺失 / Code_ChannelNotConnected 适配器未启动或无收件人 /
 // Code_ChannelRateLimited IM 平台频控（命中 types.ErrIMRateLimited，调用方可退避重试）/ Code_ChannelGeneral 其它失败。
@@ -618,25 +620,41 @@ func (s *ChannelService) SendMessage(ctx context.Context, req *channel_service.S
 		}
 		sendErr = s.manager.SendMarkdown(ctx, req.ChannelId, userID, title, req.Content)
 	case "file":
+		// content 非空时先发文案再发文件（与文档「附带文案」语义对齐）。
+		// 两条独立投递：文案发送失败直接返回（文件不发）；文案已发而文件失败时如实返回错误，
+		// 错误信息标注文案已发，便于调用方判断是否需要重试（重试会重复发文案，调用方酌情处理）。
+		if req.Content != "" {
+			if err := s.manager.SendMessage(ctx, req.ChannelId, userID, req.Content, nil); err != nil {
+				return nil, s.wrapSendErr(err)
+			}
+		}
 		sendErr = s.sendFileMessage(ctx, req.ChannelId, userID, req.FileUrl, req.FileName, req.FileMimeType)
 	default: // text
 		sendErr = s.manager.SendMessage(ctx, req.ChannelId, userID, req.Content, nil)
 	}
 
 	if sendErr != nil {
-		// 飞书等不支持发文件的平台：返回明确错误（不降级发文本，避免调用方误以为送达）
-		if errors.Is(sendErr, types.ErrFileSendUnsupported) {
-			return nil, grpc_util.ErrorStatus(err_code.Code_ChannelGeneral, fmt.Sprintf("channel does not support file send: %v", sendErr))
-		}
-		// 命中 IM 平台频控（微信 ret=-2 / 钉钉频控 errcode）单独返回 Code_ChannelRateLimited，
-		// 调用方可据此退避重试（区别于 Code_ChannelGeneral 的永久性错误）。
-		if errors.Is(sendErr, types.ErrIMRateLimited) {
-			return nil, grpc_util.ErrorStatus(err_code.Code_ChannelRateLimited, fmt.Sprintf("im platform rate limited: %v", sendErr))
-		}
-		return nil, grpc_util.ErrorStatus(err_code.Code_ChannelGeneral, fmt.Sprintf("send message failed: %v", sendErr))
+		return nil, s.wrapSendErr(sendErr)
 	}
 
 	return &channel_service.SendMessageResp{Ok: true, UserId: userID}, nil
+}
+
+// wrapSendErr 将适配器发送错误映射为对应的 gRPC err_code：
+//   - ErrFileSendUnsupported（飞书等不支持发文件）：Code_ChannelGeneral，不降级发文本
+//   - ErrIMRateLimited（微信 ret=-2 / 钉钉频控）：Code_ChannelRateLimited，调用方可退避重试
+//   - 其它：Code_ChannelGeneral
+func (s *ChannelService) wrapSendErr(err error) error {
+	// 飞书等不支持发文件的平台：返回明确错误（不降级发文本，避免调用方误以为送达）
+	if errors.Is(err, types.ErrFileSendUnsupported) {
+		return grpc_util.ErrorStatus(err_code.Code_ChannelGeneral, fmt.Sprintf("channel does not support file send: %v", err))
+	}
+	// 命中 IM 平台频控（微信 ret=-2 / 钉钉频控 errcode）单独返回 Code_ChannelRateLimited，
+	// 调用方可据此退避重试（区别于 Code_ChannelGeneral 的永久性错误）。
+	if errors.Is(err, types.ErrIMRateLimited) {
+		return grpc_util.ErrorStatus(err_code.Code_ChannelRateLimited, fmt.Sprintf("im platform rate limited: %v", err))
+	}
+	return grpc_util.ErrorStatus(err_code.Code_ChannelGeneral, fmt.Sprintf("send message failed: %v", err))
 }
 
 // sendFileMessage 下载 file_url（万悟 minio 文件地址）字节后经适配器 SendFile 投递。
