@@ -181,6 +181,7 @@
           </div>
           <div v-if="rankingVisible" class="chart-modules">
             <ApiRanking
+              class="api-ranking-card"
               :title="$t('statisticsDashboard.apiRanking')"
               :data="rankingData?.byApi || []"
               :loading="loading"
@@ -552,4 +553,7 @@ export default {
 <style lang="scss" scoped>
 @import '@/style/modelSelect.scss';
 @import '@/style/statisticsDashboard.scss';
+::v-deep .api-ranking-card {
+  align-self: flex-start;
+}
 </style>
