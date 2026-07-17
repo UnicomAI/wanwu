@@ -23,7 +23,7 @@
         :data="orgTreeData"
         :props="treeProps"
         node-key="orgId"
-        default-expand-all
+        :default-expanded-keys="defaultExpandedKeys"
         highlight-current
         :expand-on-click-node="false"
         :current-node-key="activeOrgId"
@@ -32,6 +32,11 @@
       >
         <span slot-scope="{ node, data }" class="org-tree-node">
           <span class="org-tree-node__label">
+            <img
+              class="org-tree-node__avatar"
+              :src="avatarSrc(data.avatar?.path || defaultAvatar)"
+              alt=""
+            />
             <span class="org-tree-node__name" :title="data.name">
               {{ data.name }}
             </span>
@@ -101,6 +106,7 @@
 
 <script>
 import { mapActions } from 'vuex';
+import { avatarSrc } from '@/utils/util';
 import { fetchOrgTree } from '@/api/permission/org';
 
 export default {
@@ -117,6 +123,8 @@ export default {
       loading: false,
       searchKeyword: '',
       activeOrgId: this.value,
+      defaultExpandedKeys: [],
+      defaultAvatar: '/v1/static/icon/org-default-icon.png',
       treeProps: {
         children: 'children',
         label: 'name',
@@ -168,6 +176,7 @@ export default {
   },
   methods: {
     ...mapActions('user', ['getOrgInfo']),
+    avatarSrc,
     filterNode(value, data) {
       if (!value) return true;
       return data.name && data.name.toLowerCase().includes(value.toLowerCase());
@@ -186,7 +195,10 @@ export default {
       this.loading = true;
       fetchOrgTree()
         .then(res => {
-          this.orgTreeData = res.data || [];
+          const orgTree = res.data || [];
+          this.orgTreeData = orgTree;
+          // 只展开第一级节点（根节点），让第二级可见，第三级及以上默认折叠
+          this.defaultExpandedKeys = orgTree.map(node => node.orgId);
           this.loading = false;
 
           this.$nextTick(() => {
@@ -309,6 +321,15 @@ export default {
     justify-content: space-between;
     flex: 1;
     min-width: 0;
+  }
+
+  &__avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    margin-right: 6px;
+    flex-shrink: 0;
+    object-fit: cover;
   }
 
   &__name {
