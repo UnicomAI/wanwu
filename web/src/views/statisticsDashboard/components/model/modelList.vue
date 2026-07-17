@@ -220,6 +220,7 @@
             prop="module"
             :label="$t('statisticsDashboard.module')"
             align="left"
+            width="110"
           >
             <template slot-scope="scope">
               <AppTypeTag :app-type="scope.row.module" />
