@@ -40,7 +40,7 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            {{ scope.row.moduleName || '--' }}
+            <AppTypeTag :app-type="scope.row.module" />
           </template>
         </el-table-column>
         <el-table-column
