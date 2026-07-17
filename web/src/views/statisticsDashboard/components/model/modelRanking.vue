@@ -10,7 +10,8 @@
         class="ranking-item"
         :class="{ 'org-dimension': dimension === 'org' }"
       >
-        <template v-if="dimension === 'org'">
+        <!--组织也展示组织 LOGO，无需单展示数字-->
+        <!--<template v-if="dimension === 'org'">
           <div
             class="ranking-index"
             :class="{ 'ranking-index-first': index === 0 }"
@@ -20,8 +21,9 @@
           <div class="ranking-info">
             <span class="ranking-name">{{ item.name }}</span>
           </div>
-        </template>
-        <template v-else>
+        </template>-->
+        <template>
+          <!-- v-else -->
           <div class="ranking-avatar-wrap">
             <img
               class="ranking-avatar"
@@ -132,6 +134,7 @@ export default {
             name: row.orgName || '--',
             value: row.totalTokens,
             orgId: row.orgId,
+            avatar: row.avatar,
           };
         }
       });
