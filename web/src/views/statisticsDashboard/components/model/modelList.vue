@@ -208,6 +208,24 @@
             </template>
           </el-table-column>
           <el-table-column
+            prop="source"
+            :label="$t('statisticsDashboard.source')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              {{ scope.row.sourceName || '--' }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="module"
+            :label="$t('statisticsDashboard.module')"
+            align="left"
+          >
+            <template slot-scope="scope">
+              <AppTypeTag :app-type="scope.row.module" />
+            </template>
+          </el-table-column>
+          <el-table-column
             prop="appName"
             :label="$t('statisticsDashboard.appName')"
             align="left"

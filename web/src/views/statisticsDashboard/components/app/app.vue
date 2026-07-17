@@ -8,6 +8,7 @@
         class="no-border-select"
         style="margin-left: 15px"
         @change="changeAppType()"
+        clearable
       >
         <el-option
           v-for="key in Object.keys(appTypeObj)"
@@ -272,12 +273,7 @@ import {
   getAppSelect,
   getAppChart,
 } from '@/api/statisticsDashboard';
-import {
-  AGENT,
-  CHAT,
-  ShowSelectAppList,
-  TotalTypeObj,
-} from '@/utils/commonSet';
+import { CHAT, ShowSelectAppList, TotalTypeObj } from '@/utils/commonSet';
 
 export default {
   components: {
@@ -301,7 +297,6 @@ export default {
   },
   data() {
     return {
-      AGENT,
       CHAT,
       activeTab: 'visual',
       manageDialogVisible: false,
@@ -309,7 +304,7 @@ export default {
       showSelectAppList: ShowSelectAppList,
       sourceOptions: [
         { label: 'Web', value: 'web' },
-        { label: 'OpenAPI', value: 'openapi' },
+        { label: 'Openapi', value: 'openapi' },
         { label: 'WebURL', value: 'webURL' },
       ],
       appList: [],
@@ -428,7 +423,7 @@ export default {
       dialogModuleList: [],
       dragIndex: -1,
       appParams: {
-        module: AGENT,
+        module: '',
         apps: [],
         source: '',
       },
@@ -504,6 +499,9 @@ export default {
     async fetchApps() {
       this.appList = [];
       this.appParams.apps = [];
+      if (!this.appParams.module) {
+        return;
+      }
 
       const params = this.formatParams({
         module: this.appParams.module,

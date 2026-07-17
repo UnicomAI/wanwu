@@ -39,7 +39,7 @@
                 class="model-img"
                 :src="convertModelIcon(item?.avatar.path)"
               />
-              <span class="model-name">
+              <span class="model-name" style="margin-right: 10px">
                 {{ item.displayName }}
               </span>
             </div>
