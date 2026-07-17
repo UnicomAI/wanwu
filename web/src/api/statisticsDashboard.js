@@ -264,6 +264,25 @@ export const exportApiAppData = data => {
   });
 };
 
+// 获取API模型统计列表
+export const fetchApiModelList = data => {
+  return service({
+    url: `${USER_API_V2}/statistic/api/list/model`,
+    method: 'post',
+    data,
+  });
+};
+
+// 导出API模型统计数据
+export const exportApiModelData = data => {
+  return service({
+    url: `${USER_API_V2}/statistic/api/list/model/export`,
+    method: 'post',
+    data,
+    responseType: 'blob',
+  });
+};
+
 /**
  * 全局组织和用户接口
  */

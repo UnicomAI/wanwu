@@ -168,7 +168,7 @@
               <el-button
                 class="btn-model"
                 size="mini"
-                icon="el-icon-menu"
+                icon="el-icon-s-data"
                 @click="showModelModal(scope.row)"
               >
                 {{ $t('common.button.model') }}

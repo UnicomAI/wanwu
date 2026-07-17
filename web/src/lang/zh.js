@@ -2060,6 +2060,7 @@ export default {
     appUsageStats: '应用使用统计',
     modelUsageStats: '模型使用统计',
     apiAppUsageStats: '应用调用统计',
+    apiModelUsageStats: '模型调用统计',
     appStatistics: '应用维度调用统计',
     appDetail: '应用维度调用明细',
     source: '来源',

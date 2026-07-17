@@ -144,18 +144,26 @@
             </template>
           </el-table-column>
           <el-table-column
-            width="90"
+            width="160"
             align="center"
             :label="$t('common.table.operation')"
           >
             <template slot-scope="scope">
               <el-button
-                class="btn-app"
+                class="btn-api-app"
                 size="mini"
                 icon="el-icon-s-grid"
                 @click="showAppModal(scope.row)"
               >
                 {{ $t('common.button.app') }}
+              </el-button>
+              <el-button
+                class="btn-model"
+                size="mini"
+                icon="el-icon-s-data"
+                @click="showModelModal(scope.row)"
+              >
+                {{ $t('statisticsDashboard.model') }}
               </el-button>
             </template>
           </el-table-column>
@@ -307,6 +315,11 @@
       :params="params"
       :api-info="currentRow"
     />
+    <ApiModelModal
+      :visible.sync="modelModalVisible"
+      :params="params"
+      :api-info="currentRow"
+    />
     <RecordDetail :visible.sync="detailVisible" :row="currentRow" />
   </div>
 </template>
@@ -318,9 +331,10 @@ import { fetchApiList, exportApiData } from '@/api/statisticsDashboard';
 import { PROVIDER_OBJ } from '@/views/modelAccess/constants';
 import RecordDetail from './recordDetail.vue';
 import ApiAppModal from './apiAppModal.vue';
+import ApiModelModal from './apiModelModal.vue';
 
 export default {
-  components: { Pagination, RecordDetail, ApiAppModal },
+  components: { Pagination, RecordDetail, ApiAppModal, ApiModelModal },
   props: {
     params: {},
   },
@@ -334,6 +348,7 @@ export default {
       sortField: '',
       sortOrder: '',
       appModalVisible: false,
+      modelModalVisible: false,
       detailVisible: false,
       currentRow: null,
     };
@@ -387,6 +402,10 @@ export default {
     showAppModal(row) {
       this.currentRow = row;
       this.appModalVisible = true;
+    },
+    showModelModal(row) {
+      this.currentRow = row;
+      this.modelModalVisible = true;
     },
     showDetail(row) {
       this.currentRow = row;
