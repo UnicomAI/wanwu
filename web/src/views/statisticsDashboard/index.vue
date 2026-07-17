@@ -154,7 +154,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  height: 60px;
+  min-height: 60px;
 }
 
 .global-filter-section {

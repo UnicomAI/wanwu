@@ -11,7 +11,7 @@
         'scroll-select',
         { 'hide-tag-close': isOrgSelectedAll },
       ]"
-      style="margin-left: 15px; width: 240px"
+      style="margin-left: 15px; width: 260px"
       multiple
       filterable
       clearable
@@ -34,7 +34,7 @@
         'scroll-select',
         { 'hide-tag-close': isUserSelectedAll },
       ]"
-      style="margin-left: 15px; width: 240px"
+      style="margin-left: 15px; width: 260px"
       multiple
       collapse-tags
       filterable
