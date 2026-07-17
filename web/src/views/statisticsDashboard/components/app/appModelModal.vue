@@ -112,13 +112,7 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            <span
-              :class="['type-tag', getModelTypeTagClass(scope.row.modelType)]"
-            >
-              {{
-                modelTypeObj[scope.row.modelType] || scope.row.modelType || '--'
-              }}
-            </span>
+            <ModelTypeTag :model-type="scope.row.modelType" />
           </template>
         </el-table-column>
         <el-table-column
@@ -242,17 +236,17 @@
 
 <script>
 import Pagination from '@/components/pagination.vue';
+import ModelTypeTag from '../model/modelTypeTag.vue';
 import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import {
   fetchAppModelList,
   exportAppModelData,
 } from '@/api/statisticsDashboard';
 import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
-import { MODEL_TYPE_OBJ, PROVIDER_OBJ } from '@/views/modelAccess/constants';
-import { MODEL_TAG_COLOR } from '@/views/statisticsDashboard/constants';
+import { PROVIDER_OBJ } from '@/views/modelAccess/constants';
 
 export default {
-  components: { Pagination },
+  components: { Pagination, ModelTypeTag },
   props: {
     visible: {
       type: Boolean,
@@ -273,7 +267,6 @@ export default {
       loading: false,
       tableData: [],
       appTypeObj: TotalTypeObj,
-      modelTypeObj: MODEL_TYPE_OBJ,
       providerObj: PROVIDER_OBJ,
       sortField: '',
       sortOrder: '',
@@ -306,9 +299,6 @@ export default {
   methods: {
     formatAmount,
     formatSec,
-    getModelTypeTagClass(type) {
-      return MODEL_TAG_COLOR[type] || 'tag-gray';
-    },
     handleOpen() {
       this.$nextTick(() => {
         this.initTableData();

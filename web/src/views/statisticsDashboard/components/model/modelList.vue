@@ -72,11 +72,7 @@
             width="110px"
           >
             <template slot-scope="scope">
-              <span
-                :class="['type-tag', getModelTypeTagClass(scope.row.modelType)]"
-              >
-                {{ getModelTypeName(scope.row.modelType) }}
-              </span>
+              <ModelTypeTag :model-type="scope.row.modelType" />
             </template>
           </el-table-column>
           <el-table-column
@@ -208,11 +204,7 @@
             align="left"
           >
             <template slot-scope="scope">
-              <span
-                :class="['type-tag', getModelTypeTagClass(scope.row.modelType)]"
-              >
-                {{ getModelTypeName(scope.row.modelType) }}
-              </span>
+              <ModelTypeTag :model-type="scope.row.modelType" />
             </template>
           </el-table-column>
           <el-table-column
@@ -355,12 +347,18 @@ import { fetchModelList, exportModelData } from '@/api/statisticsDashboard';
 import ModelUserModal from './modelUserModal.vue';
 import ModelAppModal from './modelAppModal.vue';
 import ModelRecordDetail from './modelRecordDetail.vue';
-import { MODEL_TYPE_OBJ, PROVIDER_OBJ } from '@/views/modelAccess/constants';
+import ModelTypeTag from './modelTypeTag.vue';
+import { PROVIDER_OBJ } from '@/views/modelAccess/constants';
 import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
-import { MODEL_TAG_COLOR } from '../../constants';
 
 export default {
-  components: { Pagination, ModelUserModal, ModelAppModal, ModelRecordDetail },
+  components: {
+    Pagination,
+    ModelUserModal,
+    ModelAppModal,
+    ModelRecordDetail,
+    ModelTypeTag,
+  },
   props: {
     params: {},
   },
@@ -429,12 +427,6 @@ export default {
           ? this.$t('statisticsDashboard.modelStatistics')
           : this.$t('statisticsDashboard.modelDetail');
       resDownloadFile(response, `${fileName}.xlsx`);
-    },
-    getModelTypeName(type) {
-      return MODEL_TYPE_OBJ[type] || type || '--';
-    },
-    getModelTypeTagClass(type) {
-      return MODEL_TAG_COLOR[type] || 'tag-gray';
     },
     getAppTypeTagClass(row) {
       return TagColorObj[row.appType] || 'tag-gray';

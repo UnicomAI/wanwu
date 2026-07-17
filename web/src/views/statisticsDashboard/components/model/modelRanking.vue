@@ -79,7 +79,7 @@
 </template>
 
 <script>
-import { formatAmount, avatarSrc, getModelDefaultIcon } from '@/utils/util.js';
+import { formatAmount, avatarSrc } from '@/utils/util.js';
 import { MODEL_TYPE_OBJ, PROVIDER_OBJ } from '@/views/modelAccess/constants';
 
 export default {

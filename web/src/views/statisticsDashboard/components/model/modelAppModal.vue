@@ -70,13 +70,7 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            <span
-              :class="['type-tag', getModelTypeTagClass(scope.row.modelType)]"
-            >
-              {{
-                modelTypeObj[scope.row.modelType] || scope.row.modelType || '--'
-              }}
-            </span>
+            <ModelTypeTag :model-type="scope.row.modelType" />
           </template>
         </el-table-column>
         <el-table-column
@@ -242,17 +236,17 @@
 
 <script>
 import Pagination from '@/components/pagination.vue';
+import ModelTypeTag from './modelTypeTag.vue';
 import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import {
   fetchModelAppList,
   exportModelAppData,
 } from '@/api/statisticsDashboard';
 import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
-import { MODEL_TAG_COLOR } from '../../constants';
-import { MODEL_TYPE_OBJ, PROVIDER_OBJ } from '@/views/modelAccess/constants';
+import { PROVIDER_OBJ } from '@/views/modelAccess/constants';
 
 export default {
-  components: { Pagination },
+  components: { Pagination, ModelTypeTag },
   props: {
     visible: {
       type: Boolean,
@@ -272,7 +266,6 @@ export default {
       listApi: fetchModelAppList,
       loading: false,
       tableData: [],
-      modelTypeObj: MODEL_TYPE_OBJ,
       appTypeObj: TotalTypeObj,
       providerObj: PROVIDER_OBJ,
       sortField: '',
@@ -340,9 +333,6 @@ export default {
         response,
         `${this.$t('statisticsDashboard.modelStatistics')}_${this.$t('statisticsDashboard.appUsageStats')}.xlsx`,
       );
-    },
-    getModelTypeTagClass(type) {
-      return MODEL_TAG_COLOR[type] || 'tag-gray';
     },
     getAppTypeTagClass(row) {
       return TagColorObj[row.appType] || 'tag-gray';
