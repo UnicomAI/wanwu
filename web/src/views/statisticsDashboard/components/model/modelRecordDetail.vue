@@ -44,7 +44,7 @@
           <div class="info-item">
             <label>{{ $t('modelAccess.table.modelType') }}</label>
             <div>
-              {{ modelTypeName }}
+              <ModelTypeTag :model-type="currentRow.modelType" />
             </div>
           </div>
           <div class="info-item">
@@ -64,7 +64,7 @@
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.module') }}</label>
             <div>
-              {{ currentRow.moduleName || '--' }}
+              <AppTypeTag :app-type="currentRow.module" />
             </div>
           </div>
           <div class="info-item">
@@ -74,7 +74,7 @@
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.appType') }}</label>
             <div>
-              {{ appTypeName }}
+              <AppTypeTag :app-type="currentRow.appType" />
             </div>
           </div>
           <div class="info-item">
@@ -198,10 +198,12 @@
 
 <script>
 import { formatAmount, formatSec } from '@/utils/util.js';
-import { MODEL_TYPE_OBJ, PROVIDER_OBJ } from '@/views/modelAccess/constants';
-import { TotalTypeObj } from '@/utils/commonSet';
+import { PROVIDER_OBJ } from '@/views/modelAccess/constants';
+import AppTypeTag from '../app/appTypeTag.vue';
+import ModelTypeTag from './modelTypeTag.vue';
 
 export default {
+  components: { AppTypeTag, ModelTypeTag },
   props: {
     visible: {
       type: Boolean,
@@ -234,20 +236,6 @@ export default {
       return name
         ? `${name} - ${this.$t('statisticsDashboard.detailTitle')}`
         : this.$t('statisticsDashboard.detailTitle');
-    },
-    modelTypeName() {
-      return (
-        MODEL_TYPE_OBJ[this.currentRow?.modelType] ||
-        this.currentRow?.modelType ||
-        '--'
-      );
-    },
-    appTypeName() {
-      return (
-        TotalTypeObj[this.currentRow?.appType] ||
-        this.currentRow?.appType ||
-        '--'
-      );
     },
     isFailed() {
       return this.currentRow.isSuccess === false;

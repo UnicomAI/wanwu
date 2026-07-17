@@ -32,7 +32,7 @@
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.appType') }}</label>
             <div>
-              {{ appTypeName }}
+              <AppTypeTag :app-type="currentRow.appType" />
             </div>
           </div>
           <div class="info-item">
@@ -118,9 +118,10 @@
 
 <script>
 import { formatAmount, formatSec } from '@/utils/util.js';
-import { TotalTypeObj } from '@/utils/commonSet';
+import AppTypeTag from './appTypeTag.vue';
 
 export default {
+  components: { AppTypeTag },
   props: {
     visible: {
       type: Boolean,
@@ -148,13 +149,6 @@ export default {
       return name
         ? `${name} - ${this.$t('statisticsDashboard.detailTitle')}`
         : this.$t('statisticsDashboard.detailTitle');
-    },
-    appTypeName() {
-      return (
-        TotalTypeObj[this.currentRow?.appType] ||
-        this.currentRow?.appType ||
-        '--'
-      );
     },
     isFailed() {
       return this.currentRow.isSuccess === false;

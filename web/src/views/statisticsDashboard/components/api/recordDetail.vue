@@ -31,12 +31,14 @@
         <div class="info-grid">
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.module') }}</label>
-            <div>{{ currentRow.moduleName || '--' }}</div>
+            <div>
+              <AppTypeTag :app-type="currentRow.module" />
+            </div>
           </div>
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.appType') }}</label>
             <div>
-              {{ appTypeName }}
+              <AppTypeTag :app-type="currentRow.appType" />
             </div>
           </div>
           <div class="info-item">
@@ -120,9 +122,10 @@
 
 <script>
 import { formatAmount, formatSec } from '@/utils/util.js';
-import { TotalTypeObj } from '@/utils/commonSet';
+import AppTypeTag from '../app/appTypeTag.vue';
 
 export default {
+  components: { AppTypeTag },
   props: {
     visible: {
       type: Boolean,
@@ -153,13 +156,6 @@ export default {
     },
     isFailed() {
       return this.currentRow.isSuccess === false;
-    },
-    appTypeName() {
-      return (
-        TotalTypeObj[this.currentRow?.appType] ||
-        this.currentRow?.appType ||
-        '--'
-      );
     },
   },
   methods: {
