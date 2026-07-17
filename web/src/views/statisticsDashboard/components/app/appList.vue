@@ -60,9 +60,7 @@
             align="left"
           >
             <template slot-scope="scope">
-              <span :class="['type-tag', getAppTypeTagClass(scope.row)]">
-                {{ appTypeObj[scope.row.appType] || scope.row.appType || '--' }}
-              </span>
+              <AppTypeTag :app-type="scope.row.appType" />
             </template>
           </el-table-column>
           <el-table-column
@@ -220,9 +218,7 @@
             align="left"
           >
             <template slot-scope="scope">
-              <span :class="['type-tag', getAppTypeTagClass(scope.row)]">
-                {{ appTypeObj[scope.row.appType] || scope.row.appType || '--' }}
-              </span>
+              <AppTypeTag :app-type="scope.row.appType" />
             </template>
           </el-table-column>
           <el-table-column
@@ -330,13 +326,19 @@
 import Pagination from '@/components/pagination.vue';
 import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import { fetchAppList, exportAppData } from '@/api/statisticsDashboard';
-import { TagColorObj, TotalTypeObj } from '@/utils/commonSet';
+import AppTypeTag from './appTypeTag.vue';
 import AppUserModal from './appUserModal.vue';
 import AppModelModal from './appModelModal.vue';
 import AppRecordDetail from './appRecordDetail.vue';
 
 export default {
-  components: { Pagination, AppUserModal, AppModelModal, AppRecordDetail },
+  components: {
+    Pagination,
+    AppTypeTag,
+    AppUserModal,
+    AppModelModal,
+    AppRecordDetail,
+  },
   props: {
     params: {},
   },
@@ -345,7 +347,6 @@ export default {
       listApi: fetchAppList,
       loading: false,
       tableData: [],
-      appTypeObj: TotalTypeObj,
       type: 'list',
       sortField: '',
       sortOrder: '',
@@ -358,9 +359,6 @@ export default {
   methods: {
     formatAmount,
     formatSec,
-    getAppTypeTagClass(row) {
-      return TagColorObj[row.appType] || 'tag-gray';
-    },
     handleRadio(val) {
       this.type = val;
       this.sortField = '';

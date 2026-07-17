@@ -222,9 +222,7 @@
             align="left"
           >
             <template slot-scope="scope">
-              <span :class="['type-tag', getAppTypeTagClass(scope.row)]">
-                {{ appTypeObj[scope.row.appType] || scope.row.appType || '--' }}
-              </span>
+              <AppTypeTag :app-type="scope.row.appType" />
             </template>
           </el-table-column>
           <el-table-column
@@ -348,8 +346,8 @@ import ModelUserModal from './modelUserModal.vue';
 import ModelAppModal from './modelAppModal.vue';
 import ModelRecordDetail from './modelRecordDetail.vue';
 import ModelTypeTag from './modelTypeTag.vue';
+import AppTypeTag from '../app/appTypeTag.vue';
 import { PROVIDER_OBJ } from '@/views/modelAccess/constants';
-import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
 
 export default {
   components: {
@@ -358,6 +356,7 @@ export default {
     ModelAppModal,
     ModelRecordDetail,
     ModelTypeTag,
+    AppTypeTag,
   },
   props: {
     params: {},
@@ -368,7 +367,6 @@ export default {
       loading: false,
       tableData: [],
       providerObj: PROVIDER_OBJ,
-      appTypeObj: TotalTypeObj,
       type: 'list',
       sortField: '',
       sortOrder: '',
@@ -427,9 +425,6 @@ export default {
           ? this.$t('statisticsDashboard.modelStatistics')
           : this.$t('statisticsDashboard.modelDetail');
       resDownloadFile(response, `${fileName}.xlsx`);
-    },
-    getAppTypeTagClass(row) {
-      return TagColorObj[row.appType] || 'tag-gray';
     },
     showDetail(row) {
       this.currentRow = row;

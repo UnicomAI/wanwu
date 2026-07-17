@@ -60,9 +60,7 @@
           min-width="120"
         >
           <template slot-scope="scope">
-            <span :class="['type-tag', getAppTypeTagClass(scope.row)]">
-              {{ appTypeObj[scope.row.appType] || scope.row.appType || '--' }}
-            </span>
+            <AppTypeTag :app-type="scope.row.appType" />
           </template>
         </el-table-column>
         <el-table-column
@@ -237,16 +235,16 @@
 <script>
 import Pagination from '@/components/pagination.vue';
 import ModelTypeTag from '../model/modelTypeTag.vue';
+import AppTypeTag from './appTypeTag.vue';
 import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import {
   fetchAppModelList,
   exportAppModelData,
 } from '@/api/statisticsDashboard';
-import { TotalTypeObj, TagColorObj } from '@/utils/commonSet';
 import { PROVIDER_OBJ } from '@/views/modelAccess/constants';
 
 export default {
-  components: { Pagination, ModelTypeTag },
+  components: { Pagination, AppTypeTag, ModelTypeTag },
   props: {
     visible: {
       type: Boolean,
@@ -266,7 +264,6 @@ export default {
       listApi: fetchAppModelList,
       loading: false,
       tableData: [],
-      appTypeObj: TotalTypeObj,
       providerObj: PROVIDER_OBJ,
       sortField: '',
       sortOrder: '',
@@ -339,9 +336,6 @@ export default {
         response,
         `${this.$t('statisticsDashboard.appStatistics')}_${this.$t('statisticsDashboard.modelUsageStats')}.xlsx`,
       );
-    },
-    getAppTypeTagClass(row) {
-      return TagColorObj[row.appType] || 'tag-gray';
     },
   },
 };
