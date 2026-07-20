@@ -130,7 +130,6 @@
                   >
                     <el-tooltip
                       placement="right"
-                      trigger="click"
                       width="auto"
                       :content="m.name"
                     >
@@ -154,12 +153,7 @@
                 </template>
                 <!-- 无子级 -->
                 <div v-else :key="`${i}top`">
-                  <el-tooltip
-                    placement="right"
-                    trigger="click"
-                    width="auto"
-                    :content="n.name"
-                  >
+                  <el-tooltip placement="right" width="auto" :content="n.name">
                     <div
                       :class="[
                         'collapse-menu-item',
