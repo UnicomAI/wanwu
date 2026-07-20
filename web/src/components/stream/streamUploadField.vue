@@ -92,7 +92,7 @@
                             }}
                           </span>
                         </el-tooltip>
-                        <span>[{{ getFileSizeDisplay(f.size) }}]</span>
+                        <span>[{{ formatFileSize(f.size) }}]</span>
                       </p>
                     </div>
                   </div>
@@ -162,7 +162,7 @@
 <script>
 import uploadChunk from '@/mixins/uploadChunk';
 import FileIcon from '@/components/FileIcon.vue';
-import { getFileIconType } from '@/utils/util';
+import { formatFileSize, getFileIconType } from '@/utils/util';
 
 export default {
   components: { FileIcon },
@@ -356,6 +356,7 @@ export default {
   },
   methods: {
     getFileIconType,
+    formatFileSize,
     checkScrollable() {
       this.$nextTick(() => {
         const container = this.$refs.imgList;
@@ -555,11 +556,6 @@ export default {
       return (
         (file?.fileType || this.getFileType(file?.name || '')) === 'audio/*'
       );
-    },
-    getFileSizeDisplay(fileSize) {
-      return fileSize > 1024
-        ? `${(fileSize / (1024 * 1024)).toFixed(2)} MB`
-        : `${fileSize} bytes`;
     },
     validateUploadFile(file, fileType) {
       const filename = (file && file.name) || '';
