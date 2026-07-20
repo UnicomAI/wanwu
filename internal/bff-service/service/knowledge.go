@@ -150,7 +150,7 @@ func SelectKnowledgeIdByRagName(ctx *gin.Context, ragName string) (string, error
 func CreateKnowledge(ctx *gin.Context, userId, orgId string, r *request.CreateKnowledgeReq) (*response.CreateKnowledgeResp, error) {
 	knowledgeGraph := &knowledgebase_service.KnowledgeGraph{}
 	if r.Category == request.CategoryKnowledge || r.Category == request.CategoryMultimodalKnowledge {
-		if r.KnowledgeGraph.Switch {
+		if r.KnowledgeGraph != nil && r.KnowledgeGraph.Switch {
 			knowledgeGraph = &knowledgebase_service.KnowledgeGraph{
 				Switch:     r.KnowledgeGraph.Switch,
 				LlmModelId: r.KnowledgeGraph.LLMModelId,
@@ -187,7 +187,7 @@ func CreateKnowledgeOpenapi(ctx *gin.Context, userId, orgId string, r *request.C
 	}
 	r.EmbeddingModel.ModelId = embModel.ModelId
 	if r.Category == request.CategoryKnowledge || r.Category == request.CategoryMultimodalKnowledge {
-		if r.KnowledgeGraph.Switch {
+		if r.KnowledgeGraph != nil && r.KnowledgeGraph.Switch {
 			llmModel, err := model.GetModelByUuid(ctx.Request.Context(), &model_service.GetModelByUuidReq{Uuid: r.KnowledgeGraph.LLMModelId})
 			if err != nil {
 				return nil, err
@@ -601,6 +601,13 @@ func buildKnowledgeHitResp(resp *knowledgebase_service.KnowledgeHitResp) *respon
 			for _, score := range search.ChildScore {
 				childScore = append(childScore, float64(score))
 			}
+			// meta_data 为 rag 原样透传的 JSON 串，解回对象返回
+			var metaData interface{}
+			if search.MetaData != "" {
+				if err := json.Unmarshal([]byte(search.MetaData), &metaData); err != nil {
+					log.Errorf("knowledge hit meta_data unmarshal err: %v", err)
+				}
+			}
 			searchList = append(searchList, &response.ChunkSearchList{
 				Title:            search.Title,
 				Snippet:          search.Snippet,
@@ -610,6 +617,7 @@ func buildKnowledgeHitResp(resp *knowledgebase_service.KnowledgeHitResp) *respon
 				ContentType:      search.ContentType,
 				Score:            float64(search.Score),
 				RerankInfo:       buildRerankInfo(search.RerankInfo),
+				MetaData:         metaData,
 			})
 		}
 	}

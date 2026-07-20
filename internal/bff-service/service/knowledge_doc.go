@@ -188,14 +188,29 @@ func ImportDoc(ctx *gin.Context, userId, orgId string, req *request.DocImportReq
 
 // ImportDocOpenapi 导入文档
 func ImportDocOpenapi(ctx *gin.Context, userId, orgId string, req *request.DocImportReq) error {
-	var err error
-	if req.ParserModelId != "" {
-		req.ParserModelId, err = GetModelIdByUuid(ctx, req.ParserModelId)
+	// openapi 仅支持文件上传，单条url上传/url文件上传已下架
+	if req.DocImportType != request.FileUpload {
+		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, "docImportType only supports 0 (file upload)")
+	}
+	if err := convertDocConfigModelUuid(ctx, &req.DocImportFileConfig); err != nil {
+		return err
+	}
+	return ImportDoc(ctx, userId, orgId, req)
+}
+
+// convertDocConfigModelUuid openapi 传入的模型 id 均为对外 uuid，统一转换为内部 modelId
+func convertDocConfigModelUuid(ctx *gin.Context, cfg *request.DocImportFileConfig) error {
+	for _, modelId := range []*string{&cfg.ParserModelId, &cfg.AsrModelId, &cfg.MultimodalModelId} {
+		if *modelId == "" {
+			continue
+		}
+		id, err := GetModelIdByUuid(ctx, *modelId)
 		if err != nil {
 			return err
 		}
+		*modelId = id
 	}
-	return ImportDoc(ctx, userId, orgId, req)
+	return nil
 }
 
 // UpdateDocConfig 更新文档配置
@@ -234,12 +249,12 @@ func UpdateDocConfig(ctx *gin.Context, userId, orgId string, req *request.DocCon
 
 // UpdateDocConfigOpenapi 更新文档配置
 func UpdateDocConfigOpenapi(ctx *gin.Context, userId, orgId string, req *request.DocConfigUpdateReq) error {
-	var err error
-	if req.ParserModelId != "" {
-		req.ParserModelId, err = GetModelIdByUuid(ctx, req.ParserModelId)
-		if err != nil {
-			return err
-		}
+	// openapi 仅支持文件上传类型
+	if req.DocImportType != request.FileUpload {
+		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, "docImportType only supports 0 (file upload)")
+	}
+	if err := convertDocConfigModelUuid(ctx, &req.DocImportFileConfig); err != nil {
+		return err
 	}
 	return UpdateDocConfig(ctx, userId, orgId, req)
 }
