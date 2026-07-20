@@ -2199,7 +2199,7 @@ export default {
     status: {
       connected: '连接成功',
       error: '连接失败',
-      authFailed: '认证失败',
+      authFailed: '认证失效',
       waitingLogin: '等待中',
       disconnected: '已断开',
     },
