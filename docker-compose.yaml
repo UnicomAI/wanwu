@@ -835,12 +835,11 @@ services:
       JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
       JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
       # bff 6667
-      GET_KB_ID_URL: http://bff-service:6667/v1/api/category/info
-      KAFKA_MQ_REL_URL: http://bff-service:6667/v1/api/docstatus
-      KAFKA_MQ_KB_STATUS_URL: http://bff-service:6667/v1/api/knowledge/status
-      KAFKA_DOC_STATUS_INIT_URL: http://bff-service:6667/v1/api/doc_status_init
       # bff 6668
       MODEL_PROVIDER_URL: http://bff-service:6668
+      KAFKA_MQ_REL_URL: http://bff-service:6668/callback/v1/api/docstatus
+      KAFKA_MQ_KB_STATUS_URL: http://bff-service:6668/callback/v1/api/knowledge/status
+      KAFKA_DOC_STATUS_INIT_URL: http://bff-service:6668/callback/v1/api/doc_status_init
       REPLACE_MINIO_DOWNLOAD_URL: ${WANWU_WEB_BASE_URL}/minio/download/api/
 
   # ------ sandbox ------

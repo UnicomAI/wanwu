@@ -140,39 +140,6 @@ func DocStatusInit(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// GetDeployInfo
-//
-//	@Tags			callback
-//	@Summary		获取Maas平台部署信息（模型扩展调用）
-//	@Description	获取Maas平台部署信息（模型扩展调用）
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{object}	response.Response{}
-//	@Router			/api/deploy/info [get]
-func GetDeployInfo(ctx *gin.Context) {
-	resp, err := service.GetDeployInfo(ctx)
-	gin_util.Response(ctx, resp, err)
-}
-
-// SelectKnowledgeInfoByName
-//
-//	@Tags			callback
-//	@Summary		获取Maas平台知识库信息（模型扩展调用）
-//	@Description	获取Maas平台知识库信息（模型扩展调用）
-//	@Accept			json
-//	@Produce		json
-//	@Param			data	body		request.SearchKnowledgeInfoReq	true	"根据知识库名称请求参数"
-//	@Success		200		{object}	response.Response{}
-//	@Router			/api/category/info [get]
-func SelectKnowledgeInfoByName(ctx *gin.Context) {
-	var req request.SearchKnowledgeInfoReq
-	if !gin_util.BindQuery(ctx, &req) {
-		return
-	}
-	resp, err := service.SelectKnowledgeInfoByName(ctx, req.UserId, req.OrgId, &req)
-	gin_util.Response(ctx, resp, err)
-}
-
 // SearchKnowledgeBase
 //
 //	@Tags			callback

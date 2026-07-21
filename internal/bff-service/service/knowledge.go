@@ -112,21 +112,6 @@ func KnowledgeStreamSearch(ctx *gin.Context, req *request.RagKnowledgeChatReq) e
 	return nil
 }
 
-// SelectKnowledgeInfoByName 根据知识库名称查询知识库信息
-func SelectKnowledgeInfoByName(ctx *gin.Context, userId, orgId string, r *request.SearchKnowledgeInfoReq) (interface{}, error) {
-	resp, err := knowledgeBase.SelectKnowledgeDetailByName(ctx.Request.Context(), &knowledgebase_service.KnowledgeDetailSelectReq{
-		UserId:        userId,
-		OrgId:         orgId,
-		KnowledgeName: r.KnowledgeName,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return map[string]string{
-		"categoryId": resp.KnowledgeId,
-	}, nil
-}
-
 // SelectKnowledgeIdByRagName 根据ragName获取知识库ID
 func SelectKnowledgeIdByRagName(ctx *gin.Context, ragName string) (string, error) {
 	resp, err := knowledgeBase.SelectKnowledgeIdByRagName(ctx.Request.Context(), &knowledgebase_service.SelectKnowledgeIdByRagNameReq{

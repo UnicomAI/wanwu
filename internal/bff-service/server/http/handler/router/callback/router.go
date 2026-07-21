@@ -59,6 +59,11 @@ func Register(callbackAPI *gin.RouterGroup) {
 	mid.Sub("callback").Reg(callbackAPI, "/skill/acquired/list", http.MethodPost, callback.SearchAcquiredSkillList, "我添加skill详情列表")
 	mid.Sub("callback").Reg(callbackAPI, "/skill/detail", http.MethodGet, callback.GetSkillDetail, "获取技能详情")
 
+	// rag 回调
+	mid.Sub("callback").Reg(callbackAPI, "/api/docstatus", http.MethodPost, callback.UpdateDocStatus, "算法更新知识库文档状态（模型扩展调用）")
+	mid.Sub("callback").Reg(callbackAPI, "/api/knowledge/status", http.MethodPost, callback.UpdateKnowledgeStatus, "更新知识库相关状态")
+	mid.Sub("callback").Reg(callbackAPI, "/api/doc_status_init", http.MethodGet, callback.DocStatusInit, "将正在解析的文档设置为解析失败")
+
 	// --- 通道内部发消息（无鉴权，供内部服务调用）---
 	mid.Sub("callback").Reg(callbackAPI, "/channel/send-message", http.MethodPost, callback.ChannelSendMessage, "内部服务发消息（无鉴权）")
 }
