@@ -300,10 +300,19 @@ export default {
           this.previewBlobUrl = URL.createObjectURL(this.internalBlob);
           this.previewUrl = this.previewBlobUrl;
         } else if (['markdown', 'text'].includes(this.previewType)) {
-          this.previewContent = await this.internalBlob.text();
+          this.previewContent = this.decodeTextBuffer(
+            await this.internalBlob.arrayBuffer(),
+          );
         } else if (this.previewType === 'excel') {
           const arrayBuffer = await this.internalBlob.arrayBuffer();
-          const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+          // CSV 在中文 Windows 下常为 GBK 编码，按 UTF-8 解析会乱码；
+          // xlsx/xls 内部已声明编码，走原路径即可
+          const workbook =
+            this.fileExt === 'csv'
+              ? XLSX.read(this.decodeTextBuffer(arrayBuffer), {
+                  type: 'string',
+                })
+              : XLSX.read(arrayBuffer, { type: 'array' });
           this.previewExcelData = workbook.SheetNames.map(sheetName => {
             const sheet = workbook.Sheets[sheetName];
             const jsonData = XLSX.utils.sheet_to_json(sheet, {
@@ -357,6 +366,18 @@ export default {
       if (this.previewUrl) {
         window.open(this.previewUrl, '_blank');
       }
+    },
+
+    // 文本类编码探测：UTF-8（含 BOM）优先，失败回退 GBK，兼容中文 Windows 导出
+    decodeTextBuffer(arrayBuffer) {
+      const bytes = new Uint8Array(arrayBuffer);
+      let utf8 = '';
+      try {
+        utf8 = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      } catch (e) {
+        return new TextDecoder('gbk').decode(bytes);
+      }
+      return utf8.replace(/^﻿/, '');
     },
 
     isMergedCell(sheetIndex, row, col) {
