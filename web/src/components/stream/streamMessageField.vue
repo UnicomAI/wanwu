@@ -888,7 +888,12 @@ import { md } from '@/mixins/markdown-it';
 import 'highlight.js/styles/atom-one-dark.css';
 import commonMixin from '@/mixins/common';
 import { mapGetters } from 'vuex';
-import { avatarSrc, formatScore, getFileIconType } from '@/utils/util';
+import {
+  avatarSrc,
+  formatFileSize,
+  formatScore,
+  getFileIconType,
+} from '@/utils/util';
 import SubConversion from './subConversion/index.vue';
 import SubConversionList from './subConversion/SubConversionList.vue';
 import RagStepCard from './ragStepCard.vue';
@@ -1064,6 +1069,7 @@ export default {
     getFileIconType,
     avatarSrc,
     formatScore,
+    formatFileSize,
     getTitle(type) {
       if (type === 'qa_start') {
         return this.$t('app.qaSearching');
@@ -1453,9 +1459,7 @@ export default {
       if (!fileSize || typeof fileSize !== 'number' || Number.isNaN(fileSize)) {
         return '...';
       }
-      return fileSize > 1024
-        ? `${(fileSize / (1024 * 1024)).toFixed(2)} MB`
-        : `${fileSize} bytes`;
+      return formatFileSize(fileSize);
     },
     replaceData(data) {
       this.session_data = data;

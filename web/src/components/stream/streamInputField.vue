@@ -67,7 +67,7 @@
                   {{ item.file.name }}
                 </p>
                 <p class="docInfo_size">
-                  {{ getFileSizeDisplay(item.file.size) }}
+                  {{ formatFileSize(item.file.size) }}
                 </p>
               </div>
             </div>
@@ -184,7 +184,7 @@ import {
   getPromptBuiltInList,
 } from '@/api/promptTemplate';
 import FileIcon from '@/components/FileIcon.vue';
-import { getFileIconType } from '@/utils/util';
+import { formatFileSize, getFileIconType } from '@/utils/util';
 
 export default {
   props: {
@@ -386,6 +386,7 @@ export default {
   },
   methods: {
     getFileIconType,
+    formatFileSize,
     initDrag(maxFiles) {
       this.$nextTick(() => {
         if (typeof this.dragCleanup === 'function') {
@@ -460,11 +461,6 @@ export default {
       if (this.isImageFile(file)) return 'image/*';
       if (this.isAudioFile(file)) return 'audio/*';
       return 'doc/*';
-    },
-    getFileSizeDisplay(fileSize) {
-      return fileSize > 1024
-        ? `${(fileSize / (1024 * 1024)).toFixed(2)} MB`
-        : `${fileSize} bytes`;
     },
     showFileLimitMessage() {
       this.$message.warning(

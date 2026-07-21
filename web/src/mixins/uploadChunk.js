@@ -31,6 +31,8 @@ export default {
       resList: [], //记录返回成功的文件name
       uuid: '', //生成当前文件的uuid
       isOpenUrl: false, // 是否使用 Open 系列接口
+      isRetryingFailedChunks: false,
+      activeChunkUploads: 0,
     };
   },
   created() {
@@ -95,14 +97,22 @@ export default {
       if (this.isStop) return;
       //如果当前切片文件已经上传完停止上传
       if (this.nextChunkIndex >= this.chunks.length) {
-        //所有执行完之后，失败切片进行重试
-        if (this.failChunk.length !== 0) {
-          this.resetUpload();
+        if (this.activeChunkUploads > 0) return;
+
+        if (this.failChunk.length !== 0 && !this.isRetryingFailedChunks) {
+          this.isRetryingFailedChunks = true;
+          await this.resetUpload();
+          this.isRetryingFailedChunks = false;
+
+          if (this.failChunk.length !== 0 && this.handleUploadFailure) {
+            this.handleUploadFailure();
+          }
         }
         return;
       }
 
       const chunk = this.chunks[this.nextChunkIndex++];
+      this.activeChunkUploads++;
       const uploadPromise = this.uploadChunk(chunk)
         .then(() => {
           if (this.isStop) return;
@@ -113,6 +123,10 @@ export default {
           if (this.isStop) return;
           this.failChunk.push(chunk);
           this.processNextChunk();
+        })
+        .finally(() => {
+          this.activeChunkUploads--;
+          if (!this.isStop) this.processNextChunk();
         });
 
       this.uploadQueue.push(uploadPromise);
@@ -256,15 +270,23 @@ export default {
             this.$message.error(
               `${this.file.name}` + i18n.t('fileChunk.uploadFail'),
             );
-            this.fileList[this.fileIndex]['showRemerge'] = 'true';
-            this.uploadNextTask && this.uploadNextTask();
+            if (this.handleUploadFailure) {
+              this.handleUploadFailure({ showMessage: false });
+            } else {
+              this.fileList[this.fileIndex]['showRemerge'] = 'true';
+              this.uploadNextTask && this.uploadNextTask();
+            }
           }
         });
       } catch (error) {
         this.$message.error(
           `${this.file.name}` + i18n.t('fileChunk.uploadFail'),
         );
-        this.fileList[this.fileIndex]['showRemerge'] = 'true';
+        if (this.handleUploadFailure) {
+          this.handleUploadFailure({ showMessage: false });
+        } else {
+          this.fileList[this.fileIndex]['showRemerge'] = 'true';
+        }
       }
     },
     cancelAllRequests() {
