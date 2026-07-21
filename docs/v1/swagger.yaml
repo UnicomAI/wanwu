@@ -1791,6 +1791,19 @@ definitions:
     - docId
     - fileUploadId
     type: object
+  request.BatchDeleteUserReq:
+    properties:
+      orgId:
+        type: string
+      userIds:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - orgId
+    - userIds
+    type: object
   request.BatchDocMetaDataReq:
     properties:
       createMeta:
@@ -5406,6 +5419,8 @@ definitions:
     type: object
   response.AdminOrgTreeNode:
     properties:
+      avatar:
+        $ref: '#/definitions/request.Avatar'
       children:
         items:
           $ref: '#/definitions/response.AdminOrgTreeNode'
@@ -19655,6 +19670,28 @@ paths:
       summary: 编辑下级组织
       tags:
       - admin_center
+  /org/admin/select:
+    get:
+      consumes:
+      - application/json
+      description: 返回当前用户具有组织管理员角色的组织及其下级所有组织的扁平列表（不含上级组织）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.Select'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取管理员组织及下级组织列表（不含上级组织，用于下拉选择）
+      tags:
+      - admin_center
   /org/info:
     get:
       consumes:
@@ -22182,6 +22219,29 @@ paths:
       tags:
       - common
   /user/batch:
+    delete:
+      consumes:
+      - application/json
+      description: 传入组织为顶级组织时从系统批量删除用户；否则从指定组织批量移除用户
+      parameters:
+      - description: 批量删除请求
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.BatchDeleteUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 批量删除/移除用户
+      tags:
+      - admin_center
     post:
       consumes:
       - multipart/form-data

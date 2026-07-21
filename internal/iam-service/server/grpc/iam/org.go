@@ -155,6 +155,13 @@ func (s *Service) RemoveOrgUser(ctx context.Context, req *iam_service.RemoveOrgU
 	return &emptypb.Empty{}, nil
 }
 
+func (s *Service) BatchRemoveOrgUser(ctx context.Context, req *iam_service.BatchRemoveOrgUserReq) (*emptypb.Empty, error) {
+	if err := s.cli.BatchRemoveOrgUser(ctx, util.MustU32(req.OrgId), util.MustU32s(req.UserIds)); err != nil {
+		return nil, errStatus(errs.Code_IAMOrg, err)
+	}
+	return &emptypb.Empty{}, nil
+}
+
 // --- internal function ---
 
 func toOrgInfo(org *orm.OrgInfo) *iam_service.OrgInfo {
@@ -184,9 +191,10 @@ func toAdminOrgTreeNodes(nodes []*orm.AdminOrgTreeNode) []*iam_service.AdminOrgT
 
 func toAdminOrgTreeNode(node *orm.AdminOrgTreeNode) *iam_service.AdminOrgTreeNode {
 	return &iam_service.AdminOrgTreeNode{
-		OrgId:    strconv.Itoa(int(node.ID)),
-		Name:     node.Name,
-		HasPerm:  node.HasPerm,
-		Children: toAdminOrgTreeNodes(node.Children),
+		OrgId:      strconv.Itoa(int(node.ID)),
+		Name:       node.Name,
+		AvatarPath: node.AvatarPath,
+		HasPerm:    node.HasPerm,
+		Children:   toAdminOrgTreeNodes(node.Children),
 	}
 }

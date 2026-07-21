@@ -61,6 +61,12 @@ func WithUserID(userID uint32) SQLOption {
 	})
 }
 
+func WithUsers(userIDs []uint32) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id IN ?", userIDs)
+	})
+}
+
 func WithRoleID(role uint32) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		return db.Where("role_id = ?", role)

@@ -26,6 +26,7 @@ type IClient interface {
 	CreateUsers(ctx context.Context, users []*orm.UsersInfo, creatorID, orgID uint32) (*orm.CreateUsersResult, *errs.Status)
 	UpdateUser(ctx context.Context, user *model.User, orgID uint32, roleIDs []uint32) *errs.Status
 	DeleteUser(ctx context.Context, userID uint32) *errs.Status
+	BatchDeleteUser(ctx context.Context, userIDs []uint32) *errs.Status
 	UpdateUserAvatar(ctx context.Context, userID uint32, key string) *errs.Status
 
 	ChangeUserStatus(ctx context.Context, userID, orgID uint32, status bool) *errs.Status
@@ -59,6 +60,7 @@ type IClient interface {
 	ChangeOrgStatus(ctx context.Context, orgID uint32, status bool) *errs.Status
 	AddOrgUser(ctx context.Context, orgID, userID, roleID uint32) *errs.Status
 	RemoveOrgUser(ctx context.Context, orgID, userID uint32) *errs.Status
+	BatchRemoveOrgUser(ctx context.Context, orgID uint32, userIDs []uint32) *errs.Status
 
 	// --- role ---
 

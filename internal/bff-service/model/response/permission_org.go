@@ -24,4 +24,5 @@ type AdminOrgTreeNode struct {
 	Children []*AdminOrgTreeNode `json:"children"`
 	HasPerm  bool                `json:"hasPerm"`
 	IsSystem bool                `json:"isSystem"` // 是否系统（顶级）组织
+	Avatar   request.Avatar      `json:"avatar"`
 }

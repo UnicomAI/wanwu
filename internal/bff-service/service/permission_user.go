@@ -263,6 +263,21 @@ func RemoveOrgUser(ctx *gin.Context, orgID, userID string) error {
 	return err
 }
 
+func BatchRemoveOrgUser(ctx *gin.Context, orgID string, userIDs []string) error {
+	_, err := iam.BatchRemoveOrgUser(ctx.Request.Context(), &iam_service.BatchRemoveOrgUserReq{
+		OrgId:   orgID,
+		UserIds: userIDs,
+	})
+	return err
+}
+
+func BatchDeleteUser(ctx *gin.Context, userIDs []string) error {
+	_, err := iam.BatchDeleteUser(ctx.Request.Context(), &iam_service.BatchDeleteUserReq{
+		UserIds: userIDs,
+	})
+	return err
+}
+
 func UpdateUserAvatar(ctx *gin.Context, userID, key string) error {
 	_, err := iam.UpdateUserAvatar(ctx.Request.Context(), &iam_service.UpdateUserAvatarReq{
 		UserId:     userID,

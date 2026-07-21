@@ -21,7 +21,6 @@ var (
 		"/v1/user/permission":       true,
 		"/v1/user/info":             true,
 		"/v1/org/select":            true,
-		"/v1/org/admin/select":      true,
 		"/v1/user/login/email/code": true,
 		"/v1/user/login":            true,
 	}

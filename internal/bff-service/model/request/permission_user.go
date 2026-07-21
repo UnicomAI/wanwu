@@ -88,3 +88,12 @@ type UserPasswordByAdmin struct {
 func (u *UserPasswordByAdmin) Check() error {
 	return nil
 }
+
+type BatchDeleteUserReq struct {
+	OrgID   string   `json:"orgId" validate:"required"`
+	UserIDs []string `json:"userIds" validate:"required,min=1"`
+}
+
+func (b *BatchDeleteUserReq) Check() error {
+	return nil
+}

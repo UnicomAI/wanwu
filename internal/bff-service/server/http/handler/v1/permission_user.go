@@ -266,3 +266,38 @@ func GetUsersByOrgIDs(ctx *gin.Context) {
 	resp, err := service.GetUsersByOrgIDs(ctx, getUserID(ctx), &req)
 	gin_util.Response(ctx, resp, err)
 }
+
+// BatchDeleteUser
+//
+//	@Tags			admin_center
+//	@Summary		批量删除/移除用户
+//	@Description	传入组织为顶级组织时从系统批量删除用户；否则从指定组织批量移除用户
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.BatchDeleteUserReq	true	"批量删除请求"
+//	@Success		200		{object}	response.Response
+//	@Router			/user/batch [delete]
+func BatchDeleteUser(ctx *gin.Context) {
+	var req request.BatchDeleteUserReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	// 系统视角：批量删除用户
+	if req.OrgID == config.TopOrgID {
+		if !isAdmin(ctx) {
+			gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_user_cannot_delete"))
+			return
+		}
+		err := service.BatchDeleteUser(ctx, req.UserIDs)
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	// 组织视角：批量从组织移除用户，校验对目标组织的管理权
+	if !service.IsAdminInOrgs(ctx, getUserID(ctx), req.OrgID) {
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_user_cannot_delete_other"))
+		return
+	}
+	err := service.BatchRemoveOrgUser(ctx, req.OrgID, req.UserIDs)
+	gin_util.Response(ctx, nil, err)
+}

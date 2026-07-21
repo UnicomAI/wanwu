@@ -729,6 +729,24 @@ func (c *Client) DeleteUser(ctx context.Context, userID uint32) *errs.Status {
 
 }
 
+func (c *Client) BatchDeleteUser(ctx context.Context, userIDs []uint32) *errs.Status {
+	return c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+		// delete user role
+		if err := sqlopt.WithUsers(userIDs).Apply(tx).Delete(&model.UserRole{}).Error; err != nil {
+			return toErrStatus("iam_user_batch_delete", err.Error())
+		}
+		// delete org user
+		if err := sqlopt.WithUsers(userIDs).Apply(tx).Delete(&model.OrgUser{}).Error; err != nil {
+			return toErrStatus("iam_user_batch_delete", err.Error())
+		}
+		// delete user
+		if err := sqlopt.WithUsers(userIDs).Apply(tx).Delete(&model.User{}).Error; err != nil {
+			return toErrStatus("iam_user_batch_delete", err.Error())
+		}
+		return nil
+	})
+}
+
 func (c *Client) UpdateUserAvatar(ctx context.Context, userID uint32, avatarPath string) *errs.Status {
 	if err := sqlopt.WithID(userID).Apply(c.db.WithContext(ctx)).Model(&model.User{}).Updates(map[string]interface{}{
 		"avatar_path": avatarPath,

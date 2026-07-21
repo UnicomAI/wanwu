@@ -126,6 +126,13 @@ func (s *Service) DeleteUser(ctx context.Context, req *iam_service.DeleteUserReq
 	return &emptypb.Empty{}, nil
 }
 
+func (s *Service) BatchDeleteUser(ctx context.Context, req *iam_service.BatchDeleteUserReq) (*emptypb.Empty, error) {
+	if err := s.cli.BatchDeleteUser(ctx, util.MustU32s(req.UserIds)); err != nil {
+		return nil, errStatus(errs.Code_IAMUser, err)
+	}
+	return &emptypb.Empty{}, nil
+}
+
 func (s *Service) ChangeUserStatus(ctx context.Context, req *iam_service.ChangeUserStatusReq) (*emptypb.Empty, error) {
 	if err := s.cli.ChangeUserStatus(ctx, util.MustU32(req.UserId), util.MustU32(req.OrgId), req.Status); err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
