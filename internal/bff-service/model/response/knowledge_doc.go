@@ -1,6 +1,8 @@
 package response
 
 import (
+	"fmt"
+
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
 )
@@ -56,6 +58,7 @@ type ListDocResp struct {
 	Status        int    `json:"status"`        //处理状态
 	ErrorMsg      string `json:"errorMsg"`      //解析错误信息，预留
 	FileSize      int64  `json:"fileSize"`      //文件大小，单位字节(Byte)
+	FileSizeStr   string `json:"fileSizeStr"`   //文件大小的人眼友好展示
 	SegmentMethod string `json:"segmentMethod"` //分段模式 0:通用分段，1：父子分段
 	Author        string `json:"author"`        //上传文档 作者
 	GraphStatus   int32  `json:"graphStatus"`   //图谱状态 0:待处理，1.解析中，2.解析成功，3.解析失败 -1. 当文档状态为解析失败时，显示 -
@@ -74,6 +77,8 @@ type DocImportTipResp struct {
 
 type DocSegmentResp struct {
 	FileName            string                 `json:"fileName"`            //名称
+	FileSize            int64                  `json:"fileSize"`            //文件大小，单位字节(Byte)
+	FileSizeStr         string                 `json:"fileSizeStr"`         //文件大小的人眼友好展示
 	PageTotal           int                    `json:"pageTotal"`           //总页数
 	SegmentTotalNum     int                    `json:"segmentTotalNum"`     //分段数量
 	MaxSegmentSize      int                    `json:"maxSegmentSize"`      //设置最大长度
@@ -143,4 +148,34 @@ type DocUploadLimit struct {
 	FileType string   `json:"fileType"` // 文件类型 图片：image 视频：video
 	MaxSize  int      `json:"maxSize"`  // 文件大小限制，单位MB
 	ExtList  []string `json:"extList"`  // 文件后缀列表
+}
+
+const (
+	fileSizeKB = 1024
+	fileSizeMB = fileSizeKB * 1024
+	fileSizeGB = fileSizeMB * 1024
+)
+
+// FormatFileSize 将字节大小转换为人眼友好的展示字符串。
+// 规则：fileSize <= 0 返回 "--"；其余最小以 K 展示，下限 0.01 K；之后依次为 M、G，保留两位小数。
+func FormatFileSize(fileSize int64) string {
+	if fileSize <= 0 {
+		return "--"
+	}
+	switch {
+	case fileSize < fileSizeMB:
+		return fmt.Sprintf("%.2f K", maxFloat(float64(fileSize)/float64(fileSizeKB), 0.01))
+	case fileSize < fileSizeGB:
+		return fmt.Sprintf("%.2f M", float64(fileSize)/float64(fileSizeMB))
+	default:
+		return fmt.Sprintf("%.2f G", float64(fileSize)/float64(fileSizeGB))
+	}
+}
+
+// maxFloat 返回两个浮点数中的较大值，用于约束最小显示为 0.01 K。
+func maxFloat(a, b float64) float64 {
+	if a > b {
+		return a
+	}
+	return b
 }

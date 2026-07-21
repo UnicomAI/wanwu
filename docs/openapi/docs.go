@@ -6260,6 +6260,14 @@ const docTemplate = `{
                     "description": "名称",
                     "type": "string"
                 },
+                "fileSize": {
+                    "description": "文件大小，单位字节(Byte)",
+                    "type": "integer"
+                },
+                "fileSizeStr": {
+                    "description": "文件大小的人眼友好展示",
+                    "type": "string"
+                },
                 "maxSegmentSize": {
                     "description": "设置最大长度",
                     "type": "integer"
@@ -6670,6 +6678,10 @@ const docTemplate = `{
                 "fileSize": {
                     "description": "文件大小，单位字节(Byte)",
                     "type": "integer"
+                },
+                "fileSizeStr": {
+                    "description": "文件大小的人眼友好展示",
+                    "type": "string"
                 },
                 "graphErrMsg": {
                     "description": "图谱错误信息",
