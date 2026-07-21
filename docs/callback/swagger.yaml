@@ -2189,18 +2189,6 @@ definitions:
     required:
     - skillIdList
     type: object
-  request.SearchKnowledgeInfoReq:
-    properties:
-      categoryName:
-        type: string
-      orgId:
-        type: string
-      userId:
-        type: string
-    required:
-    - categoryName
-    - userId
-    type: object
   request.UnarchiveFileReq:
     properties:
       fileUrl:
@@ -2868,43 +2856,6 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: 智能体代理问答
-      tags:
-      - callback
-  /api/category/info:
-    get:
-      consumes:
-      - application/json
-      description: 获取Maas平台知识库信息（模型扩展调用）
-      parameters:
-      - description: 根据知识库名称请求参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/request.SearchKnowledgeInfoReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-      summary: 获取Maas平台知识库信息（模型扩展调用）
-      tags:
-      - callback
-  /api/deploy/info:
-    get:
-      consumes:
-      - application/json
-      description: 获取Maas平台部署信息（模型扩展调用）
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-      summary: 获取Maas平台部署信息（模型扩展调用）
       tags:
       - callback
   /api/doc_status_init:

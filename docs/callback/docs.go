@@ -57,63 +57,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/category/info": {
-            "get": {
-                "description": "获取Maas平台知识库信息（模型扩展调用）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "callback"
-                ],
-                "summary": "获取Maas平台知识库信息（模型扩展调用）",
-                "parameters": [
-                    {
-                        "description": "根据知识库名称请求参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.SearchKnowledgeInfoReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/deploy/info": {
-            "get": {
-                "description": "获取Maas平台部署信息（模型扩展调用）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "callback"
-                ],
-                "summary": "获取Maas平台部署信息（模型扩展调用）",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/api/doc_status_init": {
             "get": {
                 "description": "将正在解析的文档设置为解析失败",
@@ -4802,24 +4745,6 @@ const docTemplate = `{
                 },
                 "userId": {
                     "description": "UserId/OrgId：调用方期望\"以哪个用户身份\"查询这批 skill 的详情与变量。\ncallback 由 assistant-service 在处理智能体（Assistant）对话时内部回调过来，\n此处应传智能体在 assistant 表里的 user_id / org_id（智能体创建者），\n而不是发起 HTTP 请求的调用者——发布态智能体常被非创建者调用，\n用调用者身份会查不到创建者配置的 per-user skill 变量。",
-                    "type": "string"
-                }
-            }
-        },
-        "request.SearchKnowledgeInfoReq": {
-            "type": "object",
-            "required": [
-                "categoryName",
-                "userId"
-            ],
-            "properties": {
-                "categoryName": {
-                    "type": "string"
-                },
-                "orgId": {
-                    "type": "string"
-                },
-                "userId": {
                     "type": "string"
                 }
             }
