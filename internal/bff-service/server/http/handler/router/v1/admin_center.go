@@ -13,6 +13,7 @@ func registerAdminCenter(apiV1 *gin.RouterGroup) {
 	// user
 	mid.Sub("admin_center").Reg(apiV1, "/user", http.MethodPost, v1.CreateUser, "创建用户", middleware.CheckOrgAdmin)
 	mid.Sub("admin_center").Reg(apiV1, "/user/batch", http.MethodPost, v1.CreateUserByFile, "批量导入用户", middleware.CheckOrgAdmin)
+	mid.Sub("admin_center").Reg(apiV1, "/user/batch", http.MethodDelete, v1.BatchDeleteUser, "批量删除用户", middleware.CheckOrgAdmin)
 	mid.Sub("admin_center").Reg(apiV1, "/user", http.MethodPut, v1.ChangeUser, "编辑用户", middleware.CheckOrgAdmin)
 	mid.Sub("admin_center").Reg(apiV1, "/user", http.MethodDelete, v1.DeleteUser, "删除用户", middleware.CheckOrgAdmin)
 	mid.Sub("admin_center").Reg(apiV1, "/user/list", http.MethodGet, v1.GetUserList, "获取用户列表", middleware.CheckOrgAdmin)
@@ -29,7 +30,8 @@ func registerAdminCenter(apiV1 *gin.RouterGroup) {
 	mid.Sub("admin_center").Reg(apiV1, "/org/info", http.MethodGet, v1.GetOrgInfo, "获取组织信息", middleware.CheckOrgAdmin)
 	mid.Sub("admin_center").Reg(apiV1, "/org/list", http.MethodGet, v1.GetOrgList, "获取下级组织列表", middleware.CheckOrgAdmin)
 	mid.Sub("admin_center").Reg(apiV1, "/org/status", http.MethodPut, v1.ChangeOrgStatus, "修改下级组织状态", middleware.CheckOrgAdmin)
-	mid.Sub("admin_center").Reg(apiV1, "/org/tree", http.MethodGet, v1.GetAdminOrgSubTree, "获取管理员组织及下级组织列表")
+	mid.Sub("admin_center").Reg(apiV1, "/org/tree", http.MethodGet, v1.GetAdminOrgSubTree, "获取管理员组织及下级组织列表（包含上级组织）")
+	mid.Sub("admin_center").Reg(apiV1, "/org/admin/select", http.MethodGet, v1.GetAdminOrgSelect, "获取管理员组织及下级组织列表（不含上级组织）")
 	// role
 	mid.Sub("admin_center").Reg(apiV1, "/role/template", http.MethodGet, v1.GetRoleTemplate, "获取角色模板（用于创建角色）", middleware.CheckOrgAdmin)
 	mid.Sub("admin_center").Reg(apiV1, "/role", http.MethodPost, v1.CreateRole, "创建角色", middleware.CheckOrgAdmin)

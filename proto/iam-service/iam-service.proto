@@ -77,6 +77,10 @@ service IAMService {
   rpc AddOrgUser(AddOrgUserReq) returns (google.protobuf.Empty) {}
   // 移除组织用户
   rpc RemoveOrgUser(RemoveOrgUserReq) returns (google.protobuf.Empty) {}
+  // 批量移除组织用户
+  rpc BatchRemoveOrgUser(BatchRemoveOrgUserReq) returns (google.protobuf.Empty) {}
+  // 批量删除用户（从系统删除）
+  rpc BatchDeleteUser(BatchDeleteUserReq) returns (google.protobuf.Empty) {}
 
   // --- role ---
 
@@ -407,6 +411,7 @@ message GetAdminOrgIDsResp {
 message AdminOrgTreeNode {
   string orgId = 1;
   string name = 2;
+  string avatarPath = 3;
   repeated AdminOrgTreeNode children = 4;
   bool hasPerm = 5; // 当前用户是否对该组织有管理权限
 }
@@ -475,6 +480,15 @@ message RemoveOrgUserReq {
   string parentId = 1;
   string orgId = 2;
   string userId = 3;
+}
+
+message BatchRemoveOrgUserReq {
+  string orgId = 1;
+  repeated string userIds = 2;
+}
+
+message BatchDeleteUserReq {
+  repeated string userIds = 1;
 }
 
 // --- role ---

@@ -16197,6 +16197,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/org/admin/select": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "返回当前用户具有组织管理员角色的组织及其下级所有组织的扁平列表（不含上级组织）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center"
+                ],
+                "summary": "获取管理员组织及下级组织列表（不含上级组织，用于下拉选择）",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.Select"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/org/info": {
             "get": {
                 "security": [
@@ -20608,6 +20648,43 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "传入组织为顶级组织时从系统批量删除用户；否则从指定组织批量移除用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center"
+                ],
+                "summary": "批量删除/移除用户",
+                "parameters": [
+                    {
+                        "description": "批量删除请求",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.BatchDeleteUserReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
             }
         },
         "/user/info": {
@@ -24172,6 +24249,25 @@ const docTemplate = `{
                 "fileUploadId": {
                     "description": "fileUploadId",
                     "type": "string"
+                }
+            }
+        },
+        "request.BatchDeleteUserReq": {
+            "type": "object",
+            "required": [
+                "orgId",
+                "userIds"
+            ],
+            "properties": {
+                "orgId": {
+                    "type": "string"
+                },
+                "userIds": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -29467,6 +29563,9 @@ const docTemplate = `{
         "response.AdminOrgTreeNode": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "$ref": "#/definitions/request.Avatar"
+                },
                 "children": {
                     "type": "array",
                     "items": {

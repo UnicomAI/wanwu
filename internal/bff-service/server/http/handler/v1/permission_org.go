@@ -132,3 +132,18 @@ func GetAdminOrgSubTree(ctx *gin.Context) {
 	resp, err := service.GetAdminOrgSubTree(ctx, getUserID(ctx))
 	gin_util.Response(ctx, resp, err)
 }
+
+// GetAdminOrgSelect
+//
+//	@Tags			admin_center
+//	@Summary		获取管理员组织及下级组织列表（不含上级组织，用于下拉选择）
+//	@Description	返回当前用户具有组织管理员角色的组织及其下级所有组织的扁平列表（不含上级组织）
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	response.Response{data=response.Select}
+//	@Router			/org/admin/select [get]
+func GetAdminOrgSelect(ctx *gin.Context) {
+	resp, err := service.GetAdminOrgSelect(ctx, getUserID(ctx))
+	gin_util.Response(ctx, resp, err)
+}

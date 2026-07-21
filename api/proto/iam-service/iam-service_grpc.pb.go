@@ -51,6 +51,8 @@ const (
 	IAMService_ChangeOrgStatus_FullMethodName             = "/iam_service.IAMService/ChangeOrgStatus"
 	IAMService_AddOrgUser_FullMethodName                  = "/iam_service.IAMService/AddOrgUser"
 	IAMService_RemoveOrgUser_FullMethodName               = "/iam_service.IAMService/RemoveOrgUser"
+	IAMService_BatchRemoveOrgUser_FullMethodName          = "/iam_service.IAMService/BatchRemoveOrgUser"
+	IAMService_BatchDeleteUser_FullMethodName             = "/iam_service.IAMService/BatchDeleteUser"
 	IAMService_GetRoleSelect_FullMethodName               = "/iam_service.IAMService/GetRoleSelect"
 	IAMService_GetGlobalRoleSelect_FullMethodName         = "/iam_service.IAMService/GetGlobalRoleSelect"
 	IAMService_GetGlobalRoleList_FullMethodName           = "/iam_service.IAMService/GetGlobalRoleList"
@@ -146,6 +148,10 @@ type IAMServiceClient interface {
 	AddOrgUser(ctx context.Context, in *AddOrgUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 移除组织用户
 	RemoveOrgUser(ctx context.Context, in *RemoveOrgUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 批量移除组织用户
+	BatchRemoveOrgUser(ctx context.Context, in *BatchRemoveOrgUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 批量删除用户（从系统删除）
+	BatchDeleteUser(ctx context.Context, in *BatchDeleteUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 获取角色列表（用于下拉选择）
 	GetRoleSelect(ctx context.Context, in *GetRoleSelectReq, opts ...grpc.CallOption) (*GetRoleSelectResp, error)
 	// 获取全局角色列表（用于下拉选择）
@@ -523,6 +529,26 @@ func (c *iAMServiceClient) RemoveOrgUser(ctx context.Context, in *RemoveOrgUserR
 	return out, nil
 }
 
+func (c *iAMServiceClient) BatchRemoveOrgUser(ctx context.Context, in *BatchRemoveOrgUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, IAMService_BatchRemoveOrgUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) BatchDeleteUser(ctx context.Context, in *BatchDeleteUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, IAMService_BatchDeleteUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *iAMServiceClient) GetRoleSelect(ctx context.Context, in *GetRoleSelectReq, opts ...grpc.CallOption) (*GetRoleSelectResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetRoleSelectResp)
@@ -859,6 +885,10 @@ type IAMServiceServer interface {
 	AddOrgUser(context.Context, *AddOrgUserReq) (*emptypb.Empty, error)
 	// 移除组织用户
 	RemoveOrgUser(context.Context, *RemoveOrgUserReq) (*emptypb.Empty, error)
+	// 批量移除组织用户
+	BatchRemoveOrgUser(context.Context, *BatchRemoveOrgUserReq) (*emptypb.Empty, error)
+	// 批量删除用户（从系统删除）
+	BatchDeleteUser(context.Context, *BatchDeleteUserReq) (*emptypb.Empty, error)
 	// 获取角色列表（用于下拉选择）
 	GetRoleSelect(context.Context, *GetRoleSelectReq) (*GetRoleSelectResp, error)
 	// 获取全局角色列表（用于下拉选择）
@@ -1018,6 +1048,12 @@ func (UnimplementedIAMServiceServer) AddOrgUser(context.Context, *AddOrgUserReq)
 }
 func (UnimplementedIAMServiceServer) RemoveOrgUser(context.Context, *RemoveOrgUserReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveOrgUser not implemented")
+}
+func (UnimplementedIAMServiceServer) BatchRemoveOrgUser(context.Context, *BatchRemoveOrgUserReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchRemoveOrgUser not implemented")
+}
+func (UnimplementedIAMServiceServer) BatchDeleteUser(context.Context, *BatchDeleteUserReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchDeleteUser not implemented")
 }
 func (UnimplementedIAMServiceServer) GetRoleSelect(context.Context, *GetRoleSelectReq) (*GetRoleSelectResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRoleSelect not implemented")
@@ -1679,6 +1715,42 @@ func _IAMService_RemoveOrgUser_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_BatchRemoveOrgUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchRemoveOrgUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).BatchRemoveOrgUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_BatchRemoveOrgUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).BatchRemoveOrgUser(ctx, req.(*BatchRemoveOrgUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_BatchDeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchDeleteUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).BatchDeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_BatchDeleteUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).BatchDeleteUser(ctx, req.(*BatchDeleteUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IAMService_GetRoleSelect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetRoleSelectReq)
 	if err := dec(in); err != nil {
@@ -2295,6 +2367,14 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveOrgUser",
 			Handler:    _IAMService_RemoveOrgUser_Handler,
+		},
+		{
+			MethodName: "BatchRemoveOrgUser",
+			Handler:    _IAMService_BatchRemoveOrgUser_Handler,
+		},
+		{
+			MethodName: "BatchDeleteUser",
+			Handler:    _IAMService_BatchDeleteUser_Handler,
 		},
 		{
 			MethodName: "GetRoleSelect",

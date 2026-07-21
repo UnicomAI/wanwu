@@ -524,7 +524,28 @@ func (c *Client) RemoveOrgUser(ctx context.Context, orgID, userID uint32) *errs.
 	})
 }
 
-// --- internal function ---
+func (c *Client) BatchRemoveOrgUser(ctx context.Context, orgID uint32, userIDs []uint32) *errs.Status {
+	return c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+		if orgID == config.TopOrgID() {
+			return toErrStatus("iam_org_user_remove_top")
+		}
+		// delete user role
+		if err := sqlopt.SQLOptions(
+			sqlopt.WithOrgID(orgID),
+			sqlopt.WithUsers(userIDs),
+		).Apply(tx).Delete(&model.UserRole{}).Error; err != nil {
+			return toErrStatus("iam_org_user_batch_remove", util.Int2Str(orgID), err.Error())
+		}
+		// delete org user
+		if err := sqlopt.SQLOptions(
+			sqlopt.WithOrgID(orgID),
+			sqlopt.WithUsers(userIDs),
+		).Apply(tx).Delete(&model.OrgUser{}).Error; err != nil {
+			return toErrStatus("iam_org_user_batch_remove", util.Int2Str(orgID), err.Error())
+		}
+		return nil
+	})
+}
 
 func toOrgInfoTx(tx *gorm.DB, org *model.Org) (*OrgInfo, error) {
 	ret := &OrgInfo{
@@ -665,9 +686,10 @@ func buildFullOrgNode(node *model.OrgNode) *AdminOrgTreeNode {
 	}
 	orgID := node.GetOrgID()
 	result := &AdminOrgTreeNode{
-		ID:      orgID,
-		Name:    node.GetOrgName(orgID),
-		HasPerm: true,
+		ID:         orgID,
+		Name:       node.GetOrgName(orgID),
+		AvatarPath: node.GetAvatarPath(),
+		HasPerm:    true,
 	}
 	for _, sub := range node.GetSubs(orgID) {
 		if child := buildFullOrgNode(sub); child != nil {
@@ -690,9 +712,10 @@ func buildFilteredOrgNode(node *model.OrgNode, visibleIDs, adminScopeIDs map[uin
 		return nil
 	}
 	result := &AdminOrgTreeNode{
-		ID:      orgID,
-		Name:    node.GetOrgName(orgID),
-		HasPerm: adminScopeIDs[orgID],
+		ID:         orgID,
+		Name:       node.GetOrgName(orgID),
+		AvatarPath: node.GetAvatarPath(),
+		HasPerm:    adminScopeIDs[orgID],
 	}
 	for _, sub := range node.GetSubs(orgID) {
 		if child := buildFilteredOrgNode(sub, visibleIDs, adminScopeIDs); child != nil {

@@ -49,6 +49,14 @@ func MustU32(s string) uint32 {
 	return uint32(i64)
 }
 
+func MustU32s(ss []string) []uint32 {
+	ret := make([]uint32, len(ss))
+	for i, s := range ss {
+		ret[i] = MustU32(s)
+	}
+	return ret
+}
+
 func Int2Str[T ~int | ~int32 | ~uint32 | ~int64](i T) string {
 	return strconv.FormatInt(int64(i), 10)
 }

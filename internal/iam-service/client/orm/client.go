@@ -173,10 +173,11 @@ type RoleUser struct {
 
 // AdminOrgTreeNode 管理员组织树节点
 type AdminOrgTreeNode struct {
-	ID       uint32
-	Name     string
-	HasPerm  bool
-	Children []*AdminOrgTreeNode
+	ID         uint32
+	Name       string
+	AvatarPath string
+	HasPerm    bool
+	Children   []*AdminOrgTreeNode
 }
 
 func toErrStatus(key string, args ...string) *err_code.Status {
