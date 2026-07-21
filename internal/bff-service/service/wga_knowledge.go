@@ -21,7 +21,8 @@ const wgaKnowledgeSearchOpenAPITemplate = `{
   "info": {
     "title": "知识库检索",
     "version": "1.0.0",
-    "description": "从配置的知识库中检索相关信息。如果用户的任务需要获取一些信息，即使只有1%的可能性在知识库中，也一定要调用此工具进行检索。"
+    "description": "从配置的知识库中检索相关信息。如果用户的任务需要获取一些信息，即使只有1%的可能性在知识库中，也一定要调用此工具进行检索。",
+    "x-wanwu-type": "knowledge"
   },
   "servers": [
     {

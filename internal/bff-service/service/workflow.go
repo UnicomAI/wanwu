@@ -679,6 +679,15 @@ func GetWorkflowSchemas(ctx *gin.Context, workflowIDs []string) ([]*openapi3.T, 
 		if err != nil {
 			return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_list_schema", fmt.Sprintf("failed to load schema: %v", err))
 		}
+		// 注入 x-wanwu-type 扩展字段，用于 skill 子目录分类
+		if doc.Info != nil {
+			if doc.Info.Extensions == nil {
+				doc.Info.Extensions = make(map[string]interface{})
+			}
+			if _, exists := doc.Info.Extensions["x-wanwu-type"]; !exists {
+				doc.Info.Extensions["x-wanwu-type"] = "workflow"
+			}
+		}
 		ret = append(ret, doc)
 	}
 	return ret, nil

@@ -34,7 +34,6 @@ package opencode
 import (
 	"context"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -47,6 +46,7 @@ import (
 	"time"
 
 	"github.com/UnicomAI/wanwu/pkg/log"
+	"github.com/UnicomAI/wanwu/pkg/openapi2skill"
 	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
@@ -56,6 +56,7 @@ import (
 	"github.com/cloudwego/eino/adk"
 	"github.com/cloudwego/eino/schema"
 	"github.com/google/uuid"
+	"golang.org/x/sync/errgroup"
 )
 
 // ============================================================================
@@ -214,11 +215,7 @@ func (r *Runner) BeforeRun(ctx context.Context) error {
 		return err
 	}
 
-	if err := r.setupSkills(ctx); err != nil {
-		return err
-	}
-
-	if err := r.setupTools(ctx); err != nil {
+	if err := r.setupSkillsAndTools(ctx); err != nil {
 		return err
 	}
 
@@ -313,108 +310,169 @@ func (r *Runner) setupConfig(ctx context.Context) error {
 	return nil
 }
 
-// setupSkills 复制 skills 到工作目录，并注入变量到 SKILL.md。
-func (r *Runner) setupSkills(ctx context.Context) error {
-	if len(r.opt.Skills) == 0 {
+// setupSkillsAndTools 并行准备 skills 和 tools 到本地临时目录，然后打包为单个压缩包传输到沙箱解压。
+// 优化点：
+// 1. skills 和 tools 准备并行执行
+// 2. openapi2skill 在主机进程执行，不在沙箱中执行
+// 3. 所有文件打包成一个 tar.gz 上传，沙箱仅需一次解压命令
+// 4. 最小化沙箱命令执行次数
+func (r *Runner) setupSkillsAndTools(ctx context.Context) error {
+	if len(r.opt.Skills) == 0 && len(r.opt.Tools) == 0 {
 		return nil
 	}
 
-	if _, err := r.sb.ExecuteSync(ctx, "mkdir", "-p", ".opencode/skills"); err != nil {
-		return fmt.Errorf("failed to create skills directory: %w", err)
+	// 创建本地临时目录
+	tmpDir, err := os.MkdirTemp("", "wga-setup-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temp dir: %w", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(tmpDir)
+	}()
+
+	skillsDir := filepath.Join(tmpDir, "skills")
+	toolsDir := filepath.Join(tmpDir, "tools")
+	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create skills temp dir: %w", err)
+	}
+	if err := os.MkdirAll(toolsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create tools temp dir: %w", err)
 	}
 
+	// 并行准备 skills 和 tools
+	var g errgroup.Group
+
+	if len(r.opt.Skills) > 0 {
+		g.Go(func() error {
+			return r.prepareSkillsLocally(skillsDir)
+		})
+	}
+
+	if len(r.opt.Tools) > 0 {
+		g.Go(func() error {
+			return r.prepareToolsLocally(ctx, toolsDir, skillsDir)
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return err
+	}
+
+	// 批量传输：打包 → 上传 → 沙箱解压
+	tarData, err := util.TarDir(tmpDir+"/.", true) // gzip 压缩
+	if err != nil {
+		return fmt.Errorf("failed to tar skills/tools: %w", err)
+	}
+
+	tarPath := ".opencode/_skills_tools.tar.gz"
+	if err := r.sb.WriteFile(ctx, tarPath, tarData); err != nil {
+		return fmt.Errorf("failed to upload skills/tools archive: %w", err)
+	}
+
+	// 单条命令完成解压+清理
+	if _, err := r.sb.ExecuteSync(ctx, fmt.Sprintf("tar -xzf %s -C .opencode && rm -f %s", tarPath, tarPath)); err != nil {
+		return fmt.Errorf("failed to extract skills/tools archive: %w", err)
+	}
+
+	return nil
+}
+
+// prepareSkillsLocally 将所有 skill 目录复制到本地临时目录，并本地追加变量到 SKILL.md。
+func (r *Runner) prepareSkillsLocally(skillsDir string) error {
+	var g errgroup.Group
 	for _, skill := range r.opt.Skills {
-		dirName := path.Base(skill.Dir)
-		if err := r.sb.CopyToSandbox(ctx, skill.Dir, ".opencode/skills"); err != nil {
-			return fmt.Errorf("failed to copy skill %s to workspace: %w", dirName, err)
-		}
-
-		skillDir := ".opencode/skills/" + dirName
-		skillPath := fmt.Sprintf("%s/SKILL.md", skillDir)
-
-		// 追加变量信息到 SKILL.md
-		if len(skill.Variables) > 0 {
-			varsContent := formatVariablesContent(skill.Variables)
-			encoded := base64.StdEncoding.EncodeToString([]byte(varsContent))
-			cmd := fmt.Sprintf("echo '%s' | base64 -d >> \"%s\"", encoded, skillPath)
-			if _, err := r.sb.ExecuteSync(ctx, cmd); err != nil {
-				return fmt.Errorf("failed to update SKILL.md for skill %s: %w", dirName, err)
+		skill := skill // capture
+		g.Go(func() error {
+			dirName := path.Base(skill.Dir)
+			dstDir := filepath.Join(skillsDir, dirName)
+			if err := copyDir(skill.Dir, dstDir); err != nil {
+				return fmt.Errorf("failed to copy skill %s: %w", dirName, err)
 			}
-		}
 
+			// 本地追加变量到 SKILL.md
+			if len(skill.Variables) > 0 {
+				varsContent := formatVariablesContent(skill.Variables)
+				skillMdPath := filepath.Join(dstDir, "SKILL.md")
+				if err := appendToFile(skillMdPath, varsContent); err != nil {
+					return fmt.Errorf("failed to append variables to SKILL.md for skill %s: %w", dirName, err)
+				}
+			}
+			return nil
+		})
 	}
-
-	return nil
+	return g.Wait()
 }
 
-// setupTools 转换 tools 为 skills 并复制到工作目录。
-func (r *Runner) setupTools(ctx context.Context) error {
-	if len(r.opt.Tools) == 0 {
-		return nil
-	}
-
-	if _, err := r.sb.ExecuteSync(ctx, "mkdir", "-p", ".opencode/tools"); err != nil {
-		return fmt.Errorf("failed to create tools directory: %w", err)
-	}
-
-	if _, err := r.sb.ExecuteSync(ctx, "mkdir", "-p", ".opencode/skills"); err != nil {
-		return fmt.Errorf("failed to create skills directory: %w", err)
-	}
-
+// prepareToolsLocally 在主机进程中将所有 tools 转换为 skills 并写入本地临时目录。
+// openapi2skill.ConvertDoc 直接在主机执行，无需沙箱命令。
+func (r *Runner) prepareToolsLocally(ctx context.Context, toolsDir, skillsDir string) error {
+	var g errgroup.Group
 	for _, tool := range r.opt.Tools {
-		if err := r.setupTool(ctx, tool); err != nil {
-			return err
-		}
+		tool := tool // capture
+		g.Go(func() error {
+			return r.prepareToolLocally(ctx, tool, toolsDir, skillsDir)
+		})
 	}
-
-	return nil
+	return g.Wait()
 }
 
-// setupTool 处理单个 tool。
-func (r *Runner) setupTool(ctx context.Context, tool wga_sandbox_option.Tool) error {
-	// 写入 OpenAPI schema 文件
+// prepareToolLocally 处理单个 tool：写入 schema JSON、本地调用 openapi2skill 转换、追加 auth/trace 内容。
+// 如果 OpenAPI schema 的 info.x-wanwu-type 扩展字段存在，skill 会放在 skills/<type>/<skillName>/ 子目录中。
+func (r *Runner) prepareToolLocally(ctx context.Context, tool wga_sandbox_option.Tool, toolsDir, skillsDir string) error {
+	// 1. 写入 OpenAPI schema JSON 到本地 tools 目录
 	schemaData, err := json.Marshal(tool.OpenAPI3Schema)
 	if err != nil {
 		return fmt.Errorf("failed to marshal tool schema %s: %w", tool.Name, err)
 	}
-
 	dstFileName := fmt.Sprintf("%s.%s.json", toSkillName(tool.Name), uuid.New().String()[:8])
-	dstPath := ".opencode/tools/" + dstFileName
-	if err := r.sb.WriteFile(ctx, dstPath, schemaData); err != nil {
+	schemaPath := filepath.Join(toolsDir, dstFileName)
+	if err := os.WriteFile(schemaPath, schemaData, 0644); err != nil {
 		return fmt.Errorf("failed to write tool schema %s: %w", tool.Name, err)
 	}
 
-	// 使用 openapi2skill 转换为 skill
-	skillName := toSkillName(tool.Name)
-	if _, err := r.sb.ExecuteSync(ctx, "openapi2skill", dstPath, "-o", ".opencode/skills", "-n", skillName, "-f"); err != nil {
-		return fmt.Errorf("failed to convert tool %s to skill: %w", tool.Name, err)
-	}
-
-	// 追加 API 认证信息到 SKILL.md
-	if tool.APIAuth != nil && tool.APIAuth.Type != "none" && tool.APIAuth.Value != "" {
-		skillDir := ".opencode/skills/" + skillName
-		skillPath := fmt.Sprintf("%s/SKILL.md", skillDir)
-		authContent := formatAuthContent(tool.APIAuth)
-		encoded := base64.StdEncoding.EncodeToString([]byte(authContent))
-		cmd := fmt.Sprintf("echo '%s' | base64 -d >> \"%s\"", encoded, skillPath)
-		if _, err := r.sb.ExecuteSync(ctx, cmd); err != nil {
-			return fmt.Errorf("failed to update SKILL.md for tool %s: %w", tool.Name, err)
-		}
-	}
-
-	// 追加 trace 上下文提示到 SKILL.md（引导 LLM 在 curl 调用中注入 trace 头）
-	if r.opt.TraceContext != nil {
-		if _, ok := r.opt.TraceContext["traceparent"]; ok {
-			skillDir := ".opencode/skills/" + skillName
-			skillPath := fmt.Sprintf("%s/SKILL.md", skillDir)
-			traceContent := formatTraceContextContent(r.opt.TraceContext)
-			encoded := base64.StdEncoding.EncodeToString([]byte(traceContent))
-			cmd := fmt.Sprintf("echo '%s' | base64 -d >> \"%s\"", encoded, skillPath)
-			if _, err := r.sb.ExecuteSync(ctx, cmd); err != nil {
-				return fmt.Errorf("failed to update SKILL.md trace context for tool %s: %w", tool.Name, err)
+	// 2. 从 OpenAPI info.x-wanwu-type 扩展字段读取工具类型，用于 skill 子目录分类
+	// 有类型时，skill 输出到 skills/<type>/ 子目录；无类型时直接输出到 skills/
+	convertOutputDir := skillsDir
+	if tool.OpenAPI3Schema != nil && tool.OpenAPI3Schema.Info != nil {
+		if ext, ok := tool.OpenAPI3Schema.Info.Extensions["x-wanwu-type"]; ok {
+			if toolType, ok := ext.(string); ok && toolType != "" {
+				convertOutputDir = filepath.Join(skillsDir, toSkillName(toolType))
 			}
 		}
 	}
+
+	// 3. 在主机进程调用 openapi2skill 转换（不在沙箱执行）
+	skillName := toSkillName(tool.Name)
+	convertOpts := openapi2skill.ConvertOptions{
+		OutputDir: convertOutputDir,
+		Parser: openapi2skill.ParserOptions{
+			SkillName: skillName,
+			GroupBy:   openapi2skill.GroupByAuto,
+		},
+	}
+	if err := openapi2skill.ConvertDoc(tool.OpenAPI3Schema, convertOpts); err != nil {
+		return fmt.Errorf("failed to convert tool %s to skill: %w", tool.Name, err)
+	}
+
+	// 4. 本地追加 API 认证信息到 SKILL.md
+	skillMdPath := filepath.Join(convertOutputDir, skillName, "SKILL.md")
+	if tool.APIAuth != nil && tool.APIAuth.Type != "none" && tool.APIAuth.Value != "" {
+		authContent := formatAuthContent(tool.APIAuth)
+		if err := appendToFile(skillMdPath, authContent); err != nil {
+			return fmt.Errorf("failed to append auth to SKILL.md for tool %s: %w", tool.Name, err)
+		}
+	}
+
+	// 5. 本地追加 trace 上下文提示到 SKILL.md
+	if r.opt.TraceContext != nil {
+		if _, ok := r.opt.TraceContext["traceparent"]; ok {
+			traceContent := formatTraceContextContent(r.opt.TraceContext)
+			if err := appendToFile(skillMdPath, traceContent); err != nil {
+				return fmt.Errorf("failed to append trace context to SKILL.md for tool %s: %w", tool.Name, err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -1238,6 +1296,50 @@ func formatMessageInputPart(part schema.MessageInputPart) string {
 // ============================================================================
 // 工具函数
 // ============================================================================
+
+// copyDir 递归复制本地目录。
+func copyDir(src, dst string) error {
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		relPath, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+		dstPath := filepath.Join(dst, relPath)
+		if info.IsDir() {
+			return os.MkdirAll(dstPath, info.Mode())
+		}
+		// 符号链接：直接复制目标
+		if info.Mode()&os.ModeSymlink != 0 {
+			linkTarget, err := os.Readlink(path)
+			if err != nil {
+				return err
+			}
+			return os.Symlink(linkTarget, dstPath)
+		}
+		// 常规文件
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(dstPath, data, info.Mode())
+	})
+}
+
+// appendToFile 将内容追加到文件末尾。
+func appendToFile(path string, content string) error {
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = f.Close()
+	}()
+	_, err = f.WriteString(content)
+	return err
+}
 
 // toSkillName 将工具名称转换为 skill 名称，替换空格为连字符，移除括号，并转为小写以与 openapi2skill 保持一致。
 func toSkillName(name string) string {
