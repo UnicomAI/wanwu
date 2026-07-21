@@ -260,6 +260,7 @@ message DocSegmentListResp{
   string downloadUrl = 16;// 文档对外下载地址(RAG 返回的可用链接)
   bool canPreview = 17; // 是否可预览
   string previewFailReason = 18; // 不可预览原因
+  int64 docSize = 19; // 文档大小，单位字节(Byte)
 }
 
 message SegmentContent{

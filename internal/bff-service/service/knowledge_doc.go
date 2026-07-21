@@ -121,6 +121,7 @@ func GetDocDetail(ctx *gin.Context, userId, orgId, docId string) (*response.List
 		Status:        int(data.Status),
 		ErrorMsg:      gin_util.I18nKey(ctx, data.ErrorMsg),
 		FileSize:      data.DocSize,
+		FileSizeStr:   response.FormatFileSize(data.DocSize),
 		KnowledgeId:   data.KnowledgeId,
 		SegmentMethod: data.SegmentMethod,
 		GraphStatus:   data.GraphStatus,
@@ -377,6 +378,7 @@ func buildDocRespList(ctx *gin.Context, dataList []*knowledgebase_doc_service.Do
 			Status:        int(data.Status),
 			ErrorMsg:      gin_util.I18nKey(ctx, data.ErrorMsg),
 			FileSize:      data.DocSize,
+			FileSizeStr:   response.FormatFileSize(data.DocSize),
 			KnowledgeId:   knowledgeId,
 			SegmentMethod: data.SegmentMethod,
 			Author:        authorMap[data.UserId],
@@ -443,6 +445,8 @@ func buildDocSegmentResp(docSegmentListResp *knowledgebase_doc_service.DocSegmen
 	}
 	return &response.DocSegmentResp{
 		FileName:            docSegmentListResp.FileName,
+		FileSize:            docSegmentListResp.DocSize,
+		FileSizeStr:         response.FormatFileSize(docSegmentListResp.DocSize),
 		PageTotal:           int(docSegmentListResp.PageTotal),
 		SegmentTotalNum:     int(docSegmentListResp.SegmentTotalNum),
 		MaxSegmentSize:      int(docSegmentListResp.MaxSegmentSize),

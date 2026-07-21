@@ -1137,6 +1137,7 @@ func buildSegmentListResp(importTask *model.KnowledgeImportTask, doc *model.Know
 		DownloadUrl:         buildDownloadUrl(segmentListResp.List),
 		CanPreview:          canPreview,
 		PreviewFailReason:   previewFailReason,
+		DocSize:             doc.FileSize,
 	}
 	return resp, nil
 }
