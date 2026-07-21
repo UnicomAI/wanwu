@@ -616,6 +616,10 @@ export default {
         });
         this.$refs.editable.clearInput();
         this.$refs.editable.clearFile();
+        // 已有会话发送消息后，通知父组件判断是否需要刷新列表置顶
+        if (!isNewChat) {
+          this.$emit('pinCurrentChat');
+        }
       });
     },
     handleExitComparison() {

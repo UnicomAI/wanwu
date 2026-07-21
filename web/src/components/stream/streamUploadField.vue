@@ -141,12 +141,6 @@
                   <span>{{ tipsArr }}</span>
                   {{ $t('common.fileUpload.typeFileTip') }}
                 </p>
-                <p
-                  v-if="type === 'agentChat'"
-                  style="padding-top: 5px; color: #dc6803 !important"
-                >
-                  {{ $t('app.uploadModelTips') }}
-                </p>
               </div>
             </div>
           </el-upload>

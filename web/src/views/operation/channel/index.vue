@@ -675,6 +675,10 @@ export default {
           text: this.$t('channel.status.connected'),
           type: 'success',
         },
+        auth_failed: {
+          text: this.$t('channel.status.authFailed'),
+          type: 'danger',
+        },
         waitingLogin: {
           text: this.$t('channel.status.waitingLogin'),
           type: 'warning',

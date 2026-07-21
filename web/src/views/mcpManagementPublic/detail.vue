@@ -163,7 +163,8 @@
               </el-collapse>
             </div>
           </div>
-          <div class="tool-item bottom-install-intro">
+          <!--v0.6.1 隐藏安装说明-->
+          <!--<div class="tool-item bottom-install-intro">
             <p class="title">{{ $t('tool.square.tool.setup') }}</p>
             <div>
               <div class="install-intro-item">
@@ -184,7 +185,7 @@
                 <p>{{ $t('tool.square.tool.claude.step3') }}</p>
               </div>
             </div>
-          </div>
+          </div>-->
         </div>
       </div>
 
