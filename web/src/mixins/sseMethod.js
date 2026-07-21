@@ -1259,6 +1259,8 @@ export default {
         responseLoading: true,
         requestFileUrls: this.queryFilePath ? [this.queryFilePath] : [],
         fileList: this.fileList,
+        // 保留本次请求的附件元数据，SSE 业务错误后重试时需要从历史记录恢复。
+        fileInfo: this.sseParams.fileInfo || [],
         pendingResponse: '',
       };
       if (!options.skipPushHistory) {
