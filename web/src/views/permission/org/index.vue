@@ -3,8 +3,10 @@
     <org-switcher
       ref="orgSwitcher"
       v-model="selectedOrgId"
+      :showAdd="true"
       class="org-page__switcher"
       @change="handleOrgChange"
+      @add-org="handleAddOrg"
     />
     <div class="table-wrap list-common org-page__main">
       <div class="org-page__content">
@@ -64,7 +66,7 @@
                   <el-button
                     class="operation"
                     type="text"
-                    @click="preUpdate(scope.row)"
+                    @click="preUpdate(scope.row, true)"
                   >
                     {{ $t('common.button.edit') }}
                   </el-button>
@@ -84,15 +86,6 @@
                 ref="searchInput"
                 @handleSearch="getTableData"
               />
-              <el-button
-                class="add-bt"
-                size="mini"
-                type="primary"
-                @click="preUpdate()"
-              >
-                <img src="@/assets/imgs/addOrg.png" alt="" />
-                <span>{{ $t('org.button.create') }}</span>
-              </el-button>
             </div>
             <el-table
               :data="tableData"
@@ -212,6 +205,37 @@
           />
         </el-form-item>
         <el-form-item
+          v-if="!isEdit"
+          :label="$t('org.dialog.parentOrg')"
+          prop="parentId"
+        >
+          <el-select
+            ref="parentSelect"
+            v-model="parentOrgName"
+            :placeholder="$t('common.select.placeholder')"
+            style="width: 100%"
+            popper-class="org-tree-select-dropdown"
+          >
+            <el-option
+              :value="form.parentId"
+              :label="parentOrgName"
+              style="height: auto; background: #fff; padding: 0"
+            >
+              <el-tree
+                ref="parentOrgTree"
+                :data="orgTreeData"
+                :props="treeProps"
+                node-key="orgId"
+                default-expand-all
+                highlight-current
+                :current-node-key="form.parentId"
+                :expand-on-click-node="false"
+                @node-click="handleParentNodeClick"
+              />
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item
           :label="$t('org.dialog.remark')"
           prop="remark"
           class="mark-textArea"
@@ -283,6 +307,7 @@ import {
   editOrg,
   changeOrgStatus,
   deleteOrg,
+  fetchOrgTreeSelect,
 } from '@/api/permission/org';
 import { mapActions } from 'vuex';
 import { avatarSrc } from '@/utils/util';
@@ -300,6 +325,7 @@ export default {
       isEdit: false,
       form: {
         name: '',
+        parentId: '',
         // adminIds: [],
         remark: '',
         avatar: {
@@ -338,6 +364,13 @@ export default {
       tableData: [],
       dialogVisible: false,
       submitLoading: false,
+      orgTreeData: [],
+      treeProps: {
+        children: 'children',
+        label: 'name',
+      },
+      parentOrgName: '',
+      isUpdateParent: false,
     };
   },
   computed: {
@@ -345,7 +378,9 @@ export default {
       return this.currentOrg && this.currentOrg.orgId ? [this.currentOrg] : [];
     },
   },
-  created() {},
+  created() {
+    this.fetchOrgTree();
+  },
   methods: {
     ...mapActions('user', ['getOrgInfo']),
     avatarSrc,
@@ -356,6 +391,32 @@ export default {
     },
     updateOrgTree(delId) {
       this.$refs.orgSwitcher.getOrgTree(delId);
+    },
+    handleAddOrg() {
+      this.preUpdate();
+    },
+    async fetchOrgTree() {
+      const res = await fetchOrgTreeSelect();
+      this.orgTreeData = res.data?.select || [];
+    },
+    findOrgName(orgId, nodes) {
+      if (!orgId || !nodes) return '';
+      for (const node of nodes) {
+        if (node.orgId === orgId) return node.name;
+        if (node.children && node.children.length) {
+          const found = this.findOrgName(orgId, node.children);
+          if (found) return found;
+        }
+      }
+      return '';
+    },
+    setParentOrgName(orgId) {
+      this.parentOrgName = this.findOrgName(orgId, this.orgTreeData);
+    },
+    handleParentNodeClick(node) {
+      this.form.parentId = node.orgId;
+      this.parentOrgName = node.name;
+      this.$refs.parentSelect && this.$refs.parentSelect.blur();
     },
     async fetchCurrentOrgDetail() {
       const res = await fetchOrgDetail({ orgId: this.selectedOrgId });
@@ -384,27 +445,34 @@ export default {
     setFormValue(row) {
       const obj = { ...this.form };
       for (let key in obj) {
-        if (row) {
-          obj[key] = row[key];
-        } else {
-          obj[key] = Array.isArray(obj[key]) ? [] : '';
-        }
+        obj[key] =
+          row && row[key] ? row[key] : Array.isArray(obj[key]) ? [] : '';
       }
       this.form = obj;
     },
     handleClose() {
       this.$refs.form.resetFields();
+      this.parentOrgName = '';
       this.dialogVisible = false;
     },
-    preUpdate(row) {
+    preUpdate(row, isParent) {
       this.row = row || {};
       this.isEdit = Boolean(row);
+      this.isUpdateParent = isParent;
       this.setFormValue({
         ...row,
         avatar: row?.avatar || { path: this.defaultAvatar, key: '' },
       });
-
+      if (!this.isEdit) {
+        this.form.parentId = this.selectedOrgId;
+        this.setParentOrgName(this.selectedOrgId);
+      }
       this.dialogVisible = true;
+      this.$nextTick(() => {
+        this.$refs.form && this.$refs.form.clearValidate();
+        this.$refs.parentOrgTree &&
+          this.$refs.parentOrgTree.setCurrentKey(this.form.parentId);
+      });
     },
     preDel(row) {
       this.$confirm(
@@ -456,8 +524,10 @@ export default {
         const params = { ...this.form };
         if (this.isEdit) {
           params.orgId = this.row.orgId;
+          delete params.parentId;
         } else {
-          params.orgId = this.selectedOrgId;
+          params.orgId = this.form.parentId;
+          delete params.parentId;
         }
         try {
           const res = this.isEdit
@@ -466,9 +536,15 @@ export default {
           if (res.code === 0) {
             this.$message.success(this.$t('common.message.success'));
             this.dialogVisible = false;
-            // 新增组织后，更新左侧的组织树
-            if (!this.isEdit) this.updateOrgTree();
-            await this.getTableData();
+            // 更新组织后，更新左侧的组织树
+            this.updateOrgTree();
+            // 如果更新的子组织，则更新子组织列表，否则更新父组织详情
+            if (!this.isUpdateParent) {
+              await this.getTableData();
+            } else {
+              await this.fetchCurrentOrgDetail();
+            }
+            await this.fetchOrgTree();
             await this.getOrgInfo();
           }
         } finally {
@@ -577,6 +653,32 @@ export default {
   ::v-deep .el-switch__label * {
     font-size: 13px;
   }
+}
+
+.org-tree-select-dropdown {
+  .el-select-dropdown__item {
+    padding: 0;
+    height: auto;
+    line-height: normal;
+    background: #fff;
+
+    &.hover,
+    &:hover {
+      background: #fff;
+    }
+  }
+}
+
+::v-deep
+  .el-tree--highlight-current
+  .el-tree-node.is-current
+  > .el-tree-node__content {
+  background-color: $color_opacity !important;
+  color: $color !important;
+}
+
+::v-deep .el-tree-node__label {
+  font-size: 12px !important;
 }
 
 .mark-textArea ::v-deep {

@@ -1,5 +1,17 @@
 <template>
   <div class="org-switcher">
+    <div v-if="showAdd" class="org-switcher__add">
+      <el-button
+        type="primary"
+        size="mini"
+        class="org-add-bt"
+        style="width: 100%"
+        @click="handleAddOrg"
+      >
+        <img src="@/assets/imgs/addOrg.png" alt="" />
+        <span>{{ $t('org.button.create') }}</span>
+      </el-button>
+    </div>
     <div class="org-switcher__search">
       <el-input
         class="org-switcher__search-input"
@@ -110,6 +122,10 @@ export default {
       type: [String, Number],
       default: '',
     },
+    showAdd: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -171,6 +187,9 @@ export default {
     filterNode(value, data) {
       if (!value) return true;
       return data.name && data.name.toLowerCase().includes(value.toLowerCase());
+    },
+    handleAddOrg() {
+      this.$emit('add-org');
     },
     findFirstPermNode(nodes) {
       for (const node of nodes) {
@@ -270,6 +289,26 @@ export default {
   flex-direction: column;
   max-height: calc(100vh - 170px);
   overflow-y: auto;
+
+  &__add {
+    padding: 0 20px 12px 0;
+    flex-shrink: 0;
+    .org-add-bt {
+      padding: 0 !important;
+    }
+    ::v-deep .org-add-bt > span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      img {
+        width: 18px;
+        margin-right: 5px;
+      }
+      span {
+        font-size: 13px;
+      }
+    }
+  }
 
   &__search {
     padding: 2px 20px 12px 0;
