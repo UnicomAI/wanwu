@@ -261,3 +261,41 @@ func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, 
 		return nil
 	})
 }
+
+// AdminGetAssistantListAll 管理员中心智能体列表（返回全部）
+func (c *Client) AdminGetAssistantListAll(ctx context.Context, userIds, orgIds []string, name string, categories []int32) ([]*model.AdminAssistantItem, int64, *err_code.Status) {
+	var assistants []*model.AdminAssistantItem
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithUserIDs(userIds),
+		sqlopt.WithOrgIDs(orgIds),
+		sqlopt.WithNameLike(name),
+		sqlopt.WithCategories(categories),
+	).Apply(c.db.WithContext(ctx).Model(&model.Assistant{})).
+		Order("updated_at DESC").
+		Find(&assistants).Error; err != nil {
+		return nil, 0, toErrStatus("assistants_admin_list", err.Error())
+	}
+
+	return assistants, int64(len(assistants)), nil
+}
+
+// AdminGetAssistantListPage 管理员中心智能体列表（分页返回）
+func (c *Client) AdminGetAssistantListPage(ctx context.Context, userIds, orgIds []string, name string, categories []int32, pageNum, pageSize int) ([]*model.AdminAssistantItem, int64, *err_code.Status) {
+	var assistants []*model.AdminAssistantItem
+	var total int64
+	query := sqlopt.SQLOptions(
+		sqlopt.WithOrgIDs(orgIds),
+		sqlopt.WithUserIDs(userIds),
+		sqlopt.WithNameLike(name),
+		sqlopt.WithCategories(categories),
+	).Apply(c.db.WithContext(ctx).Model(&model.Assistant{}))
+	if err := query.
+		Count(&total).
+		Order("updated_at DESC").
+		Offset((pageNum - 1) * pageSize).
+		Limit(pageSize).
+		Find(&assistants).Error; err != nil {
+		return nil, 0, toErrStatus("assistants_admin_list", err.Error())
+	}
+	return assistants, total, nil
+}

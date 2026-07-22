@@ -13,12 +13,15 @@ import (
 	rag_service "github.com/UnicomAI/wanwu/api/proto/rag-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
-	"github.com/UnicomAI/wanwu/pkg/constant"
+	"github.com/gin-gonic/gin"
+
+	safety_service "github.com/UnicomAI/wanwu/api/proto/safety-service"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
+
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
-	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -879,4 +882,224 @@ func AdminPromptBase(ctx *gin.Context, req request.AdminPromptBaseReq) (*respons
 // AdminPromptDetail 管理员中心提示词（自定义提示词）详情。
 func AdminPromptDetail(ctx *gin.Context, req request.AdminPromptDetailReq) (*response.CustomPrompt, error) {
 	return GetCustomPrompt(ctx, "", "", req.CustomPromptId)
+}
+func AdminAssistantPageList(ctx *gin.Context, req *request.AdminAssistantPageListReq) (*response.PageResult, error) {
+	pageNo, pageSize := normalizePage(req.PageNo, req.PageSize)
+	resp, err := assistant.AdminAssistantPageList(ctx.Request.Context(), &assistant_service.AdminAssistantPageListReq{
+		Name:          req.Name,
+		UserId:        req.UserIdList,
+		OrgId:         req.OrgIdList,
+		Category:      req.Category,
+		PublishStatus: req.PublishStatus,
+		PublishScope:  req.PublishScope,
+		PageNum:       int32(pageNo),
+		PageSize:      int32(req.PageSize),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var apps []response.AppBriefInfo
+	for _, brief := range resp.List {
+		apps = append(apps, appBriefProto2Model(ctx, brief.Info, brief.Category))
+	}
+
+	// 填充发布信息
+	listResult, err := fillAppPublishInfo(ctx, "", "", apps)
+	if err != nil {
+		return nil, err
+	}
+	publishedApps := listResult.List.([]response.AppBriefInfo)
+
+	type briefOwner struct{ UserId, OrgId string }
+	ownerMap := make(map[string]briefOwner, len(resp.List))
+	for _, brief := range resp.List {
+		ownerMap[brief.Info.AppId] = briefOwner{brief.Info.UserId, brief.Info.OrgId}
+	}
+
+	// 过滤发布状态
+	allList := make([]*response.AdminAssistant, 0, len(publishedApps))
+	for _, appInfo := range publishedApps {
+		if !matchPublishFilter(appInfo.PublishType, req.PublishStatus, req.PublishScope) {
+			continue
+		}
+		o := ownerMap[appInfo.AppId]
+		allList = append(allList, &response.AdminAssistant{
+			AppBriefInfo: appInfo,
+			OwnerHolder:  response.CreateOwnerHolder(o.UserId, o.OrgId),
+		})
+	}
+
+	fillOwnerList(ctx, allList)
+
+	return &response.PageResult{
+		List:     util.PageSlice(allList, pageNo, pageSize),
+		Total:    int64(len(allList)),
+		PageNo:   pageNo,
+		PageSize: pageSize,
+	}, nil
+}
+
+func AdminAssistantBase(ctx *gin.Context, req *request.AdminAssistantDetailReq) (*response.AdminAssistantBase, error) {
+	// 发布状态查询
+	publishType := ""
+	appResp, appErr := app.GetAppListByIds(ctx.Request.Context(), &app_service.GetAppListByIdsReq{
+		AppIdsList: []string{req.AssistantId},
+	})
+	if appErr == nil && len(appResp.Infos) > 0 {
+		publishType = appResp.Infos[0].PublishType
+	}
+
+	var publishStatus string
+	if publishType == "" {
+		publishStatus = constant.ConversationTypeDraft
+	} else {
+		publishStatus = constant.ConversationTypePublished
+	}
+
+	// 获取智能体详情
+	assistantResp, err := GetAssistantInfo(ctx, "", "", request.AssistantIdRequest{AssistantId: req.AssistantId}, publishType != "")
+	if err != nil {
+		return nil, err
+	}
+	if assistantResp == nil {
+		return nil, grpc_util.ErrorStatusWithKey(err_code.Code_AssistantErr, "assistant_get", "assistant not found")
+	}
+
+	base := response.AdminAssistantBase{
+		AdminAppBaseInfo: response.AdminAppBaseInfo{
+			Avatar:        assistantResp.Avatar,
+			Name:          assistantResp.Name,
+			Desc:          assistantResp.Desc,
+			CreatedAt:     assistantResp.CreatedAt,
+			UpdatedAt:     assistantResp.UpdatedAt,
+			PublishStatus: publishStatus,
+			PublishScope:  publishType,
+		},
+		Category:      assistantResp.Category,
+		HideKnowledge: assistantResp.HideKnowledge,
+	}
+
+	if assistantResp.OwnerUserId != "" && assistantResp.OwnerOrgId != "" {
+		base.OwnerUserId = assistantResp.OwnerUserId
+		base.OwnerOrgId = assistantResp.OwnerOrgId
+	}
+	fillOwner(ctx, &base)
+
+	return &base, nil
+}
+
+func AdminAssistantDetail(ctx *gin.Context, req *request.AdminAssistantDetailReq) (*response.AdminAssistantDetail, error) {
+	// 获取智能体发布状态
+	publishType := ""
+	appResp, appErr := app.GetAppListByIds(ctx.Request.Context(), &app_service.GetAppListByIdsReq{
+		AppIdsList: []string{req.AssistantId},
+	})
+	if appErr == nil && len(appResp.Infos) > 0 {
+		publishType = appResp.Infos[0].PublishType
+	}
+
+	// 获取智能体详情
+	assistantResp, err := GetAssistantInfo(ctx, "", "", request.AssistantIdRequest{AssistantId: req.AssistantId}, publishType != "")
+	if err != nil {
+		return nil, err
+	}
+	if assistantResp == nil {
+		return nil, grpc_util.ErrorStatusWithKey(err_code.Code_AssistantErr, "assistant_get", "assistant not found")
+	}
+
+	detail := &response.AdminAssistantDetail{
+		Assistant: *assistantResp,
+	}
+	detail.OwnerHolder = response.CreateOwnerHolder(assistantResp.OwnerUserId, assistantResp.OwnerOrgId)
+	fillOwner(ctx, detail)
+	return detail, nil
+}
+
+func AdminSensitiveWordPageList(ctx *gin.Context, req *request.AdminSensitiveWordPageListReq) (*response.PageResult, error) {
+	pageNo, pageSize := normalizePage(req.PageNo, req.PageSize)
+	resp, err := safety.AdminSensitiveWordPageList(ctx.Request.Context(), &safety_service.AdminSensitiveWordPageListReq{
+		Name:     req.Name,
+		UserId:   req.UserIdList,
+		OrgId:    req.OrgIdList,
+		PageNum:  int32(pageNo),
+		PageSize: int32(pageSize),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	allList := make([]*response.AdminSensitiveWord, 0, len(resp.List))
+	for _, t := range resp.List {
+		allList = append(allList, &response.AdminSensitiveWord{
+			SensitiveWordTableDetail: *convertSensitiveWordTableToResp(t),
+			OwnerHolder:              response.CreateOwnerHolder(t.UserId, t.OrgId),
+		})
+	}
+	fillOwnerList(ctx, allList)
+
+	return &response.PageResult{
+		List:     allList,
+		Total:    resp.Total,
+		PageNo:   pageNo,
+		PageSize: pageSize,
+	}, nil
+}
+
+func AdminSensitiveWordBase(ctx *gin.Context, req *request.AdminSensitiveWordBaseReq) (*response.AdminSensitiveWordBase, error) {
+	tableResp, err := safety.GetSensitiveWordTableByID(ctx.Request.Context(), &safety_service.GetSensitiveWordTableByIDReq{
+		TableId: req.TableId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	base := response.AdminSensitiveWordBase{
+		TableId:     tableResp.TableId,
+		TableName:   tableResp.TableName,
+		Remark:      tableResp.Remark,
+		Type:        tableResp.TableType,
+		CreatedAt:   util.Time2Str(tableResp.CreatedAt),
+		UpdatedAt:   util.Time2Str(tableResp.UpdatedAt),
+		OwnerHolder: response.CreateOwnerHolder(tableResp.UserId, tableResp.OrgId),
+	}
+	fillOwner(ctx, &base)
+	return &base, nil
+}
+
+func AdminSensitiveWordDetail(ctx *gin.Context, req *request.AdminSensitiveWordDetailReq) (*response.AdminSensitiveWordDetailResp, error) {
+	pageNo, pageSize := normalizePage(req.PageNo, req.PageSize)
+
+	tableResp, err := safety.GetSensitiveWordTableByID(ctx.Request.Context(), &safety_service.GetSensitiveWordTableByIDReq{
+		TableId: req.TableId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	wordsResp, err := safety.GetSensitiveVocabularyList(ctx.Request.Context(), &safety_service.GetSensitiveVocabularyListReq{
+		TableId:  req.TableId,
+		PageNo:   int32(pageNo),
+		PageSize: int32(pageSize),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	words := make([]*response.SensitiveWordVocabularyDetail, 0, len(wordsResp.List))
+	for _, w := range wordsResp.List {
+		words = append(words, &response.SensitiveWordVocabularyDetail{
+			WordId:        w.WordId,
+			Word:          w.Word,
+			SensitiveType: w.SensitiveType,
+		})
+	}
+
+	return &response.AdminSensitiveWordDetailResp{
+		Reply:    tableResp.Reply,
+		List:     words,
+		Total:    wordsResp.Total,
+		PageNo:   pageNo,
+		PageSize: pageSize,
+	}, nil
 }

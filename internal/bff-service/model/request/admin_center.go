@@ -154,3 +154,36 @@ type AdminPromptDetailReq struct {
 	CustomPromptId string `json:"customPromptId" form:"customPromptId" validate:"required"` // 自定义提示词id
 	CommonCheck
 }
+
+
+type AdminAssistantPageListReq struct {
+	Name     string  `json:"name" form:"name"`
+	Category []int32 `json:"category" form:"category"` // 1:单智能体，2:多智能体
+	PageSearch
+	AdminPublish
+	AdminUserSelect
+	CommonCheck
+}
+
+type AdminAssistantDetailReq struct {
+	AssistantId string `json:"assistantId" form:"assistantId" validate:"required"`
+	CommonCheck
+}
+
+type AdminSensitiveWordPageListReq struct {
+	Name string `json:"name" form:"name"`
+	PageSearch
+	AdminPublish
+	AdminUserSelect
+	CommonCheck
+}
+
+type AdminSensitiveWordBaseReq struct {
+	TableId string `json:"tableId" form:"tableId" validate:"required"` // 敏感词表id
+	CommonCheck
+}
+
+type AdminSensitiveWordDetailReq struct {
+	AdminSensitiveWordBaseReq
+	PageSearch
+}

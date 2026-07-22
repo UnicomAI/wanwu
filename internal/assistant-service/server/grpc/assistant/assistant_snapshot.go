@@ -405,6 +405,7 @@ func (s *Service) AssistantSnapshotInfo(ctx context.Context, req *assistant_serv
 		UpdateTime:          snapshotAssistant.UpdatedAt,
 		Uuid:                snapshotAssistant.UUID,
 		Category:            int32(snapshotAssistant.Category),
+		Extra:               snapshotInfo.SnapshotExtra,
 	}, nil
 }
 

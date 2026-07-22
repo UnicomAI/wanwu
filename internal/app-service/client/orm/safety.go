@@ -11,6 +11,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/app-service/client/orm/sqlopt"
 	"github.com/UnicomAI/wanwu/internal/app-service/pkg"
 	"github.com/UnicomAI/wanwu/pkg/constant"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/minio"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"gorm.io/gorm"
@@ -129,6 +130,27 @@ func (c *Client) GetSensitiveWordTableList(ctx context.Context, userId, orgId, t
 		return nil, toErrStatus("app_safety_sensitive_table_list_get", err.Error())
 	}
 	return tables, nil
+}
+
+func (c *Client) AdminGetSensitiveWordTableList(ctx context.Context, userIds, orgIds []string, name string, pageNum, pageSize int) ([]*model.SensitiveWordTable, int64, *errs.Status) {
+	var tables []*model.SensitiveWordTable
+	var total int64
+	query := sqlopt.SQLOptions(
+		sqlopt.WithOrgIDs(orgIds),
+		sqlopt.WithUserIDs(userIds),
+	).Apply(c.db.WithContext(ctx).Model(&model.SensitiveWordTable{}))
+	if name != "" {
+		query = query.Where("name LIKE ?", "%"+db.EscapeLike(name)+"%")
+	}
+	if err := query.
+		Count(&total).
+		Order("updated_at DESC").
+		Offset((pageNum - 1) * pageSize).
+		Limit(pageSize).
+		Find(&tables).Error; err != nil {
+		return nil, 0, toErrStatus("app_safety_sensitive_table_admin_list", err.Error())
+	}
+	return tables, total, nil
 }
 
 func (c *Client) GetGlobalSensitiveWordTableList(ctx context.Context) ([]*model.SensitiveWordTable, *errs.Status) {

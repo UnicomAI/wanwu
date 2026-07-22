@@ -590,3 +590,131 @@ func AdminPromptDetail(ctx *gin.Context) {
 	resp, err := service.AdminPromptDetail(ctx, req)
 	gin_util.Response(ctx, resp, err)
 }
+
+// AdminAssistantPageList
+//
+//	@Tags			admin_center.assistant
+//	@Summary		管理员中心智能体全局列表
+//	@Description	管理员中心智能体全局列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminAssistantPageListReq	true	"智能体全局列表参数"
+//	@Success		200		{object}	response.PageResult{list=response.AdminAssistant}
+//	@Router			/admin/center/assistant/page/list [post]
+func AdminAssistantPageList(ctx *gin.Context) {
+	var req request.AdminAssistantPageListReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	if err := service.FillOrgIds(ctx, getUserID(ctx), getOrgID(ctx), &req.AdminUserSelect); err != nil {
+		gin_util.ResponseErr(ctx, err)
+		return
+	}
+	resp, err := service.AdminAssistantPageList(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminAssistantBase
+//
+//	@Tags			admin_center.assistant
+//	@Summary		管理员中心智能体基础信息
+//	@Description	管理员中心智能体基础信息
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminAssistantDetailReq	true	"智能体基础信息参数"
+//	@Success		200		{object}	response.Response{data=response.AdminAssistantBase}
+//	@Router			/admin/center/assistant/base [post]
+func AdminAssistantBase(ctx *gin.Context) {
+	var req request.AdminAssistantDetailReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminAssistantBase(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminAssistantDetail
+//
+//	@Tags			admin_center.assistant
+//	@Summary		管理员中心智能体详情
+//	@Description	管理员中心智能体详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminAssistantDetailReq	true	"智能体详情参数"
+//	@Success		200		{object}	response.Response{data=response.AdminAssistantDetail}
+//	@Router			/admin/center/assistant/detail [post]
+func AdminAssistantDetail(ctx *gin.Context) {
+	var req request.AdminAssistantDetailReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminAssistantDetail(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminSensitiveWordPageList
+//
+//	@Tags			admin_center.sensitive
+//	@Summary		管理员中心敏感词全局列表
+//	@Description	管理员中心敏感词全局列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminSensitiveWordPageListReq	true	"敏感词全局列表参数"
+//	@Success		200		{object}	response.PageResult{list=response.AdminSensitiveWord}
+//	@Router			/admin/center/sensitive/page/list [post]
+func AdminSensitiveWordPageList(ctx *gin.Context) {
+	var req request.AdminSensitiveWordPageListReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	if err := service.FillOrgIds(ctx, getUserID(ctx), getOrgID(ctx), &req.AdminUserSelect); err != nil {
+		gin_util.ResponseErr(ctx, err)
+		return
+	}
+	resp, err := service.AdminSensitiveWordPageList(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminSensitiveWordBase
+//
+//	@Tags			admin_center.sensitive
+//	@Summary		管理员中心敏感词基础信息
+//	@Description	返回敏感词表的名称、备注、类型、创建时间、更新时间、创建人、所属组织
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminSensitiveWordBaseReq	true	"敏感词基础信息参数"
+//	@Success		200		{object}	response.Response{data=response.AdminSensitiveWordBase}
+//	@Router			/admin/center/sensitive/base [post]
+func AdminSensitiveWordBase(ctx *gin.Context) {
+	var req request.AdminSensitiveWordBaseReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminSensitiveWordBase(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminSensitiveWordDetail
+//
+//	@Tags			admin_center.sensitive
+//	@Summary		管理员中心敏感词详情
+//	@Description	管理员中心敏感词详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminSensitiveWordDetailReq	true	"敏感词详情参数"
+//	@Success		200		{object}	response.Response{data=response.AdminSensitiveWordDetailResp}
+//	@Router			/admin/center/sensitive/detail [post]
+func AdminSensitiveWordDetail(ctx *gin.Context) {
+	var req request.AdminSensitiveWordDetailReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminSensitiveWordDetail(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}

@@ -1,10 +1,14 @@
 package service
 
 import (
+	"context"
+	"errors"
+
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	safety_service "github.com/UnicomAI/wanwu/api/proto/safety-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/minio"
@@ -176,6 +180,32 @@ func convertSensitiveWordTableToResp(table *safety_service.SensitiveWordTable) *
 		Remark:    table.Remark,
 		Reply:     table.Reply,
 		CreatedAt: util.Time2Str(table.CreatedAt),
+		UpdatedAt: util.Time2Str(table.UpdatedAt),
 		Type:      table.TableType,
 	}
+}
+
+var sensitiveWordBizImpl = &SensitiveWordBiz{}
+
+type SensitiveWordBiz struct{}
+
+func init() {
+	InitBizService(sensitiveWordBizImpl)
+}
+
+func (*SensitiveWordBiz) BizType() string {
+	return constant.BizModuleResourceSafety
+}
+
+func (*SensitiveWordBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+	resp, err := safety.GetSensitiveWordTableByID(ctx, &safety_service.GetSensitiveWordTableByIDReq{
+		TableId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if resp == nil || resp.TableId == "" {
+		return "", "", errors.New("sensitive word table not found")
+	}
+	return resp.UserId, resp.OrgId, nil
 }
