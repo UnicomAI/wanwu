@@ -219,3 +219,137 @@ func AdminSkillVersionList(ctx *gin.Context) {
 	resp, err := service.AdminSkillVersionList(ctx, &req)
 	gin_util.Response(ctx, resp, err)
 }
+
+// AdminModelPageList
+//
+//	@Tags			admin_center.model
+//	@Summary		管理员中心模型全局列表
+//	@Description	管理员中心模型全局列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminModelPageListReq	true	"模型全局列表参数"
+//	@Success		200		{object}	response.PageResult{list=response.AdminModel}
+//	@Router			/admin/center/model/page/list [post]
+func AdminModelPageList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.AdminModelPageListReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.FillOrgIds(ctx, userId, orgId, &req.AdminUserSelect)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp, err := service.AdminModelPageList(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminModelBase
+//
+//	@Tags			admin_center.model
+//	@Summary		管理员中心模型基础信息
+//	@Description	管理员中心模型基础信息
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminModelDetailReq	true	"模型详情参数"
+//	@Success		200		{object}	response.Response{data=response.AdminModelBase}
+//	@Router			/admin/center/model/base [post]
+func AdminModelBase(ctx *gin.Context) {
+	var req request.AdminModelDetailReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminModelBase(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminModelDetail
+//
+//	@Tags			admin_center.model
+//	@Summary		管理员中心模型详情
+//	@Description	管理员中心模型详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminModelDetailReq	true	"模型详情参数"
+//	@Success		200		{object}	response.Response{data=response.ModelInfo}
+//	@Router			/admin/center/model/detail [post]
+func AdminModelDetail(ctx *gin.Context) {
+	var req request.AdminModelDetailReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.GetModelById(ctx, &request.GetModelRequest{
+		BaseModelRequest: request.BaseModelRequest{ModelId: req.ModelId},
+	})
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminRagPageList
+//
+//	@Tags			admin_center.rag
+//	@Summary		管理员中心知识问答全局列表
+//	@Description	管理员中心知识问答全局列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminRagPageListReq	true	"知识问答全局列表参数"
+//	@Success		200		{object}	response.PageResult{list=response.AdminRag}
+//	@Router			/admin/center/rag/page/list [post]
+func AdminRagPageList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.AdminRagPageListReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.FillOrgIds(ctx, userId, orgId, &req.AdminUserSelect)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp, err := service.AdminRagPageList(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminRagBase
+//
+//	@Tags			admin_center.rag
+//	@Summary		管理员中心知识问答基础信息
+//	@Description	管理员中心知识问答基础信息
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminRagDetailReq	true	"知识问答基本信息参数"
+//	@Success		200		{object}	response.Response{data=response.AdminRagBase}
+//	@Router			/admin/center/rag/base [post]
+func AdminRagBase(ctx *gin.Context) {
+	var req request.AdminRagDetailReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminRagBase(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminRagDetail
+//
+//	@Tags			admin_center.rag
+//	@Summary		管理员中心知识问答详情
+//	@Description	管理员中心知识问答详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminRagDetailReq	true	"知识问答详情参数"
+//	@Success		200		{object}	response.Response{data=response.AdminRagDetail}
+//	@Router			/admin/center/rag/detail [post]
+func AdminRagDetail(ctx *gin.Context) {
+	var req request.AdminRagDetailReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminRagDetail(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}

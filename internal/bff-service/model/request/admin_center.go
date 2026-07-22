@@ -62,3 +62,31 @@ type AdminSkillDetailReq struct {
 	SkillType string `json:"skillType" form:"skillType"` //builtin:内置技能，acquired:自定义技能,不填写默认自定义
 	CommonCheck
 }
+
+type AdminModelPageListReq struct {
+	Name      string   `json:"name" form:"name"`           // 模型名称
+	ModelType []string `json:"modelType" form:"modelType"` // 模型类型：llm, rerank, embedding, multimodal-rerank, multimodal-embedding, ocr, gui, pdf-parser, sync-asr, text2image
+	Provider  string   `json:"provider" form:"provider"`   // 模型供应商: OpenAI-API-compatible,YuanJing, HuoShan, Ollama, Qwen, Infini, QianFan, DeepSeek, Jina, ZhiPu
+	AdminPublish
+	AdminUserSelect
+	PageSearch
+	CommonCheck
+}
+
+type AdminModelDetailReq struct {
+	ModelId string `json:"modelId" form:"modelId" validate:"required"` // 模型id
+	CommonCheck
+}
+
+type AdminRagPageListReq struct {
+	Name string `json:"name" form:"name"` // 知识问答名称
+	AdminPublish
+	AdminUserSelect
+	PageSearch
+	CommonCheck
+}
+
+type AdminRagDetailReq struct {
+	RagId string `json:"ragId" form:"ragId" validate:"required"` // 知识问答id
+	CommonCheck
+}

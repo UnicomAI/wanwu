@@ -632,3 +632,5 @@
 {"code":0,"key":"ope_statistic_new_client_line","langs":{"zh":"新增用户量"}}
 {"code":0,"key":"ope_statistic_browse_table","langs":{"zh":"平台浏览量"}}
 {"code":0,"key":"ope_statistic_browse_line","langs":{"zh":"浏览量"}}
+{"code":250006,"key":"model_admin_page_list_err","langs":{"zh":"模型全局列表异常:%v"}}
+{"code":150005,"key":"rag_admin_page_list_err","langs":{"zh":"知识问答全局列表异常：%v"}}
