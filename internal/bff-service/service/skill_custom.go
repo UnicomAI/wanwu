@@ -586,11 +586,15 @@ func toCustomSkillListItem(ctx *gin.Context, publish *mcp_service.PublishCustomS
 
 	return &response.PublishedSkillInfo{
 		SkillBasicInfo: response.SkillBasicInfo{
-			SkillId: skill.SkillId,
-			Name:    skill.Name,
-			Avatar:  cacheSkillAvatar(ctx, skill.Avatar),
-			Author:  skill.Author,
-			Desc:    skill.Desc,
+			SkillId:   skill.SkillId,
+			Name:      skill.Name,
+			Avatar:    cacheSkillAvatar(ctx, skill.Avatar),
+			Author:    skill.Author,
+			Desc:      skill.Desc,
+			CreatedAt: util.Time2Str(skill.CreatedAt),
+			UpdatedAt: util.Time2Str(skill.UpdatedAt),
+			UserId:    skill.UserId,
+			OrgId:     skill.OrgId,
 		},
 		ThreadID:  skill.WgaThreadId,
 		PreviewID: skill.PreviewThreadId,
@@ -601,11 +605,15 @@ func toPublishedSkillDetail(ctx *gin.Context, skill *mcp_service.CustomSkill, va
 	return &response.PublishedSkillDetail{
 		PublishedSkillInfo: response.PublishedSkillInfo{
 			SkillBasicInfo: response.SkillBasicInfo{
-				SkillId: skill.SkillId,
-				Name:    skill.Name,
-				Avatar:  cacheSkillAvatar(ctx, skill.Avatar),
-				Author:  skill.Author,
-				Desc:    skill.Desc,
+				SkillId:   skill.SkillId,
+				Name:      skill.Name,
+				Avatar:    cacheSkillAvatar(ctx, skill.Avatar),
+				Author:    skill.Author,
+				Desc:      skill.Desc,
+				CreatedAt: util.Time2Str(skill.CreatedAt),
+				UpdatedAt: util.Time2Str(skill.UpdatedAt),
+				OrgId:     skill.OrgId,
+				UserId:    skill.UserId,
 			},
 			ThreadID:    skill.WgaThreadId,
 			PreviewID:   skill.PreviewThreadId,

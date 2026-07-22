@@ -7,6 +7,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetDocKnowledgeDetail
+//
+//	@Tags			knowledge.doc
+//	@Summary		获取文档知识库信息
+//	@Description	获取文档知识库信息
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	query		request.DocKnowledgeDetailReq	true	"获取文档知识库信息请求参数"
+//	@Success		200		{object}	response.Response{data=response.DocKnowledgeInfo}
+//	@Router			/knowledge/doc/detail [get]
+func GetDocKnowledgeDetail(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.DocKnowledgeDetailReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	//无需校验权限，中间件有校验
+	resp, err := service.GetDocKnowledgeDetail(ctx, userId, orgId, &req, &service.DocKnowledgeParams{
+		NeedGraph:      true,
+		NeedPermission: true,
+	})
+	gin_util.Response(ctx, resp, err)
+}
+
 // GetDocConfig
 //
 //	@Tags			knowledge.doc
@@ -37,7 +62,7 @@ func GetDocConfig(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.DocListReq	true	"文档列表查询请求参数"
-//	@Success		200		{object}	response.Response{data=response.DocPageResult}
+//	@Success		200		{object}	response.PageResult{list=response.ListDocResp}
 //	@Router			/knowledge/doc/list [post]
 func GetDocList(ctx *gin.Context) {
 	userId, orgId := getUserID(ctx), getOrgID(ctx)

@@ -16,6 +16,559 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/center/knowledge/base": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心知识库详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.knowledge"
+                ],
+                "summary": "管理员中心知识库详情",
+                "parameters": [
+                    {
+                        "description": "知识库详情参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminKnowledgeDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.AdminKnowledgeBase"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/knowledge/file/detail": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心知识库文档详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.knowledge"
+                ],
+                "summary": "管理员中心知识库文档详情",
+                "parameters": [
+                    {
+                        "description": "知识库文档详情参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminKnowledgeFileDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.DocSegmentResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/knowledge/file/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心知识库文件列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.knowledge"
+                ],
+                "summary": "管理员中心知识库文件列表",
+                "parameters": [
+                    {
+                        "description": "知识库详情参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DocListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.PageResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "list": {
+                                            "$ref": "#/definitions/response.ListDocResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/knowledge/page/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心知识库全局列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.knowledge"
+                ],
+                "summary": "管理员中心知识库全局列表",
+                "parameters": [
+                    {
+                        "description": "知识库全局列表参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminKnowledgePageListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.PageResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "list": {
+                                            "$ref": "#/definitions/response.AdminKnowledge"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/knowledge/qa/pair/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心获取问答对列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.knowledge"
+                ],
+                "summary": "管理员中心获取问答对列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "knowledgeId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "metaValue",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageNo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "-1：全部 0:待处理 1:导入中 2:导入成功 3:导入失败",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.PageResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "list": {
+                                            "$ref": "#/definitions/response.ListKnowledgeQAPairResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/skill/base": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "skill基础信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.skill"
+                ],
+                "summary": "skill基础信息",
+                "parameters": [
+                    {
+                        "description": "skill基础信息参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminSkillDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.AdminAppBaseInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/skill/detail": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "skill详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.skill"
+                ],
+                "summary": "skill详情",
+                "parameters": [
+                    {
+                        "description": "skill详情参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminSkillDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PublishedSkillDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/skill/page/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "skill分页列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.skill"
+                ],
+                "summary": "skill分页列表",
+                "parameters": [
+                    {
+                        "description": "skill分页列表分页列表参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminSkillPageListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.PageResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "list": {
+                                            "$ref": "#/definitions/response.AdminSkillDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/skill/version/list": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取我发布的skill版本历史列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.skill"
+                ],
+                "summary": "获取我发布skill版本列表",
+                "parameters": [
+                    {
+                        "description": "skill详情参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminSkillDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.SkillVersionInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/workflow/page/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "工作流分页列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.workflow"
+                ],
+                "summary": "工作流分页列表",
+                "parameters": [
+                    {
+                        "description": "工作流分页列表参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminWorkflowPageListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.PageResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "list": {
+                                            "$ref": "#/definitions/response.AdminWorkflowDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/agent/skill/acquired": {
             "delete": {
                 "security": [
@@ -10396,6 +10949,54 @@ const docTemplate = `{
                 }
             }
         },
+        "/knowledge/doc/detail": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取文档知识库信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge.doc"
+                ],
+                "summary": "获取文档知识库信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "knowledgeId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.DocKnowledgeInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/knowledge/doc/export": {
             "post": {
                 "security": [
@@ -10545,13 +11146,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/response.Response"
+                                    "$ref": "#/definitions/response.PageResult"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/response.DocPageResult"
+                                        "list": {
+                                            "$ref": "#/definitions/response.ListDocResp"
                                         }
                                     }
                                 }
@@ -12573,13 +13174,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/response.Response"
+                                    "$ref": "#/definitions/response.PageResult"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/response.KnowledgeQAPairPageResult"
+                                        "list": {
+                                            "$ref": "#/definitions/response.ListKnowledgeQAPairResp"
                                         }
                                     }
                                 }
@@ -23233,6 +23834,216 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AdminKnowledgeDetailReq": {
+            "type": "object",
+            "required": [
+                "knowledgeId"
+            ],
+            "properties": {
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
+                }
+            }
+        },
+        "request.AdminKnowledgeFileDetailReq": {
+            "type": "object",
+            "required": [
+                "docId",
+                "knowledgeId",
+                "pageSize"
+            ],
+            "properties": {
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                },
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
+                },
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.AdminKnowledgePageListReq": {
+            "type": "object",
+            "required": [
+                "pageSize"
+            ],
+            "properties": {
+                "category": {
+                    "description": "0:知识库，1:问答库，2:多模态知识库",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "external": {
+                    "description": "-1:全部，0:内部知识库，1:外部知识库",
+                    "type": "integer"
+                },
+                "isAllOrg": {
+                    "description": "是否全选组织",
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "orgIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，public：公开发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "request.AdminSkillDetailReq": {
+            "type": "object",
+            "required": [
+                "skillId"
+            ],
+            "properties": {
+                "skillId": {
+                    "type": "string"
+                },
+                "skillType": {
+                    "description": "builtin:内置技能，acquired:自定义技能,不填写默认自定义",
+                    "type": "string"
+                }
+            }
+        },
+        "request.AdminSkillPageListReq": {
+            "type": "object",
+            "required": [
+                "pageSize"
+            ],
+            "properties": {
+                "isAllOrg": {
+                    "description": "是否全选组织",
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "orgIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，public：公开发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "request.AdminWorkflowPageListReq": {
+            "type": "object",
+            "required": [
+                "pageSize"
+            ],
+            "properties": {
+                "appType": {
+                    "description": "workflow:工作流，chatflow:对话流",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "isAllOrg": {
+                    "description": "是否全选组织",
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "orgIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，public：公开发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.AnalysisUrlDocReq": {
             "type": "object",
             "required": [
@@ -29514,6 +30325,9 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
@@ -29523,10 +30337,19 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "orgId": {
+                    "type": "string"
+                },
                 "skillId": {
                     "type": "string"
                 },
                 "skillMarkdown": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 },
                 "variables": {
@@ -29546,6 +30369,9 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
@@ -29555,7 +30381,218 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "orgId": {
+                    "type": "string"
+                },
                 "skillId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminAppBaseInfo": {
+            "type": "object",
+            "properties": {
+                "authorizedPersonnelList": {
+                    "description": "指定人员列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AuthorizedPersonnel"
+                    }
+                },
+                "avatar": {
+                    "description": "应用图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "description": "应用创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "应用描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "应用名称",
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布",
+                    "type": "string"
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "应用更新时间(用于历史记录排序)",
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminKnowledge": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "头像",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "category": {
+                    "description": "0:知识库 1:问答库 2:多模态知识库",
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "知识库描述",
+                    "type": "string"
+                },
+                "external": {
+                    "description": "0:内部知识库 1:外部知识库",
+                    "type": "integer"
+                },
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "知识库名称",
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminKnowledgeBase": {
+            "type": "object",
+            "properties": {
+                "authorizedPersonnelList": {
+                    "description": "指定人员列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AuthorizedPersonnel"
+                    }
+                },
+                "avatar": {
+                    "description": "应用图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "category": {
+                    "description": "0: 知识库 1: 问答库 2: 多模态知识库",
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "description": "应用创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "应用描述",
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "embeddingModel": {
+                    "$ref": "#/definitions/response.ModelInfo"
+                },
+                "graphSwitch": {
+                    "type": "integer"
+                },
+                "keywords": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.KeywordsInfo"
+                    }
+                },
+                "knowledgeId": {
+                    "type": "string"
+                },
+                "llmModelId": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "应用名称",
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布",
+                    "type": "string"
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "应用更新时间(用于历史记录排序)",
                     "type": "string"
                 }
             }
@@ -29583,6 +30620,96 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "orgId": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminSkillDetail": {
+            "type": "object",
+            "properties": {
+                "acquiredCount": {
+                    "type": "integer"
+                },
+                "author": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "$ref": "#/definitions/request.Avatar"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "downloadCount": {
+                    "type": "integer"
+                },
+                "isPublished": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "orgId": {
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "previewId": {
+                    "type": "string"
+                },
+                "publishType": {
+                    "type": "string"
+                },
+                "skillId": {
+                    "type": "string"
+                },
+                "threadId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminWorkflowDetail": {
+            "type": "object",
+            "properties": {
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
                     "type": "string"
                 }
             }
@@ -30308,6 +31435,26 @@ const docTemplate = `{
                 }
             }
         },
+        "response.AuthorizedPersonnel": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "$ref": "#/definitions/request.Avatar"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "orgId": {
+                    "type": "string"
+                },
+                "orgName": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
         "response.BuiltinSkillDetail": {
             "type": "object",
             "properties": {
@@ -30316,6 +31463,9 @@ const docTemplate = `{
                 },
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
+                },
+                "createdAt": {
+                    "type": "string"
                 },
                 "desc": {
                     "type": "string"
@@ -30326,10 +31476,19 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "orgId": {
+                    "type": "string"
+                },
                 "skillId": {
                     "type": "string"
                 },
                 "skillMarkdown": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 },
                 "variables": {
@@ -30349,6 +31508,9 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
@@ -30358,7 +31520,16 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "orgId": {
+                    "type": "string"
+                },
                 "skillId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 }
             }
@@ -31650,6 +32821,10 @@ const docTemplate = `{
                     "description": "0: 知识库 1: 问答库 2: 多模态知识库",
                     "type": "integer"
                 },
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -31674,12 +32849,24 @@ const docTemplate = `{
                 "llmModelId": {
                     "type": "string"
                 },
+                "ownerOrgId": {
+                    "description": "知识库拥有者的orgID，因为知识库可以转让，所以拥有者未必是创建者",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "知识库拥有者的userID，因为知识库可以转让，所以拥有者未必是创建者",
+                    "type": "string"
+                },
                 "permissionType": {
                     "description": "当前用户对该知识库的权限类型 -1:无权限 0:查看 10:编辑 20:授权 30:系统管理授权",
                     "type": "integer"
                 },
                 "showGraphReport": {
                     "type": "boolean"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "string"
                 }
             }
         },
@@ -31733,29 +32920,6 @@ const docTemplate = `{
                 "metaValueType": {
                     "description": "number，time, string",
                     "type": "string"
-                }
-            }
-        },
-        "response.DocPageResult": {
-            "type": "object",
-            "properties": {
-                "docKnowledgeInfo": {
-                    "$ref": "#/definitions/response.DocKnowledgeInfo"
-                },
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.ListDocResp"
-                    }
-                },
-                "pageNo": {
-                    "type": "integer"
-                },
-                "pageSize": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
                 }
             }
         },
@@ -33146,29 +34310,6 @@ const docTemplate = `{
                 },
                 "uploadstatus": {
                     "description": "上传状态",
-                    "type": "integer"
-                }
-            }
-        },
-        "response.KnowledgeQAPairPageResult": {
-            "type": "object",
-            "properties": {
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.ListKnowledgeQAPairResp"
-                    }
-                },
-                "pageNo": {
-                    "type": "integer"
-                },
-                "pageSize": {
-                    "type": "integer"
-                },
-                "qaKnowledgeInfo": {
-                    "$ref": "#/definitions/response.QAKnowledgeInfo"
-                },
-                "total": {
                     "type": "integer"
                 }
             }
@@ -34693,6 +35834,9 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
@@ -34703,6 +35847,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "orgId": {
                     "type": "string"
                 },
                 "previewId": {
@@ -34718,6 +35865,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "threadId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 },
                 "variables": {
@@ -34743,6 +35896,9 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
@@ -34755,6 +35911,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "orgId": {
+                    "type": "string"
+                },
                 "previewId": {
                     "type": "string"
                 },
@@ -34765,6 +35924,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "threadId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 },
                 "version": {
@@ -34796,41 +35961,6 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
-                }
-            }
-        },
-        "response.QAKnowledgeInfo": {
-            "type": "object",
-            "properties": {
-                "avatar": {
-                    "description": "头像",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/request.Avatar"
-                        }
-                    ]
-                },
-                "description": {
-                    "description": "问答库描述",
-                    "type": "string"
-                },
-                "embeddingModel": {
-                    "description": "emb模型信息",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/response.ModelInfo"
-                        }
-                    ]
-                },
-                "knowledgeId": {
-                    "type": "string"
-                },
-                "knowledgeName": {
-                    "type": "string"
-                },
-                "permissionType": {
-                    "description": "当前用户对该问答库的权限类型 -1:无权限 0:查看 10:编辑 20:授权 30:系统管理授权",
-                    "type": "integer"
                 }
             }
         },
@@ -35392,6 +36522,9 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
@@ -35404,10 +36537,19 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "orgId": {
+                    "type": "string"
+                },
                 "skillId": {
                     "type": "string"
                 },
                 "skillMarkdown": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 }
             }
@@ -35424,6 +36566,9 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
@@ -35436,7 +36581,16 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "orgId": {
+                    "type": "string"
+                },
                 "skillId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 }
             }
@@ -35450,10 +36604,16 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "orgId": {
                     "type": "string"
                 },
                 "skillId": {
@@ -35463,6 +36623,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "skillType": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 }
             }

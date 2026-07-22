@@ -48,6 +48,29 @@ type RagData struct {
 	SearchList []*ChunkSearchList `json:"searchList"`
 }
 
+var knowledgeBiz = &KnowledgeBiz{}
+
+type KnowledgeBiz struct {
+}
+
+func init() {
+	InitBizService(knowledgeBiz)
+}
+func (*KnowledgeBiz) BizType() string {
+	return constant.BizModuleResourceKnowledge
+}
+func (*KnowledgeBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+	knowledgeInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx, &knowledgebase_service.KnowledgeDetailSelectReq{
+		KnowledgeId: bizId,
+		NeedOwner:   true,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	userId, orgId = knowledgeInfo.OwnerUserId, knowledgeInfo.OwnerOrgId
+	return
+}
+
 // SelectKnowledgeList 查询知识库列表，主要根据userId 查询用户所有知识库
 func SelectKnowledgeList(ctx *gin.Context, userId, orgId string, req *request.KnowledgeSelectReq) (*response.KnowledgeListResp, error) {
 	resp, err := knowledgeBase.SelectKnowledgeList(ctx.Request.Context(), &knowledgebase_service.KnowledgeSelectReq{

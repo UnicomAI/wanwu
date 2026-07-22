@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	knowledgebase_keywords_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-keywords-service"
 	"path/filepath"
 	"strings"
 
@@ -33,8 +34,41 @@ var docAnalyzerMap = map[string]string{
 	"multimodal": "图文问答模型",
 }
 
+type DocKnowledgeParams struct {
+	NeedOwner      bool `json:"needOwner" form:"needOwner"`
+	NeedGraph      bool `json:"needGraph" form:"needGraph"`
+	NeedPermission bool `json:"needPermission" form:"needPermission"`
+}
+
+// GetDocKnowledgeDetail 查询文档的知识库详情
+func GetDocKnowledgeDetail(ctx *gin.Context, userId, orgId string, req *request.DocKnowledgeDetailReq, params *DocKnowledgeParams) (*response.DocKnowledgeInfo, error) {
+	knowledgeInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx, &knowledgebase_service.KnowledgeDetailSelectReq{
+		KnowledgeId:    req.KnowledgeId,
+		NeedOwner:      params.NeedOwner,
+		NeedGraph:      params.NeedGraph,
+		NeedPermission: params.NeedPermission,
+		UserId:         userId,
+		OrgId:          orgId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	//忽略报错
+	knowledgeKeywords, _ := knowledgeBaseKeywords.GetKnowledgeKeywordsListByKnowledgeId(ctx, &knowledgebase_keywords_service.GetKnowledgeKeywordsListByKnowledgeIdReq{
+		KnowledgeId: req.KnowledgeId,
+		UserId:      knowledgeInfo.CreateUserId,
+		OrgId:       knowledgeInfo.CreateOrgId,
+	})
+	var keyWords []*knowledgebase_keywords_service.KeywordsInfo
+	if knowledgeKeywords != nil {
+		keyWords = knowledgeKeywords.Keywords
+	}
+	//构建知识库详情
+	return buildDocKnowledgeInfo(ctx, keyWords, knowledgeInfo), nil
+}
+
 // GetDocList 查询知识库所属文档列表
-func GetDocList(ctx *gin.Context, userId, orgId string, r *request.DocListReq) (*response.DocPageResult, error) {
+func GetDocList(ctx *gin.Context, userId, orgId string, r *request.DocListReq) (*response.PageResult, error) {
 	resp, err := knowledgeBaseDoc.GetDocList(ctx.Request.Context(), &knowledgebase_doc_service.GetDocListReq{
 		KnowledgeId:   r.KnowledgeId,
 		DocName:       strings.TrimSpace(r.DocName),
@@ -53,30 +87,12 @@ func GetDocList(ctx *gin.Context, userId, orgId string, r *request.DocListReq) (
 	if err != nil {
 		return nil, err
 	}
-	knowledgeInfo := resp.KnowledgeInfo
-	embModelInfo, _ := GetModel(ctx, userId, orgId, &request.GetModelRequest{
-		BaseModelRequest: request.BaseModelRequest{
-			ModelId: knowledgeInfo.EmbeddingModelId,
-		},
-	})
-	return &response.DocPageResult{
+
+	return &response.PageResult{
 		List:     buildDocRespList(ctx, resp.Docs, r.KnowledgeId),
 		Total:    resp.Total,
 		PageNo:   int(resp.PageNum),
 		PageSize: int(resp.PageSize),
-		DocKnowledgeInfo: &response.DocKnowledgeInfo{
-			KnowledgeId:     knowledgeInfo.KnowledgeId,
-			KnowledgeName:   knowledgeInfo.KnowledgeName,
-			GraphSwitch:     knowledgeInfo.GraphSwitch,
-			ShowGraphReport: knowledgeInfo.ShowGraphReport,
-			Description:     knowledgeInfo.Description,
-			Keywords:        buildKeywordsInfo(knowledgeInfo.Keywords),
-			EmbeddingModel:  embModelInfo,
-			LlmModelId:      knowledgeInfo.LlmModelId,
-			Category:        knowledgeInfo.Category,
-			Avatar:          cacheKnowledgeAvatar(ctx, knowledgeInfo.AvatarPath, knowledgeInfo.Category),
-			PermissionType:  knowledgeInfo.PermissionType,
-		},
 	}, nil
 }
 
@@ -363,6 +379,32 @@ func AnalysisDocUrl(ctx *gin.Context, userId, orgId string, r *request.AnalysisU
 		}
 	}
 	return &response.AnalysisDocUrlResp{UrlList: urlList}, nil
+}
+
+func buildDocKnowledgeInfo(ctx *gin.Context, keyWords []*knowledgebase_keywords_service.KeywordsInfo, knowledgeInfo *knowledgebase_service.KnowledgeInfo) *response.DocKnowledgeInfo {
+	embModelInfo, _ := GetModel(ctx, knowledgeInfo.CreateUserId, knowledgeInfo.CreateOrgId, &request.GetModelRequest{
+		BaseModelRequest: request.BaseModelRequest{
+			ModelId: knowledgeInfo.EmbeddingModelInfo.ModelId,
+		},
+	})
+
+	return &response.DocKnowledgeInfo{
+		KnowledgeId:     knowledgeInfo.KnowledgeId,
+		KnowledgeName:   knowledgeInfo.Name,
+		GraphSwitch:     knowledgeInfo.GraphSwitch,
+		ShowGraphReport: knowledgeInfo.ShowGraphReport,
+		Description:     knowledgeInfo.Description,
+		Keywords:        buildKeywordsInfo(keyWords),
+		EmbeddingModel:  embModelInfo,
+		LlmModelId:      knowledgeInfo.LlmModelId,
+		Category:        knowledgeInfo.Category,
+		Avatar:          cacheKnowledgeAvatar(ctx, knowledgeInfo.AvatarPath, knowledgeInfo.Category),
+		PermissionType:  knowledgeInfo.PermissionType,
+		OwnerUserId:     knowledgeInfo.OwnerUserId,
+		OwnerOrgId:      knowledgeInfo.OwnerOrgId,
+		CreatedAt:       knowledgeInfo.CreatedAt,
+		UpdatedAt:       knowledgeInfo.UpdatedAt,
+	}
 }
 
 // buildDocRespList 构造文档返回列表
@@ -860,7 +902,7 @@ func buildDocSegment(docSegment *knowledgebase_doc_service.DocSegment) *response
 	}
 }
 
-func buildKeywordsInfo(keywords []*knowledgebase_doc_service.KeywordsInfo) []*response.KeywordsInfo {
+func buildKeywordsInfo(keywords []*knowledgebase_keywords_service.KeywordsInfo) []*response.KeywordsInfo {
 	retList := make([]*response.KeywordsInfo, 0)
 	if len(keywords) > 0 {
 		for _, v := range keywords {

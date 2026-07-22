@@ -121,6 +121,18 @@ func GetDocListByKnowledgeId(ctx context.Context, userId, orgId string, knowledg
 	return docList, nil
 }
 
+// KnowledgeGraphSuccess 知识库图谱是否成功
+func KnowledgeGraphSuccess(ctx context.Context, userId, orgId string, knowledgeId string) (bool, error) {
+	var count int64
+	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithKnowledgeID(knowledgeId),
+		sqlopt.WithDelete(0), sqlopt.WithGraphStatusList([]int{int(model.GraphSuccess)})).
+		Apply(db.GetHandle(ctx), &model.KnowledgeDoc{}).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 // GetDocListByKnowledgeIdAndFileTypeFilter 根据知识库id查询知识库文件列表
 func GetDocListByKnowledgeIdAndFileTypeFilter(ctx context.Context, userId, orgId string, knowledgeId string, fileType string) ([]*model.KnowledgeDoc, error) {
 	var docList []*model.KnowledgeDoc

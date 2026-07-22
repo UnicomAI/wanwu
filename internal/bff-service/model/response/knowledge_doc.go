@@ -7,14 +7,6 @@ import (
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
 )
 
-type DocPageResult struct {
-	List             []*ListDocResp    `json:"list"`
-	Total            int64             `json:"total"`
-	PageNo           int               `json:"pageNo"`
-	PageSize         int               `json:"pageSize"`
-	DocKnowledgeInfo *DocKnowledgeInfo `json:"docKnowledgeInfo"`
-}
-
 type DocConfigResult struct {
 	DocImportType     int32       `json:"docImportType"`     //文档导入类型，0：文件上传，1：url上传，2.批量url上传
 	DocSegment        *DocSegment `json:"docSegment"`        //分段信息配置
@@ -47,6 +39,10 @@ type DocKnowledgeInfo struct {
 	Category        int32           `json:"category"`       // 0: 知识库 1: 问答库 2: 多模态知识库
 	Avatar          request.Avatar  `json:"avatar"`         // 头像
 	PermissionType  int32           `json:"permissionType"` // 当前用户对该知识库的权限类型 -1:无权限 0:查看 10:编辑 20:授权 30:系统管理授权
+	OwnerUserId     string          `json:"ownerUserId"`    // 知识库拥有者的userID，因为知识库可以转让，所以拥有者未必是创建者
+	OwnerOrgId      string          `json:"ownerOrgId"`     // 知识库拥有者的orgID，因为知识库可以转让，所以拥有者未必是创建者
+	CreatedAt       string          `json:"createdAt"`      // 创建时间
+	UpdatedAt       string          `json:"updatedAt"`      // 更新时间
 }
 
 type ListDocResp struct {

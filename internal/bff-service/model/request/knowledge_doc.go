@@ -14,6 +14,11 @@ const (
 	UrlFileUpload        = 2   //url文件上传
 )
 
+type DocKnowledgeDetailReq struct {
+	KnowledgeId string `json:"knowledgeId" form:"knowledgeId" validate:"required"`
+	CommonCheck
+}
+
 type DocConfigReq struct {
 	KnowledgeId string `json:"knowledgeId" form:"knowledgeId" validate:"required"`
 	DocId       string `json:"docId" form:"docId" validate:"required"`

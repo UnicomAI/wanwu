@@ -2350,13 +2350,21 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
         type: string
       name:
         type: string
       objectPath:
         type: string
+      orgId:
+        type: string
       skillId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
         type: string
       variables:
         items:
@@ -2398,13 +2406,21 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
         type: string
       name:
         type: string
       objectPath:
         type: string
+      orgId:
+        type: string
       skillId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
         type: string
       variables:
         items:
@@ -2666,15 +2682,23 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
         type: string
       name:
+        type: string
+      orgId:
         type: string
       skillId:
         type: string
       skillMarkdown:
         type: string
       skillPath:
+        type: string
+      updatedAt:
+        type: string
+      userId:
         type: string
       variables:
         items:

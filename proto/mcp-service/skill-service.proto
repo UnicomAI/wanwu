@@ -21,6 +21,8 @@ message CustomSkill {
   int64 updatedAt = 11;
   int32 downloadCount = 12;
   int32 acquiredCount = 13;
+  string userId = 14;
+  string orgId = 15;
 }
 
 message PublishCustomSkill {
@@ -88,6 +90,15 @@ message CustomSkillGetListReq {
 message CustomSkillGetListResp {
   repeated PublishCustomSkill list = 1;
   int64 total = 2;
+}
+
+// 管理员中心 skill 全局分页列表 请求
+message AdminCustomSkillPageListReq {
+  string name = 1; // skill 名称，支持模糊搜索
+  repeated string userId = 2; // 拥有者用户id列表
+  repeated string orgId = 3; // 拥有者组织id列表
+  int32 pageNum = 4; // 页码，从1开始
+  int32 pageSize = 5; // 每页数量
 }
 
 message CustomSkillDetailByIdListReq {

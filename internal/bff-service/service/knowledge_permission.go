@@ -1,15 +1,13 @@
 package service
 
 import (
-	"sync"
-
 	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
 	knowledgebase_permission_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-permission-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	"github.com/UnicomAI/wanwu/pkg/log"
-	"github.com/UnicomAI/wanwu/pkg/util"
+	safe_go_util "github.com/UnicomAI/wanwu/pkg/safe-go-util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -240,17 +238,16 @@ func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool)
 	for orgId := range orgIdMap {
 		orgIdList = append(orgIdList, orgId)
 	}
-	var wg = &sync.WaitGroup{}
-	wg.Add(2)
 	orgInfoMap := make(map[string]*iam_service.IDFullName)
 	userInfoMap := make(map[string]*iam_service.IDNameWithAvatar)
-	//查询user详情信息
-	go func() {
-		defer func() {
-			wg.Done()
-		}()
-		defer util.PrintPanicStack()
+	//并发查询
+	safe_go_util.SageGoWaitGroup(searchUser(ctx, userIdList, userInfoMap), searchOrg(ctx, orgIdList, orgInfoMap))
+	return userInfoMap, orgInfoMap
+}
 
+// 查询用户信息
+func searchUser(ctx *gin.Context, userIdList []string, userInfoMap map[string]*iam_service.IDNameWithAvatar) func() {
+	return func() {
 		userInfoList, err := iam.GetUserSelectByUserIDs(ctx.Request.Context(), &iam_service.GetUserSelectByUserIDsReq{
 			UserIds: userIdList,
 		})
@@ -260,14 +257,12 @@ func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool)
 		for _, info := range userInfoList.Selects {
 			userInfoMap[info.Id] = info
 		}
-	}()
-	//查询组织详情信息
-	go func() {
-		defer func() {
-			wg.Done()
-		}()
-		defer util.PrintPanicStack()
+	}
+}
 
+// 查询组织信息
+func searchOrg(ctx *gin.Context, orgIdList []string, orgInfoMap map[string]*iam_service.IDFullName) func() {
+	return func() {
 		orgInfoList, err := iam.GetOrgByOrgIDs(ctx.Request.Context(), &iam_service.GetOrgByOrgIDsReq{
 			OrgIds: orgIdList,
 		})
@@ -277,7 +272,5 @@ func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool)
 		for _, info := range orgInfoList.Orgs {
 			orgInfoMap[info.Id] = info
 		}
-	}()
-	wg.Wait()
-	return userInfoMap, orgInfoMap
+	}
 }

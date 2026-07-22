@@ -124,6 +124,20 @@ func (s *Service) CustomSkillGetList(ctx context.Context, req *mcp_service.Custo
 	return resp, nil
 }
 
+// AdminCustomSkillPageList 管理员中心 skill 全局分页列表（跨用户，按 userId[]/orgId[]/name 过滤后分页）
+func (s *Service) AdminCustomSkillPageList(ctx context.Context, req *mcp_service.AdminCustomSkillPageListReq) (*mcp_service.CustomSkillGetListResp, error) {
+	customSkills, total, err := s.cli.GetCustomSkillPageList(ctx, req.UserId, req.OrgId, req.Name, int(req.PageNum), int(req.PageSize))
+	if err != nil {
+		return nil, errStatus(errs.Code_MCPCustomSkillErr, err)
+	}
+	resp, st := s.buildCustomSkillGetListResp(ctx, customSkills)
+	if st != nil {
+		return nil, errStatus(errs.Code_MCPCustomSkillErr, st)
+	}
+	resp.Total = total
+	return resp, nil
+}
+
 // listPublishCustomSkills 按租户拉取草稿列表并组装 PublishCustomSkill（含可选最新发布）。
 func (s *Service) listPublishCustomSkills(ctx context.Context, userId, orgId, name string) (*mcp_service.CustomSkillGetListResp, *errs.Status) {
 	customSkills, _, st := s.cli.GetCustomSkillList(ctx, userId, orgId, name)

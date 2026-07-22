@@ -76,13 +76,48 @@ func (s *Service) SelectKnowledgeListByIdList(ctx context.Context, req *knowledg
 	return buildKnowledgeListResp(list, nil, permissionMap), nil
 }
 
+// AdminKnowledgePageList 管理员中心知识库全局分页列表（跨用户，按系统权限过滤）
+func (s *Service) AdminKnowledgePageList(ctx context.Context, req *knowledgebase_service.AdminKnowledgePageListReq) (*knowledgebase_service.AdminKnowledgePageListResp, error) {
+	list, total, err := orm.SelectKnowledgePageList(ctx, orm.NewKnowledgePageParams(req))
+	if err != nil {
+		log.Errorf(fmt.Sprintf("管理员中心获取知识库分页列表失败(%v)  参数(%v)", err, req))
+		return nil, util.ErrCode(errs.Code_KnowledgeBaseSelectFailed)
+	}
+	return &knowledgebase_service.AdminKnowledgePageListResp{
+		Total:         total,
+		KnowledgeList: buildKnowledgeOwnerInfoList(list),
+	}, nil
+}
+
 func (s *Service) SelectKnowledgeDetailById(ctx context.Context, req *knowledgebase_service.KnowledgeDetailSelectReq) (*knowledgebase_service.KnowledgeInfo, error) {
-	knowledgeInfo, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, req.UserId, req.OrgId)
+	knowledgeInfo, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf(fmt.Sprintf("获取知识库详情(%v)  参数(%v)", err, req))
 		return nil, err
 	}
-	return buildKnowledgeInfo(knowledgeInfo), nil
+	var knowledgeResult = buildKnowledgeInfo(knowledgeInfo)
+	if req.NeedOwner {
+		knowledgePermissionList, _ := orm.SelectUserKnowledgePermissionList(ctx, req.KnowledgeId, model.PermissionTypeSystem)
+		if len(knowledgePermissionList) > 0 {
+			//知识库的拥有者只能有一个
+			permission := knowledgePermissionList[0]
+			knowledgeResult.OwnerUserId = permission.UserId
+			knowledgeResult.OwnerOrgId = permission.OrgId
+		}
+	}
+	if req.NeedGraph {
+		showGraphReport, _ := orm.KnowledgeGraphSuccess(ctx, "", "", req.KnowledgeId)
+		knowledgeResult.ShowGraphReport = showGraphReport
+	}
+	if req.NeedPermission {
+		// 查询当前用户对该知识库的权限类型，无记录时默认查看权限(0)
+		permissionType := int32(model.PermissionTypeView)
+		if permission, perErr := orm.SelectUserKnowledgePermission(ctx, req.UserId, req.OrgId, req.KnowledgeId); perErr == nil {
+			permissionType = int32(permission.PermissionType)
+		}
+		knowledgeResult.PermissionType = permissionType
+	}
+	return knowledgeResult, nil
 }
 
 func (s *Service) SelectKnowledgeDetailByName(ctx context.Context, req *knowledgebase_service.KnowledgeDetailSelectReq) (*knowledgebase_service.KnowledgeInfo, error) {
@@ -1045,6 +1080,7 @@ func buildKnowledgeInfo(knowledge *model.KnowledgeBase) *knowledgebase_service.K
 	if docCount < 0 {
 		docCount = 0
 	}
+
 	return &knowledgebase_service.KnowledgeInfo{
 		KnowledgeId:           knowledge.KnowledgeId,
 		Name:                  knowledge.Name,
@@ -1077,6 +1113,18 @@ func buildKnowledgeInfoList(knowledgeList []*model.KnowledgeBase) *knowledgebase
 		List:  retList,
 		Total: int32(len(retList)),
 	}
+}
+
+// buildKnowledgeOwnerInfoList 构造带拥有者信息的知识库列表（管理员中心分页用）
+func buildKnowledgeOwnerInfoList(knowledgeList []*model.KnowledgeBaseOwner) []*knowledgebase_service.KnowledgeInfo {
+	var retList []*knowledgebase_service.KnowledgeInfo
+	for _, v := range knowledgeList {
+		info := buildKnowledgeInfo(&v.KnowledgeBase)
+		info.OwnerUserId = v.OwnerUserId
+		info.OwnerOrgId = v.OwnerOrgId
+		retList = append(retList, info)
+	}
+	return retList
 }
 
 // buildKnowledgeBaseModel 构造知识库模型

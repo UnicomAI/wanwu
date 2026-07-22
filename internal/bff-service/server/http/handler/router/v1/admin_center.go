@@ -1,13 +1,28 @@
 package v1
 
 import (
-	"net/http"
-
 	v1 "github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/v1"
 	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/middleware"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	mid "github.com/UnicomAI/wanwu/pkg/gin-util/mid-wrap"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
+
+var knowledgeBiz = &middleware.AdminCenterBiz{
+	BizId:   "knowledgeId",
+	BizType: constant.BizModuleResourceKnowledge,
+}
+
+var workflowBiz = &middleware.AdminCenterBiz{
+	BizId:   "workflowId",
+	BizType: constant.BizModuleAppWorkflow,
+}
+
+var skillBiz = &middleware.AdminCenterBiz{
+	BizId:   "skillId",
+	BizType: constant.BizModuleResourceSkill,
+}
 
 func registerAdminCenter(apiV1 *gin.RouterGroup) {
 	// user
@@ -53,4 +68,19 @@ func registerAdminCenter(apiV1 *gin.RouterGroup) {
 	mid.Sub("admin_center.oauth").Reg(apiV1, "/oauth/app", http.MethodPut, v1.UpdateOauthApp, "修改OAuth应用信息", middleware.CheckSystemAdmin)
 	mid.Sub("admin_center.oauth").Reg(apiV1, "/oauth/app/list", http.MethodGet, v1.GetOauthAppList, "获取OAuth应用列表", middleware.CheckSystemAdmin)
 	mid.Sub("admin_center.oauth").Reg(apiV1, "/oauth/app/status", http.MethodPut, v1.UpdateOauthAppStatus, "更新OAuth应用状态", middleware.CheckSystemAdmin)
+
+	apiAdminCenter := apiV1.Group("/admin/center")
+	// knowledge
+	mid.Sub("admin_center.knowledge").Reg(apiAdminCenter, "/knowledge/page/list", http.MethodPost, v1.AdminKnowledgePageList, "知识库全局列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, knowledgeBiz))
+	mid.Sub("admin_center.knowledge").Reg(apiAdminCenter, "/knowledge/base", http.MethodPost, v1.AdminKnowledgeBase, "知识库基础信息", middleware.AuthAdminCenter(middleware.AdminBizCheck, knowledgeBiz))
+	mid.Sub("admin_center.knowledge").Reg(apiAdminCenter, "/knowledge/file/list", http.MethodPost, v1.AdminKnowledgeFileList, "知识库文档列表", middleware.AuthAdminCenter(middleware.AdminBizCheck, knowledgeBiz))
+	mid.Sub("admin_center.knowledge").Reg(apiAdminCenter, "/knowledge/qa/pair/list", http.MethodPost, v1.AdminKnowledgeQAPairList, "问答对列表", middleware.AuthAdminCenter(middleware.AdminBizCheck, knowledgeBiz))
+	mid.Sub("admin_center.knowledge").Reg(apiAdminCenter, "/knowledge/file/detail", http.MethodPost, v1.AdminKnowledgeFileDetail, "知识库文档详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, knowledgeBiz))
+	// workflow
+	mid.Sub("admin_center.workflow").Reg(apiAdminCenter, "/workflow/page/list", http.MethodPost, v1.AdminWorkflowPageList, "工作流分页列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, workflowBiz))
+	// skill
+	mid.Sub("admin_center.skill").Reg(apiAdminCenter, "/skill/page/list", http.MethodPost, v1.AdminSkillPageList, "skill分页列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, skillBiz))
+	mid.Sub("admin_center.skill").Reg(apiAdminCenter, "/skill/base", http.MethodPost, v1.AdminSkillBase, "skill详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, skillBiz))
+	mid.Sub("admin_center.skill").Reg(apiAdminCenter, "/skill/detail", http.MethodPost, v1.AdminSkillDetail, "skill详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, skillBiz))
+	mid.Sub("admin_center.skill").Reg(apiAdminCenter, "/skill/version/list", http.MethodPost, v1.AdminSkillVersionList, "已发布skill版本列表", middleware.AuthAdminCenter(middleware.AdminBizCheck, skillBiz))
 }

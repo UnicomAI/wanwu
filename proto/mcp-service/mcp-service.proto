@@ -66,6 +66,8 @@ service MCPService {
   rpc GetCustomSkillByThreadID(GetCustomSkillByThreadIDReq) returns (GetCustomSkillByThreadIDResp) {}
   rpc GetCustomSkillListByThreadIDList(GetCustomSkillListByThreadIDListReq) returns (CustomSkillGetListResp) {}
   rpc CustomSkillGetList(CustomSkillGetListReq) returns (CustomSkillGetListResp) {}
+  // 管理员中心 skill 全局分页列表（跨用户，按 userId[]/orgId[] 过滤）
+  rpc AdminCustomSkillPageList(AdminCustomSkillPageListReq) returns (CustomSkillGetListResp) {}
   rpc GetCustomSkillDetailByIdList(CustomSkillDetailByIdListReq) returns (CustomSkillDetailByIdListResp) {}
   rpc UpdateCustomSkillBasicMeta(UpdateCustomSkillBasicMetaReq) returns (google.protobuf.Empty) {}
   rpc UpdateCustomSkillThreadMeta(UpdateCustomSkillThreadMetaReq) returns (google.protobuf.Empty) {}
