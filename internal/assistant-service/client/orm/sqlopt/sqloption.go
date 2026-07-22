@@ -94,6 +94,24 @@ func DataPerm(userId, orgId string) SQLOption {
 	})
 }
 
+func WithOrgIDs(orgIds []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgIds) > 0 {
+			return db.Where("org_id IN ?", orgIds)
+		}
+		return db
+	})
+}
+
+func WithUserIDs(userIds []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(userIds) > 0 {
+			return db.Where("user_id IN ?", userIds)
+		}
+		return db
+	})
+}
+
 func WithAssistantID(assistantId uint32) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		return db.Where("assistant_id = ?", assistantId)

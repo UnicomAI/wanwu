@@ -95,6 +95,10 @@ service AssistantService {
   rpc WgaConversationDelete(WgaConversationDeleteReq) returns (google.protobuf.Empty) {}
   rpc WgaConversationList(WgaConversationListReq) returns (WgaConversationListResp) {}
   rpc WgaConversationExists(WgaConversationExistsReq) returns (WgaConversationExistsResp) {}
+
+  // --- admin center ---
+  rpc GetAdminCustomPromptPageList(GetAdminCustomPromptPageListReq) returns (CustomPromptList) {}
+
 }
 
 message SaveToESReq {
@@ -747,8 +751,9 @@ message CustomPromptInfo {
   string name = 3;
   string desc = 4;
   string prompt = 5;
-  int64 updatedAt = 6;
-  Identity identity = 7;
+  int64 createdAt = 6;
+  int64 updatedAt = 7;
+  Identity identity = 8;
 }
 
 message CustomPromptGetListReq {
@@ -759,6 +764,16 @@ message CustomPromptGetListReq {
 message CustomPromptList {
   repeated CustomPromptInfo customPromptInfos = 1;
   int64 total = 2;
+}
+
+// --- admin center ---
+
+message GetAdminCustomPromptPageListReq {
+  string name = 1;                     // 名称（模糊查询）
+  repeated string orgIdList = 2;       // 组织id列表（空=全部组织）
+  repeated string userIdList = 3;      // 用户id列表（空=全部用户）
+  int32 pageNo = 4;                    // 页码（从1开始）
+  int32 pageSize = 5;                  // 每页条数
 }
 
 message CustomPromptCopyReq {

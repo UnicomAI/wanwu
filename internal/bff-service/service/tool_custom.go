@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
@@ -14,6 +16,27 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
 )
+
+type ToolBiz struct{}
+
+func init() {
+	InitBizService(&ToolBiz{})
+}
+
+func (*ToolBiz) BizType() string { return constant.BizModuleResourceTool }
+
+func (*ToolBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+	resp, err := mcp.GetCustomToolInfo(ctx, &mcp_service.GetCustomToolInfoReq{
+		CustomToolId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if resp.Owner == nil {
+		return "", "", nil
+	}
+	return resp.Owner.UserId, resp.Owner.OrgId, nil
+}
 
 func CreateCustomTool(ctx *gin.Context, userID, orgID string, req request.CustomToolCreate) error {
 	if err := openapi3_util.ValidateSchema(ctx.Request.Context(), []byte(req.Schema)); err != nil {

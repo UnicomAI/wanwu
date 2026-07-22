@@ -353,3 +353,240 @@ func AdminRagDetail(ctx *gin.Context) {
 	resp, err := service.AdminRagDetail(ctx, &req)
 	gin_util.Response(ctx, resp, err)
 }
+
+// AdminMCPPageList
+//
+//	@Tags			admin.mcp
+//	@Summary		管理员中心MCP全局列表
+//	@Description	管理员中心MCP全局列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminMCPPageListReq	true	"MCP全局列表参数"
+//	@Success		200		{object}	response.PageResult{list=response.AdminMCP}
+//	@Router			/admin/center/mcp/page/list [post]
+func AdminMCPPageList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.AdminMCPPageListReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.FillOrgIds(ctx, userId, orgId, &req.AdminUserSelect)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp, err := service.AdminMCPPageList(ctx, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminMCPBase
+//
+//	@Tags			admin.mcp
+//	@Summary		管理员中心MCP基础信息
+//	@Description	管理员中心MCP基础信息
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminMCPBaseReq	true	"MCP基础信息参数"
+//	@Success		200		{object}	response.Response{data=response.AdminMCPBase}
+//	@Router			/admin/center/mcp/base [post]
+func AdminMCPBase(ctx *gin.Context) {
+	var req request.AdminMCPBaseReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminMCPBase(ctx, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminMCPDetail
+//
+//	@Tags			admin.mcp
+//	@Summary		管理员中心导入MCP详情
+//	@Description	管理员中心导入MCP详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminMCPDetailReq	true	"导入MCP详情参数"
+//	@Success		200		{object}	response.Response{data=response.MCPDetail}
+//	@Router			/admin/center/mcp/custom/detail [post]
+func AdminMCPDetail(ctx *gin.Context) {
+	var req request.AdminMCPDetailReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminMCPDetail(ctx, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminMCPServerDetail
+//
+//	@Tags			admin.mcp
+//	@Summary		管理员中心创建MCP详情
+//	@Description	管理员中心创建MCP详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminMCPDetailReq	true	"创建MCP详情参数"
+//	@Success		200		{object}	response.Response{data=response.MCPServerDetail}
+//	@Router			/admin/center/mcp/server/detail [post]
+func AdminMCPServerDetail(ctx *gin.Context) {
+	var req request.AdminMCPDetailReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminMCPServerDetail(ctx, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminMCPToolList
+//
+//	@Tags			admin.mcp
+//	@Summary		管理员中心获取MCP Tool列表
+//	@Description	管理员中心获取MCP Tool列表
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminMCPToolListReq	true	"mcp工具列表请求参数"
+//	@Success		200		{object}	response.Response{data=response.MCPToolList}
+//	@Router			/admin/center/mcp/tool/list [post]
+func AdminMCPToolList(ctx *gin.Context) {
+	var req request.AdminMCPToolListReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminMCPToolList(ctx, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminToolPageList
+//
+//	@Tags			admin.tool
+//	@Summary		管理员中心工具全局列表
+//	@Description	管理员中心工具全局列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminToolPageListReq	true	"工具全局列表参数"
+//	@Success		200		{object}	response.PageResult{list=response.AdminTool}
+//	@Router			/admin/center/tool/page/list [post]
+func AdminToolPageList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.AdminToolPageListReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.FillOrgIds(ctx, userId, orgId, &req.AdminUserSelect)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp, err := service.AdminToolPageList(ctx, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminToolBase
+//
+//	@Tags			admin.tool
+//	@Summary		管理员中心工具基础信息
+//	@Description	管理员中心工具基础信息
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminToolBaseReq	true	"工具基础信息参数"
+//	@Success		200		{object}	response.Response{data=response.AdminToolBase}
+//	@Router			/admin/center/tool/base [post]
+func AdminToolBase(ctx *gin.Context) {
+	var req request.AdminToolBaseReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminToolBase(ctx, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminToolDetail
+//
+//	@Tags			admin.tool
+//	@Summary		管理员中心工具详情
+//	@Description	管理员中心工具详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminToolDetailReq	true	"工具详情参数"
+//	@Success		200		{object}	response.Response{data=response.CustomToolDetail}
+//	@Router			/admin/center/tool/detail [post]
+func AdminToolDetail(ctx *gin.Context) {
+	var req request.AdminToolDetailReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminToolDetail(ctx, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminPromptPageList
+//
+//	@Tags			admin.prompt
+//	@Summary		管理员中心提示词全局列表
+//	@Description	管理员中心提示词全局列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminPromptPageListReq	true	"提示词全局列表参数"
+//	@Success		200		{object}	response.PageResult{list=response.AdminPrompt}
+//	@Router			/admin/center/prompt/page/list [post]
+func AdminPromptPageList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.AdminPromptPageListReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.FillOrgIds(ctx, userId, orgId, &req.AdminUserSelect)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp, err := service.AdminPromptPageList(ctx, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminPromptBase
+//
+//	@Tags			admin.prompt
+//	@Summary		管理员中心提示词基础信息
+//	@Description	管理员中心提示词基础信息
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminPromptBaseReq	true	"MCP基础信息参数"
+//	@Success		200		{object}	response.Response{data=response.AdminPromptBase}
+//	@Router			/admin/center/prompt/base [post]
+func AdminPromptBase(ctx *gin.Context) {
+	var req request.AdminPromptBaseReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminPromptBase(ctx, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminPromptDetail
+//
+//	@Tags			admin.prompt
+//	@Summary		管理员中心提示词详情
+//	@Description	管理员中心提示词详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.AdminPromptDetailReq	true	"提示词详情参数"
+//	@Success		200		{object}	response.Response{data=response.CustomPrompt}
+//	@Router			/admin/center/prompt/detail [post]
+func AdminPromptDetail(ctx *gin.Context) {
+	var req request.AdminPromptDetailReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminPromptDetail(ctx, req)
+	gin_util.Response(ctx, resp, err)
+}

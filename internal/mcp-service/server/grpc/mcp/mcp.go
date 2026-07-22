@@ -113,6 +113,33 @@ func (s *Service) GetCustomMCPList(ctx context.Context, req *mcp_service.GetCust
 	return &mcp_service.CustomMCPList{Infos: infos}, nil
 }
 
+// GetAdminCustomMCPPageList 管理员中心跨组织查询自定义MCP列表（SQL分页）
+func (s *Service) GetAdminCustomMCPPageList(ctx context.Context, req *mcp_service.GetAdminCustomMCPPageListReq) (*mcp_service.GetAdminCustomMCPPageListResp, error) {
+	mcps, total, err := s.cli.ListMCPsAdmin(ctx, req.OrgIdList, req.UserIdList, req.Name, int(req.PageNo), int(req.PageSize))
+	if err != nil {
+		return nil, errStatus(errs.Code_MCPGetCustomMCPListErr, err)
+	}
+	list := make([]*mcp_service.AdminCustomMCPItem, 0, len(mcps))
+	for _, mcp := range mcps {
+		list = append(list, &mcp_service.AdminCustomMCPItem{
+			McpId:      util.Int2Str(mcp.ID),
+			Name:       mcp.Name,
+			Desc:       mcp.Desc,
+			AvatarPath: mcp.AvatarPath,
+			From:       mcp.From,
+			Owner: &mcp_service.Identity{
+				UserId: mcp.UserID,
+				OrgId:  mcp.OrgID,
+			},
+			UpdatedAt: mcp.UpdatedAt,
+		})
+	}
+	return &mcp_service.GetAdminCustomMCPPageListResp{
+		List:  list,
+		Total: total,
+	}, nil
+}
+
 func (s *Service) GetMCPByMCPIdList(ctx context.Context, req *mcp_service.GetMCPByMCPIdListReq) (*mcp_service.GetMCPByMCPIdListResp, error) {
 
 	var infos []*mcp_service.CustomMCPInfo
@@ -202,6 +229,12 @@ func buildCustomMCPDetail(mcp *model.MCPClient) *mcp_service.CustomMCPDetail {
 			Desc:        mcp.Desc,
 			From:        mcp.From,
 		},
+		Owner: &mcp_service.Identity{
+			UserId: mcp.UserID,
+			OrgId:  mcp.OrgID,
+		},
+		UpdatedAt: mcp.UpdatedAt,
+		CreatedAt: mcp.CreatedAt,
 	}
 	if mcp.McpSquareId != "" {
 		mcpSquareInfo, exist := config.Cfg().MCP(mcp.McpSquareId)
@@ -228,6 +261,8 @@ func buildCustomMCPInfo(mcp *model.MCPClient) *mcp_service.CustomMCPInfo {
 		ApiAuth:       detail.ApiAuth,
 		Headers:       detail.Headers,
 		Info:          detail.Info,
+		Owner:         detail.Owner,
+		UpdatedAt:     detail.UpdatedAt,
 	}
 }
 
