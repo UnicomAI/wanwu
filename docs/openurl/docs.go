@@ -2592,6 +2592,10 @@ const docTemplate = `{
                     "description": "描述",
                     "type": "string"
                 },
+                "hideKnowledge": {
+                    "description": "是否隐藏知识库",
+                    "type": "integer"
+                },
                 "instructions": {
                     "description": "系统提示词",
                     "type": "string"
@@ -2641,6 +2645,14 @@ const docTemplate = `{
                 "newAgent": {
                     "description": "是否是新版本智能体",
                     "type": "boolean"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id",
+                    "type": "string"
                 },
                 "prologue": {
                     "description": "开场白",
@@ -3125,6 +3137,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scopeType": {
+                    "description": "模型公开范围(1-私有 2-公开 3-组织)",
                     "type": "string"
                 },
                 "tags": {

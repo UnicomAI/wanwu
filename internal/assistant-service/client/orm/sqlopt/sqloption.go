@@ -1,6 +1,7 @@
 package sqlopt
 
 import (
+	pkg_db "github.com/UnicomAI/wanwu/pkg/db"
 	"gorm.io/gorm"
 )
 
@@ -69,6 +70,24 @@ func WithUserID(userId string) SQLOption {
 	})
 }
 
+func WithOrgIDs(orgIds []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgIds) > 0 {
+			return db.Where("org_id IN ?", orgIds)
+		}
+		return db
+	})
+}
+
+func WithUserIDs(userIds []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(userIds) > 0 {
+			return db.Where("user_id IN ?", userIds)
+		}
+		return db
+	})
+}
+
 func DataPerm(userId, orgId string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if userId != "" && orgId == "" {
@@ -91,24 +110,6 @@ func DataPerm(userId, orgId string) SQLOption {
 			//数据权限：全部
 			return db
 		}
-	})
-}
-
-func WithOrgIDs(orgIds []string) SQLOption {
-	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
-		if len(orgIds) > 0 {
-			return db.Where("org_id IN ?", orgIds)
-		}
-		return db
-	})
-}
-
-func WithUserIDs(userIds []string) SQLOption {
-	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
-		if len(userIds) > 0 {
-			return db.Where("user_id IN ?", userIds)
-		}
-		return db
 	})
 }
 
@@ -217,15 +218,6 @@ func WithConversationType(conversationType string) SQLOption {
 	})
 }
 
-func WithConversationId(conversationId string) SQLOption {
-	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
-		if conversationId != "" {
-			return db.Where("conversation_id = ?", conversationId)
-		}
-		return db
-	})
-}
-
 func WithSkillId(skillId string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		return db.Where("skill_id = ?", skillId)
@@ -251,6 +243,24 @@ func WithTitleLike(title string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if title != "" {
 			return db.Where("title LIKE ? ", "%"+title+"%")
+		}
+		return db
+	})
+}
+
+func WithNameLike(name string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if name != "" {
+			return db.Where("name LIKE ? ", "%"+pkg_db.EscapeLike(name)+"%")
+		}
+		return db
+	})
+}
+
+func WithCategories(categories []int32) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(categories) > 0 {
+			return db.Where("category IN ?", categories)
 		}
 		return db
 	})

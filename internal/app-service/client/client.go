@@ -50,6 +50,7 @@ type IClient interface {
 	GetSensitiveWordTableListByIDs(ctx context.Context, tableIds []string) ([]*model.SensitiveWordTable, *err_code.Status)
 	GetSensitiveWordTableByID(ctx context.Context, tableId uint32) (*model.SensitiveWordTable, *err_code.Status)
 	GetGlobalSensitiveWordTableList(ctx context.Context) ([]*model.SensitiveWordTable, *err_code.Status)
+	AdminGetSensitiveWordTableList(ctx context.Context, userIds, orgIds []string, name string, pageNum, pageSize int) ([]*model.SensitiveWordTable, int64, *err_code.Status)
 
 	// --- web_url ---
 	CreateAppUrl(ctx context.Context, appUrl *model.AppUrl) *err_code.Status

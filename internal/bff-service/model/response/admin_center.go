@@ -155,3 +155,42 @@ type AdminPrompt struct {
 type AdminPromptBase struct {
 	AdminAppBaseInfo
 }
+
+type AdminAssistantBase struct {
+	AdminAppBaseInfo
+	Category      int32 `json:"category"`      // 智能体分类(1:单智能体,2:多智能体)
+	HideKnowledge int32 `json:"hideKnowledge"` // 是否隐藏知识库引用(1:隐藏,0:显示)，仅已发布版本有值
+}
+
+type AdminAssistant struct {
+	AppBriefInfo
+	OwnerHolder
+}
+
+type AdminAssistantDetail struct {
+	Assistant
+	OwnerHolder
+}
+
+type AdminSensitiveWord struct {
+	SensitiveWordTableDetail
+	OwnerHolder
+}
+
+type AdminSensitiveWordBase struct {
+	TableId   string `json:"tableId"`
+	TableName string `json:"tableName"`
+	Remark    string `json:"remark"`
+	Type      string `json:"type"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+	OwnerHolder
+}
+
+type AdminSensitiveWordDetailResp struct {
+	Reply    string                           `json:"reply"`
+	List     []*SensitiveWordVocabularyDetail `json:"list"`
+	Total    int64                            `json:"total"`
+	PageNo   int                              `json:"pageNo"`
+	PageSize int                              `json:"pageSize"`
+}

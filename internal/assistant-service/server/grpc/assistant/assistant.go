@@ -8,6 +8,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/service"
 	params_process "github.com/UnicomAI/wanwu/internal/assistant-service/service/params-process"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
@@ -36,22 +37,7 @@ func (s *Service) GetAssistantByIds(ctx context.Context, req *assistant_service.
 	// 转换为响应格式
 	var appBriefs []*assistant_service.AssistantBrief
 	for _, assistant := range assistants {
-		appBriefs = append(appBriefs, &assistant_service.AssistantBrief{
-			Info: &common.AppBrief{
-				OrgId:      assistant.OrgId,
-				UserId:     assistant.UserId,
-				AppId:      util.Int2Str(assistant.ID),
-				AppType:    "agent",
-				AvatarPath: assistant.AvatarPath,
-				Name:       assistant.Name,
-				Desc:       assistant.Desc,
-				CreatedAt:  assistant.CreatedAt,
-				UpdatedAt:  assistant.UpdatedAt,
-			},
-			Category: int32(assistant.Category),
-			Uuid:     assistant.UUID,
-		})
-
+		appBriefs = append(appBriefs, transToAssistantBrief(assistant, ""))
 	}
 
 	return &assistant_service.AppBriefList{
@@ -457,7 +443,12 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 	}
 
 	// 构建多智能体信息
-	multiAgentInfos, err := s.GetMultiAgentInfos(ctx, assistantId, req.Identity.UserId, req.Identity.OrgId, "", true)
+	userId, orgId := "", ""
+	if req.Identity != nil {
+		userId = req.Identity.UserId
+		orgId = req.Identity.OrgId
+	}
+	multiAgentInfos, err := s.GetMultiAgentInfos(ctx, assistantId, userId, orgId, "", true)
 	if err != nil {
 		return nil, err
 	}
@@ -607,6 +598,55 @@ func (s *Service) GetAssistantDetailById(ctx context.Context, req *assistant_ser
 	}, nil
 }
 
+// AdminAssistantPageList 管理员中心智能体列表
+func (s *Service) AdminAssistantPageList(ctx context.Context, req *assistant_service.AdminAssistantPageListReq) (*assistant_service.AdminAssistantPageListResp, error) {
+	pageNum := int(req.PageNum)
+	pageSize := int(req.PageSize)
+
+	var items []*model.AdminAssistantItem
+	var total int64
+	var status *errs.Status
+
+	if req.PublishStatus == nil {
+		// 查询所有智能体
+		items, total, status = s.cli.AdminGetAssistantListAll(ctx, req.UserId, req.OrgId, req.Name, req.Category)
+	} else {
+		// 分页查询
+		items, total, status = s.cli.AdminGetAssistantListPage(ctx, req.UserId, req.OrgId, req.Name, req.Category, pageNum, pageSize)
+	}
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+
+	var appBriefs []*assistant_service.AssistantBrief
+	for _, item := range items {
+		appBriefs = append(appBriefs, transToAssistantBrief(&item.Assistant, item.PublishType))
+	}
+
+	return &assistant_service.AdminAssistantPageListResp{
+		Total: total,
+		List:  appBriefs,
+	}, nil
+}
+
+// SyncAssistantPublish 同步智能体发布状态到 assistant 数据库的关联表
+// publishType 非空=发布记录，空=删除发布记录(取消发布)
+func (s *Service) SyncAssistantPublish(ctx context.Context, req *assistant_service.SyncAssistantPublishReq) (*emptypb.Empty, error) {
+	assistantId := util.MustU32(req.AssistantId)
+	var status *errs.Status
+	if req.PublishType == "" {
+		status = s.cli.DeleteAssistantPublish(ctx, assistantId)
+	} else {
+		status = s.cli.UpsertAssistantPublish(ctx, assistantId, req.PublishType)
+	}
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	return &emptypb.Empty{}, nil
+}
+
+// ---internal methods---
+
 func searchAssistantDetail(ctx context.Context, draft bool, assistantId uint32, cli client.IClient, version string) (*model.Assistant, *model.AssistantSnapshot, error) {
 	assistant := &model.Assistant{}
 	var assistantSnapshot *model.AssistantSnapshot
@@ -679,4 +719,26 @@ func buildRelationMap(relations []*model.MultiAgentRelation) map[uint32]*model.M
 		relationMap[relation.AgentId] = relation
 	}
 	return relationMap
+}
+
+func transToAssistantBrief(assistant *model.Assistant, publishType string) *assistant_service.AssistantBrief {
+	assistantBrief := assistant_service.AssistantBrief{
+		Info: &common.AppBrief{
+			OrgId:      assistant.OrgId,
+			UserId:     assistant.UserId,
+			AppId:      util.Int2Str(assistant.ID),
+			AppType:    constant.AppTypeAgent,
+			AvatarPath: assistant.AvatarPath,
+			Name:       assistant.Name,
+			Desc:       assistant.Desc,
+			CreatedAt:  assistant.CreatedAt,
+			UpdatedAt:  assistant.UpdatedAt,
+		},
+		Category: int32(assistant.Category),
+		Uuid:     assistant.UUID,
+	}
+	if publishType != "" {
+		assistantBrief.PublishType = publishType
+	}
+	return &assistantBrief
 }

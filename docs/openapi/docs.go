@@ -4567,6 +4567,10 @@ const docTemplate = `{
                     "description": "描述",
                     "type": "string"
                 },
+                "hideKnowledge": {
+                    "description": "是否隐藏知识库",
+                    "type": "integer"
+                },
                 "instructions": {
                     "description": "系统提示词",
                     "type": "string"
@@ -4616,6 +4620,14 @@ const docTemplate = `{
                 "newAgent": {
                     "description": "是否是新版本智能体",
                     "type": "boolean"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id",
+                    "type": "string"
                 },
                 "prologue": {
                     "description": "开场白",

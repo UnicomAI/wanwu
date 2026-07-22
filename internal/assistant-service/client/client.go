@@ -19,6 +19,12 @@ type IClient interface {
 	GetAssistantList(ctx context.Context, userID, orgID string, name string) ([]*model.Assistant, int64, *err_code.Status)
 	CheckSameAssistantName(ctx context.Context, userID, orgID, name, assistantID string) *err_code.Status
 	CopyAssistant(ctx context.Context, assistant *model.Assistant, workflows []*model.AssistantWorkflow, mcps []*model.AssistantMCP, customTools []*model.AssistantTool, subAgents []*model.MultiAgentRelation, skills []*model.AssistantSkill) (uint32, *err_code.Status)
+	AdminGetAssistantListAll(ctx context.Context, userIds, orgIds []string, name string, categories []int32) ([]*model.AdminAssistantItem, int64, *err_code.Status)
+	AdminGetAssistantListPage(ctx context.Context, userIds, orgIds []string, name string, categories []int32, pageNum, pageSize int) ([]*model.AdminAssistantItem, int64, *err_code.Status)
+
+	//================AssistantPublish================
+	UpsertAssistantPublish(ctx context.Context, assistantID uint32, publishType string) *err_code.Status
+	DeleteAssistantPublish(ctx context.Context, assistantID uint32) *err_code.Status
 
 	//================AssistantSnapshot================
 	CreateAssistantSnapshot(ctx context.Context, assistantSnapshot *model.AssistantSnapshot) (uint32, *err_code.Status)

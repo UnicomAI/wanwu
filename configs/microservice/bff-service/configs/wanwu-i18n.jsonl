@@ -474,6 +474,11 @@
 {"code":160001,"key":"assistant_tool","langs":{"zh":"智能体快照回滚tool错误: %v"}}
 {"code":160001,"key":"assistant_mcp","langs":{"zh":"智能体快照回滚mcp错误: %v"}}
 {"code":160001,"key":"assistant_workflow","langs":{"zh":"智能体快照回滚工作流错误: %v"}}
+{"code":160001,"key":"assistants_admin_list","langs":{"zh":"获取智能体列表错误: %v"}}
+{"code":160001,"key":"assistant_publish_upsert_query","langs":{"zh":"查询发布记录错误: %v"}}
+{"code":160001,"key":"assistant_publish_upsert_create","langs":{"zh":"创建发布记录错误: %v"}}
+{"code":160001,"key":"assistant_publish_upsert_update","langs":{"zh":"更新发布记录错误: %v"}}
+{"code":160001,"key":"assistant_publish_delete","langs":{"zh":"删除发布记录错误: %v"}}
 {"code":160002,"key":"assistant_action_update","langs":{"zh":"更新action错误: %v"}}
 {"code":160002,"key":"assistant_action_get","langs":{"zh":"获取action错误: %v"}}
 {"code":160002,"key":"assistant_actions_get_by_assistant_id","langs":{"zh":"获取action错误: %v"}}
