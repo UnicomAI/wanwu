@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -13,11 +14,34 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
+
+var modelBiz = &ModelBiz{}
+
+type ModelBiz struct{}
+
+func init() {
+	InitBizService(modelBiz)
+}
+
+func (*ModelBiz) BizType() string {
+	return constant.BizModuleModel
+}
+
+func (*ModelBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+	resp, err := model.GetModel(ctx, &model_service.GetModelReq{
+		ModelId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	return resp.UserId, resp.OrgId, nil
+}
 
 type ModelInfoOptions struct {
 	UserId string

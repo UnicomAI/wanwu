@@ -87,3 +87,29 @@ type AdminSkillDetail struct {
 	PublishedSkillInfo
 	OwnerHolder
 }
+
+type AdminModel struct {
+	ModelInfo
+	OwnerHolder
+}
+
+type AdminModelBase struct {
+	AdminAppBaseInfo
+	Provider string `json:"provider"` // 模型供应商
+}
+
+type AdminRag struct {
+	AppBriefInfo
+	OwnerHolder
+}
+
+type AdminRagBase struct {
+	AdminAppBaseInfo
+}
+
+type AdminRagDetail struct {
+	RagInfo
+	LlmModel      *ModelInfo `json:"llmModel"`      // llm模型（含头像/标签）
+	RerankModel   *ModelInfo `json:"rerankModel"`   // 知识库Rerank模型（含头像/标签）
+	QaRerankModel *ModelInfo `json:"qaRerankModel"` // 问答库Rerank模型（含头像/标签）
+}

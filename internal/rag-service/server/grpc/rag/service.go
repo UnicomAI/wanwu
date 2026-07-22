@@ -282,6 +282,15 @@ func (s *Service) ListRag(ctx context.Context, in *rag_service.RagListReq) (*rag
 	return ragList, nil
 }
 
+// AdminRagPageList 管理员中心知识问答全局分页列表（跨用户/组织）
+func (s *Service) AdminRagPageList(ctx context.Context, in *rag_service.AdminRagPageListReq) (*rag_service.AdminRagPageListResp, error) {
+	ragList, err := s.cli.AdminRagPageList(ctx, in)
+	if err != nil {
+		return nil, errStatus(errs.Code_RagListErr, err)
+	}
+	return ragList, nil
+}
+
 func (s *Service) GetRagByIds(ctx context.Context, in *rag_service.GetRagByIdsReq) (*rag_service.AppBriefList, error) {
 	ragList, err := s.cli.GetRagByIds(ctx, &rag_service.GetRagByIdsReq{
 		RagIdList: in.RagIdList,

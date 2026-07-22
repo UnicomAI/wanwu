@@ -24,6 +24,16 @@ var skillBiz = &middleware.AdminCenterBiz{
 	BizType: constant.BizModuleResourceSkill,
 }
 
+var modelBiz = &middleware.AdminCenterBiz{
+	BizId:   "modelId",
+	BizType: constant.BizModuleModel,
+}
+
+var ragBiz = &middleware.AdminCenterBiz{
+	BizId:   "ragId",
+	BizType: constant.BizModuleAppRag,
+}
+
 func registerAdminCenter(apiV1 *gin.RouterGroup) {
 	// user
 	mid.Sub("admin_center").Reg(apiV1, "/user", http.MethodPost, v1.CreateUser, "创建用户", middleware.CheckOrgAdmin)
@@ -83,4 +93,13 @@ func registerAdminCenter(apiV1 *gin.RouterGroup) {
 	mid.Sub("admin_center.skill").Reg(apiAdminCenter, "/skill/base", http.MethodPost, v1.AdminSkillBase, "skill详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, skillBiz))
 	mid.Sub("admin_center.skill").Reg(apiAdminCenter, "/skill/detail", http.MethodPost, v1.AdminSkillDetail, "skill详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, skillBiz))
 	mid.Sub("admin_center.skill").Reg(apiAdminCenter, "/skill/version/list", http.MethodPost, v1.AdminSkillVersionList, "已发布skill版本列表", middleware.AuthAdminCenter(middleware.AdminBizCheck, skillBiz))
+
+	//model 模型管理
+	mid.Sub("admin_center.model").Reg(apiAdminCenter, "/model/page/list", http.MethodPost, v1.AdminModelPageList, "模型全局列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, modelBiz))
+	mid.Sub("admin_center.model").Reg(apiAdminCenter, "/model/base", http.MethodPost, v1.AdminModelBase, "模型基础信息", middleware.AuthAdminCenter(middleware.AdminBizCheck, modelBiz))
+	mid.Sub("admin_center.model").Reg(apiAdminCenter, "/model/detail", http.MethodPost, v1.AdminModelDetail, "模型详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, modelBiz))
+	//rag 知识问答
+	mid.Sub("admin_center.rag").Reg(apiAdminCenter, "/rag/page/list", http.MethodPost, v1.AdminRagPageList, "知识问答全局列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, ragBiz))
+	mid.Sub("admin_center.rag").Reg(apiAdminCenter, "/rag/base", http.MethodPost, v1.AdminRagBase, "知识问答基础信息", middleware.AuthAdminCenter(middleware.AdminBizCheck, ragBiz))
+	mid.Sub("admin_center.rag").Reg(apiAdminCenter, "/rag/detail", http.MethodPost, v1.AdminRagDetail, "知识问答详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, ragBiz))
 }

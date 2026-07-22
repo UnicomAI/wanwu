@@ -177,6 +177,22 @@ func (s *Service) ListModelsInStatisticScope(ctx context.Context, req *model_ser
 	return toModelInfos(modelInfos), nil
 }
 
+// AdminModelPageList 管理员中心模型全局分页列表（跨用户/组织）
+func (s *Service) AdminModelPageList(ctx context.Context, req *model_service.AdminModelPageListReq) (*model_service.AdminModelPageListResp, error) {
+	modelInfos, total, err := s.cli.AdminModelPageList(ctx, req.Name, req.Provider, req.ModelType, req.UserId, req.OrgId, req.ScopeType, int(req.PageNum), int(req.PageSize))
+	if err != nil {
+		return nil, errStatus(errs.Code_ModelListModels, err)
+	}
+	var models []*model_service.ModelInfo
+	for _, modelInfo := range modelInfos {
+		models = append(models, toModelInfo(modelInfo))
+	}
+	return &model_service.AdminModelPageListResp{
+		Total:  total,
+		Models: models,
+	}, nil
+}
+
 func (s *Service) ListTypeModels(ctx context.Context, req *model_service.ListTypeModelsReq) (*model_service.ModelInfos, error) {
 	modelInfos, err := s.cli.ListTypeModels(ctx, &model.ModelImported{
 		ModelType: req.ModelType,

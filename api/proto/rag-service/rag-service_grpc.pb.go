@@ -27,6 +27,7 @@ const (
 	RagService_DeleteRag_FullMethodName              = "/rag_service.RagService/DeleteRag"
 	RagService_GetRagDetail_FullMethodName           = "/rag_service.RagService/GetRagDetail"
 	RagService_ListRag_FullMethodName                = "/rag_service.RagService/ListRag"
+	RagService_AdminRagPageList_FullMethodName       = "/rag_service.RagService/AdminRagPageList"
 	RagService_GetRagByIds_FullMethodName            = "/rag_service.RagService/GetRagByIds"
 	RagService_CopyRag_FullMethodName                = "/rag_service.RagService/CopyRag"
 	RagService_PublishRag_FullMethodName             = "/rag_service.RagService/PublishRag"
@@ -55,6 +56,8 @@ type RagServiceClient interface {
 	GetRagDetail(ctx context.Context, in *RagDetailReq, opts ...grpc.CallOption) (*RagInfo, error)
 	// 获取 rag 列表
 	ListRag(ctx context.Context, in *RagListReq, opts ...grpc.CallOption) (*RagListResp, error)
+	// 管理员中心知识问答全局分页列表（跨用户/组织）
+	AdminRagPageList(ctx context.Context, in *AdminRagPageListReq, opts ...grpc.CallOption) (*AdminRagPageListResp, error)
 	// 根据 ragIds 获取 rag 列表
 	GetRagByIds(ctx context.Context, in *GetRagByIdsReq, opts ...grpc.CallOption) (*AppBriefList, error)
 	// 复制 rag
@@ -160,6 +163,16 @@ func (c *ragServiceClient) ListRag(ctx context.Context, in *RagListReq, opts ...
 	return out, nil
 }
 
+func (c *ragServiceClient) AdminRagPageList(ctx context.Context, in *AdminRagPageListReq, opts ...grpc.CallOption) (*AdminRagPageListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminRagPageListResp)
+	err := c.cc.Invoke(ctx, RagService_AdminRagPageList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *ragServiceClient) GetRagByIds(ctx context.Context, in *GetRagByIdsReq, opts ...grpc.CallOption) (*AppBriefList, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AppBriefList)
@@ -258,6 +271,8 @@ type RagServiceServer interface {
 	GetRagDetail(context.Context, *RagDetailReq) (*RagInfo, error)
 	// 获取 rag 列表
 	ListRag(context.Context, *RagListReq) (*RagListResp, error)
+	// 管理员中心知识问答全局分页列表（跨用户/组织）
+	AdminRagPageList(context.Context, *AdminRagPageListReq) (*AdminRagPageListResp, error)
 	// 根据 ragIds 获取 rag 列表
 	GetRagByIds(context.Context, *GetRagByIdsReq) (*AppBriefList, error)
 	// 复制 rag
@@ -304,6 +319,9 @@ func (UnimplementedRagServiceServer) GetRagDetail(context.Context, *RagDetailReq
 }
 func (UnimplementedRagServiceServer) ListRag(context.Context, *RagListReq) (*RagListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRag not implemented")
+}
+func (UnimplementedRagServiceServer) AdminRagPageList(context.Context, *AdminRagPageListReq) (*AdminRagPageListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminRagPageList not implemented")
 }
 func (UnimplementedRagServiceServer) GetRagByIds(context.Context, *GetRagByIdsReq) (*AppBriefList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRagByIds not implemented")
@@ -465,6 +483,24 @@ func _RagService_ListRag_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RagServiceServer).ListRag(ctx, req.(*RagListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RagService_AdminRagPageList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminRagPageListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RagServiceServer).AdminRagPageList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RagService_AdminRagPageList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RagServiceServer).AdminRagPageList(ctx, req.(*AdminRagPageListReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -643,6 +679,10 @@ var RagService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListRag",
 			Handler:    _RagService_ListRag_Handler,
+		},
+		{
+			MethodName: "AdminRagPageList",
+			Handler:    _RagService_AdminRagPageList_Handler,
 		},
 		{
 			MethodName: "GetRagByIds",

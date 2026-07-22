@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "## HTTP Header\r\n| Header        | 说明      |\r\n| ------------- | --------- |\r\n| Authorization | JWT token |\r\n| X-Language    | 语言Code  |\r\n| X-Org-Id      | 组织ID    |\r\n| X-Client-Id   | 客户端标识|\r\n\r\n## HTTP Status\r\n| HTTP Status             | 说明                   |\r\n| ----------------------- | ---------------------- |\r\n| 200, StatusOK           | 请求返回成功           |\r\n| 400, StatusBadRequest   | 请求返回失败，用于业务 |\r\n| 401, StatusUnauthorized | JWT认证失败            |\r\n| 403, StatusForbidden    | 没有权限               |\r\n\r\n## 权限-菜单对应表\r\n| 一级权限        | 二级权限  | 三级权限 | 一级菜单 | 二级菜单 | 三级菜单 |\r\n|-------------|-------|------|------|------|------|\r\n| guest       |       |      | 【访客】 |      |      |\r\n| common      |       |      | 【通用】 |      |      |\r\n| permission  |       |      | 权限管理 |      |      |\r\n| permission  | user  |      | 权限管理 | 用户管理 |      |\r\n| permission  | org   |      | 权限管理 | 组织管理 |      |\r\n| permission  | role  |      | 权限管理 | 角色管理 |      |\r\n\r\n## `/v1/user/permission`返回用例\r\n```json\r\n{\r\n  \"code\": 0,\r\n  \"data\": {\r\n    \"orgPermission\": {\r\n      \"org\": {\"id\": \"test-org-id\", \"name\": \"test-org-name\"},\r\n      \"permissions\": [\r\n        {\"perm\": \"permission\"},\r\n        {\"perm\": \"permission.user\"},\r\n        {\"perm\": \"permission.org\"},\r\n        {\"perm\": \"permission.role\"}\r\n      ]\r\n    }\r\n  },\r\n  \"msg\": \"操作成功\"\r\n}\r\n```",
+        "description": "## HTTP Header\n| Header        | 说明      |\n| ------------- | --------- |\n| Authorization | JWT token |\n| X-Language    | 语言Code  |\n| X-Org-Id      | 组织ID    |\n| X-Client-Id   | 客户端标识|\n\n## HTTP Status\n| HTTP Status             | 说明                   |\n| ----------------------- | ---------------------- |\n| 200, StatusOK           | 请求返回成功           |\n| 400, StatusBadRequest   | 请求返回失败，用于业务 |\n| 401, StatusUnauthorized | JWT认证失败            |\n| 403, StatusForbidden    | 没有权限               |\n\n## 权限-菜单对应表\n| 一级权限        | 二级权限  | 三级权限 | 一级菜单 | 二级菜单 | 三级菜单 |\n|-------------|-------|------|------|------|------|\n| guest       |       |      | 【访客】 |      |      |\n| common      |       |      | 【通用】 |      |      |\n| permission  |       |      | 权限管理 |      |      |\n| permission  | user  |      | 权限管理 | 用户管理 |      |\n| permission  | org   |      | 权限管理 | 组织管理 |      |\n| permission  | role  |      | 权限管理 | 角色管理 |      |\n\n## `/v1/user/permission`返回用例\n```json\n{\n  \"code\": 0,\n  \"data\": {\n    \"orgPermission\": {\n      \"org\": {\"id\": \"test-org-id\", \"name\": \"test-org-name\"},\n      \"permissions\": [\n        {\"perm\": \"permission\"},\n        {\"perm\": \"permission.user\"},\n        {\"perm\": \"permission.org\"},\n        {\"perm\": \"permission.role\"}\n      ]\n    }\n  },\n  \"msg\": \"操作成功\"\n}\n```",
         "title": "AI Agent Productivity Platform API",
         "contact": {},
         "version": "v0.0.1"
@@ -282,6 +282,312 @@
                                     "properties": {
                                         "list": {
                                             "$ref": "#/definitions/response.ListKnowledgeQAPairResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/model/base": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心模型基础信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.model"
+                ],
+                "summary": "管理员中心模型基础信息",
+                "parameters": [
+                    {
+                        "description": "模型详情参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminModelDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.AdminModelBase"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/model/detail": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心模型详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.model"
+                ],
+                "summary": "管理员中心模型详情",
+                "parameters": [
+                    {
+                        "description": "模型详情参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminModelDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ModelInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/model/page/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心模型全局列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.model"
+                ],
+                "summary": "管理员中心模型全局列表",
+                "parameters": [
+                    {
+                        "description": "模型全局列表参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminModelPageListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.PageResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "list": {
+                                            "$ref": "#/definitions/response.AdminModel"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/rag/base": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心知识问答基础信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.rag"
+                ],
+                "summary": "管理员中心知识问答基础信息",
+                "parameters": [
+                    {
+                        "description": "知识问答基本信息参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminRagDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.AdminRagBase"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/rag/detail": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心知识问答详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.rag"
+                ],
+                "summary": "管理员中心知识问答详情",
+                "parameters": [
+                    {
+                        "description": "知识问答详情参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminRagDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.AdminRagDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/rag/page/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心知识问答全局列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.rag"
+                ],
+                "summary": "管理员中心知识问答全局列表",
+                "parameters": [
+                    {
+                        "description": "知识问答全局列表参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminRagPageListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.PageResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "list": {
+                                            "$ref": "#/definitions/response.AdminRag"
                                         }
                                     }
                                 }
@@ -23920,6 +24226,137 @@
                 }
             }
         },
+        "request.AdminModelDetailReq": {
+            "type": "object",
+            "required": [
+                "modelId"
+            ],
+            "properties": {
+                "modelId": {
+                    "description": "模型id",
+                    "type": "string"
+                }
+            }
+        },
+        "request.AdminModelPageListReq": {
+            "type": "object",
+            "required": [
+                "pageSize"
+            ],
+            "properties": {
+                "isAllOrg": {
+                    "description": "是否全选组织",
+                    "type": "boolean"
+                },
+                "modelType": {
+                    "description": "模型类型：llm, rerank, embedding, multimodal-rerank, multimodal-embedding, ocr, gui, pdf-parser, sync-asr, text2image",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "模型名称",
+                    "type": "string"
+                },
+                "orgIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "provider": {
+                    "description": "模型供应商: OpenAI-API-compatible,YuanJing, HuoShan, Ollama, Qwen, Infini, QianFan, DeepSeek, Jina, ZhiPu",
+                    "type": "string"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，public：公开发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "request.AdminRagDetailReq": {
+            "type": "object",
+            "required": [
+                "ragId"
+            ],
+            "properties": {
+                "ragId": {
+                    "description": "知识问答id",
+                    "type": "string"
+                }
+            }
+        },
+        "request.AdminRagPageListReq": {
+            "type": "object",
+            "required": [
+                "pageSize"
+            ],
+            "properties": {
+                "isAllOrg": {
+                    "description": "是否全选组织",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "知识问答名称",
+                    "type": "string"
+                },
+                "orgIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，public：公开发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.AdminSkillDetailReq": {
             "type": "object",
             "required": [
@@ -30589,6 +31026,184 @@
                 }
             }
         },
+        "response.AdminModel": {
+            "type": "object",
+            "required": [
+                "model",
+                "modelType",
+                "provider"
+            ],
+            "properties": {
+                "allowEdit": {
+                    "description": "是否允许前端编辑（true: 允许编辑，false: 隐藏编辑按钮）",
+                    "type": "boolean"
+                },
+                "avatar": {
+                    "description": "模型图标路径",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "config": {},
+                "createdAt": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "description": "模型显示名称",
+                    "type": "string"
+                },
+                "examples": {
+                    "description": "仅用于swagger展示；模型对应供应商中的对应llm、embedding或rerank结构是config实际的参数",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/mp.ProviderModelConfig"
+                        }
+                    ]
+                },
+                "importSource": {
+                    "description": "模型导入来源(builtin=平台内置,external=外部URL)",
+                    "type": "string"
+                },
+                "isActive": {
+                    "description": "启用状态（true: 启用，false: 禁用）",
+                    "type": "boolean"
+                },
+                "model": {
+                    "description": "模型名称",
+                    "type": "string"
+                },
+                "modelDesc": {
+                    "type": "string"
+                },
+                "modelId": {
+                    "type": "string"
+                },
+                "modelType": {
+                    "type": "string",
+                    "enum": [
+                        "llm",
+                        "embedding",
+                        "rerank"
+                    ]
+                },
+                "orgId": {
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "provider": {
+                    "description": "模型供应商",
+                    "type": "string",
+                    "enum": [
+                        "OpenAI-API-compatible",
+                        "YuanJing"
+                    ]
+                },
+                "publishDate": {
+                    "description": "模型发布时间",
+                    "type": "string"
+                },
+                "scopeType": {
+                    "description": "模型公开范围(1-私有 2-公开 3-组织)",
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mp_common.Tag"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminModelBase": {
+            "type": "object",
+            "properties": {
+                "authorizedPersonnelList": {
+                    "description": "指定人员列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AuthorizedPersonnel"
+                    }
+                },
+                "avatar": {
+                    "description": "应用图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "description": "应用创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "应用描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "应用名称",
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "provider": {
+                    "description": "模型供应商",
+                    "type": "string"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布",
+                    "type": "string"
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "应用更新时间(用于历史记录排序)",
+                    "type": "string"
+                }
+            }
+        },
         "response.AdminOrgTreeNode": {
             "type": "object",
             "properties": {
@@ -30613,6 +31228,271 @@
                 },
                 "orgId": {
                     "type": "string"
+                }
+            }
+        },
+        "response.AdminRag": {
+            "type": "object",
+            "properties": {
+                "appId": {
+                    "description": "应用id",
+                    "type": "string"
+                },
+                "appType": {
+                    "description": "应用类型",
+                    "type": "string"
+                },
+                "avatar": {
+                    "description": "应用图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "category": {
+                    "description": "智能体分类(1:单智能体,2:多智能体)",
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "description": "应用创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "应用描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "应用名称",
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "publishType": {
+                    "description": "发布类型(public:公开发布,private:私密发布)，为空表示未发布(草稿)",
+                    "type": "string"
+                },
+                "uniqueId": {
+                    "description": "随机unique id(每次动态生成)",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "应用更新时间(用于历史记录排序)",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "已发布应用的版本号(未发布时为空)",
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminRagBase": {
+            "type": "object",
+            "properties": {
+                "authorizedPersonnelList": {
+                    "description": "指定人员列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AuthorizedPersonnel"
+                    }
+                },
+                "avatar": {
+                    "description": "应用图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "description": "应用创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "应用描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "应用名称",
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布",
+                    "type": "string"
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "应用更新时间(用于历史记录排序)",
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminRagDetail": {
+            "type": "object",
+            "required": [
+                "knowledgeBaseConfig",
+                "modelConfig",
+                "name",
+                "qaKnowledgeBaseConfig",
+                "qaRerankConfig",
+                "ragId",
+                "rerankConfig"
+            ],
+            "properties": {
+                "appPublishConfig": {
+                    "description": "发布配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppPublishConfig"
+                        }
+                    ]
+                },
+                "avatar": {
+                    "description": "图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "knowledgeBaseConfig": {
+                    "description": "知识库",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppKnowledgebaseConfig"
+                        }
+                    ]
+                },
+                "llmModel": {
+                    "description": "llm模型（含头像/标签）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.ModelInfo"
+                        }
+                    ]
+                },
+                "modelConfig": {
+                    "description": "模型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppModelConfig"
+                        }
+                    ]
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "qaKnowledgeBaseConfig": {
+                    "description": "问答库",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppQAKnowledgebaseConfig"
+                        }
+                    ]
+                },
+                "qaRerankConfig": {
+                    "description": "问答库Rerank模型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppModelConfig"
+                        }
+                    ]
+                },
+                "qaRerankModel": {
+                    "description": "问答库Rerank模型（含头像/标签）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.ModelInfo"
+                        }
+                    ]
+                },
+                "ragId": {
+                    "type": "string"
+                },
+                "recommendQuestion": {
+                    "description": "推荐问题",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "rerankConfig": {
+                    "description": "Rerank模型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppModelConfig"
+                        }
+                    ]
+                },
+                "rerankModel": {
+                    "description": "知识库Rerank模型（含头像/标签）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.ModelInfo"
+                        }
+                    ]
+                },
+                "safetyConfig": {
+                    "description": "敏感词表配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppSafetyConfig"
+                        }
+                    ]
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "string"
+                },
+                "visionConfig": {
+                    "description": "视觉开关",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.VisionConfig"
+                        }
+                    ]
                 }
             }
         },
@@ -32243,6 +33123,7 @@
                     "type": "string"
                 },
                 "scopeType": {
+                    "description": "模型公开范围(1-私有 2-公开 3-组织)",
                     "type": "string"
                 },
                 "tags": {
@@ -35423,6 +36304,7 @@
                     "type": "string"
                 },
                 "scopeType": {
+                    "description": "模型公开范围(1-私有 2-公开 3-组织)",
                     "type": "string"
                 },
                 "tags": {
@@ -36043,6 +36925,10 @@
                         }
                     ]
                 },
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
                 "desc": {
                     "description": "描述",
                     "type": "string"
@@ -36108,6 +36994,10 @@
                             "$ref": "#/definitions/request.AppSafetyConfig"
                         }
                     ]
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "string"
                 },
                 "visionConfig": {
                     "description": "视觉开关",

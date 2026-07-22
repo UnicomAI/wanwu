@@ -11,6 +11,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/rag-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/rag-service/client/orm/sqlopt"
 	"github.com/UnicomAI/wanwu/pkg/constant"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	"gorm.io/gorm"
 )
 
@@ -136,6 +137,12 @@ func BuildRagInfo(info *model.RagInfo) (*rag_service.RagInfo, *err_code.Status) 
 			PicNum: info.VisionConfig.PicNum,
 		},
 		RecommendQuestion: recommendQuestion,
+		Identity: &rag_service.Identity{
+			UserId: info.UserID,
+			OrgId:  info.OrgID,
+		},
+		CreateTime: info.CreatedAt,
+		UpdateTime: info.UpdatedAt,
 	}
 	return resp, nil
 }
@@ -152,7 +159,40 @@ func (c *Client) GetRagList(ctx context.Context, req *rag_service.RagListReq) (*
 		return nil, toErrStatus("rag_list_err", err.Error())
 	}
 
-	var list []*common.AppBrief
+	return &rag_service.RagListResp{
+		RagInfos: toAppBriefs(info),
+		Total:    int64(len(info)),
+	}, nil
+}
+
+// AdminRagPageList 管理员中心知识问答列表，按 updated_at 倒序分页；total 恒为匹配总数。
+func (c *Client) AdminRagPageList(ctx context.Context, req *rag_service.AdminRagPageListReq) (*rag_service.AdminRagPageListResp, *err_code.Status) {
+	query := sqlopt.SQLOptions(
+		sqlopt.LikeBriefName(db.EscapeLike(req.Name)),
+		sqlopt.WithUserIDs(req.UserId),
+		sqlopt.WithOrgIDs(req.OrgId),
+	).Apply(c.db.WithContext(ctx)).Model(&model.RagInfo{})
+
+	var info []*model.RagInfo
+	var total int64
+	if err := query.
+		Count(&total).
+		Order("updated_at DESC").
+		Offset(int(req.PageSize * (req.PageNum - 1))).
+		Limit(int(req.PageSize)).
+		Find(&info).Error; err != nil {
+		return nil, toErrStatus("rag_admin_page_list_err", err.Error())
+	}
+
+	return &rag_service.AdminRagPageListResp{
+		RagInfos: toAppBriefs(info),
+		Total:    total,
+	}, nil
+}
+
+// toAppBriefs 将知识问答转为通用应用简要信息
+func toAppBriefs(info []*model.RagInfo) []*common.AppBrief {
+	list := make([]*common.AppBrief, 0, len(info))
 	for _, v := range info {
 		list = append(list, &common.AppBrief{
 			AppId:      v.RagID,
@@ -166,11 +206,7 @@ func (c *Client) GetRagList(ctx context.Context, req *rag_service.RagListReq) (*
 			UserId:     v.UserID,
 		})
 	}
-
-	return &rag_service.RagListResp{
-		RagInfos: list,
-		Total:    int64(len(info)),
-	}, nil
+	return list
 }
 
 func (c *Client) GetRagByIds(ctx context.Context, req *rag_service.GetRagByIdsReq) (*rag_service.AppBriefList, *err_code.Status) {
@@ -184,23 +220,8 @@ func (c *Client) GetRagByIds(ctx context.Context, req *rag_service.GetRagByIdsRe
 		return nil, toErrStatus("rag_list_err", err.Error())
 	}
 
-	var list []*common.AppBrief
-	for _, v := range info {
-		list = append(list, &common.AppBrief{
-			AppId:      v.RagID,
-			AppType:    constant.AppTypeRag,
-			AvatarPath: v.BriefConfig.AvatarPath,
-			Name:       v.BriefConfig.Name,
-			Desc:       v.BriefConfig.Desc,
-			CreatedAt:  v.CreatedAt,
-			UpdatedAt:  v.UpdatedAt,
-			OrgId:      v.OrgID,
-			UserId:     v.UserID,
-		})
-	}
-
 	return &rag_service.AppBriefList{
-		RagInfos: list,
+		RagInfos: toAppBriefs(info),
 	}, nil
 }
 
