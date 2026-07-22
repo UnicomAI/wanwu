@@ -56,6 +56,13 @@ export const fetchOrgTree = () => {
     method: 'get',
   });
 };
+// 获取组织下拉选择
+export const fetchOrgTreeSelect = () => {
+  return service({
+    url: `${USER_API}/org/admin/select`,
+    method: 'get',
+  });
+};
 // 获取导航组织列表
 export const fetchOrgs = () => {
   return service({

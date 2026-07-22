@@ -583,6 +583,7 @@ export default {
     },
     dialog: {
       remark: '组织描述',
+      parentOrg: '上级组织',
     },
     confirm: {
       delete: '该组织删除后不可恢复，是否确认删除？',
