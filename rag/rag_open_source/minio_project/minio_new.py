@@ -27,12 +27,9 @@ minio_client = Minio(
     secure=False
 )
 default_bucket_name = "rag-public"
-REPLACE_MINIO_DOWNLOAD_URL = os.getenv("PUBLIC_MINIO_DOWNLOAD_URL")
-if REPLACE_MINIO_DOWNLOAD_URL is None:
-    response = requests.get('http://bff-service:6667/v1/api/deploy/info')
-    response_data = response.json()
-    REPLACE_MINIO_DOWNLOAD_URL = response_data['data']['webBaseUrl']
-
+REPLACE_MINIO_DOWNLOAD_URL = os.getenv("REPLACE_MINIO_DOWNLOAD_URL")
+if not REPLACE_MINIO_DOWNLOAD_URL:
+    raise ValueError("REPLACE_MINIO_DOWNLOAD_URL 环境变量未设置或为空，请检查部署配置")
 
 def upload_file_to_minio(file_stream, original_filename, bucket_name=default_bucket_name, overwrite_file_name=None):
     try:
