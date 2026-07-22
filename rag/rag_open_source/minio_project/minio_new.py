@@ -15,7 +15,7 @@ MINIO_ADDRESS = os.getenv("MINIO_ADDRESS")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
 if MINIO_ADDRESS is None or MINIO_ACCESS_KEY is None or MINIO_SECRET_KEY is None:
-    MINIO_ADDRESS = "172.18.0.1:9000"
+    MINIO_ADDRESS = "minio-wanwu:9000"
     MINIO_ACCESS_KEY = "root"
     MINIO_SECRET_KEY = "A2pp123456"
 # ======= 从环境变量中获取mimio配置信息 =======

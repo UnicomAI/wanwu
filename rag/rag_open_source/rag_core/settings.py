@@ -33,8 +33,6 @@ GRAPH_SERVER_URL = config.getstr('KAFKA', 'GRAPH_SERVER_URL')
 MQ_REL_URL = os.getenv("KAFKA_MQ_REL_URL")
 if MQ_REL_URL is None:
     MQ_REL_URL = config.getstr('KAFKA', 'MQ_REL_URL')
-MQ_URL_URL = config.getstr('KAFKA', 'MQ_URL_URL')
-MQ_URLINSERT_URL = config.getstr('KAFKA', 'MQ_URLINSERT_URL')
 MQ_KB_STATUS_URL = os.getenv("KAFKA_MQ_KB_STATUS_URL")
 if MQ_KB_STATUS_URL is None:
     MQ_KB_STATUS_URL = config.getstr('KAFKA', 'MQ_KB_STATUS_URL')
