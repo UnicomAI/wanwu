@@ -857,6 +857,8 @@
           top: ragCitationTip.y + 'px',
           '--citation-arrow-offset': ragCitationTip.arrowOffset + 'px',
         }"
+        @mouseenter="cancelRagCitationTipHide"
+        @mouseleave="handleCitationTipLeave"
       >
         <div class="rag-citation-popover-head">
           <span class="rag-citation-popover-num">
@@ -872,7 +874,10 @@
         <div v-if="ragCitationTip.snippet" class="rag-citation-popover-snippet">
           {{ ragCitationTip.snippet }}
         </div>
-        <div class="rag-citation-popover-hint">
+        <div
+          class="rag-citation-popover-hint"
+          @click.stop="handleCitationTipClick"
+        >
           {{ $t('rag.citation.viewSource') }}
         </div>
       </div>
@@ -1841,7 +1846,39 @@ export default {
       if (related && related.closest && related.closest('.citation')) {
         return;
       }
-      this.hideRagCitationTip();
+      // 气泡是引用角标的同级 fixed 元素，移入气泡不应视为真正离开。
+      if (
+        related &&
+        related.closest &&
+        related.closest('.rag-citation-popover')
+      ) {
+        return;
+      }
+      this.scheduleRagCitationTipHide();
+    },
+    /**
+     * 气泡点击复用引用序号的完整点击链路，覆盖 RAG、Agent 主会话和子会话。
+     */
+    handleCitationTipClick(e) {
+      const citationTarget = this._ragCitationTipTarget;
+      if (!citationTarget) return;
+
+      e.preventDefault();
+      this.handleCitationClick({
+        target: citationTarget,
+        preventDefault: () => {},
+        stopPropagation: () => {},
+      });
+    },
+    /**
+     * 鼠标离开气泡时，仅在没有回到关联引用角标时才延迟隐藏。
+     */
+    handleCitationTipLeave(e) {
+      const related = e.relatedTarget;
+      if (related && related.closest && related.closest('.citation')) {
+        return;
+      }
+      this.scheduleRagCitationTipHide();
     },
     /**
      * 按当前会话类型分发引用 tooltip 数据解析逻辑。
@@ -2008,10 +2045,8 @@ export default {
      * @param {{title?: string, snippet?: string, number?: string}} tipData
      */
     showCitationTip(target, { title = '', snippet = '', number = '' } = {}) {
-      if (this._ragCitationTipHideTimer) {
-        clearTimeout(this._ragCitationTipHideTimer);
-        this._ragCitationTipHideTimer = null;
-      }
+      this.cancelRagCitationTipHide();
+      this._ragCitationTipTarget = target;
 
       const rect = target.getBoundingClientRect();
       const TIP_HEIGHT = 140;
@@ -2048,13 +2083,24 @@ export default {
       this.hideRagCitationTip();
     },
     hideRagCitationTip() {
+      this.cancelRagCitationTipHide();
+      if (this.ragCitationTip.visible) {
+        this.ragCitationTip.visible = false;
+      }
+      this._ragCitationTipTarget = null;
+    },
+    cancelRagCitationTipHide() {
       if (this._ragCitationTipHideTimer) {
         clearTimeout(this._ragCitationTipHideTimer);
         this._ragCitationTipHideTimer = null;
       }
-      if (this.ragCitationTip.visible) {
-        this.ragCitationTip.visible = false;
-      }
+    },
+    scheduleRagCitationTipHide() {
+      this.cancelRagCitationTipHide();
+      this._ragCitationTipHideTimer = setTimeout(() => {
+        this._ragCitationTipHideTimer = null;
+        this.hideRagCitationTip();
+      }, 150);
     },
     /**
      * RAG 引用片段展开/收起：key = `${messageIdx}-${sourceIdx}`。
@@ -3210,7 +3256,7 @@ img.failed::after {
   box-shadow:
     0 12px 32px -12px rgba(79, 70, 229, 0.28),
     0 2px 8px rgba(0, 0, 0, 0.06);
-  pointer-events: none;
+  pointer-events: auto;
   font-size: 13px;
   line-height: 1.5;
   color: #1f2937;
@@ -3287,6 +3333,7 @@ img.failed::after {
     color: #6366f1;
     font-size: 11.5px;
     font-weight: 500;
+    cursor: pointer;
   }
 }
 .rag-tip-fade-enter-active,
