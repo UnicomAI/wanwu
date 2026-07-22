@@ -40,6 +40,19 @@ func (s *Service) GetKnowledgeKeywordsList(ctx context.Context, req *knowledgeba
 	return resp, nil
 }
 
+// GetKnowledgeKeywordsListByKnowledgeId 返回指定知识库下的关键词列表
+func (s *Service) GetKnowledgeKeywordsListByKnowledgeId(ctx context.Context, req *knowledgebase_keywords_service.GetKnowledgeKeywordsListByKnowledgeIdReq) (*knowledgebase_keywords_service.GetKnowledgeKeywordsListByKnowledgeIdResp, error) {
+	keywordsInfoList, err := orm.GetKeywordsListByKnowledgeId(ctx, req.KnowledgeId, req.UserId, req.OrgId)
+	if err != nil {
+		log.Errorf(fmt.Sprintf("GetKnowledgeKeywordsListByKnowledgeId 失败(%v)  参数(%v)", err, req))
+		return nil, util.ErrCode(errs.Code_KnowledgeKeywordsListFailed)
+	}
+	resp := &knowledgebase_keywords_service.GetKnowledgeKeywordsListByKnowledgeIdResp{
+		Keywords: keywordsInfoList,
+	}
+	return resp, nil
+}
+
 func buildKeywordsInfoList(ctx context.Context, keywordsList []*model.KnowledgeKeywords) ([]*knowledgebase_keywords_service.KeywordsInfo, error) {
 	var keywordsInfoList []*knowledgebase_keywords_service.KeywordsInfo
 	for _, k := range keywordsList {

@@ -96,21 +96,6 @@ message GetDocListResp {
   int64 total = 2;
   int32 pageNum = 3;
   int32 pageSize = 4;
-  KnowledgeInfo knowledgeInfo = 5;
-}
-
-message KnowledgeInfo {
-  string knowledgeId = 1;//知识库id
-  string knowledgeName = 2;//知识库名称
-  int32 graphSwitch = 3; //知识库图谱开关
-  bool showGraphReport = 4; //是否展示知识图谱和社区报告
-  string description = 5; // 知识库描述
-  string embeddingModelId = 6; // emb模型id
-  repeated KeywordsInfo keywords = 7; // 关键词列表
-  string llmModelId = 8; // llm模型id（知识图谱）
-  int32 category = 9; // 知识库分类 0：知识库，1：问答库 2: 多模态知识库
-  string avatarPath = 10; // 知识库头像
-  int32 permissionType = 11; // 当前用户对该知识库的权限类型 -1:无权限 0:查看 10:编辑 20:授权 30:系统管理授权
 }
 
 message KeywordsInfo {

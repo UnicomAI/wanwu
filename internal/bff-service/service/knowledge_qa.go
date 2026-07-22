@@ -100,7 +100,7 @@ func GetQAPairDetail(ctx *gin.Context, userId, orgId, qaPairId string) (*respons
 }
 
 // GetKnowledgeQAPairList 查询问答库问答对列表
-func GetKnowledgeQAPairList(ctx *gin.Context, userId, orgId string, r *request.KnowledgeQAPairListReq) (*response.KnowledgeQAPairPageResult, error) {
+func GetKnowledgeQAPairList(ctx *gin.Context, userId, orgId string, r *request.KnowledgeQAPairListReq) (*response.PageResult, error) {
 	resp, err := knowledgeBaseQA.GetQAPairList(ctx.Request.Context(), &knowledgebase_qa_service.GetQAPairListReq{
 		KnowledgeId: r.KnowledgeId,
 		Name:        strings.TrimSpace(r.Name),
@@ -114,25 +114,11 @@ func GetKnowledgeQAPairList(ctx *gin.Context, userId, orgId string, r *request.K
 	if err != nil {
 		return nil, err
 	}
-	knowledgeInfo := resp.KnowledgeInfo
-	embModelInfo, _ := GetModel(ctx, userId, orgId, &request.GetModelRequest{
-		BaseModelRequest: request.BaseModelRequest{
-			ModelId: knowledgeInfo.EmbeddingModelId,
-		},
-	})
-	return &response.KnowledgeQAPairPageResult{
+	return &response.PageResult{
 		List:     buildQAPairRespList(ctx, resp.QaPairInfos),
 		Total:    resp.Total,
 		PageNo:   int(resp.PageNum),
 		PageSize: int(resp.PageSize),
-		QAKnowledgeInfo: &response.QAKnowledgeInfo{
-			KnowledgeId:    knowledgeInfo.KnowledgeId,
-			KnowledgeName:  knowledgeInfo.KnowledgeName,
-			Description:    knowledgeInfo.Description,
-			EmbeddingModel: embModelInfo,
-			Avatar:         cacheKnowledgeAvatar(ctx, knowledgeInfo.AvatarPath, knowledgeInfo.Category),
-			PermissionType: knowledgeInfo.PermissionType,
-		},
 	}, nil
 }
 

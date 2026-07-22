@@ -51,6 +51,7 @@ type IClient interface {
 	GetCustomSkillByWgaThreadID(ctx context.Context, wgaThreadID string) (*model.CustomSkill, *errs.Status)
 	GetCustomSkillListByWgaThreadIDList(ctx context.Context, userId, orgId string, wgaThreadIDList []string) ([]*model.CustomSkill, *errs.Status)
 	GetCustomSkillList(ctx context.Context, userId, orgId, name string) ([]*model.CustomSkill, int64, *errs.Status)
+	GetCustomSkillPageList(ctx context.Context, userId, orgId []string, name string, pageNum, pageSize int) ([]*model.CustomSkill, int64, *errs.Status)
 	GetCustomSkillBySkillIds(ctx context.Context, skillIds []string) ([]*model.CustomSkill, *errs.Status)
 	UpdateCustomSkillBasicMeta(ctx context.Context, skillId, name, desc string) *errs.Status
 	UpdateCustomSkillThreadMeta(ctx context.Context, skillId, wgaThreadId, previewThreadId string) *errs.Status

@@ -60,9 +60,12 @@ func WithQuestionMd5(questionMd5 string) SQLOption {
 	})
 }
 
-func WithOverKnowledgePermission(id int) SQLOption {
+func WithOverKnowledgePermission(permission int) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
-		return db.Where("permission_type >= ?", id)
+		if permission < 0 {
+			return db
+		}
+		return db.Where("permission_type >= ?", permission)
 	})
 }
 

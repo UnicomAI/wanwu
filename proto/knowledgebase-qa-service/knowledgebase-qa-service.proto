@@ -82,11 +82,10 @@ message GetQAPairListReq{
 }
 
 message GetQAPairListResp{
-  KnowledgeInfo knowledgeInfo = 1;
+  repeated QAPairInfo qaPairInfos = 1;
   int64 total = 2;
   int32 pageNum = 3;
   int32 pageSize = 4;
-  repeated QAPairInfo qaPairInfos = 5;
 }
 
 message KnowledgeInfo{

@@ -4,11 +4,15 @@ import "github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 
 // SkillBasicInfo 所有 skill 相关结构体共享的基础字段
 type SkillBasicInfo struct {
-	SkillId string         `json:"skillId"`
-	Name    string         `json:"name"`
-	Avatar  request.Avatar `json:"avatar"`
-	Author  string         `json:"author"`
-	Desc    string         `json:"desc"`
+	SkillId   string         `json:"skillId"`
+	Name      string         `json:"name"`
+	Avatar    request.Avatar `json:"avatar"`
+	Author    string         `json:"author"`
+	Desc      string         `json:"desc"`
+	OrgId     string         `json:"orgId"`
+	UserId    string         `json:"userId"`
+	CreatedAt string         `json:"createdAt"`
+	UpdatedAt string         `json:"updatedAt"`
 }
 
 // SkillVariable 变量配置。

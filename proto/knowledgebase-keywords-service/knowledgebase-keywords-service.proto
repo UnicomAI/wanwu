@@ -17,6 +17,8 @@ service KnowledgeBaseKeywordsService {
   rpc UpdateKnowledgeKeywords(UpdateKnowledgeKeywordsReq) returns (google.protobuf.Empty) {}
   // 删除知识库关键词
   rpc DeleteKnowledgeKeywords(DeleteKnowledgeKeywordsReq) returns (google.protobuf.Empty) {}
+  // 查询知识库下的关键词列表
+  rpc GetKnowledgeKeywordsListByKnowledgeId(GetKnowledgeKeywordsListByKnowledgeIdReq) returns (GetKnowledgeKeywordsListByKnowledgeIdResp) {}
 }
 
 message Identity {
@@ -70,4 +72,14 @@ message UpdateKnowledgeKeywordsReq{
 
 message DeleteKnowledgeKeywordsReq{
   uint32 id = 1;
+}
+
+message GetKnowledgeKeywordsListByKnowledgeIdReq{
+  string knowledgeId = 1;
+  string userId = 2;
+  string orgId = 3;
+}
+
+message GetKnowledgeKeywordsListByKnowledgeIdResp {
+  repeated KeywordsInfo keywords = 1;
 }

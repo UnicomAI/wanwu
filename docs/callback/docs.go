@@ -4992,6 +4992,9 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
@@ -5001,7 +5004,16 @@ const docTemplate = `{
                 "objectPath": {
                     "type": "string"
                 },
+                "orgId": {
+                    "type": "string"
+                },
                 "skillId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 },
                 "variables": {
@@ -5066,6 +5078,9 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
@@ -5075,7 +5090,16 @@ const docTemplate = `{
                 "objectPath": {
                     "type": "string"
                 },
+                "orgId": {
+                    "type": "string"
+                },
                 "skillId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 },
                 "variables": {
@@ -5461,10 +5485,16 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "orgId": {
                     "type": "string"
                 },
                 "skillId": {
@@ -5474,6 +5504,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "skillPath": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 },
                 "variables": {

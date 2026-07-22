@@ -138,7 +138,7 @@ func GetDocConfig(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.DocListReq	true	"文档列表查询请求参数"
-//	@Success		200		{object}	response.Response{data=response.DocPageResult}
+//	@Success		200		{object}	response.PageResult{list=response.ListDocResp}
 //	@Router			/knowledge/doc/list [post]
 func GetDocList(ctx *gin.Context) {
 	userId, orgId := getUserID(ctx), getOrgID(ctx)
