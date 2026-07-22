@@ -155,7 +155,6 @@ type AdminPromptDetailReq struct {
 	CommonCheck
 }
 
-
 type AdminAssistantPageListReq struct {
 	Name     string  `json:"name" form:"name"`
 	Category []int32 `json:"category" form:"category"` // 1:单智能体，2:多智能体

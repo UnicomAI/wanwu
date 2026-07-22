@@ -79,7 +79,8 @@ type AdminKnowledgeBase struct {
 	AdminAppBaseInfo
 }
 
-type AdminWorkflowDetail struct {
+type AdminWorkflow struct {
+	AppBriefInfo
 	OwnerHolder
 }
 

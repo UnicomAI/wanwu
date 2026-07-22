@@ -123,11 +123,17 @@ func AdminKnowledgeFileDetail(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.AdminWorkflowPageListReq	true	"工作流分页列表参数"
-//	@Success		200		{object}	response.PageResult{list=response.AdminWorkflowDetail}
+//	@Success		200		{object}	response.PageResult{list=response.AdminWorkflow}
 //	@Router			/admin/center/workflow/page/list [post]
 func AdminWorkflowPageList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
 	var req request.AdminWorkflowPageListReq
 	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.FillOrgIds(ctx, userId, orgId, &req.AdminUserSelect)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
 		return
 	}
 	resp, err := service.AdminWorkflowPageList(ctx, &req)
