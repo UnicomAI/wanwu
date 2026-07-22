@@ -210,29 +210,17 @@
           prop="parentId"
         >
           <el-select
-            ref="parentSelect"
-            v-model="parentOrgName"
+            v-model="form.parentId"
             :placeholder="$t('common.select.placeholder')"
             style="width: 100%"
-            popper-class="org-tree-select-dropdown"
+            filterable
           >
             <el-option
-              :value="form.parentId"
-              :label="parentOrgName"
-              style="height: auto; background: #fff; padding: 0"
-            >
-              <el-tree
-                ref="parentOrgTree"
-                :data="orgTreeData"
-                :props="treeProps"
-                node-key="orgId"
-                default-expand-all
-                highlight-current
-                :current-node-key="form.parentId"
-                :expand-on-click-node="false"
-                @node-click="handleParentNodeClick"
-              />
-            </el-option>
+              v-for="item in orgTreeData"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item
@@ -360,16 +348,18 @@ export default {
             trigger: 'blur',
           },
         ],
+        parentId: [
+          {
+            required: true,
+            message: this.$t('common.select.placeholder'),
+            trigger: 'change',
+          },
+        ],
       },
       tableData: [],
       dialogVisible: false,
       submitLoading: false,
       orgTreeData: [],
-      treeProps: {
-        children: 'children',
-        label: 'name',
-      },
-      parentOrgName: '',
       isUpdateParent: false,
     };
   },
@@ -398,25 +388,6 @@ export default {
     async fetchOrgTree() {
       const res = await fetchOrgTreeSelect();
       this.orgTreeData = res.data?.select || [];
-    },
-    findOrgName(orgId, nodes) {
-      if (!orgId || !nodes) return '';
-      for (const node of nodes) {
-        if (node.orgId === orgId) return node.name;
-        if (node.children && node.children.length) {
-          const found = this.findOrgName(orgId, node.children);
-          if (found) return found;
-        }
-      }
-      return '';
-    },
-    setParentOrgName(orgId) {
-      this.parentOrgName = this.findOrgName(orgId, this.orgTreeData);
-    },
-    handleParentNodeClick(node) {
-      this.form.parentId = node.orgId;
-      this.parentOrgName = node.name;
-      this.$refs.parentSelect && this.$refs.parentSelect.blur();
     },
     async fetchCurrentOrgDetail() {
       const res = await fetchOrgDetail({ orgId: this.selectedOrgId });
@@ -452,7 +423,6 @@ export default {
     },
     handleClose() {
       this.$refs.form.resetFields();
-      this.parentOrgName = '';
       this.dialogVisible = false;
     },
     preUpdate(row, isParent) {
@@ -465,13 +435,10 @@ export default {
       });
       if (!this.isEdit) {
         this.form.parentId = this.selectedOrgId;
-        this.setParentOrgName(this.selectedOrgId);
       }
       this.dialogVisible = true;
       this.$nextTick(() => {
         this.$refs.form && this.$refs.form.clearValidate();
-        this.$refs.parentOrgTree &&
-          this.$refs.parentOrgTree.setCurrentKey(this.form.parentId);
       });
     },
     preDel(row) {
@@ -524,11 +491,10 @@ export default {
         const params = { ...this.form };
         if (this.isEdit) {
           params.orgId = this.row.orgId;
-          delete params.parentId;
         } else {
           params.orgId = this.form.parentId;
-          delete params.parentId;
         }
+        delete params.parentId;
         try {
           const res = this.isEdit
             ? await editOrg(params)

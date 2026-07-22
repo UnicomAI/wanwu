@@ -35,12 +35,14 @@
         :data="orgTreeData"
         :props="treeProps"
         node-key="orgId"
-        :default-expanded-keys="defaultExpandedKeys"
+        :default-expanded-keys="expandedKeys"
         highlight-current
         :expand-on-click-node="false"
         :current-node-key="activeOrgId"
         :filter-node-method="filterNode"
         @node-click="handleNodeClick"
+        @node-expand="handleNodeExpand"
+        @node-collapse="handleNodeCollapse"
       >
         <span slot-scope="{ node, data }" class="org-tree-node">
           <span class="org-tree-node__label">
@@ -139,7 +141,8 @@ export default {
       loading: false,
       searchKeyword: '',
       activeOrgId: this.value,
-      defaultExpandedKeys: [],
+      expandedKeys: [],
+      isFirstLoad: true,
       defaultAvatar: '/v1/static/icon/org-default-icon.png',
       treeProps: {
         children: 'children',
@@ -210,17 +213,52 @@ export default {
       }
       return null;
     },
+    getExpandedKeys(nodes) {
+      if (!nodes) return [];
+      const keys = [];
+      nodes.forEach(node => {
+        if (node.expanded) {
+          keys.push(node.key);
+        }
+        if (node.childNodes && node.childNodes.length) {
+          keys.push(...this.getExpandedKeys(node.childNodes));
+        }
+      });
+      return keys;
+    },
     getOrgTree(delId) {
       this.loading = true;
+      // 刷新前保存当前展开状态
+      let savedExpandedKeys = [];
+      if (this.$refs.orgTree) {
+        savedExpandedKeys = this.getExpandedKeys(
+          this.$refs.orgTree.store.root.childNodes,
+        );
+      }
+
       fetchOrgTree()
         .then(res => {
           const orgTree = res.data || [];
           this.orgTreeData = orgTree;
-          // 只展开第一级节点（根节点），让第二级可见，第三级及以上默认折叠
-          this.defaultExpandedKeys = orgTree.map(node => node.orgId);
-          this.loading = false;
 
+          if (this.isFirstLoad) {
+            // 首次加载：展开第一级根节点，让第二级可见
+            this.expandedKeys = orgTree.map(node => node.orgId);
+            this.isFirstLoad = false;
+          } else {
+            // 刷新：保持用户之前的展开状态
+            this.expandedKeys = savedExpandedKeys;
+          }
+
+          this.loading = false;
           this.$nextTick(() => {
+            // 恢复展开状态
+            this.expandedKeys.forEach(key => {
+              const node =
+                this.$refs.orgTree && this.$refs.orgTree.getNode(key);
+              if (node) node.expand();
+            });
+
             // 默认选中第一个有权限的节点（如果当前没有选择 orgId；或者有选择的 orgId，但是删除的组织是当前选中的组织）
             const isInitActive =
               delId && this.activeOrgId && this.activeOrgId === delId;
@@ -256,6 +294,14 @@ export default {
       this.activeOrgId = data.orgId;
       this.$emit('input', data.orgId);
       this.$emit('change', data);
+    },
+    handleNodeExpand(data) {
+      if (!this.expandedKeys.includes(data.orgId)) {
+        this.expandedKeys.push(data.orgId);
+      }
+    },
+    handleNodeCollapse(data) {
+      this.expandedKeys = this.expandedKeys.filter(key => key !== data.orgId);
     },
     handleOrgCommand(org, command) {
       if (command === 'rename') {
