@@ -740,7 +740,7 @@ func (c *Client) BatchDeleteUser(ctx context.Context, userIDs []uint32) *errs.St
 			return toErrStatus("iam_user_batch_delete", err.Error())
 		}
 		// delete user
-		if err := sqlopt.WithUsers(userIDs).Apply(tx).Delete(&model.User{}).Error; err != nil {
+		if err := sqlopt.WithIDs(userIDs).Apply(tx).Delete(&model.User{}).Error; err != nil {
 			return toErrStatus("iam_user_batch_delete", err.Error())
 		}
 		return nil
