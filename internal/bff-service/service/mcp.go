@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/ThinkInAIXYZ/go-mcp/protocol"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
@@ -16,6 +18,37 @@ import (
 	pkg_util "github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
+
+type MCPBiz struct{}
+
+func init() {
+	InitBizService(&MCPBiz{})
+}
+
+func (*MCPBiz) BizType() string { return constant.BizModuleResourceMCP }
+
+func (*MCPBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+	// 优先按自定义MCP查询，查不到再按MCP服务查询（mcp/mcpserver 共用同一 bizType）
+	resp, err := mcp.GetCustomMCP(ctx, &mcp_service.GetCustomMCPReq{
+		McpId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if resp != nil && resp.Owner != nil {
+		return resp.Owner.UserId, resp.Owner.OrgId, nil
+	}
+	mcpServerResp, err := mcp.GetMCPServer(ctx, &mcp_service.GetMCPServerReq{
+		McpServerId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if mcpServerResp.Owner == nil {
+		return "", "", nil
+	}
+	return mcpServerResp.Owner.UserId, mcpServerResp.Owner.OrgId, nil
+}
 
 func GetMCPSquareDetail(ctx *gin.Context, userID, orgID, mcpSquareID string) (*response.MCPSquareDetail, error) {
 	mcpSquare, err := mcp.GetSquareMCP(ctx.Request.Context(), &mcp_service.GetSquareMCPReq{

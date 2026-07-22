@@ -71,6 +71,12 @@ func (s *Service) GetMCPServer(ctx context.Context, req *mcp_service.GetMCPServe
 		StreamableUrl:     streamableUrl,
 		StreamableExample: streamableExample,
 		Transport:         constant.MCPTransportSSE,
+		Owner: &mcp_service.Identity{
+			UserId: info.UserID,
+			OrgId:  info.OrgID,
+		},
+		UpdatedAt: info.UpdatedAt,
+		CreatedAt: info.CreatedAt,
 	}, nil
 }
 
@@ -113,6 +119,32 @@ func (s *Service) GetMCPServerList(ctx context.Context, req *mcp_service.GetMCPS
 	}
 	return &mcp_service.GetMCPServerListResp{
 		List: list,
+	}, nil
+}
+
+// GetAdminMCPServerPageList 管理员中心跨组织查询MCP服务列表（SQL分页）
+func (s *Service) GetAdminMCPServerPageList(ctx context.Context, req *mcp_service.GetAdminMCPServerPageListReq) (*mcp_service.GetAdminMCPServerPageListResp, error) {
+	infos, total, err := s.cli.ListMCPServersAdmin(ctx, req.OrgIdList, req.UserIdList, req.Name, int(req.PageNo), int(req.PageSize))
+	if err != nil {
+		return nil, errStatus(errs.Code_MCPGetMCPServerListErr, err)
+	}
+	list := make([]*mcp_service.AdminMCPServerItem, 0, len(infos))
+	for _, info := range infos {
+		list = append(list, &mcp_service.AdminMCPServerItem{
+			McpServerId: info.MCPServerID,
+			Name:        info.Name,
+			Desc:        info.Description,
+			AvatarPath:  info.AvatarPath,
+			Owner: &mcp_service.Identity{
+				UserId: info.UserID,
+				OrgId:  info.OrgID,
+			},
+			UpdatedAt: info.UpdatedAt,
+		})
+	}
+	return &mcp_service.GetAdminMCPServerPageListResp{
+		List:  list,
+		Total: total,
 	}, nil
 }
 

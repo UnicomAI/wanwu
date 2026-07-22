@@ -34,6 +34,19 @@ var ragBiz = &middleware.AdminCenterBiz{
 	BizType: constant.BizModuleAppRag,
 }
 
+var mcpBiz = &middleware.AdminCenterBiz{
+	BizId:   "mcpId",
+	BizType: constant.BizModuleResourceMCP,
+}
+var toolBiz = &middleware.AdminCenterBiz{
+	BizId:   "customToolId",
+	BizType: constant.BizModuleResourceTool,
+}
+var promptBiz = &middleware.AdminCenterBiz{
+	BizId:   "customPromptId",
+	BizType: constant.BizModuleResourcePrompt,
+}
+
 func registerAdminCenter(apiV1 *gin.RouterGroup) {
 	// user
 	mid.Sub("admin_center").Reg(apiV1, "/user", http.MethodPost, v1.CreateUser, "创建用户", middleware.CheckOrgAdmin)
@@ -102,4 +115,19 @@ func registerAdminCenter(apiV1 *gin.RouterGroup) {
 	mid.Sub("admin_center.rag").Reg(apiAdminCenter, "/rag/page/list", http.MethodPost, v1.AdminRagPageList, "知识问答全局列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, ragBiz))
 	mid.Sub("admin_center.rag").Reg(apiAdminCenter, "/rag/base", http.MethodPost, v1.AdminRagBase, "知识问答基础信息", middleware.AuthAdminCenter(middleware.AdminBizCheck, ragBiz))
 	mid.Sub("admin_center.rag").Reg(apiAdminCenter, "/rag/detail", http.MethodPost, v1.AdminRagDetail, "知识问答详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, ragBiz))
+
+	// mcp
+	mid.Sub("admin_center.mcp").Reg(apiAdminCenter, "/mcp/page/list", http.MethodPost, v1.AdminMCPPageList, "MCP全局列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, mcpBiz))
+	mid.Sub("admin_center.mcp").Reg(apiAdminCenter, "/mcp/base", http.MethodPost, v1.AdminMCPBase, "MCP基础信息", middleware.AuthAdminCenter(middleware.AdminBizCheck, mcpBiz))
+	mid.Sub("admin_center.mcp").Reg(apiAdminCenter, "/mcp/custom/detail", http.MethodPost, v1.AdminMCPDetail, "导入MCP详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, mcpBiz))
+	mid.Sub("admin_center.mcp").Reg(apiAdminCenter, "/mcp/server/detail", http.MethodPost, v1.AdminMCPServerDetail, "创建MCP详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, mcpBiz))
+	mid.Sub("admin_center.mcp").Reg(apiAdminCenter, "/mcp/tool/list", http.MethodPost, v1.AdminMCPToolList, "MCP工具列表", middleware.AuthAdminCenter(middleware.AdminBizCheck, mcpBiz))
+	// tool
+	mid.Sub("admin_center.tool").Reg(apiAdminCenter, "/tool/page/list", http.MethodPost, v1.AdminToolPageList, "工具全局列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, toolBiz))
+	mid.Sub("admin_center.tool").Reg(apiAdminCenter, "/tool/base", http.MethodPost, v1.AdminToolBase, "工具基础信息", middleware.AuthAdminCenter(middleware.AdminBizCheck, toolBiz))
+	mid.Sub("admin_center.tool").Reg(apiAdminCenter, "/tool/detail", http.MethodPost, v1.AdminToolDetail, "工具详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, toolBiz))
+	// prompt
+	mid.Sub("admin_center.prompt").Reg(apiAdminCenter, "/prompt/page/list", http.MethodPost, v1.AdminPromptPageList, "提示词全局列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, promptBiz))
+	mid.Sub("admin_center.prompt").Reg(apiAdminCenter, "/prompt/base", http.MethodPost, v1.AdminPromptBase, "提示词基础信息", middleware.AuthAdminCenter(middleware.AdminBizCheck, promptBiz))
+	mid.Sub("admin_center.prompt").Reg(apiAdminCenter, "/prompt/detail", http.MethodPost, v1.AdminPromptDetail, "提示词详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, promptBiz))
 }

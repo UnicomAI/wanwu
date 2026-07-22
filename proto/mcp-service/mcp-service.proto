@@ -110,6 +110,11 @@ service MCPService {
   rpc IncrementCustomSkillAcquiredCount(IncrementCustomSkillAcquiredCountReq) returns (google.protobuf.Empty) {}
   rpc IncrementBuiltinSkillDownloadCount(IncrementBuiltinSkillDownloadCountReq) returns (google.protobuf.Empty) {}
   rpc GetBuiltinSkillDownloadCounts(GetBuiltinSkillDownloadCountsReq) returns (GetBuiltinSkillDownloadCountsResp) {}
+
+  // --- admin center ---
+  rpc GetAdminCustomToolPageList(GetAdminCustomToolPageListReq) returns (GetAdminCustomToolPageListResp) {}
+  rpc GetAdminCustomMCPPageList(GetAdminCustomMCPPageListReq) returns (GetAdminCustomMCPPageListResp) {}
+  rpc GetAdminMCPServerPageList(GetAdminMCPServerPageListReq) returns (GetAdminMCPServerPageListResp) {}
 }
 
 // --- req ---
@@ -210,6 +215,9 @@ message CustomMCPDetail {
   string transport = 7; // 传输协议: "sse" 或 "streamable"
   common.ApiAuthWebRequest apiAuth = 8; // api身份认证
   map<string, string> headers = 9; // 请求头
+  Identity owner = 10; // 资源所有者（管理员中心owner解析用）
+  int64 createdAt = 11; // 创建时间（毫秒）
+  int64 updatedAt = 12; // 更新时间（毫秒）
 }
 
 message CustomMCPInfo {
@@ -221,6 +229,8 @@ message CustomMCPInfo {
   string transport = 6; // 传输协议: "sse" 或 "streamable"
   common.ApiAuthWebRequest apiAuth = 7; // api身份认证
   map<string, string> headers = 8; // 请求头
+  Identity owner = 9; // 资源所有者（管理员中心owner解析用）
+  int64 updatedAt = 10; // 更新时间（毫秒）
 }
 
 message SquareMCPDetail {
@@ -289,6 +299,9 @@ message GetCustomToolInfoResp {
   string description = 5;
   string privacyPolicy = 6;
   string avatarPath = 7;
+  Identity owner = 8; // 资源所有者（管理员中心owner解析用）
+  int64 createdAt = 9; // 创建时间（毫秒）
+  int64 updatedAt = 10; // 更新时间（毫秒）
 }
 
 message GetCustomToolListReq {
@@ -310,6 +323,79 @@ message GetCustomToolItem {
 
 message GetCustomToolListResp {
   repeated GetCustomToolItem list = 1;
+}
+
+// --- admin center ---
+
+message GetAdminCustomToolPageListReq {
+  string name = 1;                     // 名称（模糊查询）
+  repeated string orgIdList = 2;       // 组织id列表（空=全部组织）
+  repeated string userIdList = 3;      // 用户id列表（空=全部用户）
+  int32 pageNo = 4;                    // 页码（从1开始）
+  int32 pageSize = 5;                  // 每页条数
+}
+
+message AdminCustomToolItem {
+  string customToolId = 1;
+  string name = 2;
+  string description = 3;
+  string avatarPath = 4;
+  Identity owner = 5;                  // 资源所有者
+  int64 updatedAt = 6;                 // 更新时间（毫秒）
+}
+
+message GetAdminCustomToolPageListResp {
+  repeated AdminCustomToolItem list = 1;
+  int64 total = 2;                     // 总条数
+}
+
+// --- admin center: mcp ---
+
+message GetAdminCustomMCPPageListReq {
+  string name = 1;                     // 名称（模糊查询）
+  repeated string orgIdList = 2;       // 组织id列表（空=全部组织）
+  repeated string userIdList = 3;      // 用户id列表（空=全部用户）
+  int32 pageNo = 4;                    // 页码（从1开始）
+  int32 pageSize = 5;                  // 每页条数
+}
+
+message AdminCustomMCPItem {
+  string mcpId = 1;
+  string name = 2;
+  string desc = 3;
+  string avatarPath = 4;
+  string from = 5;                     // 来源
+  Identity owner = 6;                  // 资源所有者
+  int64 updatedAt = 7;                 // 更新时间（毫秒）
+}
+
+message GetAdminCustomMCPPageListResp {
+  repeated AdminCustomMCPItem list = 1;
+  int64 total = 2;                     // 总条数
+}
+
+// --- admin center: mcp server ---
+
+message GetAdminMCPServerPageListReq {
+  string name = 1;                     // 名称（模糊查询）
+  repeated string orgIdList = 2;       // 组织id列表（空=全部组织）
+  repeated string userIdList = 3;      // 用户id列表（空=全部用户）
+  int32 pageNo = 4;                    // 页码（从1开始）
+  int32 pageSize = 5;                  // 每页条数
+}
+
+message AdminMCPServerItem {
+  string mcpServerId = 1;
+  string name = 2;
+  string desc = 3;
+  string avatarPath = 4;
+  Identity owner = 5;                  // 资源所有者
+  int64 updatedAt = 6;                 // 更新时间（毫秒）
+}
+
+message GetAdminMCPServerPageListResp {
+  repeated AdminMCPServerItem list = 1;
+  int64 total = 2;                     // 总条数
 }
 
 message UpdateCustomToolReq {
@@ -401,6 +487,9 @@ message MCPServerInfo{
   string streamableUrl = 8;
   string streamableExample = 9;
   string transport = 10; // 传输协议: "sse" 或 "streamable"
+  Identity owner = 11; // 资源所有者（管理员中心owner解析用）
+  int64 createdAt = 12; // 创建时间（毫秒）
+  int64 updatedAt = 13; // 更新时间（毫秒）
 }
 
 message CreateMCPServerReq {

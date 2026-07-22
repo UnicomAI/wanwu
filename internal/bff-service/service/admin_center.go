@@ -4,7 +4,9 @@ import (
 	"slices"
 
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
+	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
+	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	knowledgebase_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-service"
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
@@ -12,7 +14,9 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	"github.com/UnicomAI/wanwu/pkg/constant"
+	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
@@ -520,3 +524,359 @@ func adminModelInfoByID(ctx *gin.Context, modelId string) *response.ModelInfo {
 	return modelInfo
 }
 
+// AdminMCPPageList 管理员中心MCP全局列表（单类型，按 Type 路由：mcp=导入MCP，mcpserver=创建MCP）。
+func AdminMCPPageList(ctx *gin.Context, req request.AdminMCPPageListReq) (*response.PageResult, error) {
+	pageNo, pageSize := normalizePage(req.PageNo, req.PageSize)
+	// 按类型路由：mcpserver 查 MCP服务，mcp 查自定义MCP
+	if slices.Contains(req.Type, constant.MCPTypeMCP) {
+		return adminCustomMCPPageList(ctx, req, pageNo, pageSize)
+	}
+	if slices.Contains(req.Type, constant.MCPTypeMCPServer) {
+		return adminMCPServerPageList(ctx, req, pageNo, pageSize)
+	}
+	return nil, nil
+}
+
+// adminCustomMCPPageList 自定义MCP（导入MCP）列表
+func adminCustomMCPPageList(ctx *gin.Context, req request.AdminMCPPageListReq, pageNo, pageSize int) (*response.PageResult, error) {
+	resp, err := mcp.GetAdminCustomMCPPageList(ctx.Request.Context(), &mcp_service.GetAdminCustomMCPPageListReq{
+		Name:       req.Name,
+		OrgIdList:  req.OrgIdList,
+		UserIdList: req.UserIdList,
+		PageNo:     int32(pageNo),
+		PageSize:   int32(pageSize),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]*response.AdminMCP, 0, len(resp.List))
+	for _, item := range resp.List {
+		mcpItem := &response.AdminMCP{
+			Avatar:      cacheMCPAvatar(ctx, "", item.AvatarPath),
+			MCPID:       item.McpId,
+			Type:        constant.MCPTypeMCP,
+			Name:        item.Name,
+			Description: item.Desc,
+			ServerFrom:  item.From,
+			UpdatedAt:   util.Time2Str(item.UpdatedAt),
+			OwnerHolder: response.CreateOwnerHolder(item.Owner.UserId, item.Owner.OrgId),
+		}
+		list = append(list, mcpItem)
+	}
+	fillOwnerList(ctx, list)
+	return &response.PageResult{
+		List:     list,
+		Total:    resp.Total,
+		PageNo:   pageNo,
+		PageSize: pageSize,
+	}, nil
+}
+
+// adminMCPServerPageList MCP服务（创建MCP）列表
+func adminMCPServerPageList(ctx *gin.Context, req request.AdminMCPPageListReq, pageNo, pageSize int) (*response.PageResult, error) {
+	resp, err := mcp.GetAdminMCPServerPageList(ctx.Request.Context(), &mcp_service.GetAdminMCPServerPageListReq{
+		Name:       req.Name,
+		OrgIdList:  req.OrgIdList,
+		UserIdList: req.UserIdList,
+		PageNo:     int32(pageNo),
+		PageSize:   int32(pageSize),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]*response.AdminMCP, 0, len(resp.List))
+	for _, item := range resp.List {
+		mcpItem := &response.AdminMCP{
+			Avatar:      cacheMCPServerAvatar(ctx, item.AvatarPath),
+			MCPID:       item.McpServerId,
+			Type:        constant.MCPTypeMCPServer,
+			Name:        item.Name,
+			Description: item.Desc,
+			UpdatedAt:   util.Time2Str(item.UpdatedAt),
+			OwnerHolder: response.CreateOwnerHolder(item.Owner.UserId, item.Owner.OrgId),
+		}
+		list = append(list, mcpItem)
+	}
+	fillOwnerList(ctx, list)
+	return &response.PageResult{
+		List:     list,
+		Total:    resp.Total,
+		PageNo:   pageNo,
+		PageSize: pageSize,
+	}, nil
+}
+
+// AdminMCPBase 管理员中心MCP详情基础信息（按 Type 路由：mcp=导入MCP，mcpserver=创建MCP）。
+func AdminMCPBase(ctx *gin.Context, req request.AdminMCPBaseReq) (*response.AdminMCPBase, error) {
+	switch req.Type {
+	case constant.MCPTypeMCP:
+		return adminCustomMCPBase(ctx, req)
+	case constant.MCPTypeMCPServer:
+		return adminMCPServerBase(ctx, req)
+	}
+	return nil, nil
+}
+
+// adminCustomMCPBase 导入MCP（自定义MCP）基础信息
+func adminCustomMCPBase(ctx *gin.Context, req request.AdminMCPBaseReq) (*response.AdminMCPBase, error) {
+	detail, err := mcp.GetCustomMCP(ctx.Request.Context(), &mcp_service.GetCustomMCPReq{
+		McpId: req.McpId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp := &response.AdminMCPBase{
+		AdminAppBaseInfo: response.AdminAppBaseInfo{
+			Avatar:      cacheMCPAvatar(ctx, "", detail.AvatarPath),
+			Name:        detail.Info.Name,
+			Desc:        detail.Info.Desc,
+			CreatedAt:   util.Time2Str(detail.CreatedAt),
+			UpdatedAt:   util.Time2Str(detail.UpdatedAt),
+			OwnerHolder: response.CreateOwnerHolder(detail.Owner.UserId, detail.Owner.OrgId),
+		},
+		Type: constant.MCPTypeMCP,
+	}
+	fillOwner(ctx, resp)
+	return resp, nil
+}
+
+// adminMCPServerBase 创建MCP（MCP服务）基础信息
+func adminMCPServerBase(ctx *gin.Context, req request.AdminMCPBaseReq) (*response.AdminMCPBase, error) {
+	info, err := mcp.GetMCPServer(ctx.Request.Context(), &mcp_service.GetMCPServerReq{
+		McpServerId: req.McpId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp := &response.AdminMCPBase{
+		AdminAppBaseInfo: response.AdminAppBaseInfo{
+			Avatar:      cacheMCPServerAvatar(ctx, info.AvatarPath),
+			Name:        info.Name,
+			Desc:        info.Desc,
+			CreatedAt:   util.Time2Str(info.CreatedAt),
+			UpdatedAt:   util.Time2Str(info.UpdatedAt),
+			OwnerHolder: response.CreateOwnerHolder(info.Owner.UserId, info.Owner.OrgId),
+		},
+		Type: constant.MCPTypeMCPServer,
+	}
+	fillOwner(ctx, resp)
+	return resp, nil
+}
+
+// AdminMCPDetail 管理员中心导入MCP（自定义MCP）详情。
+func AdminMCPDetail(ctx *gin.Context, req request.AdminMCPDetailReq) (*response.MCPDetail, error) {
+	return GetMCP(ctx, req.McpId)
+}
+
+// AdminMCPServerDetail 管理员中心创建MCP（MCP服务）详情。
+func AdminMCPServerDetail(ctx *gin.Context, req request.AdminMCPDetailReq) (*response.MCPServerDetail, error) {
+	return GetMCPServerDetail(ctx, req.McpId)
+}
+
+// AdminMCPToolList 管理员中心获取MCP工具列表详情。
+func AdminMCPToolList(ctx *gin.Context, req request.AdminMCPToolListReq) (*response.MCPToolList, error) {
+	mcpToolsReq := request.MCPToolListReq{
+		MCPID: req.McpId,
+		Type:  req.Type,
+	}
+	return GetMCPToolList(ctx, mcpToolsReq)
+}
+
+// AdminToolPageList 管理员中心工具（自定义工具）全局列表。
+func AdminToolPageList(ctx *gin.Context, req request.AdminToolPageListReq) (*response.PageResult, error) {
+	pageNo, pageSize := normalizePage(req.PageNo, req.PageSize)
+	resp, err := mcp.GetAdminCustomToolPageList(ctx.Request.Context(), &mcp_service.GetAdminCustomToolPageListReq{
+		Name:       req.Name,
+		OrgIdList:  req.OrgIdList,
+		UserIdList: req.UserIdList,
+		PageNo:     int32(pageNo),
+		PageSize:   int32(pageSize),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// 构造列表项
+	list := make([]*response.AdminTool, 0, len(resp.List))
+	for _, item := range resp.List {
+		toolItem := &response.AdminTool{
+			Avatar:      cacheMCPServerAvatar(ctx, item.AvatarPath),
+			ToolID:      item.CustomToolId,
+			Name:        item.Name,
+			Description: item.Description,
+			UpdatedAt:   util.Time2Str(item.UpdatedAt),
+			OwnerHolder: response.CreateOwnerHolder(item.Owner.UserId, item.Owner.OrgId),
+		}
+		list = append(list, toolItem)
+	}
+	fillOwnerList(ctx, list)
+	return &response.PageResult{
+		List:     list,
+		Total:    resp.Total,
+		PageNo:   pageNo,
+		PageSize: pageSize,
+	}, nil
+}
+
+// AdminToolBase 管理员中心工具基础信息。
+func AdminToolBase(ctx *gin.Context, req request.AdminToolBaseReq) (*response.AdminToolBase, error) {
+	switch req.Type {
+	case constant.ToolTypeCustom:
+		return AdminCustomToolBase(ctx, req)
+	case constant.ToolTypeBuiltIn:
+		return AdminBuiltinToolBase(ctx, req)
+	}
+	return nil, nil
+}
+
+// AdminCustomToolBase 管理员中心工具（自定义工具）基础信息。
+func AdminCustomToolBase(ctx *gin.Context, req request.AdminToolBaseReq) (*response.AdminToolBase, error) {
+	info, err := mcp.GetCustomToolInfo(ctx.Request.Context(), &mcp_service.GetCustomToolInfoReq{
+		CustomToolId: req.ToolId,
+		Identity:     &mcp_service.Identity{},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp := &response.AdminToolBase{
+		AdminAppBaseInfo: response.AdminAppBaseInfo{
+			Avatar:      cacheToolAvatar(ctx, constant.ToolTypeCustom, info.AvatarPath),
+			Name:        info.Name,
+			Desc:        info.Description,
+			CreatedAt:   util.Time2Str(info.CreatedAt),
+			UpdatedAt:   util.Time2Str(info.UpdatedAt),
+			OwnerHolder: response.CreateOwnerHolder(info.Owner.UserId, info.Owner.OrgId),
+		},
+	}
+	fillOwner(ctx, resp)
+	return resp, nil
+}
+
+// AdminBuiltinToolBase 管理员中心工具（内置工具）基础信息。
+func AdminBuiltinToolBase(ctx *gin.Context, req request.AdminToolBaseReq) (*response.AdminToolBase, error) {
+	squareTool, err := mcp.GetSquareTool(ctx.Request.Context(), &mcp_service.GetSquareToolReq{
+		ToolSquareId: req.ToolId,
+		Identity:     &mcp_service.Identity{UserId: "", OrgId: ""},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp := &response.AdminToolBase{
+		AdminAppBaseInfo: response.AdminAppBaseInfo{
+			Avatar: cacheToolAvatar(ctx, constant.ToolTypeBuiltIn, squareTool.Info.AvatarPath),
+			Name:   squareTool.Info.Name,
+			Desc:   squareTool.Info.Desc,
+		},
+	}
+	return resp, nil
+}
+
+// AdminToolDetail 管理员中心工具详情。
+func AdminToolDetail(ctx *gin.Context, req request.AdminToolDetailReq) (*response.CustomToolDetail, error) {
+	switch req.Type {
+	case constant.ToolTypeCustom:
+		return GetCustomTool(ctx, "", "", req.ToolId)
+	case constant.ToolTypeBuiltIn:
+		return GetSquareToolDetail(ctx, "", "", req.ToolId)
+	}
+	return nil, nil
+}
+
+func GetSquareToolDetail(ctx *gin.Context, userId string, orgId string, toolId string) (*response.CustomToolDetail, error) {
+	squareDetail, err := mcp.GetSquareTool(ctx.Request.Context(), &mcp_service.GetSquareToolReq{
+		ToolSquareId: toolId,
+		Identity:     &mcp_service.Identity{UserId: userId, OrgId: orgId},
+	})
+	if err != nil {
+		return nil, err
+	}
+	doc, err := openapi3_util.LoadFromData(ctx.Request.Context(), []byte(squareDetail.Schema))
+	if err != nil {
+		return nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error())
+	}
+	ret := &response.CustomToolDetail{
+		CustomToolInfo: response.CustomToolInfo{
+			CustomToolId: squareDetail.Info.ToolSquareId,
+			Name:         squareDetail.Info.Name,
+			Description:  squareDetail.Info.Desc,
+			Avatar:       cacheToolAvatar(ctx, constant.ToolTypeBuiltIn, squareDetail.Info.AvatarPath),
+		},
+		Schema: squareDetail.Schema,
+		ApiAuth: util.ApiAuthWebRequest{
+			AuthType:           squareDetail.BuiltInTools.ApiAuth.AuthType,
+			ApiKeyHeaderPrefix: squareDetail.BuiltInTools.ApiAuth.ApiKeyHeaderPrefix,
+			ApiKeyHeader:       squareDetail.BuiltInTools.ApiAuth.ApiKeyHeader,
+			ApiKeyQueryParam:   squareDetail.BuiltInTools.ApiAuth.ApiKeyQueryParam,
+			ApiKeyValue:        squareDetail.BuiltInTools.ApiAuth.ApiKeyValue,
+		},
+		ApiList: openapiSchema2ToolList(doc),
+	}
+	return ret, nil
+}
+
+// AdminPromptPageList 管理员中心提示词（自定义提示词）全局列表。
+func AdminPromptPageList(ctx *gin.Context, req request.AdminPromptPageListReq) (*response.PageResult, error) {
+	pageNo, pageSize := normalizePage(req.PageNo, req.PageSize)
+	resp, err := assistant.GetAdminCustomPromptPageList(ctx.Request.Context(), &assistant_service.GetAdminCustomPromptPageListReq{
+		Name:       req.Name,
+		OrgIdList:  req.OrgIdList,
+		UserIdList: req.UserIdList,
+		PageNo:     int32(pageNo),
+		PageSize:   int32(pageSize),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// 构造列表项
+	list := make([]*response.AdminPrompt, 0, len(resp.CustomPromptInfos))
+	for _, item := range resp.CustomPromptInfos {
+		promptItem := &response.AdminPrompt{
+			Avatar:      cacheMCPServerAvatar(ctx, item.AvatarPath),
+			PromptID:    item.CustomPromptId,
+			Name:        item.Name,
+			Description: item.Desc,
+			UpdatedAt:   util.Time2Str(item.UpdatedAt),
+			OwnerHolder: response.CreateOwnerHolder(item.Identity.UserId, item.Identity.OrgId),
+		}
+		list = append(list, promptItem)
+	}
+	fillOwnerList(ctx, list)
+
+	return &response.PageResult{
+		List:     list,
+		Total:    resp.Total,
+		PageNo:   pageNo,
+		PageSize: pageSize,
+	}, nil
+}
+
+// AdminPromptBase 管理员中心提示词（自定义提示词）详情基础信息。
+func AdminPromptBase(ctx *gin.Context, req request.AdminPromptBaseReq) (*response.AdminPromptBase, error) {
+	info, err := assistant.CustomPromptGet(ctx.Request.Context(), &assistant_service.CustomPromptGetReq{
+		CustomPromptId: req.CustomPromptId,
+		Identity:       &assistant_service.Identity{},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp := &response.AdminPromptBase{
+		AdminAppBaseInfo: response.AdminAppBaseInfo{
+			Avatar:      cachePromptAvatar(ctx, info.AvatarPath),
+			Name:        info.Name,
+			Desc:        info.Desc,
+			CreatedAt:   util.Time2Str(info.CreatedAt),
+			UpdatedAt:   util.Time2Str(info.UpdatedAt),
+			OwnerHolder: response.CreateOwnerHolder(info.Identity.UserId, info.Identity.OrgId),
+		},
+	}
+	fillOwner(ctx, resp)
+	return resp, nil
+}
+
+// AdminPromptDetail 管理员中心提示词（自定义提示词）详情。
+func AdminPromptDetail(ctx *gin.Context, req request.AdminPromptDetailReq) (*response.CustomPrompt, error) {
+	return GetCustomPrompt(ctx, "", "", req.CustomPromptId)
+}

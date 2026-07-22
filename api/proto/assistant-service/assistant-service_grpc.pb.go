@@ -84,6 +84,7 @@ const (
 	AssistantService_WgaConversationDelete_FullMethodName               = "/assistant_service.AssistantService/WgaConversationDelete"
 	AssistantService_WgaConversationList_FullMethodName                 = "/assistant_service.AssistantService/WgaConversationList"
 	AssistantService_WgaConversationExists_FullMethodName               = "/assistant_service.AssistantService/WgaConversationExists"
+	AssistantService_GetAdminCustomPromptPageList_FullMethodName        = "/assistant_service.AssistantService/GetAdminCustomPromptPageList"
 )
 
 // AssistantServiceClient is the client API for AssistantService service.
@@ -166,6 +167,8 @@ type AssistantServiceClient interface {
 	WgaConversationDelete(ctx context.Context, in *WgaConversationDeleteReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	WgaConversationList(ctx context.Context, in *WgaConversationListReq, opts ...grpc.CallOption) (*WgaConversationListResp, error)
 	WgaConversationExists(ctx context.Context, in *WgaConversationExistsReq, opts ...grpc.CallOption) (*WgaConversationExistsResp, error)
+	// --- admin center ---
+	GetAdminCustomPromptPageList(ctx context.Context, in *GetAdminCustomPromptPageListReq, opts ...grpc.CallOption) (*CustomPromptList, error)
 }
 
 type assistantServiceClient struct {
@@ -834,6 +837,16 @@ func (c *assistantServiceClient) WgaConversationExists(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *assistantServiceClient) GetAdminCustomPromptPageList(ctx context.Context, in *GetAdminCustomPromptPageListReq, opts ...grpc.CallOption) (*CustomPromptList, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CustomPromptList)
+	err := c.cc.Invoke(ctx, AssistantService_GetAdminCustomPromptPageList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AssistantServiceServer is the server API for AssistantService service.
 // All implementations must embed UnimplementedAssistantServiceServer
 // for forward compatibility.
@@ -914,6 +927,8 @@ type AssistantServiceServer interface {
 	WgaConversationDelete(context.Context, *WgaConversationDeleteReq) (*emptypb.Empty, error)
 	WgaConversationList(context.Context, *WgaConversationListReq) (*WgaConversationListResp, error)
 	WgaConversationExists(context.Context, *WgaConversationExistsReq) (*WgaConversationExistsResp, error)
+	// --- admin center ---
+	GetAdminCustomPromptPageList(context.Context, *GetAdminCustomPromptPageListReq) (*CustomPromptList, error)
 	mustEmbedUnimplementedAssistantServiceServer()
 }
 
@@ -1115,6 +1130,9 @@ func (UnimplementedAssistantServiceServer) WgaConversationList(context.Context, 
 }
 func (UnimplementedAssistantServiceServer) WgaConversationExists(context.Context, *WgaConversationExistsReq) (*WgaConversationExistsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WgaConversationExists not implemented")
+}
+func (UnimplementedAssistantServiceServer) GetAdminCustomPromptPageList(context.Context, *GetAdminCustomPromptPageListReq) (*CustomPromptList, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAdminCustomPromptPageList not implemented")
 }
 func (UnimplementedAssistantServiceServer) mustEmbedUnimplementedAssistantServiceServer() {}
 func (UnimplementedAssistantServiceServer) testEmbeddedByValue()                          {}
@@ -2275,6 +2293,24 @@ func _AssistantService_WgaConversationExists_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AssistantService_GetAdminCustomPromptPageList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAdminCustomPromptPageListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssistantServiceServer).GetAdminCustomPromptPageList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssistantService_GetAdminCustomPromptPageList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssistantServiceServer).GetAdminCustomPromptPageList(ctx, req.(*GetAdminCustomPromptPageListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AssistantService_ServiceDesc is the grpc.ServiceDesc for AssistantService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2529,6 +2565,10 @@ var AssistantService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WgaConversationExists",
 			Handler:    _AssistantService_WgaConversationExists_Handler,
+		},
+		{
+			MethodName: "GetAdminCustomPromptPageList",
+			Handler:    _AssistantService_GetAdminCustomPromptPageList_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -113,3 +113,45 @@ type AdminRagDetail struct {
 	RerankModel   *ModelInfo `json:"rerankModel"`   // 知识库Rerank模型（含头像/标签）
 	QaRerankModel *ModelInfo `json:"qaRerankModel"` // 问答库Rerank模型（含头像/标签）
 }
+
+type AdminMCP struct {
+	Avatar      request.Avatar `json:"avatar"`      // logo
+	MCPID       string         `json:"mcpId"`       // mcpId
+	Type        string         `json:"type"`        // 类型
+	Name        string         `json:"name"`        // 名称
+	Description string         `json:"description"` // 描述
+	ServerFrom  string         `json:"serverFrom"`  // 来源
+	UpdatedAt   string         `json:"updatedAt"`   // 更新时间
+	OwnerHolder
+}
+
+type AdminMCPBase struct {
+	AdminAppBaseInfo
+	Type string `json:"type"` // 类型
+}
+
+type AdminTool struct {
+	Avatar      request.Avatar `json:"avatar"`      // logo
+	ToolID      string         `json:"toolId"`      // toolId
+	Name        string         `json:"name"`        // 名称
+	Description string         `json:"description"` // 描述
+	UpdatedAt   string         `json:"updatedAt"`   // 更新时间
+	OwnerHolder
+}
+
+type AdminToolBase struct {
+	AdminAppBaseInfo
+}
+
+type AdminPrompt struct {
+	Avatar      request.Avatar `json:"avatar"`      // logo
+	PromptID    string         `json:"promptId"`    // promptId
+	Name        string         `json:"name"`        // 名称
+	Description string         `json:"description"` // 描述
+	UpdatedAt   string         `json:"updatedAt"`   // 更新时间
+	OwnerHolder
+}
+
+type AdminPromptBase struct {
+	AdminAppBaseInfo
+}

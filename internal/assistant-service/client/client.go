@@ -73,6 +73,7 @@ type IClient interface {
 	UpdateCustomPrompt(ctx context.Context, info *assistant_service.CustomPromptUpdateReq) *err_code.Status
 	GetCustomPrompt(ctx context.Context, customPromptID uint32) (*model.CustomPrompt, *err_code.Status)
 	GetCustomPromptList(ctx context.Context, userID, orgID string, name string) ([]*model.CustomPrompt, int64, *err_code.Status)
+	GetCustomPromptListAdmin(ctx context.Context, orgIDs, userIDs []string, name string, pageNo, pageSize int) ([]*model.CustomPrompt, int64, *err_code.Status)
 	CopyCustomPrompt(ctx context.Context, customPromptID uint32, userId, orgID string) (string, *err_code.Status)
 
 	//================MultiAssistant================

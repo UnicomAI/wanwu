@@ -90,3 +90,67 @@ type AdminRagDetailReq struct {
 	RagId string `json:"ragId" form:"ragId" validate:"required"` // 知识问答id
 	CommonCheck
 }
+
+type AdminMCPPageListReq struct {
+	Name string   `json:"name" form:"name"` // 名称（模糊查询）
+	Type []string `json:"type" form:"type"` // mcp: 导入mcp, mcpserver: 创建mcp all:全部
+	PageSearch
+	AdminPublish
+	AdminUserSelect
+	CommonCheck
+}
+
+type AdminMCPBaseReq struct {
+	McpId string `json:"mcpId" form:"mcpId" validate:"required"` // mcpId
+	Type  string `json:"type" form:"type"  validate:"required"`  // mcp类型: 导入mcp: mcp;创建mcp:mcpserver
+	CommonCheck
+}
+
+type AdminMCPDetailReq struct {
+	McpId string `json:"mcpId" form:"mcpId" validate:"required"` // mcpId
+	CommonCheck
+}
+
+type AdminMCPToolListReq struct {
+	McpId string `json:"mcpId" form:"mcpId" validate:"required"` // mcpId
+	Type  string `json:"type" form:"type" validate:"required"`   // mcp类型: 导入mcp: mcp;创建mcp:mcpserver
+	CommonCheck
+}
+
+type AdminToolPageListReq struct {
+	Name string `json:"name" form:"name"` // 名称（模糊查询）
+	PageSearch
+	AdminPublish
+	AdminUserSelect
+	CommonCheck
+}
+
+type AdminToolBaseReq struct {
+	ToolId string `json:"toolId" form:"toolId" validate:"required"` // 工具id
+	Type   string `json:"type" form:"type"  validate:"required"`    // custom:自定义，builtin:内置
+	CommonCheck
+}
+
+type AdminToolDetailReq struct {
+	ToolId string `json:"toolId" form:"toolId" validate:"required"` // 工具id
+	Type   string `json:"type" form:"type"  validate:"required"`    // custom:自定义，builtin:内置
+	CommonCheck
+}
+
+type AdminPromptPageListReq struct {
+	Name string `json:"name" form:"name"` // 名称（模糊查询）
+	PageSearch
+	AdminPublish
+	AdminUserSelect
+	CommonCheck
+}
+
+type AdminPromptBaseReq struct {
+	CustomPromptId string `json:"customPromptId" form:"customPromptId" validate:"required"` // 自定义提示词id
+	CommonCheck
+}
+
+type AdminPromptDetailReq struct {
+	CustomPromptId string `json:"customPromptId" form:"customPromptId" validate:"required"` // 自定义提示词id
+	CommonCheck
+}
