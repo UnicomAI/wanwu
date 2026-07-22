@@ -112,6 +112,58 @@ func ListWorkflowByIDs(ctx *gin.Context, name string, workflowIDs []string) (*re
 	return ret.Data, nil
 }
 
+// ListWorkflowAdmin 管理员获取工作流列表（按名称/appType 前置过滤，可选按 userId/orgId 过滤，返回 map）
+func ListWorkflowAdmin(ctx *gin.Context, name string, appTypes, userIds, orgIds []string) (map[string]*response.CozeWorkflowListDataWorkflow, error) {
+	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ListUri)
+	var listResp response.CozeWorkflowListResp
+	qp := map[string]string{
+		"name": name,
+		"page": "1",
+		"size": "99999",
+	}
+	if len(appTypes) == 1 {
+		switch appTypes[0] {
+		case constant.AppTypeWorkflow:
+			qp["flow_mode"] = "0"
+		case constant.AppTypeChatflow:
+			qp["flow_mode"] = "3"
+		}
+	}
+
+	// body：透传 space_ids / creator_ids 给 wanwu-workflow 做 SQL IN 过滤
+	body := make(map[string]interface{})
+	if len(orgIds) > 0 {
+		body["space_ids"] = orgIds
+	}
+	if len(userIds) > 0 {
+		body["creator_ids"] = userIds
+	}
+
+	request := trace_util.NewResty(ctx).
+		R().
+		SetContext(ctx.Request.Context()).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Accept", "application/json").
+		SetHeaders(workflowHttpReqHeader(ctx)).
+		SetQueryParams(qp).
+		SetResult(&listResp)
+	if len(body) > 0 {
+		request = request.SetBody(body)
+	}
+	if resp, err := request.Post(url); err != nil {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_admin_list", err.Error())
+	} else if resp.StatusCode() >= 300 {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_admin_list", fmt.Sprintf("[%v] code %v msg %v", resp.StatusCode(), listResp.Code, listResp.Msg))
+	} else if listResp.Code != 0 {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_admin_list", fmt.Sprintf("code %v msg %v", listResp.Code, listResp.Msg))
+	}
+	m := make(map[string]*response.CozeWorkflowListDataWorkflow, len(listResp.Data.Workflows))
+	for _, wf := range listResp.Data.Workflows {
+		m[wf.WorkflowId] = wf
+	}
+	return m, nil
+}
+
 // CreateWorkflowOrChatflow 统一创建工作流或对话流，包含名称唯一性校验
 func CreateWorkflowOrChatflow(ctx *gin.Context, orgID, appType, name, desc, iconUri string) (*response.CozeWorkflowIDData, error) {
 	if appType == constant.AppTypeChatflow {
@@ -682,6 +734,51 @@ func GetWorkflowSchemas(ctx *gin.Context, workflowIDs []string) ([]*openapi3.T, 
 		ret = append(ret, doc)
 	}
 	return ret, nil
+}
+
+// --- BizService 注册（AdminCenterBiz 权限校验用） ---
+
+var workflowBizImpl = &WorkflowBiz{}
+
+type WorkflowBiz struct{}
+
+func init() {
+	InitBizService(workflowBizImpl)
+}
+
+func (*WorkflowBiz) BizType() string {
+	return constant.BizModuleAppWorkflow
+}
+
+func (*WorkflowBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ListUri)
+	var listResp response.CozeWorkflowListResp
+	r, e := trace_util.NewResty(ctx).
+		R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Accept", "application/json").
+		SetBody(map[string]any{"workflow_ids": []string{bizId}}).
+		SetQueryParams(map[string]string{"page": "1", "size": "1"}).
+		SetResult(&listResp).
+		Post(url)
+	if e != nil {
+		return "", "", e
+	}
+	if r.StatusCode() >= 300 {
+		return "", "", fmt.Errorf("workflow engine status %d", r.StatusCode())
+	}
+	if listResp.Code != 0 {
+		return "", "", fmt.Errorf("workflow engine code %d msg %s", listResp.Code, listResp.Msg)
+	}
+	if listResp.Data == nil || len(listResp.Data.Workflows) == 0 {
+		return "", "", errors.New("workflow not found")
+	}
+	wf := listResp.Data.Workflows[0]
+	if wf.Creator == nil {
+		return "", "", errors.New("workflow creator not found")
+	}
+	return wf.Creator.ID, wf.SpaceID, nil
 }
 
 // --- internal ---

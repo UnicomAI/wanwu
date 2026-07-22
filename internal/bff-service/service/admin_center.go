@@ -82,7 +82,139 @@ func AdminKnowledgeFileDetail(ctx *gin.Context, req *request.AdminKnowledgeFileD
 
 // AdminWorkflowPageList 工作流列表
 func AdminWorkflowPageList(ctx *gin.Context, req *request.AdminWorkflowPageListReq) (*response.PageResult, error) {
-	return &response.PageResult{}, nil
+	pageNo, pageSize := normalizePage(req.PageNo, req.PageSize)
+	// Step 1: 从 workflow engine 获取工作流列表
+	listMap, err := ListWorkflowAdmin(ctx, req.Name, req.AppType, req.UserIdList, req.OrgIdList)
+	if err != nil {
+		return nil, err
+	}
+	// Step 2: 构建列表项
+	allList := buildWorkflowList(listMap)
+	// Step 3: 获取发布信息并排序
+	allList, err = fillWorkflowPublishInfo(ctx, allList)
+	if err != nil {
+		return nil, err
+	}
+	// Step 4: 按发布状态/范围过滤（仅当传了 publishStatus 或 publishScope 时才过滤）
+	needFilter := len(req.PublishStatus) > 0 || len(req.PublishScope) > 0
+	filteredList := filterWorkflowByPublish(allList, needFilter, req.PublishStatus, req.PublishScope)
+	fillOwnerList(ctx, filteredList)
+	return &response.PageResult{
+		List:     util.PageSlice(filteredList, pageNo, pageSize),
+		Total:    int64(len(filteredList)),
+		PageNo:   pageNo,
+		PageSize: pageSize,
+	}, nil
+}
+
+// buildWorkflowList 将上游返回的 map 转为列表项
+func buildWorkflowList(listMap map[string]*response.CozeWorkflowListDataWorkflow) []*response.AdminWorkflow {
+	allList := make([]*response.AdminWorkflow, 0, len(listMap))
+	for id, wf := range listMap {
+		appType := appTypeFromFlowMode(wf.FlowMode)
+		item := &response.AdminWorkflow{
+			AppBriefInfo: response.AppBriefInfo{
+				UniqueId:  util.GenUUID(),
+				AppId:     id,
+				AppType:   appType,
+				Name:      wf.Name,
+				Desc:      wf.Desc,
+				Avatar:    cacheWorkflowAvatar(wf.URL, appType),
+				CreatedAt: util.Time2Str(wf.CreateTime * 1000),
+				UpdatedAt: util.Time2Str(wf.UpdateTime * 1000),
+			},
+			OwnerHolder: response.CreateOwnerHolder("", ""),
+		}
+		if wf.Creator != nil {
+			item.OwnerUserId = wf.Creator.ID
+		}
+		if wf.SpaceID != "" {
+			item.OwnerOrgId = wf.SpaceID
+		}
+		allList = append(allList, item)
+	}
+	return allList
+}
+
+// fillWorkflowPublishInfo 获取发布信息并按 updatedAt 排序
+func fillWorkflowPublishInfo(ctx *gin.Context, allList []*response.AdminWorkflow) ([]*response.AdminWorkflow, error) {
+	briefApps := make([]response.AppBriefInfo, 0, len(allList))
+	for _, item := range allList {
+		briefApps = append(briefApps, item.AppBriefInfo)
+	}
+	listResult, err := fillAppPublishInfo(ctx, "", "", briefApps)
+	if err != nil {
+		return nil, err
+	}
+	publishedApps := listResult.List.([]response.AppBriefInfo)
+	// fillAppPublishInfo 会按 updatedAt 排序，按排序后的 AppId 顺序重建 allList
+	allMap := make(map[string]*response.AdminWorkflow, len(allList))
+	for _, item := range allList {
+		allMap[item.AppId] = item
+	}
+	sortedList := make([]*response.AdminWorkflow, 0, len(publishedApps))
+	for _, p := range publishedApps {
+		item := allMap[p.AppId]
+		if item == nil {
+			continue
+		}
+		item.AppBriefInfo = p
+		sortedList = append(sortedList, item)
+	}
+	return sortedList, nil
+}
+
+// filterWorkflowByPublish 按发布状态/范围过滤工作流列表。不需要发布信息时直接返回原列表。
+func filterWorkflowByPublish(allList []*response.AdminWorkflow, needPublishInfo bool, publishStatus, publishScope []string) []*response.AdminWorkflow {
+	if !needPublishInfo {
+		return allList
+	}
+
+	filtered := make([]*response.AdminWorkflow, 0, len(allList))
+	for _, item := range allList {
+		if len(publishStatus) > 0 {
+			isPublished := item.PublishType != ""
+			statusMatch := false
+			for _, s := range publishStatus {
+				if s == "publish" && isPublished {
+					statusMatch = true
+					break
+				}
+				if s == "draft" && !isPublished {
+					statusMatch = true
+					break
+				}
+			}
+			if !statusMatch {
+				continue
+			}
+		}
+		if len(publishScope) > 0 {
+			scopeMatch := false
+			for _, s := range publishScope {
+				if s == item.PublishType {
+					scopeMatch = true
+					break
+				}
+			}
+			if !scopeMatch {
+				continue
+			}
+		}
+		filtered = append(filtered, item)
+	}
+	return filtered
+}
+
+// appTypeFromFlowMode 将 workflow engine 的 flow_mode 转为 wanwu appType
+// 0=workflow, 3=chatflow
+func appTypeFromFlowMode(mode int64) string {
+	switch mode {
+	case 3:
+		return constant.AppTypeChatflow
+	default:
+		return constant.AppTypeWorkflow
+	}
 }
 
 // AdminSkillPageList skill分页列表（跨用户，按 userId[]/orgId[]/name 过滤后分页）
