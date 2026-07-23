@@ -121,7 +121,7 @@
         </el-table-column>
         <el-table-column
           prop="modelCreatorOrgName"
-          :label="$t('statisticsDashboard.fromOrg')"
+          :label="$t('statisticsDashboard.modelOrg')"
           align="left"
           min-width="120"
         >

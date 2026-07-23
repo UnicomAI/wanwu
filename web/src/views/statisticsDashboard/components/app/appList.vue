@@ -66,7 +66,7 @@
           </el-table-column>
           <el-table-column
             prop="moduleCreatorUserName"
-            :label="$t('statisticsDashboard.author')"
+            :label="$t('statisticsDashboard.appAuthor')"
             align="left"
           >
             <template slot-scope="scope">
@@ -75,7 +75,7 @@
           </el-table-column>
           <el-table-column
             prop="moduleCreatorOrgName"
-            :label="$t('statisticsDashboard.fromOrg')"
+            :label="$t('statisticsDashboard.appAuthorOrg')"
             align="left"
           >
             <template slot-scope="scope">

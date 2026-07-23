@@ -45,7 +45,7 @@
         </el-table-column>
         <el-table-column
           prop="modelCreatorUserName"
-          :label="$t('statisticsDashboard.publisher')"
+          :label="$t('statisticsDashboard.modelPublisher')"
           align="left"
           min-width="120"
         >
@@ -55,7 +55,7 @@
         </el-table-column>
         <el-table-column
           prop="modelCreatorOrgName"
-          :label="$t('statisticsDashboard.fromOrg')"
+          :label="$t('statisticsDashboard.modelOrg')"
           align="left"
           min-width="120"
         >
@@ -115,7 +115,7 @@
         </el-table-column>
         <el-table-column
           prop="author"
-          :label="$t('statisticsDashboard.author')"
+          :label="$t('statisticsDashboard.appAuthor')"
           align="left"
           min-width="120"
         >
@@ -125,7 +125,7 @@
         </el-table-column>
         <el-table-column
           prop="orgName"
-          :label="$t('statisticsDashboard.authorOrg')"
+          :label="$t('statisticsDashboard.appAuthorOrg')"
           align="left"
           min-width="120"
         >

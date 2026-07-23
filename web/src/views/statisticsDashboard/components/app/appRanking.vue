@@ -24,7 +24,9 @@
           </div>
           <div class="ranking-info">
             <div class="ranking-name-row">
-              <span class="ranking-name">{{ item.name }}</span>
+              <span class="ranking-name" :title="item.name">
+                {{ item.name }}
+              </span>
             </div>
             <div class="ranking-desc">
               <template>
@@ -80,7 +82,7 @@ export default {
         name: row.appName || '--',
         value: row.callCount,
         appId: row.appId,
-        orgName: row.modelCreatorOrgName,
+        orgName: row.moduleCreatorOrgName,
         userName: row.moduleCreatorUserName || '--',
         avatar: row.avatar,
       }));

@@ -23,7 +23,7 @@
         </div>
         <div class="ranking-info">
           <div class="ranking-name-row">
-            <span class="ranking-name">{{ item.name }}</span>
+            <span class="ranking-name" :title="item.name">{{ item.name }}</span>
           </div>
           <div class="ranking-desc">
             <div v-if="item.description">

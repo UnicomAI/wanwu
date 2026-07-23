@@ -1915,7 +1915,7 @@ export default {
     modelStatistics: '模型维度调用统计',
     modelDetail: '模型维度调用明细',
     modelName: '模型名称',
-    provider: '供应商',
+    provider: '模型供应商',
     publisher: '发布人',
     modelType: '模型类型',
     modelPublisher: '模型发布人',

@@ -19,7 +19,7 @@
             {{ index + 1 }}
           </div>
           <div class="ranking-info">
-            <span class="ranking-name">{{ item.name }}</span>
+            <span class="ranking-name" :title="item.name">{{ item.name }}</span>
           </div>
         </template>-->
         <template>
@@ -42,7 +42,9 @@
           </div>
           <div class="ranking-info">
             <div class="ranking-name-row">
-              <span class="ranking-name">{{ item.name }}</span>
+              <span class="ranking-name" :title="item.name">
+                {{ item.name }}
+              </span>
               <span
                 v-if="dimension === 'model' && item.modelTypeName"
                 class="ranking-tag"
