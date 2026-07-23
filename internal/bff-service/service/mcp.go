@@ -30,10 +30,7 @@ func (*MCPBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId str
 	resp, err := mcp.GetCustomMCP(ctx, &mcp_service.GetCustomMCPReq{
 		McpId: bizId,
 	})
-	if err != nil {
-		return "", "", err
-	}
-	if resp != nil && resp.Owner != nil {
+	if err == nil && resp != nil && resp.Owner != nil {
 		return resp.Owner.UserId, resp.Owner.OrgId, nil
 	}
 	mcpServerResp, err := mcp.GetMCPServer(ctx, &mcp_service.GetMCPServerReq{

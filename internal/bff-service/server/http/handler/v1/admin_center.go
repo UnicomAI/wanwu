@@ -503,11 +503,12 @@ func AdminToolPageList(ctx *gin.Context) {
 //	@Success		200		{object}	response.Response{data=response.AdminToolBase}
 //	@Router			/admin/center/tool/base [post]
 func AdminToolBase(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
 	var req request.AdminToolBaseReq
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	resp, err := service.AdminToolBase(ctx, req)
+	resp, err := service.AdminToolBase(ctx, userId, orgId, req)
 	gin_util.Response(ctx, resp, err)
 }
 
