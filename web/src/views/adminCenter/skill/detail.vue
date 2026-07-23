@@ -78,7 +78,9 @@ export default {
   },
   methods: {
     fetchBase(skillId) {
-      getAdminSkillBase({ skillId }).then(res => {
+      const params = { skillId };
+      if (this.$route.query.type) params.skillType = this.$route.query.type;
+      getAdminSkillBase(params).then(res => {
         this.base = res?.data ?? {};
       });
     },
