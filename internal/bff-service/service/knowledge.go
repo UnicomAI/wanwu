@@ -59,7 +59,7 @@ func init() {
 func (*KnowledgeBiz) BizType() string {
 	return constant.BizModuleResourceKnowledge
 }
-func (*KnowledgeBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+func (*KnowledgeBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
 	knowledgeInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx, &knowledgebase_service.KnowledgeDetailSelectReq{
 		KnowledgeId: bizId,
 		NeedOwner:   true,

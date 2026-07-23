@@ -1,8 +1,6 @@
 package service
 
 import (
-	"context"
-
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
@@ -25,7 +23,7 @@ func init() {
 
 func (*ToolBiz) BizType() string { return constant.BizModuleResourceTool }
 
-func (*ToolBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+func (*ToolBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
 	resp, err := mcp.GetCustomToolInfo(ctx, &mcp_service.GetCustomToolInfoReq{
 		CustomToolId: bizId,
 	})

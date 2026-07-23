@@ -202,7 +202,7 @@ func AdminSkillDetail(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	resp, err := service.AdminSkillDetail(ctx, &req)
+	resp, err := service.AdminSkillDetail(ctx, &req, true)
 	gin_util.Response(ctx, resp, err)
 }
 

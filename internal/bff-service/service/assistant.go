@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"sort"
@@ -1315,7 +1314,7 @@ func (*AssistantBiz) BizType() string {
 	return constant.BizModuleAppAgent
 }
 
-func (*AssistantBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+func (*AssistantBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
 	resp, err := assistant.GetAssistantInfo(ctx, &assistant_service.GetAssistantInfoReq{
 		AssistantId: bizId,
 	})
