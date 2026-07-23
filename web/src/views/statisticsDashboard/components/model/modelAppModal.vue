@@ -16,6 +16,10 @@
           <span>{{ $t('common.button.export') }}</span>
         </el-button>
       </div>
+      <ModelBasicInfo :model-info="tableData[0] || modelInfo" />
+      <div class="section-title">
+        {{ $t('statisticsDashboard.appUseDetail') }}
+      </div>
       <el-table
         :data="tableData"
         v-loading="loading"
@@ -23,56 +27,6 @@
         style="width: 100%"
         @sort-change="handleSortChange"
       >
-        <el-table-column
-          prop="model"
-          :label="$t('statisticsDashboard.modelName')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            {{ scope.row.model || '--' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="provider"
-          :label="$t('statisticsDashboard.provider')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            {{ providerObj[scope.row.provider] || scope.row.provider || '--' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="modelCreatorUserName"
-          :label="$t('statisticsDashboard.modelPublisher')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            {{ scope.row.modelCreatorUserName || '--' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="modelCreatorOrgName"
-          :label="$t('statisticsDashboard.modelOrg')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            {{ scope.row.modelCreatorOrgName || '--' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="modelType"
-          :label="$t('statisticsDashboard.modelType')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            <ModelTypeTag :model-type="scope.row.modelType" />
-          </template>
-        </el-table-column>
         <el-table-column
           prop="source"
           :label="$t('statisticsDashboard.source')"
@@ -234,6 +188,7 @@
 
 <script>
 import Pagination from '@/components/pagination.vue';
+import ModelBasicInfo from './modelBasicInfo.vue';
 import ModelTypeTag from './modelTypeTag.vue';
 import AppTypeTag from '../app/appTypeTag.vue';
 import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
@@ -244,7 +199,7 @@ import {
 import { PROVIDER_OBJ } from '@/views/modelAccess/constants';
 
 export default {
-  components: { Pagination, ModelTypeTag, AppTypeTag },
+  components: { Pagination, ModelBasicInfo, ModelTypeTag, AppTypeTag },
   props: {
     visible: {
       type: Boolean,
