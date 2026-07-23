@@ -614,7 +614,7 @@ export default {
         (arr || []).forEach(item => list.push({ ...item, kind }));
       push(this.detail.workFlowInfos, 'workflow');
       push(this.detail.mcpInfos, 'mcp');
-      push(this.detail.toolInfos, 'action');
+      push(this.detail.toolInfos, 'tool');
       push(this.detail.skillInfos, 'skill');
       return this.toolExpanded ? list : list.slice(0, VIEW_MORE_THRESHOLD);
     },
@@ -706,10 +706,16 @@ export default {
   },
   methods: {
     toolDisplayName(tool) {
-      if (tool.kind === 'workflow') return tool.name;
-      if (tool.kind === 'mcp') return tool.mcpName || tool.actionName;
-      if (tool.kind === 'skill') return tool.skillName;
-      return tool.toolName || tool.actionName;
+      switch (tool.kind) {
+        case 'workflow':
+          return tool.name;
+        case 'mcp':
+          return tool.mcpName;
+        case 'skill':
+          return tool.skillName;
+        case 'tool':
+          return tool.toolName;
+      }
     },
     toolDescription(tool) {
       return tool.description || tool.workFlowDesc || tool.desc || '';
@@ -718,7 +724,7 @@ export default {
       const map = {
         workflow: this.$t('appSpace.workflow'),
         mcp: 'MCP',
-        action: this.$t('agent.toolDialog.tool'),
+        tool: this.$t('agent.toolDialog.tool'),
         skill: this.$t('tempSquare.skills.name'),
       };
       return map[tool.kind] ?? '-';
@@ -750,9 +756,9 @@ export default {
           path: '/adminCenter/mcp/detail',
           query: { mcpId: tool.mcpId, type: tool.mcpType },
         },
-        action: {
+        tool: {
           path: '/adminCenter/tool/detail',
-          query: { toolId: tool.toolId },
+          query: { toolId: tool.toolId, type: tool.toolType },
         },
         skill: {
           path: '/adminCenter/skill/detail',
