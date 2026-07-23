@@ -137,7 +137,7 @@
           :label="$t('statisticsDashboard.callFailure')"
           align="left"
           sortable="custom"
-          min-width="120"
+          min-width="140"
         >
           <template slot-scope="scope">
             {{ formatAmount(scope.row.callFailure) }}
@@ -159,7 +159,7 @@
           :label="$t('statisticsDashboard.avgFirstTokenLatency')"
           align="left"
           sortable="custom"
-          min-width="150"
+          min-width="200"
         >
           <template slot-scope="scope">
             {{ formatSec(scope.row.avgFirstTokenLatency) }}

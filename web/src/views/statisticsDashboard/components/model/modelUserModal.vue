@@ -2,7 +2,7 @@
   <el-dialog
     :title="$t('statisticsDashboard.userUsageStats')"
     :visible.sync="visible"
-    width="90%"
+    width="95%"
     top="5vh"
     :close-on-click-modal="false"
     custom-class="usage-detail-modal"
@@ -129,7 +129,7 @@
           :label="$t('statisticsDashboard.avgFirstTokenLatency')"
           align="left"
           sortable="custom"
-          min-width="170"
+          min-width="200"
         >
           <template slot-scope="scope">
             {{ formatSec(scope.row.avgFirstTokenLatency) }}

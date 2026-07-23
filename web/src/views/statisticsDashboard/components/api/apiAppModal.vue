@@ -103,7 +103,7 @@
           :label="$t('statisticsDashboard.callFailure')"
           align="left"
           sortable="custom"
-          min-width="120"
+          min-width="140"
         >
           <template slot-scope="scope">
             {{ formatAmount(scope.row.callFailure) }}
@@ -114,7 +114,7 @@
           :label="$t('statisticsDashboard.avgCosts')"
           align="left"
           sortable="custom"
-          min-width="120"
+          min-width="160"
         >
           <template slot-scope="scope">
             {{ formatSec(scope.row.avgCosts) }}
@@ -125,7 +125,7 @@
           :label="$t('statisticsDashboard.avgFirstTokenLatency')"
           align="left"
           sortable="custom"
-          min-width="120"
+          min-width="200"
         >
           <template slot-scope="scope">
             {{ formatSec(scope.row.avgFirstTokenLatency) }}
@@ -136,7 +136,7 @@
           :label="$t('statisticsDashboard.streamCount')"
           align="left"
           sortable="custom"
-          min-width="120"
+          min-width="160"
         >
           <template slot-scope="scope">
             {{ formatAmount(scope.row.streamCount) }}
@@ -147,7 +147,7 @@
           :label="$t('statisticsDashboard.nonStreamCount')"
           align="left"
           sortable="custom"
-          min-width="120"
+          min-width="160"
         >
           <template slot-scope="scope">
             {{ formatAmount(scope.row.nonStreamCount) }}
