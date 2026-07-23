@@ -4,6 +4,7 @@ import VuexPersistence from 'vuex-persist';
 import { user } from './module/user';
 import { app } from './module/app';
 import { workflow } from './module/workflow';
+import { adminCenter } from './module/adminCenter';
 
 Vue.use(Vuex);
 // 用户信息持久化
@@ -18,6 +19,7 @@ export const store = new Vuex.Store({
     user,
     app,
     workflow,
+    adminCenter,
   },
   plugins: [vuexLocal.plugin],
 });

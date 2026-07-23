@@ -58,8 +58,11 @@
 </template>
 
 <script>
+import { debounce } from 'lodash-es';
 import { queryOrgUsers } from '@/api/permission/org';
 import { ALL_VALUE, SCOPE_TYPE_LIST } from '../constants.js';
+
+const ORG_USER_OPTIONS_DEBOUNCE = 1000;
 
 export default {
   name: 'AdminSearchBar',
@@ -72,6 +75,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    preserveUserSelection: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     const defaultForm = this.createDefaultForm();
@@ -79,6 +86,8 @@ export default {
     return {
       userLoading: false,
       userOptions: [],
+      latestUserOptionsRequestId: 0,
+      debouncedLoadUserOptions: null,
       localForm,
       previousSelections: {
         userIdList: [...localForm.userIdList],
@@ -116,7 +125,7 @@ export default {
       deep: true,
       immediate: true,
       handler() {
-        this.loadUserOptions();
+        this.scheduleLoadUserOptions();
       },
     },
   },
@@ -145,14 +154,52 @@ export default {
         publishScope: [...nextForm.publishScope],
       };
     },
-    async loadUserOptions() {
+    scheduleLoadUserOptions() {
+      const requestId = ++this.latestUserOptionsRequestId;
+      const orgIdList = [...this.currentOrgIdList];
+      if (!this.debouncedLoadUserOptions) {
+        this.debouncedLoadUserOptions = debounce(
+          (id, ids) => this.loadUserOptions(id, ids),
+          ORG_USER_OPTIONS_DEBOUNCE,
+          { leading: true, trailing: true },
+        );
+      }
+      this.debouncedLoadUserOptions(requestId, orgIdList);
+    },
+    async loadUserOptions(requestId, orgIdList) {
       this.userLoading = true;
       try {
-        this.userOptions = await this.fetchUserOptions(this.currentOrgIdList);
-        this.setFieldSelection('userIdList', [ALL_VALUE]);
-        this.emitChange();
+        const userOptions = await this.fetchUserOptions(orgIdList);
+        if (requestId !== this.latestUserOptionsRequestId) return;
+        this.userOptions = userOptions;
+        const previousUserIdList = [...this.localForm.userIdList];
+        const availableUserIds = new Set(
+          userOptions.map(user => String(user.value)),
+        );
+        const nextUserIdList =
+          this.preserveUserSelection && !previousUserIdList.includes(ALL_VALUE)
+            ? previousUserIdList.filter(userId =>
+                availableUserIds.has(String(userId)),
+              )
+            : [ALL_VALUE];
+        this.setFieldSelection(
+          'userIdList',
+          nextUserIdList.length ? nextUserIdList : [ALL_VALUE],
+        );
+        if (
+          JSON.stringify(previousUserIdList) !==
+          JSON.stringify(this.localForm.userIdList)
+        ) {
+          this.emitChange(false);
+        }
+      } catch (error) {
+        if (requestId !== this.latestUserOptionsRequestId) return;
+        this.userOptions = [];
       } finally {
-        this.userLoading = false;
+        if (requestId === this.latestUserOptionsRequestId) {
+          this.userLoading = false;
+          this.$emit('user-options-loaded');
+        }
       }
     },
     async fetchUserOptions(orgIdList) {
@@ -186,10 +233,10 @@ export default {
       this.localForm[field] = values;
       this.previousSelections[field] = [...values];
     },
-    emitChange() {
+    emitChange(emitSearch = true) {
       const form = { ...this.localForm };
       this.$emit('input', form);
-      this.$emit('change', form);
+      if (emitSearch) this.$emit('change', form);
     },
     handleSearch() {
       this.$emit('search', { ...this.localForm });
@@ -201,9 +248,12 @@ export default {
         userIdList: [...defaultForm.userIdList],
         publishScope: [...defaultForm.publishScope],
       };
-      this.emitChange();
       this.$emit('reset', { ...this.localForm });
+      this.emitChange();
     },
+  },
+  beforeDestroy() {
+    this.debouncedLoadUserOptions?.cancel();
   },
 };
 </script>

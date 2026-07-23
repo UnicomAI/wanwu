@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="page-wrapper">
     <div class="page-wrapper-content">
       <admin-page-header :title="$t('adminCenter.title')" />
@@ -11,6 +11,7 @@
           <organization-tree-select
             v-model="selectedOrganizationIds"
             :current-key.sync="currentOrganizationId"
+            @change="handleOrganizationChange"
           />
         </div>
         <div class="page-container-right">
@@ -22,6 +23,9 @@
           <admin-search-bar
             v-model="commonSearchForm"
             :org-id-list="selectedOrganizationIds"
+            :preserve-user-selection="isRestoringListState"
+            @user-options-loaded="handleUserOptionsLoaded"
+            @change="handleCommonSearchFormChange"
             @search="handleSearch"
             @reset="handleReset"
           >
@@ -111,6 +115,7 @@
 </template>
 
 <script>
+import adminListQueryMixin from '../mixins/adminListQueryMixin';
 import { getAdminModelPageList } from '@/api/adminCenter';
 import { MODEL_TYPE, PROVIDER_OBJ } from '@/views/modelAccess/constants.js';
 import {
@@ -126,6 +131,7 @@ import AdminSearchBar from '@/views/adminCenter/components/AdminSearchBar.vue';
 import OrganizationTreeSelect from '@/views/adminCenter/components/OrganizationTreeSelect.vue';
 
 export default {
+  mixins: [adminListQueryMixin],
   components: {
     AdminPageHeader,
     AdminDataTable,
@@ -134,6 +140,9 @@ export default {
   },
   data() {
     return {
+      listStateType: 'modelConfig',
+      listStateSearchFormKey: 'modelSearchForm',
+      listStatePreviousSelectionsKey: 'previousModelSelections',
       currentOrganizationId: '1',
       selectedOrganizationIds: [],
       commonSearchForm: {
@@ -318,18 +327,23 @@ export default {
 
       this.modelSearchForm[field] = nextValues;
       this.previousModelSelections[field] = [...nextValues];
+      this.tablePage = 1;
+      this.fetchTableData();
     },
-    async fetchTableData(commonForm = this.commonSearchForm) {
+    async requestTableData(commonForm = this.commonSearchForm, requestId) {
       this.tableLoading = true;
       try {
         const res = await getAdminModelPageList(
           this.createListParams(commonForm),
         );
+        if (requestId !== this.latestRequestId) return;
         const data = res.data || {};
         this.tableData = data.list || [];
         this.tableTotal = data.total || 0;
       } finally {
-        this.tableLoading = false;
+        if (requestId === this.latestRequestId) {
+          this.tableLoading = false;
+        }
       }
     },
     handleSearch(commonForm) {
@@ -337,6 +351,8 @@ export default {
       this.fetchTableData(commonForm);
     },
     handleReset(commonForm) {
+      this.skipNextCommonSearch = true;
+      this.selectedOrganizationIds = [];
       this.modelSearchForm = {
         publishStatus: [ALL_VALUE],
         name: '',
@@ -361,13 +377,14 @@ export default {
       this.fetchTableData();
     },
     handleViewDetail(row) {
+      this.saveListState();
       this.$router.push({
         path: `/adminCenter/modelConfig/detail?modelId=${row.modelId || row.id}`,
       });
     },
   },
   mounted() {
-    this.fetchTableData();
+    if (!this.isRestoringListState) this.fetchTableData();
   },
 };
 </script>

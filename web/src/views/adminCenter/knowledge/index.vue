@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="page-wrapper">
     <div class="page-wrapper-content">
       <admin-page-header :title="$t('adminCenter.title')" />
@@ -11,6 +11,7 @@
           <organization-tree-select
             v-model="selectedOrganizationIds"
             :current-key.sync="currentOrganizationId"
+            @change="handleOrganizationChange"
           />
         </div>
         <div class="page-container-right">
@@ -22,6 +23,9 @@
           <admin-search-bar
             v-model="commonSearchForm"
             :org-id-list="selectedOrganizationIds"
+            :preserve-user-selection="isRestoringListState"
+            @user-options-loaded="handleUserOptionsLoaded"
+            @change="handleCommonSearchFormChange"
             @search="handleSearch"
             @reset="handleReset"
           >
@@ -41,7 +45,7 @@
                   @keyup.enter.native="handleSearch(commonSearchForm)"
                 />
               </div>
-              <div class="admin-search-bar__field basis-220">
+              <div class="admin-search-bar__field basis-240">
                 <div class="admin-search-bar__label">
                   {{ $t('adminCenter.columns.knowledgeType') }}
                 </div>
@@ -62,6 +66,7 @@
                 <el-select
                   v-model="knowledgeSearchForm.external"
                   class="admin-search-bar__control"
+                  @change="handleKnowledgeSourceChange"
                 >
                   <el-option
                     v-for="item in knowledgeSourceOptions"
@@ -124,6 +129,7 @@
 </template>
 
 <script>
+import adminListQueryMixin from '../mixins/adminListQueryMixin';
 import { getAdminKnowledgePageList } from '@/api/adminCenter';
 import {
   ALL_VALUE,
@@ -149,6 +155,7 @@ const KNOWLEDGE_CATEGORY_VALUES = [KNOWLEDGE, MULTIMODAL, QA];
 const ALL_EXTERNAL_VALUE = -1;
 
 export default {
+  mixins: [adminListQueryMixin],
   components: {
     AdminPageHeader,
     AdminDataTable,
@@ -157,6 +164,9 @@ export default {
   },
   data() {
     return {
+      listStateType: 'knowledge',
+      listStateSearchFormKey: 'knowledgeSearchForm',
+      listStatePreviousSelectionsKey: 'previousKnowledgeSelections',
       currentOrganizationId: '1',
       selectedOrganizationIds: [],
       commonSearchForm: {
@@ -423,6 +433,12 @@ export default {
 
       this.knowledgeSearchForm.category = nextValues;
       this.previousKnowledgeSelections.category = [...nextValues];
+      this.tablePage = 1;
+      this.fetchTableData();
+    },
+    handleKnowledgeSourceChange() {
+      this.tablePage = 1;
+      this.fetchTableData();
     },
     handleKnowledgeMultiSelectChange(field, values) {
       const previous = this.previousKnowledgeSelections[field] || [ALL_VALUE];
@@ -439,18 +455,23 @@ export default {
 
       this.knowledgeSearchForm[field] = nextValues;
       this.previousKnowledgeSelections[field] = [...nextValues];
+      this.tablePage = 1;
+      this.fetchTableData();
     },
-    async fetchTableData(commonForm = this.commonSearchForm) {
+    async requestTableData(commonForm = this.commonSearchForm, requestId) {
       this.tableLoading = true;
       try {
         const res = await getAdminKnowledgePageList(
           this.createListParams(commonForm),
         );
+        if (requestId !== this.latestRequestId) return;
         const data = res.data || {};
         this.tableData = data.list || [];
         this.tableTotal = data.total || 0;
       } finally {
-        this.tableLoading = false;
+        if (requestId === this.latestRequestId) {
+          this.tableLoading = false;
+        }
       }
     },
     handleSearch(commonForm) {
@@ -458,6 +479,8 @@ export default {
       this.fetchTableData(commonForm);
     },
     handleReset(commonForm) {
+      this.skipNextCommonSearch = true;
+      this.selectedOrganizationIds = [];
       this.knowledgeSearchForm = {
         name: '',
         category: [ALL_VALUE],
@@ -483,13 +506,14 @@ export default {
       this.fetchTableData();
     },
     handleViewDetail(row) {
+      this.saveListState();
       this.$router.push({
         path: `/adminCenter/knowledge/detail?knowledgeId=${row.knowledgeId}`,
       });
     },
   },
   mounted() {
-    this.fetchTableData();
+    if (!this.isRestoringListState) this.fetchTableData();
   },
 };
 </script>
