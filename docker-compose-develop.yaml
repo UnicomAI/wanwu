@@ -368,6 +368,8 @@ services:
       JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
       JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
       URL_RAG_DOC_PARSER: http://rag-wanwu:8681/rag/doc_parser
+      # 文档解析强制 rag 开关：0 走正常逻辑（本地支持走本地，不支持回退 rag），1 强制只走 rag
+      DOC_RAG_ONLY: "0"
       URL_MINIO_DOWNLOAD: ${WANWU_WEB_BASE_URL}/minio/download/api
       WANWU_CALLBACK_URL_TO_BASE64: http://bff-service:6668/callback/v1/file/url/base64  
       GUNICORN_WORKERS: 2
@@ -426,7 +428,7 @@ services:
       WANWU_AGENT_API_URL: http://agent-service:8990/agent/chat/direct
       WANWU_KNOWLEDGE_SEARCH_URL: http://bff-service:6668/callback/v1/rag/search-knowledge-base
       WANWU_FILE_GENERATOR_URL: http://callback-wanwu:8669/v1/generate_file
-      WANWU_FILE_PARSER_URL: http://rag-wanwu:8681/rag/doc_parser
+      WANWU_FILE_PARSER_URL: http://callback-wanwu:8669/v1/doc_parse
       WANWU_QA_SEARCH_URL: http://bff-service:6668/callback/v1/rag/search-QA-base
       WANWU_CALLBACK_APP_RECORD_URL: http://bff-service:6668/callback/v1/app/record
       # 用于openapi调用workflow是否跳过execute history；默认0不跳过，会记录execute history；追求高并发为1不记录
