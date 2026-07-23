@@ -11,6 +11,7 @@
           <organization-tree-select
             v-model="selectedOrganizationIds"
             :current-key.sync="currentOrganizationId"
+            @change="handleOrganizationChange"
           />
         </div>
         <div class="page-container-right">
@@ -22,6 +23,9 @@
           <admin-search-bar
             v-model="commonSearchForm"
             :org-id-list="selectedOrganizationIds"
+            :preserve-user-selection="isRestoringListState"
+            @user-options-loaded="handleUserOptionsLoaded"
+            @change="handleCommonSearchFormChange"
             @search="handleSearch"
             @reset="handleReset"
           >
@@ -48,6 +52,7 @@
                 <el-select
                   v-model="mcpSearchForm.type"
                   class="admin-search-bar__control"
+                  @change="handleMcpTypeChange"
                 >
                   <el-option
                     v-for="item in mcpTypeOptions"
@@ -106,6 +111,7 @@
 </template>
 
 <script>
+import adminListQueryMixin from '../mixins/adminListQueryMixin';
 import { getAdminMcpPageList } from '@/api/adminCenter';
 import {
   ALL_VALUE,
@@ -118,6 +124,7 @@ import AdminSearchBar from '@/views/adminCenter/components/AdminSearchBar.vue';
 import OrganizationTreeSelect from '@/views/adminCenter/components/OrganizationTreeSelect.vue';
 
 export default {
+  mixins: [adminListQueryMixin],
   components: {
     AdminPageHeader,
     AdminDataTable,
@@ -126,6 +133,9 @@ export default {
   },
   data() {
     return {
+      listStateType: 'mcp',
+      listStateSearchFormKey: 'mcpSearchForm',
+      listStatePreviousSelectionsKey: 'previousMcpSelections',
       currentOrganizationId: '1',
       selectedOrganizationIds: [],
       commonSearchForm: {
@@ -283,6 +293,10 @@ export default {
       });
       return params;
     },
+    handleMcpTypeChange() {
+      this.tablePage = 1;
+      this.fetchTableData();
+    },
     handleMcpMultiSelectChange(field, values) {
       const previous = this.previousMcpSelections[field] || [ALL_VALUE];
       values = Array.isArray(values) ? values : [];
@@ -298,18 +312,23 @@ export default {
 
       this.mcpSearchForm[field] = nextValues;
       this.previousMcpSelections[field] = [...nextValues];
+      this.tablePage = 1;
+      this.fetchTableData();
     },
-    async fetchTableData(commonForm = this.commonSearchForm) {
+    async requestTableData(commonForm = this.commonSearchForm, requestId) {
       this.tableLoading = true;
       try {
         const res = await getAdminMcpPageList(
           this.createListParams(commonForm),
         );
+        if (requestId !== this.latestRequestId) return;
         const data = res.data || {};
         this.tableData = data.list || [];
         this.tableTotal = data.total || 0;
       } finally {
-        this.tableLoading = false;
+        if (requestId === this.latestRequestId) {
+          this.tableLoading = false;
+        }
       }
     },
     handleSearch(commonForm) {
@@ -317,6 +336,8 @@ export default {
       this.fetchTableData(commonForm);
     },
     handleReset(commonForm) {
+      this.skipNextCommonSearch = true;
+      this.selectedOrganizationIds = [];
       this.mcpSearchForm = {
         name: '',
         type: 'mcp',
@@ -340,6 +361,7 @@ export default {
       this.fetchTableData();
     },
     handleViewDetail(row) {
+      this.saveListState();
       this.$router.push({
         path: '/adminCenter/mcp/detail',
         query: {
@@ -350,7 +372,7 @@ export default {
     },
   },
   mounted() {
-    this.fetchTableData();
+    if (!this.isRestoringListState) this.fetchTableData();
   },
 };
 </script>

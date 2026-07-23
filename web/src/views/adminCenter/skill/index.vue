@@ -11,6 +11,7 @@
           <organization-tree-select
             v-model="selectedOrganizationIds"
             :current-key.sync="currentOrganizationId"
+            @change="handleOrganizationChange"
           />
         </div>
         <div class="page-container-right">
@@ -22,6 +23,9 @@
           <admin-search-bar
             v-model="commonSearchForm"
             :org-id-list="selectedOrganizationIds"
+            :preserve-user-selection="isRestoringListState"
+            @user-options-loaded="handleUserOptionsLoaded"
+            @change="handleCommonSearchFormChange"
             @search="handleSearch"
             @reset="handleReset"
           >
@@ -92,6 +96,7 @@
 </template>
 
 <script>
+import adminListQueryMixin from '../mixins/adminListQueryMixin';
 import { getAdminSkillPageList } from '@/api/adminCenter';
 import {
   ALL_VALUE,
@@ -106,6 +111,7 @@ import AdminSearchBar from '@/views/adminCenter/components/AdminSearchBar.vue';
 import OrganizationTreeSelect from '@/views/adminCenter/components/OrganizationTreeSelect.vue';
 
 export default {
+  mixins: [adminListQueryMixin],
   components: {
     AdminPageHeader,
     AdminDataTable,
@@ -114,6 +120,9 @@ export default {
   },
   data() {
     return {
+      listStateType: 'skill',
+      listStateSearchFormKey: 'skillSearchForm',
+      listStatePreviousSelectionsKey: 'previousSkillSelections',
       currentOrganizationId: '1',
       selectedOrganizationIds: [],
       commonSearchForm: {
@@ -272,18 +281,23 @@ export default {
 
       this.skillSearchForm[field] = nextValues;
       this.previousSkillSelections[field] = [...nextValues];
+      this.tablePage = 1;
+      this.fetchTableData();
     },
-    async fetchTableData(commonForm = this.commonSearchForm) {
+    async requestTableData(commonForm = this.commonSearchForm, requestId) {
       this.tableLoading = true;
       try {
         const res = await getAdminSkillPageList(
           this.createListParams(commonForm),
         );
+        if (requestId !== this.latestRequestId) return;
         const data = res.data || {};
         this.tableData = data.list || [];
         this.tableTotal = data.total || 0;
       } finally {
-        this.tableLoading = false;
+        if (requestId === this.latestRequestId) {
+          this.tableLoading = false;
+        }
       }
     },
     handleSearch(commonForm) {
@@ -291,6 +305,8 @@ export default {
       this.fetchTableData(commonForm);
     },
     handleReset(commonForm) {
+      this.skipNextCommonSearch = true;
+      this.selectedOrganizationIds = [];
       this.skillSearchForm = {
         name: '',
         publishStatus: [ALL_VALUE],
@@ -313,13 +329,14 @@ export default {
       this.fetchTableData();
     },
     handleViewDetail(row) {
+      this.saveListState();
       this.$router.push({
         path: `/adminCenter/skill/detail?skillId=${row.skillId || row.id}`,
       });
     },
   },
   mounted() {
-    this.fetchTableData();
+    if (!this.isRestoringListState) this.fetchTableData();
   },
 };
 </script>
