@@ -1219,6 +1219,13 @@ func buildKnowledgeBaseHitResp(ragKnowledgeHitResp *knowledge_service.RagKnowled
 			for _, score := range search.ChildScore {
 				childScore = append(childScore, float32(score))
 			}
+			// meta_data 原样透传 rag 返回，序列化成 JSON 串跨 grpc 传递
+			var metaData string
+			if search.MetaData != nil {
+				if b, err := json.Marshal(search.MetaData); err == nil {
+					metaData = string(b)
+				}
+			}
 			//todo knowledgeName 替换
 			searchList = append(searchList, &knowledgebase_service.KnowledgeSearchInfo{
 				Title:            search.Title,
@@ -1229,6 +1236,7 @@ func buildKnowledgeBaseHitResp(ragKnowledgeHitResp *knowledge_service.RagKnowled
 				ContentType:      search.ContentType,
 				Score:            float32(search.Score),
 				RerankInfo:       buildRerankInfo(search.RerankInfo),
+				MetaData:         metaData,
 			})
 		}
 	}

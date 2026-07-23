@@ -9,8 +9,12 @@ import (
 const (
 	DocAnalyzerOCR       = "ocr"
 	DocAnalyzerPdfParser = "model"
+	DocAnalyzerASR       = "asr"
+	DocAnalyzerMulti     = "multimodal"
 	CommonSplitMethod    = "0" //通用分段
 	ParentSplitMethod    = "1" //父子分段
+	FileUpload           = 0   //文件上传
+	UrlUpload            = 1   //单条url上传
 	UrlFileUpload        = 2   //url文件上传
 )
 
@@ -222,6 +226,12 @@ func (c *DocImportReq) Check() error {
 				if c.ParserModelId == "" {
 					return errors.New("parserModelId can not be empty")
 				}
+			}
+			if v == DocAnalyzerASR && c.AsrModelId == "" {
+				return errors.New("asrModelId can not be empty")
+			}
+			if v == DocAnalyzerMulti && c.MultimodalModelId == "" {
+				return errors.New("multimodalModelId can not be empty")
 			}
 		}
 	}

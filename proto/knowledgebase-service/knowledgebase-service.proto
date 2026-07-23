@@ -279,6 +279,7 @@ message KnowledgeSearchInfo{
   string contentType = 6; // graph：知识图谱（文本）, text：文档分段（文本）, community_report：社区报告（markdown）
   float score = 7;
   repeated RerankInfo rerankInfo = 8;
+  string metaData = 9; // 命中片段元信息，rag 返回原样透传的 JSON 串
 }
 
 message RerankInfo{
