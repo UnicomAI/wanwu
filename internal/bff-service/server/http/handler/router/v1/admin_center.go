@@ -40,7 +40,7 @@ var mcpBiz = &middleware.AdminCenterBiz{
 	BizType: constant.BizModuleResourceMCP,
 }
 var toolBiz = &middleware.AdminCenterBiz{
-	BizId:   "customToolId",
+	BizId:   "toolId",
 	BizType: constant.BizModuleResourceTool,
 }
 var promptBiz = &middleware.AdminCenterBiz{

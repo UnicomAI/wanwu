@@ -875,12 +875,12 @@ func AdminToolPageList(ctx *gin.Context, req request.AdminToolPageListReq) (*res
 }
 
 // AdminToolBase 管理员中心工具基础信息。
-func AdminToolBase(ctx *gin.Context, req request.AdminToolBaseReq) (*response.AdminToolBase, error) {
+func AdminToolBase(ctx *gin.Context, userId string, orgId string, req request.AdminToolBaseReq) (*response.AdminToolBase, error) {
 	switch req.Type {
 	case constant.ToolTypeCustom:
 		return AdminCustomToolBase(ctx, req)
 	case constant.ToolTypeBuiltIn:
-		return AdminBuiltinToolBase(ctx, req)
+		return AdminBuiltinToolBase(ctx, userId, orgId, req)
 	}
 	return nil, nil
 }
@@ -909,7 +909,7 @@ func AdminCustomToolBase(ctx *gin.Context, req request.AdminToolBaseReq) (*respo
 }
 
 // AdminBuiltinToolBase 管理员中心工具（内置工具）基础信息。
-func AdminBuiltinToolBase(ctx *gin.Context, req request.AdminToolBaseReq) (*response.AdminToolBase, error) {
+func AdminBuiltinToolBase(ctx *gin.Context, userId string, orgId string, req request.AdminToolBaseReq) (*response.AdminToolBase, error) {
 	squareTool, err := mcp.GetSquareTool(ctx.Request.Context(), &mcp_service.GetSquareToolReq{
 		ToolSquareId: req.ToolId,
 		Identity:     &mcp_service.Identity{UserId: "", OrgId: ""},
@@ -919,11 +919,13 @@ func AdminBuiltinToolBase(ctx *gin.Context, req request.AdminToolBaseReq) (*resp
 	}
 	resp := &response.AdminToolBase{
 		AdminAppBaseInfo: response.AdminAppBaseInfo{
-			Avatar: cacheToolAvatar(ctx, constant.ToolTypeBuiltIn, squareTool.Info.AvatarPath),
-			Name:   squareTool.Info.Name,
-			Desc:   squareTool.Info.Desc,
+			Avatar:      cacheToolAvatar(ctx, constant.ToolTypeBuiltIn, squareTool.Info.AvatarPath),
+			Name:        squareTool.Info.Name,
+			Desc:        squareTool.Info.Desc,
+			OwnerHolder: response.CreateOwnerHolder(userId, orgId),
 		},
 	}
+	fillOwner(ctx, resp)
 	return resp, nil
 }
 

@@ -24,16 +24,23 @@ func init() {
 func (*ToolBiz) BizType() string { return constant.BizModuleResourceTool }
 
 func (*ToolBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	// 优先按自定义工具查询，查不到再按内置工具查询（custom/builtin 共用同一 bizType）
 	resp, err := mcp.GetCustomToolInfo(ctx, &mcp_service.GetCustomToolInfoReq{
 		CustomToolId: bizId,
+	})
+	if err == nil && resp != nil && resp.Owner != nil {
+		return resp.Owner.UserId, resp.Owner.OrgId, nil
+	}
+	builtinResp, err := mcp.GetSquareTool(ctx, &mcp_service.GetSquareToolReq{
+		ToolSquareId: bizId,
 	})
 	if err != nil {
 		return "", "", err
 	}
-	if resp.Owner == nil {
+	if builtinResp.Info == nil {
 		return "", "", nil
 	}
-	return resp.Owner.UserId, resp.Owner.OrgId, nil
+	return getUserID(ctx), getOrgID(ctx), nil
 }
 
 func CreateCustomTool(ctx *gin.Context, userID, orgID string, req request.CustomToolCreate) error {
