@@ -16,6 +16,10 @@
           <span>{{ $t('common.button.export') }}</span>
         </el-button>
       </div>
+      <AppBasicInfo :app-info="tableData[0] || appInfo" />
+      <div class="section-title">
+        {{ $t('statisticsDashboard.userUseDetail') }}
+      </div>
       <el-table
         :data="tableData"
         v-loading="loading"
@@ -23,66 +27,6 @@
         style="width: 100%"
         @sort-change="handleSortChange"
       >
-        <el-table-column
-          prop="source"
-          :label="$t('statisticsDashboard.source')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            {{ scope.row.sourceName || '--' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="module"
-          :label="$t('statisticsDashboard.module')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            <AppTypeTag :app-type="scope.row.module" />
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="appName"
-          :label="$t('statisticsDashboard.appName')"
-          align="left"
-          min-width="140"
-        >
-          <template slot-scope="scope">
-            {{ scope.row.appName || '--' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="appType"
-          :label="$t('statisticsDashboard.appType')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            <AppTypeTag :app-type="scope.row.appType" />
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="moduleCreatorUserName"
-          :label="$t('statisticsDashboard.appAuthor')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            {{ scope.row.moduleCreatorUserName || '--' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="moduleCreatorOrgName"
-          :label="$t('statisticsDashboard.appAuthorOrg')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            {{ scope.row.moduleCreatorOrgName || '--' }}
-          </template>
-        </el-table-column>
         <el-table-column
           prop="userName"
           :label="$t('statisticsDashboard.user')"
@@ -191,12 +135,13 @@
 
 <script>
 import Pagination from '@/components/pagination.vue';
+import AppBasicInfo from './appBasicInfo.vue';
 import AppTypeTag from './appTypeTag.vue';
 import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import { fetchAppUserList, exportAppUserData } from '@/api/statisticsDashboard';
 
 export default {
-  components: { Pagination, AppTypeTag },
+  components: { Pagination, AppBasicInfo, AppTypeTag },
   props: {
     visible: {
       type: Boolean,

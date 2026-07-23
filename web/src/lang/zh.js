@@ -2123,6 +2123,7 @@ export default {
     dailyStreamCount: '日均调用次数 (流式)',
     dailyNonStreamCount: '日均调用次数 (非流式)',
     appData: '应用统计数据',
+    appBasicInfo: '应用基础信息',
     apiSelect: 'API筛选',
     apiName: 'API名称',
     apiPath: '路径',
