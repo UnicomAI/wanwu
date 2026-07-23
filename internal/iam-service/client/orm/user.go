@@ -149,22 +149,48 @@ func (c *Client) SelectUsersByUserIDs(ctx context.Context, userIDs []uint32) ([]
 
 // GetUsersByOrgIDs 根据多个组织ID查询对应的用户列表（去重）。
 // 不过滤禁用状态，包含所有 org_users 记录。
+// 特殊处理：当 orgIDs 中包含系统组织（TopOrgID）时，系统组织部分只返回管理员用户（user_roles.is_admin = true）。
 func (c *Client) GetUsersByOrgIDs(ctx context.Context, orgIDs []uint32) ([]IDNameWithAvatar, *errs.Status) {
 	if len(orgIDs) == 0 {
 		return nil, nil
 	}
-	var orgUsers []*model.OrgUser
-	if err := sqlopt.WithOrgs(orgIDs).Apply(c.db.WithContext(ctx)).Find(&orgUsers).Error; err != nil {
-		return nil, toErrStatus("iam_org_user_ids_get", err.Error())
-	}
-	seen := make(map[uint32]bool)
-	var userIDs []uint32
-	for _, ou := range orgUsers {
-		if !seen[ou.UserID] {
-			userIDs = append(userIDs, ou.UserID)
-			seen[ou.UserID] = true
+
+	topOrgID := config.TopOrgID()
+	var normalOrgIDs []uint32
+	var hasTopOrg bool
+	for _, id := range orgIDs {
+		if id == topOrgID {
+			hasTopOrg = true
+		} else {
+			normalOrgIDs = append(normalOrgIDs, id)
 		}
 	}
+
+	seen := make(map[uint32]bool)
+	var userIDs []uint32
+
+	// 1. 查询非系统组织的所有用户
+	if len(normalOrgIDs) > 0 {
+		var orgUsers []*model.OrgUser
+		if err := sqlopt.WithOrgs(normalOrgIDs).Apply(c.db.WithContext(ctx)).Find(&orgUsers).Error; err != nil {
+			return nil, toErrStatus("iam_org_user_ids_get", err.Error())
+		}
+		for _, ou := range orgUsers {
+			if !seen[ou.UserID] {
+				userIDs = append(userIDs, ou.UserID)
+				seen[ou.UserID] = true
+			}
+		}
+	}
+
+	// 2. 如果包含系统组织，只返回系统管理员用户
+	if hasTopOrg {
+		if !seen[config.AdminUserID()] {
+			userIDs = append(userIDs, config.AdminUserID())
+			seen[config.AdminUserID()] = true
+		}
+	}
+
 	if len(userIDs) == 0 {
 		return nil, nil
 	}
