@@ -73,20 +73,18 @@ export default {
   mounted() {
     const skillId = this.$route.query.skillId;
     if (!skillId) return;
-    this.fetchBase(skillId);
-    this.fetchSkillDetail(skillId);
+    const skillType = this.$route.query.skillType || '';
+    const params = { skillId, skillType };
+    this.fetchBase(params);
+    this.fetchSkillDetail(params);
   },
   methods: {
-    fetchBase(skillId) {
-      const params = { skillId };
-      if (this.$route.query.type) params.skillType = this.$route.query.type;
+    fetchBase(params) {
       getAdminSkillBase(params).then(res => {
         this.base = res?.data ?? {};
       });
     },
-    fetchSkillDetail(skillId) {
-      const params = { skillId };
-      if (this.$route.query.type) params.skillType = this.$route.query.type;
+    fetchSkillDetail(params) {
       getAdminSkillDetail(params).then(res => {
         this.skillDetail = res?.data ?? {};
       });
