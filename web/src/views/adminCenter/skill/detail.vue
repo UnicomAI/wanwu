@@ -73,7 +73,7 @@ export default {
   mounted() {
     const skillId = this.$route.query.skillId;
     if (!skillId) return;
-    const skillType = this.$route.query.skillType || '';
+    const skillType = this.$route.query.type || '';
     const params = { skillId, skillType };
     this.fetchBase(params);
     this.fetchSkillDetail(params);
