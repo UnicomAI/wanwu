@@ -29,6 +29,37 @@ const (
 	customSkillFileType = ".zip"
 )
 
+var skillBiz = &SkillBiz{}
+
+type SkillBiz struct {
+}
+
+func init() {
+	InitBizService(skillBiz)
+}
+func (*SkillBiz) BizType() string {
+	return constant.BizModuleResourceSkill
+}
+func (*SkillBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	_, exist := config.Cfg().AgentSkill(bizId)
+	if exist {
+		return getUserID(ctx), getOrgID(ctx), nil
+	}
+	skill, _ := GetAcquiredSkill(ctx, "", "", bizId)
+	if skill != nil {
+		userId, orgId = skill.UserId, skill.OrgId
+		return
+	}
+	publish, err := mcp.CustomSkillGet(ctx, &mcp_service.CustomSkillGetReq{
+		SkillId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	userId, orgId = publish.Skill.UserId, publish.Skill.OrgId
+	return
+}
+
 func GetCustomSkill(ctx *gin.Context, userId, orgId, skillId string) (*response.PublishedSkillDetail, error) {
 	publish, err := mcp.CustomSkillGet(ctx.Request.Context(), &mcp_service.CustomSkillGetReq{
 		SkillId: skillId,

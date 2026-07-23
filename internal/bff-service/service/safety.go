@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"errors"
 
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
@@ -197,7 +196,7 @@ func (*SensitiveWordBiz) BizType() string {
 	return constant.BizModuleResourceSafety
 }
 
-func (*SensitiveWordBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+func (*SensitiveWordBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
 	resp, err := safety.GetSensitiveWordTableByID(ctx, &safety_service.GetSensitiveWordTableByIDReq{
 		TableId: bizId,
 	})

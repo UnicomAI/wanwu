@@ -750,7 +750,7 @@ func (*WorkflowBiz) BizType() string {
 	return constant.BizModuleAppWorkflow
 }
 
-func (*WorkflowBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+func (*WorkflowBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ListUri)
 	var listResp response.CozeWorkflowListResp
 	r, e := trace_util.NewResty(ctx).

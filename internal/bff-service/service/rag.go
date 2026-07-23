@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -40,7 +39,7 @@ func (*RagBiz) BizType() string {
 	return constant.BizModuleAppRag
 }
 
-func (*RagBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+func (*RagBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
 	resp, err := rag.GetRagDetail(ctx, &rag_service.RagDetailReq{
 		RagId: bizId,
 	})

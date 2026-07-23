@@ -95,3 +95,13 @@ func buildOwnerInfo(ownerOrgId, ownerUserId string, userInfoMap map[string]*iam_
 func isSystem(ctx *gin.Context) bool {
 	return ctx.GetBool(gin_util.IS_SYSTEM)
 }
+
+// 获取当前用户ID
+func getUserID(ctx *gin.Context) string {
+	return ctx.GetString(gin_util.USER_ID)
+}
+
+// 获取当前组织ID
+func getOrgID(ctx *gin.Context) string {
+	return ctx.GetHeader(gin_util.X_ORG_ID)
+}

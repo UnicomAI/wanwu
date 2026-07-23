@@ -1,8 +1,6 @@
 package service
 
 import (
-	"context"
-
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
@@ -21,7 +19,7 @@ func init() {
 
 func (*PromptBiz) BizType() string { return constant.BizModuleResourcePrompt }
 
-func (*PromptBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+func (*PromptBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
 	resp, err := assistant.CustomPromptGet(ctx, &assistant_service.CustomPromptGetReq{
 		CustomPromptId: bizId,
 		Identity:       &assistant_service.Identity{},

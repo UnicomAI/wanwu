@@ -1,8 +1,6 @@
 package service
 
 import (
-	"context"
-
 	"github.com/ThinkInAIXYZ/go-mcp/protocol"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
@@ -27,7 +25,7 @@ func init() {
 
 func (*MCPBiz) BizType() string { return constant.BizModuleResourceMCP }
 
-func (*MCPBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+func (*MCPBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
 	// 优先按自定义MCP查询，查不到再按MCP服务查询（mcp/mcpserver 共用同一 bizType）
 	resp, err := mcp.GetCustomMCP(ctx, &mcp_service.GetCustomMCPReq{
 		McpId: bizId,

@@ -25,7 +25,8 @@ import (
 )
 
 const (
-	SkillTypeBuiltin = "builtin"
+	SkillTypeBuiltin  = "builtin"
+	SkillTypeAcquired = "acquired"
 
 	adminRagFilterFetchPageNum  = 1
 	adminRagFilterFetchPageSize = 2000
@@ -241,7 +242,7 @@ func AdminSkillPageList(ctx *gin.Context, req *request.AdminSkillPageListReq) (*
 
 // AdminSkillBase skill基础信息
 func AdminSkillBase(ctx *gin.Context, req *request.AdminSkillDetailReq) (*response.AdminAppBaseInfo, error) {
-	skillPublish, err := GetCustomSkill(ctx, "", "", req.SkillId)
+	skillPublish, err := AdminSkillDetail(ctx, req, false)
 	if err != nil {
 		return nil, err
 	}
@@ -265,22 +266,28 @@ func AdminSkillBase(ctx *gin.Context, req *request.AdminSkillDetailReq) (*respon
 }
 
 // AdminSkillDetail skill详情
-func AdminSkillDetail(ctx *gin.Context, req *request.AdminSkillDetailReq) (*response.PublishedSkillDetail, error) {
-	if req.SkillType == SkillTypeBuiltin {
+func AdminSkillDetail(ctx *gin.Context, req *request.AdminSkillDetailReq, needMarkDown bool) (*response.PublishedSkillDetail, error) {
+	switch req.SkillType {
+	case SkillTypeBuiltin:
 		detail, err := GetSquareBuiltinSkillDetail(ctx, req.SkillId)
 		if err != nil {
 			return nil, err
 		}
 		return buildAdminBuiltinSkillDetail(detail), nil
-	} else {
+	case SkillTypeAcquired:
+		skill, err := GetAcquiredSkill(ctx, "", "", req.SkillId)
+		if err != nil {
+			return nil, err
+		}
+		return buildAdminAcquiredSkillDetail(skill), nil
+	default:
 		skill, err := GetCustomSkill(ctx, "", "", req.SkillId)
 		if err != nil {
 			return nil, err
 		}
-		if !skill.IsPublished {
+		if needMarkDown && !skill.IsPublished {
 			skill.SkillMarkdown = fillSkillMarkdown(ctx, req.SkillId, skill.Name)
 		}
-
 		return skill, nil
 	}
 }
@@ -388,6 +395,18 @@ func fillSkillMarkdown(ctx *gin.Context, skillId, name string) string {
 
 // buildAdminBuiltinSkillDetail 内置skill详情转换为管理员中心已发布skill详情
 func buildAdminBuiltinSkillDetail(detail *response.BuiltinSkillDetail) *response.PublishedSkillDetail {
+	return &response.PublishedSkillDetail{
+		PublishedSkillInfo: response.PublishedSkillInfo{
+			SkillBasicInfo: detail.SkillBasicInfo,
+			DownloadCount:  detail.DownloadCount,
+		},
+		Variables:     detail.Variables,
+		SkillMarkdown: detail.SkillMarkdown,
+	}
+}
+
+// buildAdminAcquiredSkillDetail 我添加得skill详情转换为管理员中心已发布skill详情
+func buildAdminAcquiredSkillDetail(detail *response.AcquiredSkillDetail) *response.PublishedSkillDetail {
 	return &response.PublishedSkillDetail{
 		PublishedSkillInfo: response.PublishedSkillInfo{
 			SkillBasicInfo: detail.SkillBasicInfo,

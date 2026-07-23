@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -33,7 +32,7 @@ func (*ModelBiz) BizType() string {
 	return constant.BizModuleModel
 }
 
-func (*ModelBiz) SearchBizOwner(ctx context.Context, bizId string) (userId, orgId string, err error) {
+func (*ModelBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
 	resp, err := model.GetModel(ctx, &model_service.GetModelReq{
 		ModelId: bizId,
 	})
