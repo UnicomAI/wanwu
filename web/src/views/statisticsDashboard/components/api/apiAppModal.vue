@@ -16,6 +16,10 @@
           <span>{{ $t('common.button.export') }}</span>
         </el-button>
       </div>
+      <ApiBasicInfo :api-info="tableData[0] || apiInfo" />
+      <div class="section-title">
+        {{ $t('statisticsDashboard.appUseDetail') }}
+      </div>
       <el-table
         :data="tableData"
         v-loading="loading"
@@ -23,62 +27,6 @@
         style="width: 100%"
         @sort-change="handleSortChange"
       >
-        <el-table-column
-          prop="name"
-          :label="$t('statisticsDashboard.apiName')"
-          align="left"
-          min-width="140"
-        >
-          <template slot-scope="scope">
-            {{ scope.row.apiName || '--' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="apiKey"
-          :label="'API Key'"
-          align="left"
-          min-width="160"
-        >
-          <template slot-scope="scope">
-            <span>
-              {{
-                scope.row.apiKey
-                  ? scope.row.apiKey.slice(0, 6) + '******'
-                  : '--'
-              }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="orgName"
-          :label="$t('statisticsDashboard.org')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            {{ scope.row.orgName || '--' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="userName"
-          :label="$t('statisticsDashboard.userName')"
-          align="left"
-          min-width="120"
-        >
-          <template slot-scope="scope">
-            {{ scope.row.userName || '--' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="methodPath"
-          :label="$t('statisticsDashboard.apiPath')"
-          align="left"
-          min-width="200"
-        >
-          <template slot-scope="scope">
-            {{ scope.row.methodPath || '--' }}
-          </template>
-        </el-table-column>
         <el-table-column
           prop="source"
           :label="$t('statisticsDashboard.source')"
@@ -218,12 +166,13 @@
 
 <script>
 import Pagination from '@/components/pagination.vue';
+import ApiBasicInfo from './apiBasicInfo.vue';
 import AppTypeTag from '../app/appTypeTag.vue';
 import { formatAmount, formatSec, resDownloadFile } from '@/utils/util.js';
 import { fetchApiAppList, exportApiAppData } from '@/api/statisticsDashboard';
 
 export default {
-  components: { Pagination, AppTypeTag },
+  components: { Pagination, ApiBasicInfo, AppTypeTag },
   props: {
     visible: {
       type: Boolean,

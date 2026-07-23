@@ -93,6 +93,7 @@ export default {
 
 <style lang="scss" scoped>
 .app-basic-info {
+  margin-top: 10px;
   margin-bottom: 16px;
   .section-title {
     font-size: 14px;

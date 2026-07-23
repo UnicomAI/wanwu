@@ -2125,6 +2125,7 @@ export default {
     appData: '应用统计数据',
     appBasicInfo: '应用基础信息',
     apiSelect: 'API筛选',
+    apiBasicInfo: 'API基础信息',
     apiName: 'API名称',
     apiPath: '路径',
     apiList: '统计列表',
