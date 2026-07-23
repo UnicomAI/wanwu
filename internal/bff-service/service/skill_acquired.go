@@ -230,11 +230,15 @@ func toAcquiredSkillDetail(ctx *gin.Context, skill *mcp_service.AcquiredSkill, i
 	ret := &response.AcquiredSkillDetail{
 		AcquiredSkillInfo: response.AcquiredSkillInfo{
 			SkillBasicInfo: response.SkillBasicInfo{
-				SkillId: skill.GetAcquiredSkillId(),
-				Name:    customSkill.GetName(),
-				Avatar:  cacheSkillAvatar(ctx, customSkill.GetAvatar()),
-				Author:  customSkill.GetAuthor(),
-				Desc:    customSkill.GetDesc(),
+				SkillId:   skill.GetAcquiredSkillId(),
+				Name:      customSkill.GetName(),
+				Avatar:    cacheSkillAvatar(ctx, customSkill.GetAvatar()),
+				Author:    customSkill.GetAuthor(),
+				Desc:      customSkill.GetDesc(),
+				UserId:    skill.UserId,
+				OrgId:     skill.OrgId,
+				CreatedAt: util.Time2Str(skill.CreatedAt),
+				UpdatedAt: util.Time2Str(skill.UpdatedAt),
 			},
 			DownloadCount: customSkill.GetDownloadCount(),
 		},
