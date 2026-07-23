@@ -125,7 +125,7 @@
               <div class="overview-item">
                 <div class="item-desc">
                   <div class="tempSquare-markdown">
-                    <MdRender :content="detail.skillMarkdown" />
+                    <MdRender :content="detail.skillMarkdown" disable-link />
                   </div>
                 </div>
               </div>

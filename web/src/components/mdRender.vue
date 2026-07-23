@@ -1,19 +1,30 @@
 <template>
   <div class="mark__render">
-    <div class="markdown-body" v-html="md.render(content || '')"></div>
+    <div class="markdown-body" v-html="renderedHtml"></div>
   </div>
 </template>
 <script>
 import { md } from '@/mixins/markdown-it';
+import { stripLinks } from '@/utils/sanitize';
 
 export default {
   props: {
     content: '',
+    disableLink: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
       md: md,
     };
+  },
+  computed: {
+    renderedHtml() {
+      const html = this.md.render(this.content || '');
+      return this.disableLink ? stripLinks(html) : html;
+    },
   },
   watch: {
     content: {
