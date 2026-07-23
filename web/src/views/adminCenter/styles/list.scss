@@ -1,0 +1,26 @@
+.page-wrapper {
+  height: calc(100vh - 32px);
+  overflow: hidden;
+}
+
+.page-wrapper-content {
+  height: calc(100vh - 32px);
+}
+
+.page-container {
+  display: flex;
+  gap: 40px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.page-container-left {
+  width: clamp(230px, 12vw, 500px);
+  padding: 20px 12px;
+  border-right: 1px solid #eef0f5;
+}
+
+.page-container-right {
+  flex: 1;
+  padding: 20px 12px;
+}

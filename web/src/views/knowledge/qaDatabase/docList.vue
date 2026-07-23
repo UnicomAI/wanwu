@@ -1,6 +1,6 @@
 <template>
   <div class="page-wrapper full-content">
-    <div class="page-title">
+    <div v-if="!readonly" class="page-title">
       <i
         class="el-icon-arrow-left"
         @click="$router.push('/knowledge')"
@@ -59,7 +59,7 @@
                 />
               </div>
 
-              <div class="content_title">
+              <div v-if="!readonly" class="content_title">
                 <el-button
                   size="mini"
                   type="primary"
@@ -118,6 +118,7 @@
                 type="warning"
               ></el-alert>
               <el-descriptions
+                v-if="!readonly"
                 :column="1"
                 border
                 style="margin-bottom: 10px"
@@ -351,7 +352,7 @@
               <Pagination
                 class="pagination table-pagination"
                 ref="pagination"
-                :listApi="listApi"
+                :listApi="resolvedListApi"
                 :page_size="10"
                 @refreshData="refreshData"
               />
@@ -436,7 +437,7 @@ import FilterPopover from '@/components/filterPopover.vue';
 import createQa from './createQa.vue';
 import fileUpload from './fileUpload.vue';
 import exportRecord from './exportRecord.vue';
-import { updateDocMeta } from '@/api/knowledge';
+import { getDocDetail, updateDocMeta } from '@/api/knowledge';
 import {
   getQaPairList,
   delQaPair,
@@ -480,6 +481,20 @@ export default {
     exportRecord,
     createKnowledge,
   },
+  props: {
+    knowledgeId: {
+      type: String,
+      default: '',
+    },
+    readonly: {
+      type: Boolean,
+      default: false,
+    },
+    listApi: {
+      type: Function,
+      default: null,
+    },
+  },
   data() {
     return {
       title_tips: '',
@@ -502,7 +517,6 @@ export default {
       },
       metaDateRange: null,
       fileList: [],
-      listApi: getQaPairList,
       tableData: [],
       knowLegOptions: QA_STATUS_OPTIONS,
       knowledgeData: [],
@@ -548,12 +562,34 @@ export default {
         POWER_TYPE_SYSTEM_ADMIN,
       ].includes(this.permissionType);
     },
+    resolvedListApi() {
+      return this.listApi || getQaPairList;
+    },
+    effectiveKnowledgeId() {
+      return this.knowledgeId || this.$route.params.id;
+    },
   },
-  activated() {
-    this.docQuery.knowledgeId = this.$route.params.id;
+  mounted() {
+    if (!this.readonly) return;
+    this.docQuery.knowledgeId = this.effectiveKnowledgeId;
     this.getTableData(this.docQuery);
   },
+  activated() {
+    if (this.readonly) return;
+    this.docQuery.knowledgeId = this.$route.params.id;
+    this.getTableData(this.docQuery);
+    getDocDetail({ knowledgeId: this.docQuery.knowledgeId }).then(res => {
+      if (res.code === 0) {
+        this.knowledgeName = res.data.knowledgeName;
+        this.description = res.data.description;
+        this.avatar = res.data.avatar;
+        this.embeddingModel = res.data.embeddingModel;
+        this.permissionType = res.data.permissionType;
+      }
+    });
+  },
   deactivated() {
+    if (this.readonly) return;
     this.clearTimer();
   },
   methods: {
@@ -828,6 +864,7 @@ export default {
       this.getTips();
     },
     getTips() {
+      if (this.readonly) return;
       qaTips({ knowledgeId: this.docQuery.knowledgeId }).then(res => {
         if (res.code === 0) {
           if (res.data.uploadstatus === 1) {
@@ -849,15 +886,8 @@ export default {
     handleUpload() {
       this.$refs.fileUpload.showDialog();
     },
-    refreshData(data, tableInfo) {
+    refreshData(data) {
       this.tableData = data;
-      if (tableInfo && tableInfo.qaKnowledgeInfo) {
-        this.knowledgeName = tableInfo.qaKnowledgeInfo.knowledgeName;
-        this.description = tableInfo.qaKnowledgeInfo.description;
-        this.avatar = tableInfo.qaKnowledgeInfo.avatar;
-        this.embeddingModel = tableInfo.qaKnowledgeInfo.embeddingModel;
-        this.permissionType = tableInfo.qaKnowledgeInfo.permissionType;
-      }
     },
     filterCurrentStatus(data) {
       this.docQuery.status = data;

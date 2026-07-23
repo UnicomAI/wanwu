@@ -8,7 +8,7 @@
 export default {
   name: 'Workflow',
   data() {
-    const query = `?workflow_id=${this.$route.query.id}&space_id=${this.$store.state.user.userInfo.orgId}`;
+    const query = `?workflow_id=${this.$route.query.id}&space_id=${this.$store.state.user.userInfo.orgId}&readonly=${this.$route.query.readonly}`;
     return {
       workflowUrl:
         process.env.NODE_ENV === 'development'

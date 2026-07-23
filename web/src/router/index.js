@@ -355,6 +355,126 @@ const constantRoutes = [
         name: 'userCenter',
         component: resolve => require(['@/views/userCenter'], resolve),
       },
+      {
+        path: '/adminCenter',
+        component: resolve =>
+          require(['@/views/adminCenter/index.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/modelConfig',
+        component: resolve =>
+          require(['@/views/adminCenter/modelConfig/index.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/modelConfig/detail',
+        component: resolve =>
+          require(['@/views/adminCenter/modelConfig/detail.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/knowledge',
+        component: resolve =>
+          require(['@/views/adminCenter/knowledge/index.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/knowledge/detail',
+        component: resolve =>
+          require(['@/views/adminCenter/knowledge/detail.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/mcp',
+        component: resolve =>
+          require(['@/views/adminCenter/mcp/index.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/mcp/detail',
+        component: resolve =>
+          require(['@/views/adminCenter/mcp/detail.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/tool',
+        component: resolve =>
+          require(['@/views/adminCenter/tool/index.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/tool/detail',
+        component: resolve =>
+          require(['@/views/adminCenter/tool/detail.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/prompt',
+        component: resolve =>
+          require(['@/views/adminCenter/prompt/index.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/prompt/detail',
+        component: resolve =>
+          require(['@/views/adminCenter/prompt/detail.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/skill',
+        component: resolve =>
+          require(['@/views/adminCenter/skill/index.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/skill/detail',
+        component: resolve =>
+          require(['@/views/adminCenter/skill/detail.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/safety',
+        component: resolve =>
+          require(['@/views/adminCenter/safety/index.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/safety/detail',
+        component: resolve =>
+          require(['@/views/adminCenter/safety/detail.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/agent',
+        component: resolve =>
+          require(['@/views/adminCenter/agent/index.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/agent/detail',
+        component: resolve =>
+          require(['@/views/adminCenter/agent/detail.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/workflow',
+        component: resolve =>
+          require(['@/views/adminCenter/workflow/index.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/rag',
+        component: resolve =>
+          require(['@/views/adminCenter/rag/index.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/adminCenter/rag/detail',
+        component: resolve =>
+          require(['@/views/adminCenter/rag/detail.vue'], resolve),
+        meta: {},
+      },
     ],
   },
   {

@@ -345,7 +345,7 @@ export default {
   border-right: 1px solid #eaeaea;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 170px);
+  height: 100%;
   overflow-y: auto;
 
   &__add {
