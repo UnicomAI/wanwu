@@ -1,11 +1,17 @@
 <template>
-  <div class="mcp-detail page-wrapper" id="timeScroll">
-    <span class="back" @click="back">
+  <div
+    :id="readonly ? '' : 'timeScroll'"
+    :class="[
+      'mcp-detail',
+      { 'page-wrapper': !readonly, 'readonly-embed': readonly },
+    ]"
+  >
+    <span v-if="!readonly" class="back" @click="back">
       {{
         $t('menu.back') + (isFromSquare ? $t('menu.mcp') : $t('menu.resource'))
       }}
     </span>
-    <div class="mcp-title">
+    <div v-if="!readonly" class="mcp-title">
       <img
         class="logo"
         :src="
@@ -109,7 +115,7 @@
             <div class="sse-url" style="display: flex">
               <div class="sse-url__input">{{ displayUrl }}</div>
               <el-button
-                v-if="isFromSquare"
+                v-if="!readonly && isFromSquare"
                 class="sse-url__bt"
                 type="primary"
                 :disabled="detail.hasCustom"
@@ -118,7 +124,7 @@
                 {{ $t('tool.square.sendButton') }}
               </el-button>
             </div>
-            <p class="see-url__hint">
+            <p v-if="!readonly" class="see-url__hint">
               <i class="el-icon-info"></i>
               {{
                 isFromSquare
@@ -164,7 +170,7 @@
             </div>
           </div>
           <!--v0.6.1 隐藏安装说明-->
-          <!--<div class="tool-item bottom-install-intro">
+          <!--<div v-if="!readonly" class="tool-item bottom-install-intro">
             <p class="title">{{ $t('tool.square.tool.setup') }}</p>
             <div>
               <div class="install-intro-item">
@@ -189,7 +195,7 @@
         </div>
       </div>
 
-      <div class="right-recommend">
+      <div v-if="!readonly" class="right-recommend">
         <p class="recommend-list-title">
           {{ $t('tool.square.tool.other') }}
         </p>
@@ -215,6 +221,7 @@
     </div>
 
     <sendDialog
+      v-if="!readonly"
       ref="dialog"
       :dialogVisible="dialogVisible"
       :detail="detail"
@@ -240,7 +247,15 @@ export default {
   props: {
     type: {
       type: String,
-      required: true,
+      default: '',
+    },
+    readonly: {
+      type: Boolean,
+      default: false,
+    },
+    embeddedDetail: {
+      type: Object,
+      default: () => ({}),
     },
   },
   data() {
@@ -282,6 +297,15 @@ export default {
       // 深度观察监听
       deep: true,
     },
+    embeddedDetail: {
+      handler(val) {
+        if (!this.readonly) return;
+        this.detail = val || {};
+        this.tools = formatTools(val?.tools);
+        this.tabActive = 1;
+      },
+      immediate: true,
+    },
   },
   mounted() {
     this.initData();
@@ -290,6 +314,7 @@ export default {
   methods: {
     avatarSrc,
     initData() {
+      if (this.readonly) return;
       this.mcpSquareId = this.$route.query.mcpSquareId;
       this.mcpId = this.$route.query.mcpId;
       this.isFromSquare = this.type === 'square';
@@ -327,6 +352,7 @@ export default {
       });
     },
     getRecommendList() {
+      if (this.readonly) return;
       const params = {
         mcpSquareId: this.mcpSquareId,
       };
@@ -366,4 +392,14 @@ export default {
 <style lang="scss" scoped>
 @import '@/style/tabs.scss';
 @import '@/style/squareDetail.scss';
+
+.mcp-detail.readonly-embed {
+  padding: 0;
+  overflow: visible;
+
+  .mcp-main .left-info {
+    width: 100%;
+    margin-right: 0;
+  }
+}
 </style>

@@ -519,10 +519,11 @@ export default {
     background: #f8fafc;
     border-radius: 10px;
     padding: 14px 0;
+    height: 100%;
   }
 
   &__content {
-    height: calc(100vh - 210px);
+    height: 100%;
     overflow-y: auto;
     padding: 0 14px 10px;
   }

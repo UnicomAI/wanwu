@@ -1,6 +1,6 @@
 <template>
   <div class="page-wrapper full-content">
-    <div class="page-title">
+    <div v-if="!readonly" class="page-title">
       <i
         class="el-icon-arrow-left"
         @click="$router.push('/knowledge')"
@@ -59,7 +59,7 @@
                 />
               </div>
 
-              <div class="content_title">
+              <div v-if="!readonly" class="content_title">
                 <el-button
                   size="mini"
                   type="primary"
@@ -147,9 +147,10 @@
                 type="warning"
                 show-icon
                 style="margin-bottom: 10px"
-                v-if="showTips"
+                v-if="showTips && !readonly"
               ></el-alert>
               <el-descriptions
+                v-if="!readonly"
                 style="margin-bottom: 10px"
                 title=""
                 :column="1"
@@ -302,6 +303,10 @@
                   :label="$t('knowledgeManage.fileStyle')"
                 ></el-table-column>
                 <el-table-column
+                  :label="$t('knowledgeManage.fileSize')"
+                  prop="fileSizeStr"
+                ></el-table-column>
+                <el-table-column
                   prop="segmentMethod"
                   :label="$t('knowledgeManage.docList.segmentMode')"
                 >
@@ -362,6 +367,7 @@
                       style="margin-left: 5px; color: #409eff"
                       @click="handleRetry(scope.row)"
                       v-if="
+                        !readonly &&
                         scope.row.status === KNOWLEDGE_STATUS_FAIL &&
                         scope.row.docType !== 'url'
                       "
@@ -443,7 +449,7 @@
                 </el-table-column>
                 <el-table-column
                   :label="$t('knowledgeManage.operate')"
-                  width="260"
+                  :width="hasManagePerm ? 260 : 100"
                 >
                   <template slot-scope="scope">
                     <el-button
@@ -483,7 +489,7 @@
               <Pagination
                 class="pagination table-pagination"
                 ref="pagination"
-                :listApi="listApi"
+                :listApi="resolvedListApi"
                 :page_size="10"
                 @refreshData="refreshData"
               />
@@ -554,6 +560,7 @@ import batchMetaData from '../component/meta/batchMetaData.vue';
 import BatchMetaButton from '../component/meta/batchMetaButton.vue';
 import FilterPopover from '@/components/filterPopover.vue';
 import {
+  getDocDetail,
   getDocList,
   delDocItem,
   uploadFileTips,
@@ -592,6 +599,20 @@ import { avatarSrc, getModelDefaultIcon } from '@/utils/util';
 
 export default {
   name: 'KnowledgeDoclist',
+  props: {
+    knowledgeId: {
+      type: String,
+      default: '',
+    },
+    readonly: {
+      type: Boolean,
+      default: false,
+    },
+    listApi: {
+      type: Function,
+      default: null,
+    },
+  },
   components: {
     CopyIcon,
     exportRecord,
@@ -628,7 +649,6 @@ export default {
       },
       metaDateRange: null,
       fileList: [],
-      listApi: getDocList,
       title_tips: '',
       showTips: false,
       tableData: [],
@@ -685,18 +705,63 @@ export default {
   },
   computed: {
     hasManagePerm() {
-      return [
-        POWER_TYPE_EDIT,
-        POWER_TYPE_ADMIN,
-        POWER_TYPE_SYSTEM_ADMIN,
-      ].includes(this.permissionType);
+      return (
+        !this.readonly &&
+        [POWER_TYPE_EDIT, POWER_TYPE_ADMIN, POWER_TYPE_SYSTEM_ADMIN].includes(
+          this.permissionType,
+        )
+      );
+    },
+    resolvedListApi() {
+      return this.listApi || getDocList;
+    },
+    effectiveKnowledgeId() {
+      return this.knowledgeId || this.$route.params.id;
     },
   },
-  activated() {
-    this.docQuery.knowledgeId = this.$route.params.id;
+  mounted() {
+    if (!this.readonly) return;
+    this.docQuery.knowledgeId = this.effectiveKnowledgeId;
     this.getTableData(this.docQuery);
   },
+  activated() {
+    if (this.readonly) return;
+    this.docQuery.knowledgeId = this.effectiveKnowledgeId;
+    this.getTableData(this.docQuery);
+    getDocDetail({ knowledgeId: this.docQuery.knowledgeId }).then(res => {
+      if (res.code === 0) {
+        this.graphSwitch = res.data.graphSwitch === 1;
+        this.showGraphReport = res.data.showGraphReport;
+        this.avatar = res.data.avatar;
+        this.knowledgeName = res.data.knowledgeName;
+        this.description = res.data.description;
+        this.category = res.data.category;
+        this.embeddingModel = res.data.embeddingModel;
+        this.keywords = res.data.keywords;
+        this.llmModelId = res.data.llmModelId;
+        this.permissionType = res.data.permissionType;
+        // 如果开启了知识图谱且有大模型ID，则查询模型详情
+        if (this.graphSwitch && this.llmModelId) {
+          selectModelList().then(res => {
+            if (res.code === 0 && res.data.list) {
+              const model = res.data.list.find(
+                item => item.modelId === this.llmModelId,
+              );
+              this.graphLlmModel = model || null;
+            }
+          });
+        } else {
+          this.graphLlmModel = null;
+        }
+      } else {
+        this.graphSwitch = false;
+        this.showGraphReport = false;
+        this.graphLlmModel = null;
+      }
+    });
+  },
   deactivated() {
+    if (this.readonly) return;
     this.clearTimer();
     this.handleMetaCancel();
   },
@@ -1064,6 +1129,7 @@ export default {
       this.getTips();
     },
     getTips() {
+      if (this.readonly) return;
       uploadFileTips({ knowledgeId: this.docQuery.knowledgeId }).then(res => {
         if (res.code === 0) {
           if (res.data.uploadstatus === 1) {
@@ -1144,6 +1210,7 @@ export default {
             KNOWLEDGE_STATUS_FAIL,
           ].includes(Number(row.status)),
           permissionType: this.permissionType,
+          readonly: this.readonly,
         },
       });
     },
@@ -1157,37 +1224,8 @@ export default {
         },
       });
     },
-    refreshData(data, tableInfo) {
+    refreshData(data) {
       this.tableData = data;
-      if (tableInfo && tableInfo.docKnowledgeInfo) {
-        this.graphSwitch = tableInfo.docKnowledgeInfo.graphSwitch === 1;
-        this.showGraphReport = tableInfo.docKnowledgeInfo.showGraphReport;
-        this.avatar = tableInfo.docKnowledgeInfo.avatar;
-        this.knowledgeName = tableInfo.docKnowledgeInfo.knowledgeName;
-        this.description = tableInfo.docKnowledgeInfo.description;
-        this.category = tableInfo.docKnowledgeInfo.category;
-        this.embeddingModel = tableInfo.docKnowledgeInfo.embeddingModel;
-        this.keywords = tableInfo.docKnowledgeInfo.keywords;
-        this.llmModelId = tableInfo.docKnowledgeInfo.llmModelId;
-        this.permissionType = tableInfo.docKnowledgeInfo.permissionType;
-        // 如果开启了知识图谱且有大模型ID，则查询模型详情
-        if (this.graphSwitch && this.llmModelId) {
-          selectModelList().then(res => {
-            if (res.code === 0 && res.data.list) {
-              const model = res.data.list.find(
-                item => item.modelId === this.llmModelId,
-              );
-              this.graphLlmModel = model || null;
-            }
-          });
-        } else {
-          this.graphLlmModel = null;
-        }
-      } else {
-        this.graphSwitch = false;
-        this.showGraphReport = false;
-        this.graphLlmModel = null;
-      }
     },
   },
 };

@@ -70,3 +70,12 @@ export const fetchOrgs = () => {
     method: 'get',
   });
 };
+
+// 查询组织内用户
+export const queryOrgUsers = data => {
+  return service({
+    url: `${USER_API}/org/users`,
+    method: 'post',
+    data,
+  });
+};

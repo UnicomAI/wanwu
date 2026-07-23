@@ -36,6 +36,13 @@ export const editKnowledgeItem = data => {
     data,
   });
 };
+export const getDocDetail = params => {
+  return service({
+    url: `${USER_API}/knowledge/doc/detail`,
+    method: 'get',
+    params,
+  });
+};
 export const getDocList = data => {
   return service({
     url: `${USER_API}/knowledge/doc/list`,
