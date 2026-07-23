@@ -4,14 +4,14 @@
     :style="isPublic ? `background: ${bgColor}; min-height: 100%` : ''"
   >
     <!-- 返回按钮，点击抛出 back 事件 -->
-    <span class="back" @click="$emit('back')">
+    <span v-if="!readonly" class="back" @click="$emit('back')">
       <!-- 可通过 prop 灵活定义返回按钮文字 -->
       <slot name="back-text">
         {{ backText || $t('menu.back') }}
       </slot>
     </span>
 
-    <div class="tempSquare-title">
+    <div v-if="!readonly" class="tempSquare-title">
       <div class="tempSquare-title-left">
         <img
           class="logo"
@@ -65,7 +65,7 @@
           />
         </div>
 
-        <div class="tabs">
+        <div v-if="!readonly" class="tabs">
           <div
             :class="['tab', { active: tabActive === 0 }]"
             @click="tabClick(0)"
@@ -125,7 +125,7 @@
               <div class="overview-item">
                 <div class="item-desc">
                   <div class="tempSquare-markdown">
-                    <MdRender :content="detail.skillMarkdown" />
+                    <MdRender :content="detail.skillMarkdown" disable-link />
                   </div>
                 </div>
               </div>
@@ -234,6 +234,11 @@ export default {
     visibleDownload: {
       type: Boolean,
       default: true,
+    },
+    // 只读嵌入模式：隐藏顶部返回按钮、title 横幅与「介绍概览/历史版本」tab 行（嵌入其它详情页时使用）
+    readonly: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {

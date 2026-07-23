@@ -57,15 +57,39 @@
               <img src="@/assets/imgs/inviteUser.png" alt="" />
               <span>{{ $t('user.button.invite') }}</span>
             </el-button>
+            <el-button
+              class="add-bt batch-delete-bt"
+              size="mini"
+              type="danger"
+              plain
+              icon="el-icon-delete"
+              :disabled="!selectedRows.length"
+              @click="handleBatchDelete"
+            >
+              {{
+                isSystem
+                  ? $t('user.button.batchDelete')
+                  : $t('user.button.batchRemove')
+              }}
+            </el-button>
           </div>
         </div>
         <div class="table-box">
           <el-table
+            ref="userTable"
             :data="tableData"
             :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
             v-loading="loading"
             style="width: 100%"
+            row-key="userId"
+            @selection-change="handleSelectionChange"
           >
+            <el-table-column
+              type="selection"
+              width="55"
+              align="center"
+              :reserve-selection="true"
+            />
             <el-table-column :label="$t('user.table.username')" align="left">
               <template slot-scope="scope">
                 <div class="user-cell">
@@ -348,6 +372,7 @@ import {
   createUser,
   editUser,
   deleteUser,
+  batchDeleteUser,
   changeUserStatus,
 } from '@/api/permission/user';
 import { mapActions } from 'vuex';
@@ -460,6 +485,7 @@ export default {
         ],
       },
       tableData: [],
+      selectedRows: [],
       inviteVisible: false,
       dialogVisible: false,
       submitLoading: false,
@@ -500,6 +526,8 @@ export default {
     },
     handleOrgChange(org) {
       this.isSystem = org?.isSystem || false;
+      this.$refs.userTable && this.$refs.userTable.clearSelection();
+      this.selectedRows = [];
       this.getTableData({ pageNo: 1 });
       this.getRoleList();
     },
@@ -625,6 +653,37 @@ export default {
         }
       });
     },
+    handleSelectionChange(rows) {
+      this.selectedRows = rows;
+    },
+    handleBatchDelete() {
+      if (!this.selectedRows.length) {
+        return this.$message.warning(this.$t('user.confirm.batchDeleteEmpty'));
+      }
+      this.$confirm(
+        this.isSystem
+          ? this.$t('user.confirm.batchDelete')
+          : this.$t('user.confirm.batchRemove'),
+        this.$t('common.confirm.title'),
+        {
+          confirmButtonText: this.$t('common.confirm.confirm'),
+          cancelButtonText: this.$t('common.confirm.cancel'),
+          type: 'warning',
+        },
+      ).then(async () => {
+        const userIds = this.selectedRows.map(item => item.userId);
+        const res = await batchDeleteUser({
+          orgId: this.selectedOrgId,
+          userIds,
+        });
+        if (res.code === 0) {
+          this.$message.success(this.$t('common.message.success'));
+          this.$refs.userTable.clearSelection();
+          this.selectedRows = [];
+          await this.getTableData();
+        }
+      });
+    },
     resetPsw(row) {
       this.$refs.resetPwd.openDialog(row);
     },
@@ -718,10 +777,11 @@ export default {
     background: #f8fafc;
     border-radius: 10px;
     padding: 14px 0;
+    height: 100%;
   }
 
   &__content {
-    height: calc(100vh - 210px);
+    height: 100%;
     overflow-y: auto;
     padding: 0 14px;
   }
@@ -782,6 +842,19 @@ export default {
     border-color: $color;
     background: rgba(255, 255, 255, 0) !important;
     margin: 0;
+  }
+
+  .batch-delete-bt ::v-deep {
+    color: #f36b6c !important;
+    border-color: #f36b6c !important;
+    background: rgba(255, 255, 255, 0) !important;
+    margin: 0 !important;
+    i {
+      font-size: 14px !important;
+    }
+    span {
+      color: #f36b6c !important;
+    }
   }
 
   ::v-deep .el-switch__label * {

@@ -1,0 +1,235 @@
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-wrapper-content {
+  padding: 24px 20px 20px 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  .page-title {
+    margin: 0;
+    line-height: 28px;
+    font-size: 20px;
+    font-weight: 600;
+    padding-top: 0;
+    color: #1f2937;
+  }
+  .page-container {
+    padding-left: 20px;
+  }
+}
+
+// 分组标题带色块
+.group-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  color: #111827;
+
+  .blue-bar {
+    width: 4px;
+    height: 24px;
+    background-color: $color;
+    border-radius: 2px;
+    margin-right: 12px;
+  }
+
+  h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+.basis-180 {
+  flex-basis: 180px;
+}
+
+.basis-200 {
+  flex-basis: 200px;
+}
+
+.basis-220 {
+  flex-basis: 220px;
+}
+
+.basis-240 {
+  flex-basis: 240px;
+}
+
+// 输入框样式
+.input-box {
+  padding: 8px 12px;
+  background: #f5f7fa;
+  border-radius: 4px;
+}
+
+// 提示词文本
+.prompt-text {
+  flex: 1;
+  color: #303133;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+// 空数据提示
+.empty-text {
+  color: #909399;
+  font-size: 14px;
+  text-align: center;
+  padding: 24px 0;
+}
+
+// 召回配置与卡片列表之间的分隔
+.recall-config {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+// 资源卡片网格
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+// 资源卡片
+.resource-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 12px 16px;
+
+  &.is-clickable {
+    cursor: pointer;
+    transition: border-color 0.2s,
+    box-shadow 0.2s;
+
+    &:hover {
+      border-color: #409eff;
+      box-shadow: 0 2px 8px rgba(64, 158, 255, 0.15);
+    }
+  }
+
+  .resource-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #f0f0f0;
+    flex-shrink: 0;
+  }
+
+  .resource-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .resource-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #303133;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .resource-desc {
+    font-size: 12px;
+    color: #909399;
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .resource-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+
+    .meta-tag {
+      padding: 2px 8px;
+      background: rgba(139, 139, 149, 0.15);
+      color: #4b4a58;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+  }
+}
+
+// 展开收起
+.view-more {
+  text-align: center;
+  margin-top: 16px;
+
+  .view-more-btn {
+    color: #409eff;
+    font-size: 14px;
+    cursor: pointer;
+  }
+}
+
+// 对话配置网格
+.dialog-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dialog-row {
+  display: flex;
+  align-items: center;
+
+  &.is-stack {
+    align-items: flex-start;
+  }
+}
+
+.dialog-label {
+  color: #909399;
+  font-size: 14px;
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.dialog-value {
+  color: #303133;
+  font-size: 14px;
+  flex: 1;
+  min-width: 0;
+  word-break: break-all;
+}
+
+// 推荐问法条目
+.recommend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #e6f0ff;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  color: #303133;
+  font-size: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .recommend-index {
+    color: #409eff;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+}

@@ -354,10 +354,9 @@ export default {
           },
           {
             name: this.$t('menu.setting'),
-            path: '/permission',
+            path: '/adminCenter',
             img: require('@/assets/imgs/setting_icon.svg'),
-            isTip: true,
-            tipContent: this.$t('menu.settingTip'),
+            isTip: false,
             perm: PERMS.ADMIN_CENTER,
           },
           {

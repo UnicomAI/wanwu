@@ -357,14 +357,21 @@ export const formatAmount = (
 };
 
 export function deepMerge(obj1, obj2) {
-  for (let key in obj2) {
-    if (obj2[key] && typeof obj2[key] === 'object') {
-      if (!obj1[key] || typeof obj1[key] !== 'object') {
+  // 只遍历自身属性:for...in 会带上原型链上的可枚举方法
+  // (如 core-js 给 Array.prototype 挂的 pipeline),导致脏属性被合并进来
+  for (const key of Object.keys(obj2)) {
+    const val = obj2[key];
+    // 仅纯对象递归合并;数组和其他类型直接替换,避免按索引混合或带入原型方法
+    if (val && Object.prototype.toString.call(val) === '[object Object]') {
+      if (
+        !obj1[key] ||
+        Object.prototype.toString.call(obj1[key]) !== '[object Object]'
+      ) {
         obj1[key] = {};
       }
-      deepMerge(obj1[key], obj2[key]);
+      deepMerge(obj1[key], val);
     } else {
-      obj1[key] = obj2[key];
+      obj1[key] = val;
     }
   }
   return obj1;
