@@ -2,7 +2,7 @@ import requests
 import json
 import time
 import os
-from settings import MQ_REL_URL, MQ_URL_URL, MQ_URLINSERT_URL, MQ_KB_STATUS_URL
+from settings import MQ_REL_URL, MQ_KB_STATUS_URL
 import logging
 
 logger = logging.getLogger(__name__)
@@ -54,69 +54,6 @@ def update_doc_status(doc_id, status, meta_datas = [], api_url=MQ_REL_URL):
             response = requests.post(api_url, data=json.dumps(payload), headers=headers)
             logger.info(f"---->回调Mass平台返回结果: {response}")
             logger.info('----->已回调Maas平台接口-同步状态：' + repr(api_url) + repr(json.dumps(payload)))
-            # 处理响应
-            if response.status_code == 200:
-                response_data = response.json()
-                return {"code": 0,"message":"文档状态更新回调成功"}
-                
-        except Exception as e:
-            logger.error(f"文档状态更新回调错误：{e}，正在重试...")  
-        retries += 1  
-        time.sleep(1)  # 每次重试前等待一段时间，例如1秒  
-    return {"code": -1,"message":"文档状态更新回调错误"}
-
-
-
-def update_url_status(id, status, fileSize=0, fileName='',api_url=MQ_URL_URL):
-    """
-    :param api_url: API的URL
-    :param doc_id: 文档ID
-    :param status: 文档状态 int
-    :return: API响应的字典
-
-    解析状态：
-    10 解析成功
-    57 解析失败
-
-    """
-    
-    # 请求体
-    payload = {"id": id,"status": status,'fileSize':fileSize,'fileName':fileName}
-    # 请求头
-    headers = {'Content-Type': 'application/json'}
-    retries=0
-    max_retries = 5
-    while retries < max_retries:
-        try:
-            # 发送POST请求
-            response = requests.post(api_url, data=json.dumps(payload), headers=headers)
-            logger.info('----->已回调Maas平台接口-同步状态：' + repr(api_url) + repr(json.dumps(payload)))
-            # 处理响应
-            if response.status_code == 200:
-                response_data = response.json()
-                return {"code": 0,"message":"解析状态更新回调成功"}
-                
-        except Exception as e:
-            logger.error(f"文档状态更新回调错误：{e}，正在重试...")  
-        retries += 1  
-        time.sleep(1)  # 每次重试前等待一段时间，例如1秒  
-    return {"code": -1,"message":"解析状态更新回调错误"}
-
-
-
-def update_urlinsert_status(doc_id, status, api_url=MQ_URLINSERT_URL):
-    
-    # 请求体
-    payload = {"id": doc_id,"status": status}
-    # 请求头
-    headers = {'Content-Type': 'application/json'}
-    retries=0
-    max_retries = 5
-    while retries < max_retries:
-        try:
-            # 发送POST请求
-            response = requests.post(api_url, data=json.dumps(payload), headers=headers)
-            logger.info('----->已回调Maas平台接口url入库-同步状态：' + repr(api_url) + repr(json.dumps(payload)))
             # 处理响应
             if response.status_code == 200:
                 response_data = response.json()

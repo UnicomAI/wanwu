@@ -836,7 +836,6 @@ services:
       REDIS_PASSWD: ${WANWU_REDIS_PASSWORD}
       JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
       JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
-      # bff 6667
       # bff 6668
       MODEL_PROVIDER_URL: http://bff-service:6668
       KAFKA_MQ_REL_URL: http://bff-service:6668/callback/v1/api/docstatus

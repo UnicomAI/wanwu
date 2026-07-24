@@ -33,8 +33,6 @@ GRAPH_SERVER_URL = config.getstr('KAFKA', 'GRAPH_SERVER_URL')
 MQ_REL_URL = os.getenv("KAFKA_MQ_REL_URL")
 if MQ_REL_URL is None:
     MQ_REL_URL = config.getstr('KAFKA', 'MQ_REL_URL')
-MQ_URL_URL = config.getstr('KAFKA', 'MQ_URL_URL')
-MQ_URLINSERT_URL = config.getstr('KAFKA', 'MQ_URLINSERT_URL')
 MQ_KB_STATUS_URL = os.getenv("KAFKA_MQ_KB_STATUS_URL")
 if MQ_KB_STATUS_URL is None:
     MQ_KB_STATUS_URL = config.getstr('KAFKA', 'MQ_KB_STATUS_URL')
@@ -62,8 +60,8 @@ if MINIO_ADDRESS is None or MINIO_ACCESS_KEY is None or MINIO_SECRET_KEY is None
 MINIO_UPLOAD_BUCKET_NAME = config.getstr('MINIO', 'MINIO_UPLOAD_BUCKET_NAME')
 SECURE = config.getboolean('MINIO', 'SECURE')
 REPLACE_MINIO_DOWNLOAD_URL = os.getenv("REPLACE_MINIO_DOWNLOAD_URL")
-if REPLACE_MINIO_DOWNLOAD_URL is None:
-    REPLACE_MINIO_DOWNLOAD_URL = config.getstr('MINIO', 'REPLACE_MINIO_DOWNLOAD_URL')
+if not REPLACE_MINIO_DOWNLOAD_URL:
+    raise ValueError("REPLACE_MINIO_DOWNLOAD_URL 环境变量未设置或为空，请检查部署配置")
 
 
 # redis

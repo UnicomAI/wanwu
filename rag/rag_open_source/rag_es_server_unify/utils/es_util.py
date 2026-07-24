@@ -562,6 +562,10 @@ def search_data_knn_recall(index_name: str,
         query_vector = emb_util.get_multimodal_embs([query], embedding_model_id=embedding_model_id)["result"][0]["dense_vec"]
     else:
         query_vector = emb_util.get_embs([query], embedding_model_id=embedding_model_id)["result"][0]["dense_vec"]
+    # embedding 失败可能被静默吞成 None（如多模态含图项失败占位），此处显式拦截，避免后续 len(None) 报无关 TypeError
+    if query_vector is None:
+        raise ValueError("Failed to generate query embedding (query vector is None). "
+                         "请检查 query 是否为空或 embedding 服务是否正常。")
     field_name = f"q_{len(query_vector)}_content_vector"
     # 检查索引映射以确定使用哪个字段
     field_exist, properties = is_field_exist(index_name, field_name)
