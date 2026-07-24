@@ -880,6 +880,10 @@ services:
       - ./configs/microservice/bff-service/configs/agent-skills/minimax/pptx-generator:/home/root/.claude/skills/pptx-generator
       # --- wanwu ---
       - ./configs/microservice/bff-service/configs/agent-skills/wanwu/pdf:/home/root/.claude/skills/pdf
+      # --- nginx IPv4-only: 覆盖沙箱镜像内模板，去除 IPv6 listen ---
+      - ./configs/middleware/wga-sandbox/nginx-server-without-auth.conf:/opt/gem/nginx-server-without-auth.conf
+      - ./configs/middleware/wga-sandbox/nginx-server-with-auth.conf:/opt/gem/nginx-server-with-auth.conf
+      - ./configs/middleware/wga-sandbox/nginx-server-port-proxy.conf.template:/opt/gem/nginx-server-port-proxy.conf.template
     environment:
       USER: root
       OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: 600000
@@ -905,8 +909,9 @@ services:
     networks:
       - ${WANWU_DOCKER_NETWORK}
     ports:
-      - ${WANWU_EXTERNAL_PORT}:8081
+      - 0.0.0.0:${WANWU_EXTERNAL_PORT}:8081
     volumes:
+      - ./configs/middleware/nginx/conf.d:/etc/nginx/conf.d
       - ${WANWU_PROJECT_DIR}/nginx/log:/var/log/nginx
     healthcheck:
       test: ["CMD-SHELL", "timeout 1 bash -c 'cat < /dev/null > /dev/tcp/localhost/8081' || exit 1"]

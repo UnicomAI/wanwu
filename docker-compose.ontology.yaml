@@ -484,6 +484,10 @@ services:
       # --- ontology: other ---
       - ./configs/microservice/bff-service/configs/agent-skills/ontology/yj-ocr-parser:/home/root/.claude/skills/yj-ocr-parser
       - ./configs/microservice/ontology/vega-server/state.json:/root/.ontology/state.json:ro
+      # --- nginx IPv4-only: 覆盖沙箱镜像内模板，去除 IPv6 listen ---
+      - ./configs/middleware/wga-sandbox/nginx-server-without-auth.conf:/opt/gem/nginx-server-without-auth.conf
+      - ./configs/middleware/wga-sandbox/nginx-server-with-auth.conf:/opt/gem/nginx-server-with-auth.conf
+      - ./configs/middleware/wga-sandbox/nginx-server-port-proxy.conf.template:/opt/gem/nginx-server-port-proxy.conf.template
     environment:
       USER: root
       OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: 600000
