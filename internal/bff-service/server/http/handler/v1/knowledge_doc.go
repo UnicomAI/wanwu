@@ -263,26 +263,16 @@ func UpdateDocSegmentStatus(ctx *gin.Context) {
 	gin_util.Response(ctx, nil, err)
 }
 
-// AnalysisDocUrl
-//
-//	@Tags			knowledge.doc
-//	@Summary		解析url
-//	@Description	解析url
-//	@Security		JWT
-//	@Accept			json
-//	@Produce		json
-//	@Param			data	body		request.AnalysisUrlDocReq	true	"解析url请求参数"
-//	@Success		200		{object}	response.Response{data=response.AnalysisDocUrlResp}
-//	@Router			/knowledge/doc/url/analysis [post]
-func AnalysisDocUrl(ctx *gin.Context) {
-	userId, orgId := getUserID(ctx), getOrgID(ctx)
-	var req request.AnalysisUrlDocReq
-	if !gin_util.Bind(ctx, &req) {
-		return
-	}
-	resp, err := service.AnalysisDocUrl(ctx, userId, orgId, &req)
-	gin_util.Response(ctx, resp, err)
-}
+// AnalysisDocUrl 解析url，已下架，路由注册同步注释
+// func AnalysisDocUrl(ctx *gin.Context) {
+// 	userId, orgId := getUserID(ctx), getOrgID(ctx)
+// 	var req request.AnalysisUrlDocReq
+// 	if !gin_util.Bind(ctx, &req) {
+// 		return
+// 	}
+// 	resp, err := service.AnalysisDocUrl(ctx, userId, orgId, &req)
+// 	gin_util.Response(ctx, resp, err)
+// }
 
 // UpdateDocSegmentLabels
 //

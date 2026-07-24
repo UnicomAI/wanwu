@@ -188,10 +188,6 @@ func ImportDoc(ctx *gin.Context, userId, orgId string, req *request.DocImportReq
 
 // ImportDocOpenapi 导入文档
 func ImportDocOpenapi(ctx *gin.Context, userId, orgId string, req *request.DocImportReq) error {
-	// openapi 仅支持文件上传，单条url上传/url文件上传已下架
-	if req.DocImportType != request.FileUpload {
-		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, "docImportType only supports 0 (file upload)")
-	}
 	if err := convertDocConfigModelUuid(ctx, &req.DocImportFileConfig); err != nil {
 		return err
 	}
@@ -374,28 +370,29 @@ func UpdateDocSegmentStatus(ctx *gin.Context, userId, orgId string, r *request.U
 	return err
 }
 
-func AnalysisDocUrl(ctx *gin.Context, userId, orgId string, r *request.AnalysisUrlDocReq) (*response.AnalysisDocUrlResp, error) {
-	resp, err := knowledgeBaseDoc.AnalysisDocUrl(ctx.Request.Context(), &knowledgebase_doc_service.AnalysisUrlDocReq{
-		UserId:      userId,
-		OrgId:       orgId,
-		KnowledgeId: r.KnowledgeId,
-		UrlList:     r.UrlList,
-	})
-	if err != nil {
-		return nil, err
-	}
-	var urlList []*response.DocUrl
-	if len(resp.UrlList) > 0 {
-		for _, url := range resp.UrlList {
-			urlList = append(urlList, &response.DocUrl{
-				Url:      url.Url,
-				FileName: url.FileName,
-				FileSize: int(url.FileSize),
-			})
-		}
-	}
-	return &response.AnalysisDocUrlResp{UrlList: urlList}, nil
-}
+// AnalysisDocUrl 解析url，已下架，handler 和路由注册同步注释
+// func AnalysisDocUrl(ctx *gin.Context, userId, orgId string, r *request.AnalysisUrlDocReq) (*response.AnalysisDocUrlResp, error) {
+// 	resp, err := knowledgeBaseDoc.AnalysisDocUrl(ctx.Request.Context(), &knowledgebase_doc_service.AnalysisUrlDocReq{
+// 		UserId:      userId,
+// 		OrgId:       orgId,
+// 		KnowledgeId: r.KnowledgeId,
+// 		UrlList:     r.UrlList,
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	var urlList []*response.DocUrl
+// 	if len(resp.UrlList) > 0 {
+// 		for _, url := range resp.UrlList {
+// 			urlList = append(urlList, &response.DocUrl{
+// 				Url:      url.Url,
+// 				FileName: url.FileName,
+// 				FileSize: int(url.FileSize),
+// 			})
+// 		}
+// 	}
+// 	return &response.AnalysisDocUrlResp{UrlList: urlList}, nil
+// }
 
 func buildDocKnowledgeInfo(ctx *gin.Context, keyWords []*knowledgebase_keywords_service.KeywordsInfo, knowledgeInfo *knowledgebase_service.KnowledgeInfo) *response.DocKnowledgeInfo {
 	embModelInfo, _ := GetModel(ctx, knowledgeInfo.CreateUserId, knowledgeInfo.CreateOrgId, &request.GetModelRequest{

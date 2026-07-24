@@ -16,6 +16,7 @@ const (
 	UrlFileType = "url"
 )
 
+// UrlDocImportService 单条url上传已下架，保留注册仅为让残留的异步任务走正常失败流程，不再执行解析
 type UrlDocImportService struct{}
 
 var urlDocImportService = &UrlDocImportService{}
@@ -29,7 +30,9 @@ func (f UrlDocImportService) ImportType() int {
 }
 
 func (f UrlDocImportService) AnalyzeDoc(ctx context.Context, importTask *model.KnowledgeImportTask, importDocInfo *model.DocImportInfo) ([]*model.DocInfo, error) {
-	return importDocInfo.DocInfoList, nil
+	// 任务级 error_msg 直接展示给用户，不走 i18n key（见 bff GetDocImportTip）
+	log.Errorf("url import offline, skip analyze task %s", importTask.ImportId)
+	return nil, errors.New("url导入方式已下架，该文档不再解析")
 }
 
 func (f UrlDocImportService) CheckDoc(ctx context.Context, importTask *model.KnowledgeImportTask, docList []*model.DocInfo) ([]*CheckFileResult, error) {

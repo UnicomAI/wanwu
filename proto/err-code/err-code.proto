@@ -72,6 +72,7 @@ enum Code {
   KnowledgeDocStatusFinishCheckFail = 142015; // 存在非处理完成状态文档，请重新选择文档后重试
   KnowledgeDocNotExist = 142016; // 该文档不存在
   KnowledgeDocDeletePartFailed = 142017; // 文档部分删除失败，请稍后重试
+  KnowledgeDocUrlReimportNotSupport = 142018; // 该文档由已下架的url方式导入，不支持重新解析
   KnowledgeTagCreateFailed = 143001; // 新建知识库标签失败，请稍后重试
   KnowledgeTagDeleteFailed = 143002; // 删除知识库标签失败，请稍后重试
   KnowledgeTagUpdateFailed = 143003; // 修改知识库标签失败，请稍后重试
