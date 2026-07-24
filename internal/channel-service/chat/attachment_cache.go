@@ -14,11 +14,15 @@ const pendingAttachmentTTL = 10 * time.Minute
 
 // PendingAttachment 已上传到万悟 minio 的待用附件。
 // 存 minio URL（而非原始字节），避免用户连续发多个文件时重复上传、占内存。
-// 由 doWGAChat 在"纯附件消息"分支写入，在"有文字指令"分支 Drain 取出拼进 WGA content。
+// 由 doWGAChat / handleAgentMessage 在"纯附件消息"分支写入，在"有文字指令"分支 Drain 取出。
+//   - WGA 路径（buildWGAContentFromPending）只读 URL/FileName/MimeType，拼多模态 binary。
+//   - agent 路径（buildAgentFileInfo）读 FileId/FileSize/URL，填 openapi file_info（单文件）。
 type PendingAttachment struct {
-	URL      string // minio 文件路径，作为 WGA 多模态 binary.url
+	URL      string // minio 文件路径：WGA 多模态 binary.url / agent file_info.fileUrl
 	FileName string
 	MimeType string
+	FileId   string // 上传响应 fileId：agent file_info.fileName 用（WGA 路径不读）
+	FileSize int64  // 上传响应 fileSize：agent file_info.fileSize 用（WGA 路径不读）
 
 	// CreatedAt 本批附件的最后追加时间（滑动过期：每次 Append 刷新），
 	// 供 cleanupLoop 判断整批是否过期。

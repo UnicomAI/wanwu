@@ -172,6 +172,22 @@ func (m *Manager) ProbeChannel(ctx context.Context, channelID string) types.Chan
 	return adapterInst.Status()
 }
 
+// ConnectivityToDBStatus 将运行时连通状态 ChannelState 映射为 channels.status 列的持久化取值。
+// 供 UpdateChannel 重连后实测、healthCheckOnce 心跳自愈复用，确保 DB status 反映真实连通性：
+//   - connected → loggedIn（正常，可收发消息）
+//   - auth_failed → auth_failed（凭据失效，需重新登录/检查配置）
+//   - connecting / waiting_login / offline → offline（未就绪，需人工介入登录）
+func ConnectivityToDBStatus(state types.ChannelState) string {
+	switch state {
+	case types.ChannelStateConnected:
+		return "loggedIn"
+	case types.ChannelStateAuthFailed:
+		return "auth_failed"
+	default: // connecting / waiting_login / offline
+		return "offline"
+	}
+}
+
 // StartHealthCheck 启动心跳巡检协程：周期性 Probe 所有已启动通道，状态变化时回写 DB。
 // 用于发现"连接着但发不出 / token 静默过期"等半死状态并实时反映到 channels.status。
 // 返回停止函数，随 ctx 退出或调用停止函数即结束。
@@ -194,7 +210,9 @@ func (m *Manager) StartHealthCheck(ctx context.Context, interval time.Duration) 
 	return func() { close(stop) }
 }
 
-// healthCheckOnce 执行一轮心跳巡检：对所有已启动通道 Probe，状态非 connected 时回写 DB。
+// healthCheckOnce 执行一轮心跳巡检：对所有已启动通道 Probe，仅在 DB status 与实测连通性
+// 不一致时回写。正常通道（已是 loggedIn 且 Probe=connected）不写，避免高频无谓写入；
+// 状态实际变化（掉线→auth_failed/offline，或恢复→loggedIn）才写，使 channels.status 自愈。
 func (m *Manager) healthCheckOnce(ctx context.Context) {
 	m.mu.RLock()
 	ids := make([]string, 0, len(m.adapters))
@@ -205,15 +223,21 @@ func (m *Manager) healthCheckOnce(ctx context.Context) {
 
 	for _, id := range ids {
 		st := m.ProbeChannel(ctx, id)
-		// 仅在异常（非 connected）时回写 DB，避免高频无谓写入。
-		// connected 认为与建通道时的 loggedIn 一致，不回写。
-		if st.State == types.ChannelStateConnected {
+		dbStatus := ConnectivityToDBStatus(st.State)
+
+		ch, err := m.cli.GetChannel(ctx, id)
+		if err != nil {
+			log.Warnf("[HealthCheck] failed to get channel %s for status compare: %v", id, err)
 			continue
 		}
-		if _, err := m.cli.UpdateChannel(ctx, id, map[string]interface{}{"status": string(st.State)}); err != nil {
-			log.Warnf("[HealthCheck] failed to update channel %s status to %s: %v", id, st.State, err)
+		if ch.Status == dbStatus {
+			continue // 状态一致，无需回写
+		}
+
+		if _, err := m.cli.UpdateChannel(ctx, id, map[string]interface{}{"status": dbStatus}); err != nil {
+			log.Warnf("[HealthCheck] failed to update channel %s status to %s: %v", id, dbStatus, err)
 		} else {
-			log.Warnf("[HealthCheck] channel %s status -> %s (%s)", id, st.State, st.Detail)
+			log.Infof("[HealthCheck] channel %s status -> %s (%s)", id, dbStatus, st.Detail)
 		}
 	}
 }

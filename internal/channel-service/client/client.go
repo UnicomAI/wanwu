@@ -28,4 +28,9 @@ type IClient interface {
 	ListConversationsByChannel(ctx context.Context, channelID string, limit int) ([]*model.ChannelConversation, error)
 	UpsertConversation(ctx context.Context, conv *model.ChannelConversation) error
 	DeleteConversationsByChannel(ctx context.Context, channelID string) error
+
+	// --- WgaArtifact write 产物累积清单（thread 级持久化，跨 run 累积） ---
+	ListWgaArtifacts(ctx context.Context, channelID, userID, threadID string) ([]*model.WgaArtifact, error)
+	AddWgaArtifacts(ctx context.Context, channelID, userID, threadID string, fileNames []string) error
+	DeleteWgaArtifactsByChannel(ctx context.Context, channelID string) error
 }

@@ -15,17 +15,17 @@ import (
 // 钉钉未在文档中给出完整频控码表，故额外用 errmsg 关键字兜底识别，
 // 命中即包装为 types.ErrIMRateLimited，与微信 ret=-2 统一为"可退避重试"语义。
 var dingTalkRateLimitErrCodes = map[int]bool{
-	130101:   true,
-	4001003:  true,
+	130101:  true,
+	4001003: true,
 }
 
 // rateLimitErrMsgKeywords 钉钉频控 errmsg 兜底关键字（小写匹配）。
 // 用 "frequen" 词根覆盖 frequency / frequently，用 "频繁" 覆盖过于频繁。
 var rateLimitErrMsgKeywords = []string{
-	"frequen",     // frequency / frequently / send too frequently
+	"frequen", // frequency / frequently / send too frequently
 	"rate limit",
-	"too many",    // too many requests
-	"过于频繁",      // 请求过于频繁
+	"too many", // too many requests
+	"过于频繁",     // 请求过于频繁
 	"频率",
 	"频控",
 }

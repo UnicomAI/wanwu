@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/UnicomAI/wanwu/internal/channel-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/channel-service/client/orm/sqlopt"
@@ -20,6 +21,7 @@ func NewClient(db *gorm.DB) (*Client, error) {
 		&model.Channel{},
 		&model.QRSession{},
 		&model.ChannelConversation{},
+		&model.WgaArtifact{},
 	); err != nil {
 		return nil, fmt.Errorf("failed to migrate channel tables: %w", err)
 	}
@@ -217,6 +219,61 @@ func (c *Client) DeleteConversationsByChannel(ctx context.Context, channelID str
 	result := c.db.WithContext(ctx).Where("channel_id = ?", channelID).Delete(&model.ChannelConversation{})
 	if result.Error != nil {
 		return fmt.Errorf("conversation_delete_by_channel: %w", result.Error)
+	}
+	return nil
+}
+
+// --- WgaArtifact write 产物累积清单 ---
+
+// ListWgaArtifacts 按 (channelID, userID, threadID) 查询 thread 累积的 write 产物文件名（basename）。
+// 用于"用户跨 run 说把报告发来"时回发——清单是历史上智能体主动 write 过的文件，比正文子串匹配精确。
+func (c *Client) ListWgaArtifacts(ctx context.Context, channelID, userID, threadID string) ([]*model.WgaArtifact, error) {
+	var arts []*model.WgaArtifact
+	if err := c.db.WithContext(ctx).
+		Where("channel_id = ? AND user_id = ? AND thread_id = ?", channelID, userID, threadID).
+		Order("created_at DESC").
+		Find(&arts).Error; err != nil {
+		return nil, fmt.Errorf("wga_artifact_list: %w", err)
+	}
+	return arts, nil
+}
+
+// AddWgaArtifacts 把本次 run write 写过的文件名追加到 thread 累积清单（批量去重落库）。
+// 唯一索引 idx_wa_ch_thread_name (channelID+userID+threadID+fileName) 保证同 thread 同文件名不重复；
+// 用 OnConflict DoNothing 忽略已存在的行，天然累积去重，无需先查再插。
+// fileNames 为空时直接返回，不报错。
+func (c *Client) AddWgaArtifacts(ctx context.Context, channelID, userID, threadID string, fileNames []string) error {
+	if len(fileNames) == 0 {
+		return nil
+	}
+	arts := make([]*model.WgaArtifact, 0, len(fileNames))
+	for _, name := range fileNames {
+		if name == "" {
+			continue
+		}
+		arts = append(arts, &model.WgaArtifact{
+			ChannelID: channelID,
+			UserID:    userID,
+			ThreadID:  threadID,
+			FileName:  name,
+		})
+	}
+	if len(arts) == 0 {
+		return nil
+	}
+	if err := c.db.WithContext(ctx).
+		Clauses(clause.OnConflict{DoNothing: true}).
+		Create(&arts).Error; err != nil {
+		return fmt.Errorf("wga_artifact_add: %w", err)
+	}
+	return nil
+}
+
+// DeleteWgaArtifactsByChannel 删除指定通道下的所有 write 产物累积记录，用于删通道时级联清理。
+func (c *Client) DeleteWgaArtifactsByChannel(ctx context.Context, channelID string) error {
+	result := c.db.WithContext(ctx).Where("channel_id = ?", channelID).Delete(&model.WgaArtifact{})
+	if result.Error != nil {
+		return fmt.Errorf("wga_artifact_delete_by_channel: %w", result.Error)
 	}
 	return nil
 }

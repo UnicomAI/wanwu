@@ -398,15 +398,27 @@ func (s *ChannelService) UpdateChannel(ctx context.Context, req *channel_service
 		return nil, grpc_util.ErrorStatus(err_code.Code_ChannelGeneral, fmt.Sprintf("failed to update channel: %v", err))
 	}
 
-	// 更新后按需重启适配器（仅当连接相关字段变更时才重启）
+	// 更新后按需重启适配器（仅当连接相关字段变更时才重启）。
+	// 同步重启 + 实测连通性：config/apiKey 变更往往伴随重新登录，按真实 Probe 结果回写
+	// channels.status，避免 DB 卡在旧的 auth_failed（适配器内存态已连上但 DB 未刷新，
+	// 导致 chat.go 的 status=="loggedIn" 校验误拒消息）。用户明确要"更新时测一下通不通"。
 	needRestart := len(req.Config) > 0 || req.ApiKey != ""
 
 	if needRestart {
-		go func() {
-			if err := s.manager.RestartAdapter(context.Background(), ch); err != nil {
-				log.Errorf("failed to restart adapter for channel %s: %v", ch.ChannelID, err)
+		if err := s.manager.RestartAdapter(ctx, ch); err != nil {
+			log.Errorf("failed to restart adapter for channel %s: %v", ch.ChannelID, err)
+		} else {
+			st := s.manager.ProbeChannel(ctx, req.ChannelId)
+			dbStatus := adapter.ConnectivityToDBStatus(st.State)
+			if dbStatus != ch.Status {
+				if updated, err := s.cli.UpdateChannel(ctx, req.ChannelId, map[string]interface{}{"status": dbStatus}); err != nil {
+					log.Warnf("[UpdateChannel] failed to update channel %s status to %s: %v", req.ChannelId, dbStatus, err)
+				} else {
+					ch = updated
+					log.Infof("[UpdateChannel] channel %s status -> %s after reconnect (detail: %s)", req.ChannelId, dbStatus, st.Detail)
+				}
 			}
-		}()
+		}
 	}
 
 	return modelToChannelProto(ch), nil
@@ -452,6 +464,10 @@ func (s *ChannelService) DeleteChannel(ctx context.Context, req *channel_service
 	// 级联清理该通道下的会话映射（threadId/conversationId），仅删通道时清理
 	if err := s.cli.DeleteConversationsByChannel(ctx, req.ChannelId); err != nil {
 		log.Errorf("failed to cleanup conversations for channel %s: %v", req.ChannelId, err)
+	}
+	// 级联清理该通道下的 WGA 产物累积清单（channel_wga_artifacts），避免删通道后孤儿数据残留。
+	if err := s.cli.DeleteWgaArtifactsByChannel(ctx, req.ChannelId); err != nil {
+		log.Errorf("failed to cleanup wga artifacts for channel %s: %v", req.ChannelId, err)
 	}
 	return &emptypb.Empty{}, nil
 }
@@ -712,7 +728,6 @@ func truncateBody(b []byte) string {
 	}
 	return string(b[:max])
 }
-
 
 // deriveMarkdownTitle 从 markdown 内容生成卡片标题：取第一行非空文本，
 // 去掉行首 # 标记符号与前后空白，截断到 20 字（钉钉 sampleMarkdown 的 title 字段必填，
