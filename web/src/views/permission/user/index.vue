@@ -660,15 +660,20 @@ export default {
       if (!this.selectedRows.length) {
         return this.$message.warning(this.$t('user.confirm.batchDeleteEmpty'));
       }
+      const selectedUsernames = this.selectedRows
+        .map(item => item.username)
+        .join('，');
+      const baseMessage = this.isSystem
+        ? this.$t('user.confirm.batchDelete')
+        : this.$t('user.confirm.batchRemove');
       this.$confirm(
-        this.isSystem
-          ? this.$t('user.confirm.batchDelete')
-          : this.$t('user.confirm.batchRemove'),
+        `${baseMessage}<div style="color: #f56c6c;">${selectedUsernames}</div>`,
         this.$t('common.confirm.title'),
         {
           confirmButtonText: this.$t('common.confirm.confirm'),
           cancelButtonText: this.$t('common.confirm.cancel'),
           type: 'warning',
+          dangerouslyUseHTMLString: true,
         },
       ).then(async () => {
         const userIds = this.selectedRows.map(item => item.userId);
@@ -920,5 +925,8 @@ export default {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
+::v-deep .el-message-box__status {
+  top: 12px !important;
 }
 </style>
