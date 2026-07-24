@@ -3,7 +3,6 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
 	"reflect"
 	"strconv"
 
@@ -12,6 +11,7 @@ import (
 	params_process "github.com/UnicomAI/wanwu/internal/assistant-service/service/params-process"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
+	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
 	safe_go_util "github.com/UnicomAI/wanwu/pkg/safe-go-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 )

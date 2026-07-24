@@ -51,7 +51,7 @@ type IClient interface {
 	GetOrgAndSubOrgSelectByUser(ctx context.Context, userID, orgID uint32) ([]orm.IDNameWithAvatar, *errs.Status)
 	GetFirstClassOrgAndSubs(ctx context.Context, userID, orgID uint32) ([]orm.IDNameWithAvatar, *errs.Status)
 	GetAdminOrgSelect(ctx context.Context, userID uint32) ([]orm.IDNameWithAvatar, *errs.Status)
-		GetAdminOrgSubTree(ctx context.Context, userID uint32) ([]*orm.AdminOrgTreeNode, *errs.Status)
+	GetAdminOrgSubTree(ctx context.Context, userID uint32) ([]*orm.AdminOrgTreeNode, *errs.Status)
 	GetAdminOrgIDs(ctx context.Context, userID uint32) ([]uint32, *errs.Status)
 
 	CreateOrg(ctx context.Context, org *model.Org) (uint32, *errs.Status)

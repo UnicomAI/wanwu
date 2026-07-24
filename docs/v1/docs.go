@@ -452,6 +452,256 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/center/mcp/base": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心MCP基础信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin.mcp"
+                ],
+                "summary": "管理员中心MCP基础信息",
+                "parameters": [
+                    {
+                        "description": "MCP基础信息参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminMCPBaseReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.AdminMCPBase"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/mcp/custom/detail": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心导入MCP详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin.mcp"
+                ],
+                "summary": "管理员中心导入MCP详情",
+                "parameters": [
+                    {
+                        "description": "导入MCP详情参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminMCPDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.MCPDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/mcp/page/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心MCP全局列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin.mcp"
+                ],
+                "summary": "管理员中心MCP全局列表",
+                "parameters": [
+                    {
+                        "description": "MCP全局列表参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminMCPPageListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.PageResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "list": {
+                                            "$ref": "#/definitions/response.AdminMCP"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/mcp/server/detail": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心创建MCP详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin.mcp"
+                ],
+                "summary": "管理员中心创建MCP详情",
+                "parameters": [
+                    {
+                        "description": "创建MCP详情参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminMCPDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.MCPServerDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/mcp/tool/list": {
+            "post": {
+                "description": "管理员中心获取MCP Tool列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin.mcp"
+                ],
+                "summary": "管理员中心获取MCP Tool列表",
+                "parameters": [
+                    {
+                        "description": "mcp工具列表请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminMCPToolListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.MCPToolList"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/admin/center/model/base": {
             "post": {
                 "security": [
@@ -596,6 +846,159 @@ const docTemplate = `{
                                     "properties": {
                                         "list": {
                                             "$ref": "#/definitions/response.AdminModel"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/prompt/base": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心提示词基础信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin.prompt"
+                ],
+                "summary": "管理员中心提示词基础信息",
+                "parameters": [
+                    {
+                        "description": "MCP基础信息参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminPromptBaseReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.AdminPromptBase"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/prompt/detail": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心提示词详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin.prompt"
+                ],
+                "summary": "管理员中心提示词详情",
+                "parameters": [
+                    {
+                        "description": "提示词详情参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminPromptDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.CustomPrompt"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/prompt/page/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心提示词全局列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin.prompt"
+                ],
+                "summary": "管理员中心提示词全局列表",
+                "parameters": [
+                    {
+                        "description": "提示词全局列表参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminPromptPageListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.PageResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "list": {
+                                            "$ref": "#/definitions/response.AdminPrompt"
                                         }
                                     }
                                 }
@@ -1130,6 +1533,159 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/center/tool/base": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心工具基础信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin.tool"
+                ],
+                "summary": "管理员中心工具基础信息",
+                "parameters": [
+                    {
+                        "description": "工具基础信息参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminToolBaseReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.AdminToolBase"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/tool/detail": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心工具详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin.tool"
+                ],
+                "summary": "管理员中心工具详情",
+                "parameters": [
+                    {
+                        "description": "工具详情参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminToolDetailReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.CustomToolDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/tool/page/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "管理员中心工具全局列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin.tool"
+                ],
+                "summary": "管理员中心工具全局列表",
+                "parameters": [
+                    {
+                        "description": "工具全局列表参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AdminToolPageListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.PageResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "list": {
+                                            "$ref": "#/definitions/response.AdminTool"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/admin/center/workflow/page/list": {
             "post": {
                 "security": [
@@ -1171,7 +1727,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "list": {
-                                            "$ref": "#/definitions/response.AdminWorkflowDetail"
+                                            "$ref": "#/definitions/response.AdminWorkflow"
                                         }
                                     }
                                 }
@@ -12447,57 +13003,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/knowledge/doc/url/analysis": {
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "解析url",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "knowledge.doc"
-                ],
-                "summary": "解析url",
-                "parameters": [
-                    {
-                        "description": "解析url请求参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.AnalysisUrlDocReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/response.AnalysisDocUrlResp"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/knowledge/export/record": {
             "delete": {
                 "security": [
@@ -15964,6 +16469,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int32",
                         "description": "模型体验对话ID",
                         "name": "modelExperienceId",
                         "in": "query",
@@ -24604,6 +25110,107 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AdminMCPBaseReq": {
+            "type": "object",
+            "required": [
+                "mcpId",
+                "type"
+            ],
+            "properties": {
+                "mcpId": {
+                    "description": "mcpId",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "mcp类型: 导入mcp: mcp;创建mcp:mcpserver",
+                    "type": "string"
+                }
+            }
+        },
+        "request.AdminMCPDetailReq": {
+            "type": "object",
+            "required": [
+                "mcpId"
+            ],
+            "properties": {
+                "mcpId": {
+                    "description": "mcpId",
+                    "type": "string"
+                }
+            }
+        },
+        "request.AdminMCPPageListReq": {
+            "type": "object",
+            "required": [
+                "pageSize"
+            ],
+            "properties": {
+                "isAllOrg": {
+                    "description": "是否全选组织",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "名称（模糊查询）",
+                    "type": "string"
+                },
+                "orgIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，public：公开发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "description": "mcp: 导入mcp, mcpserver: 创建mcp all:全部",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "request.AdminMCPToolListReq": {
+            "type": "object",
+            "required": [
+                "mcpId",
+                "type"
+            ],
+            "properties": {
+                "mcpId": {
+                    "description": "mcpId",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "mcp类型: 导入mcp: mcp;创建mcp:mcpserver",
+                    "type": "string"
+                }
+            }
+        },
         "request.AdminModelDetailReq": {
             "type": "object",
             "required": [
@@ -24652,6 +25259,78 @@ const docTemplate = `{
                 "provider": {
                     "description": "模型供应商: OpenAI-API-compatible,YuanJing, HuoShan, Ollama, Qwen, Infini, QianFan, DeepSeek, Jina, ZhiPu",
                     "type": "string"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，public：公开发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "request.AdminPromptBaseReq": {
+            "type": "object",
+            "required": [
+                "customPromptId"
+            ],
+            "properties": {
+                "customPromptId": {
+                    "description": "自定义提示词id",
+                    "type": "string"
+                }
+            }
+        },
+        "request.AdminPromptDetailReq": {
+            "type": "object",
+            "required": [
+                "customPromptId"
+            ],
+            "properties": {
+                "customPromptId": {
+                    "description": "自定义提示词id",
+                    "type": "string"
+                }
+            }
+        },
+        "request.AdminPromptPageListReq": {
+            "type": "object",
+            "required": [
+                "pageSize"
+            ],
+            "properties": {
+                "isAllOrg": {
+                    "description": "是否全选组织",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "名称（模糊查询）",
+                    "type": "string"
+                },
+                "orgIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
                 },
                 "publishScope": {
                     "description": "private：私密发布，organization:组织内发布，public：公开发布",
@@ -24875,6 +25554,88 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AdminToolBaseReq": {
+            "type": "object",
+            "required": [
+                "toolId",
+                "type"
+            ],
+            "properties": {
+                "toolId": {
+                    "description": "工具id",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "custom:自定义，builtin:内置",
+                    "type": "string"
+                }
+            }
+        },
+        "request.AdminToolDetailReq": {
+            "type": "object",
+            "required": [
+                "toolId",
+                "type"
+            ],
+            "properties": {
+                "toolId": {
+                    "description": "工具id",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "custom:自定义，builtin:内置",
+                    "type": "string"
+                }
+            }
+        },
+        "request.AdminToolPageListReq": {
+            "type": "object",
+            "required": [
+                "pageSize"
+            ],
+            "properties": {
+                "isAllOrg": {
+                    "description": "是否全选组织",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "名称（模糊查询）",
+                    "type": "string"
+                },
+                "orgIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，public：公开发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.AdminWorkflowPageListReq": {
             "type": "object",
             "required": [
@@ -24922,24 +25683,6 @@ const docTemplate = `{
                     }
                 },
                 "userIdList": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "request.AnalysisUrlDocReq": {
-            "type": "object",
-            "required": [
-                "knowledgeId",
-                "urlList"
-            ],
-            "properties": {
-                "knowledgeId": {
-                    "type": "string"
-                },
-                "urlList": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -31800,6 +32543,123 @@ const docTemplate = `{
                 }
             }
         },
+        "response.AdminMCP": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "logo",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "mcpId": {
+                    "description": "mcpId",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "serverFrom": {
+                    "description": "来源",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "类型",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminMCPBase": {
+            "type": "object",
+            "properties": {
+                "authorizedPersonnelList": {
+                    "description": "指定人员列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AuthorizedPersonnel"
+                    }
+                },
+                "avatar": {
+                    "description": "应用图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "description": "应用创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "应用描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "应用名称",
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布",
+                    "type": "string"
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "类型",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "应用更新时间(用于历史记录排序)",
+                    "type": "string"
+                }
+            }
+        },
         "response.AdminModel": {
             "type": "object",
             "required": [
@@ -32001,6 +32861,111 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "orgId": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminPrompt": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "logo",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "promptId": {
+                    "description": "promptId",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminPromptBase": {
+            "type": "object",
+            "properties": {
+                "authorizedPersonnelList": {
+                    "description": "指定人员列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AuthorizedPersonnel"
+                    }
+                },
+                "avatar": {
+                    "description": "应用图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "description": "应用创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "应用描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "应用名称",
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布",
+                    "type": "string"
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "应用更新时间(用于历史记录排序)",
                     "type": "string"
                 }
             }
@@ -32450,9 +33415,25 @@ const docTemplate = `{
                 }
             }
         },
-        "response.AdminWorkflowDetail": {
+        "response.AdminTool": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "logo",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
                 "ownerOrgId": {
                     "description": "拥有者组织id",
                     "type": "string"
@@ -32467,6 +33448,143 @@ const docTemplate = `{
                 },
                 "ownerUserName": {
                     "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "toolId": {
+                    "description": "toolId",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminToolBase": {
+            "type": "object",
+            "properties": {
+                "authorizedPersonnelList": {
+                    "description": "指定人员列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AuthorizedPersonnel"
+                    }
+                },
+                "avatar": {
+                    "description": "应用图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "description": "应用创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "应用描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "应用名称",
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "publishScope": {
+                    "description": "private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布",
+                    "type": "string"
+                },
+                "publishStatus": {
+                    "description": "draft:草稿，publish:发布",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "应用更新时间(用于历史记录排序)",
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdminWorkflow": {
+            "type": "object",
+            "properties": {
+                "appId": {
+                    "description": "应用id",
+                    "type": "string"
+                },
+                "appType": {
+                    "description": "应用类型",
+                    "type": "string"
+                },
+                "avatar": {
+                    "description": "应用图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "category": {
+                    "description": "智能体分类(1:单智能体,2:多智能体)",
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "description": "应用创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "应用描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "应用名称",
+                    "type": "string"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerOrgName": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "ownerUserName": {
+                    "description": "拥有者用户名称（知识库可转让，未必是创建者）",
+                    "type": "string"
+                },
+                "publishType": {
+                    "description": "发布类型(public:公开发布,private:私密发布)，为空表示未发布(草稿)",
+                    "type": "string"
+                },
+                "uniqueId": {
+                    "description": "随机unique id(每次动态生成)",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "应用更新时间(用于历史记录排序)",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "已发布应用的版本号(未发布时为空)",
                     "type": "string"
                 }
             }
@@ -32507,17 +33625,6 @@ const docTemplate = `{
                 },
                 "size": {
                     "type": "integer"
-                }
-            }
-        },
-        "response.AnalysisDocUrlResp": {
-            "type": "object",
-            "properties": {
-                "urlList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.DocUrl"
-                    }
                 }
             }
         },
@@ -33464,6 +34571,9 @@ const docTemplate = `{
                 },
                 "knowledgeName": {
                     "type": "string"
+                },
+                "metaData": {
+                    "description": "MetaData 命中片段元信息，对象内容原样透传 rag 返回（rag 侧字段名为 meta_data），如 file_name/download_link/page_num/chunk_total_num 等"
                 },
                 "rerankInfo": {
                     "type": "array",
@@ -34878,20 +35988,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/response.DocUploadLimit"
                     }
-                }
-            }
-        },
-        "response.DocUrl": {
-            "type": "object",
-            "properties": {
-                "fileName": {
-                    "type": "string"
-                },
-                "fileSize": {
-                    "type": "integer"
-                },
-                "url": {
-                    "type": "string"
                 }
             }
         },
