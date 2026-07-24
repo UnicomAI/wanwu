@@ -468,9 +468,10 @@ export default {
     confirm: {
       delete: '该账户删除后不可恢复，是否确认删除？',
       remove: '该账户将从组织内移除，是否确认?',
-      batchDelete: '确定批量删除选中的账户？删除后不可恢复。',
-      batchRemove: '确定批量移除选中的账户？移除后将从组织内移除。',
+      batchDelete: '确定批量删除以下账户？删除后不可恢复。',
+      batchRemove: '确定批量移除以下账户？移除后将从组织内移除。',
       batchDeleteEmpty: '请勾选需要删除/移除的数据',
+      selectedCount: '已选择{count}位用户：',
     },
     switch: {
       startHint: '该账户状态已停用，是否确定开启？',

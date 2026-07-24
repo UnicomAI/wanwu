@@ -8,7 +8,7 @@
     <div class="page-wrapper-content">
       <div class="page-container">
         <section
-          v-for="(groupName, groupKey) in menuData.group"
+          v-for="(groupName, groupKey) in visibleGroups"
           :key="groupKey"
           class="group-section"
         >
@@ -64,6 +64,8 @@
 </template>
 
 <script>
+import { checkPerm, PERMS } from '@/router/permission';
+
 export default {
   data() {
     return {
@@ -77,6 +79,7 @@ export default {
           personnelManage: {
             title: this.$t('adminCenter.pageModules.personnelManage.title'),
             group: 'globalManage',
+            perm: PERMS.ADMIN_CENTER,
             organization: {
               title: this.$t(
                 'adminCenter.pageModules.personnelManage.organization',
@@ -110,10 +113,12 @@ export default {
                 'adminCenter.pageModules.platformConfig.appearance',
               ),
               path: '/permission?key=platformConfig',
+              perm: PERMS.SETTING,
             },
             oAuth: {
               title: this.$t('oauth.title'),
               path: '/permission?key=oAuth',
+              perm: PERMS.OAUTH,
             },
           },
           // --- 产品后台 ---
@@ -197,13 +202,30 @@ export default {
       },
     };
   },
+  computed: {
+    visibleGroups() {
+      const groups = {};
+      Object.keys(this.menuData.group).forEach(groupKey => {
+        if (Object.keys(this.getModulesByGroup(groupKey)).length) {
+          groups[groupKey] = this.menuData.group[groupKey];
+        }
+      });
+      return groups;
+    },
+  },
   methods: {
+    checkPerm,
     // 过滤出属于特定分组的模块
     getModulesByGroup(groupKey) {
       const filtered = {};
       Object.keys(this.menuData.pageModules).forEach(key => {
-        if (this.menuData.pageModules[key].group === groupKey) {
-          filtered[key] = this.menuData.pageModules[key];
+        const module = this.menuData.pageModules[key];
+        if (
+          module.group === groupKey &&
+          this.checkPerm(module.perm) &&
+          Object.keys(this.getSubLinks(module)).length
+        ) {
+          filtered[key] = module;
         }
       });
       return filtered;
@@ -213,7 +235,12 @@ export default {
       const links = {};
       Object.keys(module).forEach(key => {
         // 排除掉卡片的 title 属性和用来分组的 group 属性，剩下的就是叶子节点对象
-        if (key !== 'title' && key !== 'group') {
+        if (
+          key !== 'title' &&
+          key !== 'group' &&
+          key !== 'perm' &&
+          this.checkPerm(module[key].perm)
+        ) {
           links[key] = module[key];
         }
       });
