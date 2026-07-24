@@ -33,6 +33,7 @@ func (*ToolBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId st
 	}
 	builtinResp, err := mcp.GetSquareTool(ctx, &mcp_service.GetSquareToolReq{
 		ToolSquareId: bizId,
+		Identity:     &mcp_service.Identity{UserId: "", OrgId: ""},
 	})
 	if err != nil {
 		return "", "", err
