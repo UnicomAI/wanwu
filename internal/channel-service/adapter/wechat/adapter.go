@@ -524,8 +524,6 @@ func (w *WeChatAdapter) sendTextMessage(ctx context.Context, baseURL, token, toU
 	respBody, _ := io.ReadAll(resp.Body)
 	log.Infof("[WeChat] sendTextMessage resp: to=%s httpStatus=%d body=%s",
 		toUserID, resp.StatusCode, string(respBody))
-	log.Infof("[WeChat] sendTextMessage resp: to=%s httpStatus=%d body=%s",
-		toUserID, resp.StatusCode, string(respBody))
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("send message failed: %s", string(respBody))
 	}
@@ -533,7 +531,6 @@ func (w *WeChatAdapter) sendTextMessage(ctx context.Context, baseURL, token, toU
 	var sendResp SendResponse
 	if err := json.Unmarshal(respBody, &sendResp); err == nil {
 		if sendResp.Ret != 0 {
-			return classifyWeChatSendErr(sendResp.Ret, sendResp.ErrMsg, "send message failed")
 			return classifyWeChatSendErr(sendResp.Ret, sendResp.ErrMsg, "send message failed")
 		}
 	}
@@ -1080,7 +1077,6 @@ func (w *WeChatAdapter) sendFileMessage(ctx context.Context, baseURL, token, toU
 	var sendResp SendResponse
 	if err := json.Unmarshal(respBody, &sendResp); err == nil {
 		if sendResp.Ret != 0 {
-			return classifyWeChatSendErr(sendResp.Ret, sendResp.ErrMsg, "send file message failed")
 			return classifyWeChatSendErr(sendResp.Ret, sendResp.ErrMsg, "send file message failed")
 		}
 	}

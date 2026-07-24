@@ -4942,6 +4942,9 @@ const docTemplate = `{
                 "knowledgeName": {
                     "type": "string"
                 },
+                "meta_data": {
+                    "description": "MetaData 命中片段元信息，原样透传 rag 返回，如 file_name/download_link/page_num/chunk_total_num 等"
+                },
                 "rerankInfo": {
                     "type": "array",
                     "items": {
@@ -5872,23 +5875,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "meta_data": {
-                    "$ref": "#/definitions/response.OpenAIChatSearchMeta"
+                    "description": "MetaData 知识库命中片段的元信息，原样透传 rag 返回（与流式一致），如 file_name/download_link/page_num/chunk_total_num 等"
                 },
                 "snippet": {
                     "type": "string"
                 },
                 "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.OpenAIChatSearchMeta": {
-            "type": "object",
-            "properties": {
-                "download_link": {
-                    "type": "string"
-                },
-                "file_name": {
                     "type": "string"
                 }
             }

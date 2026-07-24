@@ -1207,6 +1207,76 @@ definitions:
     required:
     - pageSize
     type: object
+  request.AdminMCPBaseReq:
+    properties:
+      mcpId:
+        description: mcpId
+        type: string
+      type:
+        description: 'mcp类型: 导入mcp: mcp;创建mcp:mcpserver'
+        type: string
+    required:
+    - mcpId
+    - type
+    type: object
+  request.AdminMCPDetailReq:
+    properties:
+      mcpId:
+        description: mcpId
+        type: string
+    required:
+    - mcpId
+    type: object
+  request.AdminMCPPageListReq:
+    properties:
+      isAllOrg:
+        description: 是否全选组织
+        type: boolean
+      name:
+        description: 名称（模糊查询）
+        type: string
+      orgIdList:
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      publishScope:
+        description: private：私密发布，organization:组织内发布，public：公开发布
+        items:
+          type: string
+        type: array
+      publishStatus:
+        description: draft:草稿，publish:发布
+        items:
+          type: string
+        type: array
+      type:
+        description: 'mcp: 导入mcp, mcpserver: 创建mcp all:全部'
+        items:
+          type: string
+        type: array
+      userIdList:
+        items:
+          type: string
+        type: array
+    required:
+    - pageSize
+    type: object
+  request.AdminMCPToolListReq:
+    properties:
+      mcpId:
+        description: mcpId
+        type: string
+      type:
+        description: 'mcp类型: 导入mcp: mcp;创建mcp:mcpserver'
+        type: string
+    required:
+    - mcpId
+    - type
+    type: object
   request.AdminModelDetailReq:
     properties:
       modelId:
@@ -1241,6 +1311,55 @@ definitions:
         description: '模型供应商: OpenAI-API-compatible,YuanJing, HuoShan, Ollama, Qwen,
           Infini, QianFan, DeepSeek, Jina, ZhiPu'
         type: string
+      publishScope:
+        description: private：私密发布，organization:组织内发布，public：公开发布
+        items:
+          type: string
+        type: array
+      publishStatus:
+        description: draft:草稿，publish:发布
+        items:
+          type: string
+        type: array
+      userIdList:
+        items:
+          type: string
+        type: array
+    required:
+    - pageSize
+    type: object
+  request.AdminPromptBaseReq:
+    properties:
+      customPromptId:
+        description: 自定义提示词id
+        type: string
+    required:
+    - customPromptId
+    type: object
+  request.AdminPromptDetailReq:
+    properties:
+      customPromptId:
+        description: 自定义提示词id
+        type: string
+    required:
+    - customPromptId
+    type: object
+  request.AdminPromptPageListReq:
+    properties:
+      isAllOrg:
+        description: 是否全选组织
+        type: boolean
+      name:
+        description: 名称（模糊查询）
+        type: string
+      orgIdList:
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
       publishScope:
         description: private：私密发布，organization:组织内发布，public：公开发布
         items:
@@ -1368,6 +1487,63 @@ definitions:
         description: 是否全选组织
         type: boolean
       name:
+        type: string
+      orgIdList:
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      publishScope:
+        description: private：私密发布，organization:组织内发布，public：公开发布
+        items:
+          type: string
+        type: array
+      publishStatus:
+        description: draft:草稿，publish:发布
+        items:
+          type: string
+        type: array
+      userIdList:
+        items:
+          type: string
+        type: array
+    required:
+    - pageSize
+    type: object
+  request.AdminToolBaseReq:
+    properties:
+      toolId:
+        description: 工具id
+        type: string
+      type:
+        description: custom:自定义，builtin:内置
+        type: string
+    required:
+    - toolId
+    - type
+    type: object
+  request.AdminToolDetailReq:
+    properties:
+      toolId:
+        description: 工具id
+        type: string
+      type:
+        description: custom:自定义，builtin:内置
+        type: string
+    required:
+    - toolId
+    - type
+    type: object
+  request.AdminToolPageListReq:
+    properties:
+      isAllOrg:
+        description: 是否全选组织
+        type: boolean
+      name:
+        description: 名称（模糊查询）
         type: string
       orgIdList:
         items:
@@ -6121,6 +6297,88 @@ definitions:
         description: 应用更新时间(用于历史记录排序)
         type: string
     type: object
+  response.AdminMCP:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: logo
+      description:
+        description: 描述
+        type: string
+      mcpId:
+        description: mcpId
+        type: string
+      name:
+        description: 名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      serverFrom:
+        description: 来源
+        type: string
+      type:
+        description: 类型
+        type: string
+      updatedAt:
+        description: 更新时间
+        type: string
+    type: object
+  response.AdminMCPBase:
+    properties:
+      authorizedPersonnelList:
+        description: 指定人员列表
+        items:
+          $ref: '#/definitions/response.AuthorizedPersonnel'
+        type: array
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 应用图标
+      createdAt:
+        description: 应用创建时间
+        type: string
+      desc:
+        description: 应用描述
+        type: string
+      name:
+        description: 应用名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      publishScope:
+        description: private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布
+        type: string
+      publishStatus:
+        description: draft:草稿，publish:发布
+        type: string
+      type:
+        description: 类型
+        type: string
+      updatedAt:
+        description: 应用更新时间(用于历史记录排序)
+        type: string
+    type: object
   response.AdminModel:
     properties:
       allowEdit:
@@ -6261,6 +6519,79 @@ definitions:
       name:
         type: string
       orgId:
+        type: string
+    type: object
+  response.AdminPrompt:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: logo
+      description:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      promptId:
+        description: promptId
+        type: string
+      updatedAt:
+        description: 更新时间
+        type: string
+    type: object
+  response.AdminPromptBase:
+    properties:
+      authorizedPersonnelList:
+        description: 指定人员列表
+        items:
+          $ref: '#/definitions/response.AuthorizedPersonnel'
+        type: array
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 应用图标
+      createdAt:
+        description: 应用创建时间
+        type: string
+      desc:
+        description: 应用描述
+        type: string
+      name:
+        description: 应用名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      publishScope:
+        description: private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布
+        type: string
+      publishStatus:
+        description: draft:草稿，publish:发布
+        type: string
+      updatedAt:
+        description: 应用更新时间(用于历史记录排序)
         type: string
     type: object
   response.AdminRag:
@@ -6557,8 +6888,18 @@ definitions:
       version:
         type: string
     type: object
-  response.AdminWorkflowDetail:
+  response.AdminTool:
     properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: logo
+      description:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
       ownerOrgId:
         description: 拥有者组织id
         type: string
@@ -6570,6 +6911,103 @@ definitions:
         type: string
       ownerUserName:
         description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      toolId:
+        description: toolId
+        type: string
+      updatedAt:
+        description: 更新时间
+        type: string
+    type: object
+  response.AdminToolBase:
+    properties:
+      authorizedPersonnelList:
+        description: 指定人员列表
+        items:
+          $ref: '#/definitions/response.AuthorizedPersonnel'
+        type: array
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 应用图标
+      createdAt:
+        description: 应用创建时间
+        type: string
+      desc:
+        description: 应用描述
+        type: string
+      name:
+        description: 应用名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      publishScope:
+        description: private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布
+        type: string
+      publishStatus:
+        description: draft:草稿，publish:发布
+        type: string
+      updatedAt:
+        description: 应用更新时间(用于历史记录排序)
+        type: string
+    type: object
+  response.AdminWorkflow:
+    properties:
+      appId:
+        description: 应用id
+        type: string
+      appType:
+        description: 应用类型
+        type: string
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 应用图标
+      category:
+        description: 智能体分类(1:单智能体,2:多智能体)
+        type: integer
+      createdAt:
+        description: 应用创建时间
+        type: string
+      desc:
+        description: 应用描述
+        type: string
+      name:
+        description: 应用名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      publishType:
+        description: 发布类型(public:公开发布,private:私密发布)，为空表示未发布(草稿)
+        type: string
+      uniqueId:
+        description: 随机unique id(每次动态生成)
+        type: string
+      updatedAt:
+        description: 应用更新时间(用于历史记录排序)
+        type: string
+      version:
+        description: 已发布应用的版本号(未发布时为空)
         type: string
     type: object
   response.AgentFileMeta:
@@ -7234,6 +7672,9 @@ definitions:
         type: string
       knowledgeName:
         type: string
+      meta_data:
+        description: MetaData 命中片段元信息，原样透传 rag 返回，如 file_name/download_link/page_num/chunk_total_num
+          等
       rerankInfo:
         items:
           $ref: '#/definitions/response.RerankInfo'
@@ -10106,31 +10547,6 @@ definitions:
       status:
         type: string
     type: object
-  response.QRLoginResponse:
-    properties:
-      expireAt:
-        type: integer
-      expireTime:
-        type: integer
-      qrUrl:
-        type: string
-      sessionId:
-        type: string
-    type: object
-  response.QRLoginStatusResponse:
-    properties:
-      baseUrl:
-        description: 微信扫码成功时返回的平台 baseUrl
-        type: string
-      credentials:
-        additionalProperties:
-          type: string
-        type: object
-      error:
-        type: string
-      status:
-        type: string
-    type: object
   response.RSAPublicKey:
     properties:
       challenge:
@@ -11642,6 +12058,149 @@ paths:
       summary: 管理员中心获取问答对列表
       tags:
       - admin_center.knowledge
+  /admin/center/mcp/base:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心MCP基础信息
+      parameters:
+      - description: MCP基础信息参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminMCPBaseReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AdminMCPBase'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心MCP基础信息
+      tags:
+      - admin.mcp
+  /admin/center/mcp/custom/detail:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心导入MCP详情
+      parameters:
+      - description: 导入MCP详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminMCPDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.MCPDetail'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心导入MCP详情
+      tags:
+      - admin.mcp
+  /admin/center/mcp/page/list:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心MCP全局列表
+      parameters:
+      - description: MCP全局列表参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminMCPPageListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PageResult'
+            - properties:
+                list:
+                  $ref: '#/definitions/response.AdminMCP'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心MCP全局列表
+      tags:
+      - admin.mcp
+  /admin/center/mcp/server/detail:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心创建MCP详情
+      parameters:
+      - description: 创建MCP详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminMCPDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.MCPServerDetail'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心创建MCP详情
+      tags:
+      - admin.mcp
+  /admin/center/mcp/tool/list:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心获取MCP Tool列表
+      parameters:
+      - description: mcp工具列表请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminMCPToolListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.MCPToolList'
+              type: object
+      summary: 管理员中心获取MCP Tool列表
+      tags:
+      - admin.mcp
   /admin/center/model/base:
     post:
       consumes:
@@ -11729,6 +12288,93 @@ paths:
       summary: 管理员中心模型全局列表
       tags:
       - admin_center.model
+  /admin/center/prompt/base:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心提示词基础信息
+      parameters:
+      - description: MCP基础信息参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminPromptBaseReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AdminPromptBase'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心提示词基础信息
+      tags:
+      - admin.prompt
+  /admin/center/prompt/detail:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心提示词详情
+      parameters:
+      - description: 提示词详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminPromptDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.CustomPrompt'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心提示词详情
+      tags:
+      - admin.prompt
+  /admin/center/prompt/page/list:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心提示词全局列表
+      parameters:
+      - description: 提示词全局列表参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminPromptPageListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PageResult'
+            - properties:
+                list:
+                  $ref: '#/definitions/response.AdminPrompt'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心提示词全局列表
+      tags:
+      - admin.prompt
   /admin/center/rag/base:
     post:
       consumes:
@@ -12026,6 +12672,93 @@ paths:
       summary: 获取我发布skill版本列表
       tags:
       - admin_center.skill
+  /admin/center/tool/base:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心工具基础信息
+      parameters:
+      - description: 工具基础信息参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminToolBaseReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AdminToolBase'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心工具基础信息
+      tags:
+      - admin.tool
+  /admin/center/tool/detail:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心工具详情
+      parameters:
+      - description: 工具详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminToolDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.CustomToolDetail'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心工具详情
+      tags:
+      - admin.tool
+  /admin/center/tool/page/list:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心工具全局列表
+      parameters:
+      - description: 工具全局列表参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminToolPageListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PageResult'
+            - properties:
+                list:
+                  $ref: '#/definitions/response.AdminTool'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心工具全局列表
+      tags:
+      - admin.tool
   /admin/center/workflow/page/list:
     post:
       consumes:
@@ -12048,7 +12781,7 @@ paths:
             - $ref: '#/definitions/response.PageResult'
             - properties:
                 list:
-                  $ref: '#/definitions/response.AdminWorkflowDetail'
+                  $ref: '#/definitions/response.AdminWorkflow'
               type: object
       security:
       - JWT: []

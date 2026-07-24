@@ -1356,6 +1356,9 @@ definitions:
         type: string
       knowledgeName:
         type: string
+      meta_data:
+        description: MetaData 命中片段元信息，原样透传 rag 返回，如 file_name/download_link/page_num/chunk_total_num
+          等
       rerankInfo:
         items:
           $ref: '#/definitions/response.RerankInfo'
@@ -1998,17 +2001,11 @@ definitions:
       kb_name:
         type: string
       meta_data:
-        $ref: '#/definitions/response.OpenAIChatSearchMeta'
+        description: MetaData 知识库命中片段的元信息，原样透传 rag 返回（与流式一致），如 file_name/download_link/page_num/chunk_total_num
+          等
       snippet:
         type: string
       title:
-        type: string
-    type: object
-  response.OpenAIChatSearchMeta:
-    properties:
-      download_link:
-        type: string
-      file_name:
         type: string
     type: object
   response.OpenAPIAgentBriefInfo:
