@@ -51,6 +51,14 @@ export const deleteUser = data => {
     data,
   });
 };
+// 批量删除用户
+export const batchDeleteUser = data => {
+  return service({
+    url: `${USER_API}/user/batch`,
+    method: 'delete',
+    data,
+  });
+};
 // 修改用户状态
 export const changeUserStatus = data => {
   return service({

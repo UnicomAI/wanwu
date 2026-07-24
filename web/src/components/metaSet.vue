@@ -1,6 +1,6 @@
 <template>
   <div class="metaSet">
-    <div class="tool-typ">
+    <div v-if="!readonly" class="tool-typ">
       <el-button
         icon="el-icon-plus"
         type="primary"
@@ -17,6 +17,13 @@
     </div>
     <div class="docMetaData">
       <div
+        v-if="readonly && !metaDataFilterParams.metaFilterParams.length"
+        class="emptyMetaTip"
+      >
+        {{ $t('metaSet.notConfigured') }}
+      </div>
+      <div
+        v-else
         :class="[
           'docMetaBox',
           metaDataFilterParams.metaFilterParams.length > 1
@@ -32,6 +39,7 @@
           <div class="docItem_data">
             <el-select
               v-model="item.key"
+              :disabled="readonly"
               :placeholder="$t('common.select.placeholder') + 'key'"
               @change="keyChange($event, item, index)"
             >
@@ -55,6 +63,7 @@
           <div class="docItem_data">
             <el-select
               v-model="item.condition"
+              :disabled="readonly"
               :placeholder="$t('metaSet.conditionPlaceholder')"
               @change="conditionChange($event, item)"
             >
@@ -81,7 +90,9 @@
               @blur="metaValueBlur(item)"
               :placeholder="$t('common.input.placeholder') + 'value'"
               :disabled="
-                item.condition === 'empty' || item.condition === 'not empty'
+                readonly ||
+                item.condition === 'empty' ||
+                item.condition === 'not empty'
               "
             >
               <template #prefix>
@@ -99,7 +110,9 @@
               type="number"
               placeholder="number"
               :disabled="
-                item.condition === 'empty' || item.condition === 'not empty'
+                readonly ||
+                item.condition === 'empty' ||
+                item.condition === 'not empty'
               "
             >
               <template #prefix>
@@ -119,13 +132,16 @@
               type="datetime"
               :placeholder="$t('common.datePicker.placeholder')"
               :disabled="
-                item.condition === 'empty' || item.condition === 'not empty'
+                readonly ||
+                item.condition === 'empty' ||
+                item.condition === 'not empty'
               "
             ></el-date-picker>
           </div>
           <el-divider direction="vertical"></el-divider>
           <div class="docItem_data docItem_data_btn">
             <span
+              v-if="!readonly"
               class="el-icon-delete setBtn"
               @click="delMetaItem(index)"
             ></span>
@@ -134,6 +150,7 @@
         <el-select
           v-if="metaDataFilterParams.metaFilterParams.length > 1"
           v-model="metaDataFilterParams.filterLogicType"
+          :disabled="readonly"
           class="orAnd"
           :placeholder="$t('metaSet.conditionPlaceholder')"
         >
@@ -166,6 +183,10 @@ export default {
     currentMetaData: {
       type: Object,
       default: () => ({}),
+    },
+    readonly: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {
@@ -303,7 +324,7 @@ export default {
     },
     knowledgeId: {
       handler(val, old) {
-        if (val) {
+        if (val && !this.readonly) {
           if (val !== old) {
             this.getList();
           }
@@ -466,6 +487,14 @@ export default {
 
     .docMetaBox {
       width: 100%;
+    }
+
+    .emptyMetaTip {
+      width: 100%;
+      padding: 16px 0;
+      text-align: center;
+      color: #909399;
+      font-size: 14px;
     }
 
     .docMetaContainer {

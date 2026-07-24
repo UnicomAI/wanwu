@@ -42,6 +42,7 @@
                   :min="item.min"
                   :max="item.max"
                   :step="item.step"
+                  :disabled="!ruleForm[item.btnProps]"
                 ></el-slider>
               </el-col>
             </el-row>

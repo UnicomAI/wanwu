@@ -1,9 +1,15 @@
 <template>
-  <div class="mcp-detail page-wrapper" id="timeScroll">
-    <span class="back" @click="back">
+  <div
+    :id="readonly ? '' : 'timeScroll'"
+    :class="[
+      'mcp-detail',
+      { 'page-wrapper': !readonly, 'readonly-embed': readonly },
+    ]"
+  >
+    <span v-if="!readonly" class="back" @click="back">
       {{ $t('menu.back') + $t('menu.resource') }}
     </span>
-    <div class="mcp-title">
+    <div v-if="!readonly" class="mcp-title">
       <img
         class="logo"
         :src="
@@ -108,7 +114,7 @@
                 <span class="el-icon-question question-tips" />
               </el-tooltip>
             </div>
-            <div>
+            <div v-if="!readonly">
               <el-button
                 size="mini"
                 @click="$refs.toolDialog.showDialog(detail)"
@@ -164,6 +170,7 @@
                 </template>
               </el-table-column>
               <el-table-column
+                v-if="!readonly"
                 :label="$t('tool.server.bind.operate')"
                 width="200"
               >
@@ -192,10 +199,11 @@
           </div>
         </div>
 
-        <div class="tool bg-border">
+        <div v-if="!readonly" class="tool bg-border">
           <div class="tool-item">
             <p class="title">{{ $t('tool.server.detail.apiKey') }}</p>
             <el-button
+              v-if="!readonly"
               style="width: 100px"
               size="mini"
               type="primary"
@@ -204,7 +212,11 @@
             >
               {{ $t('tool.server.detail.action') }}
             </el-button>
-            <el-table :data="apiKeyList" style="width: 100%">
+            <el-table
+              v-if="apiKeyList.length"
+              :data="apiKeyList"
+              style="width: 100%"
+            >
               <el-table-column
                 :label="$t('tool.server.detail.key')"
                 prop="apiKey"
@@ -215,6 +227,7 @@
                 prop="createdAt"
               />
               <el-table-column
+                v-if="!readonly"
                 :label="$t('tool.server.detail.operate')"
                 width="200"
               >
@@ -234,8 +247,8 @@
         </div>
       </div>
     </div>
-    <addDialog ref="addDialog" @handleFetch="fetchList" />
-    <toolDialog ref="toolDialog" @handleFetch="fetchList" />
+    <addDialog v-if="!readonly" ref="addDialog" @handleFetch="fetchList" />
+    <toolDialog v-if="!readonly" ref="toolDialog" @handleFetch="fetchList" />
   </div>
 </template>
 <script>
@@ -250,6 +263,16 @@ const APPTYPE_MCPSERVER = 'mcpserver';
 export default {
   name: 'McpServiceServerDetail',
   components: { CopyIcon, addDialog, toolDialog },
+  props: {
+    readonly: {
+      type: Boolean,
+      default: false,
+    },
+    embeddedDetail: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
   data() {
     return {
       tabActive: 0,
@@ -267,6 +290,14 @@ export default {
       },
       // 深度观察监听
       deep: true,
+    },
+    embeddedDetail: {
+      handler(val) {
+        if (!this.readonly) return;
+        this.detail = val || {};
+        this.apiKeyList = val?.apiKeyList || [];
+      },
+      immediate: true,
     },
   },
   computed: {
@@ -287,6 +318,7 @@ export default {
   methods: {
     avatarSrc,
     initData() {
+      if (this.readonly) return;
       this.mcpServerId = this.$route.query.mcpServerId;
       this.tabActive = 0;
       getServer({ mcpServerId: this.mcpServerId }).then(res => {
@@ -428,5 +460,10 @@ export default {
 
 .tooltip {
   max-width: 500px !important;
+}
+
+.mcp-detail.readonly-embed {
+  padding: 0;
+  overflow: visible;
 }
 </style>

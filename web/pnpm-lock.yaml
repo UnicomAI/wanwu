@@ -86,6 +86,9 @@ importers:
       katex:
         specifier: ^0.16.9
         version: 0.16.45
+      lodash-es:
+        specifier: ^4.18.1
+        version: 4.18.1
       mammoth:
         specifier: ^1.10.0
         version: 1.12.0
@@ -3938,8 +3941,8 @@ packages:
     resolution: {integrity: sha512-pQpZbdBu7wCTmQUh7ufPmLr0pFoObnGUoL/yhtwJDgmmQpbkg/0HSVti25Fu4rmd1oCR6NGWe9vqTWuWv3GcNA==}
     hasBin: true
 
-  katex@0.17.0:
-    resolution: {integrity: sha512-Vdw0ATsQ9V+LuegM/BTwQqV/6cTl5lbGcIrU+BCgLxyf6bo38ybOr372tuSIxir3CN720flu1meYR6XzNMwQnw==}
+  katex@0.18.1:
+    resolution: {integrity: sha512-Td8GCYSxDAoMhHOlKmCFMJ/hz5qlAAb71n66Dryw9nfCVfumLo7nhuotbvKom/XPADmrYC3O5QR71EPq4DarJQ==}
     hasBin: true
 
   khroma@1.4.1:
@@ -7452,7 +7455,7 @@ snapshots:
 
   '@ruanyf/markdown-it-katex@5.0.0':
     dependencies:
-      katex: 0.17.0
+      katex: 0.18.1
 
   '@sideway/address@4.1.5':
     dependencies:
@@ -10611,7 +10614,7 @@ snapshots:
     dependencies:
       commander: 8.3.0
 
-  katex@0.17.0:
+  katex@0.18.1:
     dependencies:
       commander: 8.3.0
 

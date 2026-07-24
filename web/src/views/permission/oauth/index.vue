@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="oauth-wrapper">
     <div class="table-wrap list-common wrap-fullheight">
       <div class="table-box">
         <div class="table-box-header">
@@ -274,10 +274,17 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.oauth-wrapper {
+  height: 100%;
+  .wrap-fullheight {
+    padding-bottom: 14px;
+  }
+}
+
 .table-box {
-  max-height: calc(100vh - 160px);
+  height: 100%;
   overflow-y: auto;
-  padding: 5px 10px 10px 20px;
+  padding: 5px 10px 0 20px;
 
   .table-box-header {
     display: flex;

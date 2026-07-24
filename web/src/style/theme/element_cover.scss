@@ -416,6 +416,12 @@
   }
 }
 
+.user-delete-confirm {
+  .el-message-box__status {
+    top: 12px !important;
+  }
+}
+
 .list-item {
   .el-checkbox {
     margin-right: 0 !important;

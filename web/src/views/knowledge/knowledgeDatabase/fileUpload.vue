@@ -27,7 +27,11 @@
         <!-- 文件上传 -->
         <div v-if="active === 1">
           <div class="fileBtn">
-            <el-radio-group v-model="fileType" @change="fileTypeChange">
+            <el-radio-group
+              v-if="category === 2"
+              v-model="fileType"
+              @change="fileTypeChange"
+            >
               <el-radio-button label="fileMultiModal" v-if="category === 2">
                 {{
                   $t(
@@ -38,12 +42,12 @@
               <el-radio-button label="file">
                 {{ $t('knowledgeManage.knowledgeDatabase.fileUpload.file') }}
               </el-radio-button>
-              <el-radio-button label="fileUrl">
-                {{ $t('knowledgeManage.knowledgeDatabase.fileUpload.fileUrl') }}
-              </el-radio-button>
-              <el-radio-button label="url">
-                {{ $t('knowledgeManage.knowledgeDatabase.fileUpload.url') }}
-              </el-radio-button>
+              <!--              <el-radio-button label="fileUrl">-->
+              <!--                {{ $t('knowledgeManage.knowledgeDatabase.fileUpload.fileUrl') }}-->
+              <!--              </el-radio-button>-->
+              <!--              <el-radio-button label="url">-->
+              <!--                {{ $t('knowledgeManage.knowledgeDatabase.fileUpload.url') }}-->
+              <!--              </el-radio-button>-->
             </el-radio-group>
           </div>
           <div

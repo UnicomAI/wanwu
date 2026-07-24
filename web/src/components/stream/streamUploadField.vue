@@ -92,7 +92,7 @@
                             }}
                           </span>
                         </el-tooltip>
-                        <span>[{{ getFileSizeDisplay(f.size) }}]</span>
+                        <span>[{{ formatFileSize(f.size) }}]</span>
                       </p>
                     </div>
                   </div>
@@ -162,7 +162,7 @@
 <script>
 import uploadChunk from '@/mixins/uploadChunk';
 import FileIcon from '@/components/FileIcon.vue';
-import { getFileIconType } from '@/utils/util';
+import { formatFileSize, getFileIconType } from '@/utils/util';
 
 export default {
   components: { FileIcon },
@@ -356,6 +356,7 @@ export default {
   },
   methods: {
     getFileIconType,
+    formatFileSize,
     checkScrollable() {
       this.$nextTick(() => {
         const container = this.$refs.imgList;
@@ -556,11 +557,6 @@ export default {
         (file?.fileType || this.getFileType(file?.name || '')) === 'audio/*'
       );
     },
-    getFileSizeDisplay(fileSize) {
-      return fileSize > 1024
-        ? `${(fileSize / (1024 * 1024)).toFixed(2)} MB`
-        : `${fileSize} bytes`;
-    },
     validateUploadFile(file, fileType) {
       const filename = (file && file.name) || '';
       const acceptedExtensions = this.tipsArr
@@ -624,6 +620,50 @@ export default {
     },
     isFileOverSize(file) {
       return this.maxFileSizeBytes && file && file.size > this.maxFileSizeBytes;
+    },
+    handleUploadFailure({ showMessage = true } = {}) {
+      const currentFile = this.fileList[this.fileIndex];
+      if (!currentFile) {
+        this.isUploading = false;
+        return;
+      }
+
+      if (showMessage) {
+        this.$message.error(
+          `${currentFile.name}` + this.$t('fileChunk.uploadFail'),
+        );
+      }
+
+      const fileIndex = this.fileList.findIndex(
+        file => file.uid === currentFile.uid,
+      );
+      if (fileIndex > -1) this.fileList.splice(fileIndex, 1);
+
+      const fileInfoIndex = this.fileInfo.findIndex(
+        file => file.uid === currentFile.uid,
+      );
+      if (fileInfoIndex > -1) this.fileInfo.splice(fileInfoIndex, 1);
+
+      if (currentFile.raw && currentFile.fileUrl) {
+        URL.revokeObjectURL(currentFile.fileUrl);
+      }
+
+      const lastFile = this.fileList[this.fileList.length - 1];
+      this.file = lastFile || null;
+      this.fileIndex = lastFile
+        ? this.fileList.findIndex(file => file.uid === lastFile.uid)
+        : 0;
+      this.fileType = (lastFile && lastFile.fileType) || '';
+      this.fileUrl = (lastFile && lastFile.fileUrl) || '';
+      this.imgUrl = (lastFile && lastFile.imgUrl) || '';
+      this.isStop = true;
+      this.isUploading = false;
+      this.checkScrollable();
+
+      setTimeout(() => {
+        this.isStop = false;
+        this.triggerNextUpload();
+      }, 0);
     },
     uploadFile(fileName, oldFileName, fiePath) {
       // 文件上传完成后，释放队列锁并继续调度下一个 pending 文件

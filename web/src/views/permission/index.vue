@@ -3,35 +3,14 @@
     <div class="page-title">
       <i class="el-icon-arrow-left" @click="$router.go(-1)" />
       <img class="page-title-img" src="@/assets/imgs/org.png" alt="" />
-      <span class="page-title-name">{{ $t('menu.setting') }}</span>
-    </div>
-    <!-- tabs: 改版，组织、用户、角色，提到一级 tab 标签，不分二级 tab -->
-    <div class="tabs tabs-spacing">
-      <div
-        v-for="item in list"
-        v-if="checkPerm(item.perm)"
-        :key="item.tab"
-        :class="['tab', { active: tabActive === item.tab }]"
-        @click="tabClick(item.tab)"
-      >
-        {{ item.name }}
-      </div>
+      <span class="page-title-name">{{ $t('adminCenter.title') }}</span>
     </div>
 
-    <div v-if="tabActive === 0" class="org-wrapper">
-      <Org />
+    <div v-if="canViewCurrent" :class="currentView.wrapperClass">
+      <component :is="currentView.component" />
     </div>
-    <div v-if="tabActive === 1" class="org-wrapper">
-      <User />
-    </div>
-    <div v-if="tabActive === 2" class="org-wrapper">
-      <Role />
-    </div>
-    <div v-if="tabActive === 3" class="info-setting-wrapper">
-      <InfoSetting />
-    </div>
-    <div v-if="tabActive === 4">
-      <Oauth />
+    <div v-else class="no-page-permission">
+      {{ $t('common.message.noPagePermission') }}
     </div>
   </div>
 </template>
@@ -44,43 +23,48 @@ import InfoSetting from '@/views/infoSetting/index.vue';
 import Oauth from './oauth/index.vue';
 import { checkPerm, PERMS } from '@/router/permission';
 
+const VIEW_MAP = {
+  org: {
+    component: Org,
+    wrapperClass: 'org-wrapper',
+    title: 'org.title',
+  },
+  user: {
+    component: User,
+    wrapperClass: 'org-wrapper',
+    title: 'user.title',
+  },
+  role: {
+    component: Role,
+    wrapperClass: 'org-wrapper',
+    title: 'role.title',
+  },
+  platformConfig: {
+    component: InfoSetting,
+    wrapperClass: 'info-setting-wrapper',
+    perm: PERMS.SETTING,
+    title: 'infoSetting.title',
+  },
+  oAuth: {
+    component: Oauth,
+    perm: PERMS.OAUTH,
+    wrapperClass: 'oauth-setting-wrapper',
+    title: 'oauth.title',
+  },
+};
 export default {
   name: 'Permission',
   components: { User, Role, Org, InfoSetting, Oauth },
-  data() {
-    return {
-      tabActive: 0,
-      list: [
-        {
-          name: this.$t('org.title'),
-          tab: 0,
-        },
-        {
-          name: this.$t('user.title'),
-          tab: 1,
-        },
-        {
-          name: this.$t('role.title'),
-          tab: 2,
-        },
-        {
-          name: this.$t('infoSetting.title'),
-          tab: 3,
-          perm: PERMS.SETTING,
-        },
-        {
-          name: this.$t('oauth.title'),
-          tab: 4,
-          perm: PERMS.OAUTH,
-        },
-      ],
-    };
+  computed: {
+    currentView() {
+      return VIEW_MAP[this.$route.query.key] || VIEW_MAP.org;
+    },
+    canViewCurrent() {
+      return this.checkPerm(this.currentView.perm);
+    },
   },
   methods: {
     checkPerm,
-    tabClick(status) {
-      this.tabActive = status;
-    },
   },
 };
 </script>
@@ -88,13 +72,18 @@ export default {
 <style lang="scss" scoped>
 @import '@/style/tabs.scss';
 .page-wrapper {
+  height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
   .tabs-spacing {
     padding-top: 14px;
     padding-bottom: 10px;
   }
 }
 .org-wrapper {
-  margin: 10px 0 0 20px;
+  padding: 10px 0 14px 20px;
+  height: 100%;
+  overflow: hidden;
 }
 .page-title {
   .el-icon-arrow-left {
@@ -105,9 +94,19 @@ export default {
   }
 }
 .info-setting-wrapper {
-  margin: 10px 10px 0 20px;
-  max-height: calc(100vh - 170px);
+  margin: 10px 10px 10px 20px;
+  max-height: calc(100% - 20px);
   overflow-y: auto;
-  padding-right: 10px;
+}
+.no-page-permission {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 150px);
+  color: #ccc;
+}
+.oauth-setting-wrapper {
+  flex: 1;
+  overflow: hidden;
 }
 </style>

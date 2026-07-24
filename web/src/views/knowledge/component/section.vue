@@ -7,7 +7,7 @@
     <div class="title">
       <i
         class="el-icon-arrow-left"
-        @click="$router.go(-1)"
+        @click="goBack"
         style="margin-right: 20px; font-size: 20px; cursor: pointer"
       ></i>
       {{ obj.name }}
@@ -67,7 +67,8 @@
               POWER_TYPE_ADMIN,
               POWER_TYPE_SYSTEM_ADMIN,
             ].includes(permissionType) &&
-            obj.disable !== 'true'
+            obj.disable !== 'true' &&
+            obj.readonly !== 'true'
           "
           class="el-icon-edit-outline editIcon"
           @click="showDatabase(metaDataList || [])"
@@ -586,6 +587,7 @@
       </span>
     </el-dialog>
     <dataBaseDialog
+      v-if="obj.readonly !== 'true'"
       ref="dataBase"
       @updateData="updateData"
       :knowledgeId="obj.knowledgeId"
@@ -618,6 +620,7 @@ import {
   delSegmentChild,
   updateSegmentChild,
 } from '@/api/knowledge';
+import { getAdminKnowledgeFileDetail } from '@/api/adminCenter';
 import dataBaseDialog from './dataBaseDialog';
 import tagDialog from './tagDialog.vue';
 import createChunk from './chunk/createChunk.vue';
@@ -717,6 +720,13 @@ export default {
   },
   methods: {
     Md2Img,
+    goBack() {
+      this.obj.readonly === 'true'
+        ? this.$router.replace(
+            `/adminCenter/knowledge/detail?knowledgeId=${this.obj.knowledgeId}`,
+          )
+        : this.$router.replace(`/knowledge/doclist/${this.obj.knowledgeId}`);
+    },
     convertModelIcon(iconPath) {
       return iconPath ? avatarSrc(iconPath) : getModelDefaultIcon();
     },
@@ -977,12 +987,20 @@ export default {
       // 预览文件只在 created 首次加载时下载一次,后续 getList 不再重复下载
       this.previewLoading = !this.previewFileName;
 
-      getSectionList({
+      const params = {
         keyword: this.keyword,
         docId: this.obj.id,
         pageNo: this.page.pageNo,
         pageSize: this.page.pageSize,
-      })
+      };
+      const request =
+        this.obj.readonly === 'true'
+          ? getAdminKnowledgeFileDetail({
+              ...params,
+              knowledgeId: this.obj.knowledgeId,
+            })
+          : getSectionList(params);
+      request
         .then(res => {
           this.res = res.data;
           this.page.total = res.data.segmentTotalNum || 0;
