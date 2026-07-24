@@ -43,6 +43,9 @@ func (s *Service) GetCustomToolInfo(ctx context.Context, req *mcp_service.GetCus
 	if req.CustomToolId == "" {
 		return nil, errStatus(errs.Code_MCPGetCustomToolInfoErr, toErrStatus("mcp_get_custom_tool_info_err", "customToolId is empty"))
 	}
+	if _, err := util.U32(req.CustomToolId); err != nil {
+		return nil, errStatus(errs.Code_MCPGetCustomToolInfoErr, toErrStatus("mcp_get_custom_tool_info_err", "customToolId parse error"))
+	}
 	info, err := s.cli.GetCustomTool(ctx, &model.CustomTool{
 		ID: util.MustU32(req.CustomToolId),
 	})

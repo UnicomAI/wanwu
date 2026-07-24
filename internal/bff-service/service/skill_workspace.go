@@ -109,3 +109,36 @@ func ensureGitInitializedAt(customSkillID, skillDir string) (bool, error) {
 func workspaceFilePath(basePath, relativePath string) (string, string, error) {
 	return path_util.JoinWithinBase(basePath, relativePath, false)
 }
+
+// commitSkillWorkspaceIfFirstCommit 在 skill git 工作区"从未提交(无 HEAD)"时，
+// 将 skill 子目录全部变更提交。用于 import/convert/chat 首轮产物落盘后的首次提交。
+// 仅当从未提交时才提交；已存在 HEAD 则跳过，避免覆盖用户后续手动提交历史。
+// best-effort：任何失败仅记日志，不阻断主流程、不回滚已落盘文件。
+func commitSkillWorkspaceIfFirstCommit(customSkillID, message string) {
+	ws, err := resolveInitializedSkillWorkspace(customSkillID)
+	if err != nil {
+		log.Warnf("[skill-autocommit] customSkillID %v resolve workspace err: %v", customSkillID, err)
+		return
+	}
+	// 仅"从未提交"才提交；已有 HEAD 直接跳过
+	if ws.repo.HasHead() {
+		return
+	}
+	hasChanges, err := ws.repo.HasChangesInSubDir(generalAgentWorkspaceSkillDirName)
+	if err != nil {
+		log.Warnf("[skill-autocommit] customSkillID %v check changes err: %v", customSkillID, err)
+		return
+	}
+	if !hasChanges {
+		return
+	}
+	mu := ws.repo.GetMutex()
+	mu.Lock()
+	defer mu.Unlock()
+	commitHash, err := ws.repo.CommitAllInSubDirLocked(generalAgentWorkspaceSkillDirName, message)
+	if err != nil {
+		log.Warnf("[skill-autocommit] customSkillID %v commit err: %v", customSkillID, err)
+		return
+	}
+	log.Infof("[skill-autocommit] customSkillID %v first commit %s msg=%q", customSkillID, commitHash, message)
+}

@@ -87,6 +87,9 @@ func (s *Service) UpdateCustomMCP(ctx context.Context, req *mcp_service.UpdateCu
 }
 
 func (s *Service) GetCustomMCP(ctx context.Context, req *mcp_service.GetCustomMCPReq) (*mcp_service.CustomMCPDetail, error) {
+	if _, err := util.U32(req.McpId); err != nil {
+		return nil, errStatus(errs.Code_MCPGetCustomMCPErr, toErrStatus("mcp_get_err", err.Error()))
+	}
 	mcp, err := s.cli.GetMCP(ctx, util.MustU32(req.McpId))
 	if err != nil {
 		return nil, errStatus(errs.Code_MCPGetCustomMCPErr, err)

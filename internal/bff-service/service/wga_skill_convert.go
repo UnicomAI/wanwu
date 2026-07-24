@@ -100,6 +100,9 @@ func ConvertGeneralAgentSkillConversation(ctx *gin.Context, userId, orgId string
 		return nil, err
 	}
 
+	// 首次产物自动提交（从未提交时）
+	commitSkillWorkspaceIfFirstCommit(customSkillID, "skill convert")
+
 	return &response.ConvertGeneralAgentSkillConversationResp{
 		CustomSkillID: customSkillID,
 		ThreadID:      threadResp.ThreadId,

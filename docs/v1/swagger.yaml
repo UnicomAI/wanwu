@@ -1607,18 +1607,6 @@ definitions:
     required:
     - pageSize
     type: object
-  request.AnalysisUrlDocReq:
-    properties:
-      knowledgeId:
-        type: string
-      urlList:
-        items:
-          type: string
-        type: array
-    required:
-    - knowledgeId
-    - urlList
-    type: object
   request.AppKnowledgeBase:
     properties:
       avatar:
@@ -7034,13 +7022,6 @@ definitions:
       size:
         type: integer
     type: object
-  response.AnalysisDocUrlResp:
-    properties:
-      urlList:
-        items:
-          $ref: '#/definitions/response.DocUrl'
-        type: array
-    type: object
   response.ApiKeyStatisticRouteItem:
     properties:
       method:
@@ -7672,8 +7653,8 @@ definitions:
         type: string
       knowledgeName:
         type: string
-      meta_data:
-        description: MetaData 命中片段元信息，原样透传 rag 返回，如 file_name/download_link/page_num/chunk_total_num
+      metaData:
+        description: MetaData 命中片段元信息，对象内容原样透传 rag 返回（rag 侧字段名为 meta_data），如 file_name/download_link/page_num/chunk_total_num
           等
       rerankInfo:
         items:
@@ -8602,15 +8583,6 @@ definitions:
         items:
           $ref: '#/definitions/response.DocUploadLimit'
         type: array
-    type: object
-  response.DocUrl:
-    properties:
-      fileName:
-        type: string
-      fileSize:
-        type: integer
-      url:
-        type: string
     type: object
   response.EmbeddingModelInfo:
     properties:
@@ -19407,35 +19379,6 @@ paths:
       security:
       - JWT: []
       summary: 获取可上传文件类型
-      tags:
-      - knowledge.doc
-  /knowledge/doc/url/analysis:
-    post:
-      consumes:
-      - application/json
-      description: 解析url
-      parameters:
-      - description: 解析url请求参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/request.AnalysisUrlDocReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/response.AnalysisDocUrlResp'
-              type: object
-      security:
-      - JWT: []
-      summary: 解析url
       tags:
       - knowledge.doc
   /knowledge/export/record:

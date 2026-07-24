@@ -4933,8 +4933,8 @@
                 "knowledgeName": {
                     "type": "string"
                 },
-                "meta_data": {
-                    "description": "MetaData 命中片段元信息，原样透传 rag 返回，如 file_name/download_link/page_num/chunk_total_num 等"
+                "metaData": {
+                    "description": "MetaData 命中片段元信息，对象内容原样透传 rag 返回（rag 侧字段名为 meta_data），如 file_name/download_link/page_num/chunk_total_num 等"
                 },
                 "rerankInfo": {
                     "type": "array",
