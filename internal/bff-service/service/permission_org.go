@@ -91,15 +91,20 @@ func GetAdminOrgSubTree(ctx *gin.Context, userID string) ([]*response.AdminOrgTr
 }
 
 func GetAdminOrgSelect(ctx *gin.Context, userID string) (*response.Select, error) {
-	resp, err := iam.GetAdminOrgSubTree(ctx.Request.Context(), &iam_service.GetAdminOrgSubTreeReq{
+	resp, err := iam.GetAdminOrgSelect(ctx.Request.Context(), &iam_service.GetAdminOrgSelectReq{
 		UserId: userID,
 	})
 	if err != nil {
 		return nil, err
 	}
-	// 从树中提取所有有管理权限的组织（hasPerm=true），展平为列表
 	var selects []response.IDNameWithAvatar
-	collectAdminOrgs(resp.Orgs, &selects)
+	for _, s := range resp.Selects {
+		selects = append(selects, response.IDNameWithAvatar{
+			ID:     s.Id,
+			Name:   s.Name,
+			Avatar: cacheOrgAvatar(s.AvatarPath),
+		})
+	}
 	return &response.Select{Select: selects}, nil
 }
 
@@ -132,20 +137,6 @@ func toAdminOrgTreeNodes(nodes []*iam_service.AdminOrgTreeNode) []*response.Admi
 		})
 	}
 	return ret
-}
-
-// collectAdminOrgs 递归遍历树，收集所有 hasPerm=true 的组织到扁平列表
-func collectAdminOrgs(nodes []*iam_service.AdminOrgTreeNode, out *[]response.IDNameWithAvatar) {
-	for _, node := range nodes {
-		if node.HasPerm {
-			*out = append(*out, response.IDNameWithAvatar{
-				ID:     node.OrgId,
-				Name:   node.Name,
-				Avatar: cacheOrgAvatar(node.AvatarPath),
-			})
-		}
-		collectAdminOrgs(node.Children, out)
-	}
 }
 
 func toOrgInfo(ctx *gin.Context, org *iam_service.OrgInfo) *response.OrgInfo {

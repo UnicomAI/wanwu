@@ -78,6 +78,16 @@ func (s *Service) GetFirstClassOrgAndSubs(ctx context.Context, req *iam_service.
 	}, nil
 }
 
+func (s *Service) GetAdminOrgSelect(ctx context.Context, req *iam_service.GetAdminOrgSelectReq) (*iam_service.OrgSelectResp, error) {
+	orgs, status := s.cli.GetAdminOrgSelect(ctx, util.MustU32(req.UserId))
+	if status != nil {
+		return nil, errStatus(errs.Code_IAMOrg, status)
+	}
+	return &iam_service.OrgSelectResp{
+		Selects: toProtoIDNameWithAvatars(orgs),
+	}, nil
+}
+
 func (s *Service) GetAdminOrgSubTree(ctx context.Context, req *iam_service.GetAdminOrgSubTreeReq) (*iam_service.AdminOrgSubTreeResp, error) {
 	nodes, status := s.cli.GetAdminOrgSubTree(ctx, util.MustU32(req.UserId))
 	if status != nil {

@@ -43,6 +43,7 @@ const (
 	IAMService_GetUsersByOrgIDs_FullMethodName            = "/iam_service.IAMService/GetUsersByOrgIDs"
 	IAMService_GetOrgAndSubOrgSelectByUser_FullMethodName = "/iam_service.IAMService/GetOrgAndSubOrgSelectByUser"
 	IAMService_GetFirstClassOrgAndSubs_FullMethodName     = "/iam_service.IAMService/GetFirstClassOrgAndSubs"
+	IAMService_GetAdminOrgSelect_FullMethodName           = "/iam_service.IAMService/GetAdminOrgSelect"
 	IAMService_GetAdminOrgSubTree_FullMethodName          = "/iam_service.IAMService/GetAdminOrgSubTree"
 	IAMService_GetAdminOrgIDs_FullMethodName              = "/iam_service.IAMService/GetAdminOrgIDs"
 	IAMService_CreateOrg_FullMethodName                   = "/iam_service.IAMService/CreateOrg"
@@ -132,6 +133,8 @@ type IAMServiceClient interface {
 	GetOrgAndSubOrgSelectByUser(ctx context.Context, in *GetOrgAndSubOrgSelectByUserReq, opts ...grpc.CallOption) (*GetOrgAndSubOrgSelectByUserResp, error)
 	// 获取组织树
 	GetFirstClassOrgAndSubs(ctx context.Context, in *GetFirstClassOrgAndSubsReq, opts ...grpc.CallOption) (*GetFirstClassOrgAndSubsResp, error)
+	// 获取管理员组织及下级组织列表（用于下拉选择）
+	GetAdminOrgSelect(ctx context.Context, in *GetAdminOrgSelectReq, opts ...grpc.CallOption) (*OrgSelectResp, error)
 	// 获取管理员组织及下级组织树
 	GetAdminOrgSubTree(ctx context.Context, in *GetAdminOrgSubTreeReq, opts ...grpc.CallOption) (*AdminOrgSubTreeResp, error)
 	// 获取用户有权限的组织ID列表（登录用户的管理员组织及其所有下级组织）
@@ -443,6 +446,16 @@ func (c *iAMServiceClient) GetFirstClassOrgAndSubs(ctx context.Context, in *GetF
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetFirstClassOrgAndSubsResp)
 	err := c.cc.Invoke(ctx, IAMService_GetFirstClassOrgAndSubs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetAdminOrgSelect(ctx context.Context, in *GetAdminOrgSelectReq, opts ...grpc.CallOption) (*OrgSelectResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OrgSelectResp)
+	err := c.cc.Invoke(ctx, IAMService_GetAdminOrgSelect_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -869,6 +882,8 @@ type IAMServiceServer interface {
 	GetOrgAndSubOrgSelectByUser(context.Context, *GetOrgAndSubOrgSelectByUserReq) (*GetOrgAndSubOrgSelectByUserResp, error)
 	// 获取组织树
 	GetFirstClassOrgAndSubs(context.Context, *GetFirstClassOrgAndSubsReq) (*GetFirstClassOrgAndSubsResp, error)
+	// 获取管理员组织及下级组织列表（用于下拉选择）
+	GetAdminOrgSelect(context.Context, *GetAdminOrgSelectReq) (*OrgSelectResp, error)
 	// 获取管理员组织及下级组织树
 	GetAdminOrgSubTree(context.Context, *GetAdminOrgSubTreeReq) (*AdminOrgSubTreeResp, error)
 	// 获取用户有权限的组织ID列表（登录用户的管理员组织及其所有下级组织）
@@ -1024,6 +1039,9 @@ func (UnimplementedIAMServiceServer) GetOrgAndSubOrgSelectByUser(context.Context
 }
 func (UnimplementedIAMServiceServer) GetFirstClassOrgAndSubs(context.Context, *GetFirstClassOrgAndSubsReq) (*GetFirstClassOrgAndSubsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFirstClassOrgAndSubs not implemented")
+}
+func (UnimplementedIAMServiceServer) GetAdminOrgSelect(context.Context, *GetAdminOrgSelectReq) (*OrgSelectResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAdminOrgSelect not implemented")
 }
 func (UnimplementedIAMServiceServer) GetAdminOrgSubTree(context.Context, *GetAdminOrgSubTreeReq) (*AdminOrgSubTreeResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAdminOrgSubTree not implemented")
@@ -1567,6 +1585,24 @@ func _IAMService_GetFirstClassOrgAndSubs_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMServiceServer).GetFirstClassOrgAndSubs(ctx, req.(*GetFirstClassOrgAndSubsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetAdminOrgSelect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAdminOrgSelectReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetAdminOrgSelect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetAdminOrgSelect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetAdminOrgSelect(ctx, req.(*GetAdminOrgSelectReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2335,6 +2371,10 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFirstClassOrgAndSubs",
 			Handler:    _IAMService_GetFirstClassOrgAndSubs_Handler,
+		},
+		{
+			MethodName: "GetAdminOrgSelect",
+			Handler:    _IAMService_GetAdminOrgSelect_Handler,
 		},
 		{
 			MethodName: "GetAdminOrgSubTree",

@@ -60,6 +60,8 @@ service IAMService {
   rpc GetOrgAndSubOrgSelectByUser(GetOrgAndSubOrgSelectByUserReq) returns (GetOrgAndSubOrgSelectByUserResp) {}
   // 获取组织树
   rpc GetFirstClassOrgAndSubs(GetFirstClassOrgAndSubsReq) returns (GetFirstClassOrgAndSubsResp) {}
+  // 获取管理员组织及下级组织列表（用于下拉选择）
+  rpc GetAdminOrgSelect(GetAdminOrgSelectReq) returns (OrgSelectResp) {}
   // 获取管理员组织及下级组织树
   rpc GetAdminOrgSubTree(GetAdminOrgSubTreeReq) returns (AdminOrgSubTreeResp) {}
   // 获取用户有权限的组织ID列表（登录用户的管理员组织及其所有下级组织）
@@ -397,6 +399,10 @@ message GetFirstClassOrgAndSubsResp {
 }
 
 message GetAdminOrgSubTreeReq {
+  string userId = 1;
+}
+
+message GetAdminOrgSelectReq {
   string userId = 1;
 }
 
