@@ -148,6 +148,48 @@ func collectOrgIDs(nodes []*AdminOrgTreeNode, ids *[]uint32) {
 	}
 }
 
+func (c *Client) GetAdminOrgSelect(ctx context.Context, userID uint32) ([]IDNameWithAvatar, *errs.Status) {
+	// 复用 GetAdminOrgSubTree 获取管理员组织树
+	nodes, status := c.GetAdminOrgSubTree(ctx, userID)
+	if status != nil {
+		return nil, status
+	}
+	// 在新的事务中获取组织树（用于解析全路径名）
+	var selects []IDNameWithAvatar
+	if st := c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+		orgTree, err := getOrgTree(tx)
+		if err != nil {
+			return toErrStatus("iam_orgs_select", err.Error())
+		}
+		selects = collectAdminOrgSelects(nodes, orgTree)
+		return nil
+	}); st != nil {
+		return nil, st
+	}
+	return selects, nil
+}
+
+// collectAdminOrgSelects 递归遍历管理员组织树，收集所有 hasPerm=true 的组织到扁平列表，
+// 并使用 orgTree.GetFullName 设置全路径名（如 "总公司 - 部门A - 小组1"）
+func collectAdminOrgSelects(nodes []*AdminOrgTreeNode, orgTree *model.OrgNode) []IDNameWithAvatar {
+	var out []IDNameWithAvatar
+	var dfs func([]*AdminOrgTreeNode)
+	dfs = func(ns []*AdminOrgTreeNode) {
+		for _, n := range ns {
+			if n.HasPerm {
+				out = append(out, IDNameWithAvatar{
+					ID:         n.ID,
+					Name:       orgTree.GetFullName(n.ID),
+					AvatarPath: n.AvatarPath,
+				})
+			}
+			dfs(n.Children)
+		}
+	}
+	dfs(nodes)
+	return out
+}
+
 func (c *Client) GetAdminOrgSubTree(ctx context.Context, userID uint32) ([]*AdminOrgTreeNode, *errs.Status) {
 	var ret []*AdminOrgTreeNode
 	return ret, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
