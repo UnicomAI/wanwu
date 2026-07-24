@@ -309,6 +309,7 @@ func getUserInfoAndPermission(tx *gorm.DB, user *model.User, language string, no
 				orgID = org.Org.ID
 				break
 			}
+			orgID = org.Org.ID
 		}
 	}
 	if orgID != 0 {
