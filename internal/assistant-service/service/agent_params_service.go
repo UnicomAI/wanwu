@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
 	"reflect"
 	"strconv"
 
@@ -75,8 +76,9 @@ func (a *AgentChatParamsBuilder) ModelParams() *AgentChatParamsBuilder {
 	}
 	params.ModelId = modelConfig.ModelId
 	params.MaxHistory = int32(params_process.BuildMaxHistory(assistant.Assistant))
-	_, modelParams, _ := mp.ToModelParams(modelConfig.Provider, modelConfig.ModelType, modelConfig.Config)
-	buildModelParams(modelParams, params)
+	allParams, modelParams, _ := mp.ToModelParams(modelConfig.Provider, modelConfig.ModelType, modelConfig.Config)
+
+	buildModelParams(allParams, modelParams, params)
 
 	if a.userQueryParams != nil && a.userQueryParams.ConversationId != "" {
 		a.postProcessList = append(a.postProcessList, params_process.ConversionHistoryType)
@@ -168,16 +170,33 @@ func buildAgentParams(agent *AgentChatParamsBuilder, prepareParams *params_proce
 	return nil
 }
 
-func buildModelParams(params map[string]interface{}, modelParams *assistant_service.ModelParams) *assistant_service.ModelParams {
-	if len(params) == 0 {
+func buildModelParams(allParams interface{}, params map[string]interface{}, modelParams *assistant_service.ModelParams) *assistant_service.ModelParams {
+	if allParams == nil || len(params) == 0 {
 		return modelParams
 	}
+
 	modelParams.Temperature = toDouble(params["temperature"])
 	modelParams.TopP = toDouble(params["top_p"])
 	modelParams.FrequencyPenalty = toDouble(params["frequency_penalty"])
 	modelParams.PresencePenalty = toDouble(params["presence_penalty"])
 	modelParams.EnableThinking = toInt32Ptr(params["enable_thinking"])
 	modelParams.MaxTokens = toInt32Ptr(params["max_tokens"])
+
+	llmParams, ok := allParams.(*mp_common.LLMParams)
+	if ok {
+		if !llmParams.TemperatureEnable {
+			modelParams.Temperature = nil
+		}
+		if !llmParams.FrequencyPenaltyEnable {
+			modelParams.FrequencyPenalty = nil
+		}
+		if !llmParams.PresencePenaltyEnable {
+			modelParams.PresencePenalty = nil
+		}
+		if !llmParams.MaxTokensEnable {
+			modelParams.MaxTokens = nil
+		}
+	}
 	return modelParams
 }
 
