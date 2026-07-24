@@ -29,6 +29,9 @@ type Assistant struct {
 	NewAgent               bool                           `json:"newAgent"`            // 是否是新版本智能体
 	PublishType            string                         `json:"publishType"`         // 发布类型
 	Category               int32                          `json:"category"`            // 智能体分类 1.单智能体 2.多智能体
+	HideKnowledge          int32                          `json:"hideKnowledge"`       // 是否隐藏知识库
+	OwnerUserId            string                         `json:"ownerUserId"`         // 拥有者用户id
+	OwnerOrgId             string                         `json:"ownerOrgId"`          // 拥有者组织id
 }
 
 type AssistantWorkFlowInfo struct {

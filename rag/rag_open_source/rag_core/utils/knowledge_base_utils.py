@@ -288,16 +288,17 @@ def del_knowledge_base_files(user_id, kb_info, file_names):
         return response_info
 
 
-def get_file_content_list(user_id: str, kb_info: dict, file_name: str, page_size: int, search_after: int):
+def get_file_content_list(user_id: str, kb_info: dict, file_name: str, page_size: int, search_after: int,
+                          query_text: str = None):
     """
     获取知识库文件片段列表,用于分页展示
     """
     logger.info(f"get_file_content_list start: {user_id}, kb_info: {kb_info}, file_name: {file_name}, "
-                f"page_size:{page_size}, search_after:{search_after}")
+                f"page_size:{page_size}, search_after:{search_after}, query_text:{query_text}")
     response_info = milvus_utils.get_milvus_file_content_list(user_id, kb_info, file_name, page_size,
-                                                              search_after)
+                                                              search_after, query_text=query_text)
     logger.info(f"get_file_content_list end: {user_id}, kb_info: {kb_info}, file_name: {file_name}, "
-                f"page_size:{page_size}, search_after:{search_after}, response: {response_info}")
+                f"page_size:{page_size}, search_after:{search_after}, query_text:{query_text}, response: {response_info}")
     return response_info
 
 def get_file_child_content_list(user_id: str, kb_info: dict, file_name: str, chunk_id: int):

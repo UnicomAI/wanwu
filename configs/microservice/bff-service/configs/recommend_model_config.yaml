@@ -79,6 +79,7 @@ recommend_models:
     ocr:
       - model: "pdf-parser"
         display_name: "OCR-高精度"
+        support_filetypes: ["pdf", "png", "jpg", "jpeg"]
 #    sync-asr:
 #      - model: "yuanjing-asr"
 #        display_name: "yuanjing-asr"
@@ -161,6 +162,10 @@ recommend_models:
     embedding:
       - model: "embedding-v1"
         display_name: "embedding-v1"
+    ocr:
+      - model: "paddleocr-vl-0.9b"
+        display_name: "paddleocr-vl-0.9b"
+        support_filetypes: ["pdf", "png", "jpg", "jpeg"]
 
   - provider: "ZhiPu"
     llm:

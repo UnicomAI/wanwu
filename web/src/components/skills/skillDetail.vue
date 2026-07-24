@@ -83,6 +83,7 @@
 
         <div style="padding-top: 10px">
           <template v-if="tabActive === 0">
+            <slot name="info-header" />
             <div
               class="overview bg-border"
               v-if="detail.summary || detail.feature || detail.scenario"

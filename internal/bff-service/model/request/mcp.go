@@ -11,36 +11,36 @@ func (req *MCPIDReq) Check() error {
 }
 
 type MCPCreate struct {
-	Avatar        Avatar                 `json:"avatar"`                      // 图标
-	MCPSquareID   string                 `json:"mcpSquareId"`                 // 广场mcpId(非空表示来源于广场)
-	Name          string                 `json:"name" validate:"required"`    // 名称
-	Desc          string                 `json:"desc" validate:"required"`    // 描述
-	From          string                 `json:"from" validate:"required"`    // 来源
-	SSEURL        string                 `json:"sseUrl"`                      // SSE URL
-	StreamableURL string                 `json:"streamableUrl"`               // Streamable HTTP URL
-	Transport     string                 `json:"transport"`                   // 传输协议: "sse" 或 "streamable"
-	ApiAuth       util.ApiAuthWebRequest `json:"apiAuth" validate:"required"` // api身份认证
-	Headers       map[string]string      `json:"headers"`                     // 请求头
+	Avatar        Avatar                  `json:"avatar"`                   // 图标
+	MCPSquareID   string                  `json:"mcpSquareId"`              // 广场mcpId(非空表示来源于广场)
+	Name          string                  `json:"name" validate:"required"` // 名称
+	Desc          string                  `json:"desc" validate:"required"` // 描述
+	From          string                  `json:"from" validate:"required"` // 来源
+	SSEURL        string                  `json:"sseUrl"`                   // SSE URL
+	StreamableURL string                  `json:"streamableUrl"`            // Streamable HTTP URL
+	Transport     string                  `json:"transport"`                // 传输协议: "sse" 或 "streamable"
+	ApiAuth       *util.ApiAuthWebRequest `json:"apiAuth"`                  // api身份认证(可选，为空表示无鉴权)
+	Headers       map[string]string       `json:"headers"`                  // 请求头
 }
 
 func (req *MCPCreate) Check() error {
-	if err := util.ValidateName(&req.Name, util.SubjectMCP); err != nil {
+	if err := util.ValidateNameAllowSpace(&req.Name, util.SubjectMCP); err != nil {
 		return err
 	}
 	return util.ValidateDesc(&req.Desc, util.SubjectMCP)
 }
 
 type MCPUpdate struct {
-	Avatar        Avatar                 `json:"avatar"` // 图标
-	MCPID         string                 `json:"mcpId" validate:"required"`
-	Name          string                 `json:"name" validate:"required"`    // 名称
-	Desc          string                 `json:"desc" validate:"required"`    // 描述
-	From          string                 `json:"from" validate:"required"`    // 来源
-	SSEURL        string                 `json:"sseUrl"`                      // SSE URL
-	StreamableURL string                 `json:"streamableUrl"`               // Streamable HTTP URL
-	Transport     string                 `json:"transport"`                   // 传输协议: "sse" 或 "streamable"
-	ApiAuth       util.ApiAuthWebRequest `json:"apiAuth" validate:"required"` // api身份认证
-	Headers       map[string]string      `json:"headers"`                     // 请求头
+	Avatar        Avatar                  `json:"avatar"` // 图标
+	MCPID         string                  `json:"mcpId" validate:"required"`
+	Name          string                  `json:"name" validate:"required"` // 名称
+	Desc          string                  `json:"desc" validate:"required"` // 描述
+	From          string                  `json:"from" validate:"required"` // 来源
+	SSEURL        string                  `json:"sseUrl"`                   // SSE URL
+	StreamableURL string                  `json:"streamableUrl"`            // Streamable HTTP URL
+	Transport     string                  `json:"transport"`                // 传输协议: "sse" 或 "streamable"
+	ApiAuth       *util.ApiAuthWebRequest `json:"apiAuth"`                  // api身份认证(可选，为空表示无鉴权)
+	Headers       map[string]string       `json:"headers"`                  // 请求头
 }
 
 func (req *MCPUpdate) Check() error {

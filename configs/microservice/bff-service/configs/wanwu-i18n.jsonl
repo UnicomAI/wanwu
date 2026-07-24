@@ -350,6 +350,8 @@
 {"code":145019,"key":"","langs":{"zh":"非法参数"}}
 {"code":145020,"key":"","langs":{"zh":"文档分段内容为空"}}
 {"code":145021,"key":"","langs":{"zh":"部分元数据更新成功"}}
+{"code":145022,"key":"","langs":{"zh":"当前知识库不支持插入图片，仅多模态知识库可插入图片"}}
+{"code":145023,"key":"","langs":{"zh":"仅支持上传png/jpg/jpeg格式的图片"}}
 {"code":146001,"key":"","langs":{"zh":"获取权限列表失败，请稍后重试"}}
 {"code":146002,"key":"","langs":{"zh":"操作权限不足，请联系管理员添加后重试"}}
 {"code":146003,"key":"","langs":{"zh":"添加权限失败，请稍后重试"}}
@@ -472,6 +474,11 @@
 {"code":160001,"key":"assistant_tool","langs":{"zh":"智能体快照回滚tool错误: %v"}}
 {"code":160001,"key":"assistant_mcp","langs":{"zh":"智能体快照回滚mcp错误: %v"}}
 {"code":160001,"key":"assistant_workflow","langs":{"zh":"智能体快照回滚工作流错误: %v"}}
+{"code":160001,"key":"assistants_admin_list","langs":{"zh":"获取智能体列表错误: %v"}}
+{"code":160001,"key":"assistant_publish_upsert_query","langs":{"zh":"查询发布记录错误: %v"}}
+{"code":160001,"key":"assistant_publish_upsert_create","langs":{"zh":"创建发布记录错误: %v"}}
+{"code":160001,"key":"assistant_publish_upsert_update","langs":{"zh":"更新发布记录错误: %v"}}
+{"code":160001,"key":"assistant_publish_delete","langs":{"zh":"删除发布记录错误: %v"}}
 {"code":160002,"key":"assistant_action_update","langs":{"zh":"更新action错误: %v"}}
 {"code":160002,"key":"assistant_action_get","langs":{"zh":"获取action错误: %v"}}
 {"code":160002,"key":"assistant_actions_get_by_assistant_id","langs":{"zh":"获取action错误: %v"}}
@@ -630,3 +637,5 @@
 {"code":0,"key":"ope_statistic_new_client_line","langs":{"zh":"新增用户量"}}
 {"code":0,"key":"ope_statistic_browse_table","langs":{"zh":"平台浏览量"}}
 {"code":0,"key":"ope_statistic_browse_line","langs":{"zh":"浏览量"}}
+{"code":250006,"key":"model_admin_page_list_err","langs":{"zh":"模型全局列表异常:%v"}}
+{"code":150005,"key":"rag_admin_page_list_err","langs":{"zh":"知识问答全局列表异常：%v"}}

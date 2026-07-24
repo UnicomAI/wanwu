@@ -5,10 +5,33 @@ import (
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
+
+type PromptBiz struct{}
+
+func init() {
+	InitBizService(&PromptBiz{})
+}
+
+func (*PromptBiz) BizType() string { return constant.BizModuleResourcePrompt }
+
+func (*PromptBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	resp, err := assistant.CustomPromptGet(ctx, &assistant_service.CustomPromptGetReq{
+		CustomPromptId: bizId,
+		Identity:       &assistant_service.Identity{},
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if resp.Identity == nil {
+		return "", "", nil
+	}
+	return resp.Identity.UserId, resp.Identity.OrgId, nil
+}
 
 func CreateCustomPrompt(ctx *gin.Context, userId, orgId string, req request.CustomPromptCreate) (*response.CustomPromptIDResp, error) {
 	resp, err := assistant.CustomPromptCreate(ctx.Request.Context(), &assistant_service.CustomPromptCreateReq{

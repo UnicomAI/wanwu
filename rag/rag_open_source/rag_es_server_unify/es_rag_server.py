@@ -697,6 +697,7 @@ def get_content_list(request_json=None):
     page_size = request_json.get("page_size")
     search_after = request_json.get("search_after")
     content_type = request_json.get("content_type", "text")
+    query_text = request_json.get("query_text")
     try:
         if not kb_id:
             raise ValueError("kb_info.kb_id is required")
@@ -707,7 +708,8 @@ def get_content_list(request_json=None):
             searched_index_name = 'content_control_' + index_name
         elif content_type == "community_report":
             searched_index_name = 'community_report_' + index_name
-        content_result = es_ops.get_file_content_list(searched_index_name, kb_id, file_name, page_size, search_after)
+        content_result = es_ops.get_file_content_list(searched_index_name, kb_id, file_name, page_size, search_after,
+                                                       query_text=query_text)
         content_list = content_result["content_list"]
         for content in content_list:
             content["kb_id"] = kb_id

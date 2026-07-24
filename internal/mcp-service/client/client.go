@@ -15,11 +15,13 @@ type IClient interface {
 	UpdateMCP(ctx context.Context, mcp *model.MCPClient) *errs.Status
 	DeleteMCP(ctx context.Context, mcpID uint32) *errs.Status
 	ListMCPs(ctx context.Context, orgID, userID, name string) ([]*model.MCPClient, *errs.Status)
+	ListMCPsAdmin(ctx context.Context, orgIDs, userIDs []string, name string, pageNo, pageSize int) ([]*model.MCPClient, int64, *errs.Status)
 	ListMCPsByMCPIdList(ctx context.Context, mcpIDList []uint32) ([]*model.MCPClient, *errs.Status)
 
 	CreateCustomTool(ctx context.Context, customTool *model.CustomTool) *errs.Status
 	GetCustomTool(ctx context.Context, customTool *model.CustomTool) (*model.CustomTool, *errs.Status)
 	ListCustomTools(ctx context.Context, orgID, userID, name string) ([]*model.CustomTool, *errs.Status)
+	ListCustomToolsAdmin(ctx context.Context, orgIDs, userIDs []string, name string, pageNo, pageSize int) ([]*model.CustomTool, int64, *errs.Status)
 	ListCustomToolsByCustomToolIDs(ctx context.Context, customToolIDs []uint32) ([]*model.CustomTool, *errs.Status)
 	UpdateCustomTool(ctx context.Context, customTool *model.CustomTool) *errs.Status
 	DeleteCustomTool(ctx context.Context, customToolID uint32) *errs.Status
@@ -35,6 +37,7 @@ type IClient interface {
 	UpdateMCPServer(ctx context.Context, mcpServer *model.MCPServer) *errs.Status
 	DeleteMCPServer(ctx context.Context, mcpServerId string) *errs.Status
 	ListMCPServers(ctx context.Context, orgID, userID, name string) ([]*model.MCPServer, *errs.Status)
+	ListMCPServersAdmin(ctx context.Context, orgIDs, userIDs []string, name string, pageNo, pageSize int) ([]*model.MCPServer, int64, *errs.Status)
 	ListMCPServerByIdList(ctx context.Context, mcpServerIdList []string) ([]*model.MCPServer, *errs.Status)
 	GetMCPServerTool(ctx context.Context, mcpServerToolId string) (*model.MCPServerTool, *errs.Status)
 	CreateMCPServerTool(ctx context.Context, mcpServerTools []*model.MCPServerTool) *errs.Status
@@ -51,6 +54,7 @@ type IClient interface {
 	GetCustomSkillByWgaThreadID(ctx context.Context, wgaThreadID string) (*model.CustomSkill, *errs.Status)
 	GetCustomSkillListByWgaThreadIDList(ctx context.Context, userId, orgId string, wgaThreadIDList []string) ([]*model.CustomSkill, *errs.Status)
 	GetCustomSkillList(ctx context.Context, userId, orgId, name string) ([]*model.CustomSkill, int64, *errs.Status)
+	GetCustomSkillPageList(ctx context.Context, userId, orgId []string, name string, pageNum, pageSize int) ([]*model.CustomSkill, int64, *errs.Status)
 	GetCustomSkillBySkillIds(ctx context.Context, skillIds []string) ([]*model.CustomSkill, *errs.Status)
 	UpdateCustomSkillBasicMeta(ctx context.Context, skillId, name, desc string) *errs.Status
 	UpdateCustomSkillThreadMeta(ctx context.Context, skillId, wgaThreadId, previewThreadId string) *errs.Status

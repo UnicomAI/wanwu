@@ -92,9 +92,10 @@ func (c *Client) GetOrgByOrgIDs(ctx context.Context, orgIDs []uint32) ([]IDFullN
 		}
 		for _, org := range orgs {
 			ret = append(ret, IDFullName{
-				IDName: IDName{
-					ID:   org.ID,
-					Name: org.Name,
+				IDNameWithAvatar: IDNameWithAvatar{
+					ID:         org.ID,
+					Name:       org.Name,
+					AvatarPath: org.AvatarPath,
 				},
 				FullName: orgTree.GetFullName(org.ID),
 			})
@@ -103,8 +104,8 @@ func (c *Client) GetOrgByOrgIDs(ctx context.Context, orgIDs []uint32) ([]IDFullN
 	})
 }
 
-func (c *Client) GetOrgAndSubOrgSelectByUser(ctx context.Context, userID, orgID uint32) ([]IDName, *errs.Status) {
-	var result []IDName
+func (c *Client) GetOrgAndSubOrgSelectByUser(ctx context.Context, userID, orgID uint32) ([]IDNameWithAvatar, *errs.Status) {
+	var result []IDNameWithAvatar
 	return result, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
 		// 获取组织树
 		orgTree, err := getOrgTree(tx)
@@ -117,7 +118,7 @@ func (c *Client) GetOrgAndSubOrgSelectByUser(ctx context.Context, userID, orgID 
 			return toErrStatus("iam_orgs_select", err.Error())
 		}
 		for _, org := range orgs {
-			result = append(result, IDName{ID: org.ID, Name: org.Name})
+			result = append(result, IDNameWithAvatar{ID: org.ID, Name: org.Name, AvatarPath: org.AvatarPath})
 		}
 		return nil
 	})
@@ -177,8 +178,8 @@ func (c *Client) GetAdminOrgSubTree(ctx context.Context, userID uint32) ([]*Admi
 	})
 }
 
-func (c *Client) GetFirstClassOrgAndSubs(ctx context.Context, userID, orgID uint32) ([]IDName, *errs.Status) {
-	var result []IDName
+func (c *Client) GetFirstClassOrgAndSubs(ctx context.Context, userID, orgID uint32) ([]IDNameWithAvatar, *errs.Status) {
+	var result []IDNameWithAvatar
 	return result, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
 		orgTree, err := getOrgTree(tx)
 		if err != nil {
@@ -190,9 +191,10 @@ func (c *Client) GetFirstClassOrgAndSubs(ctx context.Context, userID, orgID uint
 		}
 		var dfs func(*model.OrgNode)
 		dfs = func(node *model.OrgNode) {
-			result = append(result, IDName{
-				ID:   node.GetOrgID(),
-				Name: node.GetFullName(node.GetOrgID()),
+			result = append(result, IDNameWithAvatar{
+				ID:         node.GetOrgID(),
+				Name:       node.GetFullName(node.GetOrgID()),
+				AvatarPath: node.GetAvatarPath(),
 			})
 			for _, child := range node.GetSubs(node.GetOrgID()) {
 				dfs(child)
@@ -522,7 +524,28 @@ func (c *Client) RemoveOrgUser(ctx context.Context, orgID, userID uint32) *errs.
 	})
 }
 
-// --- internal function ---
+func (c *Client) BatchRemoveOrgUser(ctx context.Context, orgID uint32, userIDs []uint32) *errs.Status {
+	return c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+		if orgID == config.TopOrgID() {
+			return toErrStatus("iam_org_user_remove_top")
+		}
+		// delete user role
+		if err := sqlopt.SQLOptions(
+			sqlopt.WithOrgID(orgID),
+			sqlopt.WithUsers(userIDs),
+		).Apply(tx).Delete(&model.UserRole{}).Error; err != nil {
+			return toErrStatus("iam_org_user_batch_remove", util.Int2Str(orgID), err.Error())
+		}
+		// delete org user
+		if err := sqlopt.SQLOptions(
+			sqlopt.WithOrgID(orgID),
+			sqlopt.WithUsers(userIDs),
+		).Apply(tx).Delete(&model.OrgUser{}).Error; err != nil {
+			return toErrStatus("iam_org_user_batch_remove", util.Int2Str(orgID), err.Error())
+		}
+		return nil
+	})
+}
 
 func toOrgInfoTx(tx *gorm.DB, org *model.Org) (*OrgInfo, error) {
 	ret := &OrgInfo{
@@ -663,9 +686,10 @@ func buildFullOrgNode(node *model.OrgNode) *AdminOrgTreeNode {
 	}
 	orgID := node.GetOrgID()
 	result := &AdminOrgTreeNode{
-		ID:      orgID,
-		Name:    node.GetOrgName(orgID),
-		HasPerm: true,
+		ID:         orgID,
+		Name:       node.GetOrgName(orgID),
+		AvatarPath: node.GetAvatarPath(),
+		HasPerm:    true,
 	}
 	for _, sub := range node.GetSubs(orgID) {
 		if child := buildFullOrgNode(sub); child != nil {
@@ -688,9 +712,10 @@ func buildFilteredOrgNode(node *model.OrgNode, visibleIDs, adminScopeIDs map[uin
 		return nil
 	}
 	result := &AdminOrgTreeNode{
-		ID:      orgID,
-		Name:    node.GetOrgName(orgID),
-		HasPerm: adminScopeIDs[orgID],
+		ID:         orgID,
+		Name:       node.GetOrgName(orgID),
+		AvatarPath: node.GetAvatarPath(),
+		HasPerm:    adminScopeIDs[orgID],
 	}
 	for _, sub := range node.GetSubs(orgID) {
 		if child := buildFilteredOrgNode(sub, visibleIDs, adminScopeIDs); child != nil {

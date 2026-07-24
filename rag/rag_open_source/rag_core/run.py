@@ -663,8 +663,10 @@ def getContentList(request_json=None):
         file_name = request_json.get('fileName')
         page_size = request_json.get('page_size')
         search_after = request_json.get('search_after')
+        query_text = request_json.get('query_text')
         # 获取分页文件内容列表
-        response_info = kb_utils.get_file_content_list(user_id, kb_info, file_name, page_size, search_after)
+        response_info = kb_utils.get_file_content_list(user_id, kb_info, file_name, page_size, search_after,
+                                                       query_text=query_text)
         headers = {'Access-Control-Allow-Origin': '*'}
         if response_info['code'] == 0:
             kb_utils.replace_minio_ip(response_info['data']['content_list'], only_meta=True)

@@ -126,11 +126,12 @@ func (c *Client) SelectGlobalRoles(ctx context.Context) ([]RoleIDName, *errs.Sta
 		}
 		for _, gr := range globalRoles {
 			ret = append(ret, RoleIDName{
-				ID:       gr.RoleID,
-				Name:     gr.Name,
-				IsAdmin:  false,
-				IsSystem: true,
-				IsGlobal: true,
+				ID:         gr.RoleID,
+				Name:       gr.Name,
+				AvatarPath: gr.AvatarPath,
+				IsAdmin:    false,
+				IsSystem:   true,
+				IsGlobal:   true,
 			})
 		}
 		return nil

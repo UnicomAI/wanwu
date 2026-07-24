@@ -85,6 +85,12 @@ type RecommendModelItemLLM struct {
 	Tags        []string `mapstructure:"tags" json:"tags"`
 }
 
+type RecommendModelItemOCR struct {
+	Model            string   `mapstructure:"model" json:"model"`
+	DisplayName      string   `mapstructure:"display_name" json:"displayName"`
+	SupportFileTypes []string `mapstructure:"support_filetypes" json:"supportFileTypes"`
+}
+
 type RecommendModelItem struct {
 	Model       string `mapstructure:"model" json:"model"`
 	DisplayName string `mapstructure:"display_name" json:"displayName"`
@@ -225,7 +231,7 @@ type RecommendModelsByProvider struct {
 	MultiEmbedding []RecommendModelItem    `mapstructure:"multimodal-embedding" json:"multimodal-embedding"`
 	Rerank         []RecommendModelItem    `mapstructure:"rerank" json:"rerank"`
 	MultiRerank    []RecommendModelItem    `mapstructure:"multimodal-rerank" json:"multimodal-rerank"`
-	Ocr            []RecommendModelItem    `mapstructure:"ocr" json:"ocr"`
+	Ocr            []RecommendModelItemOCR `mapstructure:"ocr" json:"ocr"`
 	Gui            []RecommendModelItem    `mapstructure:"gui" json:"gui"`
 	PdfParser      []RecommendModelItem    `mapstructure:"pdf-parser" json:"pdf-parser"`
 	SyncAsr        []RecommendModelItem    `mapstructure:"sync-asr" json:"sync-asr"`

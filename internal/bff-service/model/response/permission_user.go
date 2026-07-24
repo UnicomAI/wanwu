@@ -7,25 +7,25 @@ type UserID struct {
 }
 
 type Users struct {
-	Users []IDName `json:"users"` // 去重后的用户列表
+	Users []IDNameWithAvatar `json:"users"` // 去重后的用户列表
 }
 
 type UserInfo struct {
-	UserID    string         `json:"userId"`
-	Username  string         `json:"username"`
-	Phone     string         `json:"phone"`
-	Email     string         `json:"email"`
-	CreatedAt string         `json:"createdAt"`
-	Creator   IDName         `json:"creator"` // 创建人
-	Status    bool           `json:"status"`
-	Language  Language       `json:"language"`
-	Orgs      []OrgRole      `json:"orgs"` // 用户的组织角色列表
-	Avatar    request.Avatar `json:"avatar"`
+	UserID    string           `json:"userId"`
+	Username  string           `json:"username"`
+	Phone     string           `json:"phone"`
+	Email     string           `json:"email"`
+	CreatedAt string           `json:"createdAt"`
+	Creator   IDNameWithAvatar `json:"creator"` // 创建人
+	Status    bool             `json:"status"`
+	Language  Language         `json:"language"`
+	Orgs      []OrgRole        `json:"orgs"` // 用户的组织角色列表
+	Avatar    request.Avatar   `json:"avatar"`
 }
 
 type OrgRole struct {
-	Org   IDName       `json:"org"`   // 组织
-	Roles []RoleIDName `json:"roles"` // 角色列表
+	Org   IDNameWithAvatar `json:"org"`   // 组织
+	Roles []RoleIDName     `json:"roles"` // 角色列表
 }
 
 // UserBatchImportResult 批量导入用户结果

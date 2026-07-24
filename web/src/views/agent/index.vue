@@ -18,8 +18,35 @@
       @handleBtnClick="handleBtnClick"
       :class="[chatType === 'webChat' ? 'chatBg' : '']"
       :showAside="showAside"
+      :showTitle="false"
       @aside-scroll="handleHistoryScroll"
     >
+      <template #aside-header>
+        <div class="history-toolbar">
+          <el-tooltip :content="asideTitle" placement="bottom" effect="dark">
+            <el-button
+              circle
+              class="create-conversation-btn"
+              type="primary"
+              size="small"
+              @click="handleBtnClick"
+            >
+              <svg-icon class-name="create-icon" icon-class="message-plus" />
+            </el-button>
+          </el-tooltip>
+          <el-input
+            v-model="searchText"
+            class="history-search-input"
+            clearable
+            size="small"
+            :placeholder="$t('square.search') + '...'"
+            @keyup.enter.native="handleHistorySearch"
+            @clear="handleHistorySearch"
+          >
+            <i slot="prefix" class="el-input__icon el-icon-search"></i>
+          </el-input>
+        </div>
+      </template>
       <template #aside-content>
         <transition name="fade">
           <div class="explore-aside-app">
@@ -107,6 +134,7 @@ export default {
       apiURL: '',
       asideTitle: this.$t('app.createConversation'),
       assistantId: '',
+      searchText: '',
       historyList: [],
       historyPageConf: {
         pageNo: 1,
@@ -257,6 +285,7 @@ export default {
       const params = {
         pageNo,
         pageSize: this.historyPageConf.pageSize,
+        searchText: this.searchText.trim(),
       };
       if (this.chatType === 'agentChat') {
         return getConversationlist({
@@ -439,6 +468,11 @@ export default {
           this.ensureHistoryScrollable();
         });
       }
+    },
+    // Search history conversations with the current keyword when Enter is pressed.
+    handleHistorySearch() {
+      this.searchText = this.searchText.trim();
+      this.getList({ reset: true });
     },
     // 获取侧栏滚动容器，用于判断首屏是否已出现滚动条
     getHistoryScrollEl() {
@@ -744,6 +778,33 @@ export default {
 @media (max-width: 768px) {
   .agent-mobile-wrapper .mobile-menu-btn {
     display: block;
+  }
+}
+
+.history-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #eee;
+  padding: 8px 4px 12px;
+
+  .create-conversation-btn {
+    flex: 0 0 auto;
+    padding: 6px;
+    .create-icon {
+      font-size: 16px;
+    }
+  }
+
+  .search-input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+::v-deep(.history-search-input) {
+  .el-input__inner {
+    border-radius: 12px !important;
   }
 }
 </style>

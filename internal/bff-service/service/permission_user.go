@@ -144,17 +144,18 @@ func GetUserListByUserIds(ctx *gin.Context, userIDs []string) (*response.ListRes
 	if err != nil {
 		return nil, err
 	}
-	var users []*response.IDName
+	var users []*response.IDNameWithAvatar
 	for _, user := range resp.Selects {
-		users = append(users, &response.IDName{
-			ID:   user.Id,
-			Name: user.Name,
+		users = append(users, &response.IDNameWithAvatar{
+			ID:     user.Id,
+			Name:   user.Name,
+			Avatar: cacheUserAvatar(user.AvatarPath),
 		})
 	}
 	return &response.ListResult{List: users, Total: int64(len(users))}, nil
 }
 
-func GetUsersByOrgIDs(ctx context.Context, userID string, req *request.OrgIDsReq) (*response.Users, error) {
+func GetUsersByOrgIDs(ctx *gin.Context, userID string, req *request.OrgIDsReq) (*response.Users, error) {
 	resp, err := iam.GetUsersByOrgIDs(ctx, &iam_service.GetUsersByOrgIDsReq{
 		OrgIds:   req.OrgIDList,
 		IsAllOrg: req.IsAllOrg,
@@ -163,11 +164,12 @@ func GetUsersByOrgIDs(ctx context.Context, userID string, req *request.OrgIDsReq
 	if err != nil {
 		return nil, err
 	}
-	var users []response.IDName
+	var users []response.IDNameWithAvatar
 	for _, u := range resp.Users {
-		users = append(users, response.IDName{
-			ID:   u.Id,
-			Name: u.Name,
+		users = append(users, response.IDNameWithAvatar{
+			ID:     u.Id,
+			Name:   u.Name,
+			Avatar: cacheUserAvatar(u.AvatarPath),
 		})
 	}
 	return &response.Users{
@@ -224,7 +226,7 @@ func GetOrgUserNotSelect(ctx *gin.Context, orgID, name string) (*response.UserSe
 	if err != nil {
 		return nil, err
 	}
-	return &response.UserSelect{Select: toIDNames(users.Selects)}, nil
+	return &response.UserSelect{Select: toUsersIDNameWithAvatar(users.Selects)}, nil
 }
 
 func GetRoleSelect(ctx *gin.Context, orgID string) (*response.RoleSelect, error) {
@@ -257,6 +259,21 @@ func RemoveOrgUser(ctx *gin.Context, orgID, userID string) error {
 	_, err := iam.RemoveOrgUser(ctx.Request.Context(), &iam_service.RemoveOrgUserReq{
 		OrgId:  orgID,
 		UserId: userID,
+	})
+	return err
+}
+
+func BatchRemoveOrgUser(ctx *gin.Context, orgID string, userIDs []string) error {
+	_, err := iam.BatchRemoveOrgUser(ctx.Request.Context(), &iam_service.BatchRemoveOrgUserReq{
+		OrgId:   orgID,
+		UserIds: userIDs,
+	})
+	return err
+}
+
+func BatchDeleteUser(ctx *gin.Context, userIDs []string) error {
+	_, err := iam.BatchDeleteUser(ctx.Request.Context(), &iam_service.BatchDeleteUserReq{
+		UserIds: userIDs,
 	})
 	return err
 }
@@ -528,10 +545,10 @@ func toUserInfo(ctx *gin.Context, user *iam_service.UserInfo) *response.UserInfo
 		Phone:     user.Phone,
 		Email:     user.Email,
 		CreatedAt: util.Time2Str(user.CreatedAt),
-		Creator:   toIDName(user.Creator),
+		Creator:   toUserIDNameWithAvatar(user.Creator),
 		Status:    user.Status,
 		Language:  getLanguageByCode(user.Language),
-		Avatar:    cacheUserAvatar(ctx, user.AvatarPath),
+		Avatar:    cacheUserAvatar(user.AvatarPath),
 	}
 	for _, userOrg := range user.Orgs {
 		ret.Orgs = append(ret.Orgs, toOrgRole(ctx, userOrg))
@@ -541,7 +558,7 @@ func toUserInfo(ctx *gin.Context, user *iam_service.UserInfo) *response.UserInfo
 
 func toOrgRole(ctx *gin.Context, userOrg *iam_service.UserOrg) response.OrgRole {
 	return response.OrgRole{
-		Org:   toOrgIDName(ctx, userOrg.Org),
+		Org:   toOrgIDNameWithAvatar(ctx, userOrg.Org),
 		Roles: toRoleIDNames(ctx, userOrg.Roles),
 	}
 }

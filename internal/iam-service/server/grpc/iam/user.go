@@ -60,7 +60,7 @@ func (s *Service) GetUserInfo(ctx context.Context, req *iam_service.GetUserInfoR
 	return toUserInfo(user), nil
 }
 
-func (s *Service) CreateUser(ctx context.Context, req *iam_service.CreateUserReq) (*iam_service.IDName, error) {
+func (s *Service) CreateUser(ctx context.Context, req *iam_service.CreateUserReq) (*iam_service.IDNameWithAvatar, error) {
 	var roleIDs []uint32
 	for _, roleID := range req.RoleIds {
 		roleIDs = append(roleIDs, util.MustU32(roleID))
@@ -80,7 +80,7 @@ func (s *Service) CreateUser(ctx context.Context, req *iam_service.CreateUserReq
 	if err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
-	return &iam_service.IDName{Id: strconv.Itoa(int(userID)), Name: req.UserName}, nil
+	return &iam_service.IDNameWithAvatar{Id: strconv.Itoa(int(userID)), Name: req.UserName, AvatarPath: req.AvatarPath}, nil
 }
 
 func (s *Service) CreateUsers(ctx context.Context, req *iam_service.CreateUsersReq) (*iam_service.CreateUsersResp, error) {
@@ -121,6 +121,13 @@ func (s *Service) UpdateUser(ctx context.Context, req *iam_service.UpdateUserReq
 
 func (s *Service) DeleteUser(ctx context.Context, req *iam_service.DeleteUserReq) (*emptypb.Empty, error) {
 	if err := s.cli.DeleteUser(ctx, util.MustU32(req.UserId)); err != nil {
+		return nil, errStatus(errs.Code_IAMUser, err)
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (s *Service) BatchDeleteUser(ctx context.Context, req *iam_service.BatchDeleteUserReq) (*emptypb.Empty, error) {
+	if err := s.cli.BatchDeleteUser(ctx, util.MustU32s(req.UserIds)); err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
 	return &emptypb.Empty{}, nil
@@ -214,9 +221,10 @@ func (s *Service) GetUsersByOrgIDs(ctx context.Context, req *iam_service.GetUser
 	}
 	resp := &iam_service.GetUsersByOrgIDsResp{}
 	for _, user := range users {
-		resp.Users = append(resp.Users, &iam_service.IDName{
-			Id:   strconv.Itoa(int(user.ID)),
-			Name: user.Name,
+		resp.Users = append(resp.Users, &iam_service.IDNameWithAvatar{
+			Id:         strconv.Itoa(int(user.ID)),
+			Name:       user.Name,
+			AvatarPath: user.AvatarPath,
 		})
 	}
 	return resp, nil
@@ -242,7 +250,7 @@ func toUserInfo(user *orm.UserInfo) *iam_service.UserInfo {
 	}
 	for _, userOrg := range user.Orgs {
 		ret.Orgs = append(ret.Orgs, &iam_service.UserOrg{
-			Org:   toIDName(userOrg.Org.IDName),
+			Org:   toIDName(userOrg.Org.IDNameWithAvatar),
 			Roles: toRoleIDNames(userOrg.Roles),
 		})
 	}

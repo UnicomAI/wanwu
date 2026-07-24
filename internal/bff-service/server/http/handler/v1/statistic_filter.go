@@ -14,7 +14,7 @@ import (
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	response.Response{data=response.ListResult{list=[]response.IDName}}
+//	@Success		200	{object}	response.Response{data=response.ListResult{list=[]response.IDNameWithAvatar}}
 //	@Router			/statistic/orgs/select [get]
 func GetStatisticOrgsSelect(ctx *gin.Context) {
 	resp, err := service.GetStatisticOrgsSelect(ctx, getUserID(ctx), getOrgID(ctx), isAdmin(ctx), isSystem(ctx))

@@ -77,15 +77,18 @@
     min-width: 0;
     height: 100%;
     padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     /*回显*/
     .echo {
       word-break: break-all;
-      height: calc(100% - 100px);
+      flex: 1;
       overflow-y: auto;
-      // padding: 0 20px;
     }
     .center-session {
-      height: calc(100% - 70px);
+      flex: 1;
+      overflow-y: auto;
       padding: 0;
       ::v-deep.history-box {
         height: calc(100% - 76px);
@@ -94,12 +97,7 @@
       }
     }
     .center-editable {
-      position: absolute;
-      bottom: 0;
-      width: auto;
-      left: 20px;
-      right: 20px;
-      margin: auto;
+      position: relative;
     }
   }
 }

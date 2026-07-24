@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"sort"
 	"strings"
 
@@ -1218,6 +1219,20 @@ func buildAssistant(ctx *gin.Context, resp *assistant_service.AssistantInfo) *re
 			PicNum:    resp.VisionConfig.PicNum,
 		}
 	}
+	// 从 Identity 字段解析 OwnerUserId 和 OwnerOrgId
+	if resp.Identity != nil {
+		assistantModel.OwnerUserId = resp.Identity.UserId
+		assistantModel.OwnerOrgId = resp.Identity.OrgId
+	}
+	// 从 extra 字段解析 hideKnowledge
+	if resp.Extra != "" {
+		var extra struct {
+			HideKnowledge int32 `json:"hideKnowledge"`
+		}
+		if json.Unmarshal([]byte(resp.Extra), &extra) == nil {
+			assistantModel.HideKnowledge = extra.HideKnowledge
+		}
+	}
 	return &assistantModel
 }
 
@@ -1285,4 +1300,29 @@ func recommendConfigModel2Proto(recommendConfig request.RecommendConfig) (ret *a
 	}
 
 	return ret, nil
+}
+
+var assistantBizImpl = &AssistantBiz{}
+
+type AssistantBiz struct{}
+
+func init() {
+	InitBizService(assistantBizImpl)
+}
+
+func (*AssistantBiz) BizType() string {
+	return constant.BizModuleAppAgent
+}
+
+func (*AssistantBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	resp, err := assistant.GetAssistantInfo(ctx, &assistant_service.GetAssistantInfoReq{
+		AssistantId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if resp.Identity != nil {
+		return resp.Identity.UserId, resp.Identity.OrgId, nil
+	}
+	return "", "", errors.New("assistant not found")
 }

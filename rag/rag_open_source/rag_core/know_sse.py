@@ -23,7 +23,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from datetime import datetime, timedelta
 from utils.prompts import PROMPT_TEMPLATE, CITATION_INSTRUCTION
 from settings import (SSE_USE_MONGO, TEMPERATURE, MONGO_URL, REPLACE_MINIO_DOWNLOAD_URL, MINIO_ADDRESS,
-                      TRUNCATE_PROMPT, CONTEXT_LENGTH)
+                      TRUNCATE_PROMPT, CONTEXT_LENGTH, RESERVED_FOR_OUTPUT)
 
 from logging_config import init_logging
 
@@ -104,7 +104,7 @@ def get_prompt(question: str,
     )
 
     base_tokens = len(encoding.encode(base_filled))
-    available_tokens_for_context = context_size - base_tokens - max_tokens - 50  # 预留50个token缓冲
+    available_tokens_for_context = context_size - base_tokens - RESERVED_FOR_OUTPUT - 50  # 预留50个token缓冲
 
     # 处理并截取 context
     valid_search_list = []
@@ -287,7 +287,7 @@ async def search(request: Request):
             raise ValueError(f"{model_name} is not llm model")
 
         messages = []
-        available_tokens_for_context = context_size - max_tokens - 50 # 50 for buffer
+        available_tokens_for_context = context_size - RESERVED_FOR_OUTPUT - 50  # 50 for buffer
         prompt, valid_search_list = get_prompt(question, search_list, default_answer, auto_citation, prompt_template,
                                                context_size, max_tokens)
         num_tokens = len(encoding.encode(prompt))
@@ -374,7 +374,7 @@ async def search(request: Request):
         # ============== 开始组装 messages ==============
         num_tokens = 0
         prompt_content = []
-        available_tokens_for_context = context_size - max_tokens - 50  # 50 for buffer
+        available_tokens_for_context = context_size - RESERVED_FOR_OUTPUT - 50  # 50 for buffer
         # === 多模态问答提示词构建
         citation = CITATION_INSTRUCTION if auto_citation else ""
         content_item = {"type": "text", "text": f"你是一个问答助手，主要任务是汇总参考信息回答用户问题, 请只根据参考信息中提供的上下文信息回答用户问题，**禁止**直接通过视觉形状猜测功能（必须严格执行）。**严禁**绕过编号仅凭视觉形状相似性进行主观推断（必须严格执行）。 {citation}"}

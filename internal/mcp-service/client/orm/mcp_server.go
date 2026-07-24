@@ -7,6 +7,7 @@ import (
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/client/orm/sqlopt"
+	pkg_db "github.com/UnicomAI/wanwu/pkg/db"
 	"gorm.io/gorm"
 )
 
@@ -72,6 +73,29 @@ func (c *Client) ListMCPServers(ctx context.Context, orgID, userID, name string)
 		return nil, toErrStatus("mcp_get_mcp_server_list_err", err.Error())
 	}
 	return mcpServerInfos, nil
+}
+
+// ListMCPServersAdmin 管理员中心跨组织查询MCP服务列表（SQL分页）。
+// orgIDs / userIDs 为空表示不按该维度过滤。pageNo 从1开始，pageSize<=0 不分页。
+// 返回当前页数据与总条数。
+func (c *Client) ListMCPServersAdmin(ctx context.Context, orgIDs, userIDs []string, name string, pageNo, pageSize int) ([]*model.MCPServer, int64, *errs.Status) {
+	db := sqlopt.SQLOptions(
+		sqlopt.WithOrgIDList(orgIDs),
+		sqlopt.WithUserIDList(userIDs),
+		sqlopt.LikeName(pkg_db.EscapeLike(name)),
+	).Apply(c.db).WithContext(ctx).Model(&model.MCPServer{})
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, toErrStatus("mcp_get_mcp_server_list_err", err.Error())
+	}
+	var mcpServerInfos []*model.MCPServer
+	if err := db.Limit(pageSize).
+		Offset((pageNo - 1) * pageSize).
+		Order("updated_at desc").
+		Find(&mcpServerInfos).Error; err != nil {
+		return nil, 0, toErrStatus("mcp_get_mcp_server_list_err", err.Error())
+	}
+	return mcpServerInfos, total, nil
 }
 
 func (c *Client) DeleteMCPServer(ctx context.Context, mcpServerId string) *errs.Status {

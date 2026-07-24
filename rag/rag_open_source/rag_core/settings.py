@@ -90,6 +90,14 @@ TEMPERATURE = config.getfloat('LLM', 'TEMPERATURE')
 # rerank
 TRUNCATE_PROMPT = config.getboolean('LLM', 'TRUNCATE_PROMPT')
 CONTEXT_LENGTH = config.getint('LLM', 'CONTEXT_LENGTH')
+# 为模型输出预留的固定 token 空间（不再使用配置的 max_tokens 做预算，
+# 避免 maxTokens 配置接近 contextSize 时参考信息被全部截断导致问答无输出）
+# 环境变量 RESERVED_FOR_OUTPUT 优先，未设则读 config.ini [LLM] RESERVED_FOR_OUTPUT
+_reserved_for_output_env = os.getenv("RESERVED_FOR_OUTPUT")
+if _reserved_for_output_env is not None:
+    RESERVED_FOR_OUTPUT = int(_reserved_for_output_env)
+else:
+    RESERVED_FOR_OUTPUT = config.getint('LLM', 'RESERVED_FOR_OUTPUT')
 
 
 # Milvus wrap server

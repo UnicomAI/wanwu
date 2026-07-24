@@ -33,6 +33,9 @@ service ModelService {
     // 统计看板：按 orgIds/userIds 批量查询模型（org_id IN + user_id IN，单次查询）
     rpc ListModelsInStatisticScope(ListModelsInStatisticScopeReq) returns (ModelInfos) {}
 
+    // AdminModelPageList 管理员中心模型全局分页列表（跨用户/组织）
+    rpc AdminModelPageList(AdminModelPageListReq) returns (AdminModelPageListResp) {}
+
     // --- model experience ---
 
     // 保存模型体验对话（创建/更新）
@@ -73,6 +76,22 @@ message ModelInfo {
 message ModelInfos {
     repeated ModelInfo models = 1;
     int64 total = 2;
+}
+
+message AdminModelPageListReq {
+    string name = 1;                // 模型显示名称，支持模糊搜索
+    repeated string modelType = 2;  // 模型类型
+    string provider = 3;            // 模型供应商
+    repeated string userId = 4;     // 拥有者用户id列表
+    repeated string orgId = 5;      // 拥有者组织id列表
+    int32 pageNum = 6;              // 页码，从1开始
+    int32 pageSize = 7;             // 每页数量
+    repeated uint32 scopeType = 8;  // 发布范围过滤：1私有 2公开 3组织（对应发布范围 private/public/organization）
+}
+
+message AdminModelPageListResp {
+    int64 total = 1;
+    repeated ModelInfo models = 2;
 }
 
 message DeleteModelReq {

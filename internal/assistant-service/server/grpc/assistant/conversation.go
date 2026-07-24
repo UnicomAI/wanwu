@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -354,6 +356,9 @@ func buildAgentSendRequest(req *assistant_service.AssistantConversionStreamReq) 
 		}
 		ctx, cancelFunction := context.WithTimeout(ctx, params.Timeout)
 		result, err := http_client.Default().PostJsonOriResp(ctx, params)
+		if err == nil {
+			err = readHttpErr(result)
+		}
 		return monitorKey, result, cancelFunction, err
 	}
 }
@@ -407,4 +412,26 @@ func buildSubConversation(detail *model.SubConversationDetail, index int, oldDat
 		Order:            int32(order),
 		ErrMessage:       data.ErrMessage,
 	}
+}
+
+func readHttpErr(resp *http.Response) error {
+	if resp != nil && resp.StatusCode != http.StatusOK {
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				log.Errorf("read http err body failed: %v", err)
+			}
+		}(resp.Body)
+
+		// 读取响应体中的所有数据
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		if len(body) > 0 {
+			return errors.New(string(body))
+		}
+		return errors.New("http status code: " + strconv.Itoa(resp.StatusCode))
+	}
+	return nil
 }

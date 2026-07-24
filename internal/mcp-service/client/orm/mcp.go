@@ -7,6 +7,7 @@ import (
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/client/orm/sqlopt"
+	pkg_db "github.com/UnicomAI/wanwu/pkg/db"
 	"gorm.io/gorm"
 )
 
@@ -112,6 +113,29 @@ func (c *Client) ListMCPs(ctx context.Context, orgID, userID, name string) ([]*m
 		return nil, toErrStatus("mcp_get_custom_tool_list_err", err.Error())
 	}
 	return mcpInfos, nil
+}
+
+// ListMCPsAdmin 管理员中心跨组织查询自定义MCP列表（SQL分页）。
+// orgIDs / userIDs 为空表示不按该维度过滤。pageNo 从1开始，pageSize<=0 不分页。
+// 返回当前页数据与总条数。
+func (c *Client) ListMCPsAdmin(ctx context.Context, orgIDs, userIDs []string, name string, pageNo, pageSize int) ([]*model.MCPClient, int64, *errs.Status) {
+	db := sqlopt.SQLOptions(
+		sqlopt.WithOrgIDList(orgIDs),
+		sqlopt.WithUserIDList(userIDs),
+		sqlopt.LikeName(pkg_db.EscapeLike(name)),
+	).Apply(c.db).WithContext(ctx).Model(&model.MCPClient{})
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, toErrStatus("mcp_get_custom_mcp_list_err", err.Error())
+	}
+	var mcpInfos []*model.MCPClient
+	if err := db.Limit(pageSize).
+		Offset((pageNo - 1) * pageSize).
+		Order("updated_at DESC").
+		Find(&mcpInfos).Error; err != nil {
+		return nil, 0, toErrStatus("mcp_get_custom_mcp_list_err", err.Error())
+	}
+	return mcpInfos, total, nil
 }
 
 func (c *Client) ListMCPsByMCPIdList(ctx context.Context, mcpIDList []uint32) ([]*model.MCPClient, *errs.Status) {

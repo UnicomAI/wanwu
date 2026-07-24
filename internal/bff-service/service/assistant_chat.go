@@ -169,9 +169,8 @@ func CallAssistantConversationStream(ctx *gin.Context, userId, orgId, clientId s
 	if err != nil {
 		return nil, err
 	}
-	safetyConfig := agentInfo.SafetyConfig
-	//创建敏感词校验器
-	sensitiveChecker := CreateSensitiveChecker(agentSafetyList(agentInfo.SafetyConfig), &agentSensitiveService{}, safetyConfig.Enable)
+	//创建敏感词校验器（SafetyConfig 可能为 nil，如 openapi 创建的智能体未配置安全，用空安全 getter 避免解引用崩溃）
+	sensitiveChecker := CreateSensitiveChecker(agentSafetyList(agentInfo.SafetyConfig), &agentSensitiveService{}, agentInfo.SafetyConfig.GetEnable())
 	//任务执行器
 	streamExecutor := conversationStream(ctx, userId, orgId, clientId, agentInfo, req, needLatestPublished)
 	//带敏感词校验的任务执行

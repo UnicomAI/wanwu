@@ -380,6 +380,7 @@ def split_file_adapter(add_file_path: str, download_link: str, config: SplitConf
         for chunk in chunks:
             text = chunk["text"][:MAX_SENTENCE_SIZE]
             row_num = 0
+            sheet_name = ""
             if len(text) > 0:
                 chunk_type = chunk.get('type', 'text')
                 page_num = chunk.get('page_num', [])
@@ -392,6 +393,7 @@ def split_file_adapter(add_file_path: str, download_link: str, config: SplitConf
                         chunk_download_link = download_link
                     chunk_file_name = chunk["meta_data"]["file_name"] if "file_name" in chunk["meta_data"] else file_name
                     row_num = chunk["meta_data"]["row_num"] if "row_num" in chunk["meta_data"] else 0
+                    sheet_name = chunk["meta_data"]["sheet_name"] if "sheet_name" in chunk["meta_data"] else ""
                 else:
                     chunk_download_link = download_link
                     chunk_file_name = file_name
@@ -405,7 +407,8 @@ def split_file_adapter(add_file_path: str, download_link: str, config: SplitConf
                         "parent_title": parent_title,
                         "file_name": chunk_file_name,
                         "download_link": chunk_download_link,
-                        "row_num": row_num
+                        "row_num": row_num,
+                        "sheet_name": sheet_name,
                     }
                 }
                 new_chunks.append(doc_dict)

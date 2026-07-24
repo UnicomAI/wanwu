@@ -9,6 +9,7 @@
       :modelExperienceId.sync="modelExperienceId"
       @openModelComparison="openModelComparison"
       @refreshHistoryList="getChatHistoryList"
+      @pinCurrentChat="handlePinCurrentChat"
     >
       <template #nav>
         <div class="history-wrapper">
@@ -16,7 +17,7 @@
             <span class="el-icon-plus"></span>
             {{ $t('modelExprience.createSession') }}
           </el-button>
-          <div class="history-list" v-loading="loading">
+          <div class="history-list" v-loading="loading" ref="historyList">
             <el-empty
               v-if="!chatList.length"
               :description="$t('common.noData')"
@@ -99,6 +100,25 @@ export default {
           this.chatList = [];
         }
       }
+    },
+    // 发送消息后直接把当前会话置顶
+    handlePinCurrentChat() {
+      const activeId = this.modelExperienceId;
+      if (!activeId || this.chatList.length <= 1) {
+        return;
+      }
+      const idx = this.chatList.findIndex(item => item.id === activeId);
+      if (idx <= 0) {
+        return;
+      }
+      const [current] = this.chatList.splice(idx, 1);
+      this.chatList.unshift(current);
+      // 滚动条置顶
+      this.$nextTick(() => {
+        if (this.$refs.historyList) {
+          this.$refs.historyList.scrollTop = 0;
+        }
+      });
     },
     handleConvesationFeedback(chatItem) {
       this.modelExperienceId = chatItem.id;

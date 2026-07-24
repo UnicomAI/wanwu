@@ -304,6 +304,12 @@ func ToModelTags(provider, modelType, cfg string) ([]mp_common.Tag, error) {
 				return nil, fmt.Errorf("unmarshal model config err: %v", err)
 			}
 			tags = embedding.Tags()
+		case ModelTypeOcr:
+			ocr := &mp_qianfan.Ocr{}
+			if err := json.Unmarshal([]byte(cfg), ocr); err != nil {
+				return nil, fmt.Errorf("unmarshal model config err: %v", err)
+			}
+			tags = ocr.Tags()
 		default:
 			return nil, fmt.Errorf("ToModelTags:invalid provider %v model type %v", provider, modelType)
 		}
@@ -514,6 +520,8 @@ func ToModelConfig(provider, modelType, cfg string) (interface{}, error) {
 			ret = &mp_qianfan.Rerank{}
 		case ModelTypeTextEmbedding:
 			ret = &mp_qianfan.Embedding{}
+		case ModelTypeOcr:
+			ret = &mp_qianfan.Ocr{}
 		default:
 			return nil, fmt.Errorf("ToModelConfig:invalid provider %v model type %v", provider, modelType)
 		}

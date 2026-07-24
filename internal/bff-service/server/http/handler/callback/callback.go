@@ -1,6 +1,8 @@
 package callback
 
 import (
+	"errors"
+
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
@@ -75,7 +77,7 @@ func UnarchiveFile(ctx *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Param		data	body		request.GetUserListByUserIdsReq	true	"根据userIds获取用户信息参数"
-//	@Success	200		{object}	response.Response{data=response.ListResult{List=[]response.IDName}}
+//	@Success	200		{object}	response.Response{data=response.ListResult{List=[]response.IDNameWithAvatar}}
 //	@Router		/user/list [post]
 func GetUserListByUserIds(ctx *gin.Context) {
 	var req request.GetUserListByUserIdsReq
@@ -138,39 +140,6 @@ func DocStatusInit(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// GetDeployInfo
-//
-//	@Tags			callback
-//	@Summary		获取Maas平台部署信息（模型扩展调用）
-//	@Description	获取Maas平台部署信息（模型扩展调用）
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{object}	response.Response{}
-//	@Router			/api/deploy/info [get]
-func GetDeployInfo(ctx *gin.Context) {
-	resp, err := service.GetDeployInfo(ctx)
-	gin_util.Response(ctx, resp, err)
-}
-
-// SelectKnowledgeInfoByName
-//
-//	@Tags			callback
-//	@Summary		获取Maas平台知识库信息（模型扩展调用）
-//	@Description	获取Maas平台知识库信息（模型扩展调用）
-//	@Accept			json
-//	@Produce		json
-//	@Param			data	body		request.SearchKnowledgeInfoReq	true	"根据知识库名称请求参数"
-//	@Success		200		{object}	response.Response{}
-//	@Router			/api/category/info [get]
-func SelectKnowledgeInfoByName(ctx *gin.Context) {
-	var req request.SearchKnowledgeInfoReq
-	if !gin_util.BindQuery(ctx, &req) {
-		return
-	}
-	resp, err := service.SelectKnowledgeInfoByName(ctx, req.UserId, req.OrgId, &req)
-	gin_util.Response(ctx, resp, err)
-}
-
 // SearchKnowledgeBase
 //
 //	@Tags			callback
@@ -202,6 +171,11 @@ func SearchKnowledgeBase(ctx *gin.Context) {
 //	@Router			/rag/knowledge/stream/search [post]
 func KnowledgeStreamSearch(ctx *gin.Context) {
 	userId := ctx.GetHeader("X-uid")
+	if userId == "" {
+		resp, httpStatus := response.CommonRagKnowledgeError(errors.New("callback: empty X-uid"))
+		gin_util.ResponseRawByte(ctx, httpStatus, resp)
+		return
+	}
 	var req request.RagKnowledgeChatReq
 	if !gin_util.Bind(ctx, &req) {
 		return

@@ -20,7 +20,7 @@ service IAMService {
   // 获取用户
   rpc GetUserInfo(GetUserInfoReq) returns (UserInfo) {}
   // 创建用户
-  rpc CreateUser(CreateUserReq) returns (IDName) {}
+  rpc CreateUser(CreateUserReq) returns (IDNameWithAvatar) {}
   // 批量导入用户
   rpc CreateUsers(CreateUsersReq) returns (CreateUsersResp) {}
   // 编辑用户
@@ -65,7 +65,7 @@ service IAMService {
   // 获取用户有权限的组织ID列表（登录用户的管理员组织及其所有下级组织）
   rpc GetAdminOrgIDs(GetAdminOrgIDsReq) returns (GetAdminOrgIDsResp) {}
   // 创建组织
-  rpc CreateOrg(CreateOrgReq) returns (IDName) {}
+  rpc CreateOrg(CreateOrgReq) returns (IDNameWithAvatar) {}
   // 编辑组织
   rpc UpdateOrg(UpdateOrgReq) returns (google.protobuf.Empty) {}
   // 删除组织
@@ -77,6 +77,10 @@ service IAMService {
   rpc AddOrgUser(AddOrgUserReq) returns (google.protobuf.Empty) {}
   // 移除组织用户
   rpc RemoveOrgUser(RemoveOrgUserReq) returns (google.protobuf.Empty) {}
+  // 批量移除组织用户
+  rpc BatchRemoveOrgUser(BatchRemoveOrgUserReq) returns (google.protobuf.Empty) {}
+  // 批量删除用户（从系统删除）
+  rpc BatchDeleteUser(BatchDeleteUserReq) returns (google.protobuf.Empty) {}
 
   // --- role ---
 
@@ -149,12 +153,6 @@ message Perm {
   string perm = 1;
 }
 
-message IDName {
-  string id = 1;
-  string name = 2;
-  err_code.Status nameStatus = 3;
-}
-
 message IDNameWithAvatar {
   string id = 1;
   string name = 2;
@@ -166,11 +164,12 @@ message IDFullName {
   string id = 1;
   string name = 2;
   string fullName = 3;
-  err_code.Status nameStatus = 4;
+  string avatarPath = 4;
+  err_code.Status nameStatus = 5;
 }
 
 message Select {
-  repeated IDName selects = 1;
+  repeated IDNameWithAvatar selects = 1;
 }
 
 message OrgSelectResp {
@@ -190,14 +189,14 @@ message UserInfo {
   string company = 8;
   string remark = 9;
   int64 createdAt = 10;
-  IDName creator = 11;
+  IDNameWithAvatar creator = 11;
   repeated UserOrg orgs = 12;
   string language = 13;
   string avatarPath = 14;
 }
 
 message UserOrg {
-  IDName org = 1;
+  IDNameWithAvatar org = 1;
   repeated RoleIDName roles = 2;
 }
 
@@ -243,6 +242,7 @@ message CreateUserReq {
   string password = 9;
   repeated string roleIds = 10;
   string email = 11;
+  string avatarPath = 12;
 }
 
 message CreateUsersInfo {
@@ -313,7 +313,7 @@ message UserPermission {
   string userId = 1;
   bool isAdmin = 2;
   bool isSystem = 3;
-  IDName org = 4;
+  IDNameWithAvatar org = 4;
   repeated RoleIDName roles = 5;
   repeated Perm perms = 6;
   int64 lastUpdatePasswordAt = 7;
@@ -354,7 +354,7 @@ message OrgInfo {
   string remark = 3;
   bool status = 4;
   int64 createdAt = 5;
-  IDName creator = 6;
+  IDNameWithAvatar creator = 6;
   int64 userCount = 7;
   string avatarPath = 8;
   repeated string admins = 9;
@@ -375,7 +375,7 @@ message GetUsersByOrgIDsReq {
 }
 
 message GetUsersByOrgIDsResp {
-  repeated IDName users = 1; // 去重后的用户列表
+  repeated IDNameWithAvatar users = 1; // 去重后的用户列表
 }
 
 message GetOrgAndSubOrgSelectByUserReq {
@@ -384,7 +384,7 @@ message GetOrgAndSubOrgSelectByUserReq {
 }
 
 message GetOrgAndSubOrgSelectByUserResp {
-  repeated IDName orgs = 1;
+  repeated IDNameWithAvatar orgs = 1;
 }
 
 message GetFirstClassOrgAndSubsReq {
@@ -393,7 +393,7 @@ message GetFirstClassOrgAndSubsReq {
 }
 
 message GetFirstClassOrgAndSubsResp {
- repeated IDName orgs = 1;
+ repeated IDNameWithAvatar orgs = 1;
 }
 
 message GetAdminOrgSubTreeReq {
@@ -411,6 +411,7 @@ message GetAdminOrgIDsResp {
 message AdminOrgTreeNode {
   string orgId = 1;
   string name = 2;
+  string avatarPath = 3;
   repeated AdminOrgTreeNode children = 4;
   bool hasPerm = 5; // 当前用户是否对该组织有管理权限
 }
@@ -481,14 +482,24 @@ message RemoveOrgUserReq {
   string userId = 3;
 }
 
+message BatchRemoveOrgUserReq {
+  string orgId = 1;
+  repeated string userIds = 2;
+}
+
+message BatchDeleteUserReq {
+  repeated string userIds = 1;
+}
+
 // --- role ---
 
 message RoleIDName {
   string id = 1;
   string name = 2;
-  bool isAdmin = 3;
-  bool isSystem = 4;
-  bool isGlobal = 5;
+  string avatarPath = 3;
+  bool isAdmin = 4;
+  bool isSystem = 5;
+  bool isGlobal = 6;
 }
 
 message RoleInfo {
@@ -499,7 +510,7 @@ message RoleInfo {
   bool isSystem = 5;
   bool status = 6;
   int64 createdAt = 7;
-  IDName creator = 8;
+  IDNameWithAvatar creator = 8;
   repeated Perm perms = 9;
   bool isGlobal = 10;
   string orgName = 11;
@@ -601,7 +612,7 @@ message RoleUser {
   string userName = 2;
   string phone = 3;
   string email = 6;
-  repeated IDName orgs = 7;
+  repeated IDNameWithAvatar orgs = 7;
   string avatarPath = 8; // 用户头像
 }
 

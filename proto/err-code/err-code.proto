@@ -105,6 +105,8 @@ enum Code {
   KnowledgeInvalidArguments = 145019; // 非法参数
   KnowledgeDocSegmentEmpty = 145020; // 文档分段内容为空
   KnowledgeMetaUpdatePartialSuccess = 145021; // 部分元数据更新成功
+  KnowledgeDocSegmentImageNotSupport = 145022; // 当前知识库不支持插入图片，仅多模态知识库可插入图片
+  KnowledgeDocSegmentImageTypeInvalid = 145023; // 仅支持上传png/jpg/jpeg格式的图片
   KnowledgePermissionSelectedFailed = 146001; // 获取知识库权限列表失败，请稍后重试
   KnowledgePermissionDeny = 146002; // 知识库操作权限不足，请联系管理员添加后重试
   KnowledgeAddPermissionFailed = 146003; // 知识库添加权限失败，请稍后重试

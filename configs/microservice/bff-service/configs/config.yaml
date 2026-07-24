@@ -88,7 +88,7 @@ custom-info:
         welcome_text: bff_custom_general_agent_welcome
         logo_path: "/v1/static/logo/general_agent_logo.png"
     - mode: dark
-  version: v0.6.0
+  version: v0.6.1
   release_notes_path: "configs/microservice/bff-service/configs/files/docs/release-notes.md"
   register_by_email: 0
   reset_password_by_email: 0

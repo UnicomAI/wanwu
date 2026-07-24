@@ -194,6 +194,7 @@ def get_model_configure(model_id: str) -> BaseModelConfig:
         data = response.json().get("data")
         if not data:
             raise RuntimeError("No model data returned!")
+        logger.info(f"get_model_configure response: model_id={model_id}, data={data}")
 
         model_type = data.get("modelType")
         if model_type == ModelType.LLM.value:

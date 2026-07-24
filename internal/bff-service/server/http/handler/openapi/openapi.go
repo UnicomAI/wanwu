@@ -279,10 +279,7 @@ func DraftChatAgent(ctx *gin.Context) {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	if err = service.CheckOpenAPIAccess(ctx, appID, constant.AppTypeAgent, userID, orgID); err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
+	// 草稿态不要求已发布，所有权由 GetAssistantInfo(..., false) 的 Identity 兜底（只能调自己的）
 	assistantInfo, err := service.GetAssistantInfo(ctx, userID, orgID, request.AssistantIdRequest{AssistantId: appID}, false)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)

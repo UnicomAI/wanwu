@@ -91,6 +91,7 @@ type RagGetDocSegmentParams struct {
 	FileName          string `json:"fileName"`
 	PageSize          int32  `json:"page_size"`
 	SearchAfter       int32  `json:"search_after"`
+	QueryText         string `json:"query_text"`
 }
 
 type RagGetDocChildSegmentParams struct {

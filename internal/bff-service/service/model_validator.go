@@ -387,6 +387,7 @@ func ValidateOcrModel(ctx *gin.Context, modelInfo *model_service.ModelInfo) erro
 	req := &mp_common.OcrReq{
 		FileData: &base64StrWithPrefix,
 		FileName: "test.png",
+		Model:    &modelInfo.Model,
 	}
 	ocrReq, err := iOcr.NewReq(req)
 	if err != nil {

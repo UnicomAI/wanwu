@@ -34,9 +34,9 @@ type ModelInfo struct {
 	Tags         []mp_common.Tag         `json:"tags"`
 	Config       interface{}             `json:"config"`
 	Examples     *mp.ProviderModelConfig `json:"examples,omitempty"` // 仅用于swagger展示；模型对应供应商中的对应llm、embedding或rerank结构是config实际的参数
-	ScopeType    string                  `json:"scopeType"`
-	AllowEdit    bool                    `json:"allowEdit"`    // 是否允许前端编辑（true: 允许编辑，false: 隐藏编辑按钮）
-	ImportSource string                  `json:"importSource"` // 模型导入来源(builtin=平台内置,external=外部URL)
+	ScopeType    string                  `json:"scopeType"`          // 模型公开范围(1-私有 2-公开 3-组织)
+	AllowEdit    bool                    `json:"allowEdit"`          // 是否允许前端编辑（true: 允许编辑，false: 隐藏编辑按钮）
+	ImportSource string                  `json:"importSource"`       // 模型导入来源(builtin=平台内置,external=外部URL)
 }
 
 type ModelTagItem struct {

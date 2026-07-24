@@ -16,13 +16,27 @@
           :class="org.orgId === item.id ? 'header__org_active' : ''"
           :label="item.name"
           :value="item.id"
-        />
+        >
+          <div class="header__org_option">
+            <img
+              v-if="item.avatar?.path"
+              class="header__org_avatar"
+              :src="avatarSrc(item.avatar.path)"
+              alt=""
+            />
+            <span class="header__org_name" :title="item.name">
+              {{ item.name }}
+            </span>
+          </div>
+        </el-option>
       </el-select>
     </div>
   </div>
 </template>
 
 <script>
+import { avatarSrc } from '@/utils/util';
+
 export default {
   name: 'ChangeOrg',
   props: {
@@ -31,20 +45,32 @@ export default {
     changeOrg: { type: Function, required: true },
     getCurrentOrgName: { type: Function, required: true },
   },
+  methods: {
+    avatarSrc,
+  },
 };
 </script>
 
 <style lang="scss" scoped>
-/*.header__org_container {
-  padding: 10px 15px 0 15px;
-  .header__org_wrapper {
-    padding-bottom: 8px;
-    !*border-bottom: 1px solid #ebebeb;*!
-  }
-}*/
-
 .header__org_active {
   color: $color !important;
+}
+.header__org_option {
+  display: flex;
+  align-items: center;
+  .header__org_avatar {
+    width: 23px;
+    height: 23px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-right: 8px;
+  }
+  .header__org_name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 .header__org_select,
 .menu__org_select ::v-deep {

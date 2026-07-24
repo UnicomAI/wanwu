@@ -14,6 +14,8 @@ type RagInfo struct {
 	AppPublishConfig      request.AppPublishConfig         `json:"appPublishConfig"`                          // 发布配置
 	VisionConfig          request.VisionConfig             `json:"visionConfig"`                              // 视觉开关
 	RecommendQuestion     []string                         `json:"recommendQuestion"`                         // 推荐问题
+	CreatedAt             string                           `json:"createdAt"`                                 // 创建时间
+	UpdatedAt             string                           `json:"updatedAt"`                                 // 更新时间
 }
 
 type RagUploadResult struct {

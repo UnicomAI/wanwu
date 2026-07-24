@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/UnicomAI/wanwu/pkg/db"
+
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/client/orm/sqlopt"
@@ -135,6 +137,33 @@ func (c *Client) GetCustomSkillList(ctx context.Context, userId, orgId, name str
 		return nil, 0, toErrStatus("mcp_custom_skill_list", err.Error())
 	}
 	return list, int64(len(list)), nil
+}
+
+// GetCustomSkillPageList 管理员中心分页查询：按 userId[]/orgId[]/name 过滤后分页，total 为符合条件全量条数。
+// userId 与 orgId 均为空时不按拥有者过滤（全局列表）。
+func (c *Client) GetCustomSkillPageList(ctx context.Context, userId, orgId []string, name string, pageNum, pageSize int) ([]*model.CustomSkill, int64, *err_code.Status) {
+	query := sqlopt.SQLOptions(
+		sqlopt.WithUserIDList(userId),
+		sqlopt.WithOrgIDList(orgId),
+		sqlopt.LikeName(db.EscapeLike(name)),
+	).Apply(c.db).WithContext(ctx).Model(&model.CustomSkill{})
+
+	var total int64
+	if err := query.Session(&gorm.Session{}).Count(&total).Error; err != nil {
+		return nil, 0, toErrStatus("mcp_custom_skill_page_list", err.Error())
+	}
+	if total == 0 {
+		return []*model.CustomSkill{}, 0, nil
+	}
+	var list []*model.CustomSkill
+	if err := query.
+		Order("created_at DESC").
+		Offset((pageNum - 1) * pageSize).
+		Limit(pageSize).
+		Find(&list).Error; err != nil {
+		return nil, 0, toErrStatus("mcp_custom_skill_page_list", err.Error())
+	}
+	return list, total, nil
 }
 
 // GetCustomSkillListByIDs 按主键 id 批量查询；name 非空时做名称模糊过滤。

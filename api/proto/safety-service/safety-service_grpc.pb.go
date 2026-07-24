@@ -32,6 +32,7 @@ const (
 	SafetyService_DeleteSensitiveVocabulary_FullMethodName               = "/safety_service.SafetyService/DeleteSensitiveVocabulary"
 	SafetyService_GetSensitiveVocabularyList_FullMethodName              = "/safety_service.SafetyService/GetSensitiveVocabularyList"
 	SafetyService_GetSensitiveWordTableListWithWordsByIDs_FullMethodName = "/safety_service.SafetyService/GetSensitiveWordTableListWithWordsByIDs"
+	SafetyService_AdminSensitiveWordPageList_FullMethodName              = "/safety_service.SafetyService/AdminSensitiveWordPageList"
 )
 
 // SafetyServiceClient is the client API for SafetyService service.
@@ -65,6 +66,8 @@ type SafetyServiceClient interface {
 	GetSensitiveVocabularyList(ctx context.Context, in *GetSensitiveVocabularyListReq, opts ...grpc.CallOption) (*SensitiveWordVocabularyResp, error)
 	// 获取多个敏感词表详细数据(带敏感词)
 	GetSensitiveWordTableListWithWordsByIDs(ctx context.Context, in *GetSensitiveWordTableListByIDsReq, opts ...grpc.CallOption) (*SensitiveWordTableListWithWords, error)
+	// --- admin center ---
+	AdminSensitiveWordPageList(ctx context.Context, in *AdminSensitiveWordPageListReq, opts ...grpc.CallOption) (*AdminSensitiveWordPageListResp, error)
 }
 
 type safetyServiceClient struct {
@@ -195,6 +198,16 @@ func (c *safetyServiceClient) GetSensitiveWordTableListWithWordsByIDs(ctx contex
 	return out, nil
 }
 
+func (c *safetyServiceClient) AdminSensitiveWordPageList(ctx context.Context, in *AdminSensitiveWordPageListReq, opts ...grpc.CallOption) (*AdminSensitiveWordPageListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminSensitiveWordPageListResp)
+	err := c.cc.Invoke(ctx, SafetyService_AdminSensitiveWordPageList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SafetyServiceServer is the server API for SafetyService service.
 // All implementations must embed UnimplementedSafetyServiceServer
 // for forward compatibility.
@@ -226,6 +239,8 @@ type SafetyServiceServer interface {
 	GetSensitiveVocabularyList(context.Context, *GetSensitiveVocabularyListReq) (*SensitiveWordVocabularyResp, error)
 	// 获取多个敏感词表详细数据(带敏感词)
 	GetSensitiveWordTableListWithWordsByIDs(context.Context, *GetSensitiveWordTableListByIDsReq) (*SensitiveWordTableListWithWords, error)
+	// --- admin center ---
+	AdminSensitiveWordPageList(context.Context, *AdminSensitiveWordPageListReq) (*AdminSensitiveWordPageListResp, error)
 	mustEmbedUnimplementedSafetyServiceServer()
 }
 
@@ -271,6 +286,9 @@ func (UnimplementedSafetyServiceServer) GetSensitiveVocabularyList(context.Conte
 }
 func (UnimplementedSafetyServiceServer) GetSensitiveWordTableListWithWordsByIDs(context.Context, *GetSensitiveWordTableListByIDsReq) (*SensitiveWordTableListWithWords, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSensitiveWordTableListWithWordsByIDs not implemented")
+}
+func (UnimplementedSafetyServiceServer) AdminSensitiveWordPageList(context.Context, *AdminSensitiveWordPageListReq) (*AdminSensitiveWordPageListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminSensitiveWordPageList not implemented")
 }
 func (UnimplementedSafetyServiceServer) mustEmbedUnimplementedSafetyServiceServer() {}
 func (UnimplementedSafetyServiceServer) testEmbeddedByValue()                       {}
@@ -509,6 +527,24 @@ func _SafetyService_GetSensitiveWordTableListWithWordsByIDs_Handler(srv interfac
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SafetyService_AdminSensitiveWordPageList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminSensitiveWordPageListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SafetyServiceServer).AdminSensitiveWordPageList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SafetyService_AdminSensitiveWordPageList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SafetyServiceServer).AdminSensitiveWordPageList(ctx, req.(*AdminSensitiveWordPageListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SafetyService_ServiceDesc is the grpc.ServiceDesc for SafetyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -563,6 +599,10 @@ var SafetyService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSensitiveWordTableListWithWordsByIDs",
 			Handler:    _SafetyService_GetSensitiveWordTableListWithWordsByIDs_Handler,
+		},
+		{
+			MethodName: "AdminSensitiveWordPageList",
+			Handler:    _SafetyService_AdminSensitiveWordPageList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

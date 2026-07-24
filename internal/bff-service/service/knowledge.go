@@ -48,6 +48,29 @@ type RagData struct {
 	SearchList []*ChunkSearchList `json:"searchList"`
 }
 
+var knowledgeBiz = &KnowledgeBiz{}
+
+type KnowledgeBiz struct {
+}
+
+func init() {
+	InitBizService(knowledgeBiz)
+}
+func (*KnowledgeBiz) BizType() string {
+	return constant.BizModuleResourceKnowledge
+}
+func (*KnowledgeBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	knowledgeInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx, &knowledgebase_service.KnowledgeDetailSelectReq{
+		KnowledgeId: bizId,
+		NeedOwner:   true,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	userId, orgId = knowledgeInfo.OwnerUserId, knowledgeInfo.OwnerOrgId
+	return
+}
+
 // SelectKnowledgeList 查询知识库列表，主要根据userId 查询用户所有知识库
 func SelectKnowledgeList(ctx *gin.Context, userId, orgId string, req *request.KnowledgeSelectReq) (*response.KnowledgeListResp, error) {
 	resp, err := knowledgeBase.SelectKnowledgeList(ctx.Request.Context(), &knowledgebase_service.KnowledgeSelectReq{
@@ -112,21 +135,6 @@ func KnowledgeStreamSearch(ctx *gin.Context, req *request.RagKnowledgeChatReq) e
 	return nil
 }
 
-// SelectKnowledgeInfoByName 根据知识库名称查询知识库信息
-func SelectKnowledgeInfoByName(ctx *gin.Context, userId, orgId string, r *request.SearchKnowledgeInfoReq) (interface{}, error) {
-	resp, err := knowledgeBase.SelectKnowledgeDetailByName(ctx.Request.Context(), &knowledgebase_service.KnowledgeDetailSelectReq{
-		UserId:        userId,
-		OrgId:         orgId,
-		KnowledgeName: r.KnowledgeName,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return map[string]string{
-		"categoryId": resp.KnowledgeId,
-	}, nil
-}
-
 // SelectKnowledgeIdByRagName 根据ragName获取知识库ID
 func SelectKnowledgeIdByRagName(ctx *gin.Context, ragName string) (string, error) {
 	resp, err := knowledgeBase.SelectKnowledgeIdByRagName(ctx.Request.Context(), &knowledgebase_service.SelectKnowledgeIdByRagNameReq{
@@ -142,7 +150,7 @@ func SelectKnowledgeIdByRagName(ctx *gin.Context, ragName string) (string, error
 func CreateKnowledge(ctx *gin.Context, userId, orgId string, r *request.CreateKnowledgeReq) (*response.CreateKnowledgeResp, error) {
 	knowledgeGraph := &knowledgebase_service.KnowledgeGraph{}
 	if r.Category == request.CategoryKnowledge || r.Category == request.CategoryMultimodalKnowledge {
-		if r.KnowledgeGraph.Switch {
+		if r.KnowledgeGraph != nil && r.KnowledgeGraph.Switch {
 			knowledgeGraph = &knowledgebase_service.KnowledgeGraph{
 				Switch:     r.KnowledgeGraph.Switch,
 				LlmModelId: r.KnowledgeGraph.LLMModelId,
@@ -179,7 +187,7 @@ func CreateKnowledgeOpenapi(ctx *gin.Context, userId, orgId string, r *request.C
 	}
 	r.EmbeddingModel.ModelId = embModel.ModelId
 	if r.Category == request.CategoryKnowledge || r.Category == request.CategoryMultimodalKnowledge {
-		if r.KnowledgeGraph.Switch {
+		if r.KnowledgeGraph != nil && r.KnowledgeGraph.Switch {
 			llmModel, err := model.GetModelByUuid(ctx.Request.Context(), &model_service.GetModelByUuidReq{Uuid: r.KnowledgeGraph.LLMModelId})
 			if err != nil {
 				return nil, err
@@ -196,13 +204,14 @@ func CreateKnowledgeOpenapi(ctx *gin.Context, userId, orgId string, r *request.C
 
 // checkEmbeddingModelType 校验知识库 embedding 模型类型与知识库类型匹配
 func checkEmbeddingModelType(category int32, modelType string) error {
+	// 多模态知识库需多模态 embedding；文本知识库、问答库可用文本 embedding 或多模态 embedding
 	if category == request.CategoryMultimodalKnowledge {
 		if modelType != mp.ModelTypeMultiEmbedding {
 			return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, "multimodal knowledge requires a multimodal-embedding model")
 		}
 		return nil
 	}
-	if modelType != mp.ModelTypeTextEmbedding {
+	if modelType != mp.ModelTypeTextEmbedding && modelType != mp.ModelTypeMultiEmbedding {
 		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, "knowledge requires an embedding model")
 	}
 	return nil
@@ -592,6 +601,13 @@ func buildKnowledgeHitResp(resp *knowledgebase_service.KnowledgeHitResp) *respon
 			for _, score := range search.ChildScore {
 				childScore = append(childScore, float64(score))
 			}
+			// meta_data 为 rag 原样透传的 JSON 串，解回对象返回
+			var metaData interface{}
+			if search.MetaData != "" {
+				if err := json.Unmarshal([]byte(search.MetaData), &metaData); err != nil {
+					log.Errorf("knowledge hit meta_data unmarshal err: %v", err)
+				}
+			}
 			searchList = append(searchList, &response.ChunkSearchList{
 				Title:            search.Title,
 				Snippet:          search.Snippet,
@@ -601,6 +617,7 @@ func buildKnowledgeHitResp(resp *knowledgebase_service.KnowledgeHitResp) *respon
 				ContentType:      search.ContentType,
 				Score:            float64(search.Score),
 				RerankInfo:       buildRerankInfo(search.RerankInfo),
+				MetaData:         metaData,
 			})
 		}
 	}

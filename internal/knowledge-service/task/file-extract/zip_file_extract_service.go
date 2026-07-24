@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/UnicomAI/wanwu/pkg/log"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 )
@@ -55,6 +56,11 @@ func (t ZipFileExtractServiceService) ExtractFile(ctx context.Context, localFile
 			decodeFileName = string(content)
 		} else {
 			decodeFileName = f.Name
+		}
+		// 安全检查：拒绝含路径遍历的条目，防止 Zip Slip 写出 destDir 之外
+		if err := util.ValidateArchivePath(decodeFileName); err != nil {
+			log.Errorf("skip unsafe zip entry: %s, error: %v", decodeFileName, err)
+			continue
 		}
 		// 构建完整的文件路径
 		destFilePath := filepath.Join(destDir, decodeFileName)

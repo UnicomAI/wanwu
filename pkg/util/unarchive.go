@@ -144,7 +144,7 @@ func unzipFromReader(reader io.Reader, destDir string) error {
 		}
 
 		// 安全检查：防止路径遍历
-		if err := validateArchivePath(decodeFileName); err != nil {
+		if err := ValidateArchivePath(decodeFileName); err != nil {
 			log.Errorf("skip unsafe zip entry: %s, error: %v", decodeFileName, err)
 			continue
 		}
@@ -212,7 +212,7 @@ func untar(reader io.Reader, destDir string) error {
 		}
 
 		// 安全检查：防止路径遍历
-		if err := validateArchivePath(header.Name); err != nil {
+		if err := ValidateArchivePath(header.Name); err != nil {
 			log.Errorf("skip unsafe tar entry: %s, error: %v", header.Name, err)
 			continue
 		}
@@ -316,8 +316,8 @@ func ungz(reader io.Reader, destDir string, originalFilename string) error {
 	return nil
 }
 
-// validateArchivePath 验证压缩包内的路径是否安全（防止路径遍历攻击）
-func validateArchivePath(name string) error {
+// ValidateArchivePath 验证压缩包内的路径是否安全（防止路径遍历攻击）
+func ValidateArchivePath(name string) error {
 	if name == "" {
 		return fmt.Errorf("empty path")
 	}

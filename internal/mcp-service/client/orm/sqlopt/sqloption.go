@@ -61,6 +61,26 @@ func WithUserID(userID string) SQLOption {
 	})
 }
 
+// WithOrgIDList 按组织id列表过滤，空列表不限制
+func WithOrgIDList(orgIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgIDs) > 0 {
+			return db.Where("org_id IN ?", orgIDs)
+		}
+		return db
+	})
+}
+
+// WithUserIDList 按用户id列表过滤，空列表不限制
+func WithUserIDList(userIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(userIDs) > 0 {
+			return db.Where("user_id IN ?", userIDs)
+		}
+		return db
+	})
+}
+
 func WithMcpSquareId(mcpSquareId string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if mcpSquareId != "" {

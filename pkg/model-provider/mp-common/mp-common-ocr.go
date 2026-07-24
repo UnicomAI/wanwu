@@ -21,6 +21,18 @@ type OcrReq struct {
 	FileType            *int    `json:"fileType,omitempty"`
 	ExtractImage        *int    `json:"extract_image,omitempty"`
 	ExtractImageContent *int    `json:"extract_image_content,omitempty"`
+
+	// 以下为千帆 paddleocr 原生模型推理参数（仅 qianfan 使用）
+	UseChartRecognition *bool    `json:"useChartRecognition,omitempty"` // 图表识别
+	UseDocUnwarping     *bool    `json:"useDocUnwarping,omitempty"`     // 文档矫正
+	UseLayoutDetection  *bool    `json:"useLayoutDetection,omitempty"`  // 版面检测
+	LayoutNms           *bool    `json:"layoutNms,omitempty"`           // 版面 NMS 去重
+	RepetitionPenalty   *float64 `json:"repetitionPenalty,omitempty"`   // 重复惩罚
+	Temperature         *float64 `json:"temperature,omitempty"`         // 采样温度
+	TopP                *float64 `json:"topP,omitempty"`                // top-p 采样
+	MinPixels           *int     `json:"minPixels,omitempty"`           // 最小像素
+	MaxPixels           *int     `json:"maxPixels,omitempty"`           // 最大像素
+	Visualize           *bool    `json:"visualize,omitempty"`           // 输出可视化结果
 }
 
 func (req *OcrReq) Check() error {
@@ -88,19 +100,19 @@ type OcrResult struct {
 // --- request ---
 
 type IOcrReq interface {
-	Data() *OcrReq
+	Data() map[string]interface{}
 }
 
 // ocrReq implementation of IOcrReq
 type ocrReq struct {
-	data *OcrReq
+	data map[string]interface{}
 }
 
-func NewOcrReq(data *OcrReq) IOcrReq {
+func NewOcrReq(data map[string]interface{}) IOcrReq {
 	return &ocrReq{data: data}
 }
 
-func (req *ocrReq) Data() *OcrReq {
+func (req *ocrReq) Data() map[string]interface{} {
 	return req.data
 }
 
@@ -152,7 +164,7 @@ func (resp *ocrResp) ConvertResp() (*OcrResp, bool) {
 // --- ocr ---
 
 // Ocr 向下游供应商发送 OCR 请求（JSON 格式）
-func Ocr(ctx context.Context, provider, apiKey, url string, req *OcrReq, headers ...Header) ([]byte, error) {
+func Ocr(ctx context.Context, provider, apiKey, url string, req map[string]interface{}, headers ...Header) ([]byte, error) {
 	if apiKey != "" {
 		headers = append(headers, Header{
 			Key:   "Authorization",

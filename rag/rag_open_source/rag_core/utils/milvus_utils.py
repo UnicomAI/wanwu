@@ -441,7 +441,7 @@ def del_milvus_files(user_id, kb_info, file_names):
 
 
 def get_milvus_file_content_list(user_id: str, kb_info: dict, file_name: str, page_size: int,
-                                 search_after: int, content_type="text"):
+                                 search_after: int, content_type="text", query_text: str = None):
     """
         获取知识库文件片段列表,用于分页展示
     """
@@ -452,7 +452,8 @@ def get_milvus_file_content_list(user_id: str, kb_info: dict, file_name: str, pa
         'file_name': file_name,
         'page_size': page_size,
         'search_after': search_after,
-        "content_type": content_type
+        "content_type": content_type,
+        'query_text': query_text
     }
 
     return make_request(url, data)

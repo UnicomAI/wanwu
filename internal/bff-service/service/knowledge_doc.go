@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	knowledgebase_keywords_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-keywords-service"
+
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
 	knowledgebase_doc_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-doc-service"
@@ -33,8 +35,41 @@ var docAnalyzerMap = map[string]string{
 	"multimodal": "图文问答模型",
 }
 
+type DocKnowledgeParams struct {
+	NeedOwner      bool `json:"needOwner" form:"needOwner"`
+	NeedGraph      bool `json:"needGraph" form:"needGraph"`
+	NeedPermission bool `json:"needPermission" form:"needPermission"`
+}
+
+// GetDocKnowledgeDetail 查询文档的知识库详情
+func GetDocKnowledgeDetail(ctx *gin.Context, userId, orgId string, req *request.DocKnowledgeDetailReq, params *DocKnowledgeParams) (*response.DocKnowledgeInfo, error) {
+	knowledgeInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx, &knowledgebase_service.KnowledgeDetailSelectReq{
+		KnowledgeId:    req.KnowledgeId,
+		NeedOwner:      params.NeedOwner,
+		NeedGraph:      params.NeedGraph,
+		NeedPermission: params.NeedPermission,
+		UserId:         userId,
+		OrgId:          orgId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	//忽略报错
+	knowledgeKeywords, _ := knowledgeBaseKeywords.GetKnowledgeKeywordsListByKnowledgeId(ctx, &knowledgebase_keywords_service.GetKnowledgeKeywordsListByKnowledgeIdReq{
+		KnowledgeId: req.KnowledgeId,
+		UserId:      knowledgeInfo.CreateUserId,
+		OrgId:       knowledgeInfo.CreateOrgId,
+	})
+	var keyWords []*knowledgebase_keywords_service.KeywordsInfo
+	if knowledgeKeywords != nil {
+		keyWords = knowledgeKeywords.Keywords
+	}
+	//构建知识库详情
+	return buildDocKnowledgeInfo(ctx, keyWords, knowledgeInfo), nil
+}
+
 // GetDocList 查询知识库所属文档列表
-func GetDocList(ctx *gin.Context, userId, orgId string, r *request.DocListReq) (*response.DocPageResult, error) {
+func GetDocList(ctx *gin.Context, userId, orgId string, r *request.DocListReq) (*response.PageResult, error) {
 	resp, err := knowledgeBaseDoc.GetDocList(ctx.Request.Context(), &knowledgebase_doc_service.GetDocListReq{
 		KnowledgeId:   r.KnowledgeId,
 		DocName:       strings.TrimSpace(r.DocName),
@@ -53,30 +88,12 @@ func GetDocList(ctx *gin.Context, userId, orgId string, r *request.DocListReq) (
 	if err != nil {
 		return nil, err
 	}
-	knowledgeInfo := resp.KnowledgeInfo
-	embModelInfo, _ := GetModel(ctx, userId, orgId, &request.GetModelRequest{
-		BaseModelRequest: request.BaseModelRequest{
-			ModelId: knowledgeInfo.EmbeddingModelId,
-		},
-	})
-	return &response.DocPageResult{
+
+	return &response.PageResult{
 		List:     buildDocRespList(ctx, resp.Docs, r.KnowledgeId),
 		Total:    resp.Total,
 		PageNo:   int(resp.PageNum),
 		PageSize: int(resp.PageSize),
-		DocKnowledgeInfo: &response.DocKnowledgeInfo{
-			KnowledgeId:     knowledgeInfo.KnowledgeId,
-			KnowledgeName:   knowledgeInfo.KnowledgeName,
-			GraphSwitch:     knowledgeInfo.GraphSwitch,
-			ShowGraphReport: knowledgeInfo.ShowGraphReport,
-			Description:     knowledgeInfo.Description,
-			Keywords:        buildKeywordsInfo(knowledgeInfo.Keywords),
-			EmbeddingModel:  embModelInfo,
-			LlmModelId:      knowledgeInfo.LlmModelId,
-			Category:        knowledgeInfo.Category,
-			Avatar:          cacheKnowledgeAvatar(ctx, knowledgeInfo.AvatarPath, knowledgeInfo.Category),
-			PermissionType:  knowledgeInfo.PermissionType,
-		},
 	}, nil
 }
 
@@ -121,6 +138,7 @@ func GetDocDetail(ctx *gin.Context, userId, orgId, docId string) (*response.List
 		Status:        int(data.Status),
 		ErrorMsg:      gin_util.I18nKey(ctx, data.ErrorMsg),
 		FileSize:      data.DocSize,
+		FileSizeStr:   response.FormatFileSize(data.DocSize),
 		KnowledgeId:   data.KnowledgeId,
 		SegmentMethod: data.SegmentMethod,
 		GraphStatus:   data.GraphStatus,
@@ -170,14 +188,29 @@ func ImportDoc(ctx *gin.Context, userId, orgId string, req *request.DocImportReq
 
 // ImportDocOpenapi 导入文档
 func ImportDocOpenapi(ctx *gin.Context, userId, orgId string, req *request.DocImportReq) error {
-	var err error
-	if req.ParserModelId != "" {
-		req.ParserModelId, err = GetModelIdByUuid(ctx, req.ParserModelId)
+	// openapi 仅支持文件上传，单条url上传/url文件上传已下架
+	if req.DocImportType != request.FileUpload {
+		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, "docImportType only supports 0 (file upload)")
+	}
+	if err := convertDocConfigModelUuid(ctx, &req.DocImportFileConfig); err != nil {
+		return err
+	}
+	return ImportDoc(ctx, userId, orgId, req)
+}
+
+// convertDocConfigModelUuid openapi 传入的模型 id 均为对外 uuid，统一转换为内部 modelId
+func convertDocConfigModelUuid(ctx *gin.Context, cfg *request.DocImportFileConfig) error {
+	for _, modelId := range []*string{&cfg.ParserModelId, &cfg.AsrModelId, &cfg.MultimodalModelId} {
+		if *modelId == "" {
+			continue
+		}
+		id, err := GetModelIdByUuid(ctx, *modelId)
 		if err != nil {
 			return err
 		}
+		*modelId = id
 	}
-	return ImportDoc(ctx, userId, orgId, req)
+	return nil
 }
 
 // UpdateDocConfig 更新文档配置
@@ -216,12 +249,12 @@ func UpdateDocConfig(ctx *gin.Context, userId, orgId string, req *request.DocCon
 
 // UpdateDocConfigOpenapi 更新文档配置
 func UpdateDocConfigOpenapi(ctx *gin.Context, userId, orgId string, req *request.DocConfigUpdateReq) error {
-	var err error
-	if req.ParserModelId != "" {
-		req.ParserModelId, err = GetModelIdByUuid(ctx, req.ParserModelId)
-		if err != nil {
-			return err
-		}
+	// openapi 仅支持文件上传类型
+	if req.DocImportType != request.FileUpload {
+		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, "docImportType only supports 0 (file upload)")
+	}
+	if err := convertDocConfigModelUuid(ctx, &req.DocImportFileConfig); err != nil {
+		return err
 	}
 	return UpdateDocConfig(ctx, userId, orgId, req)
 }
@@ -364,6 +397,32 @@ func AnalysisDocUrl(ctx *gin.Context, userId, orgId string, r *request.AnalysisU
 	return &response.AnalysisDocUrlResp{UrlList: urlList}, nil
 }
 
+func buildDocKnowledgeInfo(ctx *gin.Context, keyWords []*knowledgebase_keywords_service.KeywordsInfo, knowledgeInfo *knowledgebase_service.KnowledgeInfo) *response.DocKnowledgeInfo {
+	embModelInfo, _ := GetModel(ctx, knowledgeInfo.CreateUserId, knowledgeInfo.CreateOrgId, &request.GetModelRequest{
+		BaseModelRequest: request.BaseModelRequest{
+			ModelId: knowledgeInfo.EmbeddingModelInfo.ModelId,
+		},
+	})
+
+	return &response.DocKnowledgeInfo{
+		KnowledgeId:     knowledgeInfo.KnowledgeId,
+		KnowledgeName:   knowledgeInfo.Name,
+		GraphSwitch:     knowledgeInfo.GraphSwitch,
+		ShowGraphReport: knowledgeInfo.ShowGraphReport,
+		Description:     knowledgeInfo.Description,
+		Keywords:        buildKeywordsInfo(keyWords),
+		EmbeddingModel:  embModelInfo,
+		LlmModelId:      knowledgeInfo.LlmModelId,
+		Category:        knowledgeInfo.Category,
+		Avatar:          cacheKnowledgeAvatar(ctx, knowledgeInfo.AvatarPath, knowledgeInfo.Category),
+		PermissionType:  knowledgeInfo.PermissionType,
+		OwnerUserId:     knowledgeInfo.OwnerUserId,
+		OwnerOrgId:      knowledgeInfo.OwnerOrgId,
+		CreatedAt:       knowledgeInfo.CreatedAt,
+		UpdatedAt:       knowledgeInfo.UpdatedAt,
+	}
+}
+
 // buildDocRespList 构造文档返回列表
 func buildDocRespList(ctx *gin.Context, dataList []*knowledgebase_doc_service.DocInfo, knowledgeId string) []*response.ListDocResp {
 	retList := make([]*response.ListDocResp, 0)
@@ -377,6 +436,7 @@ func buildDocRespList(ctx *gin.Context, dataList []*knowledgebase_doc_service.Do
 			Status:        int(data.Status),
 			ErrorMsg:      gin_util.I18nKey(ctx, data.ErrorMsg),
 			FileSize:      data.DocSize,
+			FileSizeStr:   response.FormatFileSize(data.DocSize),
 			KnowledgeId:   knowledgeId,
 			SegmentMethod: data.SegmentMethod,
 			Author:        authorMap[data.UserId],
@@ -443,6 +503,8 @@ func buildDocSegmentResp(docSegmentListResp *knowledgebase_doc_service.DocSegmen
 	}
 	return &response.DocSegmentResp{
 		FileName:            docSegmentListResp.FileName,
+		FileSize:            docSegmentListResp.DocSize,
+		FileSizeStr:         response.FormatFileSize(docSegmentListResp.DocSize),
 		PageTotal:           int(docSegmentListResp.PageTotal),
 		SegmentTotalNum:     int(docSegmentListResp.SegmentTotalNum),
 		MaxSegmentSize:      int(docSegmentListResp.MaxSegmentSize),
@@ -856,7 +918,7 @@ func buildDocSegment(docSegment *knowledgebase_doc_service.DocSegment) *response
 	}
 }
 
-func buildKeywordsInfo(keywords []*knowledgebase_doc_service.KeywordsInfo) []*response.KeywordsInfo {
+func buildKeywordsInfo(keywords []*knowledgebase_keywords_service.KeywordsInfo) []*response.KeywordsInfo {
 	retList := make([]*response.KeywordsInfo, 0)
 	if len(keywords) > 0 {
 		for _, v := range keywords {

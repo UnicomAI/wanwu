@@ -18,6 +18,12 @@ const (
 	ExternalKnowledge                = 1   // 外部知识库
 )
 
+type KnowledgeBaseOwner struct {
+	KnowledgeBase
+	OwnerUserId string `gorm:"column:owner_user_id" json:"ownerUserId"`
+	OwnerOrgId  string `gorm:"column:owner_org_id" json:"ownerOrgId"`
+}
+
 type KnowledgeBase struct {
 	Id                   uint32       `gorm:"column:id;primary_key;type:bigint(20) auto_increment;not null;comment:'id';" json:"id"`       // Primary Key
 	KnowledgeId          string       `gorm:"uniqueIndex:idx_unique_knowledge_id;column:knowledge_id;type:varchar(64)" json:"knowledgeId"` // Business Primary Key

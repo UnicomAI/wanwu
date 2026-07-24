@@ -139,6 +139,10 @@ func (n *OrgNode) GetOrgID() uint32 {
 	return n.id
 }
 
+func (n *OrgNode) GetAvatarPath() string {
+	return n.avatarPath
+}
+
 func (n *OrgNode) GetFirstClassOrg() *OrgNode {
 	if n == nil {
 		return nil

@@ -10,6 +10,7 @@ type SensitiveWordTableDetail struct {
 	Remark    string `json:"remark"`    // 备注
 	Reply     string `json:"reply"`     // 回复设置
 	CreatedAt string `json:"createdAt"` // 敏感词表创建时间
+	UpdatedAt string `json:"updatedAt"` // 敏感词表更新时间
 	Type      string `json:"type"`      // 敏感词表类型
 }
 

@@ -785,6 +785,11 @@ definitions:
       endpointUrl:
         description: 推理url
         type: string
+      supportFileTypes:
+        description: 支持的文件类型，由 bff-service 从 recommend_model_config.yaml 注入
+        items:
+          type: string
+        type: array
     type: object
   mp_yuanjing.PdfParser:
     properties:
@@ -1092,6 +1097,339 @@ definitions:
     required:
     - endDate
     - startDate
+    type: object
+  request.AdminAssistantDetailReq:
+    properties:
+      assistantId:
+        type: string
+    required:
+    - assistantId
+    type: object
+  request.AdminAssistantPageListReq:
+    properties:
+      category:
+        description: 1:单智能体，2:多智能体
+        items:
+          type: integer
+        type: array
+      isAllOrg:
+        description: 是否全选组织
+        type: boolean
+      name:
+        type: string
+      orgIdList:
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      publishScope:
+        description: private：私密发布，organization:组织内发布，public：公开发布
+        items:
+          type: string
+        type: array
+      publishStatus:
+        description: draft:草稿，publish:发布
+        items:
+          type: string
+        type: array
+      userIdList:
+        items:
+          type: string
+        type: array
+    required:
+    - pageSize
+    type: object
+  request.AdminKnowledgeDetailReq:
+    properties:
+      knowledgeId:
+        description: 知识库id
+        type: string
+    required:
+    - knowledgeId
+    type: object
+  request.AdminKnowledgeFileDetailReq:
+    properties:
+      docId:
+        description: 文档id
+        type: string
+      knowledgeId:
+        description: 知识库id
+        type: string
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+    required:
+    - docId
+    - knowledgeId
+    - pageSize
+    type: object
+  request.AdminKnowledgePageListReq:
+    properties:
+      category:
+        description: 0:知识库，1:问答库，2:多模态知识库
+        items:
+          type: integer
+        type: array
+      external:
+        description: -1:全部，0:内部知识库，1:外部知识库
+        type: integer
+      isAllOrg:
+        description: 是否全选组织
+        type: boolean
+      name:
+        type: string
+      orgIdList:
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      publishScope:
+        description: private：私密发布，organization:组织内发布，public：公开发布
+        items:
+          type: string
+        type: array
+      publishStatus:
+        description: draft:草稿，publish:发布
+        items:
+          type: string
+        type: array
+      userIdList:
+        items:
+          type: string
+        type: array
+    required:
+    - pageSize
+    type: object
+  request.AdminModelDetailReq:
+    properties:
+      modelId:
+        description: 模型id
+        type: string
+    required:
+    - modelId
+    type: object
+  request.AdminModelPageListReq:
+    properties:
+      isAllOrg:
+        description: 是否全选组织
+        type: boolean
+      modelType:
+        description: 模型类型：llm, rerank, embedding, multimodal-rerank, multimodal-embedding,
+          ocr, gui, pdf-parser, sync-asr, text2image
+        items:
+          type: string
+        type: array
+      name:
+        description: 模型名称
+        type: string
+      orgIdList:
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      provider:
+        description: '模型供应商: OpenAI-API-compatible,YuanJing, HuoShan, Ollama, Qwen,
+          Infini, QianFan, DeepSeek, Jina, ZhiPu'
+        type: string
+      publishScope:
+        description: private：私密发布，organization:组织内发布，public：公开发布
+        items:
+          type: string
+        type: array
+      publishStatus:
+        description: draft:草稿，publish:发布
+        items:
+          type: string
+        type: array
+      userIdList:
+        items:
+          type: string
+        type: array
+    required:
+    - pageSize
+    type: object
+  request.AdminRagDetailReq:
+    properties:
+      ragId:
+        description: 知识问答id
+        type: string
+    required:
+    - ragId
+    type: object
+  request.AdminRagPageListReq:
+    properties:
+      isAllOrg:
+        description: 是否全选组织
+        type: boolean
+      name:
+        description: 知识问答名称
+        type: string
+      orgIdList:
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      publishScope:
+        description: private：私密发布，organization:组织内发布，public：公开发布
+        items:
+          type: string
+        type: array
+      publishStatus:
+        description: draft:草稿，publish:发布
+        items:
+          type: string
+        type: array
+      userIdList:
+        items:
+          type: string
+        type: array
+    required:
+    - pageSize
+    type: object
+  request.AdminSensitiveWordBaseReq:
+    properties:
+      tableId:
+        description: 敏感词表id
+        type: string
+    required:
+    - tableId
+    type: object
+  request.AdminSensitiveWordDetailReq:
+    properties:
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      tableId:
+        description: 敏感词表id
+        type: string
+    required:
+    - pageSize
+    - tableId
+    type: object
+  request.AdminSensitiveWordPageListReq:
+    properties:
+      isAllOrg:
+        description: 是否全选组织
+        type: boolean
+      name:
+        type: string
+      orgIdList:
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      publishScope:
+        description: private：私密发布，organization:组织内发布，public：公开发布
+        items:
+          type: string
+        type: array
+      publishStatus:
+        description: draft:草稿，publish:发布
+        items:
+          type: string
+        type: array
+      userIdList:
+        items:
+          type: string
+        type: array
+    required:
+    - pageSize
+    type: object
+  request.AdminSkillDetailReq:
+    properties:
+      skillId:
+        type: string
+      skillType:
+        description: builtin:内置技能，acquired:自定义技能,不填写默认自定义
+        type: string
+    required:
+    - skillId
+    type: object
+  request.AdminSkillPageListReq:
+    properties:
+      isAllOrg:
+        description: 是否全选组织
+        type: boolean
+      name:
+        type: string
+      orgIdList:
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      publishScope:
+        description: private：私密发布，organization:组织内发布，public：公开发布
+        items:
+          type: string
+        type: array
+      publishStatus:
+        description: draft:草稿，publish:发布
+        items:
+          type: string
+        type: array
+      userIdList:
+        items:
+          type: string
+        type: array
+    required:
+    - pageSize
+    type: object
+  request.AdminWorkflowPageListReq:
+    properties:
+      appType:
+        description: workflow:工作流，chatflow:对话流
+        items:
+          type: string
+        type: array
+      isAllOrg:
+        description: 是否全选组织
+        type: boolean
+      name:
+        type: string
+      orgIdList:
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      publishScope:
+        description: private：私密发布，organization:组织内发布，public：公开发布
+        items:
+          type: string
+        type: array
+      publishStatus:
+        description: draft:草稿，publish:发布
+        items:
+          type: string
+        type: array
+      userIdList:
+        items:
+          type: string
+        type: array
+    required:
+    - pageSize
     type: object
   request.AnalysisUrlDocReq:
     properties:
@@ -1785,6 +2123,19 @@ definitions:
     required:
     - docId
     - fileUploadId
+    type: object
+  request.BatchDeleteUserReq:
+    properties:
+      orgId:
+        type: string
+      userIds:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - orgId
+    - userIds
     type: object
   request.BatchDocMetaDataReq:
     properties:
@@ -3561,7 +3912,7 @@ definitions:
       apiAuth:
         allOf:
         - $ref: '#/definitions/util.ApiAuthWebRequest'
-        description: api身份认证
+        description: api身份认证(可选，为空表示无鉴权)
       avatar:
         allOf:
         - $ref: '#/definitions/request.Avatar'
@@ -3593,7 +3944,6 @@ definitions:
         description: '传输协议: "sse" 或 "streamable"'
         type: string
     required:
-    - apiAuth
     - desc
     - from
     - name
@@ -3751,7 +4101,7 @@ definitions:
       apiAuth:
         allOf:
         - $ref: '#/definitions/util.ApiAuthWebRequest'
-        description: api身份认证
+        description: api身份认证(可选，为空表示无鉴权)
       avatar:
         allOf:
         - $ref: '#/definitions/request.Avatar'
@@ -3782,7 +4132,6 @@ definitions:
         description: '传输协议: "sse" 或 "streamable"'
         type: string
     required:
-    - apiAuth
     - desc
     - from
     - mcpId
@@ -5371,15 +5720,23 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
         type: string
       downloadCount:
         type: integer
       name:
         type: string
+      orgId:
+        type: string
       skillId:
         type: string
       skillMarkdown:
+        type: string
+      updatedAt:
+        type: string
+      userId:
         type: string
       variables:
         items:
@@ -5392,17 +5749,506 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
         type: string
       downloadCount:
         type: integer
       name:
         type: string
+      orgId:
+        type: string
       skillId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  response.AdminAppBaseInfo:
+    properties:
+      authorizedPersonnelList:
+        description: 指定人员列表
+        items:
+          $ref: '#/definitions/response.AuthorizedPersonnel'
+        type: array
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 应用图标
+      createdAt:
+        description: 应用创建时间
+        type: string
+      desc:
+        description: 应用描述
+        type: string
+      name:
+        description: 应用名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      publishScope:
+        description: private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布
+        type: string
+      publishStatus:
+        description: draft:草稿，publish:发布
+        type: string
+      updatedAt:
+        description: 应用更新时间(用于历史记录排序)
+        type: string
+    type: object
+  response.AdminAssistant:
+    properties:
+      appId:
+        description: 应用id
+        type: string
+      appType:
+        description: 应用类型
+        type: string
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 应用图标
+      category:
+        description: 智能体分类(1:单智能体,2:多智能体)
+        type: integer
+      createdAt:
+        description: 应用创建时间
+        type: string
+      desc:
+        description: 应用描述
+        type: string
+      name:
+        description: 应用名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      publishType:
+        description: 发布类型(public:公开发布,private:私密发布)，为空表示未发布(草稿)
+        type: string
+      uniqueId:
+        description: 随机unique id(每次动态生成)
+        type: string
+      updatedAt:
+        description: 应用更新时间(用于历史记录排序)
+        type: string
+      version:
+        description: 已发布应用的版本号(未发布时为空)
+        type: string
+    type: object
+  response.AdminAssistantBase:
+    properties:
+      authorizedPersonnelList:
+        description: 指定人员列表
+        items:
+          $ref: '#/definitions/response.AuthorizedPersonnel'
+        type: array
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 应用图标
+      category:
+        description: 智能体分类(1:单智能体,2:多智能体)
+        type: integer
+      createdAt:
+        description: 应用创建时间
+        type: string
+      desc:
+        description: 应用描述
+        type: string
+      hideKnowledge:
+        description: 是否隐藏知识库引用(1:隐藏,0:显示)，仅已发布版本有值
+        type: integer
+      name:
+        description: 应用名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      publishScope:
+        description: private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布
+        type: string
+      publishStatus:
+        description: draft:草稿，publish:发布
+        type: string
+      updatedAt:
+        description: 应用更新时间(用于历史记录排序)
+        type: string
+    type: object
+  response.AdminAssistantDetail:
+    properties:
+      assistantId:
+        type: string
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      category:
+        description: 智能体分类 1.单智能体 2.多智能体
+        type: integer
+      createdAt:
+        description: 创建时间
+        type: string
+      desc:
+        description: 描述
+        type: string
+      hideKnowledge:
+        description: 是否隐藏知识库
+        type: integer
+      instructions:
+        description: 系统提示词
+        type: string
+      knowledgeBaseConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppKnowledgebaseConfig'
+        description: 知识库
+      mcpInfos:
+        description: MCP信息
+        items:
+          $ref: '#/definitions/response.AssistantMCPInfo'
+        type: array
+      memoryConfig:
+        allOf:
+        - $ref: '#/definitions/request.MemoryConfig'
+        description: 记忆配置
+      modelConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 模型
+      multiAgentInfos:
+        description: 多智能体配置
+        items:
+          $ref: '#/definitions/response.AssistantAgentInfo'
+        type: array
+      name:
+        description: 名称
+        type: string
+      newAgent:
+        description: 是否是新版本智能体
+        type: boolean
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      prologue:
+        description: 开场白
+        type: string
+      publishType:
+        description: 发布类型
+        type: string
+      recommendConfig:
+        allOf:
+        - $ref: '#/definitions/response.RecommendConfig'
+        description: 追问配置
+      recommendQuestion:
+        description: 推荐问题
+        items:
+          type: string
+        type: array
+      rerankConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: Rerank模型
+      safetyConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppSafetyConfig'
+        description: 敏感词表配置
+      scope:
+        description: 作用域
+        type: integer
+      skillInfos:
+        description: 技能配置
+        items:
+          $ref: '#/definitions/response.AssistantSkillInfo'
+        type: array
+      toolInfos:
+        description: 自定义工具、内置工具
+        items:
+          $ref: '#/definitions/response.AssistantToolInfo'
+        type: array
+      updatedAt:
+        description: 更新时间
+        type: string
+      uuid:
+        type: string
+      visionConfig:
+        allOf:
+        - $ref: '#/definitions/response.VisionConfig'
+        description: 视觉配置
+      workFlowInfos:
+        description: 工作流信息
+        items:
+          $ref: '#/definitions/response.AssistantWorkFlowInfo'
+        type: array
+    required:
+    - assistantId
+    - name
+    type: object
+  response.AdminKnowledge:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 头像
+      category:
+        description: 0:知识库 1:问答库 2:多模态知识库
+        type: integer
+      createdAt:
+        description: 创建时间
+        type: string
+      description:
+        description: 知识库描述
+        type: string
+      external:
+        description: 0:内部知识库 1:外部知识库
+        type: integer
+      knowledgeId:
+        description: 知识库id
+        type: string
+      name:
+        description: 知识库名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      updatedAt:
+        description: 更新时间
+        type: string
+    type: object
+  response.AdminKnowledgeBase:
+    properties:
+      authorizedPersonnelList:
+        description: 指定人员列表
+        items:
+          $ref: '#/definitions/response.AuthorizedPersonnel'
+        type: array
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 应用图标
+      category:
+        description: '0: 知识库 1: 问答库 2: 多模态知识库'
+        type: integer
+      createdAt:
+        description: 应用创建时间
+        type: string
+      desc:
+        description: 应用描述
+        type: string
+      description:
+        type: string
+      embeddingModel:
+        $ref: '#/definitions/response.ModelInfo'
+      graphSwitch:
+        type: integer
+      keywords:
+        items:
+          $ref: '#/definitions/response.KeywordsInfo'
+        type: array
+      knowledgeId:
+        type: string
+      llmModelId:
+        type: string
+      name:
+        description: 应用名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      publishScope:
+        description: private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布
+        type: string
+      publishStatus:
+        description: draft:草稿，publish:发布
+        type: string
+      updatedAt:
+        description: 应用更新时间(用于历史记录排序)
+        type: string
+    type: object
+  response.AdminModel:
+    properties:
+      allowEdit:
+        description: '是否允许前端编辑（true: 允许编辑，false: 隐藏编辑按钮）'
+        type: boolean
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 模型图标路径
+      config: {}
+      createdAt:
+        type: string
+      displayName:
+        description: 模型显示名称
+        type: string
+      examples:
+        allOf:
+        - $ref: '#/definitions/mp.ProviderModelConfig'
+        description: 仅用于swagger展示；模型对应供应商中的对应llm、embedding或rerank结构是config实际的参数
+      importSource:
+        description: 模型导入来源(builtin=平台内置,external=外部URL)
+        type: string
+      isActive:
+        description: '启用状态（true: 启用，false: 禁用）'
+        type: boolean
+      model:
+        description: 模型名称
+        type: string
+      modelDesc:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        enum:
+        - llm
+        - embedding
+        - rerank
+        type: string
+      orgId:
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      provider:
+        description: 模型供应商
+        enum:
+        - OpenAI-API-compatible
+        - YuanJing
+        type: string
+      publishDate:
+        description: 模型发布时间
+        type: string
+      scopeType:
+        description: 模型公开范围(1-私有 2-公开 3-组织)
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/mp_common.Tag'
+        type: array
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      uuid:
+        type: string
+    required:
+    - model
+    - modelType
+    - provider
+    type: object
+  response.AdminModelBase:
+    properties:
+      authorizedPersonnelList:
+        description: 指定人员列表
+        items:
+          $ref: '#/definitions/response.AuthorizedPersonnel'
+        type: array
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 应用图标
+      createdAt:
+        description: 应用创建时间
+        type: string
+      desc:
+        description: 应用描述
+        type: string
+      name:
+        description: 应用名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      provider:
+        description: 模型供应商
+        type: string
+      publishScope:
+        description: private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布
+        type: string
+      publishStatus:
+        description: draft:草稿，publish:发布
+        type: string
+      updatedAt:
+        description: 应用更新时间(用于历史记录排序)
         type: string
     type: object
   response.AdminOrgTreeNode:
     properties:
+      avatar:
+        $ref: '#/definitions/request.Avatar'
       children:
         items:
           $ref: '#/definitions/response.AdminOrgTreeNode'
@@ -5415,6 +6261,315 @@ definitions:
       name:
         type: string
       orgId:
+        type: string
+    type: object
+  response.AdminRag:
+    properties:
+      appId:
+        description: 应用id
+        type: string
+      appType:
+        description: 应用类型
+        type: string
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 应用图标
+      category:
+        description: 智能体分类(1:单智能体,2:多智能体)
+        type: integer
+      createdAt:
+        description: 应用创建时间
+        type: string
+      desc:
+        description: 应用描述
+        type: string
+      name:
+        description: 应用名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      publishType:
+        description: 发布类型(public:公开发布,private:私密发布)，为空表示未发布(草稿)
+        type: string
+      uniqueId:
+        description: 随机unique id(每次动态生成)
+        type: string
+      updatedAt:
+        description: 应用更新时间(用于历史记录排序)
+        type: string
+      version:
+        description: 已发布应用的版本号(未发布时为空)
+        type: string
+    type: object
+  response.AdminRagBase:
+    properties:
+      authorizedPersonnelList:
+        description: 指定人员列表
+        items:
+          $ref: '#/definitions/response.AuthorizedPersonnel'
+        type: array
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 应用图标
+      createdAt:
+        description: 应用创建时间
+        type: string
+      desc:
+        description: 应用描述
+        type: string
+      name:
+        description: 应用名称
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      publishScope:
+        description: private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布
+        type: string
+      publishStatus:
+        description: draft:草稿，publish:发布
+        type: string
+      updatedAt:
+        description: 应用更新时间(用于历史记录排序)
+        type: string
+    type: object
+  response.AdminRagDetail:
+    properties:
+      appPublishConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppPublishConfig'
+        description: 发布配置
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      createdAt:
+        description: 创建时间
+        type: string
+      desc:
+        description: 描述
+        type: string
+      knowledgeBaseConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppKnowledgebaseConfig'
+        description: 知识库
+      llmModel:
+        allOf:
+        - $ref: '#/definitions/response.ModelInfo'
+        description: llm模型（含头像/标签）
+      modelConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 模型
+      name:
+        description: 名称
+        type: string
+      qaKnowledgeBaseConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppQAKnowledgebaseConfig'
+        description: 问答库
+      qaRerankConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 问答库Rerank模型
+      qaRerankModel:
+        allOf:
+        - $ref: '#/definitions/response.ModelInfo'
+        description: 问答库Rerank模型（含头像/标签）
+      ragId:
+        type: string
+      recommendQuestion:
+        description: 推荐问题
+        items:
+          type: string
+        type: array
+      rerankConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: Rerank模型
+      rerankModel:
+        allOf:
+        - $ref: '#/definitions/response.ModelInfo'
+        description: 知识库Rerank模型（含头像/标签）
+      safetyConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppSafetyConfig'
+        description: 敏感词表配置
+      updatedAt:
+        description: 更新时间
+        type: string
+      visionConfig:
+        allOf:
+        - $ref: '#/definitions/request.VisionConfig'
+        description: 视觉开关
+    required:
+    - knowledgeBaseConfig
+    - modelConfig
+    - name
+    - qaKnowledgeBaseConfig
+    - qaRerankConfig
+    - ragId
+    - rerankConfig
+    type: object
+  response.AdminSensitiveWord:
+    properties:
+      createdAt:
+        description: 敏感词表创建时间
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      remark:
+        description: 备注
+        type: string
+      reply:
+        description: 回复设置
+        type: string
+      tableId:
+        description: 敏感词表id
+        type: string
+      tableName:
+        description: 敏感词表名
+        type: string
+      type:
+        description: 敏感词表类型
+        type: string
+      updatedAt:
+        description: 敏感词表更新时间
+        type: string
+    type: object
+  response.AdminSensitiveWordBase:
+    properties:
+      createdAt:
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      remark:
+        type: string
+      tableId:
+        type: string
+      tableName:
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  response.AdminSensitiveWordDetailResp:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/response.SensitiveWordVocabularyDetail'
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      reply:
+        type: string
+      total:
+        type: integer
+    type: object
+  response.AdminSkillDetail:
+    properties:
+      acquiredCount:
+        type: integer
+      author:
+        type: string
+      avatar:
+        $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
+      desc:
+        type: string
+      downloadCount:
+        type: integer
+      isPublished:
+        type: boolean
+      name:
+        type: string
+      orgId:
+        type: string
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
+        type: string
+      previewId:
+        type: string
+      publishType:
+        type: string
+      skillId:
+        type: string
+      threadId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      version:
+        type: string
+    type: object
+  response.AdminWorkflowDetail:
+    properties:
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerOrgName:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id（知识库可转让，未必是创建者）
+        type: string
+      ownerUserName:
+        description: 拥有者用户名称（知识库可转让，未必是创建者）
         type: string
     type: object
   response.AgentFileMeta:
@@ -5642,6 +6797,9 @@ definitions:
       desc:
         description: 描述
         type: string
+      hideKnowledge:
+        description: 是否隐藏知识库
+        type: integer
       instructions:
         description: 系统提示词
         type: string
@@ -5673,6 +6831,12 @@ definitions:
       newAgent:
         description: 是否是新版本智能体
         type: boolean
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id
+        type: string
       prologue:
         description: 开场白
         type: string
@@ -5897,21 +7061,42 @@ definitions:
       workFlowId:
         type: string
     type: object
+  response.AuthorizedPersonnel:
+    properties:
+      avatar:
+        $ref: '#/definitions/request.Avatar'
+      name:
+        type: string
+      orgId:
+        type: string
+      orgName:
+        type: string
+      userId:
+        type: string
+    type: object
   response.BuiltinSkillDetail:
     properties:
       author:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
         type: string
       downloadCount:
         type: integer
       name:
         type: string
+      orgId:
+        type: string
       skillId:
         type: string
       skillMarkdown:
+        type: string
+      updatedAt:
+        type: string
+      userId:
         type: string
       variables:
         items:
@@ -5924,13 +7109,21 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
         type: string
       downloadCount:
         type: integer
       name:
         type: string
+      orgId:
+        type: string
       skillId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
         type: string
     type: object
   response.Captcha:
@@ -6394,6 +7587,7 @@ definitions:
         description: 模型发布时间
         type: string
       scopeType:
+        description: 模型公开范围(1-私有 2-公开 3-组织)
         type: string
       tags:
         items:
@@ -6762,6 +7956,9 @@ definitions:
       category:
         description: '0: 知识库 1: 问答库 2: 多模态知识库'
         type: integer
+      createdAt:
+        description: 创建时间
+        type: string
       description:
         type: string
       embeddingModel:
@@ -6778,11 +7975,20 @@ definitions:
         type: string
       llmModelId:
         type: string
+      ownerOrgId:
+        description: 知识库拥有者的orgID，因为知识库可以转让，所以拥有者未必是创建者
+        type: string
+      ownerUserId:
+        description: 知识库拥有者的userID，因为知识库可以转让，所以拥有者未必是创建者
+        type: string
       permissionType:
         description: 当前用户对该知识库的权限类型 -1:无权限 0:查看 10:编辑 20:授权 30:系统管理授权
         type: integer
       showGraphReport:
         type: boolean
+      updatedAt:
+        description: 更新时间
+        type: string
     type: object
   response.DocMenu:
     properties:
@@ -6821,21 +8027,6 @@ definitions:
       metaValueType:
         description: number，time, string
         type: string
-    type: object
-  response.DocPageResult:
-    properties:
-      docKnowledgeInfo:
-        $ref: '#/definitions/response.DocKnowledgeInfo'
-      list:
-        items:
-          $ref: '#/definitions/response.ListDocResp'
-        type: array
-      pageNo:
-        type: integer
-      pageSize:
-        type: integer
-      total:
-        type: integer
     type: object
   response.DocSearchContent:
     properties:
@@ -6910,6 +8101,12 @@ definitions:
         type: string
       fileName:
         description: 名称
+        type: string
+      fileSize:
+        description: 文件大小，单位字节(Byte)
+        type: integer
+      fileSizeStr:
+        description: 文件大小的人眼友好展示
         type: string
       maxSegmentSize:
         description: 设置最大长度
@@ -7410,13 +8607,6 @@ definitions:
           $ref: '#/definitions/response.GitStatusFile'
         type: array
     type: object
-  response.IDName:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-    type: object
   response.IDNameWithAvatar:
     properties:
       avatar:
@@ -7781,21 +8971,6 @@ definitions:
         description: 上传状态
         type: integer
     type: object
-  response.KnowledgeQAPairPageResult:
-    properties:
-      list:
-        items:
-          $ref: '#/definitions/response.ListKnowledgeQAPairResp'
-        type: array
-      pageNo:
-        type: integer
-      pageSize:
-        type: integer
-      qaKnowledgeInfo:
-        $ref: '#/definitions/response.QAKnowledgeInfo'
-      total:
-        type: integer
-    type: object
   response.KnowledgeReportInfo:
     properties:
       content:
@@ -7947,6 +9122,9 @@ definitions:
       fileSize:
         description: 文件大小，单位字节(Byte)
         type: integer
+      fileSizeStr:
+        description: 文件大小的人眼友好展示
+        type: string
       graphErrMsg:
         description: 图谱错误信息
         type: string
@@ -8548,6 +9726,7 @@ definitions:
         description: 模型发布时间
         type: string
       scopeType:
+        description: 模型公开范围(1-私有 2-公开 3-组织)
         type: string
       tags:
         items:
@@ -8707,7 +9886,7 @@ definitions:
       createdAt:
         type: string
       creator:
-        $ref: '#/definitions/response.IDName'
+        $ref: '#/definitions/response.IDNameWithAvatar'
       name:
         type: string
       orgId:
@@ -8723,7 +9902,7 @@ definitions:
     properties:
       org:
         allOf:
-        - $ref: '#/definitions/response.IDName'
+        - $ref: '#/definitions/response.IDNameWithAvatar'
         description: 组织
       roles:
         description: 角色列表
@@ -8816,6 +9995,8 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
         type: string
       downloadCount:
@@ -8823,6 +10004,8 @@ definitions:
       isPublished:
         type: boolean
       name:
+        type: string
+      orgId:
         type: string
       previewId:
         type: string
@@ -8833,6 +10016,10 @@ definitions:
       skillMarkdown:
         type: string
       threadId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
         type: string
       variables:
         items:
@@ -8849,6 +10036,8 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
         type: string
       downloadCount:
@@ -8857,6 +10046,8 @@ definitions:
         type: boolean
       name:
         type: string
+      orgId:
+        type: string
       previewId:
         type: string
       publishType:
@@ -8864,6 +10055,10 @@ definitions:
       skillId:
         type: string
       threadId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
         type: string
       version:
         type: string
@@ -8886,26 +10081,30 @@ definitions:
       title:
         type: string
     type: object
-  response.QAKnowledgeInfo:
+  response.QRLoginResponse:
     properties:
-      avatar:
-        allOf:
-        - $ref: '#/definitions/request.Avatar'
-        description: 头像
-      description:
-        description: 问答库描述
-        type: string
-      embeddingModel:
-        allOf:
-        - $ref: '#/definitions/response.ModelInfo'
-        description: emb模型信息
-      knowledgeId:
-        type: string
-      knowledgeName:
-        type: string
-      permissionType:
-        description: 当前用户对该问答库的权限类型 -1:无权限 0:查看 10:编辑 20:授权 30:系统管理授权
+      expireAt:
         type: integer
+      expireTime:
+        type: integer
+      qrUrl:
+        type: string
+      sessionId:
+        type: string
+    type: object
+  response.QRLoginStatusResponse:
+    properties:
+      baseUrl:
+        description: 微信扫码成功时返回的平台 baseUrl
+        type: string
+      credentials:
+        additionalProperties:
+          type: string
+        type: object
+      error:
+        type: string
+      status:
+        type: string
     type: object
   response.QRLoginResponse:
     properties:
@@ -8957,6 +10156,9 @@ definitions:
         allOf:
         - $ref: '#/definitions/request.Avatar'
         description: 图标
+      createdAt:
+        description: 创建时间
+        type: string
       desc:
         description: 描述
         type: string
@@ -8994,6 +10196,9 @@ definitions:
         allOf:
         - $ref: '#/definitions/request.AppSafetyConfig'
         description: 敏感词表配置
+      updatedAt:
+        description: 更新时间
+        type: string
       visionConfig:
         allOf:
         - $ref: '#/definitions/request.VisionConfig'
@@ -9097,6 +10302,8 @@ definitions:
     type: object
   response.RoleIDName:
     properties:
+      avatar:
+        $ref: '#/definitions/request.Avatar'
       id:
         type: string
       isGlobal:
@@ -9114,7 +10321,7 @@ definitions:
       createdAt:
         type: string
       creator:
-        $ref: '#/definitions/response.IDName'
+        $ref: '#/definitions/response.IDNameWithAvatar'
       isAdmin:
         description: 是否组织内置管理员角色
         type: boolean
@@ -9164,7 +10371,7 @@ definitions:
         type: string
       orgs:
         items:
-          $ref: '#/definitions/response.IDName'
+          $ref: '#/definitions/response.IDNameWithAvatar'
         type: array
       phone:
         type: string
@@ -9247,6 +10454,9 @@ definitions:
       type:
         description: 敏感词表类型
         type: string
+      updatedAt:
+        description: 敏感词表更新时间
+        type: string
     type: object
   response.SensitiveWordVocabularyDetail:
     properties:
@@ -9268,6 +10478,8 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
         type: string
       downloadCount:
@@ -9276,9 +10488,15 @@ definitions:
         type: boolean
       name:
         type: string
+      orgId:
+        type: string
       skillId:
         type: string
       skillMarkdown:
+        type: string
+      updatedAt:
+        type: string
+      userId:
         type: string
     type: object
   response.SharedSkillInfo:
@@ -9289,6 +10507,8 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
         type: string
       downloadCount:
@@ -9297,7 +10517,13 @@ definitions:
         type: boolean
       name:
         type: string
+      orgId:
+        type: string
       skillId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
         type: string
     type: object
   response.SkillInfo:
@@ -9306,15 +10532,23 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
         type: string
       name:
+        type: string
+      orgId:
         type: string
       skillId:
         type: string
       skillName:
         type: string
       skillType:
+        type: string
+      updatedAt:
+        type: string
+      userId:
         type: string
     type: object
   response.SkillVariable:
@@ -9873,7 +11107,7 @@ definitions:
         type: string
       creator:
         allOf:
-        - $ref: '#/definitions/response.IDName'
+        - $ref: '#/definitions/response.IDNameWithAvatar'
         description: 创建人
       email:
         type: string
@@ -9903,7 +11137,7 @@ definitions:
         type: boolean
       org:
         allOf:
-        - $ref: '#/definitions/response.IDName'
+        - $ref: '#/definitions/response.IDNameWithAvatar'
         description: 组织
       permissions:
         description: 权限列表
@@ -9924,7 +11158,7 @@ definitions:
         type: string
       creator:
         allOf:
-        - $ref: '#/definitions/response.IDName'
+        - $ref: '#/definitions/response.IDNameWithAvatar'
         description: 创建人
       email:
         type: string
@@ -9955,7 +11189,7 @@ definitions:
     properties:
       select:
         items:
-          $ref: '#/definitions/response.IDName'
+          $ref: '#/definitions/response.IDNameWithAvatar'
         type: array
     type: object
   response.Users:
@@ -9963,7 +11197,7 @@ definitions:
       users:
         description: 去重后的用户列表
         items:
-          $ref: '#/definitions/response.IDName'
+          $ref: '#/definitions/response.IDNameWithAvatar'
         type: array
     type: object
   response.VisionConfig:
@@ -10158,6 +11392,669 @@ info:
   title: AI Agent Productivity Platform API
   version: v0.0.1
 paths:
+  /admin/center/assistant/base:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心智能体基础信息
+      parameters:
+      - description: 智能体基础信息参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminAssistantDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AdminAssistantBase'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心智能体基础信息
+      tags:
+      - admin_center.assistant
+  /admin/center/assistant/detail:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心智能体详情
+      parameters:
+      - description: 智能体详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminAssistantDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AdminAssistantDetail'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心智能体详情
+      tags:
+      - admin_center.assistant
+  /admin/center/assistant/page/list:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心智能体全局列表
+      parameters:
+      - description: 智能体全局列表参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminAssistantPageListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PageResult'
+            - properties:
+                list:
+                  $ref: '#/definitions/response.AdminAssistant'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心智能体全局列表
+      tags:
+      - admin_center.assistant
+  /admin/center/knowledge/base:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心知识库详情
+      parameters:
+      - description: 知识库详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminKnowledgeDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AdminKnowledgeBase'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心知识库详情
+      tags:
+      - admin_center.knowledge
+  /admin/center/knowledge/file/detail:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心知识库文档详情
+      parameters:
+      - description: 知识库文档详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminKnowledgeFileDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.DocSegmentResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心知识库文档详情
+      tags:
+      - admin_center.knowledge
+  /admin/center/knowledge/file/list:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心知识库文件列表
+      parameters:
+      - description: 知识库详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DocListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PageResult'
+            - properties:
+                list:
+                  $ref: '#/definitions/response.ListDocResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心知识库文件列表
+      tags:
+      - admin_center.knowledge
+  /admin/center/knowledge/page/list:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心知识库全局列表
+      parameters:
+      - description: 知识库全局列表参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminKnowledgePageListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PageResult'
+            - properties:
+                list:
+                  $ref: '#/definitions/response.AdminKnowledge'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心知识库全局列表
+      tags:
+      - admin_center.knowledge
+  /admin/center/knowledge/qa/pair/list:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心获取问答对列表
+      parameters:
+      - in: query
+        name: knowledgeId
+        required: true
+        type: string
+      - in: query
+        name: metaValue
+        type: string
+      - in: query
+        name: name
+        type: string
+      - in: query
+        name: pageNo
+        type: integer
+      - in: query
+        name: pageSize
+        required: true
+        type: integer
+      - collectionFormat: csv
+        description: -1：全部 0:待处理 1:导入中 2:导入成功 3:导入失败
+        in: query
+        items:
+          type: integer
+        name: status
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PageResult'
+            - properties:
+                list:
+                  $ref: '#/definitions/response.ListKnowledgeQAPairResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心获取问答对列表
+      tags:
+      - admin_center.knowledge
+  /admin/center/model/base:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心模型基础信息
+      parameters:
+      - description: 模型详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminModelDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AdminModelBase'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心模型基础信息
+      tags:
+      - admin_center.model
+  /admin/center/model/detail:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心模型详情
+      parameters:
+      - description: 模型详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminModelDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ModelInfo'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心模型详情
+      tags:
+      - admin_center.model
+  /admin/center/model/page/list:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心模型全局列表
+      parameters:
+      - description: 模型全局列表参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminModelPageListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PageResult'
+            - properties:
+                list:
+                  $ref: '#/definitions/response.AdminModel'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心模型全局列表
+      tags:
+      - admin_center.model
+  /admin/center/rag/base:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心知识问答基础信息
+      parameters:
+      - description: 知识问答基本信息参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminRagDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AdminRagBase'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心知识问答基础信息
+      tags:
+      - admin_center.rag
+  /admin/center/rag/detail:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心知识问答详情
+      parameters:
+      - description: 知识问答详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminRagDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AdminRagDetail'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心知识问答详情
+      tags:
+      - admin_center.rag
+  /admin/center/rag/page/list:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心知识问答全局列表
+      parameters:
+      - description: 知识问答全局列表参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminRagPageListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PageResult'
+            - properties:
+                list:
+                  $ref: '#/definitions/response.AdminRag'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心知识问答全局列表
+      tags:
+      - admin_center.rag
+  /admin/center/sensitive/base:
+    post:
+      consumes:
+      - application/json
+      description: 返回敏感词表的名称、备注、类型、创建时间、更新时间、创建人、所属组织
+      parameters:
+      - description: 敏感词基础信息参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminSensitiveWordBaseReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AdminSensitiveWordBase'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心敏感词基础信息
+      tags:
+      - admin_center.sensitive
+  /admin/center/sensitive/detail:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心敏感词详情
+      parameters:
+      - description: 敏感词详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminSensitiveWordDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AdminSensitiveWordDetailResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心敏感词详情
+      tags:
+      - admin_center.sensitive
+  /admin/center/sensitive/page/list:
+    post:
+      consumes:
+      - application/json
+      description: 管理员中心敏感词全局列表
+      parameters:
+      - description: 敏感词全局列表参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminSensitiveWordPageListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PageResult'
+            - properties:
+                list:
+                  $ref: '#/definitions/response.AdminSensitiveWord'
+              type: object
+      security:
+      - JWT: []
+      summary: 管理员中心敏感词全局列表
+      tags:
+      - admin_center.sensitive
+  /admin/center/skill/base:
+    post:
+      consumes:
+      - application/json
+      description: skill基础信息
+      parameters:
+      - description: skill基础信息参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminSkillDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AdminAppBaseInfo'
+              type: object
+      security:
+      - JWT: []
+      summary: skill基础信息
+      tags:
+      - admin_center.skill
+  /admin/center/skill/detail:
+    post:
+      consumes:
+      - application/json
+      description: skill详情
+      parameters:
+      - description: skill详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminSkillDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PublishedSkillDetail'
+              type: object
+      security:
+      - JWT: []
+      summary: skill详情
+      tags:
+      - admin_center.skill
+  /admin/center/skill/page/list:
+    post:
+      consumes:
+      - application/json
+      description: skill分页列表
+      parameters:
+      - description: skill分页列表分页列表参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminSkillPageListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PageResult'
+            - properties:
+                list:
+                  $ref: '#/definitions/response.AdminSkillDetail'
+              type: object
+      security:
+      - JWT: []
+      summary: skill分页列表
+      tags:
+      - admin_center.skill
+  /admin/center/skill/version/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取我发布的skill版本历史列表
+      parameters:
+      - description: skill详情参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminSkillDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.SkillVersionInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取我发布skill版本列表
+      tags:
+      - admin_center.skill
+  /admin/center/workflow/page/list:
+    post:
+      consumes:
+      - application/json
+      description: 工作流分页列表
+      parameters:
+      - description: 工作流分页列表参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AdminWorkflowPageListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.PageResult'
+            - properties:
+                list:
+                  $ref: '#/definitions/response.AdminWorkflowDetail'
+              type: object
+      security:
+      - JWT: []
+      summary: 工作流分页列表
+      tags:
+      - admin_center.workflow
   /agent/skill/acquired:
     delete:
       consumes:
@@ -16246,6 +18143,33 @@ paths:
       summary: 获取文档配置信息
       tags:
       - knowledge.doc
+  /knowledge/doc/detail:
+    get:
+      consumes:
+      - application/json
+      description: 获取文档知识库信息
+      parameters:
+      - in: query
+        name: knowledgeId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.DocKnowledgeInfo'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取文档知识库信息
+      tags:
+      - knowledge.doc
   /knowledge/doc/export:
     post:
       consumes:
@@ -16335,10 +18259,10 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/response.Response'
+            - $ref: '#/definitions/response.PageResult'
             - properties:
-                data:
-                  $ref: '#/definitions/response.DocPageResult'
+                list:
+                  $ref: '#/definitions/response.ListDocResp'
               type: object
       security:
       - JWT: []
@@ -17543,10 +19467,10 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/response.Response'
+            - $ref: '#/definitions/response.PageResult'
             - properties:
-                data:
-                  $ref: '#/definitions/response.KnowledgeQAPairPageResult'
+                list:
+                  $ref: '#/definitions/response.ListKnowledgeQAPairResp'
               type: object
       security:
       - JWT: []
@@ -19657,6 +21581,28 @@ paths:
       summary: 编辑下级组织
       tags:
       - admin_center
+  /org/admin/select:
+    get:
+      consumes:
+      - application/json
+      description: 返回当前用户具有组织管理员角色的组织及其下级所有组织的扁平列表（不含上级组织）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.Select'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取管理员组织及下级组织列表（不含上级组织，用于下拉选择）
+      tags:
+      - admin_center
   /org/info:
     get:
       consumes:
@@ -21682,7 +23628,7 @@ paths:
                   - properties:
                       list:
                         items:
-                          $ref: '#/definitions/response.IDName'
+                          $ref: '#/definitions/response.IDNameWithAvatar'
                         type: array
                     type: object
               type: object
@@ -22184,6 +24130,29 @@ paths:
       tags:
       - common
   /user/batch:
+    delete:
+      consumes:
+      - application/json
+      description: 传入组织为顶级组织时从系统批量删除用户；否则从指定组织批量移除用户
+      parameters:
+      - description: 批量删除请求
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.BatchDeleteUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 批量删除/移除用户
+      tags:
+      - admin_center
     post:
       consumes:
       - multipart/form-data

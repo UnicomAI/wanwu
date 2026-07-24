@@ -22,6 +22,8 @@ service RagService {
   rpc GetRagDetail(RagDetailReq) returns (RagInfo) {}
   // 获取 rag 列表
   rpc ListRag(RagListReq) returns (RagListResp) {}
+  // 管理员中心知识问答全局分页列表（跨用户/组织）
+  rpc AdminRagPageList(AdminRagPageListReq) returns (AdminRagPageListResp) {}
   // 根据 ragIds 获取 rag 列表
   rpc GetRagByIds(GetRagByIdsReq) returns (AppBriefList) {}
   // 复制 rag
@@ -112,6 +114,8 @@ message RagInfo {
   RagVisionConfig visionConfig = 9; // 视觉配置
   Identity identity = 10;
   repeated string recommendQuestion = 11; // 推荐问题
+  int64 createTime = 12;
+  int64 updateTime = 13;
 }
 
 message RagDeleteReq {
@@ -195,6 +199,19 @@ message RagListReq {
 message RagListResp {
   repeated common.AppBrief ragInfos = 1;
   int64 total = 2;
+}
+
+message AdminRagPageListReq {
+  string name = 1;              // 知识问答名称，支持模糊搜索
+  repeated string userId = 2;   // 拥有者用户id列表
+  repeated string orgId = 3;    // 拥有者组织id列表
+  int32 pageNum = 4;            // 页码，从1开始；pageSize<=0 时忽略
+  int32 pageSize = 5;           // 每页数量；<=0 表示不分页，返回全部
+}
+
+message AdminRagPageListResp {
+  int64 total = 1;
+  repeated common.AppBrief ragInfos = 2;
 }
 
 message GetRagByIdsReq{

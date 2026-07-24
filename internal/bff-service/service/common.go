@@ -154,18 +154,6 @@ func cacheAppAvatar(ctx *gin.Context, avatarObjectPath, appType string) request.
 	return CacheAvatar(avatarObjectPath)
 }
 
-// cacheUserAvatar 获取用户头像的缓存URL
-// 1. 空avatar返回默认用户图标
-// 2. 否则调用CacheAvatar转换
-func cacheUserAvatar(ctx *gin.Context, avatarObjectPath string) request.Avatar {
-	avatar := request.Avatar{}
-	if avatarObjectPath == "" {
-		avatar.Path = config.Cfg().DefaultIcon.UserIcon
-		return avatar
-	}
-	return CacheAvatar(avatarObjectPath)
-}
-
 // cacheToolAvatar 根据工具类型获取工具avatar的缓存URL
 // 1. Custom类型：空avatar返回默认工具图标，否则调用CacheAvatar
 // 2. BuiltIn类型：调用cacheMCPServiceAvatar
@@ -316,6 +304,18 @@ func cacheKnowledgeAvatar(ctx *gin.Context, avatarObjectPath string, knowledgeTy
 		default:
 			avatar.Path = config.Cfg().DefaultIcon.KnowledgeIcon
 		}
+		return avatar
+	}
+	return CacheAvatar(avatarObjectPath)
+}
+
+// cacheUserAvatar 获取用户头像的缓存URL
+// 1. 空avatar返回默认用户图标
+// 2. 否则调用CacheAvatar转换
+func cacheUserAvatar(avatarObjectPath string) request.Avatar {
+	avatar := request.Avatar{}
+	if avatarObjectPath == "" {
+		avatar.Path = config.Cfg().DefaultIcon.UserIcon
 		return avatar
 	}
 	return CacheAvatar(avatarObjectPath)

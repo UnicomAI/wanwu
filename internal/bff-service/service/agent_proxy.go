@@ -30,7 +30,8 @@ const proxyAgentChatOpenAPITemplate = `{
   "info": {
     "title": {{.Title | tojson}},
     "version": {{.Version | tojson}},
-    "description": {{.Description | tojson}}
+    "description": {{.Description | tojson}},
+    "x-wanwu-type": "agent"
   },
   "servers": [
     {

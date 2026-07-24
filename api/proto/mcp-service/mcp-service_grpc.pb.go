@@ -59,6 +59,7 @@ const (
 	MCPService_GetCustomSkillByThreadID_FullMethodName           = "/mcp_service.MCPService/GetCustomSkillByThreadID"
 	MCPService_GetCustomSkillListByThreadIDList_FullMethodName   = "/mcp_service.MCPService/GetCustomSkillListByThreadIDList"
 	MCPService_CustomSkillGetList_FullMethodName                 = "/mcp_service.MCPService/CustomSkillGetList"
+	MCPService_AdminCustomSkillPageList_FullMethodName           = "/mcp_service.MCPService/AdminCustomSkillPageList"
 	MCPService_GetCustomSkillDetailByIdList_FullMethodName       = "/mcp_service.MCPService/GetCustomSkillDetailByIdList"
 	MCPService_UpdateCustomSkillBasicMeta_FullMethodName         = "/mcp_service.MCPService/UpdateCustomSkillBasicMeta"
 	MCPService_UpdateCustomSkillThreadMeta_FullMethodName        = "/mcp_service.MCPService/UpdateCustomSkillThreadMeta"
@@ -93,6 +94,9 @@ const (
 	MCPService_IncrementCustomSkillAcquiredCount_FullMethodName  = "/mcp_service.MCPService/IncrementCustomSkillAcquiredCount"
 	MCPService_IncrementBuiltinSkillDownloadCount_FullMethodName = "/mcp_service.MCPService/IncrementBuiltinSkillDownloadCount"
 	MCPService_GetBuiltinSkillDownloadCounts_FullMethodName      = "/mcp_service.MCPService/GetBuiltinSkillDownloadCounts"
+	MCPService_GetAdminCustomToolPageList_FullMethodName         = "/mcp_service.MCPService/GetAdminCustomToolPageList"
+	MCPService_GetAdminCustomMCPPageList_FullMethodName          = "/mcp_service.MCPService/GetAdminCustomMCPPageList"
+	MCPService_GetAdminMCPServerPageList_FullMethodName          = "/mcp_service.MCPService/GetAdminMCPServerPageList"
 )
 
 // MCPServiceClient is the client API for MCPService service.
@@ -147,6 +151,8 @@ type MCPServiceClient interface {
 	GetCustomSkillByThreadID(ctx context.Context, in *GetCustomSkillByThreadIDReq, opts ...grpc.CallOption) (*GetCustomSkillByThreadIDResp, error)
 	GetCustomSkillListByThreadIDList(ctx context.Context, in *GetCustomSkillListByThreadIDListReq, opts ...grpc.CallOption) (*CustomSkillGetListResp, error)
 	CustomSkillGetList(ctx context.Context, in *CustomSkillGetListReq, opts ...grpc.CallOption) (*CustomSkillGetListResp, error)
+	// 管理员中心 skill 全局分页列表（跨用户，按 userId[]/orgId[] 过滤）
+	AdminCustomSkillPageList(ctx context.Context, in *AdminCustomSkillPageListReq, opts ...grpc.CallOption) (*CustomSkillGetListResp, error)
 	GetCustomSkillDetailByIdList(ctx context.Context, in *CustomSkillDetailByIdListReq, opts ...grpc.CallOption) (*CustomSkillDetailByIdListResp, error)
 	UpdateCustomSkillBasicMeta(ctx context.Context, in *UpdateCustomSkillBasicMetaReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	UpdateCustomSkillThreadMeta(ctx context.Context, in *UpdateCustomSkillThreadMetaReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -185,6 +191,10 @@ type MCPServiceClient interface {
 	IncrementCustomSkillAcquiredCount(ctx context.Context, in *IncrementCustomSkillAcquiredCountReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	IncrementBuiltinSkillDownloadCount(ctx context.Context, in *IncrementBuiltinSkillDownloadCountReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetBuiltinSkillDownloadCounts(ctx context.Context, in *GetBuiltinSkillDownloadCountsReq, opts ...grpc.CallOption) (*GetBuiltinSkillDownloadCountsResp, error)
+	// --- admin center ---
+	GetAdminCustomToolPageList(ctx context.Context, in *GetAdminCustomToolPageListReq, opts ...grpc.CallOption) (*GetAdminCustomToolPageListResp, error)
+	GetAdminCustomMCPPageList(ctx context.Context, in *GetAdminCustomMCPPageListReq, opts ...grpc.CallOption) (*GetAdminCustomMCPPageListResp, error)
+	GetAdminMCPServerPageList(ctx context.Context, in *GetAdminMCPServerPageListReq, opts ...grpc.CallOption) (*GetAdminMCPServerPageListResp, error)
 }
 
 type mCPServiceClient struct {
@@ -585,6 +595,16 @@ func (c *mCPServiceClient) CustomSkillGetList(ctx context.Context, in *CustomSki
 	return out, nil
 }
 
+func (c *mCPServiceClient) AdminCustomSkillPageList(ctx context.Context, in *AdminCustomSkillPageListReq, opts ...grpc.CallOption) (*CustomSkillGetListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CustomSkillGetListResp)
+	err := c.cc.Invoke(ctx, MCPService_AdminCustomSkillPageList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *mCPServiceClient) GetCustomSkillDetailByIdList(ctx context.Context, in *CustomSkillDetailByIdListReq, opts ...grpc.CallOption) (*CustomSkillDetailByIdListResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CustomSkillDetailByIdListResp)
@@ -925,6 +945,36 @@ func (c *mCPServiceClient) GetBuiltinSkillDownloadCounts(ctx context.Context, in
 	return out, nil
 }
 
+func (c *mCPServiceClient) GetAdminCustomToolPageList(ctx context.Context, in *GetAdminCustomToolPageListReq, opts ...grpc.CallOption) (*GetAdminCustomToolPageListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAdminCustomToolPageListResp)
+	err := c.cc.Invoke(ctx, MCPService_GetAdminCustomToolPageList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mCPServiceClient) GetAdminCustomMCPPageList(ctx context.Context, in *GetAdminCustomMCPPageListReq, opts ...grpc.CallOption) (*GetAdminCustomMCPPageListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAdminCustomMCPPageListResp)
+	err := c.cc.Invoke(ctx, MCPService_GetAdminCustomMCPPageList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mCPServiceClient) GetAdminMCPServerPageList(ctx context.Context, in *GetAdminMCPServerPageListReq, opts ...grpc.CallOption) (*GetAdminMCPServerPageListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAdminMCPServerPageListResp)
+	err := c.cc.Invoke(ctx, MCPService_GetAdminMCPServerPageList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MCPServiceServer is the server API for MCPService service.
 // All implementations must embed UnimplementedMCPServiceServer
 // for forward compatibility.
@@ -977,6 +1027,8 @@ type MCPServiceServer interface {
 	GetCustomSkillByThreadID(context.Context, *GetCustomSkillByThreadIDReq) (*GetCustomSkillByThreadIDResp, error)
 	GetCustomSkillListByThreadIDList(context.Context, *GetCustomSkillListByThreadIDListReq) (*CustomSkillGetListResp, error)
 	CustomSkillGetList(context.Context, *CustomSkillGetListReq) (*CustomSkillGetListResp, error)
+	// 管理员中心 skill 全局分页列表（跨用户，按 userId[]/orgId[] 过滤）
+	AdminCustomSkillPageList(context.Context, *AdminCustomSkillPageListReq) (*CustomSkillGetListResp, error)
 	GetCustomSkillDetailByIdList(context.Context, *CustomSkillDetailByIdListReq) (*CustomSkillDetailByIdListResp, error)
 	UpdateCustomSkillBasicMeta(context.Context, *UpdateCustomSkillBasicMetaReq) (*emptypb.Empty, error)
 	UpdateCustomSkillThreadMeta(context.Context, *UpdateCustomSkillThreadMetaReq) (*emptypb.Empty, error)
@@ -1015,6 +1067,10 @@ type MCPServiceServer interface {
 	IncrementCustomSkillAcquiredCount(context.Context, *IncrementCustomSkillAcquiredCountReq) (*emptypb.Empty, error)
 	IncrementBuiltinSkillDownloadCount(context.Context, *IncrementBuiltinSkillDownloadCountReq) (*emptypb.Empty, error)
 	GetBuiltinSkillDownloadCounts(context.Context, *GetBuiltinSkillDownloadCountsReq) (*GetBuiltinSkillDownloadCountsResp, error)
+	// --- admin center ---
+	GetAdminCustomToolPageList(context.Context, *GetAdminCustomToolPageListReq) (*GetAdminCustomToolPageListResp, error)
+	GetAdminCustomMCPPageList(context.Context, *GetAdminCustomMCPPageListReq) (*GetAdminCustomMCPPageListResp, error)
+	GetAdminMCPServerPageList(context.Context, *GetAdminMCPServerPageListReq) (*GetAdminMCPServerPageListResp, error)
 	mustEmbedUnimplementedMCPServiceServer()
 }
 
@@ -1142,6 +1198,9 @@ func (UnimplementedMCPServiceServer) GetCustomSkillListByThreadIDList(context.Co
 func (UnimplementedMCPServiceServer) CustomSkillGetList(context.Context, *CustomSkillGetListReq) (*CustomSkillGetListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CustomSkillGetList not implemented")
 }
+func (UnimplementedMCPServiceServer) AdminCustomSkillPageList(context.Context, *AdminCustomSkillPageListReq) (*CustomSkillGetListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminCustomSkillPageList not implemented")
+}
 func (UnimplementedMCPServiceServer) GetCustomSkillDetailByIdList(context.Context, *CustomSkillDetailByIdListReq) (*CustomSkillDetailByIdListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCustomSkillDetailByIdList not implemented")
 }
@@ -1243,6 +1302,15 @@ func (UnimplementedMCPServiceServer) IncrementBuiltinSkillDownloadCount(context.
 }
 func (UnimplementedMCPServiceServer) GetBuiltinSkillDownloadCounts(context.Context, *GetBuiltinSkillDownloadCountsReq) (*GetBuiltinSkillDownloadCountsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBuiltinSkillDownloadCounts not implemented")
+}
+func (UnimplementedMCPServiceServer) GetAdminCustomToolPageList(context.Context, *GetAdminCustomToolPageListReq) (*GetAdminCustomToolPageListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAdminCustomToolPageList not implemented")
+}
+func (UnimplementedMCPServiceServer) GetAdminCustomMCPPageList(context.Context, *GetAdminCustomMCPPageListReq) (*GetAdminCustomMCPPageListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAdminCustomMCPPageList not implemented")
+}
+func (UnimplementedMCPServiceServer) GetAdminMCPServerPageList(context.Context, *GetAdminMCPServerPageListReq) (*GetAdminMCPServerPageListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAdminMCPServerPageList not implemented")
 }
 func (UnimplementedMCPServiceServer) mustEmbedUnimplementedMCPServiceServer() {}
 func (UnimplementedMCPServiceServer) testEmbeddedByValue()                    {}
@@ -1967,6 +2035,24 @@ func _MCPService_CustomSkillGetList_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MCPService_AdminCustomSkillPageList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminCustomSkillPageListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MCPServiceServer).AdminCustomSkillPageList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MCPService_AdminCustomSkillPageList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MCPServiceServer).AdminCustomSkillPageList(ctx, req.(*AdminCustomSkillPageListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MCPService_GetCustomSkillDetailByIdList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CustomSkillDetailByIdListReq)
 	if err := dec(in); err != nil {
@@ -2579,6 +2665,60 @@ func _MCPService_GetBuiltinSkillDownloadCounts_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MCPService_GetAdminCustomToolPageList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAdminCustomToolPageListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MCPServiceServer).GetAdminCustomToolPageList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MCPService_GetAdminCustomToolPageList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MCPServiceServer).GetAdminCustomToolPageList(ctx, req.(*GetAdminCustomToolPageListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MCPService_GetAdminCustomMCPPageList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAdminCustomMCPPageListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MCPServiceServer).GetAdminCustomMCPPageList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MCPService_GetAdminCustomMCPPageList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MCPServiceServer).GetAdminCustomMCPPageList(ctx, req.(*GetAdminCustomMCPPageListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MCPService_GetAdminMCPServerPageList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAdminMCPServerPageListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MCPServiceServer).GetAdminMCPServerPageList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MCPService_GetAdminMCPServerPageList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MCPServiceServer).GetAdminMCPServerPageList(ctx, req.(*GetAdminMCPServerPageListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MCPService_ServiceDesc is the grpc.ServiceDesc for MCPService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2743,6 +2883,10 @@ var MCPService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MCPService_CustomSkillGetList_Handler,
 		},
 		{
+			MethodName: "AdminCustomSkillPageList",
+			Handler:    _MCPService_AdminCustomSkillPageList_Handler,
+		},
+		{
 			MethodName: "GetCustomSkillDetailByIdList",
 			Handler:    _MCPService_GetCustomSkillDetailByIdList_Handler,
 		},
@@ -2877,6 +3021,18 @@ var MCPService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBuiltinSkillDownloadCounts",
 			Handler:    _MCPService_GetBuiltinSkillDownloadCounts_Handler,
+		},
+		{
+			MethodName: "GetAdminCustomToolPageList",
+			Handler:    _MCPService_GetAdminCustomToolPageList_Handler,
+		},
+		{
+			MethodName: "GetAdminCustomMCPPageList",
+			Handler:    _MCPService_GetAdminCustomMCPPageList_Handler,
+		},
+		{
+			MethodName: "GetAdminMCPServerPageList",
+			Handler:    _MCPService_GetAdminMCPServerPageList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

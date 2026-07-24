@@ -252,12 +252,13 @@ func GetRoleUsers(ctx *gin.Context, roleID, name, orgID string, pageNo, pageSize
 			UserName: u.UserName,
 			Phone:    u.Phone,
 			Email:    u.Email,
-			Avatar:   cacheUserAvatar(ctx, u.AvatarPath),
+			Avatar:   cacheUserAvatar(u.AvatarPath),
 		}
 		for _, g := range u.Orgs {
-			ru.Orgs = append(ru.Orgs, response.IDName{
-				ID:   g.Id,
-				Name: g.Name,
+			ru.Orgs = append(ru.Orgs, response.IDNameWithAvatar{
+				ID:     g.Id,
+				Name:   g.Name,
+				Avatar: cacheOrgAvatar(g.AvatarPath),
 			})
 		}
 		users = append(users, ru)
@@ -297,6 +298,7 @@ func toRoleIDName(ctx *gin.Context, role *iam_service.RoleIDName) response.RoleI
 	ret := response.RoleIDName{
 		ID:       role.Id,
 		Name:     role.Name,
+		Avatar:   cacheRoleAvatar(role.AvatarPath),
 		IsGlobal: role.IsGlobal,
 	}
 	if role.IsAdmin {
@@ -323,7 +325,7 @@ func toRoleInfo(role *iam_service.RoleInfo, template *response.RoleTemplate) *re
 		Name:         role.Name,
 		Remark:       role.Remark,
 		CreatedAt:    util.Time2Str(role.CreatedAt),
-		Creator:      toIDName(role.Creator),
+		Creator:      toUserIDNameWithAvatar(role.Creator),
 		Status:       role.Status,
 		IsAdmin:      role.IsAdmin,
 		IsGlobal:     role.IsGlobal,

@@ -5,17 +5,89 @@ import (
 	"fmt"
 
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
+	knowledgebase_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-service"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/orm/sqlopt"
 	async_task "github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/async-task"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/db"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/util"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/service"
+	db_util "github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	wanwu_util "github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/samber/lo"
 	"gorm.io/gorm"
 )
+
+type KnowledgePageParams struct {
+	name     string
+	category []int32
+	external int
+	//publishStatus []string
+	//publishScope  []string
+	userId   []string
+	orgId    []string
+	pageNum  int
+	pageSize int
+}
+
+// NewKnowledgePageParams 构造知识库分页查询参数
+func NewKnowledgePageParams(req *knowledgebase_service.AdminKnowledgePageListReq) *KnowledgePageParams {
+	return &KnowledgePageParams{
+		name:     req.Name,
+		category: req.Category,
+		external: int(req.External),
+		userId:   req.UserId,
+		orgId:    req.OrgId,
+		pageNum:  int(req.PageNum),
+		pageSize: int(req.PageSize),
+	}
+}
+
+// SelectKnowledgePageList 查询知识库列分页表
+// 通过 knowledge_permission 连表 knowledge_base，按系统权限(permission_type=30)过滤当前用户/组织有权限的知识库，
+// 再叠加 name/external/category 条件后分页。
+func SelectKnowledgePageList(ctx context.Context, knowledgePageParams *KnowledgePageParams) (list []*model.KnowledgeBaseOwner, total int64, err error) {
+	query := db.GetHandle(ctx).
+		Table("knowledge_permission as A").
+		Joins("left join knowledge_base as B on A.knowledge_id = B.knowledge_id").
+		Where("A.permission_type = ?", 30).
+		Where("B.deleted = ?", 0)
+
+	if len(knowledgePageParams.userId) > 0 {
+		query = query.Where("A.user_id in (?)", knowledgePageParams.userId)
+	}
+	if len(knowledgePageParams.orgId) > 0 {
+		query = query.Where("A.org_id in (?)", knowledgePageParams.orgId)
+	}
+	if knowledgePageParams.name != "" {
+		name := db_util.EscapeLike(knowledgePageParams.name)
+		if name != "" {
+			query = query.Where("B.name like ?", "%"+name+"%")
+		}
+	}
+	if knowledgePageParams.external != -1 {
+		query = query.Where("B.external = ?", knowledgePageParams.external)
+	}
+	if len(knowledgePageParams.category) > 0 {
+		query = query.Where("B.category in (?)", knowledgePageParams.category)
+	}
+
+	err = query.Session(&gorm.Session{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	err = query.
+		Select("A.org_id as owner_org_id, A.user_id as owner_user_id, B.*").
+		Order("B.update_at desc").
+		Offset((knowledgePageParams.pageNum - 1) * knowledgePageParams.pageSize).
+		Limit(knowledgePageParams.pageSize).
+		Find(&list).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return list, total, nil
+}
 
 // SelectKnowledgeList 查询知识库列表
 func SelectKnowledgeList(ctx context.Context, userId, orgId, name string, category []int, external int, tagIdList []string) ([]*model.KnowledgeBase, map[string]int, error) {

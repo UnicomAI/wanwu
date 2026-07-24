@@ -1279,7 +1279,6 @@ func stripInvalidUTF8(text string) string {
 	return strings.ReplaceAll(text, "�", "")
 }
 
-// workspaceFileSendGap 工作区产物文件之间的下发间隔（及失败兜底提示前的等待）。
 // 微信 ilink sendmessage 在短时间密集推送时会返回 ret=-2（频控），留 2.5s 间隔降低撞频控概率。
 const workspaceFileSendGap = 2500 * time.Millisecond
 

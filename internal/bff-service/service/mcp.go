@@ -17,6 +17,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type MCPBiz struct{}
+
+func init() {
+	InitBizService(&MCPBiz{})
+}
+
+func (*MCPBiz) BizType() string { return constant.BizModuleResourceMCP }
+
+func (*MCPBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	// 优先按自定义MCP查询，查不到再按MCP服务查询（mcp/mcpserver 共用同一 bizType）
+	resp, err := mcp.GetCustomMCP(ctx, &mcp_service.GetCustomMCPReq{
+		McpId: bizId,
+	})
+	if err == nil && resp != nil && resp.Owner != nil {
+		return resp.Owner.UserId, resp.Owner.OrgId, nil
+	}
+	mcpServerResp, err := mcp.GetMCPServer(ctx, &mcp_service.GetMCPServerReq{
+		McpServerId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if mcpServerResp.Owner == nil {
+		return "", "", nil
+	}
+	return mcpServerResp.Owner.UserId, mcpServerResp.Owner.OrgId, nil
+}
+
 func GetMCPSquareDetail(ctx *gin.Context, userID, orgID, mcpSquareID string) (*response.MCPSquareDetail, error) {
 	mcpSquare, err := mcp.GetSquareMCP(ctx.Request.Context(), &mcp_service.GetSquareMCPReq{
 		OrgId:       orgID,
@@ -50,6 +78,12 @@ func GetMCPSquareList(ctx *gin.Context, userID, orgID, category, name string) (*
 }
 
 func CreateMCP(ctx *gin.Context, userID, orgID string, req request.MCPCreate) error {
+	if req.MCPSquareID != "" {
+		req.Transport = constant.MCPTransportSSE
+		req.ApiAuth = &pkg_util.ApiAuthWebRequest{
+			AuthType: pkg_util.AuthTypeNone,
+		}
+	}
 	_, err := mcp.CreateCustomMCP(ctx.Request.Context(), &mcp_service.CreateCustomMCPReq{
 		OrgId:         orgID,
 		UserId:        userID,
@@ -72,7 +106,7 @@ func UpdateMCP(ctx *gin.Context, userID, orgID string, req request.MCPUpdate) er
 	if err != nil {
 		return err
 	}
-	if err := pkg_util.ValidateBriefUpdate(&req.Name, existingMCP.Info.Name, &req.Desc, existingMCP.Info.Desc, pkg_util.SubjectMCP); err != nil {
+	if err := pkg_util.ValidateBriefUpdateAllowSpace(&req.Name, existingMCP.Info.Name, &req.Desc, existingMCP.Info.Desc, pkg_util.SubjectMCP); err != nil {
 		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
 	}
 	_, err = mcp.UpdateCustomMCP(ctx.Request.Context(), &mcp_service.UpdateCustomMCPReq{
@@ -401,7 +435,7 @@ func toToolAction(tool *common.ToolAction) *protocol.Tool {
 	return ret
 }
 
-func toApiAuthProto(auth pkg_util.ApiAuthWebRequest) *common.ApiAuthWebRequest {
+func toApiAuthProto(auth *pkg_util.ApiAuthWebRequest) *common.ApiAuthWebRequest {
 	return &common.ApiAuthWebRequest{
 		AuthType:           auth.AuthType,
 		ApiKeyHeaderPrefix: auth.ApiKeyHeaderPrefix,

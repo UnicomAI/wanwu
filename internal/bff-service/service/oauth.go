@@ -206,7 +206,7 @@ func OAuthGetUserInfo(ctx *gin.Context, userID string) (*response.OAuthGetUserIn
 	if err != nil {
 		return nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error())
 	}
-	avatar := cacheUserAvatar(ctx, user.AvatarPath)
+	avatar := cacheUserAvatar(user.AvatarPath)
 	// e.g. "http://localhost:8081/service/api/openapi/v1" + "../.." + "/v1/static/icon/user-default-icon.png" => http://localhost:8081/service/api/v1/static/icon/user-default-icon.png
 	avatarUri, err := url.JoinPath(issuer, "../..", avatar.Path)
 	if err != nil {

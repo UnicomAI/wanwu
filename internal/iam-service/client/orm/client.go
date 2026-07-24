@@ -42,12 +42,6 @@ func NewClient(db *gorm.DB) (*Client, error) {
 	}, nil
 }
 
-type IDName struct {
-	ID         uint32
-	Name       string
-	NameStatus *err_code.Status
-}
-
 type IDNameWithAvatar struct {
 	ID         uint32
 	Name       string
@@ -56,21 +50,22 @@ type IDNameWithAvatar struct {
 }
 
 type IDFullName struct {
-	IDName
+	IDNameWithAvatar
 	FullName string
 }
 
 type OrgUserIDName struct {
-	IDName
+	IDNameWithAvatar
 	Status bool
 }
 
 type RoleIDName struct {
-	ID       uint32
-	Name     string
-	IsAdmin  bool
-	IsSystem bool
-	IsGlobal bool
+	ID         uint32
+	Name       string
+	AvatarPath string
+	IsAdmin    bool
+	IsSystem   bool
+	IsGlobal   bool
 }
 
 type OrgInfo struct {
@@ -79,7 +74,7 @@ type OrgInfo struct {
 	Remark     string
 	Status     bool
 	CreatedAt  int64
-	Creator    IDName
+	Creator    IDNameWithAvatar
 	UserCount  int64
 	Admins     []string
 	AvatarPath string
@@ -94,7 +89,7 @@ type RoleInfo struct {
 	Remark     string
 	Status     bool
 	CreatedAt  int64
-	Creator    IDName
+	Creator    IDNameWithAvatar
 	OrgName    string
 	UserCount  int32
 	AvatarPath string
@@ -112,7 +107,7 @@ type UserInfo struct {
 	Company    string
 	Remark     string
 	CreatedAt  int64
-	Creator    IDName
+	Creator    IDNameWithAvatar
 	Orgs       []*UserOrg
 	Language   string
 	AvatarPath string
@@ -126,7 +121,7 @@ type UserOrg struct {
 type Permission struct {
 	IsAdmin              bool // 是否是当前组织的内置管理角色
 	IsSystem             bool
-	Org                  IDName
+	Org                  IDNameWithAvatar
 	Roles                []RoleIDName
 	Perms                []Perm
 	LastUpdatePasswordAt int64
@@ -173,15 +168,16 @@ type RoleUser struct {
 	Phone      string
 	Email      string
 	AvatarPath string
-	Orgs       []IDName
+	Orgs       []IDNameWithAvatar
 }
 
 // AdminOrgTreeNode 管理员组织树节点
 type AdminOrgTreeNode struct {
-	ID       uint32
-	Name     string
-	HasPerm  bool
-	Children []*AdminOrgTreeNode
+	ID         uint32
+	Name       string
+	AvatarPath string
+	HasPerm    bool
+	Children   []*AdminOrgTreeNode
 }
 
 func toErrStatus(key string, args ...string) *err_code.Status {

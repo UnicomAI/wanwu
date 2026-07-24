@@ -1,4 +1,4 @@
-// 中文文件
+﻿// 中文文件
 export default {
   login: {
     title: '登 录',
@@ -2312,8 +2312,6 @@ export default {
     imgLimitOnly: '图片最多上传{num}个',
     imgLimitTips: '图片与其他文件可同时上传',
     imageSizeModelLimit: '当前模型仅支持上传{maxSize}MB以下图片',
-    uploadModelTips:
-      ' *若该智能体基于大语言模型创建，则上传图片暂时无法进行解析',
     uploadImgTips: '只能上传{num}个图片文件',
     uploadFileLimitTips: '最多上传{num}个文件',
     uploadFileSizeLimitTips: '非图片文件大小不能超过{maxSize}MB',
@@ -2391,6 +2389,7 @@ export default {
       newChat: '新建对话',
       loading: '加载中...',
       noMore: '没有更多了',
+      search: '搜索',
     },
     header: {
       welcomeTitle: '你好，我是万悟',

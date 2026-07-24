@@ -19,8 +19,9 @@ import (
 )
 
 type Ocr struct {
-	ApiKey      string `json:"apiKey"`      // ApiKey
-	EndpointUrl string `json:"endpointUrl"` // 推理url
+	ApiKey           string   `json:"apiKey"`           // ApiKey
+	EndpointUrl      string   `json:"endpointUrl"`      // 推理url
+	SupportFileTypes []string `json:"supportFileTypes"` // 支持的文件类型，由 bff-service 从 recommend_model_config.yaml 注入
 }
 
 func (cfg *Ocr) Tags() []mp_common.Tag {
@@ -33,7 +34,11 @@ func (cfg *Ocr) Tags() []mp_common.Tag {
 }
 
 func (cfg *Ocr) NewReq(req *mp_common.OcrReq) (mp_common.IOcrReq, error) {
-	return mp_common.NewOcrReq(req), nil
+	m, err := req.Data()
+	if err != nil {
+		return nil, err
+	}
+	return mp_common.NewOcrReq(m), nil
 }
 
 func (cfg *Ocr) Ocr(ctx *gin.Context, req mp_common.IOcrReq, headers ...mp_common.Header) (mp_common.IOcrResp, error) {
@@ -44,17 +49,18 @@ func (cfg *Ocr) Ocr(ctx *gin.Context, req mp_common.IOcrReq, headers ...mp_commo
 	if err != nil {
 		return nil, err
 	}
-	return &ocrResp{raw: string(b), fileName: ocrReq.FileName}, nil
+	return &ocrResp{raw: string(b), fileName: util.GetStringFromMap(ocrReq, "fileName")}, nil
 }
 
 // ocrWithMultipart 将 base64 文件数据通过 multipart/form-data 发送到下游 OCR 服务
-func (cfg *Ocr) ocrWithMultipart(ctx *gin.Context, req *mp_common.OcrReq, headers ...mp_common.Header) ([]byte, error) {
-	if req.FileData == nil || *req.FileData == "" {
+func (cfg *Ocr) ocrWithMultipart(ctx *gin.Context, m map[string]interface{}, headers ...mp_common.Header) ([]byte, error) {
+	fileData := util.GetStringFromMap(m, "data")
+	if fileData == "" {
 		return nil, fmt.Errorf("file data is empty")
 	}
 
 	// 解析 base64 数据（兼容 data:xxx;base64, 前缀格式）
-	base64Str := *req.FileData
+	base64Str := fileData
 	if idx := strings.Index(base64Str, ","); idx >= 0 && strings.HasPrefix(base64Str, "data:") {
 		base64Str = base64Str[idx+1:]
 	}
@@ -65,8 +71,9 @@ func (cfg *Ocr) ocrWithMultipart(ctx *gin.Context, req *mp_common.OcrReq, header
 		return nil, fmt.Errorf("base64 decode err: %v", err)
 	}
 
+	fileName := util.GetStringFromMap(m, "fileName")
 	// 使用 util.FileData2FileHeader 将字节数据转为 multipart.FileHeader
-	fileHeader, err := util.FileData2FileHeader(req.FileName, fileBytes)
+	fileHeader, err := util.FileData2FileHeader(fileName, fileBytes)
 	if err != nil {
 		return nil, fmt.Errorf("convert file data to file header err: %v", err)
 	}
@@ -85,19 +92,19 @@ func (cfg *Ocr) ocrWithMultipart(ctx *gin.Context, req *mp_common.OcrReq, header
 
 	// 构建 multipart 表单数据
 	formData := map[string]string{
-		"file_name": req.FileName,
+		"file_name": fileName,
 	}
-	if req.ExtractImage != nil {
-		formData["extract_image"] = strconv.Itoa(*req.ExtractImage)
+	if v := util.GetIntFromMap(m, "extract_image"); v != nil {
+		formData["extract_image"] = strconv.Itoa(*v)
 	}
-	if req.ExtractImageContent != nil {
-		formData["extract_image_content"] = strconv.Itoa(*req.ExtractImageContent)
+	if v := util.GetIntFromMap(m, "extract_image_content"); v != nil {
+		formData["extract_image_content"] = strconv.Itoa(*v)
 	}
-	if req.Model != nil && *req.Model != "" {
-		formData["model"] = *req.Model
+	if v := util.GetStringFromMap(m, "model"); v != "" {
+		formData["model"] = v
 	}
-	if req.FileType != nil {
-		formData["fileType"] = strconv.Itoa(*req.FileType)
+	if v := util.GetIntFromMap(m, "fileType"); v != nil {
+		formData["fileType"] = strconv.Itoa(*v)
 	}
 
 	request := trace_util.NewResty(ctx).

@@ -2,6 +2,9 @@
   <el-container class="explore-container">
     <el-aside :width="asideWidth" v-if="showAside">
       <slot name="aside">
+        <div class="aside-header" v-if="$slots['aside-header']">
+          <slot name="aside-header"></slot>
+        </div>
         <div class="aside-title" v-if="showTitle">
           <span class="title" v-if="!isButton">{{ asideTitle }}</span>
           <div v-else class="title">
@@ -11,6 +14,7 @@
             </el-button>
           </div>
         </div>
+
         <div class="aside-content" @scroll="handleAsideScroll">
           <slot name="aside-content"></slot>
         </div>
@@ -89,6 +93,9 @@ export default {
           margin-right: 8px;
         }
       }
+    }
+    .aside-header {
+      padding: 12px 20px 0;
     }
     .aside-content {
       flex: 1;

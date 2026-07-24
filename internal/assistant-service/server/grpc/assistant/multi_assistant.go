@@ -168,6 +168,9 @@ func buildMultiAgentSendRequest(req *assistant_service.MultiAssistantConversionS
 		}
 		ctx, cancel := context.WithTimeout(ctx, params.Timeout)
 		result, err := http_client.Default().PostJsonOriResp(ctx, params)
+		if err == nil {
+			err = readHttpErr(result)
+		}
 		return monitorKey, result, cancel, err
 	}
 }

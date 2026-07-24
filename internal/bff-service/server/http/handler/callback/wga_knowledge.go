@@ -1,9 +1,11 @@
 package callback
 
 import (
+	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
+	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,13 +21,18 @@ import (
 //	@Success		200		{object}	response.Response
 //	@Router			/wga/rag/search-knowledge-base [post]
 func WgaRagSearchKnowledgeBase(ctx *gin.Context) {
+	userId := ctx.GetHeader("X-uid")
+	if userId == "" {
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, "callback: empty X-uid"))
+		return
+	}
 	var req request.WgaRagSearchKnowledgeBaseReq
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
 
 	fullReq := &request.RagSearchKnowledgeBaseReq{
-		UserId:          ctx.GetHeader("X-uid"),
+		UserId:          userId,
 		KnowledgeIdList: req.KnowledgeIdList,
 		Question:        req.Question,
 		TopK:            5,

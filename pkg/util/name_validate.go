@@ -34,8 +34,9 @@ const (
 )
 
 var (
-	nameCharsetRegex = regexp.MustCompile(`^[A-Za-z0-9\x{4e00}-\x{9fa5}_.\-]+$`)
-	nameHasValidChar = regexp.MustCompile(`[A-Za-z0-9\x{4e00}-\x{9fa5}]`)
+	nameCharsetRegex           = regexp.MustCompile(`^[A-Za-z0-9\x{4e00}-\x{9fa5}_.\-]+$`)
+	nameCharsetAllowSpaceRegex = regexp.MustCompile(`^[A-Za-z0-9\x{4e00}-\x{9fa5}_.\- ]+$`)
+	nameHasValidChar           = regexp.MustCompile(`[A-Za-z0-9\x{4e00}-\x{9fa5}]`)
 )
 
 // ValidateName 规范化并校验名称：
@@ -56,6 +57,31 @@ func ValidateName(name *string, subject string) error {
 	}
 	if !nameCharsetRegex.MatchString(*name) {
 		return fmt.Errorf("%s名称仅支持中英文、数字、下划线、中划线、小数点", subject)
+	}
+	if !nameHasValidChar.MatchString(*name) {
+		return fmt.Errorf("%s名称不能仅由下划线、中划线、小数点组成", subject)
+	}
+	return nil
+}
+
+// ValidateNameAllowSpace 规范化并校验名称，与 ValidateName 的区别在于额外允许名称内部包含空格：
+// 1) 先对 *name 做 TrimSpace 原地写回（首尾空格仍会被去除）
+// 2) 长度 2-50（按 Unicode 字符数）
+// 3) 不能以下划线开头
+// 4) 仅支持中英文、数字、下划线、中划线、小数点、空格
+// 5) 不能仅由下划线/中划线/小数点/空格组成（全空格经 trim 后长度为 0 会被长度校验拦下）
+// 按顺序短路，命中第一条即返回。用于 MCP 等需要支持带空格名称的场景。
+func ValidateNameAllowSpace(name *string, subject string) error {
+	*name = strings.TrimSpace(*name)
+	n := utf8.RuneCountInString(*name)
+	if n < NameMinLen || n > NameMaxLen {
+		return fmt.Errorf("%s名称长度需为 %d-%d 字符", subject, NameMinLen, NameMaxLen)
+	}
+	if strings.HasPrefix(*name, "_") {
+		return fmt.Errorf("%s名称不能以下划线开头", subject)
+	}
+	if !nameCharsetAllowSpaceRegex.MatchString(*name) {
+		return fmt.Errorf("%s名称仅支持中英文、数字、下划线、中划线、小数点、空格", subject)
 	}
 	if !nameHasValidChar.MatchString(*name) {
 		return fmt.Errorf("%s名称不能仅由下划线、中划线、小数点组成", subject)
@@ -106,6 +132,23 @@ func ValidateBriefCreate(name, desc *string, subject string) error {
 // ValidateBriefUpdate 编辑名称+描述
 func ValidateBriefUpdate(newName *string, oldName string, newDesc *string, oldDesc, subject string) error {
 	if err := ValidateNameUpdate(newName, oldName, subject); err != nil {
+		return err
+	}
+	return ValidateDescUpdate(newDesc, oldDesc, subject)
+}
+
+// ValidateNameUpdateAllowSpace 是 ValidateNameUpdate 的 AllowSpace 版本：未改名则跳过格式校验，改名则走 ValidateNameAllowSpace（允许名称内部含空格）。
+func ValidateNameUpdateAllowSpace(newName *string, oldName, subject string) error {
+	*newName = strings.TrimSpace(*newName)
+	if *newName == strings.TrimSpace(oldName) {
+		return nil
+	}
+	return ValidateNameAllowSpace(newName, subject)
+}
+
+// ValidateBriefUpdateAllowSpace 是 ValidateBriefUpdate 的 AllowSpace 版本，用于 MCP 等需要支持带空格名称的编辑场景。
+func ValidateBriefUpdateAllowSpace(newName *string, oldName string, newDesc *string, oldDesc, subject string) error {
+	if err := ValidateNameUpdateAllowSpace(newName, oldName, subject); err != nil {
 		return err
 	}
 	return ValidateDescUpdate(newDesc, oldDesc, subject)

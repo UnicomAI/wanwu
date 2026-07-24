@@ -79,112 +79,6 @@ definitions:
         - $ref: '#/definitions/mp_common.LLMParams'
         description: 大语言模型配置
     type: object
-  mp.ProviderModelByDeepSeek:
-    properties:
-      llm:
-        $ref: '#/definitions/mp_deepseek.LLM'
-    type: object
-  mp.ProviderModelByHuoShan:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_huoshan.Embedding'
-      llm:
-        $ref: '#/definitions/mp_huoshan.LLM'
-    type: object
-  mp.ProviderModelByInfini:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_infini.Embedding'
-      llm:
-        $ref: '#/definitions/mp_infini.LLM'
-      rerank:
-        $ref: '#/definitions/mp_infini.Rerank'
-    type: object
-  mp.ProviderModelByOllama:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_ollama.Embedding'
-      llm:
-        $ref: '#/definitions/mp_ollama.LLM'
-    type: object
-  mp.ProviderModelByOpenAICompatible:
-    properties:
-      asr:
-        $ref: '#/definitions/mp_openai_compatible.SyncAsr'
-      embedding:
-        $ref: '#/definitions/mp_openai_compatible.Embedding'
-      llm:
-        $ref: '#/definitions/mp_openai_compatible.LLM'
-      rerank:
-        $ref: '#/definitions/mp_openai_compatible.Rerank'
-    type: object
-  mp.ProviderModelByQianFan:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_qianfan.Embedding'
-      llm:
-        $ref: '#/definitions/mp_qianfan.LLM'
-      rerank:
-        $ref: '#/definitions/mp_qianfan.Rerank'
-    type: object
-  mp.ProviderModelByQwen:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_qwen.Embedding'
-      llm:
-        $ref: '#/definitions/mp_qwen.LLM'
-      multiModalEmbedding:
-        $ref: '#/definitions/mp_qwen.MultiModalEmbedding'
-      multiModalRerank:
-        $ref: '#/definitions/mp_qwen.MultiModalRerank'
-      rerank:
-        $ref: '#/definitions/mp_qwen.Rerank'
-    type: object
-  mp.ProviderModelByYuanjing:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_yuanjing.Embedding'
-      gui:
-        $ref: '#/definitions/mp_yuanjing.Gui'
-      llm:
-        $ref: '#/definitions/mp_yuanjing.LLM'
-      ocr:
-        $ref: '#/definitions/mp_yuanjing.Ocr'
-      pdf-parser:
-        $ref: '#/definitions/mp_yuanjing.PdfParser'
-      rerank:
-        $ref: '#/definitions/mp_yuanjing.Rerank'
-    type: object
-  mp.ProviderModelByZhipu:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_zhipu.Embedding'
-      llm:
-        $ref: '#/definitions/mp_zhipu.LLM'
-      rerank:
-        $ref: '#/definitions/mp_zhipu.Rerank'
-    type: object
-  mp.ProviderModelConfig:
-    properties:
-      providerDeepSeek:
-        $ref: '#/definitions/mp.ProviderModelByDeepSeek'
-      providerHuoShan:
-        $ref: '#/definitions/mp.ProviderModelByHuoShan'
-      providerInfini:
-        $ref: '#/definitions/mp.ProviderModelByInfini'
-      providerOllama:
-        $ref: '#/definitions/mp.ProviderModelByOllama'
-      providerOpenAICompatible:
-        $ref: '#/definitions/mp.ProviderModelByOpenAICompatible'
-      providerQianFan:
-        $ref: '#/definitions/mp.ProviderModelByQianFan'
-      providerQwen:
-        $ref: '#/definitions/mp.ProviderModelByQwen'
-      providerYuanJing:
-        $ref: '#/definitions/mp.ProviderModelByYuanjing'
-      providerZhipu:
-        $ref: '#/definitions/mp.ProviderModelByZhipu'
-    type: object
   mp_common.LLMParams:
     properties:
       frequencyPenalty:
@@ -224,565 +118,6 @@ definitions:
   mp_common.Tag:
     properties:
       text:
-        type: string
-    type: object
-  mp_deepseek.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_huoshan.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_huoshan.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_infini.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_infini.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_infini.Rerank:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_ollama.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_ollama.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_openai_compatible.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_openai_compatible.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_openai_compatible.Rerank:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_openai_compatible.SyncAsr:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      endpointUrl:
-        description: 推理url（完整地址，含 /v1/chat/completions）
-        type: string
-      maxAsrFileSize:
-        type: integer
-    type: object
-  mp_qianfan.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_qianfan.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_qianfan.Rerank:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_qwen.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_qwen.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_qwen.MultiModalEmbedding:
-    properties:
-      apiKey:
-        type: string
-      contextSize:
-        type: integer
-      endpointUrl:
-        type: string
-      maxImageSize:
-        type: integer
-      maxTextLength:
-        type: integer
-      maxVideoClipSize:
-        type: integer
-      supportFileTypes:
-        items:
-          type: string
-        type: array
-    type: object
-  mp_qwen.MultiModalRerank:
-    properties:
-      apiKey:
-        type: string
-      contextSize:
-        type: integer
-      endpointUrl:
-        type: string
-      maxImageSize:
-        type: integer
-      maxTextLength:
-        type: integer
-      maxVideoClipSize:
-        type: integer
-      supportFileTypes:
-        items:
-          type: string
-        type: array
-      supportImageInQuery:
-        type: boolean
-    type: object
-  mp_qwen.Rerank:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_yuanjing.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_yuanjing.Gui:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_yuanjing.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_yuanjing.Ocr:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_yuanjing.PdfParser:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_yuanjing.Rerank:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_zhipu.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_zhipu.LLM:
-    properties:
-      apiKey:
-        type: string
-      contextSize:
-        type: integer
-      endpointUrl:
-        type: string
-      functionCalling:
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        type: integer
-      maxTokens:
-        type: integer
-      thinkingSupport:
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_zhipu.Rerank:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
         type: string
     type: object
   oauth2_util.JWK:
@@ -927,6 +262,18 @@ definitions:
         description: 前端请求地址，例如：/v1/static/avatar/abc/def.png (请求非必填)
         type: string
     type: object
+  request.BatchCreateDocSegmentReq:
+    properties:
+      docId:
+        description: 文档id
+        type: string
+      fileUploadId:
+        description: fileUploadId
+        type: string
+    required:
+    - docId
+    - fileUploadId
+    type: object
   request.ConversionStreamFile:
     properties:
       fileName:
@@ -935,6 +282,24 @@ definitions:
         type: integer
       fileUrl:
         type: string
+    type: object
+  request.CreateDocSegmentReq:
+    properties:
+      content:
+        description: 分段内容
+        type: string
+      docId:
+        description: 文档id
+        type: string
+      labels:
+        description: 关键词列表
+        items:
+          type: string
+        type: array
+    required:
+    - content
+    - docId
+    - labels
     type: object
   request.CreateKnowledgeReq:
     properties:
@@ -968,6 +333,17 @@ definitions:
     required:
     - docIdList
     - knowledgeId
+    type: object
+  request.DeleteDocSegmentReq:
+    properties:
+      contentId:
+        type: string
+      docId:
+        description: 文档id
+        type: string
+    required:
+    - contentId
+    - docId
     type: object
   request.DeleteGeneralAgentConversationReq:
     properties:
@@ -1639,6 +1015,19 @@ definitions:
     required:
     - tableId
     type: object
+  request.UpdateDocSegmentReq:
+    properties:
+      content:
+        type: string
+      contentId:
+        type: string
+      docId:
+        type: string
+    required:
+    - content
+    - contentId
+    - docId
+    type: object
   request.UpdateDocSegmentStatusReq:
     properties:
       all:
@@ -1718,6 +1107,9 @@ definitions:
       desc:
         description: 描述
         type: string
+      hideKnowledge:
+        description: 是否隐藏知识库
+        type: integer
       instructions:
         description: 系统提示词
         type: string
@@ -1749,6 +1141,12 @@ definitions:
       newAgent:
         description: 是否是新版本智能体
         type: boolean
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id
+        type: string
       prologue:
         description: 开场白
         type: string
@@ -2096,37 +1494,6 @@ definitions:
         description: ocr模型id
         type: string
     type: object
-  response.DocKnowledgeInfo:
-    properties:
-      avatar:
-        allOf:
-        - $ref: '#/definitions/request.Avatar'
-        description: 头像
-      category:
-        description: '0: 知识库 1: 问答库 2: 多模态知识库'
-        type: integer
-      description:
-        type: string
-      embeddingModel:
-        $ref: '#/definitions/response.ModelInfo'
-      graphSwitch:
-        type: integer
-      keywords:
-        items:
-          $ref: '#/definitions/response.KeywordsInfo'
-        type: array
-      knowledgeId:
-        type: string
-      knowledgeName:
-        type: string
-      llmModelId:
-        type: string
-      permissionType:
-        description: 当前用户对该知识库的权限类型 -1:无权限 0:查看 10:编辑 20:授权 30:系统管理授权
-        type: integer
-      showGraphReport:
-        type: boolean
-    type: object
   response.DocMetaData:
     properties:
       metaId:
@@ -2144,21 +1511,6 @@ definitions:
       metaValueType:
         description: number，time, string
         type: string
-    type: object
-  response.DocPageResult:
-    properties:
-      docKnowledgeInfo:
-        $ref: '#/definitions/response.DocKnowledgeInfo'
-      list:
-        items:
-          $ref: '#/definitions/response.ListDocResp'
-        type: array
-      pageNo:
-        type: integer
-      pageSize:
-        type: integer
-      total:
-        type: integer
     type: object
   response.DocSegment:
     properties:
@@ -2210,6 +1562,12 @@ definitions:
         type: string
       fileName:
         description: 名称
+        type: string
+      fileSize:
+        description: 文件大小，单位字节(Byte)
+        type: integer
+      fileSizeStr:
+        description: 文件大小的人眼友好展示
         type: string
       maxSegmentSize:
         description: 设置最大长度
@@ -2319,25 +1677,6 @@ definitions:
         type: string
       totalSize:
         type: integer
-    type: object
-  response.KeywordsInfo:
-    properties:
-      alias:
-        type: string
-      id:
-        type: integer
-      knowledgeBaseIds:
-        items:
-          type: string
-        type: array
-      knowledgeBaseNames:
-        items:
-          type: string
-        type: array
-      name:
-        type: string
-      updatedAt:
-        type: string
     type: object
   response.KnowledgeExportRecordPageResult:
     properties:
@@ -2494,6 +1833,9 @@ definitions:
       fileSize:
         description: 文件大小，单位字节(Byte)
         type: integer
+      fileSizeStr:
+        description: 文件大小的人眼友好展示
+        type: string
       graphErrMsg:
         description: 图谱错误信息
         type: string
@@ -2547,72 +1889,6 @@ definitions:
       list: {}
       total:
         type: integer
-    type: object
-  response.ModelInfo:
-    properties:
-      allowEdit:
-        description: '是否允许前端编辑（true: 允许编辑，false: 隐藏编辑按钮）'
-        type: boolean
-      avatar:
-        allOf:
-        - $ref: '#/definitions/request.Avatar'
-        description: 模型图标路径
-      config: {}
-      createdAt:
-        type: string
-      displayName:
-        description: 模型显示名称
-        type: string
-      examples:
-        allOf:
-        - $ref: '#/definitions/mp.ProviderModelConfig'
-        description: 仅用于swagger展示；模型对应供应商中的对应llm、embedding或rerank结构是config实际的参数
-      importSource:
-        description: 模型导入来源(builtin=平台内置,external=外部URL)
-        type: string
-      isActive:
-        description: '启用状态（true: 启用，false: 禁用）'
-        type: boolean
-      model:
-        description: 模型名称
-        type: string
-      modelDesc:
-        type: string
-      modelId:
-        type: string
-      modelType:
-        enum:
-        - llm
-        - embedding
-        - rerank
-        type: string
-      orgId:
-        type: string
-      provider:
-        description: 模型供应商
-        enum:
-        - OpenAI-API-compatible
-        - YuanJing
-        type: string
-      publishDate:
-        description: 模型发布时间
-        type: string
-      scopeType:
-        type: string
-      tags:
-        items:
-          $ref: '#/definitions/mp_common.Tag'
-        type: array
-      updatedAt:
-        type: string
-      userId:
-        type: string
-      uuid:
-        type: string
-    required:
-    - model
-    - modelType
-    - provider
     type: object
   response.OAuthConfig:
     properties:
@@ -2943,6 +2219,20 @@ definitions:
         type: integer
       total:
         type: integer
+    type: object
+  response.RagUploadFile:
+    properties:
+      fileIndex:
+        type: integer
+      fileUrl:
+        type: string
+    type: object
+  response.RagUploadResponse:
+    properties:
+      fileList:
+        items:
+          $ref: '#/definitions/response.RagUploadFile'
+        type: array
     type: object
   response.RecommendConfig:
     properties:
@@ -3891,14 +3181,38 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/response.Response'
+            - $ref: '#/definitions/response.PageResult'
             - properties:
-                data:
-                  $ref: '#/definitions/response.DocPageResult'
+                list:
+                  $ref: '#/definitions/response.ListDocResp'
               type: object
       security:
       - JWT: []
       summary: 获取文档列表
+      tags:
+      - openapi
+  /knowledge/doc/segment/batch/create:
+    post:
+      consumes:
+      - application/json
+      description: 通过csv文件批量新增文档切片
+      parameters:
+      - description: 批量新增文档切片请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.BatchCreateDocSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 批量新增文档切片
       tags:
       - openapi
   /knowledge/doc/segment/child/list:
@@ -3930,6 +3244,87 @@ paths:
       security:
       - JWT: []
       summary: 获取子分段列表
+      tags:
+      - openapi
+  /knowledge/doc/segment/create:
+    post:
+      consumes:
+      - application/json
+      description: 新增单条文档切片；多模态知识库的切片内容可包含图片markdown，普通知识库不允许
+      parameters:
+      - description: 新增文档切片请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateDocSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 新增文档切片
+      tags:
+      - openapi
+  /knowledge/doc/segment/delete:
+    delete:
+      consumes:
+      - application/json
+      description: 删除文档切片
+      parameters:
+      - description: 删除文档切片请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteDocSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 删除文档切片
+      tags:
+      - openapi
+  /knowledge/doc/segment/image/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传分段图片并返回markdown格式url，仅多模态知识库可用；返回的url可拼接进切片content中
+      parameters:
+      - description: 知识库id
+        in: formData
+        name: knowledgeId
+        required: true
+        type: string
+      - description: 图片文件(png/jpg/jpeg)
+        in: formData
+        name: files
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.RagUploadResponse'
+              type: object
+      security:
+      - JWT: []
+      summary: 分段图片上传
       tags:
       - openapi
   /knowledge/doc/segment/list:
@@ -3991,6 +3386,30 @@ paths:
       security:
       - JWT: []
       summary: 更新文档切片启用状态
+      tags:
+      - openapi
+  /knowledge/doc/segment/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新文档切片；多模态知识库的切片内容可包含图片markdown，普通知识库不允许
+      parameters:
+      - description: 更新文档切片请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateDocSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 更新文档切片
       tags:
       - openapi
   /knowledge/doc/update/config:

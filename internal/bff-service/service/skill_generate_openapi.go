@@ -59,11 +59,13 @@ func renderWanwuOpenAPISpec(category, uuid, name, desc string) ([]byte, error) {
 		Name      string
 		Desc      string
 		ServerURL string
+		Category  string
 	}{
 		UUID:      uuid,
 		Name:      name,
 		Desc:      desc,
 		ServerURL: config.Cfg().Server.WebBaseUrl,
+		Category:  category,
 	}
 	var buf strings.Builder
 	if err := t.Execute(&buf, data); err != nil {
@@ -77,7 +79,8 @@ const agentOpenAPITemplate = `{
   "info": {
     "title": "{{.Name}}",
     "version": "1.0.0",
-    "description": "{{.Desc}}智能体对话与创建会话接口。包含两个关联接口：先调用创建对话接口获取conversation_id，再在智能体对话接口中传入conversation_id进行多轮对话；若不传conversation_id则为单轮对话。"
+    "description": "{{.Desc}}智能体对话与创建会话接口。包含两个关联接口：先调用创建对话接口获取conversation_id，再在智能体对话接口中传入conversation_id进行多轮对话；若不传conversation_id则为单轮对话。",
+    "x-wanwu-type": "{{.Category}}"
   },
   "servers": [
     {
@@ -248,7 +251,8 @@ const workflowOpenAPITemplate = `{
   "info": {
     "title": "{{.Name}}",
     "version": "1.0.0",
-    "description": "{{.Desc}}工作流运行与文件上传接口。如果需要上传文件，先通过文件上传接口上传文件获取链接，再在工作流运行接口中将链接作为参数传入。"
+    "description": "{{.Desc}}工作流运行与文件上传接口。如果需要上传文件，先通过文件上传接口上传文件获取链接，再在工作流运行接口中将链接作为参数传入。",
+    "x-wanwu-type": "{{.Category}}"
   },
   "servers": [
     {
@@ -361,7 +365,8 @@ const ragOpenAPITemplate = `{
   "info": {
     "title": "{{.Name}}",
     "version": "1.0.0",
-    "description": "{{.Desc}}基于知识库的RAG问答接口，适合用于翻译、文章写作、总结等文本生成场景。支持流式和非流式两种模式。"
+    "description": "{{.Desc}}基于知识库的RAG问答接口，适合用于翻译、文章写作、总结等文本生成场景。支持流式和非流式两种模式。",
+    "x-wanwu-type": "{{.Category}}"
   },
   "servers": [
     {

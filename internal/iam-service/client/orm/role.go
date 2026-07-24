@@ -121,10 +121,11 @@ func (c *Client) SelectRoles(ctx context.Context, orgID uint32) ([]RoleIDName, *
 		}
 		for _, orgRole := range orgRoles {
 			ret = append(ret, RoleIDName{
-				ID:       orgRole.RoleID,
-				Name:     orgRole.Name,
-				IsAdmin:  orgRole.IsAdmin,
-				IsSystem: orgRole.OrgID == config.TopOrgID(),
+				ID:         orgRole.RoleID,
+				Name:       orgRole.Name,
+				AvatarPath: orgRole.AvatarPath,
+				IsAdmin:    orgRole.IsAdmin,
+				IsSystem:   orgRole.OrgID == config.TopOrgID(),
 			})
 		}
 		return nil
@@ -497,9 +498,10 @@ func (c *Client) GetRoleUsers(ctx context.Context, roleID, orgID uint32, name st
 				AvatarPath: u.AvatarPath,
 			}
 			for _, oid := range orgIDs {
-				ru.Orgs = append(ru.Orgs, IDName{
-					ID:   oid,
-					Name: orgTree.GetFullName(oid),
+				ru.Orgs = append(ru.Orgs, IDNameWithAvatar{
+					ID:         oid,
+					Name:       orgTree.GetFullName(oid),
+					AvatarPath: orgTree.GetAvatarPath(),
 				})
 			}
 			ret = append(ret, ru)

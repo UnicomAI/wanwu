@@ -1118,16 +1118,21 @@ def delete_index(index_name):
     return delete_status
 
 
-def get_file_content_list(index_name: str, kb_name: str, file_name: str, page_size: int, search_after: int):
+def get_file_content_list(index_name: str, kb_name: str, file_name: str, page_size: int, search_after: int,
+                          query_text: str = None):
     """ 获取 主控表中 知识片段的分页展示 """
     # ======== 分页查询参数 =============
+    must_conditions = [
+        {"term": {"kb_name": kb_name}},
+        {"term": {"file_name": file_name}},
+    ]
+    # 可选：按正文短语筛选，筛选出 content 完全包含 query_text 的分段
+    if query_text:
+        must_conditions.append({"match_phrase": {"content": query_text}})
     query = {
         "query": {
             "bool": {
-                "must": [
-                    {"term": {"kb_name": kb_name}},
-                    {"term": {"file_name": file_name}},
-                ]
+                "must": must_conditions
             }
         },
         #"search_after": [search_after],  # 初始化search_after参数

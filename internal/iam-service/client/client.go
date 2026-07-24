@@ -18,14 +18,15 @@ type IClient interface {
 
 	GetUser(ctx context.Context, userID, orgID uint32) (*orm.UserInfo, *errs.Status)
 	GetUsers(ctx context.Context, orgID uint32, name, email string, roleIDs []uint32, offset, limit int32) ([]*orm.UserInfo, int64, *errs.Status)
-	SelectUsersNotInOrg(ctx context.Context, orgID uint32, name string) ([]orm.IDName, *errs.Status)
-	SelectUsersByUserIDs(ctx context.Context, userIDs []uint32) ([]orm.IDName, *errs.Status)
-	GetUsersByOrgIDs(ctx context.Context, orgIDs []uint32) ([]orm.IDName, *errs.Status)
+	SelectUsersNotInOrg(ctx context.Context, orgID uint32, name string) ([]orm.IDNameWithAvatar, *errs.Status)
+	SelectUsersByUserIDs(ctx context.Context, userIDs []uint32) ([]orm.IDNameWithAvatar, *errs.Status)
+	GetUsersByOrgIDs(ctx context.Context, orgIDs []uint32) ([]orm.IDNameWithAvatar, *errs.Status)
 
 	CreateUser(ctx context.Context, user *model.User, orgID uint32, roleIDs []uint32) (uint32, *errs.Status)
 	CreateUsers(ctx context.Context, users []*orm.UsersInfo, creatorID, orgID uint32) (*orm.CreateUsersResult, *errs.Status)
 	UpdateUser(ctx context.Context, user *model.User, orgID uint32, roleIDs []uint32) *errs.Status
 	DeleteUser(ctx context.Context, userID uint32) *errs.Status
+	BatchDeleteUser(ctx context.Context, userIDs []uint32) *errs.Status
 	UpdateUserAvatar(ctx context.Context, userID uint32, key string) *errs.Status
 
 	ChangeUserStatus(ctx context.Context, userID, orgID uint32, status bool) *errs.Status
@@ -47,8 +48,8 @@ type IClient interface {
 	GetOrgs(ctx context.Context, parentID uint32, name string, offset, limit int32) ([]*orm.OrgInfo, int64, *errs.Status)
 	SelectOrgs(ctx context.Context, userID uint32) ([]orm.IDNameWithAvatar, *errs.Status)
 	GetOrgByOrgIDs(ctx context.Context, orgIDs []uint32) ([]orm.IDFullName, *errs.Status)
-	GetOrgAndSubOrgSelectByUser(ctx context.Context, userID, orgID uint32) ([]orm.IDName, *errs.Status)
-	GetFirstClassOrgAndSubs(ctx context.Context, userID, orgID uint32) ([]orm.IDName, *errs.Status)
+	GetOrgAndSubOrgSelectByUser(ctx context.Context, userID, orgID uint32) ([]orm.IDNameWithAvatar, *errs.Status)
+	GetFirstClassOrgAndSubs(ctx context.Context, userID, orgID uint32) ([]orm.IDNameWithAvatar, *errs.Status)
 	GetAdminOrgSubTree(ctx context.Context, userID uint32) ([]*orm.AdminOrgTreeNode, *errs.Status)
 	GetAdminOrgIDs(ctx context.Context, userID uint32) ([]uint32, *errs.Status)
 
@@ -59,6 +60,7 @@ type IClient interface {
 	ChangeOrgStatus(ctx context.Context, orgID uint32, status bool) *errs.Status
 	AddOrgUser(ctx context.Context, orgID, userID, roleID uint32) *errs.Status
 	RemoveOrgUser(ctx context.Context, orgID, userID uint32) *errs.Status
+	BatchRemoveOrgUser(ctx context.Context, orgID uint32, userIDs []uint32) *errs.Status
 
 	// --- role ---
 

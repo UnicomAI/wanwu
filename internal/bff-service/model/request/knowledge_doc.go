@@ -9,10 +9,19 @@ import (
 const (
 	DocAnalyzerOCR       = "ocr"
 	DocAnalyzerPdfParser = "model"
+	DocAnalyzerASR       = "asr"
+	DocAnalyzerMulti     = "multimodal"
 	CommonSplitMethod    = "0" //通用分段
 	ParentSplitMethod    = "1" //父子分段
+	FileUpload           = 0   //文件上传
+	UrlUpload            = 1   //单条url上传
 	UrlFileUpload        = 2   //url文件上传
 )
+
+type DocKnowledgeDetailReq struct {
+	KnowledgeId string `json:"knowledgeId" form:"knowledgeId" validate:"required"`
+	CommonCheck
+}
 
 type DocConfigReq struct {
 	KnowledgeId string `json:"knowledgeId" form:"knowledgeId" validate:"required"`
@@ -164,6 +173,11 @@ type DocChildListReq struct {
 	CommonCheck
 }
 
+type UploadDocSegmentImageReq struct {
+	KnowledgeId string `json:"knowledgeId" form:"knowledgeId" validate:"required"` // 知识库id（仅多模态知识库可上传图片）
+	CommonCheck
+}
+
 type CreateDocChildSegmentReq struct {
 	DocId    string   `json:"docId"  validate:"required"`    // 文档id
 	ParentId string   `json:"parentId"  validate:"required"` // 父分段id
@@ -212,6 +226,12 @@ func (c *DocImportReq) Check() error {
 				if c.ParserModelId == "" {
 					return errors.New("parserModelId can not be empty")
 				}
+			}
+			if v == DocAnalyzerASR && c.AsrModelId == "" {
+				return errors.New("asrModelId can not be empty")
+			}
+			if v == DocAnalyzerMulti && c.MultimodalModelId == "" {
+				return errors.New("multimodalModelId can not be empty")
 			}
 		}
 	}

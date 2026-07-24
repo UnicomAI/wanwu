@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"mime/multipart"
 	"time"
@@ -25,6 +26,31 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
+
+var ragBiz = &RagBiz{}
+
+type RagBiz struct{}
+
+func init() {
+	InitBizService(ragBiz)
+}
+
+func (*RagBiz) BizType() string {
+	return constant.BizModuleAppRag
+}
+
+func (*RagBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	resp, err := rag.GetRagDetail(ctx, &rag_service.RagDetailReq{
+		RagId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if resp.Identity == nil {
+		return "", "", errors.New("rag not found")
+	}
+	return resp.Identity.UserId, resp.Identity.OrgId, nil
+}
 
 func CreateRag(ctx *gin.Context, userId, orgId string, req request.AppBriefConfig) (*request.RagReq, error) {
 	resp, err := rag.CreateRag(ctx.Request.Context(), &rag_service.CreateRagReq{
@@ -406,6 +432,8 @@ func GetRag(ctx *gin.Context, req request.RagReq, needPublished bool) (*response
 		AppPublishConfig:      request.AppPublishConfig{PublishType: appInfo.GetPublishType()},
 		VisionConfig:          ragVisionConfigProto2Model(resp.VisionConfig),
 		RecommendQuestion:     resp.RecommendQuestion,
+		CreatedAt:             util.Time2Str(resp.CreateTime),
+		UpdatedAt:             util.Time2Str(resp.UpdateTime),
 	}
 
 	return ragInfo, nil

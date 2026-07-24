@@ -57,63 +57,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/category/info": {
-            "get": {
-                "description": "获取Maas平台知识库信息（模型扩展调用）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "callback"
-                ],
-                "summary": "获取Maas平台知识库信息（模型扩展调用）",
-                "parameters": [
-                    {
-                        "description": "根据知识库名称请求参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.SearchKnowledgeInfoReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/deploy/info": {
-            "get": {
-                "description": "获取Maas平台部署信息（模型扩展调用）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "callback"
-                ],
-                "summary": "获取Maas平台部署信息（模型扩展调用）",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/api/doc_status_init": {
             "get": {
                 "description": "将正在解析的文档设置为解析失败",
@@ -511,6 +454,40 @@ const docTemplate = `{
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/channel/send-message": {
+            "post": {
+                "description": "向通道发送消息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "channel"
+                ],
+                "summary": "向通道发送消息",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ChannelSendMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -1300,7 +1277,7 @@ const docTemplate = `{
                                                         "List": {
                                                             "type": "array",
                                                             "items": {
-                                                                "$ref": "#/definitions/response.IDName"
+                                                                "$ref": "#/definitions/response.IDNameWithAvatar"
                                                             }
                                                         }
                                                     }
@@ -2540,11 +2517,51 @@ const docTemplate = `{
                 "fileType": {
                     "type": "integer"
                 },
+                "layoutNms": {
+                    "description": "版面 NMS 去重",
+                    "type": "boolean"
+                },
+                "maxPixels": {
+                    "description": "最大像素",
+                    "type": "integer"
+                },
+                "minPixels": {
+                    "description": "最小像素",
+                    "type": "integer"
+                },
                 "model": {
                     "type": "string"
                 },
+                "repetitionPenalty": {
+                    "description": "重复惩罚",
+                    "type": "number"
+                },
+                "temperature": {
+                    "description": "采样温度",
+                    "type": "number"
+                },
+                "topP": {
+                    "description": "top-p 采样",
+                    "type": "number"
+                },
                 "url": {
                     "type": "string"
+                },
+                "useChartRecognition": {
+                    "description": "以下为千帆 paddleocr 原生模型推理参数（仅 qianfan 使用）",
+                    "type": "boolean"
+                },
+                "useDocUnwarping": {
+                    "description": "文档矫正",
+                    "type": "boolean"
+                },
+                "useLayoutDetection": {
+                    "description": "版面检测",
+                    "type": "boolean"
+                },
+                "visualize": {
+                    "description": "输出可视化结果",
+                    "type": "boolean"
                 }
             }
         },
@@ -3781,6 +3798,13 @@ const docTemplate = `{
                 "endpointUrl": {
                     "description": "推理url",
                     "type": "string"
+                },
+                "supportFileTypes": {
+                    "description": "支持的文件类型，由 bff-service 从 recommend_model_config.yaml 注入",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -4192,6 +4216,42 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.ChannelSendMessageRequest": {
+            "type": "object",
+            "required": [
+                "channelId"
+            ],
+            "properties": {
+                "channelId": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "fileMimeType": {
+                    "type": "string"
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "fileUrl": {
+                    "description": "为万悟 minio 文件下载地址（先调 /callback/v1/file/upload/base64 上传取得）channel-service 下载字节后投递，不占请求体。钉钉/微信支持文件，飞书不支持会返回错误",
+                    "type": "string"
+                },
+                "msgType": {
+                    "description": "可选：text（默认，纯文本，content 必填）/ markdown（钉钉渲染 md 卡片，微信降级纯文本，content 必填，title 可选）",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "发送文件附件，fileUrl+fileName 必填，content 可空作附带文案",
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "可选，缺省时由 channel-service 自动取该通道最近互动过的 IM 用户作为收件人",
+                    "type": "string"
                 }
             }
         },
@@ -4689,24 +4749,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.SearchKnowledgeInfoReq": {
-            "type": "object",
-            "required": [
-                "categoryName",
-                "userId"
-            ],
-            "properties": {
-                "categoryName": {
-                    "type": "string"
-                },
-                "orgId": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
-                }
-            }
-        },
         "request.UnarchiveFileReq": {
             "type": "object",
             "required": [
@@ -4950,6 +4992,9 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
@@ -4959,7 +5004,16 @@ const docTemplate = `{
                 "objectPath": {
                     "type": "string"
                 },
+                "orgId": {
+                    "type": "string"
+                },
                 "skillId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 },
                 "variables": {
@@ -5024,6 +5078,9 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
@@ -5033,7 +5090,16 @@ const docTemplate = `{
                 "objectPath": {
                     "type": "string"
                 },
+                "orgId": {
+                    "type": "string"
+                },
                 "skillId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 },
                 "variables": {
@@ -5109,9 +5175,12 @@ const docTemplate = `{
                 }
             }
         },
-        "response.IDName": {
+        "response.IDNameWithAvatar": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "$ref": "#/definitions/request.Avatar"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -5376,6 +5445,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scopeType": {
+                    "description": "模型公开范围(1-私有 2-公开 3-组织)",
                     "type": "string"
                 },
                 "tags": {
@@ -5416,10 +5486,16 @@ const docTemplate = `{
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
                 "desc": {
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "orgId": {
                     "type": "string"
                 },
                 "skillId": {
@@ -5429,6 +5505,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "skillPath": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 },
                 "variables": {

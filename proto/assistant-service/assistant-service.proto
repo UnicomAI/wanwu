@@ -95,6 +95,34 @@ service AssistantService {
   rpc WgaConversationDelete(WgaConversationDeleteReq) returns (google.protobuf.Empty) {}
   rpc WgaConversationList(WgaConversationListReq) returns (WgaConversationListResp) {}
   rpc WgaConversationExists(WgaConversationExistsReq) returns (WgaConversationExistsResp) {}
+
+  // --- admin center ---
+  rpc GetAdminCustomPromptPageList(GetAdminCustomPromptPageListReq) returns (CustomPromptList) {}
+
+  // --- admin center ---
+  rpc AdminAssistantPageList(AdminAssistantPageListReq) returns (AdminAssistantPageListResp) {}
+  rpc SyncAssistantPublish(SyncAssistantPublishReq) returns (google.protobuf.Empty) {}
+}
+
+message AdminAssistantPageListReq {
+  string name = 1;
+  repeated string userId = 2;
+  repeated string orgId = 3;
+  int32 pageNum = 4;
+  int32 pageSize = 5;
+  repeated int32 category = 6; // 1:单智能体，2:多智能体
+  repeated string publishStatus = 7; // draft:草稿，publish:发布
+  repeated string publishScope = 8;  // private：私密，organization：组织，public：公开
+}
+
+message SyncAssistantPublishReq {
+  string assistantId = 1;
+  string publishType = 2; // 非空=发布记录，空=删除发布记录(取消发布)
+}
+
+message AdminAssistantPageListResp {
+  int64 total = 1;
+  repeated AssistantBrief list = 2;
 }
 
 message SaveToESReq {
@@ -352,6 +380,7 @@ message AssistantInfo {
   int32 category = 22;
   AssistantMemoryConfig memoryConfig = 23;
   AssistantRecommendConfig recommendConfig = 24; //智能体问题推荐配置信息
+  string extra = 25; // 快照扩展信息（JSON），如 {"hideKnowledge":1}
 }
 
 message AssistantRecommendConfig {
@@ -747,8 +776,9 @@ message CustomPromptInfo {
   string name = 3;
   string desc = 4;
   string prompt = 5;
-  int64 updatedAt = 6;
-  Identity identity = 7;
+  int64 createdAt = 6;
+  int64 updatedAt = 7;
+  Identity identity = 8;
 }
 
 message CustomPromptGetListReq {
@@ -759,6 +789,16 @@ message CustomPromptGetListReq {
 message CustomPromptList {
   repeated CustomPromptInfo customPromptInfos = 1;
   int64 total = 2;
+}
+
+// --- admin center ---
+
+message GetAdminCustomPromptPageListReq {
+  string name = 1;                     // 名称（模糊查询）
+  repeated string orgIdList = 2;       // 组织id列表（空=全部组织）
+  repeated string userIdList = 3;      // 用户id列表（空=全部用户）
+  int32 pageNo = 4;                    // 页码（从1开始）
+  int32 pageSize = 5;                  // 每页条数
 }
 
 message CustomPromptCopyReq {
@@ -886,6 +926,7 @@ message AssistantBrief{
   common.AppBrief info = 1;
   int32 category = 2;
   string uuid = 3; // 智能体唯一标识，供 OpenAPI 使用
+  string publishType = 4; // 发布类型(private/organization/public)，空=草稿
 }
 
 

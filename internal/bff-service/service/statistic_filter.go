@@ -18,13 +18,13 @@ func GetStatisticOrgsSelect(ctx *gin.Context, userID, orgID string, isAdmin, isS
 	// 普通用户
 	if !isAdmin {
 		if orgID == "" {
-			return &response.ListResult{List: []response.IDName{}, Total: 0}, nil
+			return &response.ListResult{List: []response.IDNameWithAvatar{}, Total: 0}, nil
 		}
 		org, err := iam.GetOrgInfo(ctx.Request.Context(), &iam_service.GetOrgInfoReq{OrgId: orgID})
 		if err != nil {
 			return nil, err
 		}
-		return &response.ListResult{List: []response.IDName{{ID: org.OrgId, Name: org.Name}}, Total: 1}, nil
+		return &response.ListResult{List: []response.IDNameWithAvatar{{ID: org.OrgId, Name: org.Name}}, Total: 1}, nil
 	}
 
 	// 管理员
@@ -35,7 +35,7 @@ func GetStatisticOrgsSelect(ctx *gin.Context, userID, orgID string, isAdmin, isS
 	if err != nil {
 		return nil, err
 	}
-	return &response.ListResult{List: toIDNames(resp.Orgs), Total: int64(len(resp.Orgs))}, nil
+	return &response.ListResult{List: toOrgsIDNameWithAvatar(ctx, resp.Orgs), Total: int64(len(resp.Orgs))}, nil
 }
 
 func GetStatisticUsersSelect(ctx *gin.Context, userID, orgID string, isAdmin bool) (*response.ListResult, error) {

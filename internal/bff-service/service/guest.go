@@ -236,7 +236,7 @@ func toOrgPermission(ctx *gin.Context, orgPerm *iam_service.UserPermission) resp
 	return response.UserOrgPermission{
 		IsAdmin:     orgPerm.IsAdmin,
 		IsSystem:    orgPerm.IsSystem,
-		Org:         toOrgIDName(ctx, orgPerm.Org),
+		Org:         toOrgIDNameWithAvatar(ctx, orgPerm.Org),
 		Roles:       toRoleIDNames(ctx, orgPerm.Roles),
 		Permissions: toPermissions(orgPerm.IsAdmin, orgPerm.IsSystem, isAdminInAnyOrg(ctx, orgPerm.UserId), orgPerm.Perms),
 	}

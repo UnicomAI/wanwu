@@ -65,16 +65,11 @@ type OpenAPIRagChatData struct {
 }
 
 type OpenAIChatSearch struct {
-	KBName   string                `json:"kb_name"`
-	Title    string                `json:"title"`
-	Snippet  string                `json:"snippet"`
-	MetaData *OpenAIChatSearchMeta `json:"meta_data,omitempty"`
-}
-
-// OpenAIChatSearchMeta 知识库命中片段的元信息
-type OpenAIChatSearchMeta struct {
-	FileName     string `json:"file_name"`
-	DownloadLink string `json:"download_link"`
+	KBName  string `json:"kb_name"`
+	Title   string `json:"title"`
+	Snippet string `json:"snippet"`
+	// MetaData 知识库命中片段的元信息，原样透传 rag 返回（与流式一致），如 file_name/download_link/page_num/chunk_total_num 等
+	MetaData interface{} `json:"meta_data,omitempty"`
 }
 
 type OpenAIChatHistory struct {

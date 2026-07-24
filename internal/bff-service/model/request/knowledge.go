@@ -118,13 +118,6 @@ type DocMetaData struct {
 	Option        string `json:"option"`        // option:add(新增)、update(更新)、delete(删除),update 和delete 的时候metaId 不能为空
 }
 
-type SearchKnowledgeInfoReq struct {
-	KnowledgeName string `json:"categoryName" form:"categoryName" validate:"required"`
-	UserId        string `json:"userId" form:"userId" validate:"required"`
-	OrgId         string `json:"orgId"`
-	CommonCheck
-}
-
 type GetKnowledgeMetaSelectReq struct {
 	KnowledgeId string `json:"knowledgeId"  form:"knowledgeId" validate:"required"`
 	CommonCheck

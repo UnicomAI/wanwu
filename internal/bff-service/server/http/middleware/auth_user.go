@@ -21,7 +21,6 @@ var (
 		"/v1/user/permission":       true,
 		"/v1/user/info":             true,
 		"/v1/org/select":            true,
-		"/v1/org/admin/select":      true,
 		"/v1/user/login/email/code": true,
 		"/v1/user/login":            true,
 	}
@@ -156,6 +155,16 @@ func getOrgID(ctx *gin.Context) (string, error) {
 		return orgID, nil
 	}
 	return "", errors.New("org id empty")
+}
+
+// 当前用户是否是当前组织内置管理员角色
+func isAdmin(ctx *gin.Context) bool {
+	return ctx.GetBool(gin_util.IS_ADMIN)
+}
+
+// 当前组织是否是内置顶级【系统】组织
+func isSystem(ctx *gin.Context) bool {
+	return ctx.GetBool(gin_util.IS_SYSTEM)
 }
 
 func getGenTokenTS(ctx *gin.Context) (string, error) {

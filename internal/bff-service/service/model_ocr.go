@@ -29,6 +29,7 @@ func ModelOcr(ctx *gin.Context, modelID string, req *mp_common.OcrReq) {
 		return
 	}
 
+	req.Model = &modelInfo.Model
 	// ocr config
 	ocr, err := mp.ToModelConfig(modelInfo.Provider, modelInfo.ModelType, modelInfo.ProviderConfig)
 	if err != nil {

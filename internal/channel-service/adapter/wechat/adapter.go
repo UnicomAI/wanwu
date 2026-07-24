@@ -512,6 +512,9 @@ func (w *WeChatAdapter) sendTextMessage(ctx context.Context, baseURL, token, toU
 	log.Infof("[WeChat] sendTextMessage req: to=%s contentLen=%d contextTokenLen=%d body=%s",
 		toUserID, len(content), len(contextToken), string(body))
 
+	log.Infof("[WeChat] sendTextMessage req: to=%s contentLen=%d contextTokenLen=%d body=%s",
+		toUserID, len(content), len(contextToken), string(body))
+
 	resp, err := w.httpClient.Do(httpReq)
 	if err != nil {
 		return err
@@ -521,6 +524,8 @@ func (w *WeChatAdapter) sendTextMessage(ctx context.Context, baseURL, token, toU
 	respBody, _ := io.ReadAll(resp.Body)
 	log.Infof("[WeChat] sendTextMessage resp: to=%s httpStatus=%d body=%s",
 		toUserID, resp.StatusCode, string(respBody))
+	log.Infof("[WeChat] sendTextMessage resp: to=%s httpStatus=%d body=%s",
+		toUserID, resp.StatusCode, string(respBody))
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("send message failed: %s", string(respBody))
 	}
@@ -528,6 +533,7 @@ func (w *WeChatAdapter) sendTextMessage(ctx context.Context, baseURL, token, toU
 	var sendResp SendResponse
 	if err := json.Unmarshal(respBody, &sendResp); err == nil {
 		if sendResp.Ret != 0 {
+			return classifyWeChatSendErr(sendResp.Ret, sendResp.ErrMsg, "send message failed")
 			return classifyWeChatSendErr(sendResp.Ret, sendResp.ErrMsg, "send message failed")
 		}
 	}
@@ -640,6 +646,13 @@ func (w *WeChatAdapter) convertMessage(msg *WeixinMessage) *types.PlatformMessag
 	// 保存上下文 token（用于回复同一会话）
 	result.Extra["contextToken"] = msg.ContextToken
 	result.Extra["fromUserId"] = msg.FromUserID
+
+	// 缓存最近入站 contextToken（按 from_user_id），供主动推送出站回退使用
+	if msg.ContextToken != "" && msg.FromUserID != "" {
+		w.mu.Lock()
+		w.contextTokens[msg.FromUserID] = msg.ContextToken
+		w.mu.Unlock()
+	}
 
 	// 缓存最近入站 contextToken（按 from_user_id），供主动推送出站回退使用
 	if msg.ContextToken != "" && msg.FromUserID != "" {
@@ -1067,6 +1080,7 @@ func (w *WeChatAdapter) sendFileMessage(ctx context.Context, baseURL, token, toU
 	var sendResp SendResponse
 	if err := json.Unmarshal(respBody, &sendResp); err == nil {
 		if sendResp.Ret != 0 {
+			return classifyWeChatSendErr(sendResp.Ret, sendResp.ErrMsg, "send file message failed")
 			return classifyWeChatSendErr(sendResp.Ret, sendResp.ErrMsg, "send file message failed")
 		}
 	}

@@ -132,7 +132,7 @@ func (*RerankConverter) Convert(ctx *gin.Context, assistant *assistant_service.A
 // NeedConvert 复用 convertAppModelConfig 的取模型条件；KB 为空时 Convert 内部亦会短路。
 func (*RerankConverter) NeedConvert(assistant *assistant_service.AssistantInfo, resp *response.Assistant) bool {
 	// 仅当存在知识库配置时才转换 Rerank
-	if len(resp.KnowledgeBaseConfig.Knowledgebases) == 0 {
+	if assistant.KnowledgeBaseConfig == nil || len(assistant.KnowledgeBaseConfig.KnowledgeBaseIds) == 0 {
 		return false
 	}
 	return assistant.RerankConfig != nil && assistant.RerankConfig.ModelId != ""

@@ -138,7 +138,7 @@ func GetDocConfig(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.DocListReq	true	"文档列表查询请求参数"
-//	@Success		200		{object}	response.Response{data=response.DocPageResult}
+//	@Success		200		{object}	response.PageResult{list=response.ListDocResp}
 //	@Router			/knowledge/doc/list [post]
 func GetDocList(ctx *gin.Context) {
 	userId, orgId := getUserID(ctx), getOrgID(ctx)
@@ -379,4 +379,110 @@ func UpdateDocSegmentStatus(ctx *gin.Context) {
 	}
 	err := service.UpdateDocSegmentStatus(ctx, userId, orgId, &req)
 	gin_util.Response(ctx, nil, err)
+}
+
+// CreateDocSegment
+//
+//	@Tags			openapi
+//	@Summary		新增文档切片
+//	@Description	新增单条文档切片；多模态知识库的切片内容可包含图片markdown，普通知识库不允许
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.CreateDocSegmentReq	true	"新增文档切片请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/create [post]
+func CreateDocSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.CreateDocSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.CreateDocSegmentOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// BatchCreateDocSegment
+//
+//	@Tags			openapi
+//	@Summary		批量新增文档切片
+//	@Description	通过csv文件批量新增文档切片
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.BatchCreateDocSegmentReq	true	"批量新增文档切片请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/batch/create [post]
+func BatchCreateDocSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.BatchCreateDocSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.BatchCreateDocSegment(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// UpdateDocSegment
+//
+//	@Tags			openapi
+//	@Summary		更新文档切片
+//	@Description	更新文档切片；多模态知识库的切片内容可包含图片markdown，普通知识库不允许
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.UpdateDocSegmentReq	true	"更新文档切片请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/update [post]
+func UpdateDocSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.UpdateDocSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateDocSegmentOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// DeleteDocSegment
+//
+//	@Tags			openapi
+//	@Summary		删除文档切片
+//	@Description	删除文档切片
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.DeleteDocSegmentReq	true	"删除文档切片请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/delete [delete]
+func DeleteDocSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.DeleteDocSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.DeleteDocSegment(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// UploadDocSegmentImage
+//
+//	@Tags			openapi
+//	@Summary		分段图片上传
+//	@Description	上传分段图片并返回markdown格式url，仅多模态知识库可用；返回的url可拼接进切片content中
+//	@Security		JWT
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			knowledgeId	formData	string	true	"知识库id"
+//	@Param			files		formData	file	true	"图片文件(png/jpg/jpeg)"
+//	@Success		200			{object}	response.Response{data=response.RagUploadResponse}
+//	@Router			/knowledge/doc/segment/image/upload [post]
+func UploadDocSegmentImage(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.UploadDocSegmentImageReq
+	if !gin_util.BindForm(ctx, &req) {
+		return
+	}
+	resp, err := service.UploadDocSegmentImageOpenapi(ctx, userId, orgId, req.KnowledgeId)
+	gin_util.Response(ctx, resp, err)
 }
