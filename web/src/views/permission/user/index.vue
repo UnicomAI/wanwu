@@ -666,13 +666,17 @@ export default {
       const baseMessage = this.isSystem
         ? this.$t('user.confirm.batchDelete')
         : this.$t('user.confirm.batchRemove');
+      const selectedCountText = this.$t('user.confirm.selectedCount', {
+        count: this.selectedRows.length,
+      });
       this.$confirm(
-        `${baseMessage}<div style="color: #f56c6c;">${selectedUsernames}</div>`,
+        `${baseMessage}<div style="color: #f56c6c;">${selectedCountText}${selectedUsernames}</div>`,
         this.$t('common.confirm.title'),
         {
           confirmButtonText: this.$t('common.confirm.confirm'),
           cancelButtonText: this.$t('common.confirm.cancel'),
           type: 'warning',
+          customClass: 'user-delete-confirm',
           dangerouslyUseHTMLString: true,
         },
       ).then(async () => {
