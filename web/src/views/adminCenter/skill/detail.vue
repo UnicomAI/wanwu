@@ -16,12 +16,17 @@
       :title="$t('adminCenter.pageModules.resourcePool.skill.detail.overview')"
     >
       <SkillDetail
+        v-if="skillDetail?.skillMarkdown"
         :detail="skillDetail"
         :recommendList="[]"
         :visibleDownload="false"
         :visibleHistory="false"
         :visibleVariableConfig="false"
         readonly
+      />
+      <EmptyState
+        v-else
+        :tip="$t('adminCenter.pageModules.resourcePool.skill.detail.emptyTip')"
       />
     </DetailCard>
   </DetailLayout>
@@ -36,6 +41,7 @@ import DetailHeader from '../components/DetailHeader.vue';
 import DetailCard from '../components/DetailCard.vue';
 import InfoGrid from '../components/InfoGrid.vue';
 import VisibleUsers from '../components/VisibleUsers.vue';
+import EmptyState from '../components/EmptyState.vue';
 import detailMixin from '../mixins/detailMixin';
 
 export default {
@@ -45,6 +51,7 @@ export default {
     DetailCard,
     InfoGrid,
     VisibleUsers,
+    EmptyState,
     SkillDetail,
   },
   mixins: [detailMixin],
