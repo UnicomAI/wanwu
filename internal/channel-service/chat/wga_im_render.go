@@ -2,8 +2,7 @@ package chat
 
 import (
 	"encoding/json"
-	"fmt"
-	"regexp"
+	"fmt" 
 	"strings"
 )
 
@@ -144,20 +143,46 @@ func durationOrUnknown(d string) string {
 	return d
 }
 
-// lsLongLineRe 匹配 `ls -l` 长格式输出的一行，捕获文件名（最后一列）。
-// 形如 "-rw-r--r-- 1 root root 285741 Jul 10 16:17 鹰.pptx"。
-// 权限位 10 字符（含目录 d/链接 l），后跟链接数、属主、属组、大小、日期时间、文件名。
-// 文件名可含空格/中文，故日期时间后整体捕获到行尾（再 TrimSpace）。
-var lsLongLineRe = regexp.MustCompile(`^[-dlrwxstST]{10}\s+\d+\s+\S+\s+\S+\s+\d+\s+\S+\s+\d+\s+[\d:]{4,5}\s+(.+)$`)
+// parseWriteFilePath 从 write 工具入参 JSON 中解析文件路径字段，返回 basename。
+// write 是 opencode 内置工具，args 形如 {"content":"...","filePath":"/home/root/workspace/{runId}/workspace/报告.md"}
+// （字段名 filePath 经实测确认，见 memory channel-wga-artifact-dispatch-design-flaw）。
+// 路径取 basename：与工作区文件名（WGAFileNode.Name）对齐，producedFiles/mentionedFiles 也用 basename。
+// 非 JSON、无 filePath 字段、或解析失败返回 ""。Windows 反斜杠路径也兼容。
+func parseWriteFilePath(toolCallArgs string) string {
+	s := strings.TrimSpace(toolCallArgs)
+	if s == "" {
+		return ""
+	}
+	var args struct {
+		FilePath string `json:"filePath"`
+	}
+	if err := json.Unmarshal([]byte(s), &args); err != nil {
+		return ""
+	}
+	p := strings.TrimSpace(args.FilePath)
+	if p == "" {
+		return ""
+	}
+	// 统一路径分隔符后取 basename（去目录前缀），与工作区文件名对齐
+	p = strings.ReplaceAll(p, "\\", "/")
+	if i := strings.LastIndex(p, "/"); i >= 0 {
+		p = p[i+1:]
+	}
+	return p
+}
 
 // extractProducedFiles 从已完成的聚合 fragment 树中提取"本次 run 实际产生的产物文件名"。
 //
-// PPT Agent 等智能体在生成产物后，会用 bash 执行 `ls -l <file>` 确认产物（TOOL_CALL_RESULT
-// 返回 ls 长格式输出）。这比"正文子串匹配历史文件名"可靠得多：它直接反映本次 run 操作的文件，
-// 不会把正文里偶然出现的多字词（如"日本"）误匹配成历史文件 日本.pptx。
+// 仅跟踪 write 工具调用：本次 run 智能体调 write 写过的文件（文件名在 args.filePath），
+// 是"本次创建/修改"的天然信号——比正文子串匹配可靠得多，不会把正文里偶然出现的多字词
+// （如"日本"）误匹配成历史文件 日本.pptx，也不会把工作区历史累积文件当本次产物。
 //
-// 遍历 fragment 树（含子智能体嵌套），收集所有 toolName=bash 且 result 含 ls -l 行的文件名（basename）。
+// 遍历 fragment 树（含子智能体嵌套），收集 toolName=write 的 args filePath（取 basename），
 // 返回去重后的 basename 列表，作为回发工作区文件的强信号白名单。
+//
+// 历史背景：曾用 bash `ls -l` 确认产物的 result 作为白名单，但 lsConfirmsArtifact 无法
+// 区分"ls 列整个工作区目录"与"ls 确认单个产物"（两者都带具体目标参数），导致列目录时
+// 整个工作区历史文件全进白名单、全量回发、触发 IM 频控。该路径已废弃，统一只用 write。
 func extractProducedFiles(topFragments []*wgaFragment) []string {
 	seen := make(map[string]struct{})
 	var names []string
@@ -167,14 +192,14 @@ func extractProducedFiles(topFragments []*wgaFragment) []string {
 			if f == nil {
 				continue
 			}
-			if f.kind == fragToolCall && strings.EqualFold(f.toolCallName, "bash") {
-				for _, n := range parseLsLongOutput(f.toolCallResult) {
-					if n == "" {
-						continue
-					}
-					if _, ok := seen[n]; !ok {
-						seen[n] = struct{}{}
-						names = append(names, n)
+			// write 工具：本次 run 智能体写过的文件，文件名在 args（非 result——result 是
+			// "Wrote file successfully." 无文件名）。是"本次创建/修改"的天然信号，补"智能体
+			// 生成产物但正文不点名文件名"的漏发（例：分析完成已输出报告，正文无文件名）。
+			if f.kind == fragToolCall && strings.EqualFold(f.toolCallName, "write") {
+				if name := parseWriteFilePath(f.toolCallArgs.String()); name != "" {
+					if _, ok := seen[name]; !ok {
+						seen[name] = struct{}{}
+						names = append(names, name)
 					}
 				}
 			}
@@ -186,35 +211,7 @@ func extractProducedFiles(topFragments []*wgaFragment) []string {
 	return names
 }
 
-// parseLsLongOutput 从工具结果文本中解析 `ls -l` 长格式行的文件名（basename）。
-// 输入是 TOOL_CALL_RESULT.content 的原始 JSON 文本（常为 JSON 字符串字面量），
-// 先按 JSON 字符串 unquote 还原原始文本（保留换行），再逐行匹配权限位开头的长格式行。
-// 注意：不能用 cleanToolResult——它会 collapseWhitespace 把多行 ls 输出压成一行，破坏逐行解析。
-// 非长格式行（如 ls 报错、其他命令输出）不匹配，天然忽略。
-func parseLsLongOutput(raw string) []string {
-	s := strings.TrimSpace(raw)
-	if s == "" {
-		return nil
-	}
-	// TOOL_CALL_RESULT.content 常是 JSON 字符串字面量（如 "\"-rw... 鹰.pptx\\n\""），unquote 还原。
-	if len(s) >= 2 && s[0] == '"' {
-		if unq, err := jsonUnquote(s); err == nil {
-			s = unq
-		}
-	}
-	var names []string
-	for _, line := range strings.Split(s, "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		if m := lsLongLineRe.FindStringSubmatch(line); len(m) == 2 {
-			name := strings.TrimSpace(m[1])
-			// "total N" 汇总行不匹配权限位正则，无需特判；空名/符号链接目标跳过
-			if name != "" && !strings.HasPrefix(name, "->") {
-				names = append(names, name)
-			}
-		}
-	}
-	return names
-}
+// producedArtifactRe / extractProducedArtifacts / artifactBasename / isUUIDLikeStem 等
+// "强信号 B"（扫 tool_call 文本抓间接产物）相关函数已废弃移除：在分析场景会误抓智能体
+// read/操作过的历史文件与 xlsx 数据源（曾把 刘禅/北京/李白.pptx、maas.xlsx 等当产物下发）。
+// 间接产物改由"强信号 A（write filePath）+ 第五轮根目录兜底"覆盖，宁可漏发也不误发历史。

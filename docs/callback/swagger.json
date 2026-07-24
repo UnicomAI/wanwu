@@ -261,6 +261,40 @@
                 }
             }
         },
+        "/callback/v1/channel/send-message": {
+            "post": {
+                "description": "内部服务给指定通道发消息（无鉴权，callback 接口）。channelId 必填；userId 可选，缺省由 channel-service 自动取该通道最近互动过的 IM 用户作收件人。msgType 支持 text（默认）/markdown/file；file 类型需 fileUrl+fileName，channel-service 下载字节后投递。成功无返回体，失败透传 gRPC err_code。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "callback"
+                ],
+                "summary": "内部服务发消息",
+                "parameters": [
+                    {
+                        "description": "内部服务发消息请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SendMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/callback/v1/skill/acquired/list": {
             "post": {
                 "description": "获取我添加skill详情列表",
@@ -445,40 +479,6 @@
                                     }
                                 }
                             ]
-                        }
-                    }
-                }
-            }
-        },
-        "/channel/send-message": {
-            "post": {
-                "description": "向通道发送消息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "channel"
-                ],
-                "summary": "向通道发送消息",
-                "parameters": [
-                    {
-                        "description": "请求参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.ChannelSendMessageRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -4210,42 +4210,6 @@
                 }
             }
         },
-        "request.ChannelSendMessageRequest": {
-            "type": "object",
-            "required": [
-                "channelId"
-            ],
-            "properties": {
-                "channelId": {
-                    "type": "string"
-                },
-                "content": {
-                    "type": "string"
-                },
-                "fileMimeType": {
-                    "type": "string"
-                },
-                "fileName": {
-                    "type": "string"
-                },
-                "fileUrl": {
-                    "description": "为万悟 minio 文件下载地址（先调 /callback/v1/file/upload/base64 上传取得）channel-service 下载字节后投递，不占请求体。钉钉/微信支持文件，飞书不支持会返回错误",
-                    "type": "string"
-                },
-                "msgType": {
-                    "description": "可选：text（默认，纯文本，content 必填）/ markdown（钉钉渲染 md 卡片，微信降级纯文本，content 必填，title 可选）",
-                    "type": "string"
-                },
-                "title": {
-                    "description": "发送文件附件，fileUrl+fileName 必填，content 可空作附带文案",
-                    "type": "string"
-                },
-                "userId": {
-                    "description": "可选，缺省时由 channel-service 自动取该通道最近互动过的 IM 用户作为收件人",
-                    "type": "string"
-                }
-            }
-        },
         "request.CustomModelInfo": {
             "type": "object",
             "properties": {
@@ -4736,6 +4700,38 @@
                 },
                 "userId": {
                     "description": "UserId/OrgId：调用方期望\"以哪个用户身份\"查询这批 skill 的详情与变量。\ncallback 由 assistant-service 在处理智能体（Assistant）对话时内部回调过来，\n此处应传智能体在 assistant 表里的 user_id / org_id（智能体创建者），\n而不是发起 HTTP 请求的调用者——发布态智能体常被非创建者调用，\n用调用者身份会查不到创建者配置的 per-user skill 变量。",
+                    "type": "string"
+                }
+            }
+        },
+        "request.SendMessageRequest": {
+            "type": "object",
+            "required": [
+                "channelId"
+            ],
+            "properties": {
+                "channelId": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "fileMimeType": {
+                    "type": "string"
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "fileUrl": {
+                    "type": "string"
+                },
+                "msgType": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "userId": {
                     "type": "string"
                 }
             }

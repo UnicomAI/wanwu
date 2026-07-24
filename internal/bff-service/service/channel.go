@@ -446,7 +446,7 @@ func DisconnectChannel(ctx *gin.Context, channelID string) (*response.Disconnect
 // 错误透传 gRPC status（携带 err_code.Code：ChannelInvalidArg 入参缺失 / ChannelNotConnected 通道未启用 /
 // ChannelRateLimited IM 平台频控（调用方可退避重试）/ ChannelGeneral 其它失败含飞书不支持文件）。
 // 成功无返回体：收件人平台 ID 属内部寻址细节，不外泄给调用方，调用方凭 err 判定投递结果。
-func SendMessage(ctx context.Context, req *request.ChannelSendMessageRequest) error {
+func SendMessage(ctx context.Context, req *request.SendMessageRequest) error {
 	_, err := channel.SendMessage(ctx, &channel_service.SendMessageReq{
 		ChannelId:    req.ChannelID,
 		Content:      req.Content,

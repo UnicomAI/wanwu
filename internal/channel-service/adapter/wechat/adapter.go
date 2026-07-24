@@ -19,6 +19,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/UnicomAI/wanwu/internal/channel-service/adapter/types"
 	"github.com/UnicomAI/wanwu/pkg/log"
@@ -428,7 +429,11 @@ func (w *WeChatAdapter) handleUpdatesMsgs(ctx context.Context, resp *GetUpdatesR
 
 		platformMsg := w.convertMessage(&msg)
 		if w.handler != nil {
+			msg := msg // 防循环变量捕获
 			go func() {
+				// 入站附件下载解密（对齐钉钉 stream.go：下载在 handler 前、全在异步 goroutine 不阻塞轮询）。
+				// 失败只 log 不阻断，Attachments 不填则主链路降级纯文本。
+				w.enrichWithAttachments(ctx, platformMsg, &msg)
 				if err := w.handler(ctx, platformMsg); err != nil {
 					log.Errorf("[WeChat] Message handler error: %v", err)
 				}
@@ -503,6 +508,9 @@ func (w *WeChatAdapter) sendTextMessage(ctx context.Context, baseURL, token, toU
 		return err
 	}
 	w.setHeaders(httpReq, token)
+
+	log.Infof("[WeChat] sendTextMessage req: to=%s contentLen=%d contextTokenLen=%d body=%s",
+		toUserID, len(content), len(contextToken), string(body))
 
 	log.Infof("[WeChat] sendTextMessage req: to=%s contentLen=%d contextTokenLen=%d body=%s",
 		toUserID, len(content), len(contextToken), string(body))
@@ -643,12 +651,77 @@ func (w *WeChatAdapter) convertMessage(msg *WeixinMessage) *types.PlatformMessag
 		w.mu.Unlock()
 	}
 
+	// 缓存最近入站 contextToken（按 from_user_id），供主动推送出站回退使用
+	if msg.ContextToken != "" && msg.FromUserID != "" {
+		w.mu.Lock()
+		w.contextTokens[msg.FromUserID] = msg.ContextToken
+		w.mu.Unlock()
+	}
+
 	return result
 }
 
-// chunkText 分块文本
+// enrichWithAttachments 基于原始 WeixinMessage 的 ItemList，下载解密入站文件/图片，
+// 填入 platformMsg.Attachments。下载/解密失败只记日志、不填附件，Content 保留文件名/占位符，
+// 让主链路 effectiveText 降级为纯文本。对齐钉钉 stream.go 的异步下载架构。
+// 仅处理文件(type=4)与图片(type=2)；语音消息(type=3, silk)未实现，不在范围内。
+func (w *WeChatAdapter) enrichWithAttachments(ctx context.Context, platformMsg *types.PlatformMessage, msg *WeixinMessage) {
+	for _, item := range msg.ItemList {
+		switch item.Type {
+		case 4: // File
+			if item.FileItem != nil && item.FileItem.Media != nil {
+				w.downloadItemAttachment(ctx, platformMsg, item.FileItem.Media, "", item.FileItem.FileName)
+			}
+		case 2: // Image
+			if item.ImageItem != nil && item.ImageItem.Media != nil {
+				// 图片 aes_key 来源：优先 image_item.aeskey(hex)→转 base64(16 raw bytes)；
+				// 否则回退 media.aes_key(base64)。
+				aesKey := ""
+				if item.ImageItem.AESKey != "" {
+					if raw, err := hex.DecodeString(item.ImageItem.AESKey); err == nil && len(raw) == 16 {
+						aesKey = base64.StdEncoding.EncodeToString(raw)
+					}
+				}
+				if aesKey == "" {
+					aesKey = item.ImageItem.Media.AESKey
+				}
+				fileName := "image.png" // 图片无文件名，按扩展名给默认值供 mimeTypeByExt 推断
+				w.downloadItemAttachment(ctx, platformMsg, item.ImageItem.Media, aesKey, fileName)
+			}
+		}
+	}
+}
+
+// downloadItemAttachment 下载解密单个 CDN media，成功则 append 到 Attachments。
+// aesKeyOverride 非空时用于图片（覆盖 media.AESKey）；为空时用 media.AESKey。
+func (w *WeChatAdapter) downloadItemAttachment(ctx context.Context, platformMsg *types.PlatformMessage, media *CDNMedia, aesKeyOverride, fileName string) {
+	aesKey := aesKeyOverride
+	if aesKey == "" {
+		aesKey = media.AESKey
+	}
+	if aesKey == "" || (media.EncryptQueryParam == "" && media.FullURL == "") {
+		log.Warnf("[WeChat] skip attachment download: missing aes_key or download url, fileName=%s", fileName)
+		return
+	}
+	data, err := downloadAndDecrypt(ctx, w.httpClient, media, aesKey, wechatCDNBaseURL)
+	if err != nil {
+		log.Errorf("[WeChat] download/decrypt attachment failed: fileName=%s err=%v", fileName, err)
+		return // 不填 Attachments，主链路降级纯文本
+	}
+	platformMsg.Attachments = append(platformMsg.Attachments, types.Attachment{
+		Name:     fileName,
+		MimeType: mimeTypeByExt(fileName),
+		Data:     data,
+	})
+	log.Infof("[WeChat] downloaded attachment: fileName=%s size=%d mime=%s", fileName, len(data), mimeTypeByExt(fileName))
+}
+
+// chunkText 按字节上限分块文本，但只在 UTF-8 字符边界处切分，避免把多字节中文切成两半。
+// 否则切出的块含不完整 UTF-8 字符，json.Marshal 序列化时被替换成 U+FFFD，
+// 微信端在分块边界显示 �� 乱码（上一块尾 + 下一块头各带一个 U+FFFD）。
+// maxSize 是字节上限；切分点回退到不超过 maxSize 的最后一个完整字符边界。
 func chunkText(text string, maxSize int) []string {
-	if len(text) <= maxSize {
+	if maxSize <= 0 || len(text) <= maxSize {
 		return []string{text}
 	}
 
@@ -658,8 +731,17 @@ func chunkText(text string, maxSize int) []string {
 			chunks = append(chunks, text)
 			break
 		}
-		chunks = append(chunks, text[:maxSize])
-		text = text[maxSize:]
+		// 在 [0, maxSize] 内回退到最后一个完整 UTF-8 字符边界，避免切断多字节字符。
+		end := maxSize
+		for end > 0 && !utf8.RuneStart(text[end]) {
+			end--
+		}
+		// 退到 0 说明 maxSize 比单个字符还小（极端配置），强制按 maxSize 切避免死循环。
+		if end == 0 {
+			end = maxSize
+		}
+		chunks = append(chunks, text[:end])
+		text = text[end:]
 	}
 	return chunks
 }
@@ -715,7 +797,7 @@ type TextItem struct {
 // ImageItem 图片项
 type ImageItem struct {
 	Media  *CDNMedia `json:"media,omitempty"`
-	AESKey string    `json:"aes_key,omitempty"`
+	AESKey string    `json:"aeskey,omitempty"` // 入站驼峰 aeskey，hex 字符串（OpenClaw api/types.ts:105，优先于 media.aes_key）
 }
 
 // VoiceItem 语音项
@@ -740,9 +822,11 @@ type VideoItem struct {
 
 // CDNMedia CDN 媒体信息
 type CDNMedia struct {
-	MediaID string `json:"media_id"`
-	AESKey  string `json:"aes_key"`
-	URL     string `json:"url,omitempty"`
+	MediaID           string `json:"media_id"`
+	AESKey            string `json:"aes_key"`
+	URL               string `json:"url,omitempty"`
+	EncryptQueryParam string `json:"encrypt_query_param,omitempty"` // 入站 CDN 下载凭证
+	FullURL           string `json:"full_url,omitempty"`            // 入站完整下载 URL（优先）
 }
 
 // SendRequest 发送消息请求

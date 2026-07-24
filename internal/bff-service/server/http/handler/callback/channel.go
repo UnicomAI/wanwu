@@ -7,18 +7,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ChannelSendMessage
+// SendMessage
 //
-//	@Tags			channel
-//	@Summary		向通道发送消息
-//	@Description	向通道发送消息
+//	@Tags			callback
+//	@Summary		内部服务发消息
+//	@Description	内部服务给指定通道发消息（无鉴权，callback 接口）。channelId 必填；userId 可选，缺省由 channel-service 自动取该通道最近互动过的 IM 用户作收件人。msgType 支持 text（默认）/markdown/file；file 类型需 fileUrl+fileName，channel-service 下载字节后投递。成功无返回体，失败透传 gRPC err_code。
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.ChannelSendMessageRequest	true	"请求参数"
-//	@Success		200		{object}	response.Response{}
-//	@Router			/channel/send-message [post]
-func ChannelSendMessage(ctx *gin.Context) {
-	var req request.ChannelSendMessageRequest
+//	@Param			data	body		request.SendMessageRequest	true	"内部服务发消息请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/callback/v1/channel/send-message [post]
+func SendMessage(ctx *gin.Context) {
+	var req request.SendMessageRequest
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}

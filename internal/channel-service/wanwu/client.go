@@ -48,6 +48,18 @@ type ChatRequest struct {
 	ConversationID string `json:"conversation_id"`
 	Query          string `json:"query"`
 	Stream         bool   `json:"stream"`
+	// FileInfo 随对话携带的文件列表（openapi /agent/chat 的 file_info）。
+	// 来源：UploadFile 响应 WGAUploadFile（FileId→FileName、FileSize→FileSize、FilePath→FileUrl）。
+	// bff 端硬限 1 个文件（>1 报错），故调用方最多填 1 项。
+	FileInfo []AgentFileInfo `json:"file_info,omitempty"`
+}
+
+// AgentFileInfo 对齐 bff openapi ConversionStreamFile（fileName/fileSize/fileUrl）。
+// 注意：FileName 填的是上传响应的 fileId（非原始文件名），与文档「file_info.fileName 对应上传响应 fileId」一致。
+type AgentFileInfo struct {
+	FileName string `json:"fileName"`
+	FileSize int64  `json:"fileSize"`
+	FileUrl  string `json:"fileUrl"`
 }
 
 // CreateConversationRequest 创建会话请求
