@@ -52,8 +52,8 @@ func registerKnowledge(apiV1 *gin.RouterGroup) {
 	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/doc/segment/child/update", http.MethodPost, v1.UpdateDocChildSegment, "更新子分段", middleware.AuthKnowledgeDoc("docId", middleware.KnowledgeEdit))
 	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/doc/segment/child/delete", http.MethodDelete, v1.DeleteDocChildSegment, "删除子分段", middleware.AuthKnowledgeDoc("docId", middleware.KnowledgeEdit))
 
-	// 知识库url文档导入,这个接口无需校验
-	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/doc/url/analysis", http.MethodPost, v1.AnalysisDocUrl, "解析url")
+	// 知识库url文档导入(单条url上传/url文件上传)已下架
+	// mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/doc/url/analysis", http.MethodPost, v1.AnalysisDocUrl, "解析url")
 
 	// 知识库标签增删改查
 	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/tag", http.MethodGet, v1.GetKnowledgeTagSelect, "查询知识库标签列表", middleware.AuthKnowledgeIfHas("knowledgeId", middleware.KnowledgeView))

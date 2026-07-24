@@ -84,8 +84,8 @@ type ChunkSearchList struct {
 	ContentType      string          `json:"contentType"` // graph：知识图谱（文本）, text：文档分段（文本）, community_report：社区报告（markdown），qa：问答库（文本）
 	Score            float64         `json:"score"`
 	RerankInfo       []*RerankInfo   `json:"rerankInfo"`
-	// MetaData 命中片段元信息，原样透传 rag 返回，如 file_name/download_link/page_num/chunk_total_num 等
-	MetaData interface{} `json:"meta_data,omitempty"`
+	// MetaData 命中片段元信息，对象内容原样透传 rag 返回（rag 侧字段名为 meta_data），如 file_name/download_link/page_num/chunk_total_num 等
+	MetaData interface{} `json:"metaData,omitempty"`
 }
 
 type RerankInfo struct {

@@ -14,8 +14,8 @@ const (
 	CommonSplitMethod    = "0" //通用分段
 	ParentSplitMethod    = "1" //父子分段
 	FileUpload           = 0   //文件上传
-	UrlUpload            = 1   //单条url上传
-	UrlFileUpload        = 2   //url文件上传
+	UrlUpload            = 1   //单条url上传（已下架）
+	UrlFileUpload        = 2   //url文件上传（已下架）
 )
 
 type DocKnowledgeDetailReq struct {
@@ -274,17 +274,20 @@ func (c *DocImportReq) Check() error {
 			return errors.New("subMaxSplitter error")
 		}
 	}
-	if c.DocImportType == UrlFileUpload {
-		if len(c.DocInfo) == 0 {
-			return errors.New("url文件不能为空")
-		}
-		if len(c.DocInfo) > 1 {
-			return errors.New("url文件仅可上传一个")
-		}
-		if !strings.HasSuffix(c.DocInfo[0].DocId, ".xlsx") {
-			return errors.New("url文件格式错误,只能上传.xlsx文件")
-		}
+	if c.DocImportType != FileUpload {
+		return errors.New("docImportType only supports 0 (file upload)")
 	}
+	// if c.DocImportType == UrlFileUpload {
+	// 	if len(c.DocInfo) == 0 {
+	// 		return errors.New("url文件不能为空")
+	// 	}
+	// 	if len(c.DocInfo) > 1 {
+	// 		return errors.New("url文件仅可上传一个")
+	// 	}
+	// 	if !strings.HasSuffix(c.DocInfo[0].DocId, ".xlsx") {
+	// 		return errors.New("url文件格式错误,只能上传.xlsx文件")
+	// 	}
+	// }
 
 	if len(c.DocInfo) > 0 {
 		for _, doc := range c.DocInfo {

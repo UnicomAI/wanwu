@@ -140,6 +140,14 @@ func (s *Service) UpdateDocImportConfig(ctx context.Context, req *knowledgebase_
 	if err := checkDocFinishStatus(ctx, req); err != nil {
 		return nil, err
 	}
+	docInfos, err := orm.SelectDocByDocIdList(ctx, req.DocIdList, "", "")
+	if err != nil {
+		log.Errorf("get doc info %v", err)
+		return nil, util.ErrCode(errs.Code_KnowledgeDocSearchFail)
+	}
+	if err := checkDocNotUrlImport(docInfos); err != nil {
+		return nil, err
+	}
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
 	if err != nil {
 		return nil, err
@@ -162,6 +170,9 @@ func (s *Service) ReImportDoc(ctx context.Context, req *knowledgebase_doc_servic
 	if err != nil {
 		log.Errorf("get doc info %v", err)
 		return nil, util.ErrCode(errs.Code_KnowledgeDocSearchFail)
+	}
+	if err := checkDocNotUrlImport(docInfos); err != nil {
+		return nil, err
 	}
 	// 2.知识库详情查询
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
@@ -1559,6 +1570,16 @@ func checkDocFinishStatus(ctx context.Context, req *knowledgebase_doc_service.Up
 	//批量文档状态检查
 	if int(count) != len(req.DocIdList) {
 		return util.ErrCode(errs.Code_KnowledgeDocStatusFinishCheckFail)
+	}
+	return nil
+}
+
+// checkDocNotUrlImport url导入方式已下架，存量url文档不支持重新解析（重新解析会先在 minio copy 文件，url 文档存的是外链会直接失败并写坏状态）
+func checkDocNotUrlImport(docInfos []*model.KnowledgeDoc) error {
+	for _, doc := range docInfos {
+		if doc.FileType == import_service.UrlFileType {
+			return util.ErrCode(errs.Code_KnowledgeDocUrlReimportNotSupport)
+		}
 	}
 	return nil
 }
