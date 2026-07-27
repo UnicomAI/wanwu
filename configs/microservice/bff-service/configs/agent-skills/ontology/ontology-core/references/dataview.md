@@ -22,7 +22,7 @@ ontology dataview delete <id> [-y] [-bd value]
 |------|------|
 | `--datasource-id` | 按数据源 ID 过滤（`data_source_id`） |
 | `--type` | 视图类型，如 `atomic`、`custom`（按平台实际枚举） |
-| `--limit` | 返回条数上限；**`-1` 表示不限制**（与省略 `--limit` 时 CLI 默认行为一致） |
+| `--limit` | 返回条数上限；**省略时默认 30（会静默截断，不提示）**，`--limit -1` 取全部。`list` 无 `--offset`，取全量只能用 `--limit -1` |
 | `--name` | 仅用于 **`find`**：作为服务端 `keyword`（模糊）；加 `--exact` 时在客户端再按名称 **完全一致** 过滤 |
 | `--exact` | 仅 **`find`**：在 keyword 结果上再做精确匹配 |
 | `--wait` / `--no-wait` | 仅 **`find`**：是否轮询直到出现或超时（与 `bkn create-from-ds` 内「先找已有原子视图」一致） |
@@ -41,6 +41,9 @@ ontology dataview delete <id> [-y] [-bd value]
 ## 端到端示例
 
 ```bash
+# 取某数据源下全量视图（避免默认 30 截断，推荐默认取法）
+ontology dataview list --datasource-id <ds-uuid> --limit -1 --pretty
+
 # 列出某一数据源下的视图（无关键字）
 ontology dataview list --datasource-id <ds-uuid> --pretty
 
@@ -75,4 +78,5 @@ ontology dataview query <view-id> --sql "SELECT * FROM my_table LIMIT 10" --pret
 ## 排障
 
 - 结果为空：检查 `ontology config show` 的 business domain 是否与平台一致；必要时 `ontology config set-bd <uuid>`。
-- `list` 结果过多：加 `--datasource-id` 或 `--limit`；按名称搜改用 `find`。
+- `list` 结果**不全**：省略 `--limit` 默认只取 30；加 `--limit -1` 取全部。
+- `list` 结果**过多**只想浏览：加 `--datasource-id` 或 `--type` 缩范围，或用 jq 投影到摘要 `.[] | {id, name, type, data_source_id}`。
