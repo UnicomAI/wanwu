@@ -465,6 +465,90 @@ func DeleteDocSegment(ctx *gin.Context) {
 	gin_util.Response(ctx, nil, err)
 }
 
+// UpdateDocSegmentLabels
+//
+//	@Tags			openapi
+//	@Summary		更新文档切片标签
+//	@Description	更新文档切片标签
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.DocSegmentLabelsReq	true	"更新文档切片标签请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/labels [post]
+func UpdateDocSegmentLabels(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.DocSegmentLabelsReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateDocSegmentLabels(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// CreateDocChildSegment
+//
+//	@Tags			openapi
+//	@Summary		新增子分段
+//	@Description	新增文档子分段；多模态知识库的分段内容可包含图片markdown，普通知识库不允许
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.CreateDocChildSegmentReq	true	"新增子分段请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/child/create [post]
+func CreateDocChildSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.CreateDocChildSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.CreateDocChildSegmentOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// UpdateDocChildSegment
+//
+//	@Tags			openapi
+//	@Summary		更新子分段
+//	@Description	更新文档子分段；多模态知识库的分段内容可包含图片markdown，普通知识库不允许
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.UpdateDocChildSegmentReq	true	"更新子分段请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/child/update [post]
+func UpdateDocChildSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.UpdateDocChildSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateDocChildSegmentOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// DeleteDocChildSegment
+//
+//	@Tags			openapi
+//	@Summary		删除子分段
+//	@Description	删除文档子分段
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.DeleteDocChildSegmentReq	true	"删除子分段请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/child/delete [delete]
+func DeleteDocChildSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.DeleteDocChildSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.DeleteDocChildSegment(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
 // UploadDocSegmentImage
 //
 //	@Tags			openapi
