@@ -1,5 +1,17 @@
 <template>
   <div class="org-switcher">
+    <div v-if="showAdd" class="org-switcher__add">
+      <el-button
+        type="primary"
+        size="mini"
+        class="org-add-bt"
+        style="width: 100%"
+        @click="handleAddOrg"
+      >
+        <img src="@/assets/imgs/addOrg.png" alt="" />
+        <span>{{ $t('org.button.create') }}</span>
+      </el-button>
+    </div>
     <div class="org-switcher__search">
       <el-input
         class="org-switcher__search-input"
@@ -23,15 +35,22 @@
         :data="orgTreeData"
         :props="treeProps"
         node-key="orgId"
-        default-expand-all
+        :default-expanded-keys="expandedKeys"
         highlight-current
         :expand-on-click-node="false"
         :current-node-key="activeOrgId"
         :filter-node-method="filterNode"
         @node-click="handleNodeClick"
+        @node-expand="handleNodeExpand"
+        @node-collapse="handleNodeCollapse"
       >
         <span slot-scope="{ node, data }" class="org-tree-node">
           <span class="org-tree-node__label">
+            <img
+              class="org-tree-node__avatar"
+              :src="avatarSrc(data.avatar?.path || defaultAvatar)"
+              alt=""
+            />
             <span class="org-tree-node__name" :title="data.name">
               {{ data.name }}
             </span>
@@ -101,6 +120,7 @@
 
 <script>
 import { mapActions } from 'vuex';
+import { avatarSrc } from '@/utils/util';
 import { fetchOrgTree } from '@/api/permission/org';
 
 export default {
@@ -110,6 +130,10 @@ export default {
       type: [String, Number],
       default: '',
     },
+    showAdd: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -117,6 +141,9 @@ export default {
       loading: false,
       searchKeyword: '',
       activeOrgId: this.value,
+      expandedKeys: [],
+      isFirstLoad: true,
+      defaultAvatar: '/v1/static/icon/org-default-icon.png',
       treeProps: {
         children: 'children',
         label: 'name',
@@ -168,9 +195,13 @@ export default {
   },
   methods: {
     ...mapActions('user', ['getOrgInfo']),
+    avatarSrc,
     filterNode(value, data) {
       if (!value) return true;
       return data.name && data.name.toLowerCase().includes(value.toLowerCase());
+    },
+    handleAddOrg() {
+      this.$emit('add-org');
     },
     findFirstPermNode(nodes) {
       for (const node of nodes) {
@@ -182,14 +213,52 @@ export default {
       }
       return null;
     },
+    getExpandedKeys(nodes) {
+      if (!nodes) return [];
+      const keys = [];
+      nodes.forEach(node => {
+        if (node.expanded) {
+          keys.push(node.key);
+        }
+        if (node.childNodes && node.childNodes.length) {
+          keys.push(...this.getExpandedKeys(node.childNodes));
+        }
+      });
+      return keys;
+    },
     getOrgTree(delId) {
       this.loading = true;
+      // 刷新前保存当前展开状态
+      let savedExpandedKeys = [];
+      if (this.$refs.orgTree) {
+        savedExpandedKeys = this.getExpandedKeys(
+          this.$refs.orgTree.store.root.childNodes,
+        );
+      }
+
       fetchOrgTree()
         .then(res => {
-          this.orgTreeData = res.data || [];
-          this.loading = false;
+          const orgTree = res.data || [];
+          this.orgTreeData = orgTree;
 
+          if (this.isFirstLoad) {
+            // 首次加载：展开第一级根节点，让第二级可见
+            this.expandedKeys = orgTree.map(node => node.orgId);
+            this.isFirstLoad = false;
+          } else {
+            // 刷新：保持用户之前的展开状态
+            this.expandedKeys = savedExpandedKeys;
+          }
+
+          this.loading = false;
           this.$nextTick(() => {
+            // 恢复展开状态
+            this.expandedKeys.forEach(key => {
+              const node =
+                this.$refs.orgTree && this.$refs.orgTree.getNode(key);
+              if (node) node.expand();
+            });
+
             // 默认选中第一个有权限的节点（如果当前没有选择 orgId；或者有选择的 orgId，但是删除的组织是当前选中的组织）
             const isInitActive =
               delId && this.activeOrgId && this.activeOrgId === delId;
@@ -225,6 +294,14 @@ export default {
       this.activeOrgId = data.orgId;
       this.$emit('input', data.orgId);
       this.$emit('change', data);
+    },
+    handleNodeExpand(data) {
+      if (!this.expandedKeys.includes(data.orgId)) {
+        this.expandedKeys.push(data.orgId);
+      }
+    },
+    handleNodeCollapse(data) {
+      this.expandedKeys = this.expandedKeys.filter(key => key !== data.orgId);
     },
     handleOrgCommand(org, command) {
       if (command === 'rename') {
@@ -268,8 +345,28 @@ export default {
   border-right: 1px solid #eaeaea;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 170px);
+  height: 100%;
   overflow-y: auto;
+
+  &__add {
+    padding: 0 20px 12px 0;
+    flex-shrink: 0;
+    .org-add-bt {
+      padding: 0 !important;
+    }
+    ::v-deep .org-add-bt > span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      img {
+        width: 18px;
+        margin-right: 5px;
+      }
+      span {
+        font-size: 13px;
+      }
+    }
+  }
 
   &__search {
     padding: 2px 20px 12px 0;
@@ -309,6 +406,15 @@ export default {
     justify-content: space-between;
     flex: 1;
     min-width: 0;
+  }
+
+  &__avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    margin-right: 6px;
+    flex-shrink: 0;
+    object-fit: cover;
   }
 
   &__name {

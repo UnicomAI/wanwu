@@ -29,6 +29,17 @@ export function sanitizeHtml(html) {
 }
 
 /**
+ * 净化 HTML 并剥离所有超链接 <a> 标签，保留链接文字
+ * 在 sanitizeHtml 配置基础上增加 FORBID_TAGS:['a']，保证其它净化行为一致
+ * @param {string} html - 待净化的 HTML
+ * @returns {string} 净化后不含 <a> 的安全 HTML
+ */
+export function stripLinks(html) {
+  if (typeof html !== 'string') return '';
+  return DOMPurify.sanitize(html, { ...PURIFY_CONFIG, FORBID_TAGS: ['a'] });
+}
+
+/**
  * 转义 HTML 特殊字符，用于纯文本场景（如 parseTxt）
  * 性能优于 DOMPurify，适用于不需要保留 HTML 标签的场景
  * @param {string} text - 纯文本

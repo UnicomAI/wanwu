@@ -1,6 +1,6 @@
 <template>
   <div class="page-wrapper full-content">
-    <div class="page-title">
+    <div v-if="!readonly" class="page-title">
       <i
         class="el-icon-arrow-left"
         @click="goBack"
@@ -13,7 +13,7 @@
       <el-container class="konw_container">
         <el-main class="noPadding">
           <el-container>
-            <el-header class="classifyTitle">
+            <el-header v-if="!readonly" class="classifyTitle">
               <div class="searchInfo">
                 <!-- <search-input class="cover-input-icon" :placeholder="$t('knowledgeManage.docPlaceholder')" ref="searchInput" @handleSearch="handleSearch" /> -->
               </div>
@@ -46,6 +46,7 @@
                   </template>
                 </el-table-column>
                 <el-table-column
+                  v-if="!readonly"
                   :label="$t('knowledgeManage.operate')"
                   width="260"
                 >
@@ -65,7 +66,7 @@
               <Pagination
                 class="pagination table-pagination"
                 ref="pagination"
-                :listApi="listApi"
+                :listApi="resolvedListApi"
                 :page_size="10"
                 @refreshData="refreshData"
               />
@@ -90,23 +91,45 @@ import LinkIcon from '@/components/linkIcon.vue';
 export default {
   name: 'SafetyWordList',
   components: { LinkIcon, createWord, setReply, Pagination },
+  props: {
+    tableId: {
+      type: String,
+      default: '',
+    },
+    readonly: {
+      type: Boolean,
+      default: false,
+    },
+    listApi: {
+      type: Function,
+      default: null,
+    },
+  },
   data() {
     return {
       safetyType: SafetyType,
       loading: false,
       tableLoading: false,
       docQuery: {
-        tableId: this.$route.params.id,
+        tableId: '',
       },
       fileList: [],
-      listApi: getSensitiveWord,
       title_tips: '',
       showTips: false,
       tableData: [],
       currentKnowValue: null,
     };
   },
+  computed: {
+    resolvedListApi() {
+      return this.listApi || getSensitiveWord;
+    },
+    effectiveTableId() {
+      return this.tableId || this.$route.params.id;
+    },
+  },
   mounted() {
+    this.docQuery.tableId = this.effectiveTableId;
     this.getTableData(this.docQuery);
   },
   methods: {
@@ -163,8 +186,11 @@ export default {
       link.click();
       window.URL.revokeObjectURL(link.href);
     },
-    refreshData(data) {
+    refreshData(data, tableInfo) {
       this.tableData = data;
+      if (this.readonly && tableInfo && tableInfo.reply !== undefined) {
+        this.$emit('reply-change', tableInfo.reply);
+      }
     },
   },
 };

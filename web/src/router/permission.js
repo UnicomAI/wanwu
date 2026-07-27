@@ -61,3 +61,12 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 });
+
+// 管理员中心列表页查询参数保持清空
+router.afterEach(to => {
+  const shouldKeepAdminListState =
+    to.path.startsWith('/adminCenter/') || to.path === '/workflow';
+  if (!shouldKeepAdminListState) {
+    store.commit('adminCenter/CLEAR_ACTIVE_LIST');
+  }
+});

@@ -21,12 +21,13 @@
       ref="metaSet"
       :knowledgeId="knowledgeId"
       :currentMetaData="metaData"
+      :readonly="readonly"
     />
     <span slot="footer" class="dialog-footer">
       <el-button @click="handleMetaClose">
         {{ $t('common.button.cancel') }}
       </el-button>
-      <el-button type="primary" @click="submitMeta">
+      <el-button v-if="!readonly" type="primary" @click="submitMeta">
         {{ $t('common.button.confirm') }}
       </el-button>
     </span>
@@ -52,6 +53,10 @@ export default {
     category: {
       type: Number,
       default: 0,
+    },
+    readonly: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {

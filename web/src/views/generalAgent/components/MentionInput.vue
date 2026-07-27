@@ -206,6 +206,8 @@ export default {
         }
       } else {
         this.sender.closeTip();
+        this.tip = '';
+        this.inputValue = this.sender.getText() || '';
         await this.fetchConfigData();
       }
     },
