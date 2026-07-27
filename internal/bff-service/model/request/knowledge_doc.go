@@ -79,12 +79,6 @@ type DocMetaDataReq struct {
 	MetaDataList []*DocMetaData `json:"metaDataList"` //文档元数据
 }
 
-type BatchDocMetaDataReq struct {
-	KnowledgeId  string         `json:"knowledgeId"`
-	MetaDataList []*DocMetaData `json:"metaDataList"` //文档元数据
-	CreateMeta   bool           `json:"createMeta"`   //文档没设置过对应key则创建元数据
-}
-
 type DocInfo struct {
 	DocId   string `json:"docId"`   // 文档id
 	DocName string `json:"docName"` // 文档名称
@@ -317,25 +311,6 @@ func (c *DocMetaDataReq) Check() error {
 					}
 				}
 			}
-		}
-	}
-	return nil
-}
-
-func (c *BatchDocMetaDataReq) Check() error {
-	if len(c.KnowledgeId) == 0 {
-		return errors.New("knowledgeId can not all empty")
-	}
-	if len(c.MetaDataList) > 0 {
-		keyMap := make(map[string]bool)
-		for _, meta := range c.MetaDataList {
-			if meta.MetaKey == "" || meta.MetaValueType == "" {
-				return errors.New("key or value type can not be empty")
-			}
-			if keyMap[meta.MetaKey] {
-				return errors.New("key can not be repeated")
-			}
-			keyMap[meta.MetaKey] = true
 		}
 	}
 	return nil

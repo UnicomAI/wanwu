@@ -1397,6 +1397,96 @@ const docTemplate = `{
                 }
             }
         },
+        "/knowledge/doc/meta/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "按文档id列表查询各文档的元数据值",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "获取文档元数据值列表",
+                "parameters": [
+                    {
+                        "description": "获取文档元数据值列表请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeMetaValueListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.KnowledgeMetaValueListResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/meta/update": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "批量更新文档的元数据值；key需已在知识库元数据中定义，option为add时不存在则新增、已存在则覆盖，update仅在已存在时更新",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "更新文档元数据值",
+                "parameters": [
+                    {
+                        "description": "更新文档元数据值请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeDocMetaValueOpenapiReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/knowledge/doc/segment/batch/create": {
             "post": {
                 "security": [
@@ -1950,6 +2040,93 @@ const docTemplate = `{
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/meta/list": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取知识库已定义的元数据key列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "获取知识库元数据key列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "knowledgeId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.GetKnowledgeMetaSelectResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/meta/update": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "新增/修改/删除知识库的元数据key定义；文档元数据值的读写见 /knowledge/doc/meta/list 与 /knowledge/doc/meta/update",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "定义知识库元数据key",
+                "parameters": [
+                    {
+                        "description": "定义知识库元数据key请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeMetaKeyOpenapiReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -3838,6 +4015,33 @@ const docTemplate = `{
                 }
             }
         },
+        "request.KnowledgeDocMetaValueOpenapiReq": {
+            "type": "object",
+            "required": [
+                "docIdList",
+                "knowledgeId",
+                "metaValueList"
+            ],
+            "properties": {
+                "docIdList": {
+                    "description": "文档id列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
+                },
+                "metaValueList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.KnowledgeMetaValueItem"
+                    }
+                }
+            }
+        },
         "request.KnowledgeGraph": {
             "type": "object",
             "properties": {
@@ -3927,6 +4131,93 @@ const docTemplate = `{
                 "useGraph": {
                     "description": "是否使用知识图谱",
                     "type": "boolean"
+                }
+            }
+        },
+        "request.KnowledgeMetaKeyItem": {
+            "type": "object",
+            "required": [
+                "option"
+            ],
+            "properties": {
+                "metaId": {
+                    "description": "元数据id，option 为 update/delete 时必填",
+                    "type": "string"
+                },
+                "metaKey": {
+                    "description": "key，只能包含小写字母、数字和下划线，且以小写字母开头，option 为 add/update 时必填",
+                    "type": "string"
+                },
+                "metaValueType": {
+                    "description": "值类型：string/number/time，option 为 add/update 时必填",
+                    "type": "string"
+                },
+                "option": {
+                    "description": "操作类型：add(新增)、update(修改)、delete(删除)",
+                    "type": "string"
+                }
+            }
+        },
+        "request.KnowledgeMetaKeyOpenapiReq": {
+            "type": "object",
+            "required": [
+                "knowledgeId",
+                "metaKeyList"
+            ],
+            "properties": {
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
+                },
+                "metaKeyList": {
+                    "description": "元数据key操作列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.KnowledgeMetaKeyItem"
+                    }
+                }
+            }
+        },
+        "request.KnowledgeMetaValueItem": {
+            "type": "object",
+            "required": [
+                "metaKey",
+                "option"
+            ],
+            "properties": {
+                "metaKey": {
+                    "description": "key，需已在知识库元数据中定义",
+                    "type": "string"
+                },
+                "metaValue": {
+                    "description": "值，option 为 delete 时可不填",
+                    "type": "string"
+                },
+                "metaValueType": {
+                    "description": "值类型：string/number/time，需与key的定义一致",
+                    "type": "string"
+                },
+                "option": {
+                    "description": "操作类型：add(不存在则新增、已有则覆盖)、update(仅已存在时更新)、delete(删除)",
+                    "type": "string"
+                }
+            }
+        },
+        "request.KnowledgeMetaValueListReq": {
+            "type": "object",
+            "required": [
+                "docIdList",
+                "knowledgeId"
+            ],
+            "properties": {
+                "docIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "knowledgeId": {
+                    "type": "string"
                 }
             }
         },
@@ -5415,6 +5706,17 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetKnowledgeMetaSelectResp": {
+            "type": "object",
+            "properties": {
+                "knowledgeMetaList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.KnowledgeMetaItem"
+                    }
+                }
+            }
+        },
         "response.KnowledgeExportRecordPageResult": {
             "type": "object",
             "properties": {
@@ -5590,6 +5892,56 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/response.KnowledgeInfo"
                     }
+                }
+            }
+        },
+        "response.KnowledgeMetaItem": {
+            "type": "object",
+            "properties": {
+                "metaId": {
+                    "type": "string"
+                },
+                "metaKey": {
+                    "type": "string"
+                },
+                "metaValue": {
+                    "description": "确定值",
+                    "type": "string"
+                },
+                "metaValueType": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.KnowledgeMetaValueListResp": {
+            "type": "object",
+            "properties": {
+                "knowledgeMetaValues": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.KnowledgeMetaValues"
+                    }
+                }
+            }
+        },
+        "response.KnowledgeMetaValues": {
+            "type": "object",
+            "properties": {
+                "metaId": {
+                    "type": "string"
+                },
+                "metaKey": {
+                    "type": "string"
+                },
+                "metaValue": {
+                    "description": "确定值",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "metaValueType": {
+                    "type": "string"
                 }
             }
         },

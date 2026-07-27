@@ -25,8 +25,6 @@ service KnowledgeBaseDocService {
   rpc UpdateDocStatus(UpdateDocStatusReq) returns (google.protobuf.Empty) {}
   // 更新文档元数据
   rpc UpdateDocMetaData(UpdateDocMetaDataReq) returns (google.protobuf.Empty) {}
-  // 批量更新文档元数据
-  rpc BatchUpdateDocMetaData(BatchUpdateDocMetaDataReq) returns (google.protobuf.Empty) {}
   // 初始化文档状态
   rpc InitDocStatus(InitDocStatusReq) returns (google.protobuf.Empty) {}
   // 删除文档
@@ -162,15 +160,6 @@ message UpdateDocMetaDataReq {
   string docId = 3; //文档id
   repeated MetaData metaDataList = 4;//文档元数据信息
   string knowledgeId = 5;//知识库id
-}
-
-message BatchUpdateDocMetaDataReq {
-  string orgId = 1;
-  string userId = 2;
-  string docId = 3; //文档id
-  repeated MetaData metaDataList = 4;//文档元数据信息
-  string knowledgeId = 5;//知识库id
-  bool createMeta = 6;//文档没设置过对应key则创建元数据
 }
 
 message MetaData {

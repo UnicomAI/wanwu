@@ -10,7 +10,22 @@ const (
 	CategoryKnowledge           = 0
 	CategoryQA                  = 1
 	CategoryMultimodalKnowledge = 2 //多模态知识库
+
+	MetaOptionAdd    = "add"
+	MetaOptionUpdate = "update"
+	MetaOptionDelete = "delete"
+
+	MetaValueTypeString = "string"
+	MetaValueTypeNumber = "number"
+	MetaValueTypeTime   = "time"
+
+	// MetaOperationMaxNum knowledge-service 对超出部分是静默截断，openapi 侧直接报错
+	MetaOperationMaxNum = 100
 )
+
+func isValidMetaValueType(valueType string) bool {
+	return valueType == MetaValueTypeString || valueType == MetaValueTypeNumber || valueType == MetaValueTypeTime
+}
 
 type KnowledgeSelectReq struct {
 	Name      string   `json:"name" form:"name" `
@@ -134,6 +149,35 @@ type UpdateMetaValueReq struct {
 	DocIdList       []string       `json:"docIdList"  validate:"required"`
 	MetaValueList   []*DocMetaData `json:"metaValueList"`
 	ApplyToSelected bool           `json:"applyToSelected"`
+}
+
+// KnowledgeMetaKeyOpenapiReq openapi 定义知识库元数据key
+type KnowledgeMetaKeyOpenapiReq struct {
+	KnowledgeId string                  `json:"knowledgeId" validate:"required"` // 知识库id
+	MetaKeyList []*KnowledgeMetaKeyItem `json:"metaKeyList" validate:"required"` // 元数据key操作列表
+	CommonCheck
+}
+
+type KnowledgeMetaKeyItem struct {
+	MetaId        string `json:"metaId"`                     // 元数据id，option 为 update/delete 时必填
+	MetaKey       string `json:"metaKey"`                    // key，只能包含小写字母、数字和下划线，且以小写字母开头，option 为 add/update 时必填
+	MetaValueType string `json:"metaValueType"`              // 值类型：string/number/time，option 为 add/update 时必填
+	Option        string `json:"option" validate:"required"` // 操作类型：add(新增)、update(修改)、delete(删除)
+}
+
+// KnowledgeDocMetaValueOpenapiReq openapi 更新文档元数据值
+type KnowledgeDocMetaValueOpenapiReq struct {
+	KnowledgeId   string                    `json:"knowledgeId" validate:"required"` // 知识库id
+	DocIdList     []string                  `json:"docIdList" validate:"required"`   // 文档id列表
+	MetaValueList []*KnowledgeMetaValueItem `json:"metaValueList" validate:"required"`
+	CommonCheck
+}
+
+type KnowledgeMetaValueItem struct {
+	MetaKey       string `json:"metaKey" validate:"required"` // key，需已在知识库元数据中定义
+	MetaValue     string `json:"metaValue"`                   // 值，option 为 delete 时可不填
+	MetaValueType string `json:"metaValueType"`               // 值类型：string/number/time，需与key的定义一致
+	Option        string `json:"option" validate:"required"`  // 操作类型：add(不存在则新增、已有则覆盖)、update(仅已存在时更新)、delete(删除)
 }
 
 // RagSearchQABaseReq rag知识库查询请求
@@ -317,6 +361,63 @@ type GetDocByKnowledgeNameAndDocNameReq struct {
 	KnowledgeName string `json:"knowledgeName" form:"knowledgeName" validate:"required"` // 知识库名称
 	DocName       string `json:"docName" form:"docName" validate:"required"`             // 文档名称
 	CommonCheck
+}
+
+func (c *KnowledgeMetaKeyOpenapiReq) Check() error {
+	if len(c.MetaKeyList) > MetaOperationMaxNum {
+		return errors.New("metaKeyList size can not exceed 100")
+	}
+	keyMap := make(map[string]bool)
+	for _, v := range c.MetaKeyList {
+		switch v.Option {
+		case MetaOptionDelete:
+			if v.MetaId == "" {
+				return errors.New("metaId can not be empty when option is delete")
+			}
+			continue
+		case MetaOptionUpdate:
+			if v.MetaId == "" {
+				return errors.New("metaId can not be empty when option is update")
+			}
+		case MetaOptionAdd:
+		default:
+			return errors.New("option must be add, update or delete")
+		}
+		if !isValidKey(v.MetaKey) {
+			return errors.New("非法key")
+		}
+		if !isValidMetaValueType(v.MetaValueType) {
+			return errors.New("metaValueType must be string, number or time")
+		}
+		if keyMap[v.MetaKey] {
+			return errors.New("key can not be repeated")
+		}
+		keyMap[v.MetaKey] = true
+	}
+	return nil
+}
+
+func (c *KnowledgeDocMetaValueOpenapiReq) Check() error {
+	if len(c.MetaValueList) > MetaOperationMaxNum {
+		return errors.New("metaValueList size can not exceed 100")
+	}
+	keyMap := make(map[string]bool)
+	for _, v := range c.MetaValueList {
+		if v.Option != MetaOptionAdd && v.Option != MetaOptionUpdate && v.Option != MetaOptionDelete {
+			return errors.New("option must be add, update or delete")
+		}
+		if !isValidKey(v.MetaKey) {
+			return errors.New("非法key")
+		}
+		if v.Option != MetaOptionDelete && !isValidMetaValueType(v.MetaValueType) {
+			return errors.New("metaValueType must be string, number or time")
+		}
+		if keyMap[v.MetaKey] {
+			return errors.New("key can not be repeated")
+		}
+		keyMap[v.MetaKey] = true
+	}
+	return nil
 }
 
 func (c *UpdateMetaValueReq) Check() error {

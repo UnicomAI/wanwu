@@ -620,6 +620,25 @@ definitions:
     required:
     - knowledgeId
     type: object
+  request.KnowledgeDocMetaValueOpenapiReq:
+    properties:
+      docIdList:
+        description: 文档id列表
+        items:
+          type: string
+        type: array
+      knowledgeId:
+        description: 知识库id
+        type: string
+      metaValueList:
+        items:
+          $ref: '#/definitions/request.KnowledgeMetaValueItem'
+        type: array
+    required:
+    - docIdList
+    - knowledgeId
+    - metaValueList
+    type: object
   request.KnowledgeGraph:
     properties:
       llmModelId:
@@ -684,6 +703,67 @@ definitions:
         type: boolean
     required:
     - matchType
+    type: object
+  request.KnowledgeMetaKeyItem:
+    properties:
+      metaId:
+        description: 元数据id，option 为 update/delete 时必填
+        type: string
+      metaKey:
+        description: key，只能包含小写字母、数字和下划线，且以小写字母开头，option 为 add/update 时必填
+        type: string
+      metaValueType:
+        description: 值类型：string/number/time，option 为 add/update 时必填
+        type: string
+      option:
+        description: 操作类型：add(新增)、update(修改)、delete(删除)
+        type: string
+    required:
+    - option
+    type: object
+  request.KnowledgeMetaKeyOpenapiReq:
+    properties:
+      knowledgeId:
+        description: 知识库id
+        type: string
+      metaKeyList:
+        description: 元数据key操作列表
+        items:
+          $ref: '#/definitions/request.KnowledgeMetaKeyItem'
+        type: array
+    required:
+    - knowledgeId
+    - metaKeyList
+    type: object
+  request.KnowledgeMetaValueItem:
+    properties:
+      metaKey:
+        description: key，需已在知识库元数据中定义
+        type: string
+      metaValue:
+        description: 值，option 为 delete 时可不填
+        type: string
+      metaValueType:
+        description: 值类型：string/number/time，需与key的定义一致
+        type: string
+      option:
+        description: 操作类型：add(不存在则新增、已有则覆盖)、update(仅已存在时更新)、delete(删除)
+        type: string
+    required:
+    - metaKey
+    - option
+    type: object
+  request.KnowledgeMetaValueListReq:
+    properties:
+      docIdList:
+        items:
+          type: string
+        type: array
+      knowledgeId:
+        type: string
+    required:
+    - docIdList
+    - knowledgeId
     type: object
   request.KnowledgeSelectReq:
     properties:
@@ -1681,6 +1761,13 @@ definitions:
       totalSize:
         type: integer
     type: object
+  response.GetKnowledgeMetaSelectResp:
+    properties:
+      knowledgeMetaList:
+        items:
+          $ref: '#/definitions/response.KnowledgeMetaItem'
+        type: array
+    type: object
   response.KnowledgeExportRecordPageResult:
     properties:
       list:
@@ -1801,6 +1888,39 @@ definitions:
         items:
           $ref: '#/definitions/response.KnowledgeInfo'
         type: array
+    type: object
+  response.KnowledgeMetaItem:
+    properties:
+      metaId:
+        type: string
+      metaKey:
+        type: string
+      metaValue:
+        description: 确定值
+        type: string
+      metaValueType:
+        type: string
+    type: object
+  response.KnowledgeMetaValueListResp:
+    properties:
+      knowledgeMetaValues:
+        items:
+          $ref: '#/definitions/response.KnowledgeMetaValues'
+        type: array
+    type: object
+  response.KnowledgeMetaValues:
+    properties:
+      metaId:
+        type: string
+      metaKey:
+        type: string
+      metaValue:
+        description: 确定值
+        items:
+          type: string
+        type: array
+      metaValueType:
+        type: string
     type: object
   response.KnowledgeTag:
     properties:
@@ -3188,6 +3308,59 @@ paths:
       summary: 获取文档列表
       tags:
       - openapi
+  /knowledge/doc/meta/list:
+    post:
+      consumes:
+      - application/json
+      description: 按文档id列表查询各文档的元数据值
+      parameters:
+      - description: 获取文档元数据值列表请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeMetaValueListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.KnowledgeMetaValueListResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取文档元数据值列表
+      tags:
+      - openapi
+  /knowledge/doc/meta/update:
+    post:
+      consumes:
+      - application/json
+      description: 批量更新文档的元数据值；key需已在知识库元数据中定义，option为add时不存在则新增、已存在则覆盖，update仅在已存在时更新
+      parameters:
+      - description: 更新文档元数据值请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeDocMetaValueOpenapiReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 更新文档元数据值
+      tags:
+      - openapi
   /knowledge/doc/segment/batch/create:
     post:
       consumes:
@@ -3519,6 +3692,57 @@ paths:
       security:
       - JWT: []
       summary: 知识库命中测试
+      tags:
+      - openapi
+  /knowledge/meta/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取知识库已定义的元数据key列表
+      parameters:
+      - in: query
+        name: knowledgeId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GetKnowledgeMetaSelectResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取知识库元数据key列表
+      tags:
+      - openapi
+  /knowledge/meta/update:
+    post:
+      consumes:
+      - application/json
+      description: 新增/修改/删除知识库的元数据key定义；文档元数据值的读写见 /knowledge/doc/meta/list 与 /knowledge/doc/meta/update
+      parameters:
+      - description: 定义知识库元数据key请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeMetaKeyOpenapiReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 定义知识库元数据key
       tags:
       - openapi
   /knowledge/select:

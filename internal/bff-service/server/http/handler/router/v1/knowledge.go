@@ -32,7 +32,6 @@ func registerKnowledge(apiV1 *gin.RouterGroup) {
 	// 知识库文档，以下通用校验不好做改内部校验
 	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/doc", http.MethodDelete, v1.DeleteDoc, "删除文档", middleware.AuthKnowledge("knowledgeId", middleware.KnowledgeEdit))
 	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/doc/meta", http.MethodPost, v1.UpdateDocMetaData, "更新文档元数据", middleware.AuthKnowledgeIfHas("knowledgeId", middleware.KnowledgeEdit))
-	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/doc/meta/batch", http.MethodPost, v1.BatchUpdateDocMetaData, "批量更新文档元数据", middleware.AuthKnowledgeIfHas("knowledgeId", middleware.KnowledgeEdit))
 
 	// 知识库元数据,前端增加knowledgeId
 	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/meta/select", http.MethodGet, v1.GetKnowledgeMetaKeySelect, "获取知识库元数据key列表", middleware.AuthKnowledge("knowledgeId", middleware.KnowledgeView))
