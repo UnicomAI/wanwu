@@ -60,7 +60,7 @@ BKN is Markdown + YAML frontmatter for schema; one file per definition under typ
 - **BKN validation** — If workflow step 12 (`ontology bkn validate <dir>`) **already succeeded** for this directory, **do not** repeat validate before `push` unless you changed `.bkn` files. If you have **not** validated yet, run `validate` before `push`.
 
 ```bash
-ontology bkn push <dir> [--branch main] [-bd <business-domain>]
+ontology bkn push <dir> [-bd <business-domain>]
 ```
 
 `-bd` / `--biz-domain` is optional. If you omit it, the CLI resolves the business domain automatically.
