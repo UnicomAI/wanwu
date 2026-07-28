@@ -54,7 +54,6 @@ const VIEW_MAP = {
 };
 export default {
   name: 'Permission',
-  components: { User, Role, Org, InfoSetting, Oauth },
   computed: {
     currentView() {
       return VIEW_MAP[this.$route.query.key] || VIEW_MAP.org;
