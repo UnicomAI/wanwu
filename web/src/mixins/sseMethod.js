@@ -31,7 +31,7 @@ export default {
   data() {
     return {
       isTestChat: false,
-      defaultUrl: '/img/smart/logo.png',
+      defaultUrl: '/v1/static/icon/model-default-icon.png', // 模型体验默认URL
       inputVal: '',
       eventSource: null,
       ctrlAbort: null,
