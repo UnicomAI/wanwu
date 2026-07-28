@@ -248,6 +248,7 @@ def update_chunk(user_id: str, kb_info: dict, file_name: str, max_sentence_size:
 
     response_info["code"] = 0
     response_info["message"] = "success"
+    response_info["data"] = {"content_id": new_content_id}
     return response_info
 
 

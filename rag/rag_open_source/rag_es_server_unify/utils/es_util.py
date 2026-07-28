@@ -1130,9 +1130,45 @@ def get_file_content_list(index_name: str, kb_name: str, file_name: str, page_si
         {"term": {"kb_name": kb_name}},
         {"term": {"file_name": file_name}},
     ]
-    # 可选：按正文短语筛选，筛选出 content 完全包含 query_text 的分段
+    # 排除向量字段，减少返回数据量
+    source_excludes = {
+        "excludes": [
+            "content_vector",
+            "q_768_content_vector",
+            "q_1024_content_vector",
+            "q_1536_content_vector",
+            "q_2048_content_vector"
+        ]
+    }
+    # 可选：按正文做真正子串筛选，要求 content 完全连续包含 query_text
+    # 由于 content 是 ik_max_word 分词后的 text 字段，ES 的 match_phrase/wildcard 只能匹配词项而非原始串，
+    # 因此这里先拉取该文件全部分段，再用 Python in 做字面子串过滤，最后切片分页。
     if query_text:
-        must_conditions.append({"match_phrase": {"content": query_text}})
+        query = {
+            "query": {
+                "bool": {
+                    "must": must_conditions
+                }
+            },
+            "size": 10000,
+            "sort": {"meta_data.chunk_current_num": {"order": "asc"}},  # 确保按照文档ID升序排序
+            "_source": source_excludes
+        }
+        # 执行查询，拉取该文件全部分段
+        response = es.search(
+            index=index_name,
+            body=query
+        )
+        all_hits = [doc['_source'] for doc in response['hits']['hits']]
+        # 字面子串过滤：仅保留 content 完全连续包含 query_text 的分段
+        filtered_hits = [h for h in all_hits if query_text in (h.get('content') or '')]
+        chunk_total_num = len(filtered_hits)
+        # 切片分页
+        page_list = filtered_hits[search_after: search_after + page_size]
+        return {
+            "content_list": page_list,
+            "chunk_total_num": chunk_total_num
+        }
     query = {
         "query": {
             "bool": {
@@ -1143,15 +1179,7 @@ def get_file_content_list(index_name: str, kb_name: str, file_name: str, page_si
         "from": search_after,
         "size": page_size,
         "sort": {"meta_data.chunk_current_num": {"order": "asc"}},  # 确保按照文档ID升序排序
-        "_source": {
-            "excludes": [
-                "content_vector",
-                "q_768_content_vector",
-                "q_1024_content_vector",
-                "q_1536_content_vector",
-                "q_2048_content_vector"
-            ]
-        } #查询community report 索引时排除embedding数据
+        "_source": source_excludes #查询community report 索引时排除embedding数据
     }
     # 执行查询
     response = es.search(
