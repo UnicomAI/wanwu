@@ -288,6 +288,11 @@ export function avatarSrc(path, defaultImg = '') {
   return basePath + '/user/api/' + path;
 }
 
+export const formatReqUrl = reqUrl => {
+  if (!reqUrl) return '';
+  return basePath + reqUrl;
+};
+
 // 换算单位万/亿/万亿，保留2位小数
 export const formatAmount = (
   num,
