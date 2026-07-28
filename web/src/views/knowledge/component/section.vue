@@ -141,7 +141,6 @@
 
     <div v-if="obj.disable !== 'true'" class="btn">
       <search-input
-        style="visibility: hidden"
         ref="searchInput"
         :placeholder="$t('knowledgeManage.segmentPlaceholder')"
         @handleSearch="handleSearch"
