@@ -14,7 +14,11 @@
 
     <!-- 模型配置 -->
     <DetailCard :title="ragDetail('modelConfig')">
-      <InfoGrid :items="modelItems" />
+      <InfoGrid v-if="modelConfig.modelId" :items="modelItems" />
+      <EmptyState
+        v-else
+        :tip="$t('adminCenter.pageModules.appDevelopment.rag.detail.noModel')"
+      />
     </DetailCard>
 
     <!-- 对话配置 -->
@@ -33,7 +37,7 @@
                 <span class="recommend-text">{{ q }}</span>
               </div>
             </template>
-            <div v-else class="empty-text">{{ ragDetail('noData') }}</div>
+            <div v-else class="empty-text">{{ $t('common.noData') }}</div>
           </div>
         </div>
       </div>
@@ -93,7 +97,7 @@
           </span>
         </div>
       </template>
-      <div v-else class="empty-text">{{ ragDetail('noData') }}</div>
+      <EmptyState v-else :tip="ragDetail('noKnowledge')" />
     </DetailCard>
 
     <!-- 关联问答库 -->
@@ -140,7 +144,7 @@
           </span>
         </div>
       </template>
-      <div v-else class="empty-text">{{ ragDetail('noData') }}</div>
+      <EmptyState v-else :tip="ragDetail('noQaDatabase')" />
     </DetailCard>
 
     <!-- 安全护栏 -->
@@ -163,6 +167,7 @@ import DetailHeader from '../components/DetailHeader.vue';
 import DetailCard from '../components/DetailCard.vue';
 import InfoGrid from '../components/InfoGrid.vue';
 import VisibleUsers from '../components/VisibleUsers.vue';
+import EmptyState from '../components/EmptyState.vue';
 import detailMixin from '../mixins/detailMixin';
 
 const VIEW_MORE_THRESHOLD = 6;
@@ -174,6 +179,7 @@ export default {
     DetailCard,
     InfoGrid,
     VisibleUsers,
+    EmptyState,
   },
   mixins: [detailMixin],
   data() {

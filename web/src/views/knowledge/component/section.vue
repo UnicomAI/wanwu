@@ -833,7 +833,7 @@ export default {
           docId: this.obj.id,
           parentId: row['childContent'][index].parentId,
           parentChunkNo: row.contentNum,
-          ChildChunkNoList: [row['childContent'][index].childNum],
+          childChunkNoList: [row['childContent'][index].childNum],
         })
           .then(res => {
             if (res.code === 0) {
