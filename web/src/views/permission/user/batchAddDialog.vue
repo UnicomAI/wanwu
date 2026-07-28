@@ -91,6 +91,8 @@
 import Pagination from '@/components/pagination.vue';
 import { batchCreateUser } from '@/api/permission/user';
 import { authDownload } from '@/utils/util';
+import { avatarSrc } from '@/utils/util';
+
 export default {
   components: { Pagination },
   props: {
@@ -126,7 +128,7 @@ export default {
     async downloadTemp() {
       try {
         await authDownload(
-          this.$basePath + '/user/api/v1/files/docs/users.xlsx',
+          avatarSrc('/v1/files/docs/users.xlsx'),
           'users.xlsx',
         );
       } catch (error) {
