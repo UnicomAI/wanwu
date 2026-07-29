@@ -2,9 +2,10 @@ package jwt_util
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -30,7 +31,7 @@ var (
 type CustomClaims struct {
 	UserID     string `json:"userId"` // 用户ID
 	BufferTime int64  `json:"bufferTime"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func InitUserJWT(key string) error {
@@ -60,11 +61,11 @@ func generateToken(id string, timeout int64, secretKey string) (*CustomClaims, s
 	claims := &CustomClaims{
 		UserID:     id,
 		BufferTime: nowTime + BufferTime, // 缓冲时间，当nowTime大于等于BufferTime and nowTime小于ExpiresAt是获得新的token
-		StandardClaims: jwt.StandardClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "wanwu",
-			Subject:   SUBJECT_USER,      // 用途，目前固定user
-			NotBefore: nowTime,           // 生效时间
-			ExpiresAt: nowTime + timeout, // 过期时间
+			Subject:   SUBJECT_USER, // 用途，目前固定user
+			NotBefore: jwt.NewNumericDate(time.Unix(nowTime, 0)),
+			ExpiresAt: jwt.NewNumericDate(time.Unix(nowTime+timeout, 0)),
 		},
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secretKey))
@@ -78,30 +79,28 @@ func parseToken(token, secretKey string) (*CustomClaims, error) {
 	if secretKey == "" {
 		return nil, errors.New("jwt secret key empty")
 	}
-	tokenClaims, err := jwt.ParseWithClaims(token, &CustomClaims{}, func(token *jwt.Token) (i interface{}, e error) {
-		return []byte(secretKey), nil
-	})
-	if err != nil {
-		if ve, ok := err.(*jwt.ValidationError); ok {
-			if ve.Errors&jwt.ValidationErrorMalformed != 0 {
-				return nil, ErrTokenMalformed
-			} else if ve.Errors&jwt.ValidationErrorExpired != 0 {
-				// Token is expired
-				return nil, ErrTokenExpired
-			} else if ve.Errors&jwt.ValidationErrorNotValidYet != 0 {
-				return nil, ErrTokenNotValidYet
-			} else {
-				return nil, ErrTokenInvalid
-			}
+	tokenClaims, err := jwt.ParseWithClaims(token, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		// 算法白名单断言：仅允许 HMAC 算法，拒绝 alg 混淆攻击
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
+		return []byte(secretKey), nil
+	}, jwt.WithValidMethods([]string{"HS256"}))
+	if err != nil {
+		if errors.Is(err, jwt.ErrTokenMalformed) {
+			return nil, ErrTokenMalformed
+		} else if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, ErrTokenExpired
+		} else if errors.Is(err, jwt.ErrTokenNotValidYet) {
+			return nil, ErrTokenNotValidYet
+		}
+		return nil, ErrTokenInvalid
 	}
 	if tokenClaims != nil {
 		if claims, ok := tokenClaims.Claims.(*CustomClaims); ok && tokenClaims.Valid {
 			return claims, nil
 		}
 		return nil, ErrTokenInvalid
-
-	} else {
-		return nil, ErrTokenInvalid
 	}
+	return nil, ErrTokenInvalid
 }

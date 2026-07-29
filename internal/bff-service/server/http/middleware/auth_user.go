@@ -172,7 +172,7 @@ func getGenTokenTS(ctx *gin.Context) (string, error) {
 	if !ok {
 		return "", errors.New("jwt claims empty")
 	}
-	return strconv.Itoa(int(claims.(*jwt_util.CustomClaims).ExpiresAt * 1000)), nil
+	return strconv.Itoa(int(claims.(*jwt_util.CustomClaims).ExpiresAt.Unix() * 1000)), nil
 }
 
 func checkPasswordUpdateAccess(ctx *gin.Context, lastUpdatePasswordAt int64) error {
