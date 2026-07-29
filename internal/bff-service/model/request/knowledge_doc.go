@@ -202,7 +202,7 @@ type DeleteDocChildSegmentReq struct {
 	DocId            string  `json:"docId"  validate:"required"`            // 文档id
 	ParentId         string  `json:"parentId"  validate:"required"`         // 父分段id
 	ParentChunkNo    int32   `json:"parentChunkNo"`                         // 父分段序列号
-	ChildChunkNoList []int32 `json:"ChildChunkNoList"  validate:"required"` // 子分段序列号列表
+	ChildChunkNoList []int32 `json:"childChunkNoList"  validate:"required"` // 子分段序列号列表
 	CommonCheck
 }
 

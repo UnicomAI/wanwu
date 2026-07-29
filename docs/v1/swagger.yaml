@@ -3066,7 +3066,7 @@ definitions:
     type: object
   request.DeleteDocChildSegmentReq:
     properties:
-      ChildChunkNoList:
+      childChunkNoList:
         description: 子分段序列号列表
         items:
           type: integer
@@ -3081,7 +3081,7 @@ definitions:
         description: 父分段id
         type: string
     required:
-    - ChildChunkNoList
+    - childChunkNoList
     - docId
     - parentId
     type: object

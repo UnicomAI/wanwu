@@ -27853,12 +27853,12 @@ const docTemplate = `{
         "request.DeleteDocChildSegmentReq": {
             "type": "object",
             "required": [
-                "ChildChunkNoList",
+                "childChunkNoList",
                 "docId",
                 "parentId"
             ],
             "properties": {
-                "ChildChunkNoList": {
+                "childChunkNoList": {
                     "description": "子分段序列号列表",
                     "type": "array",
                     "items": {

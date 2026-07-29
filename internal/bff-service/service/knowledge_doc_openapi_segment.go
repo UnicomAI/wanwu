@@ -39,6 +39,22 @@ func UpdateDocSegmentOpenapi(ctx *gin.Context, userId, orgId string, r *request.
 	return UpdateDocSegment(ctx, userId, orgId, r)
 }
 
+// CreateDocChildSegmentOpenapi openapi 新增文档子分段（普通知识库不允许插入图片）
+func CreateDocChildSegmentOpenapi(ctx *gin.Context, userId, orgId string, r *request.CreateDocChildSegmentReq) error {
+	if err := checkSegmentImageContent(ctx, userId, orgId, r.DocId, r.Content...); err != nil {
+		return err
+	}
+	return CreateDocChildSegment(ctx, userId, orgId, r)
+}
+
+// UpdateDocChildSegmentOpenapi openapi 更新文档子分段（多模态知识库可插入图片，普通知识库不行）
+func UpdateDocChildSegmentOpenapi(ctx *gin.Context, userId, orgId string, r *request.UpdateDocChildSegmentReq) error {
+	if err := checkSegmentImageContent(ctx, userId, orgId, r.DocId, r.ChildChunk.Content); err != nil {
+		return err
+	}
+	return UpdateDocChildSegment(ctx, userId, orgId, r)
+}
+
 // UploadDocSegmentImageOpenapi openapi 上传分段图片，返回 markdown 格式 url，仅多模态知识库可用
 func UploadDocSegmentImageOpenapi(ctx *gin.Context, userId, orgId string, knowledgeId string) (*response.RagUploadResponse, error) {
 	// 1.仅多模态知识库允许上传图片
@@ -69,9 +85,9 @@ func UploadDocSegmentImageOpenapi(ctx *gin.Context, userId, orgId string, knowle
 }
 
 // checkSegmentImageContent 普通知识库的分段内容不允许包含图片 markdown，仅多模态知识库可以
-func checkSegmentImageContent(ctx *gin.Context, userId, orgId, docId, content string) error {
+func checkSegmentImageContent(ctx *gin.Context, userId, orgId, docId string, contents ...string) error {
 	// 无图片内容直接放行，避免多余的知识库查询
-	if !segmentImageMarkdownRegexp.MatchString(content) {
+	if !hasSegmentImage(contents) {
 		return nil
 	}
 	// 内容含图片：仅多模态知识库允许
@@ -87,6 +103,16 @@ func checkSegmentImageContent(ctx *gin.Context, userId, orgId, docId, content st
 		return grpc_util.ErrorStatus(errs.Code_KnowledgeDocSegmentImageNotSupport)
 	}
 	return nil
+}
+
+// hasSegmentImage 判断任一分段内容是否含图片 markdown
+func hasSegmentImage(contents []string) bool {
+	for _, content := range contents {
+		if segmentImageMarkdownRegexp.MatchString(content) {
+			return true
+		}
+	}
+	return false
 }
 
 // searchKnowledgeIdByDocId 根据文档 id 查询所属知识库 id
