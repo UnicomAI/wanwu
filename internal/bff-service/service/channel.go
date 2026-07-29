@@ -88,6 +88,11 @@ func ListWanwuModels(ctx *gin.Context, userID, orgID string, req *request.ListMo
 
 // ListWanwuAgents 获取万悟智能体列表（包含 UUID，供通道绑定使用）
 func ListWanwuAgents(ctx *gin.Context, userID, orgID, appType, name string) (*response.ListResult, error) {
+	// 通道绑定智能体仅需 agent 类型应用；appType 兜底为 agent，使 DB 查询层直接过滤，
+	// 避免前端漏传时把 rag/workflow 等各类应用都搜出来。
+	if appType == "" {
+		appType = "agent"
+	}
 	// SearchType=all 返回本人+他人公开+本组织内应用，下方按「本人创建且已发布」过滤，
 	// 与 OpenAPI 权限校验 CheckOpenAPIAccess 放行范围对齐，避免选到不可调用的应用。
 	expResp, err := app.GetExplorationAppList(ctx.Request.Context(), &app_service.GetExplorationAppListReq{
@@ -153,8 +158,8 @@ func ListWanwuAgents(ctx *gin.Context, userID, orgID, appType, name string) (*re
 	// 3. 组装响应
 	result := make([]*response.WanwuAgentResponse, 0, len(expResp.Infos))
 	for _, info := range expResp.Infos {
-		// 仅本人创建且已发布（与上方收集逻辑一致）
-		if info.UserId != userID || info.OrgId != orgID || info.PublishType == "" {
+		// 仅本人创建且已发布（与上方收集逻辑一致），且限定 agent 类型，避免混入 rag/workflow 等
+		if info.AppType != "agent" || info.UserId != userID || info.OrgId != orgID || info.PublishType == "" {
 			continue
 		}
 		agent := &response.WanwuAgentResponse{
