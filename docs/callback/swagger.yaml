@@ -2877,6 +2877,21 @@ paths:
       summary: 智能体代理问答
       tags:
       - callback
+  /api/deploy/info:
+    get:
+      consumes:
+      - application/json
+      description: 获取Maas平台部署信息（模型扩展调用）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取Maas平台部署信息（模型扩展调用）
+      tags:
+      - callback
   /api/doc_status_init:
     get:
       consumes:

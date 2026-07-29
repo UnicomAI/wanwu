@@ -57,6 +57,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/deploy/info": {
+            "get": {
+                "description": "获取Maas平台部署信息（模型扩展调用）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "callback"
+                ],
+                "summary": "获取Maas平台部署信息（模型扩展调用）",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/doc_status_init": {
             "get": {
                 "description": "将正在解析的文档设置为解析失败",

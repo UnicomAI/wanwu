@@ -11,6 +11,9 @@ func Register(apiV1 *gin.RouterGroup) {
 	// common
 	registerCommon(apiV1)
 
+	// callback
+	registerV1Callback(apiV1)
+
 	// wga
 	registerWGA(apiV1)
 
