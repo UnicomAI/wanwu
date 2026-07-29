@@ -64,8 +64,10 @@ func (r *Runner) setupEnv(ctx context.Context) error {
 	return nil
 }
 
-// setupWorkspaceDirs 创建 skills/、output/、tmp/ 目录，并把宿主 skills 与 input 复制进沙箱。
+// setupWorkspaceDirs 创建 skills/、input/、output/、tmp/ 目录，并把宿主 skills 与 input 复制进沙箱。
 // eino-agent HTTP 服务从 workspace/skills/ 加载技能。
+// input/ 无论是否有用户输入都必须先建好：agent 系统提示会声明三个目录已物理存在并禁止 LLM 自建，
+// LLM 用 ls {{.Workspace}}/input/ 定位用户文件，目录缺失会导致定位失败。
 func (r *Runner) setupWorkspaceDirs(ctx context.Context) error {
 	if _, err := r.sb.ExecuteSync(ctx, "mkdir", "-p", "skills"); err != nil {
 		return fmt.Errorf("failed to create skills directory: %w", err)
@@ -78,8 +80,13 @@ func (r *Runner) setupWorkspaceDirs(ctx context.Context) error {
 		}
 	}
 
+	// input/ 必须先建好，再把用户输入复制进去（落到 input/ 子目录而非 workspace 根）。
+	if _, err := r.sb.ExecuteSync(ctx, "mkdir", "-p", "input"); err != nil {
+		return fmt.Errorf("failed to create input directory: %w", err)
+	}
 	if r.req.InputDir != "" {
-		if err := r.sb.CopyToSandbox(ctx, r.req.InputDir); err != nil {
+		log.Infof("%s copying input from %s to input/", r.logPrefix, r.req.InputDir)
+		if err := r.sb.CopyToSandbox(ctx, r.req.InputDir, "input"); err != nil {
 			return fmt.Errorf("failed to copy input to workspace: %w", err)
 		}
 	}
