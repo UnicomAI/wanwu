@@ -388,8 +388,8 @@ def add_files(user_id, kb_info, file_name, object_name, file_id,
                     logger.info(f"{download_path} convert_office_file successfully => {res_filename}")
                 else:
                     logger.error(f"{download_path} convert_office_file failed")
-                    # mq_rel_utils.update_doc_status(file_id, status=53)
-                    # return
+                    mq_rel_utils.update_doc_status(file_id, status=53)
+                    return
 
     except Exception as e:
         logger.error(repr(e))
