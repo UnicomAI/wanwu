@@ -282,17 +282,6 @@ func UpdateDocMetaData(ctx *gin.Context, userId, orgId string, r *request.DocMet
 	return err
 }
 
-// BatchUpdateDocMetaData 批量文档元数据
-func BatchUpdateDocMetaData(ctx *gin.Context, userId, orgId string, r *request.BatchDocMetaDataReq) error {
-	_, err := knowledgeBaseDoc.BatchUpdateDocMetaData(ctx.Request.Context(), &knowledgebase_doc_service.BatchUpdateDocMetaDataReq{
-		UserId:       userId,
-		OrgId:        orgId,
-		MetaDataList: buildMetaDataList(r.MetaDataList),
-		KnowledgeId:  r.KnowledgeId,
-	})
-	return err
-}
-
 func UpdateDocStatus(ctx *gin.Context, r *request.CallbackUpdateDocStatusReq) error {
 	_, err := knowledgeBaseDoc.UpdateDocStatus(ctx.Request.Context(), &knowledgebase_doc_service.UpdateDocStatusReq{
 		DocId:        r.DocId,

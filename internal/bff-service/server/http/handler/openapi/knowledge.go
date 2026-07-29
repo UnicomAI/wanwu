@@ -570,3 +570,87 @@ func UploadDocSegmentImage(ctx *gin.Context) {
 	resp, err := service.UploadDocSegmentImageOpenapi(ctx, userId, orgId, req.KnowledgeId)
 	gin_util.Response(ctx, resp, err)
 }
+
+// GetKnowledgeMetaKeyList
+//
+//	@Tags			openapi
+//	@Summary		获取知识库元数据key列表
+//	@Description	获取知识库已定义的元数据key列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	query		request.GetKnowledgeMetaSelectReq	true	"获取知识库元数据key列表请求参数"
+//	@Success		200		{object}	response.Response{data=response.GetKnowledgeMetaSelectResp}
+//	@Router			/knowledge/meta/list [get]
+func GetKnowledgeMetaKeyList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.GetKnowledgeMetaSelectReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	resp, err := service.GetKnowledgeMetaSelect(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// UpdateKnowledgeMetaKey
+//
+//	@Tags			openapi
+//	@Summary		定义知识库元数据key
+//	@Description	新增/修改/删除知识库的元数据key定义；文档元数据值的读写见 /knowledge/doc/meta/list 与 /knowledge/doc/meta/update
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.KnowledgeMetaKeyOpenapiReq	true	"定义知识库元数据key请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/meta/update [post]
+func UpdateKnowledgeMetaKey(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.KnowledgeMetaKeyOpenapiReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateKnowledgeMetaKeyOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// GetKnowledgeDocMetaValueList
+//
+//	@Tags			openapi
+//	@Summary		获取文档元数据值列表
+//	@Description	按文档id列表查询各文档的元数据值
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.KnowledgeMetaValueListReq	true	"获取文档元数据值列表请求参数"
+//	@Success		200		{object}	response.Response{data=response.KnowledgeMetaValueListResp}
+//	@Router			/knowledge/doc/meta/list [post]
+func GetKnowledgeDocMetaValueList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.KnowledgeMetaValueListReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.GetKnowledgeDocMetaValueListOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// UpdateKnowledgeDocMetaValue
+//
+//	@Tags			openapi
+//	@Summary		更新文档元数据值
+//	@Description	批量更新文档的元数据值；key需已在知识库元数据中定义，option为add时不存在则新增、已存在则覆盖，update仅在已存在时更新
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.KnowledgeDocMetaValueOpenapiReq	true	"更新文档元数据值请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/meta/update [post]
+func UpdateKnowledgeDocMetaValue(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.KnowledgeDocMetaValueOpenapiReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateKnowledgeDocMetaValueOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}

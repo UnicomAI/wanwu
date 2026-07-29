@@ -29,7 +29,6 @@ const (
 	KnowledgeBaseDocService_ExportDoc_FullMethodName               = "/knowledgebase_doc_service.KnowledgeBaseDocService/ExportDoc"
 	KnowledgeBaseDocService_UpdateDocStatus_FullMethodName         = "/knowledgebase_doc_service.KnowledgeBaseDocService/UpdateDocStatus"
 	KnowledgeBaseDocService_UpdateDocMetaData_FullMethodName       = "/knowledgebase_doc_service.KnowledgeBaseDocService/UpdateDocMetaData"
-	KnowledgeBaseDocService_BatchUpdateDocMetaData_FullMethodName  = "/knowledgebase_doc_service.KnowledgeBaseDocService/BatchUpdateDocMetaData"
 	KnowledgeBaseDocService_InitDocStatus_FullMethodName           = "/knowledgebase_doc_service.KnowledgeBaseDocService/InitDocStatus"
 	KnowledgeBaseDocService_DeleteDoc_FullMethodName               = "/knowledgebase_doc_service.KnowledgeBaseDocService/DeleteDoc"
 	KnowledgeBaseDocService_GetDocCategoryUploadTip_FullMethodName = "/knowledgebase_doc_service.KnowledgeBaseDocService/GetDocCategoryUploadTip"
@@ -70,8 +69,6 @@ type KnowledgeBaseDocServiceClient interface {
 	UpdateDocStatus(ctx context.Context, in *UpdateDocStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 更新文档元数据
 	UpdateDocMetaData(ctx context.Context, in *UpdateDocMetaDataReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 批量更新文档元数据
-	BatchUpdateDocMetaData(ctx context.Context, in *BatchUpdateDocMetaDataReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 初始化文档状态
 	InitDocStatus(ctx context.Context, in *InitDocStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 删除文档
@@ -198,16 +195,6 @@ func (c *knowledgeBaseDocServiceClient) UpdateDocMetaData(ctx context.Context, i
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, KnowledgeBaseDocService_UpdateDocMetaData_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *knowledgeBaseDocServiceClient) BatchUpdateDocMetaData(ctx context.Context, in *BatchUpdateDocMetaDataReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, KnowledgeBaseDocService_BatchUpdateDocMetaData_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -396,8 +383,6 @@ type KnowledgeBaseDocServiceServer interface {
 	UpdateDocStatus(context.Context, *UpdateDocStatusReq) (*emptypb.Empty, error)
 	// 更新文档元数据
 	UpdateDocMetaData(context.Context, *UpdateDocMetaDataReq) (*emptypb.Empty, error)
-	// 批量更新文档元数据
-	BatchUpdateDocMetaData(context.Context, *BatchUpdateDocMetaDataReq) (*emptypb.Empty, error)
 	// 初始化文档状态
 	InitDocStatus(context.Context, *InitDocStatusReq) (*emptypb.Empty, error)
 	// 删除文档
@@ -466,9 +451,6 @@ func (UnimplementedKnowledgeBaseDocServiceServer) UpdateDocStatus(context.Contex
 }
 func (UnimplementedKnowledgeBaseDocServiceServer) UpdateDocMetaData(context.Context, *UpdateDocMetaDataReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDocMetaData not implemented")
-}
-func (UnimplementedKnowledgeBaseDocServiceServer) BatchUpdateDocMetaData(context.Context, *BatchUpdateDocMetaDataReq) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BatchUpdateDocMetaData not implemented")
 }
 func (UnimplementedKnowledgeBaseDocServiceServer) InitDocStatus(context.Context, *InitDocStatusReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InitDocStatus not implemented")
@@ -698,24 +680,6 @@ func _KnowledgeBaseDocService_UpdateDocMetaData_Handler(srv interface{}, ctx con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KnowledgeBaseDocServiceServer).UpdateDocMetaData(ctx, req.(*UpdateDocMetaDataReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KnowledgeBaseDocService_BatchUpdateDocMetaData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchUpdateDocMetaDataReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KnowledgeBaseDocServiceServer).BatchUpdateDocMetaData(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: KnowledgeBaseDocService_BatchUpdateDocMetaData_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KnowledgeBaseDocServiceServer).BatchUpdateDocMetaData(ctx, req.(*BatchUpdateDocMetaDataReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1050,10 +1014,6 @@ var KnowledgeBaseDocService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateDocMetaData",
 			Handler:    _KnowledgeBaseDocService_UpdateDocMetaData_Handler,
-		},
-		{
-			MethodName: "BatchUpdateDocMetaData",
-			Handler:    _KnowledgeBaseDocService_BatchUpdateDocMetaData_Handler,
 		},
 		{
 			MethodName: "InitDocStatus",

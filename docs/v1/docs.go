@@ -12369,45 +12369,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/knowledge/doc/meta/batch": {
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "批量更新文档元数据",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "knowledge.doc"
-                ],
-                "summary": "批量更新文档元数据",
-                "parameters": [
-                    {
-                        "description": "批量文档更新元数据请求参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.BatchDocMetaDataReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/knowledge/doc/reimport": {
             "post": {
                 "security": [
@@ -26706,25 +26667,6 @@ const docTemplate = `{
                     "minItems": 1,
                     "items": {
                         "type": "string"
-                    }
-                }
-            }
-        },
-        "request.BatchDocMetaDataReq": {
-            "type": "object",
-            "properties": {
-                "createMeta": {
-                    "description": "文档没设置过对应key则创建元数据",
-                    "type": "boolean"
-                },
-                "knowledgeId": {
-                    "type": "string"
-                },
-                "metaDataList": {
-                    "description": "文档元数据",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/request.DocMetaData"
                     }
                 }
             }

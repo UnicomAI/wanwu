@@ -179,27 +179,6 @@ func UpdateDocMetaData(ctx *gin.Context) {
 	gin_util.Response(ctx, nil, err)
 }
 
-// BatchUpdateDocMetaData
-//
-//	@Tags			knowledge.doc
-//	@Summary		批量更新文档元数据
-//	@Description	批量更新文档元数据
-//	@Security		JWT
-//	@Accept			json
-//	@Produce		json
-//	@Param			data	body		request.BatchDocMetaDataReq	true	"批量文档更新元数据请求参数"
-//	@Success		200		{object}	response.Response
-//	@Router			/knowledge/doc/meta/batch [post]
-func BatchUpdateDocMetaData(ctx *gin.Context) {
-	userId, orgId := getUserID(ctx), getOrgID(ctx)
-	var req request.BatchDocMetaDataReq
-	if !gin_util.Bind(ctx, &req) {
-		return
-	}
-	err := service.BatchUpdateDocMetaData(ctx, userId, orgId, &req)
-	gin_util.Response(ctx, nil, err)
-}
-
 // GetDocImportTip
 //
 //	@Tags			knowledge.doc

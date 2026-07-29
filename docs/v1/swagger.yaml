@@ -2301,19 +2301,6 @@ definitions:
     - orgId
     - userIds
     type: object
-  request.BatchDocMetaDataReq:
-    properties:
-      createMeta:
-        description: 文档没设置过对应key则创建元数据
-        type: boolean
-      knowledgeId:
-        type: string
-      metaDataList:
-        description: 文档元数据
-        items:
-          $ref: '#/definitions/request.DocMetaData'
-        type: array
-    type: object
   request.BindKnowledgeTagReq:
     properties:
       knowledgeId:
@@ -18996,30 +18983,6 @@ paths:
       security:
       - JWT: []
       summary: 更新文档元数据
-      tags:
-      - knowledge.doc
-  /knowledge/doc/meta/batch:
-    post:
-      consumes:
-      - application/json
-      description: 批量更新文档元数据
-      parameters:
-      - description: 批量文档更新元数据请求参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/request.BatchDocMetaDataReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - JWT: []
-      summary: 批量更新文档元数据
       tags:
       - knowledge.doc
   /knowledge/doc/reimport:
