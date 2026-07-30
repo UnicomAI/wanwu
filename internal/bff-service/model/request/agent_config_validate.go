@@ -108,7 +108,7 @@ func validateAgentModelConfig(cfg *AppModelConfig) error {
 	if cfg == nil || cfg.Config == nil {
 		return nil
 	}
-	m, ok := cfg.Config.(map[string]interface{})
+	m, ok := cfg.Config.(map[string]any)
 	if !ok {
 		return fmt.Errorf("modelConfig.config must be an object")
 	}

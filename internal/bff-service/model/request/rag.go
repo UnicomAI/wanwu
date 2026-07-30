@@ -1,6 +1,9 @@
 package request
 
-import "github.com/UnicomAI/wanwu/pkg/util"
+import (
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
+	"github.com/UnicomAI/wanwu/pkg/util"
+)
 
 type RagUpdateReq struct {
 	RagID string `json:"ragId" validate:"required"`
@@ -60,6 +63,13 @@ func (r *RagConfig) Check() error {
 }
 
 func (c ChatRagRequest) Check() error {
+	for _, f := range c.FileInfo {
+		if f.FileUrl != "" {
+			if err := url_util.ValidateURL(f.FileUrl); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 

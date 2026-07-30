@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 )
 
 type BaseModelRequest struct {
@@ -28,7 +29,27 @@ type ModelConfig struct {
 
 func (cfg *ModelConfig) Check() error {
 	_, err := cfg.ConfigString()
-	return err
+	if err != nil {
+		return err
+	}
+	if cfg.Config != nil {
+		configBytes, err := json.Marshal(cfg.Config)
+		if err != nil {
+			return err
+		}
+		var endpointCfg struct {
+			EndpointUrl string `json:"endpointUrl"`
+		}
+		if err := json.Unmarshal(configBytes, &endpointCfg); err != nil {
+			return err
+		}
+		if endpointCfg.EndpointUrl != "" {
+			if err := url_util.ValidateURL(endpointCfg.EndpointUrl); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (cfg *ModelConfig) ConfigString() (string, error) {

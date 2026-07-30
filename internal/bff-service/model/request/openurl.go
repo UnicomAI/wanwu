@@ -1,5 +1,9 @@
 package request
 
+import (
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
+)
+
 type UrlConversationCreateRequest struct {
 	Prompt string `json:"prompt"  validate:"required"`
 }
@@ -27,6 +31,13 @@ type UrlConversionStreamRequest struct {
 }
 
 func (c *UrlConversionStreamRequest) Check() error {
+	for _, f := range c.FileInfo {
+		if f.FileUrl != "" {
+			if err := url_util.ValidateURL(f.FileUrl); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 

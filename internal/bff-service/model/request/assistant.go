@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 )
 
@@ -222,6 +223,13 @@ func (p *ConversionStreamCancelRequest) Check() error {
 }
 
 func (c *ConversionStreamRequest) Check() error {
+	for _, f := range c.FileInfo {
+		if f.FileUrl != "" {
+			if err := url_util.ValidateURL(f.FileUrl); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 

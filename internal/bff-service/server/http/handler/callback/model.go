@@ -12,8 +12,10 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
+	"github.com/UnicomAI/wanwu/pkg/log"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
@@ -129,6 +131,10 @@ func ModelChatCompletions(ctx *gin.Context) {
 					var base64StrWithPrefix string
 					for urlK, urlV := range url {
 						if urlK == "url" {
+							if err := url_util.ValidateURL(urlV); err != nil {
+								log.Errorf("ModelChatCompletions invalid image URL: %v", err)
+								continue
+							}
 							resp, err := http.Get(urlV)
 							if err != nil {
 								continue

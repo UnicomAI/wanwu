@@ -49,6 +49,7 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/log"
 	path_util "github.com/UnicomAI/wanwu/pkg/path-util"
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	wga_persistent "github.com/UnicomAI/wanwu/pkg/wga-persistent"
 	aguievents "github.com/ag-ui-protocol/ag-ui/sdks/community/go/pkg/core/events"
@@ -610,6 +611,10 @@ func DownloadWgaWorkspaceURLs(ctx context.Context, urls map[string]string, dir s
 			continue
 		}
 		log.Infof("[DownloadWgaWorkspaceURLs] downloading URL %s to %s", urlStr, dir)
+		if err := url_util.ValidateURL(urlStr); err != nil {
+			log.Errorf("DownloadWgaWorkspaceURLs invalid URL %s: %v", urlStr, err)
+			continue
+		}
 		resp, err := trace_util.NewResty(ctx).R().SetContext(ctx).Get(urlStr)
 		if err != nil {
 			log.Errorf("[DownloadWgaWorkspaceURLs] download URL %s failed: %v", urlStr, err)

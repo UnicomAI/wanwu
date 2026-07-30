@@ -2,6 +2,7 @@ package request
 
 import (
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 )
 
 type ModelExperienceLlmRequest struct {
@@ -14,6 +15,13 @@ type ModelExperienceLlmRequest struct {
 }
 
 func (o *ModelExperienceLlmRequest) Check() error {
+	for _, f := range o.FileInfo {
+		if f.FileUrl != "" {
+			if err := url_util.ValidateURL(f.FileUrl); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
