@@ -95,10 +95,10 @@ const (
       "type": "remote",
       "url": "{{$mcp.URL}}",
       "description": "{{$mcp.Description}}",
-      "enabled": true{{if $mcp.Headers}},
+      "enabled": true{{if $mcp.HeaderPairs}},
       "headers": {
-{{- range $k, $v := $mcp.Headers}}        "{{$k}}": "{{$v}}"{{end}}
-      }{{end}}
+{{range $j, $hp := $mcp.HeaderPairs}}        "{{$hp.Key}}": "{{$hp.Value}}"{{if ne $j (sub (len $mcp.HeaderPairs) 1)}},{{end}}
+{{end}}      }{{end}}
     }{{if ne $i (sub (len $.MCPs) 1)}},{{end}}
 {{end}}  }{{end}}
 }`
@@ -303,6 +303,7 @@ func (r *Runner) setupConfig(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to render config: %w", err)
 	}
+	// log.Infof("%s rendered opencode config: %s", r.logPrefix, content)
 	if err := r.sb.WriteFile(ctx, ".opencode/opencode.json", []byte(content)); err != nil {
 		return fmt.Errorf("failed to create opencode.json: %w", err)
 	}
@@ -1139,22 +1140,29 @@ type processedMCP struct {
 	Name        string
 	URL         string
 	Description string
-	Headers     map[string]string // 最终注入到 opencode.json 的请求头
+	HeaderPairs []mcpHeaderPair // 最终注入到 opencode.json 的请求头（有序，保证稳定渲染）
+}
+
+// mcpHeaderPair 表示 MCP 请求头的一个键值对，用于保证模板按顺序渲染逗号分隔符。
+type mcpHeaderPair struct {
+	Key   string
+	Value string
 }
 
 // renderConfig 渲染 opencode 配置文件。
 func renderConfig(config wga_sandbox_option.ModelConfig, mcps []wga_sandbox_option.MCP, enableHITL bool) (string, error) {
-	// 在渲染前统一处理鉴权：query 鉴权拼入 URL，header 鉴权转为 headers map
+	// 在渲染前统一处理鉴权：query 鉴权拼入 URL，header 鉴权收集为有序键值对
 	processedMcps := make([]processedMCP, 0, len(mcps))
 	for _, mcp := range mcps {
 		pm := processedMCP{
 			Name:        mcp.Name,
 			Description: strings.Join(strings.Fields(mcp.Description), " "),
-			Headers:     make(map[string]string),
 		}
-		// 自定义请求头优先注入
+		headerSet := make(map[string]struct{}, len(mcp.Headers)+1)
+		// 自定义请求头优先注入（基于转换前的 map 保证先入先出）
 		for k, v := range mcp.Headers {
-			pm.Headers[k] = v
+			pm.HeaderPairs = append(pm.HeaderPairs, mcpHeaderPair{Key: k, Value: v})
+			headerSet[k] = struct{}{}
 		}
 		// 处理 API 鉴权
 		if mcp.ApiAuth != nil && mcp.ApiAuth.AuthType != "" && mcp.ApiAuth.AuthType != util.AuthTypeNone {
@@ -1182,7 +1190,10 @@ func renderConfig(config wga_sandbox_option.ModelConfig, mcps []wga_sandbox_opti
 				if headerName == "" {
 					headerName = util.ApiKeyHeaderDefault
 				}
-				pm.Headers[headerName] = value
+				// 避免与自定义请求头重复
+				if _, exists := headerSet[headerName]; !exists {
+					pm.HeaderPairs = append(pm.HeaderPairs, mcpHeaderPair{Key: headerName, Value: value})
+				}
 			}
 		}
 		// 未设置 URL 的情况（无 query 鉴权）
@@ -1190,8 +1201,8 @@ func renderConfig(config wga_sandbox_option.ModelConfig, mcps []wga_sandbox_opti
 			pm.URL = mcp.URL
 		}
 		// 没有 headers 则设为 nil，避免模板渲染空的 headers 块
-		if len(pm.Headers) == 0 {
-			pm.Headers = nil
+		if len(pm.HeaderPairs) == 0 {
+			pm.HeaderPairs = nil
 		}
 		processedMcps = append(processedMcps, pm)
 	}
@@ -1201,6 +1212,8 @@ func renderConfig(config wga_sandbox_option.ModelConfig, mcps []wga_sandbox_opti
 		"len": func(v interface{}) int {
 			switch s := v.(type) {
 			case []processedMCP:
+				return len(s)
+			case []mcpHeaderPair:
 				return len(s)
 			}
 			return 0
