@@ -3066,7 +3066,7 @@ definitions:
     type: object
   request.DeleteDocChildSegmentReq:
     properties:
-      ChildChunkNoList:
+      childChunkNoList:
         description: 子分段序列号列表
         items:
           type: integer
@@ -3081,7 +3081,7 @@ definitions:
         description: 父分段id
         type: string
     required:
-    - ChildChunkNoList
+    - childChunkNoList
     - docId
     - parentId
     type: object
@@ -11438,6 +11438,12 @@ definitions:
         description: 广场mcpId(非空表示来源于广场)
         type: string
     type: object
+  response.UpdateDocSegmentResp:
+    properties:
+      contentId:
+        description: 更新后的分段id，内容变化时与请求传入的contentId不同
+        type: string
+    type: object
   response.UploadFileResp:
     properties:
       status:
@@ -19324,7 +19330,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.Response'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.UpdateDocSegmentResp'
+              type: object
       security:
       - JWT: []
       summary: 更新文档切片

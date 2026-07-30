@@ -274,6 +274,15 @@ definitions:
     - docId
     - fileUploadId
     type: object
+  request.ChildChunk:
+    properties:
+      chunkNo:
+        description: 子分段序列号
+        type: integer
+      content:
+        description: 子分段内容
+        type: string
+    type: object
   request.ConversionStreamFile:
     properties:
       fileName:
@@ -282,6 +291,24 @@ definitions:
         type: integer
       fileUrl:
         type: string
+    type: object
+  request.CreateDocChildSegmentReq:
+    properties:
+      content:
+        description: 分段内容
+        items:
+          type: string
+        type: array
+      docId:
+        description: 文档id
+        type: string
+      parentId:
+        description: 父分段id
+        type: string
+    required:
+    - content
+    - docId
+    - parentId
     type: object
   request.CreateDocSegmentReq:
     properties:
@@ -321,6 +348,27 @@ definitions:
     required:
     - embeddingModelInfo
     - name
+    type: object
+  request.DeleteDocChildSegmentReq:
+    properties:
+      childChunkNoList:
+        description: 子分段序列号列表
+        items:
+          type: integer
+        type: array
+      docId:
+        description: 文档id
+        type: string
+      parentChunkNo:
+        description: 父分段序列号
+        type: integer
+      parentId:
+        description: 父分段id
+        type: string
+    required:
+    - childChunkNoList
+    - docId
+    - parentId
     type: object
   request.DeleteDocReq:
     properties:
@@ -576,6 +624,21 @@ definitions:
         type: array
     required:
     - segmentMethod
+    type: object
+  request.DocSegmentLabelsReq:
+    properties:
+      contentId:
+        type: string
+      docId:
+        type: string
+      labels:
+        items:
+          type: string
+        type: array
+    required:
+    - contentId
+    - docId
+    - labels
     type: object
   request.EmbeddingModel:
     properties:
@@ -1014,6 +1077,26 @@ definitions:
         type: string
     required:
     - tableId
+    type: object
+  request.UpdateDocChildSegmentReq:
+    properties:
+      childChunk:
+        allOf:
+        - $ref: '#/definitions/request.ChildChunk'
+        description: 子分段序列号列表
+      docId:
+        description: 文档id
+        type: string
+      parentChunkNo:
+        description: 父分段序列号
+        type: integer
+      parentId:
+        description: 父分段id
+        type: string
+    required:
+    - childChunk
+    - docId
+    - parentId
     type: object
   request.UpdateDocSegmentReq:
     properties:
@@ -2320,6 +2403,12 @@ definitions:
         description: 耗时
         type: string
     type: object
+  response.UpdateDocSegmentResp:
+    properties:
+      contentId:
+        description: 更新后的分段id，内容变化时与请求传入的contentId不同
+        type: string
+    type: object
   response.UploadFileResp:
     properties:
       status:
@@ -3212,6 +3301,54 @@ paths:
       summary: 批量新增文档切片
       tags:
       - openapi
+  /knowledge/doc/segment/child/create:
+    post:
+      consumes:
+      - application/json
+      description: 新增文档子分段；多模态知识库的分段内容可包含图片markdown，普通知识库不允许
+      parameters:
+      - description: 新增子分段请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateDocChildSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 新增子分段
+      tags:
+      - openapi
+  /knowledge/doc/segment/child/delete:
+    delete:
+      consumes:
+      - application/json
+      description: 删除文档子分段
+      parameters:
+      - description: 删除子分段请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteDocChildSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 删除子分段
+      tags:
+      - openapi
   /knowledge/doc/segment/child/list:
     get:
       consumes:
@@ -3241,6 +3378,30 @@ paths:
       security:
       - JWT: []
       summary: 获取子分段列表
+      tags:
+      - openapi
+  /knowledge/doc/segment/child/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新文档子分段；多模态知识库的分段内容可包含图片markdown，普通知识库不允许
+      parameters:
+      - description: 更新子分段请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateDocChildSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 更新子分段
       tags:
       - openapi
   /knowledge/doc/segment/create:
@@ -3324,6 +3485,30 @@ paths:
       summary: 分段图片上传
       tags:
       - openapi
+  /knowledge/doc/segment/labels:
+    post:
+      consumes:
+      - application/json
+      description: 更新文档切片标签
+      parameters:
+      - description: 更新文档切片标签请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DocSegmentLabelsReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 更新文档切片标签
+      tags:
+      - openapi
   /knowledge/doc/segment/list:
     get:
       consumes:
@@ -3403,7 +3588,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.Response'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.UpdateDocSegmentResp'
+              type: object
       security:
       - JWT: []
       summary: 更新文档切片
