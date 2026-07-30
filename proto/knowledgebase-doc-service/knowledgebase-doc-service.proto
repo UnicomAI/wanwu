@@ -48,7 +48,7 @@ service KnowledgeBaseDocService {
   // 删除文档分片
   rpc DeleteDocSegment(DeleteDocSegmentReq) returns (google.protobuf.Empty) {}
   // 更新文档分片
-  rpc UpdateDocSegment(UpdateDocSegmentReq) returns (google.protobuf.Empty) {}
+  rpc UpdateDocSegment(UpdateDocSegmentReq) returns (UpdateDocSegmentResp) {}
   // 获取文档子分段列表
   rpc GetDocChildSegmentList(GetDocChildSegmentListReq) returns (GetDocChildSegmentListResp){}
   // 新增文档子分片
@@ -359,6 +359,11 @@ message UpdateDocSegmentReq{
   string docId = 3;
   string contentId = 4;
   string content = 5;
+}
+
+message UpdateDocSegmentResp{
+  // 更新后的分段id，rag 按内容重新计算，内容变化时与请求传入的 contentId 不同
+  string contentId = 1;
 }
 
 message GetDocChildSegmentListReq{

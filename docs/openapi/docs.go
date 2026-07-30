@@ -1436,6 +1436,84 @@ const docTemplate = `{
                 }
             }
         },
+        "/knowledge/doc/segment/child/create": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "新增文档子分段；多模态知识库的分段内容可包含图片markdown，普通知识库不允许",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "新增子分段",
+                "parameters": [
+                    {
+                        "description": "新增子分段请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateDocChildSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/child/delete": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "删除文档子分段",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "删除子分段",
+                "parameters": [
+                    {
+                        "description": "删除子分段请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteDocChildSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/knowledge/doc/segment/child/list": {
             "get": {
                 "security": [
@@ -1485,6 +1563,45 @@ const docTemplate = `{
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/child/update": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "更新文档子分段；多模态知识库的分段内容可包含图片markdown，普通知识库不允许",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "更新子分段",
+                "parameters": [
+                    {
+                        "description": "更新子分段请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateDocChildSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -1619,6 +1736,45 @@ const docTemplate = `{
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/labels": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "更新文档切片标签",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "更新文档切片标签",
+                "parameters": [
+                    {
+                        "description": "更新文档切片标签请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DocSegmentLabelsReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -1760,7 +1916,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.Response"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.UpdateDocSegmentResp"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -3340,6 +3508,19 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ChildChunk": {
+            "type": "object",
+            "properties": {
+                "chunkNo": {
+                    "description": "子分段序列号",
+                    "type": "integer"
+                },
+                "content": {
+                    "description": "子分段内容",
+                    "type": "string"
+                }
+            }
+        },
         "request.ConversionStreamFile": {
             "type": "object",
             "properties": {
@@ -3350,6 +3531,31 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "fileUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateDocChildSegmentReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "docId",
+                "parentId"
+            ],
+            "properties": {
+                "content": {
+                    "description": "分段内容",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                },
+                "parentId": {
+                    "description": "父分段id",
                     "type": "string"
                 }
             }
@@ -3408,6 +3614,35 @@ const docTemplate = `{
                     "$ref": "#/definitions/request.KnowledgeGraph"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.DeleteDocChildSegmentReq": {
+            "type": "object",
+            "required": [
+                "childChunkNoList",
+                "docId",
+                "parentId"
+            ],
+            "properties": {
+                "childChunkNoList": {
+                    "description": "子分段序列号列表",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                },
+                "parentChunkNo": {
+                    "description": "父分段序列号",
+                    "type": "integer"
+                },
+                "parentId": {
+                    "description": "父分段id",
                     "type": "string"
                 }
             }
@@ -3767,6 +4002,28 @@ const docTemplate = `{
                 },
                 "subSplitter": {
                     "description": "分隔符（只有父子分段必填）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "request.DocSegmentLabelsReq": {
+            "type": "object",
+            "required": [
+                "contentId",
+                "docId",
+                "labels"
+            ],
+            "properties": {
+                "contentId": {
+                    "type": "string"
+                },
+                "docId": {
+                    "type": "string"
+                },
+                "labels": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -4417,6 +4674,36 @@ const docTemplate = `{
                 },
                 "tableName": {
                     "description": "敏感词表名称(请求非必填)",
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateDocChildSegmentReq": {
+            "type": "object",
+            "required": [
+                "childChunk",
+                "docId",
+                "parentId"
+            ],
+            "properties": {
+                "childChunk": {
+                    "description": "子分段序列号列表",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.ChildChunk"
+                        }
+                    ]
+                },
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                },
+                "parentChunkNo": {
+                    "description": "父分段序列号",
+                    "type": "integer"
+                },
+                "parentId": {
+                    "description": "父分段id",
                     "type": "string"
                 }
             }
@@ -6350,6 +6637,15 @@ const docTemplate = `{
                 },
                 "timeCost": {
                     "description": "耗时",
+                    "type": "string"
+                }
+            }
+        },
+        "response.UpdateDocSegmentResp": {
+            "type": "object",
+            "properties": {
+                "contentId": {
+                    "description": "更新后的分段id，内容变化时与请求传入的contentId不同",
                     "type": "string"
                 }
             }

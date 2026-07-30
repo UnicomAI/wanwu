@@ -12910,7 +12910,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.Response"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.UpdateDocSegmentResp"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -27853,12 +27865,12 @@ const docTemplate = `{
         "request.DeleteDocChildSegmentReq": {
             "type": "object",
             "required": [
-                "ChildChunkNoList",
+                "childChunkNoList",
                 "docId",
                 "parentId"
             ],
             "properties": {
-                "ChildChunkNoList": {
+                "childChunkNoList": {
                     "description": "子分段序列号列表",
                     "type": "array",
                     "items": {
@@ -40252,6 +40264,15 @@ const docTemplate = `{
                 },
                 "toolSquareId": {
                     "description": "广场mcpId(非空表示来源于广场)",
+                    "type": "string"
+                }
+            }
+        },
+        "response.UpdateDocSegmentResp": {
+            "type": "object",
+            "properties": {
+                "contentId": {
+                    "description": "更新后的分段id，内容变化时与请求传入的contentId不同",
                     "type": "string"
                 }
             }

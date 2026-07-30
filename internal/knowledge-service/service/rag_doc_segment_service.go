@@ -116,6 +116,15 @@ type DocSegmentStatusUpdateAllParams struct {
 	All bool `json:"on_off_switch"`
 }
 
+type RagUpdateDocSegmentResp struct {
+	RagCommonResp
+	Data *UpdateSegmentResult `json:"data"`
+}
+
+type UpdateSegmentResult struct {
+	ContentId string `json:"content_id"`
+}
+
 type RagGetDocSegmentResp struct {
 	RagCommonResp
 	Data *ContentListResp `json:"data"`
@@ -215,13 +224,13 @@ func RagCreateDocSegment(ctx context.Context, ragCreateDocSegmentParams *RagCrea
 	return nil
 }
 
-// RagUpdateDocSegment 更新文档切片
-func RagUpdateDocSegment(ctx context.Context, ragUpdateDocSegmentParams *RagUpdateDocSegmentParams) error {
+// RagUpdateDocSegment 更新文档切片，返回 rag 按新内容重算的分段id；旧版本 rag 不返回 data 时为空串
+func RagUpdateDocSegment(ctx context.Context, ragUpdateDocSegmentParams *RagUpdateDocSegmentParams) (string, error) {
 	ragServer := config.GetConfig().RagServer
 	url := ragServer.Endpoint + ragServer.DocSegmentUpdateUri
 	paramsByte, err := json.Marshal(ragUpdateDocSegmentParams)
 	if err != nil {
-		return err
+		return "", err
 	}
 	result, err := http.GetClient().PostJson(ctx, &http_client.HttpRequestParams{
 		Url:        url,
@@ -231,17 +240,20 @@ func RagUpdateDocSegment(ctx context.Context, ragUpdateDocSegmentParams *RagUpda
 		LogLevel:   http_client.LogAll,
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
-	var resp RagCommonResp
+	var resp RagUpdateDocSegmentResp
 	if err := json.Unmarshal(result, &resp); err != nil {
 		log.Errorf("rag update doc segment unmarshal err: %v", err.Error())
-		return err
+		return "", err
 	}
 	if resp.Code != successCode {
-		return errors.New(resp.Message)
+		return "", errors.New(resp.Message)
 	}
-	return nil
+	if resp.Data == nil {
+		return "", nil
+	}
+	return resp.Data.ContentId, nil
 }
 
 // RagDeleteDocSegment 删除文档切片
