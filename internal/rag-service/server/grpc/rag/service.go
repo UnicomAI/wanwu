@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	knowledgebase_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-service"
 	rag_service "github.com/UnicomAI/wanwu/api/proto/rag-service"
@@ -38,13 +39,28 @@ func NewService(cli client.IClient) *Service {
 }
 
 func errStatus(code errs.Code, status *errs.Status) error {
+	// 归属过滤未命中（rag 不存在或不属于请求方）统一报 RagInfoNotExist，
+	// 不让调用方从错误码上区分"无权限"和"不存在"
+	if status.TextKey == orm.RagNotExistKey {
+		code = errs.Code_RagInfoNotExist
+	}
 	return grpc_util.ErrorStatusWithKey(code, status.TextKey, status.Args...)
+}
+
+// identityOf 取请求里的归属信息，为空表示不做归属过滤
+func identityOf(identity *rag_service.Identity) (userId, orgId string) {
+	return identity.GetUserId(), identity.GetOrgId()
 }
 
 func (s *Service) ChatRag(req *rag_service.ChatRagReq, stream grpc.ServerStreamingServer[rag_service.ChatRagResp]) error {
 	ctx := stream.Context()
 	//1.查询rag详情
-	rag, err := s.searchRagDetail(ctx, req.RagId, "", req.Publish)
+	// 草稿只能问自己的；已发布服务公开应用（探索/openapi），不做归属过滤
+	chatUserId, chatOrgId := "", ""
+	if req.Publish != RAGPUBLISH {
+		chatUserId, chatOrgId = identityOf(req.Identity)
+	}
+	rag, err := s.searchRagDetail(ctx, req.RagId, "", req.Publish, chatUserId, chatOrgId)
 	if err != nil {
 		return err
 	}
@@ -92,7 +108,8 @@ func (s *Service) CreateRag(ctx context.Context, in *rag_service.CreateRagReq) (
 }
 
 func (s *Service) UpdateRag(ctx context.Context, in *rag_service.UpdateRagReq) (*emptypb.Empty, error) {
-	originalRag, err := s.cli.FetchRagFirst(ctx, in.RagId)
+	userId, orgId := identityOf(in.Identity)
+	originalRag, err := s.cli.FetchRagFirst(ctx, in.RagId, userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_RagGetErr, err)
 	}
@@ -110,13 +127,51 @@ func (s *Service) UpdateRag(ctx context.Context, in *rag_service.UpdateRagReq) (
 			Desc:       in.AppBrief.Desc,
 			AvatarPath: in.AppBrief.AvatarPath,
 		},
-	}); err != nil {
+	}, userId, orgId); err != nil {
 		return nil, errStatus(errs.Code_RagUpdateErr, err)
 	}
 	return &emptypb.Empty{}, nil
 }
 
+// normalizeRagConfigReq 把请求里缺省的配置段补成空结构体。
+// 下面的组装逻辑按"字段缺省即取默认值"写，全是裸解引用，调用方少传一段就会 panic
+func normalizeRagConfigReq(in *rag_service.UpdateRagConfigReq) {
+	if in.ModelConfig == nil {
+		in.ModelConfig = &common.AppModelConfig{}
+	}
+	if in.RerankConfig == nil {
+		in.RerankConfig = &common.AppModelConfig{}
+	}
+	if in.QArerankConfig == nil {
+		in.QArerankConfig = &common.AppModelConfig{}
+	}
+	if in.KnowledgeBaseConfig == nil {
+		in.KnowledgeBaseConfig = &rag_service.RagKnowledgeBaseConfig{}
+	}
+	if in.KnowledgeBaseConfig.GlobalConfig == nil {
+		in.KnowledgeBaseConfig.GlobalConfig = &rag_service.RagGlobalConfig{}
+	}
+	if in.QAknowledgeBaseConfig == nil {
+		in.QAknowledgeBaseConfig = &rag_service.RagQAKnowledgeBaseConfig{}
+	}
+	if in.QAknowledgeBaseConfig.GlobalConfig == nil {
+		in.QAknowledgeBaseConfig.GlobalConfig = &rag_service.RagQAGlobalConfig{}
+	}
+	if in.SensitiveConfig == nil {
+		in.SensitiveConfig = &rag_service.RagSensitiveConfig{}
+	}
+	if in.VisionConfig == nil {
+		in.VisionConfig = &rag_service.RagVisionConfig{}
+	}
+}
+
 func (s *Service) UpdateRagConfig(ctx context.Context, in *rag_service.UpdateRagConfigReq) (*emptypb.Empty, error) {
+	cfgUserId, cfgOrgId := identityOf(in.Identity)
+	// 归属校验前置：越权请求不进入后面的配置组装，也不依赖请求体是否完整
+	if _, err := s.cli.FetchRagFirst(ctx, in.RagId, cfgUserId, cfgOrgId); err != nil {
+		return nil, errStatus(errs.Code_RagGetErr, err)
+	}
+	normalizeRagConfigReq(in)
 	var sensitiveIds string
 	var knowledgeIds string
 	if in.SensitiveConfig.TableIds != nil {
@@ -170,13 +225,7 @@ func (s *Service) UpdateRagConfig(ctx context.Context, in *rag_service.UpdateRag
 		}
 	}
 
-	if in.QAknowledgeBaseConfig == nil {
-		in.QAknowledgeBaseConfig = &rag_service.RagQAKnowledgeBaseConfig{}
-	}
 	qaConfig := in.QAknowledgeBaseConfig
-	if qaConfig.GlobalConfig == nil {
-		qaConfig.GlobalConfig = &rag_service.RagQAGlobalConfig{}
-	}
 	if qaConfig.GlobalConfig.MatchType == "" || len(qaConfig.PerKnowledgeConfigs) == 0 {
 		qaConfig.GlobalConfig.KeywordPriority = model.KeywordPriorityDefault
 		qaConfig.GlobalConfig.MatchType = model.MatchTypeDefault
@@ -248,14 +297,14 @@ func (s *Service) UpdateRagConfig(ctx context.Context, in *rag_service.UpdateRag
 			PicNum: in.VisionConfig.PicNum,
 		},
 		RecommendQuestion: recommendQuestionStr,
-	}); err != nil {
+	}, cfgUserId, cfgOrgId); err != nil {
 		return nil, errStatus(errs.Code_RagUpdateErr, err)
 	}
 	return &emptypb.Empty{}, nil
 }
 
 func (s *Service) DeleteRag(ctx context.Context, in *rag_service.RagDeleteReq) (*emptypb.Empty, error) {
-	errDelete := s.cli.DeleteRag(ctx, in, in.Identity.UserId, in.Identity.OrgId)
+	errDelete := s.cli.DeleteRag(ctx, in)
 	if errDelete != nil {
 		return nil, errStatus(errs.Code_RagDeleteErr, errDelete)
 	}
@@ -263,7 +312,8 @@ func (s *Service) DeleteRag(ctx context.Context, in *rag_service.RagDeleteReq) (
 }
 
 func (s *Service) GetRagDetail(ctx context.Context, in *rag_service.RagDetailReq) (*rag_service.RagInfo, error) {
-	detail, err := s.searchRagDetail(ctx, in.RagId, "", in.Publish)
+	userId, orgId := identityOf(in.Identity)
+	detail, err := s.searchRagDetail(ctx, in.RagId, in.Version, in.Publish, userId, orgId)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +352,8 @@ func (s *Service) GetRagByIds(ctx context.Context, in *rag_service.GetRagByIdsRe
 }
 
 func (s *Service) CopyRag(ctx context.Context, in *rag_service.CopyRagReq) (*rag_service.CreateRagResp, error) {
-	info, err := s.cli.FetchRagFirst(ctx, in.RagId)
+	userId, orgId := identityOf(in.Identity)
+	info, err := s.cli.FetchRagFirst(ctx, in.RagId, userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_RagGetErr, err)
 	}
@@ -341,7 +392,8 @@ func (s *Service) CopyRag(ctx context.Context, in *rag_service.CopyRagReq) (*rag
 
 func (s *Service) PublishRag(ctx context.Context, req *rag_service.PublishRagReq) (*emptypb.Empty, error) {
 	//1.获取rag草稿信息
-	draft, err := s.cli.FetchRagFirst(ctx, req.RagId)
+	pubUserId, pubOrgId := identityOf(req.Identity)
+	draft, err := s.cli.FetchRagFirst(ctx, req.RagId, pubUserId, pubOrgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_RagGetErr, err)
 	}
@@ -371,7 +423,8 @@ func (s *Service) PublishRag(ctx context.Context, req *rag_service.PublishRagReq
 }
 
 func (s *Service) UpdatePublishRag(ctx context.Context, req *rag_service.UpdatePublishRagReq) (*emptypb.Empty, error) {
-	rag, err := s.cli.FetchPublishRagFirst(ctx, req.RagId, "")
+	userId, orgId := identityOf(req.Identity)
+	rag, err := s.cli.FetchPublishRagFirst(ctx, req.RagId, "", userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_RagGetErr, err)
 	}
@@ -385,7 +438,8 @@ func (s *Service) UpdatePublishRag(ctx context.Context, req *rag_service.UpdateP
 
 func (s *Service) ListPublishRagHistory(ctx context.Context, req *rag_service.ListPublishRagHistoryReq) (*rag_service.ListPublishRagHistoryResp, error) {
 	historyList := make([]*rag_service.PublishRagHistory, 0)
-	ragList, err := s.cli.FetchPublishRagList(ctx, req.RagId)
+	userId, orgId := identityOf(req.Identity)
+	ragList, err := s.cli.FetchPublishRagList(ctx, req.RagId, userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_RagGetErr, err)
 	}
@@ -405,7 +459,8 @@ func (s *Service) ListPublishRagHistory(ctx context.Context, req *rag_service.Li
 
 func (s *Service) OverwriteRagDraft(ctx context.Context, req *rag_service.OverwriteRagDraftReq) (*emptypb.Empty, error) {
 	//1.获取该版本rag信息
-	rag, err := s.cli.FetchPublishRagFirst(ctx, req.RagId, req.Version)
+	userId, orgId := identityOf(req.Identity)
+	rag, err := s.cli.FetchPublishRagFirst(ctx, req.RagId, req.Version, userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_RagGetErr, err)
 	}
@@ -417,8 +472,8 @@ func (s *Service) OverwriteRagDraft(ctx context.Context, req *rag_service.Overwr
 			return nil, grpc_util.ErrorStatusWithKey(errs.Code_RagUpdateErr, "rag_update_err", errU.Error())
 		}
 	}
-	//3.覆盖草稿
-	err = s.cli.UpdateRagConfig(ctx, ragInfo)
+	//3.覆盖草稿（归属已由上面按 identity 取发布快照保证，这里不再过滤）
+	err = s.cli.UpdateRagConfig(ctx, ragInfo, "", "")
 	if err != nil {
 		return nil, errStatus(errs.Code_RagUpdateErr, err)
 	}
@@ -426,7 +481,8 @@ func (s *Service) OverwriteRagDraft(ctx context.Context, req *rag_service.Overwr
 }
 
 func (s *Service) GetPublishRagDesc(ctx context.Context, req *rag_service.GetPublishRagDescReq) (*rag_service.GetPublishRagDescResp, error) {
-	rag, err := s.cli.FetchPublishRagFirst(ctx, req.RagId, "")
+	userId, orgId := identityOf(req.Identity)
+	rag, err := s.cli.FetchPublishRagFirst(ctx, req.RagId, "", userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_RagGetErr, err)
 	}
@@ -442,7 +498,8 @@ func (s *Service) GetPublishRagDescBatch(ctx context.Context, req *rag_service.G
 	if len(req.RagIdList) == 0 {
 		return &rag_service.GetPublishRagDescBatchResp{List: []*rag_service.GetPublishRagDescResp{}}, nil
 	}
-	ragList, err := s.cli.FetchPublishRagListByRagIds(ctx, req.RagIdList)
+	userId, orgId := identityOf(req.Identity)
+	ragList, err := s.cli.FetchPublishRagListByRagIds(ctx, req.RagIdList, userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_RagGetErr, err)
 	}
@@ -466,12 +523,12 @@ func (s *Service) GetPublishRagDescBatch(ctx context.Context, req *rag_service.G
 	return &rag_service.GetPublishRagDescBatchResp{List: resp}, nil
 }
 
-func (s *Service) searchRagDetail(ctx context.Context, ragId, version string, publish int32) (*model.RagInfo, error) {
+func (s *Service) searchRagDetail(ctx context.Context, ragId, version string, publish int32, userId, orgId string) (*model.RagInfo, error) {
 	// 获取rag详情
 	rag := &model.RagInfo{}
 	switch publish {
 	case RAGPUBLISH:
-		publishRag, err := s.cli.FetchPublishRagFirst(ctx, ragId, version)
+		publishRag, err := s.cli.FetchPublishRagFirst(ctx, ragId, version, userId, orgId)
 		if err != nil {
 			return nil, errStatus(errs.Code_RagChatErr, err)
 		}
@@ -482,7 +539,7 @@ func (s *Service) searchRagDetail(ctx context.Context, ragId, version string, pu
 			return nil, grpc_util.ErrorStatusWithKey(errs.Code_RagChatErr, "rag_chat_err", err.Error())
 		}
 	default:
-		ragInfo, err := s.cli.FetchRagFirst(ctx, ragId)
+		ragInfo, err := s.cli.FetchRagFirst(ctx, ragId, userId, orgId)
 		if err != nil {
 			return nil, errStatus(errs.Code_RagChatErr, err)
 		}

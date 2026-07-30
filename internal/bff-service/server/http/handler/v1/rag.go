@@ -131,7 +131,7 @@ func UpdateRagConfig(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.UpdateRagConfig(ctx, req)
+	err := service.UpdateRagConfig(ctx, getUserID(ctx), getOrgID(ctx), req)
 	gin_util.Response(ctx, nil, err)
 }
 
@@ -151,8 +151,7 @@ func DeleteRag(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	userId, orgId := getUserID(ctx), getOrgID(ctx)
-	err := service.DeleteRag(ctx, req, userId, orgId)
+	err := service.DeleteRag(ctx, getUserID(ctx), getOrgID(ctx), req)
 	gin_util.Response(ctx, nil, err)
 }
 
@@ -172,7 +171,7 @@ func GetDraftRag(ctx *gin.Context) {
 	if !gin_util.BindQuery(ctx, &req) {
 		return
 	}
-	resp, err := service.GetRag(ctx, req, false)
+	resp, err := service.GetRag(ctx, getUserID(ctx), getOrgID(ctx), req, false)
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -192,7 +191,7 @@ func GetPublishedRag(ctx *gin.Context) {
 	if !gin_util.BindQuery(ctx, &req) {
 		return
 	}
-	resp, err := service.GetRag(ctx, req, true)
+	resp, err := service.GetRag(ctx, getUserID(ctx), getOrgID(ctx), req, true)
 	gin_util.Response(ctx, resp, err)
 }
 

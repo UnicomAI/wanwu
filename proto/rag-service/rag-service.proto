@@ -87,6 +87,7 @@ message UpdateRagConfigReq{
   RagSensitiveConfig sensitiveConfig = 7;                 // 安全护栏
   RagVisionConfig visionConfig = 8; // 视觉配置
   repeated string recommendQuestion = 9; // 推荐问题
+  Identity identity = 10; // 归属过滤，为空表示不过滤
 }
 
 message RagVisionConfig{
@@ -120,13 +121,14 @@ message RagInfo {
 
 message RagDeleteReq {
   string ragId = 1;
-  Identity identity = 2;
+  Identity identity = 2; // 归属过滤，为空表示不过滤（管理员中心）
 }
 
 message RagDetailReq {
   string ragId = 1;
   int32 publish = 2; // 0: 草稿 1: 已发布
   string version = 3; // 已发布版本
+  Identity identity = 4; // 归属过滤，为空表示不过滤（管理员中心、公开应用问答）
 }
 
 message RagKnowledgeBaseConfig {
@@ -261,6 +263,7 @@ message PublishRagHistory{
 message OverwriteRagDraftReq{
   string ragId = 1;
   string version = 2;
+  Identity identity = 3; // 归属过滤，为空表示不过滤
 }
 
 message GetPublishRagDescReq{

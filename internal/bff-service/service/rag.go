@@ -69,7 +69,10 @@ func CreateRag(ctx *gin.Context, userId, orgId string, req request.AppBriefConfi
 }
 
 func UpdateRag(ctx *gin.Context, req request.RagUpdateReq, userId, orgId string) error {
-	existingRag, err := rag.GetRagDetail(ctx.Request.Context(), &rag_service.RagDetailReq{RagId: req.RagID})
+	existingRag, err := rag.GetRagDetail(ctx.Request.Context(), &rag_service.RagDetailReq{
+		RagId:    req.RagID,
+		Identity: &rag_service.Identity{UserId: userId, OrgId: orgId},
+	})
 	if err != nil {
 		return err
 	}
@@ -87,7 +90,7 @@ func UpdateRag(ctx *gin.Context, req request.RagUpdateReq, userId, orgId string)
 	return err
 }
 
-func UpdateRagConfig(ctx *gin.Context, req request.RagConfig) error {
+func UpdateRagConfig(ctx *gin.Context, userId, orgId string, req request.RagConfig) error {
 	var modelConfig *common.AppModelConfig
 	var err error
 	if req.ModelConfig != nil {
@@ -156,6 +159,7 @@ func UpdateRagConfig(ctx *gin.Context, req request.RagConfig) error {
 		SensitiveConfig:       sensitiveConfig,
 		VisionConfig:          visionConfig,
 		RecommendQuestion:     req.RecommendQuestion,
+		Identity:              &rag_service.Identity{UserId: userId, OrgId: orgId},
 	})
 	return err
 }
@@ -399,31 +403,41 @@ func buildRagQAGlobalConfig(kbConfig request.AppQAKnowledgebaseParams) *rag_serv
 	}
 }
 
-func DeleteRag(ctx *gin.Context, req request.RagReq, userId, orgId string) error {
+func DeleteRag(ctx *gin.Context, userId, orgId string, req request.RagReq) error {
 	_, err := rag.DeleteRag(ctx.Request.Context(), &rag_service.RagDeleteReq{
-		RagId: req.RagID,
-		Identity: &rag_service.Identity{
-			UserId: userId,
-			OrgId:  orgId,
-		},
+		RagId:    req.RagID,
+		Identity: &rag_service.Identity{UserId: userId, OrgId: orgId},
 	})
 	return err
 }
 
-func GetRag(ctx *gin.Context, req request.RagReq, needPublished bool) (*response.RagInfo, error) {
+// GetRag userId/orgId 均为空表示不做校验（管理员中心跨用户查看详情）。
+// 草稿按归属过滤；已发布走发布范围校验——GET /appspace/rag 同时挂在 exploration.app 下，
+// 探索页 /explore/rag 用它渲染别人发布的应用，不能按归属拦
+func GetRag(ctx *gin.Context, userId, orgId string, req request.RagReq, needPublished bool) (*response.RagInfo, error) {
+	var identity *rag_service.Identity
+	if !needPublished {
+		identity = &rag_service.Identity{UserId: userId, OrgId: orgId}
+	}
 	resp, err := rag.GetRagDetail(ctx.Request.Context(), &rag_service.RagDetailReq{
-		RagId:   req.RagID,
-		Publish: util.IfElse(needPublished, int32(1), int32(0)),
-		Version: req.Version,
+		RagId:    req.RagID,
+		Publish:  util.IfElse(needPublished, int32(1), int32(0)),
+		Version:  req.Version,
+		Identity: identity,
 	})
 	if err != nil {
 		return nil, err
+	}
+	appInfo, _ := app.GetAppInfo(ctx.Request.Context(), &app_service.GetAppInfoReq{AppId: req.RagID, AppType: constant.AppTypeRag})
+	if needPublished {
+		if err := checkRagPublishScope(userId, orgId, req.RagID, resp.GetIdentity(), appInfo); err != nil {
+			return nil, err
+		}
 	}
 	modelConfig, rerankConfig, qaRerankConfig, err := appModelRerankProto2Model(ctx, resp)
 	if err != nil {
 		log.Errorf("ragId: %v gets config fail: %v", req.RagID, err.Error())
 	}
-	appInfo, _ := app.GetAppInfo(ctx.Request.Context(), &app_service.GetAppInfoReq{AppId: req.RagID, AppType: constant.AppTypeRag})
 	ragInfo := &response.RagInfo{
 		RagID:                 resp.RagId,
 		AppBriefConfig:        appBriefConfigProto2Model(ctx, resp.BriefConfig, constant.AppTypeRag),
@@ -441,6 +455,31 @@ func GetRag(ctx *gin.Context, req request.RagReq, needPublished bool) (*response
 	}
 
 	return ragInfo, nil
+}
+
+// checkRagPublishScope 已发布 rag 的访问校验：本人不受限，其余按发布范围放行。
+// 规则与探索列表的 sqlopt.WithSearchType 保持一致：public 全体可见、organization
+// 限同组织、private 仅本人；没有发布记录（appInfo 为空）则只有本人可见。
+// userId/orgId 均为空表示不校验（管理员中心）
+func checkRagPublishScope(userId, orgId, ragId string, owner *rag_service.Identity, appInfo *app_service.AppInfo) error {
+	// 管理员中心不校验
+	if userId == "" && orgId == "" {
+		return nil
+	}
+	// 本人
+	if owner.GetUserId() == userId && owner.GetOrgId() == orgId {
+		return nil
+	}
+	// 发布范围
+	switch appInfo.GetPublishType() {
+	case constant.AppPublishPublic:
+		return nil
+	case constant.AppPublishOrganization:
+		if appInfo.GetOrgId() == orgId {
+			return nil
+		}
+	}
+	return grpc_util.ErrorStatusWithKey(err_code.Code_RagInfoNotExist, "rag_info_not_exist", ragId)
 }
 
 func appModelRerankProto2Model(ctx *gin.Context, resp *rag_service.RagInfo) (request.AppModelConfig, request.AppModelConfig, request.AppModelConfig, error) {
