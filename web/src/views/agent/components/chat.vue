@@ -106,6 +106,7 @@ import {
   convertLatexSyntax,
   parseSubConversation,
   getXClientId,
+  formatReqUrl,
 } from '@/utils/util.js';
 import { processToolResultBlocks } from '@/utils/toolResultProcessor.js';
 import {
@@ -650,7 +651,7 @@ export default {
       }
 
       const _this = this;
-      fetchEventSource(api, {
+      fetchEventSource(formatReqUrl(api), {
         method: 'POST',
         signal,
         openWhenHidden: true,
