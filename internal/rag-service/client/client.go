@@ -9,7 +9,7 @@ import (
 )
 
 type IClient interface {
-	DeleteRag(ctx context.Context, req *rag_service.RagDeleteReq) *err_code.Status
+	DeleteRag(ctx context.Context, req *rag_service.RagDeleteReq, userId, orgId string) *err_code.Status
 	GetRag(ctx context.Context, req *rag_service.RagDetailReq) (*rag_service.RagInfo, *err_code.Status)
 	GetRagList(ctx context.Context, req *rag_service.RagListReq) (*rag_service.RagListResp, *err_code.Status)
 	AdminRagPageList(ctx context.Context, req *rag_service.AdminRagPageListReq) (*rag_service.AdminRagPageListResp, *err_code.Status)

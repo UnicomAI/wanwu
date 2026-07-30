@@ -55,9 +55,11 @@ func UpdateSensitiveWordTable(ctx *gin.Context, userId, orgId string, req *reque
 	return nil
 }
 
-func DeleteSensitiveWordTable(ctx *gin.Context, req *request.DeleteSensitiveWordTableReq) error {
+func DeleteSensitiveWordTable(ctx *gin.Context, req *request.DeleteSensitiveWordTableReq, userId, orgId string) error {
 	_, err := safety.DeleteSensitiveWordTable(ctx.Request.Context(), &safety_service.DeleteSensitiveWordTableReq{
 		TableId: req.TableId,
+		UserId:  userId,
+		OrgId:   orgId,
 	})
 	if err != nil {
 		return err
@@ -138,10 +140,12 @@ func UploadSensitiveVocabulary(ctx *gin.Context, userId, orgId string, req *requ
 	return nil
 }
 
-func DeleteSensitiveVocabulary(ctx *gin.Context, req *request.DeleteSensitiveVocabularyReq) error {
+func DeleteSensitiveVocabulary(ctx *gin.Context, req *request.DeleteSensitiveVocabularyReq, userId, orgId string) error {
 	_, err := safety.DeleteSensitiveVocabulary(ctx.Request.Context(), &safety_service.DeleteSensitiveVocabularyReq{
 		TableId: req.TableId,
 		WordId:  req.WordId,
+		UserId:  userId,
+		OrgId:   orgId,
 	})
 	if err != nil {
 		return err

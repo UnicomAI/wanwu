@@ -173,6 +173,8 @@ message GetCustomMCPReq {
 
 message DeleteCustomMCPReq {
   string mcpId = 1;
+  string orgId = 2;
+  string userId = 3;
 }
 
 message GetCustomMCPListReq {
@@ -411,6 +413,7 @@ message UpdateCustomToolReq {
 
 message DeleteCustomToolReq {
   string customToolId = 1;
+  Identity identity = 2;
 }
 
 message GetSquareToolReq {
@@ -516,6 +519,7 @@ message GetMCPServerReq {
 
 message DeleteMCPServerReq {
   string mcpServerId = 1;
+  Identity identity = 2;
 }
 
 message GetMCPServerListReq {
@@ -530,6 +534,7 @@ message GetMCPServerListResp {
 message CreateMCPServerToolReq {
   string mcpServerId = 1;
   repeated MCPServerToolInfo mcpServiceToolInfos = 2;
+  Identity identity = 3;
 }
 
 message UpdateMCPServerToolReq {
@@ -541,6 +546,7 @@ message UpdateMCPServerToolReq {
 
 message DeleteMCPServerToolReq {
   string mcpServerToolId = 1;
+  Identity identity = 2;
 }
 
 message GetMCPServerToolReq {

@@ -36,13 +36,21 @@ func (c *Client) CreateAcquiredSkill(ctx context.Context, acquiredSkill *model.A
 	return util.Int2Str(acquiredSkill.ID), nil
 }
 
-func (c *Client) DeleteAcquiredSkill(ctx context.Context, acquiredSkillId string) *err_code.Status {
+func (c *Client) DeleteAcquiredSkill(ctx context.Context, acquiredSkillId, userId, orgId string) *err_code.Status {
 	id := util.MustU32(acquiredSkillId)
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		if err := sqlopt.WithAcquiredSkillID(acquiredSkillId).Apply(tx).Delete(&model.AcquiredSkillVariable{}).Error; err != nil {
+		if err := sqlopt.SQLOptions(
+			sqlopt.WithAcquiredSkillID(acquiredSkillId),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
+		).Apply(tx).Delete(&model.AcquiredSkillVariable{}).Error; err != nil {
 			return toErrStatus("mcp_acquired_skill_delete_variables", err.Error())
 		}
-		if err := sqlopt.WithID(id).Apply(tx).Delete(&model.AcquiredSkill{}).Error; err != nil {
+		if err := sqlopt.SQLOptions(
+			sqlopt.WithID(id),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
+		).Apply(tx).Delete(&model.AcquiredSkill{}).Error; err != nil {
 			return toErrStatus("mcp_acquired_skill_delete", err.Error())
 		}
 		return nil

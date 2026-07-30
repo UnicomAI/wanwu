@@ -20,9 +20,21 @@ func (c *Client) CreateCustomSkill(ctx context.Context, customSkill *model.Custo
 	return util.Int2Str(customSkill.ID), nil
 }
 
-func (c *Client) DeleteCustomSkill(ctx context.Context, skillId string) *err_code.Status {
+func (c *Client) DeleteCustomSkill(ctx context.Context, skillId, userId, orgId string) *err_code.Status {
 	id := util.MustU32(skillId)
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
+		// 0. Pre-check: verify ownership before any cascading deletes to prevent data destruction on unowned skills
+		var count int64
+		if err := sqlopt.SQLOptions(
+			sqlopt.WithID(id),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
+		).Apply(tx).Model(&model.CustomSkill{}).Count(&count).Error; err != nil {
+			return toErrStatus("mcp_custom_skill_delete", err.Error())
+		}
+		if count == 0 {
+			return toErrStatus("mcp_custom_skill_delete", "custom skill not found or not owned by user")
+		}
 		var acquiredList []*model.AcquiredSkill
 		if err := sqlopt.WithCustomSkillID(skillId).Apply(tx).Find(&acquiredList).Error; err != nil {
 			return toErrStatus("mcp_custom_skill_delete_acquired_list", err.Error())
@@ -46,7 +58,11 @@ func (c *Client) DeleteCustomSkill(ctx context.Context, skillId string) *err_cod
 		if err := sqlopt.WithSkillID(skillId).Apply(tx).Delete(&model.CustomSkillPublish{}).Error; err != nil {
 			return toErrStatus("mcp_custom_skill_delete_publish", err.Error())
 		}
-		if err := sqlopt.WithID(id).Apply(tx).Delete(&model.CustomSkill{}).Error; err != nil {
+		if err := sqlopt.SQLOptions(
+			sqlopt.WithID(id),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
+		).Apply(tx).Delete(&model.CustomSkill{}).Error; err != nil {
 			return toErrStatus("mcp_custom_skill_delete", err.Error())
 		}
 		return nil

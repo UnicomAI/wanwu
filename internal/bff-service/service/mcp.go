@@ -136,18 +136,24 @@ func GetMCP(ctx *gin.Context, mcpID string) (*response.MCPDetail, error) {
 	return toMCPCustomDetail(ctx, mcpDetail), nil
 }
 
-func DeleteMCP(ctx *gin.Context, mcpID string) error {
+func DeleteMCP(ctx *gin.Context, userID, orgID, mcpID string) error {
 	// 删除智能体表AssistantMCP相关记录
 	_, err := assistant.AssistantMCPDeleteByMCPId(ctx.Request.Context(), &assistant_service.AssistantMCPDeleteByMCPIdReq{
 		McpId:   mcpID,
 		McpType: constant.MCPTypeMCP,
+		Identity: &assistant_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	})
 	if err != nil {
 		return err
 	}
 
 	_, err = mcp.DeleteCustomMCP(ctx.Request.Context(), &mcp_service.DeleteCustomMCPReq{
-		McpId: mcpID,
+		McpId:  mcpID,
+		OrgId:  orgID,
+		UserId: userID,
 	})
 	return err
 }

@@ -122,8 +122,12 @@ func (c *Client) UpdateCustomTool(ctx context.Context, customTool *model.CustomT
 	})
 }
 
-func (c *Client) DeleteCustomTool(ctx context.Context, ID uint32) *err_code.Status {
-	if err := sqlopt.WithID(ID).Apply(c.db).WithContext(ctx).Delete(&model.CustomTool{}).Error; err != nil {
+func (c *Client) DeleteCustomTool(ctx context.Context, ID uint32, userID, orgID string) *err_code.Status {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithID(ID),
+		sqlopt.WithUserID(userID),
+		sqlopt.WithOrgID(orgID),
+	).Apply(c.db).WithContext(ctx).Delete(&model.CustomTool{}).Error; err != nil {
 		return toErrStatus("mcp_delete_custom_tool_err", err.Error())
 	}
 	return nil

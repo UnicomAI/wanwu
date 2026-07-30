@@ -42,7 +42,7 @@ func jwtUserAuth(ctx *gin.Context, token string) {
 	if claims.BufferTime <= time.Now().Unix() {
 		newClaims, newToken, _ := jwt_util.GenerateToken(claims.UserID, jwt_util.UserTokenTimeout)
 		ctx.Header("new-token", newToken)
-		ctx.Header("new-expires-at", util.Int2Str(newClaims.ExpiresAt))
+		ctx.Header("new-expires-at", util.Int2Str(newClaims.ExpiresAt.Unix()))
 	}
 	ctx.Set(gin_util.CLAIMS, claims)
 	ctx.Next()

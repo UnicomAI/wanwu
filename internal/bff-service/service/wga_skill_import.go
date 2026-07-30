@@ -113,7 +113,13 @@ func ImportGeneralAgentSkillConversation(ctx *gin.Context, userId, orgId string,
 
 func rollbackImportedSkillConversation(ctx *gin.Context, userId, orgId, threadId, customSkillId string) {
 	if customSkillId != "" {
-		_, _ = mcp.CustomSkillDelete(ctx.Request.Context(), &mcp_service.CustomSkillDeleteReq{SkillId: customSkillId})
+		_, _ = mcp.CustomSkillDelete(ctx.Request.Context(), &mcp_service.CustomSkillDeleteReq{
+			SkillId: customSkillId,
+			Identity: &mcp_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
+		})
 		_ = cleanupCustomSkillWorkspace(customSkillId)
 	}
 	if threadId != "" {

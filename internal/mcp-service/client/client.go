@@ -13,7 +13,7 @@ type IClient interface {
 	GetMCP(ctx context.Context, mcpID uint32) (*model.MCPClient, *errs.Status)
 	CreateMCP(ctx context.Context, mcp *model.MCPClient) *errs.Status
 	UpdateMCP(ctx context.Context, mcp *model.MCPClient) *errs.Status
-	DeleteMCP(ctx context.Context, mcpID uint32) *errs.Status
+	DeleteMCP(ctx context.Context, mcpID uint32, userID, orgID string) *errs.Status
 	ListMCPs(ctx context.Context, orgID, userID, name string) ([]*model.MCPClient, *errs.Status)
 	ListMCPsAdmin(ctx context.Context, orgIDs, userIDs []string, name string, pageNo, pageSize int) ([]*model.MCPClient, int64, *errs.Status)
 	ListMCPsByMCPIdList(ctx context.Context, mcpIDList []uint32) ([]*model.MCPClient, *errs.Status)
@@ -24,7 +24,7 @@ type IClient interface {
 	ListCustomToolsAdmin(ctx context.Context, orgIDs, userIDs []string, name string, pageNo, pageSize int) ([]*model.CustomTool, int64, *errs.Status)
 	ListCustomToolsByCustomToolIDs(ctx context.Context, customToolIDs []uint32) ([]*model.CustomTool, *errs.Status)
 	UpdateCustomTool(ctx context.Context, customTool *model.CustomTool) *errs.Status
-	DeleteCustomTool(ctx context.Context, customToolID uint32) *errs.Status
+	DeleteCustomTool(ctx context.Context, customToolID uint32, userID, orgID string) *errs.Status
 	ListBuiltinTools(ctx context.Context, orgID, userID string) ([]*model.BuiltinTool, *errs.Status)
 	ListBuiltinToolsBySquareIdList(ctx context.Context, squareList []string) ([]*model.BuiltinTool, *errs.Status)
 	GetBuiltinTool(ctx context.Context, builtinTool *model.BuiltinTool) (*model.BuiltinTool, *errs.Status)
@@ -35,20 +35,20 @@ type IClient interface {
 	GetMCPServer(ctx context.Context, mcpServerId string) (*model.MCPServer, *errs.Status)
 	CreateMCPServer(ctx context.Context, mcpServer *model.MCPServer) *errs.Status
 	UpdateMCPServer(ctx context.Context, mcpServer *model.MCPServer) *errs.Status
-	DeleteMCPServer(ctx context.Context, mcpServerId string) *errs.Status
+	DeleteMCPServer(ctx context.Context, mcpServerId, userID, orgID string) *errs.Status
 	ListMCPServers(ctx context.Context, orgID, userID, name string) ([]*model.MCPServer, *errs.Status)
 	ListMCPServersAdmin(ctx context.Context, orgIDs, userIDs []string, name string, pageNo, pageSize int) ([]*model.MCPServer, int64, *errs.Status)
 	ListMCPServerByIdList(ctx context.Context, mcpServerIdList []string) ([]*model.MCPServer, *errs.Status)
 	GetMCPServerTool(ctx context.Context, mcpServerToolId string) (*model.MCPServerTool, *errs.Status)
 	CreateMCPServerTool(ctx context.Context, mcpServerTools []*model.MCPServerTool) *errs.Status
 	UpdateMCPServerTool(ctx context.Context, mcpServerTool *model.MCPServerTool) *errs.Status
-	DeleteMCPServerTool(ctx context.Context, mcpServerToolId string) *errs.Status
+	DeleteMCPServerTool(ctx context.Context, mcpServerToolId, userID, orgID string) *errs.Status
 	ListMCPServerTools(ctx context.Context, mcpServerId string) ([]*model.MCPServerTool, *errs.Status)
 	CountMCPServerTools(ctx context.Context, mcpServerId string) (int64, *errs.Status)
 
 	//================CustomSkill================
 	CreateCustomSkill(ctx context.Context, customSkill *model.CustomSkill) (string, *errs.Status)
-	DeleteCustomSkill(ctx context.Context, skillId string) *errs.Status
+	DeleteCustomSkill(ctx context.Context, skillId, userId, orgId string) *errs.Status
 	GetCustomSkill(ctx context.Context, skillId string) (*model.CustomSkill, *errs.Status)
 	GetCustomSkillByPreviewThreadID(ctx context.Context, previewThreadId string) (*model.CustomSkill, *errs.Status)
 	GetCustomSkillByWgaThreadID(ctx context.Context, wgaThreadID string) (*model.CustomSkill, *errs.Status)
@@ -73,7 +73,7 @@ type IClient interface {
 
 	//================AcquiredSkill================
 	CreateAcquiredSkill(ctx context.Context, acquiredSkill *model.AcquiredSkill) (string, *errs.Status)
-	DeleteAcquiredSkill(ctx context.Context, acquiredSkillId string) *errs.Status
+	DeleteAcquiredSkill(ctx context.Context, acquiredSkillId, userId, orgId string) *errs.Status
 	GetAcquiredSkill(ctx context.Context, acquiredSkillId string) (*model.AcquiredSkill, *errs.Status)
 	GetAcquiredSkillByIDList(ctx context.Context, acquiredSkillIdList []string) ([]*model.AcquiredSkill, *errs.Status)
 	GetAcquiredSkillList(ctx context.Context, userId, orgId, name string) ([]*model.AcquiredSkill, int64, *errs.Status)

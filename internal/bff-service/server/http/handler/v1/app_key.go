@@ -61,7 +61,7 @@ func DelAppKey(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.DelAppKey(ctx, req)
+	err := service.DelAppKey(ctx, getUserID(ctx), getOrgID(ctx), req)
 	gin_util.Response(ctx, nil, err)
 }
 

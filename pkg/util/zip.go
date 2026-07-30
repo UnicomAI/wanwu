@@ -64,22 +64,21 @@ func UnzipDir(ctx context.Context, localFilePath string, destDir string) (extrac
 		if f.Flags&ZipEFSFlag == 0 {
 			decodeFileName = DecodeGBKToUTF8(decodeFileName)
 		}
-		// 构建完整的文件路径
+		if err := ValidateArchivePath(decodeFileName); err != nil {
+			log.Errorf("UnzipDir skip unsafe entry: %s, error: %v", decodeFileName, err)
+			continue
+		}
 		destFilePath := filepath.Join(destDir, decodeFileName)
-		// 检查是否为目录
 		if f.FileInfo().IsDir() {
-			// 创建目录
 			if err := os.MkdirAll(destFilePath, f.Mode()); err != nil {
 				log.Errorf("UnzipDir create directory (%s) error: %v", destFilePath, err)
 			}
 			continue
 		}
-		// 我们需要确保所有的文件夹都已经创建好
 		err = os.MkdirAll(filepath.Dir(destFilePath), f.Mode())
 		if err != nil {
 			return "", err
 		}
-		//写入文件
 		err = writeUnzipFile(f, destFilePath)
 		if err != nil {
 			return "", err

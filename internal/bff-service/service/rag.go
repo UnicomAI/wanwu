@@ -399,9 +399,13 @@ func buildRagQAGlobalConfig(kbConfig request.AppQAKnowledgebaseParams) *rag_serv
 	}
 }
 
-func DeleteRag(ctx *gin.Context, req request.RagReq) error {
+func DeleteRag(ctx *gin.Context, req request.RagReq, userId, orgId string) error {
 	_, err := rag.DeleteRag(ctx.Request.Context(), &rag_service.RagDeleteReq{
 		RagId: req.RagID,
+		Identity: &rag_service.Identity{
+			UserId: userId,
+			OrgId:  orgId,
+		},
 	})
 	return err
 }

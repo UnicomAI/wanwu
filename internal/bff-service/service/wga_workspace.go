@@ -47,7 +47,9 @@ import (
 	ag_ui_util "github.com/UnicomAI/wanwu/pkg/ag-ui-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	path_util "github.com/UnicomAI/wanwu/pkg/path-util"
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	wga_persistent "github.com/UnicomAI/wanwu/pkg/wga-persistent"
 	aguievents "github.com/ag-ui-protocol/ag-ui/sdks/community/go/pkg/core/events"
@@ -403,7 +405,14 @@ func DownloadWgaWorkspace(store *wga_persistent.Store, runID, path string) (*Wga
 
 	targetPath := workDir
 	if path != "" {
-		targetPath = filepath.Join(workDir, path)
+		resolved, _, err := path_util.JoinWithinBase(workDir, path, true)
+		if err != nil {
+			return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("invalid path: %v", err))
+		}
+		if err := path_util.EnsureNoSymlinkInPath(workDir, resolved, true); err != nil {
+			return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("invalid path: %v", err))
+		}
+		targetPath = resolved
 	}
 
 	fi, err := os.Stat(targetPath)
@@ -456,7 +465,13 @@ func PreviewWgaWorkspace(store *wga_persistent.Store, runID, path string) (*WgaW
 		return nil, err
 	}
 
-	targetPath := filepath.Join(workDir, path)
+	targetPath, _, err := path_util.JoinWithinBase(workDir, path, false)
+	if err != nil {
+		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("invalid path: %v", err))
+	}
+	if err := path_util.EnsureNoSymlinkInPath(workDir, targetPath, true); err != nil {
+		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("invalid path: %v", err))
+	}
 
 	fi, err := os.Stat(targetPath)
 	if err != nil {
@@ -589,14 +604,24 @@ func DownloadWgaWorkspaceURLs(ctx context.Context, urls map[string]string, dir s
 		return fmt.Errorf("create dir %s failed: %w", dir, err)
 	}
 	for fileName, urlStr := range urls {
+		// Sanitize fileName to prevent path traversal (e.g. ../../etc/cron.d/evil)
+		cleanName, err := path_util.CleanRelPath(fileName, false)
+		if err != nil {
+			log.Warnf("[DownloadWgaWorkspaceURLs] skip unsafe fileName %q: %v", fileName, err)
+			continue
+		}
 		log.Infof("[DownloadWgaWorkspaceURLs] downloading URL %s to %s", urlStr, dir)
+		if err := url_util.ValidateURL(urlStr); err != nil {
+			log.Errorf("DownloadWgaWorkspaceURLs invalid URL %s: %v", urlStr, err)
+			continue
+		}
 		resp, err := trace_util.NewResty(ctx).R().SetContext(ctx).Get(urlStr)
 		if err != nil {
 			log.Errorf("[DownloadWgaWorkspaceURLs] download URL %s failed: %v", urlStr, err)
 			continue
 		}
 		bodyBytes := resp.Body()
-		filePath := filepath.Join(dir, fileName)
+		filePath := filepath.Join(dir, cleanName)
 		if err := os.WriteFile(filePath, bodyBytes, 0644); err != nil {
 			log.Errorf("[DownloadWgaWorkspaceURLs] save file %s failed: %v", filePath, err)
 			continue

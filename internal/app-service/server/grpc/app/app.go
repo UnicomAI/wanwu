@@ -63,7 +63,7 @@ func (s *Service) GetAppList(ctx context.Context, req *app_service.GetAppListReq
 }
 
 func (s *Service) DeleteApp(ctx context.Context, req *app_service.DeleteAppReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteApp(ctx, req.AppId, req.AppType)
+	err := s.cli.DeleteApp(ctx, req.AppId, req.AppType, req.UserId, req.OrgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_AppGeneral, err)
 	}

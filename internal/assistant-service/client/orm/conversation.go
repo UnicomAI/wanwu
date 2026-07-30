@@ -33,8 +33,12 @@ func (c *Client) UpdateConversation(ctx context.Context, conversation *model.Con
 	return nil
 }
 
-func (c *Client) DeleteConversation(ctx context.Context, conversationID uint32) *err_code.Status {
-	if err := sqlopt.WithID(conversationID).Apply(c.db.WithContext(ctx).Model(&model.Conversation{})).Delete(&model.Conversation{}).Error; err != nil {
+func (c *Client) DeleteConversation(ctx context.Context, conversationID uint32, userId, orgId string) *err_code.Status {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithID(conversationID),
+		sqlopt.WithUserID(userId),
+		sqlopt.WithOrgID(orgId),
+	).Apply(c.db.WithContext(ctx).Model(&model.Conversation{})).Delete(&model.Conversation{}).Error; err != nil {
 		return toErrStatus("assistant_conversation_delete", err.Error())
 	}
 	return nil

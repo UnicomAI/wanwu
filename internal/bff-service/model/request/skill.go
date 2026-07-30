@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	skill_var "github.com/UnicomAI/wanwu/pkg/skill-var"
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 )
 
 // --- Skill Variable ---
@@ -27,6 +28,11 @@ type CreateCustomSkillReq struct {
 }
 
 func (c *CreateCustomSkillReq) Check() error {
+	if c.ZipUrl != "" {
+		if err := url_util.ValidateURL(c.ZipUrl); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -51,6 +57,11 @@ type CheckCustomSkillReq struct {
 }
 
 func (c *CheckCustomSkillReq) Check() error {
+	if c.ZipUrl != "" {
+		if err := url_util.ValidateURL(c.ZipUrl); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

@@ -44,7 +44,7 @@ func (s *Service) WgaConversationCreate(ctx context.Context, req *assistant_serv
 
 // WgaConversationDelete 删除WGA对话
 func (s *Service) WgaConversationDelete(ctx context.Context, req *assistant_service.WgaConversationDeleteReq) (*emptypb.Empty, error) {
-	if status := s.cli.DeleteWgaConversationConfig(ctx, req.ThreadId); status != nil {
+	if status := s.cli.DeleteWgaConversationConfig(ctx, req.ThreadId, req.Identity.UserId, req.Identity.OrgId); status != nil {
 		return nil, errStatus(errs.Code_WgaConversationGetErr, status)
 	}
 	return &emptypb.Empty{}, nil

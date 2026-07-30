@@ -3,6 +3,7 @@ package request
 import (
 	"errors"
 
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 )
 
@@ -320,7 +321,6 @@ type UpdateKnowledgeExternalAPIReq struct {
 	Description   string `json:"description"`                       // 外部知识库API描述
 	BaseUrl       string `json:"baseUrl" validate:"required"`       // 外部知识库API endpoint
 	ApiKey        string `json:"apiKey" validate:"required"`        // 外部知识库API Key
-	CommonCheck
 }
 
 type DeleteKnowledgeExternalAPIReq struct {
@@ -454,7 +454,24 @@ func (c *CreateKnowledgeExternalAPIReq) Check() error {
 	if err := util.ValidateName(&c.Name, util.SubjectKnowledgeExternalAPI); err != nil {
 		return err
 	}
-	return util.ValidateDesc(&c.Description, util.SubjectKnowledgeExternalAPI)
+	if err := util.ValidateDesc(&c.Description, util.SubjectKnowledgeExternalAPI); err != nil {
+		return err
+	}
+	if c.BaseUrl != "" {
+		if err := url_util.ValidateURL(c.BaseUrl); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *UpdateKnowledgeExternalAPIReq) Check() error {
+	if c.BaseUrl != "" {
+		if err := url_util.ValidateURL(c.BaseUrl); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *CreateKnowledgeExternalReq) Check() error {

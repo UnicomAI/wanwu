@@ -12,7 +12,7 @@ type IClient interface {
 	//================Assistant================
 	CreateAssistant(ctx context.Context, assistant *model.Assistant) *err_code.Status
 	UpdateAssistant(ctx context.Context, assistant *model.Assistant) *err_code.Status
-	DeleteAssistant(ctx context.Context, assistantID uint32) *err_code.Status
+	DeleteAssistant(ctx context.Context, assistantID uint32, userId, orgId string) *err_code.Status
 	GetAssistant(ctx context.Context, assistantID uint32, userID, orgID string) (*model.Assistant, *err_code.Status)
 	GetAssistantsByIDs(ctx context.Context, assistantIDs []uint32) ([]*model.Assistant, *err_code.Status)
 	GetAssistantByUuid(ctx context.Context, uuid string) (*model.Assistant, *err_code.Status)
@@ -40,13 +40,13 @@ type IClient interface {
 	UpdateAssistantWorkflow(ctx context.Context, workflow *model.AssistantWorkflow) *err_code.Status
 	GetAssistantWorkflow(ctx context.Context, assistantId uint32, workflowId string) (*model.AssistantWorkflow, *err_code.Status)
 	GetAssistantWorkflowsByAssistantID(ctx context.Context, assistantId uint32) ([]*model.AssistantWorkflow, *err_code.Status)
-	DeleteAssistantWorkflowByWorkflowId(ctx context.Context, workflowId string) *err_code.Status
+	DeleteAssistantWorkflowByWorkflowId(ctx context.Context, workflowId string, userId, orgId string) *err_code.Status
 
 	//================AssistantMCP================
 	CreateAssistantMCP(ctx context.Context, assistantId uint32, mcpId, mcpType, actionName string, userId, orgID string) *err_code.Status
 	DeleteAssistantMCP(ctx context.Context, assistantId uint32, mcpId, mcpType, actionName string) *err_code.Status
 	GetAssistantMCP(ctx context.Context, assistantId uint32, mcpId, mcpType, actionName string) (*model.AssistantMCP, *err_code.Status)
-	DeleteAssistantMCPByMCPId(ctx context.Context, mcpId string, mcpType string) *err_code.Status
+	DeleteAssistantMCPByMCPId(ctx context.Context, mcpId string, mcpType string, userId, orgId string) *err_code.Status
 	GetAssistantMCPList(ctx context.Context, assistantId uint32) ([]*model.AssistantMCP, *err_code.Status)
 	UpdateAssistantMCP(ctx context.Context, mcp *model.AssistantMCP) *err_code.Status
 
@@ -57,7 +57,7 @@ type IClient interface {
 	UpdateAssistantToolConfig(ctx context.Context, assistantId uint32, toolId, toolConfig string) *err_code.Status
 	GetAssistantTool(ctx context.Context, assistantId uint32, toolId, toolType string, actionName string) (*model.AssistantTool, *err_code.Status)
 	GetAssistantToolList(ctx context.Context, assistantId uint32) ([]*model.AssistantTool, *err_code.Status)
-	DeleteAssistantToolByToolId(ctx context.Context, toolId string, toolType string) *err_code.Status
+	DeleteAssistantToolByToolId(ctx context.Context, toolId string, toolType string, userId, orgId string) *err_code.Status
 
 	//================Assistant Skill================
 	CreateAssistantSkill(ctx context.Context, assistantId uint32, skillId, skillType, userId, orgId string) *err_code.Status
@@ -69,13 +69,13 @@ type IClient interface {
 	//================Conversation================
 	CreateConversation(ctx context.Context, conversation *model.Conversation) *err_code.Status
 	UpdateConversation(ctx context.Context, conversation *model.Conversation) *err_code.Status
-	DeleteConversation(ctx context.Context, conversationID uint32) *err_code.Status
+	DeleteConversation(ctx context.Context, conversationID uint32, userId, orgId string) *err_code.Status
 	GetConversationByAssistantID(ctx context.Context, assistantID, conversationType string) (*model.Conversation, *err_code.Status)
 	GetConversationList(ctx context.Context, assistantID, conversationType, userID, orgID, searchText string, offset, limit int32) ([]*model.Conversation, int64, *err_code.Status)
 
 	//================CustomPrompt================
 	CreateCustomPrompt(ctx context.Context, avatarPath, name, desc, prompt, userId, orgID string) (string, *err_code.Status)
-	DeleteCustomPrompt(ctx context.Context, customPromptID uint32) *err_code.Status
+	DeleteCustomPrompt(ctx context.Context, customPromptID uint32, userId, orgId string) *err_code.Status
 	UpdateCustomPrompt(ctx context.Context, info *assistant_service.CustomPromptUpdateReq) *err_code.Status
 	GetCustomPrompt(ctx context.Context, customPromptID uint32) (*model.CustomPrompt, *err_code.Status)
 	GetCustomPromptList(ctx context.Context, userID, orgID string, name string) ([]*model.CustomPrompt, int64, *err_code.Status)
@@ -95,7 +95,7 @@ type IClient interface {
 	GetWgaConversationConfig(ctx context.Context, threadId string, userId, orgId string) (*model.WgaConversationConfig, *err_code.Status)
 	UpdateWgaConversationConfig(ctx context.Context, config *model.WgaConversationConfig) *err_code.Status
 	CreateWgaConversationConfig(ctx context.Context, config *model.WgaConversationConfig) *err_code.Status
-	DeleteWgaConversationConfig(ctx context.Context, threadId string) *err_code.Status
+	DeleteWgaConversationConfig(ctx context.Context, threadId string, userId, orgId string) *err_code.Status
 	GetWgaConversationConfigList(ctx context.Context, userID, orgID, searchText string, offset, limit int32) ([]*model.WgaConversationConfig, int64, *err_code.Status)
 	WgaConversationConfigExists(ctx context.Context, threadId, userID, orgID string) (bool, *err_code.Status)
 

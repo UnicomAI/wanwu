@@ -116,7 +116,7 @@ func (s *Service) AssistantDelete(ctx context.Context, req *assistant_service.As
 	assistantID := util.MustU32(req.AssistantId)
 
 	// 调用client方法删除智能体
-	if status := s.cli.DeleteAssistant(ctx, assistantID); status != nil {
+	if status := s.cli.DeleteAssistant(ctx, assistantID, req.Identity.UserId, req.Identity.OrgId); status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 

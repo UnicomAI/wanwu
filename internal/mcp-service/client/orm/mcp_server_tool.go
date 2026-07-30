@@ -36,8 +36,12 @@ func (c *Client) UpdateMCPServerTool(ctx context.Context, mcpServerTool *model.M
 	return nil
 }
 
-func (c *Client) DeleteMCPServerTool(ctx context.Context, mcpServerToolId string) *errs.Status {
-	if err := sqlopt.WithMcpServerToolId(mcpServerToolId).Apply(c.db).WithContext(ctx).Delete(&model.MCPServerTool{}).Error; err != nil {
+func (c *Client) DeleteMCPServerTool(ctx context.Context, mcpServerToolId, userID, orgID string) *errs.Status {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithMcpServerToolId(mcpServerToolId),
+		sqlopt.WithUserID(userID),
+		sqlopt.WithOrgID(orgID),
+	).Apply(c.db).WithContext(ctx).Delete(&model.MCPServerTool{}).Error; err != nil {
 		return toErrStatus("mcp_delete_mcp_server_tool_err", err.Error())
 	}
 	return nil

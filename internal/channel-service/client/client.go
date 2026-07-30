@@ -13,7 +13,7 @@ type IClient interface {
 	GetChannel(ctx context.Context, channelID string) (*model.Channel, error)
 	ListChannels(ctx context.Context, userID, orgID, name string, pageNo, pageSize int32) ([]*model.Channel, int64, error)
 	UpdateChannel(ctx context.Context, channelID string, updates map[string]interface{}) (*model.Channel, error)
-	DeleteChannel(ctx context.Context, channelID string) error
+	DeleteChannel(ctx context.Context, channelID, userID, orgID string) error
 	ListEnabledChannels(ctx context.Context) ([]*model.Channel, error)
 
 	// --- QR Session ---

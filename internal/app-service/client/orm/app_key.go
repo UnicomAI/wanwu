@@ -23,8 +23,12 @@ func (c *Client) GetAppKeyList(ctx context.Context, userId, orgId, appId, appTyp
 	return appKeys, nil
 }
 
-func (c *Client) DelAppKey(ctx context.Context, appKeyId uint32) *errs.Status {
-	if err := sqlopt.WithID(appKeyId).Apply(c.db.WithContext(ctx)).Delete(&model.ApiKey{}).Error; err != nil {
+func (c *Client) DelAppKey(ctx context.Context, appKeyId uint32, userId, orgId string) *errs.Status {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithID(appKeyId),
+		sqlopt.WithUserID(userId),
+		sqlopt.WithOrgID(orgId),
+	).Apply(c.db.WithContext(ctx)).Delete(&model.ApiKey{}).Error; err != nil {
 		return toErrStatus("app_api_key_delete", util.Int2Str(appKeyId), err.Error())
 	}
 	return nil

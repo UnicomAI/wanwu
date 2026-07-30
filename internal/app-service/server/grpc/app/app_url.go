@@ -39,7 +39,7 @@ func (s *Service) AppUrlCreate(ctx context.Context, req *app_service.AppUrlCreat
 // AppUrlDelete 删除智能体Url
 func (s *Service) AppUrlDelete(ctx context.Context, req *app_service.AppUrlDeleteReq) (*emptypb.Empty, error) {
 	// 调用client方法删除智能体Url
-	if status := s.cli.DeleteAppUrl(ctx, util.MustU32(req.UrlId)); status != nil {
+	if status := s.cli.DeleteAppUrl(ctx, util.MustU32(req.UrlId), req.UserId, req.OrgId); status != nil {
 		return nil, errStatus(errs.Code_AppUrl, status)
 	}
 	return &emptypb.Empty{}, nil

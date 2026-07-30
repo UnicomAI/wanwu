@@ -52,10 +52,19 @@ func (c *Client) UpdateAssistant(ctx context.Context, assistant *model.Assistant
 	})
 }
 
-func (c *Client) DeleteAssistant(ctx context.Context, assistantID uint32) *err_code.Status {
+func (c *Client) DeleteAssistant(ctx context.Context, assistantID uint32, userId, orgId string) *err_code.Status {
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		if err := sqlopt.WithID(assistantID).Apply(tx).Delete(&model.Assistant{}).Error; err != nil {
-			return toErrStatus("assistant_delete", err.Error())
+		// 1. Main delete with ownership filter — guard against 0 rows to prevent cascading deletes on unowned resources
+		result := sqlopt.SQLOptions(
+			sqlopt.WithID(assistantID),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
+		).Apply(tx).Delete(&model.Assistant{})
+		if result.Error != nil {
+			return toErrStatus("assistant_delete", result.Error.Error())
+		}
+		if result.RowsAffected == 0 {
+			return toErrStatus("assistant_delete", "assistant not found or not owned by user")
 		}
 		if err := sqlopt.WithAssistantID(assistantID).Apply(tx).Delete(&model.AssistantWorkflow{}).Error; err != nil {
 			return toErrStatus("assistant_delete", err.Error())

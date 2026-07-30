@@ -24,9 +24,11 @@ func CreateApiKey(ctx *gin.Context, userId, orgId string, req request.CreateAPIK
 	return toApiKeyResponse(keyInfo, getUserNameById(ctx, userId)), nil
 }
 
-func DeleteApiKey(ctx *gin.Context, req request.DeleteAPIKeyRequest) error {
+func DeleteApiKey(ctx *gin.Context, userId, orgId string, req request.DeleteAPIKeyRequest) error {
 	_, err := app.DeleteApiKey(ctx.Request.Context(), &app_service.DeleteApiKeyReq{
-		KeyId: req.KeyID,
+		KeyId:  req.KeyID,
+		UserId: userId,
+		OrgId:  orgId,
 	})
 	if err != nil {
 		return err

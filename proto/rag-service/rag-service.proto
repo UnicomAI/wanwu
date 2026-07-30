@@ -120,6 +120,7 @@ message RagInfo {
 
 message RagDeleteReq {
   string ragId = 1;
+  Identity identity = 2;
 }
 
 message RagDetailReq {

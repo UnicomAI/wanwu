@@ -55,7 +55,7 @@ func (c *Client) UnPublishApp(ctx context.Context, appId, appType, userId string
 		).Apply(tx).Delete(&model.ApiKey{}).Error; err != nil {
 			return fmt.Errorf("failed to delete api key: %v", err)
 		}
-		if err := deleteAppRelatedDataByUnPublish(tx, appId, appType); err != nil {
+		if err := deleteAppRelatedDataByUnPublish(tx, appId, appType, userId, ""); err != nil {
 			return err
 		}
 		return nil
@@ -81,20 +81,24 @@ func (c *Client) GetAppList(ctx context.Context, orgIds, userIds []string, appTy
 	return publishApps, nil
 }
 
-func (c *Client) DeleteApp(ctx context.Context, appId, appType string) *errs.Status {
+func (c *Client) DeleteApp(ctx context.Context, appId, appType, userId, orgId string) *errs.Status {
 	err := c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithAppID(appId),
 			sqlopt.WithAppType(appType),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
 		).Apply(tx).Delete(&model.ApiKey{}).Error; err != nil {
 			return fmt.Errorf("failed to delete api key: %v", err)
 		}
-		if err := deleteAppRelatedDataByUnPublish(tx, appId, appType); err != nil {
+		if err := deleteAppRelatedDataByUnPublish(tx, appId, appType, userId, orgId); err != nil {
 			return err
 		}
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithAppID(appId),
 			sqlopt.WithAppType(appType),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
 		).Apply(tx).Delete(&model.AppUrl{}).Error; err != nil {
 			return fmt.Errorf("failed to delete app open url: %v", err)
 		}
@@ -190,22 +194,26 @@ func (c *Client) ConvertAppType(ctx context.Context, appId, oldAppType, newAppTy
 }
 
 // 不包括apiKey
-func deleteAppRelatedDataByUnPublish(tx *gorm.DB, appId, appType string) error {
+func deleteAppRelatedDataByUnPublish(tx *gorm.DB, appId, appType, userId, orgId string) error {
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithAppID(appId),
 		sqlopt.WithAppType(appType),
+		sqlopt.WithUserID(userId),
+		sqlopt.WithOrgID(orgId),
 	).Apply(tx).Delete(&model.App{}).Error; err != nil {
 		return fmt.Errorf("failed to delete app: %v", err)
 	}
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithAppID(appId),
 		sqlopt.WithAppType(appType),
+		sqlopt.WithUserID(userId),
 	).Apply(tx).Delete(&model.AppHistory{}).Error; err != nil {
 		return fmt.Errorf("failed to delete app history: %v", err)
 	}
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithAppID(appId),
 		sqlopt.WithAppType(appType),
+		sqlopt.WithUserID(userId),
 	).Apply(tx).Delete(&model.AppFavorite{}).Error; err != nil {
 		return fmt.Errorf("failed to delete app favorite: %v", err)
 	}

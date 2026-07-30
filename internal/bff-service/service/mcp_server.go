@@ -118,11 +118,15 @@ func GetMCPServerDetail(ctx *gin.Context, mcpServerId string) (*response.MCPServ
 	return toMCPServerDetail(ctx, mcpServerInfo, mcpServerTools.List), nil
 }
 
-func DeleteMCPServer(ctx *gin.Context, mcpServerId string) error {
+func DeleteMCPServer(ctx *gin.Context, userID, orgID, mcpServerId string) error {
 	// 删除智能体表AssistantMCPServer相关记录
 	_, err := assistant.AssistantMCPDeleteByMCPId(ctx.Request.Context(), &assistant_service.AssistantMCPDeleteByMCPIdReq{
 		McpId:   mcpServerId,
 		McpType: constant.MCPTypeMCPServer,
+		Identity: &assistant_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	})
 	if err != nil {
 		return err
@@ -132,12 +136,18 @@ func DeleteMCPServer(ctx *gin.Context, mcpServerId string) error {
 	_, err = app.DeleteApp(ctx.Request.Context(), &app_service.DeleteAppReq{
 		AppId:   mcpServerId,
 		AppType: constant.AppTypeMCPServer,
+		UserId:  userID,
+		OrgId:   orgID,
 	})
 	if err != nil {
 		return err
 	}
 	_, err = mcp.DeleteMCPServer(ctx.Request.Context(), &mcp_service.DeleteMCPServerReq{
 		McpServerId: mcpServerId,
+		Identity: &mcp_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	})
 	if err != nil {
 		return err
@@ -170,7 +180,7 @@ func GetMCPServerList(ctx *gin.Context, userID, orgID, name string) (*response.L
 	}, nil
 }
 
-func CreateMCPServerTool(ctx *gin.Context, req request.MCPServerToolCreateReq) error {
+func CreateMCPServerTool(ctx *gin.Context, userID, orgID string, req request.MCPServerToolCreateReq) error {
 	var builder mcpServerToolBuilder
 	switch req.Type {
 	case constant.MCPServerToolTypeCustomTool:
@@ -185,7 +195,7 @@ func CreateMCPServerTool(ctx *gin.Context, req request.MCPServerToolCreateReq) e
 		// TODO
 	}
 
-	return createMCPServerTool(ctx, req.MCPServerID, builder, []string{req.MethodName})
+	return createMCPServerTool(ctx, userID, orgID, req.MCPServerID, builder, []string{req.MethodName})
 }
 
 func UpdateMCPServerTool(ctx *gin.Context, req request.MCPServerToolUpdateReq) error {
@@ -228,7 +238,7 @@ func UpdateMCPServerTool(ctx *gin.Context, req request.MCPServerToolUpdateReq) e
 	return err
 }
 
-func DeleteMCPServerTool(ctx *gin.Context, mcpServerToolId string) error {
+func DeleteMCPServerTool(ctx *gin.Context, userID, orgID, mcpServerToolId string) error {
 	toolInfo, err := mcp.GetMCPServerTool(ctx.Request.Context(), &mcp_service.GetMCPServerToolReq{
 		McpServerToolId: mcpServerToolId,
 	})
@@ -237,6 +247,10 @@ func DeleteMCPServerTool(ctx *gin.Context, mcpServerToolId string) error {
 	}
 	_, err = mcp.DeleteMCPServerTool(ctx.Request.Context(), &mcp_service.DeleteMCPServerToolReq{
 		McpServerToolId: mcpServerToolId,
+		Identity: &mcp_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	})
 	if err != nil {
 		return err
@@ -249,7 +263,7 @@ func DeleteMCPServerTool(ctx *gin.Context, mcpServerToolId string) error {
 }
 
 func CreateMCPServerOpenAPITool(ctx *gin.Context, userID, orgID string, req request.MCPServerOpenAPIToolCreate) error {
-	return createMCPServerTool(ctx, req.MCPServerID, &mcpServerOpenapiSchemaBuilder{
+	return createMCPServerTool(ctx, userID, orgID, req.MCPServerID, &mcpServerOpenapiSchemaBuilder{
 		name:   req.Name,
 		schema: req.Schema,
 		auth:   req.ApiAuth,
@@ -303,7 +317,7 @@ func GetMCPServerStreamable(ctx *gin.Context, mcpServerId string) error {
 
 // --- internal ---
 
-func createMCPServerTool(ctx *gin.Context, mcpServerID string, builder mcpServerToolBuilder, operationIDs []string) error {
+func createMCPServerTool(ctx *gin.Context, userID, orgID, mcpServerID string, builder mcpServerToolBuilder, operationIDs []string) error {
 	if !mcp_util.CheckMCPServerExist(mcpServerID) {
 		return grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_mcp_server_not_exist")
 	}
@@ -339,6 +353,10 @@ func createMCPServerTool(ctx *gin.Context, mcpServerID string, builder mcpServer
 	if _, err = mcp.CreateMCPServerTool(ctx.Request.Context(), &mcp_service.CreateMCPServerToolReq{
 		McpServerId:         mcpServerID,
 		McpServiceToolInfos: toolInfos,
+		Identity: &mcp_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	}); err != nil {
 		return err
 	}

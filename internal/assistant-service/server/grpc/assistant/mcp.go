@@ -32,7 +32,8 @@ func (s *Service) AssistantMCPDelete(ctx context.Context, req *assistant_service
 
 // AssistantMCPDeleteByMCPId 删除mcp
 func (s *Service) AssistantMCPDeleteByMCPId(ctx context.Context, req *assistant_service.AssistantMCPDeleteByMCPIdReq) (*emptypb.Empty, error) {
-	if status := s.cli.DeleteAssistantMCPByMCPId(ctx, req.McpId, req.McpType); status != nil {
+	userId, orgId := req.Identity.UserId, req.Identity.OrgId
+	if status := s.cli.DeleteAssistantMCPByMCPId(ctx, req.McpId, req.McpType, userId, orgId); status != nil {
 		return nil, errStatus(errs.Code_AssistantMCPErr, status)
 	}
 	return &emptypb.Empty{}, nil

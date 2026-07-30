@@ -50,10 +50,12 @@ func (c *Client) DeleteAssistantMCP(ctx context.Context, assistantId uint32, mcp
 	return nil
 }
 
-func (c *Client) DeleteAssistantMCPByMCPId(ctx context.Context, mcpId, mcpType string) *err_code.Status {
+func (c *Client) DeleteAssistantMCPByMCPId(ctx context.Context, mcpId, mcpType string, userId, orgId string) *err_code.Status {
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithMCPID(mcpId),
 		sqlopt.WithMCPType(mcpType),
+		sqlopt.WithUserID(userId),
+		sqlopt.WithOrgID(orgId),
 	).Apply(c.db.WithContext(ctx)).Delete(&model.AssistantMCP{}).Error; err != nil {
 		return toErrStatus("assistant_mcp_delete", err.Error())
 	}

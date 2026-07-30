@@ -15,13 +15,21 @@ import (
 	"gorm.io/gorm"
 )
 
-func (c *Client) DeleteRag(ctx context.Context, req *rag_service.RagDeleteReq) *err_code.Status {
+func (c *Client) DeleteRag(ctx context.Context, req *rag_service.RagDeleteReq, userId, orgId string) *err_code.Status {
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		err := sqlopt.WithRagID(req.RagId).Apply(tx.WithContext(ctx)).Delete(&model.RagInfo{}).Error
+		err := sqlopt.SQLOptions(
+			sqlopt.WithRagID(req.RagId),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
+		).Apply(tx.WithContext(ctx)).Delete(&model.RagInfo{}).Error
 		if err != nil {
 			return toErrStatus("rag_delete_err", err.Error())
 		}
-		err = sqlopt.WithRagID(req.RagId).Apply(tx.WithContext(ctx)).Delete(&model.RagPublish{}).Error
+		err = sqlopt.SQLOptions(
+			sqlopt.WithRagID(req.RagId),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
+		).Apply(tx.WithContext(ctx)).Delete(&model.RagPublish{}).Error
 		if err != nil {
 			return toErrStatus("rag_delete_err", err.Error())
 		}

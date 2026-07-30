@@ -3,6 +3,7 @@ package request
 import (
 	"fmt"
 
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 )
 
@@ -29,6 +30,13 @@ func (req *OpenAPIAgentChatRequest) Check() error {
 	if len(req.FileInfo) > 1 {
 		return fmt.Errorf("file_info 当前仅支持传 1 个文件")
 	}
+	for _, f := range req.FileInfo {
+		if f.FileUrl != "" {
+			if err := url_util.ValidateURL(f.FileUrl); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -42,6 +50,13 @@ type OpenAPIAgentDraftChatRequest struct {
 func (req *OpenAPIAgentDraftChatRequest) Check() error {
 	if len(req.FileInfo) > 1 {
 		return fmt.Errorf("file_info 当前仅支持传 1 个文件")
+	}
+	for _, f := range req.FileInfo {
+		if f.FileUrl != "" {
+			if err := url_util.ValidateURL(f.FileUrl); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }

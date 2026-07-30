@@ -22,6 +22,8 @@ func DeleteAppSpaceApp(ctx *gin.Context, userId, orgId, appId, appType string) e
 	_, err := app.DeleteApp(ctx.Request.Context(), &app_service.DeleteAppReq{
 		AppId:   appId,
 		AppType: appType,
+		UserId:  userId,
+		OrgId:   orgId,
 	})
 	if err != nil {
 		return err
@@ -31,14 +33,26 @@ func DeleteAppSpaceApp(ctx *gin.Context, userId, orgId, appId, appType string) e
 	case constant.AppTypeRag:
 		_, err = rag.DeleteRag(ctx.Request.Context(), &rag_service.RagDeleteReq{
 			RagId: appId,
+			Identity: &rag_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
 		})
 	case constant.AppTypeAgent:
 		_, err = assistant.AssistantDelete(ctx.Request.Context(), &assistant_service.AssistantDeleteReq{
 			AssistantId: appId,
+			Identity: &assistant_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
 		})
 	case constant.AppTypeWorkflow:
 		_, err = assistant.AssistantWorkFlowDeleteByWorkflowId(ctx.Request.Context(), &assistant_service.AssistantWorkFlowDeleteByWorkflowIdReq{
 			WorkflowId: appId,
+			Identity: &assistant_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
 		})
 		if err != nil {
 			return err
@@ -47,6 +61,10 @@ func DeleteAppSpaceApp(ctx *gin.Context, userId, orgId, appId, appType string) e
 	case constant.AppTypeChatflow:
 		_, err = assistant.AssistantWorkFlowDeleteByWorkflowId(ctx.Request.Context(), &assistant_service.AssistantWorkFlowDeleteByWorkflowIdReq{
 			WorkflowId: appId,
+			Identity: &assistant_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
 		})
 		if err != nil {
 			return err
@@ -232,6 +250,10 @@ func UnPublishApp(ctx *gin.Context, userId, orgId string, req request.UnPublishA
 	if req.AppType == constant.AppTypeWorkflow {
 		_, err := assistant.AssistantWorkFlowDeleteByWorkflowId(ctx.Request.Context(), &assistant_service.AssistantWorkFlowDeleteByWorkflowIdReq{
 			WorkflowId: req.AppId,
+			Identity: &assistant_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
 		})
 		if err != nil {
 			return err

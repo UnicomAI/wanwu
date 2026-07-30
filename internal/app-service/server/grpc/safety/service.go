@@ -53,7 +53,7 @@ func (s *Service) UpdateSensitiveWordTableReply(ctx context.Context, req *safety
 }
 
 func (s *Service) DeleteSensitiveWordTable(ctx context.Context, req *safety_service.DeleteSensitiveWordTableReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteSensitiveWordTable(ctx, util.MustU32(req.TableId))
+	err := s.cli.DeleteSensitiveWordTable(ctx, util.MustU32(req.TableId), req.UserId, req.OrgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_AppSafety, err)
 	}
@@ -99,7 +99,7 @@ func (s *Service) UploadSensitiveVocabulary(ctx context.Context, req *safety_ser
 }
 
 func (s *Service) DeleteSensitiveVocabulary(ctx context.Context, req *safety_service.DeleteSensitiveVocabularyReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteSensitiveVocabulary(ctx, util.MustU32(req.TableId), util.MustU32(req.WordId))
+	err := s.cli.DeleteSensitiveVocabulary(ctx, util.MustU32(req.TableId), util.MustU32(req.WordId), req.UserId, req.OrgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_AppSafety, err)
 	}

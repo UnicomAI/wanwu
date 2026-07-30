@@ -48,9 +48,13 @@ func (c *Client) CreateCustomPrompt(ctx context.Context, avatarPath, name, desc,
 	return strconv.Itoa(int(customPrompt.ID)), nil
 }
 
-func (c *Client) DeleteCustomPrompt(ctx context.Context, customPromptID uint32) *err_code.Status {
+func (c *Client) DeleteCustomPrompt(ctx context.Context, customPromptID uint32, userId, orgId string) *err_code.Status {
 	// 删除记录
-	if err := sqlopt.WithID(customPromptID).Apply(c.db.WithContext(ctx)).Delete(&model.CustomPrompt{}).Error; err != nil {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithID(customPromptID),
+		sqlopt.WithUserID(userId),
+		sqlopt.WithOrgID(orgId),
+	).Apply(c.db.WithContext(ctx)).Delete(&model.CustomPrompt{}).Error; err != nil {
 		return toErrStatus("assistant_custom_prompt_delete", err.Error())
 	}
 	return nil

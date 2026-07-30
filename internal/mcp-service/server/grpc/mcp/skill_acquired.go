@@ -26,7 +26,12 @@ func (s *Service) AcquiredSkillCreate(ctx context.Context, req *mcp_service.Acqu
 }
 
 func (s *Service) AcquiredSkillDelete(ctx context.Context, req *mcp_service.AcquiredSkillDeleteReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteAcquiredSkill(ctx, req.AcquiredSkillId)
+	if req.GetIdentity() == nil {
+		return nil, errStatus(errs.Code_MCPAcquiredSkillErr, toErrStatus("mcp_acquired_skill_delete", "identity is empty"))
+	}
+	userId := req.Identity.UserId
+	orgId := req.Identity.OrgId
+	err := s.cli.DeleteAcquiredSkill(ctx, req.AcquiredSkillId, userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_MCPAcquiredSkillErr, err)
 	}

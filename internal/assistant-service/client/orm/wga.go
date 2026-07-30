@@ -65,8 +65,12 @@ func (c *Client) CreateWgaConversationConfig(ctx context.Context, config *model.
 	return nil
 }
 
-func (c *Client) DeleteWgaConversationConfig(ctx context.Context, threadId string) *err_code.Status {
-	if err := sqlopt.WithThreadID(threadId).Apply(c.db.WithContext(ctx)).Delete(&model.WgaConversationConfig{}).Error; err != nil {
+func (c *Client) DeleteWgaConversationConfig(ctx context.Context, threadId string, userId, orgId string) *err_code.Status {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithThreadID(threadId),
+		sqlopt.WithUserID(userId),
+		sqlopt.WithOrgID(orgId),
+	).Apply(c.db.WithContext(ctx)).Delete(&model.WgaConversationConfig{}).Error; err != nil {
 		return toErrStatus("wga_conversation_delete", err.Error())
 	}
 	return nil

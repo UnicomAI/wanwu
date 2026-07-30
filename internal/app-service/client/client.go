@@ -11,7 +11,7 @@ import (
 type IClient interface {
 	// ---api key ---
 	CreateApiKey(ctx context.Context, userId, orgId, name, desc string, expiredAt int64, apiKey string) (*model.OpenApiKey, *err_code.Status)
-	DeleteApiKey(ctx context.Context, keyId uint32) *err_code.Status
+	DeleteApiKey(ctx context.Context, keyId uint32, userId, orgId string) *err_code.Status
 	UpdateApiKey(ctx context.Context, keyId uint32, userId, orgId, name, desc string, expiredAt int64) *err_code.Status
 	ListApiKeys(ctx context.Context, orgIds, userIds []string, offset, limit int32) ([]*model.OpenApiKey, int64, *err_code.Status)
 	UpdateApiKeyStatus(ctx context.Context, keyId uint32, status bool) *err_code.Status
@@ -19,7 +19,7 @@ type IClient interface {
 
 	// --- app key ---
 	GetAppKeyList(ctx context.Context, userId, orgId, appId, appType string) ([]*model.ApiKey, *err_code.Status)
-	DelAppKey(ctx context.Context, appKeyId uint32) *err_code.Status
+	DelAppKey(ctx context.Context, appKeyId uint32, userId, orgId string) *err_code.Status
 	GenAppKey(ctx context.Context, userId, orgId, appId, appType, appKey string) (*model.ApiKey, *err_code.Status)
 	GetAppKeyByKey(ctx context.Context, appKey string) (*model.ApiKey, *err_code.Status)
 
@@ -31,7 +31,7 @@ type IClient interface {
 	PublishApp(ctx context.Context, userId, orgId, appId, appType, publishType string) *err_code.Status
 	UnPublishApp(ctx context.Context, appId, appType, userId string) *err_code.Status
 	GetAppList(ctx context.Context, orgIds, userIds []string, appType string) ([]*model.App, *err_code.Status)
-	DeleteApp(ctx context.Context, appId, appType string) *err_code.Status
+	DeleteApp(ctx context.Context, appId, appType, userId, orgId string) *err_code.Status
 	RecordAppHistory(ctx context.Context, userId, appId, appType string) *err_code.Status
 	GetAppListByIds(ctx context.Context, ids []string, appType string) ([]*model.App, *err_code.Status)
 	GetAppInfo(ctx context.Context, appId, appType string) (*model.App, *err_code.Status)
@@ -41,11 +41,11 @@ type IClient interface {
 	CreateSensitiveWordTable(ctx context.Context, userId, orgId, tableName, remark, tableType string) (string, *err_code.Status)
 	UpdateSensitiveWordTable(ctx context.Context, tableId uint32, tableName, remark string) *err_code.Status
 	UpdateSensitiveWordTableReply(ctx context.Context, tableId uint32, reply string) *err_code.Status
-	DeleteSensitiveWordTable(ctx context.Context, tableId uint32) *err_code.Status
+	DeleteSensitiveWordTable(ctx context.Context, tableId uint32, userId, orgId string) *err_code.Status
 	GetSensitiveWordTableList(ctx context.Context, userId, orgId, tableType string) ([]*model.SensitiveWordTable, *err_code.Status)
 	GetSensitiveVocabularyList(ctx context.Context, tableId uint32, offset, limit int32) ([]*model.SensitiveWordVocabulary, int64, *err_code.Status)
 	UploadSensitiveVocabulary(ctx context.Context, userId, orgId, importType, word, sensitiveType, filePath string, tableId uint32) *err_code.Status
-	DeleteSensitiveVocabulary(ctx context.Context, tableId, wordId uint32) *err_code.Status
+	DeleteSensitiveVocabulary(ctx context.Context, tableId, wordId uint32, userId, orgId string) *err_code.Status
 	GetSensitiveWordTableListWithWordsByIDs(ctx context.Context, tableIds []string) ([]*orm.SensitiveWordTableWithWord, *err_code.Status)
 	GetSensitiveWordTableListByIDs(ctx context.Context, tableIds []string) ([]*model.SensitiveWordTable, *err_code.Status)
 	GetSensitiveWordTableByID(ctx context.Context, tableId uint32) (*model.SensitiveWordTable, *err_code.Status)
@@ -54,7 +54,7 @@ type IClient interface {
 
 	// --- web_url ---
 	CreateAppUrl(ctx context.Context, appUrl *model.AppUrl) *err_code.Status
-	DeleteAppUrl(ctx context.Context, urlID uint32) *err_code.Status
+	DeleteAppUrl(ctx context.Context, urlID uint32, userId, orgId string) *err_code.Status
 	UpdateAppUrl(ctx context.Context, appUrl *model.AppUrl) *err_code.Status
 	GetAppUrlList(ctx context.Context, appID, appType string) ([]*model.AppUrl, *err_code.Status)
 	GetAppUrlInfoBySuffix(ctx context.Context, suffix string) (*model.AppUrl, *err_code.Status)

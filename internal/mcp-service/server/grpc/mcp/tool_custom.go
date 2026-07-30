@@ -180,7 +180,12 @@ func (s *Service) DeleteCustomTool(ctx context.Context, req *mcp_service.DeleteC
 	if req.CustomToolId == "" {
 		return nil, errStatus(errs.Code_MCPDeleteCustomToolErr, toErrStatus("mcp_delete_custom_tool_err", "customToolId is empty"))
 	}
-	if err := s.cli.DeleteCustomTool(ctx, util.MustU32(req.CustomToolId)); err != nil {
+	if req.GetIdentity() == nil {
+		return nil, errStatus(errs.Code_MCPDeleteCustomToolErr, toErrStatus("mcp_delete_custom_tool_err", "identity is empty"))
+	}
+	userId := req.Identity.UserId
+	orgId := req.Identity.OrgId
+	if err := s.cli.DeleteCustomTool(ctx, util.MustU32(req.CustomToolId), userId, orgId); err != nil {
 		return nil, errStatus(errs.Code_MCPDeleteCustomToolErr, err)
 	}
 	return &emptypb.Empty{}, nil

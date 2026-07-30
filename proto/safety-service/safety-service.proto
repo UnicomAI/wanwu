@@ -78,6 +78,8 @@ message UpdateSensitiveWordTableReplyReq {
 
 message DeleteSensitiveWordTableReq {
   string tableId = 1; // 敏感词表id
+  string userId = 2;
+  string orgId = 3;
 }
 
 message GetSensitiveWordTableListReq {
@@ -99,6 +101,8 @@ message UploadSensitiveVocabularyReq {
 message DeleteSensitiveVocabularyReq {
   string tableId = 1; // 敏感词表id
   string wordId = 2; // 敏感词id
+  string userId = 3;
+  string orgId = 4;
 }
 
 message GetSensitiveVocabularyListReq {
