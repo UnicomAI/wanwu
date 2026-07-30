@@ -15,6 +15,7 @@ import (
 	mcp_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/mcp-util"
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
+	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
@@ -34,15 +35,22 @@ func StartMCPServer(ctx context.Context) error {
 			return err
 		}
 		var mcpTools []*mcp_util.McpTool
+		var hasErr bool
 		for _, tool := range mcpServerToolList.List {
 			tools, err := mcp_util.CreateMcpTools(ctx, tool.Schema, util.ConvertApiAuthProto(tool.ApiAuth), []string{tool.Name})
 			if err != nil {
-				return err
+				hasErr = true
+				log.Errorf("start mcp server(%v) create mcp tool(%v) err: %v", mcpServerInfo.McpServerId, tool.Name, err)
+				break
 			}
 			mcpTools = append(mcpTools, tools...)
 		}
+		if hasErr {
+			continue
+		}
 		if err = mcp_util.StartMCPServer(ctx, mcpServerInfo.McpServerId); err != nil {
-			return err
+			log.Errorf("start mcp server err: %v", err)
+			continue
 		}
 		if err = mcp_util.RegisterMCPServerTools(mcpServerInfo.McpServerId, mcpTools); err != nil {
 			return err
