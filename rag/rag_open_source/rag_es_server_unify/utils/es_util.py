@@ -4,6 +4,7 @@ import requests
 import uuid
 import warnings
 import json
+import re
 
 import utils.mapping_util as es_mapping
 from settings import KBNAME_MAPPING_INDEX, DELETE_BACTH_SIZE
@@ -1122,6 +1123,24 @@ def delete_index(index_name):
     return delete_status
 
 
+# 用于子串匹配的临时清洗：剔除 markdown 图片/链接语法与裸 URL，避免命中 URL 内部片段（如图片 UUID）
+_MD_IMAGE_RE = re.compile(r'!\[[^\]]*\]\([^)]*\)')   # ![alt](url)，含 alt 整体删除
+_MD_LINK_RE = re.compile(r'\[[^\]]*\]\([^)]*\)')      # [text](url)，含链接文字整体删除
+_BARE_URL_RE = re.compile(r'https?://[^\s)]+')        # 裸 http(s)://...
+
+
+def _content_for_matching(text: str) -> str:
+    """返回仅用于子串匹配的临时副本：剔除 markdown 图片/链接语法与裸 URL。
+    返回值绝不回传 UI —— hit 中的原始 content 保持不变。
+    链接显示文字按需求不参与匹配，故整段 [text](url) 一并删除。"""
+    if not text:
+        return ''
+    text = _MD_IMAGE_RE.sub('', text)
+    text = _MD_LINK_RE.sub('', text)
+    text = _BARE_URL_RE.sub('', text)
+    return text
+
+
 def get_file_content_list(index_name: str, kb_name: str, file_name: str, page_size: int, search_after: int,
                           query_text: str = None):
     """ 获取 主控表中 知识片段的分页展示 """
@@ -1161,7 +1180,12 @@ def get_file_content_list(index_name: str, kb_name: str, file_name: str, page_si
         )
         all_hits = [doc['_source'] for doc in response['hits']['hits']]
         # 字面子串过滤：仅保留 content 完全连续包含 query_text 的分段
-        filtered_hits = [h for h in all_hits if query_text in (h.get('content') or '')]
+        # 清洗临时副本（剔除图片/链接/裸 URL），避免命中 URL 内部片段（如图片 UUID）；
+        # 返回的 hit 中 content 仍为原始 markdown
+        filtered_hits = [
+            h for h in all_hits
+            if query_text in _content_for_matching(h.get('content') or '')
+        ]
         chunk_total_num = len(filtered_hits)
         # 切片分页
         page_list = filtered_hits[search_after: search_after + page_size]
