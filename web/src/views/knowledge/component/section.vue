@@ -141,7 +141,6 @@
 
     <div v-if="obj.disable !== 'true'" class="btn">
       <search-input
-        style="visibility: hidden"
         ref="searchInput"
         :placeholder="$t('knowledgeManage.segmentPlaceholder')"
         @handleSearch="handleSearch"
@@ -833,7 +832,7 @@ export default {
           docId: this.obj.id,
           parentId: row['childContent'][index].parentId,
           parentChunkNo: row.contentNum,
-          ChildChunkNoList: [row['childContent'][index].childNum],
+          childChunkNoList: [row['childContent'][index].childNum],
         })
           .then(res => {
             if (res.code === 0) {

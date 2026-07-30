@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	rag_service "github.com/UnicomAI/wanwu/api/proto/rag-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	ag_ui_util "github.com/UnicomAI/wanwu/pkg/ag-ui-util"
@@ -282,13 +283,26 @@ func ragStream(ctx *gin.Context, userId, orgId string, req request.ChatRagReques
 }
 
 func buildRagInfo(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool) (*rag_service.RagInfo, map[string]string, error) {
-	// 根据 ragID 获取敏感词配置
+	// 根据 ragID 获取敏感词配置。
+	// 草稿按归属过滤（只能问自己的）；已发布要服务探索页/公开应用，不能按归属拦，
+	// 改为按发布范围校验（见 checkRagPublishScope）
+	var identity *rag_service.Identity
+	if !needLatestPublished {
+		identity = &rag_service.Identity{UserId: userId, OrgId: orgId}
+	}
 	ragInfo, err := rag.GetRagDetail(ctx.Request.Context(), &rag_service.RagDetailReq{
-		RagId:   req.RagID,
-		Publish: util.IfElse(needLatestPublished, int32(1), int32(0)),
+		RagId:    req.RagID,
+		Publish:  util.IfElse(needLatestPublished, int32(1), int32(0)),
+		Identity: identity,
 	})
 	if err != nil {
 		return nil, nil, err
+	}
+	if needLatestPublished {
+		appInfo, _ := app.GetAppInfo(ctx.Request.Context(), &app_service.GetAppInfoReq{AppId: req.RagID, AppType: constant.AppTypeRag})
+		if err := checkRagPublishScope(userId, orgId, req.RagID, ragInfo.GetIdentity(), appInfo); err != nil {
+			return nil, nil, err
+		}
 	}
 	// 构造 kb_name → user_kb_name 映射（失败时仅退化为空 map，不中断对话）
 	kbNameMap := buildRagKbNameMap(ctx, userId, ragInfo)

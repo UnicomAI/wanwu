@@ -24,6 +24,8 @@ export default {
 .empty-img {
   display: block;
   margin: 0 auto;
+  width: 150px;
+  height: 150px;
 }
 .empty-tip {
   margin-top: 8px;

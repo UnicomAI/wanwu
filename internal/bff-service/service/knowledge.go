@@ -496,9 +496,6 @@ func buildKnowledgeInfoList(ctx *gin.Context, knowledgeListResp *knowledgebase_s
 	var list []*response.KnowledgeInfo
 	for _, knowledge := range knowledgeListResp.KnowledgeList {
 		avatar := cacheKnowledgeAvatar(ctx, knowledge.AvatarPath, knowledge.Category)
-		if avatar.Path != "" {
-			avatar.Path = config.Cfg().Server.ApiBaseUrl + avatar.Path
-		}
 		share := knowledge.ShareCount > 1
 		list = append(list, &response.KnowledgeInfo{
 			KnowledgeId: knowledge.KnowledgeId,

@@ -140,6 +140,20 @@ func DocStatusInit(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
+// GetDeployInfo
+//
+//	@Tags			callback
+//	@Summary		获取Maas平台部署信息（模型扩展调用）
+//	@Description	获取Maas平台部署信息（模型扩展调用）
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	response.Response{}
+//	@Router			/api/deploy/info [get]
+func GetDeployInfo(ctx *gin.Context) {
+	resp, err := service.GetDeployInfo(ctx)
+	gin_util.Response(ctx, resp, err)
+}
+
 // SearchKnowledgeBase
 //
 //	@Tags			callback

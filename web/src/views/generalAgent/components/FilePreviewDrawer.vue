@@ -63,9 +63,12 @@
             </audio>
           </div>
 
-          <!-- PDF 预览 -->
+          <!-- PDF 预览：#toolbar=0 隐藏浏览器内置查看器工具栏，否则它会用 blob URL 的随机串当文件名，显示成乱码 -->
           <div v-else-if="previewType === 'pdf'" class="preview-pdf-wrapper">
-            <iframe :src="previewUrl" class="preview-pdf"></iframe>
+            <iframe
+              :src="`${previewUrl}#toolbar=0`"
+              class="preview-pdf"
+            ></iframe>
           </div>
 
           <!-- PPT 预览 -->

@@ -168,6 +168,10 @@ func RollbackAppVersion(ctx *gin.Context, userID, orgID, appType, appID, version
 		_, err := rag.OverwriteRagDraft(ctx.Request.Context(), &rag_service.OverwriteRagDraftReq{
 			RagId:   appID,
 			Version: version,
+			Identity: &rag_service.Identity{
+				UserId: userID,
+				OrgId:  orgID,
+			},
 		})
 		return err
 	case constant.AppTypeSkill:

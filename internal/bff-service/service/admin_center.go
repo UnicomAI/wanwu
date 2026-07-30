@@ -622,9 +622,18 @@ func matchPublishFilter(publishType string, statusFilter, scopeFilter []string) 
 	return true
 }
 
+// adminRagNeedPublished 管理员中心看的是线上在跑的配置：发布过的取最新发布版本，没发布过的才取草稿
+func adminRagNeedPublished(ctx *gin.Context, ragId string) bool {
+	published, _ := rag.GetPublishRagDesc(ctx.Request.Context(), &rag_service.GetPublishRagDescReq{RagId: ragId})
+	return published.GetVersion() != ""
+}
+
 // AdminRagBase 管理员中心知识问答基础信息（拥有者取自 rag 归属，发布范围取自 app 发布类型）
 func AdminRagBase(ctx *gin.Context, req *request.AdminRagDetailReq) (*response.AdminRagBase, error) {
-	resp, err := rag.GetRagDetail(ctx.Request.Context(), &rag_service.RagDetailReq{RagId: req.RagId})
+	resp, err := rag.GetRagDetail(ctx.Request.Context(), &rag_service.RagDetailReq{
+		RagId:   req.RagId,
+		Publish: util.IfElse(adminRagNeedPublished(ctx, req.RagId), int32(1), int32(0)),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -650,7 +659,7 @@ func AdminRagBase(ctx *gin.Context, req *request.AdminRagDetailReq) (*response.A
 
 // AdminRagDetail 管理员中心知识问答详情：在全量 RagInfo 基础上，补全 llm/知识库Rerank/问答库Rerank 三个模型的头像与标签
 func AdminRagDetail(ctx *gin.Context, req *request.AdminRagDetailReq) (*response.AdminRagDetail, error) {
-	ragInfo, err := GetRag(ctx, request.RagReq{RagID: req.RagId}, false)
+	ragInfo, err := GetRag(ctx, "", "", request.RagReq{RagID: req.RagId}, adminRagNeedPublished(ctx, req.RagId))
 	if err != nil {
 		return nil, err
 	}
