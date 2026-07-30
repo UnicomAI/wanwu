@@ -27,10 +27,37 @@ const (
 )
 
 var (
-	muMap       sync.Map
+	muMap sync.Map
+	// commitRefRE 是针对命令注入的净化白名单：所有来自外部输入的 commit/ref
+	// 在进入 exec.CommandContext 的 argv 之前都必须经 ValidateCommitRef 校验。
+	// 仅放行 HEAD、十六进制 hash(7-40 位 SHA-1 或 64 位 SHA-256) 及 ~N/^N 后缀，
+	// 从源头拒绝以 - 开头的参数注入(如 --exec=)和 shell 元字符。
 	commitRefRE = regexp.MustCompile(`^(HEAD|[0-9a-fA-F]{7,40}|[0-9a-fA-F]{64})([~^][0-9]*)*$`)
 	tagNameRE   = regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+$`)
 )
+
+// sanitizeGitArgs 是 git 命令执行出口的兜底过滤器，在所有 exec.CommandContext
+// 调用前对 argv 逐项检查。本包以 argv 数组方式传参、不经 shell，故 shell 元字符
+// 本身不构成注入；此过滤器用于兜底拦截漏校验路径中混入的危险控制字符(\0 及除
+// \t/\n/\r 之外的 ASCII 控制字符、0x7f DEL)。放行 \t/\n/\r 是为了与 bff 层
+// GitCommitReq.Check() 的控制字符白名单保持一致——后者明确支持多行 commit message，
+// git -m 也接受多行信息；二者语义对齐可避免合法多行 message 在执行出口被误杀。
+// 它与 commitRefRE 互补：commitRefRE 在入口约束 commit 位置不能变成选项，
+// 此处约束任意位置不能含危险控制字符。
+func sanitizeGitArgs(args []string) error {
+	for _, a := range args {
+		for i := 0; i < len(a); i++ {
+			c := a[i]
+			if c == '\t' || c == '\n' || c == '\r' {
+				continue
+			}
+			if c < 0x20 || c == 0x7f {
+				return fmt.Errorf("arg contains control character: %q", a)
+			}
+		}
+	}
+	return nil
+}
 
 type limitedBuffer struct {
 	buf      bytes.Buffer
@@ -110,6 +137,9 @@ func runGitWithTimeout(dir string, timeout time.Duration, args ...string) ([]byt
 
 // runGitCombined 执行 Git 命令并限制合并输出大小。
 func runGitCombined(ctx context.Context, dir string, limit int, args ...string) ([]byte, error) {
+	if err := sanitizeGitArgs(args); err != nil {
+		return nil, fmt.Errorf("git args rejected: %w", err)
+	}
 	cmd := exec.CommandContext(ctx, "git", args...)
 	cmd.Dir = dir
 	cmd.Env = gitEnv(dir)
@@ -148,6 +178,9 @@ func runGitStdout(dir string, args ...string) (string, error) {
 
 // runGitStdoutBytes 执行 Git 命令并限制 stdout 字节数。
 func runGitStdoutBytes(dir string, limit int, args ...string) ([]byte, error) {
+	if err := sanitizeGitArgs(args); err != nil {
+		return nil, fmt.Errorf("git args rejected: %w", err)
+	}
 	ctx, cancel := commandContext(defaultTimeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "git", args...)
@@ -175,7 +208,9 @@ func ValidateRelPath(p string, allowEmpty bool) (string, error) {
 	return path_util.CleanRelPath(p, allowEmpty)
 }
 
-// ValidateCommitRef 校验 commit 引用格式。
+// ValidateCommitRef 校验 commit 引用格式，作为命令注入净化的入口白名单。
+// ref 为空时视为由调用方使用默认值(HEAD 等)而放行；非空则必须匹配 commitRefRE，
+// 否则拒绝，防止恶意输入进入 git 命令的 argv。
 func ValidateCommitRef(ref string) error {
 	if ref == "" {
 		return nil
