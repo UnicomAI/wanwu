@@ -9,7 +9,7 @@ import {
 import { mapActions, mapGetters } from 'vuex';
 import { i18n } from '@/lang';
 import StreamProcessor from '@/utils/streamProcessor.js';
-import { guid, getXClientId } from '@/utils/util';
+import { guid, getXClientId, formatReqUrl } from '@/utils/util';
 
 var originalFetch = window.fetch;
 
@@ -268,7 +268,7 @@ export default {
         ...rest
       } = options;
       this.ctrlAbort = new AbortController();
-      return new fetchEventSource(this.origin + url, {
+      return new fetchEventSource(this.origin + formatReqUrl(url), {
         method: 'POST',
         headers: headers || {
           'Content-Type': 'application/json',

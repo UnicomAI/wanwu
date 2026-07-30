@@ -57,6 +57,7 @@ import Print from '@/utils/printPlus2.js';
 import { fetchEventSource } from '@/sse/index.js';
 import { USER_API } from '@/utils/requestConstants';
 import ModelSelect from '@/components/modelSelect.vue';
+import { formatReqUrl } from '@/utils/util';
 
 export default {
   components: { ModelSelect },
@@ -119,7 +120,7 @@ export default {
       };
       this.loading = true;
 
-      const origin = window.location.origin + this.$basePath;
+      const origin = window.location.origin;
       const user = this.$store.state.user || {};
       const token = user.token;
       const userInfo = user.userInfo || {};
@@ -128,7 +129,7 @@ export default {
 
       this.ctrlAbort = new AbortController();
       this.eventSource = new fetchEventSource(
-        origin + `${USER_API}/prompt/optimize`,
+        origin + formatReqUrl(`${USER_API}/prompt/optimize`),
         {
           method: 'POST',
           headers: {
