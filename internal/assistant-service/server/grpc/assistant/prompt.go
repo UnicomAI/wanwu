@@ -22,7 +22,7 @@ func (s *Service) CustomPromptCreate(ctx context.Context, req *assistant_service
 }
 
 func (s *Service) CustomPromptDelete(ctx context.Context, req *assistant_service.CustomPromptDeleteReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteCustomPrompt(ctx, util.MustU32(req.CustomPromptId))
+	err := s.cli.DeleteCustomPrompt(ctx, util.MustU32(req.CustomPromptId), req.Identity.UserId, req.Identity.OrgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_AssistantCustomPromptErr, err)
 	}

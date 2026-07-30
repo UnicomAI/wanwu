@@ -51,6 +51,7 @@ message CustomSkillCreateResp {
 
 message CustomSkillDeleteReq {
   string skillId = 1;
+  Identity identity = 2;
 }
 
 message CustomSkillGetReq {
@@ -222,6 +223,7 @@ message AcquiredSkillCreateResp {
 
 message AcquiredSkillDeleteReq {
   string acquiredSkillId = 1;
+  Identity identity = 2;
 }
 
 message AcquiredSkillGetReq {

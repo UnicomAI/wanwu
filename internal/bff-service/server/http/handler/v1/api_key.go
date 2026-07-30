@@ -43,7 +43,7 @@ func DeleteAPIKey(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	gin_util.Response(ctx, nil, service.DeleteApiKey(ctx, req))
+	gin_util.Response(ctx, nil, service.DeleteApiKey(ctx, getUserID(ctx), getOrgID(ctx), req))
 }
 
 // ListAPIKeys

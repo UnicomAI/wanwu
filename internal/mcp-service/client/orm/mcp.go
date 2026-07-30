@@ -96,8 +96,12 @@ func (c *Client) UpdateMCP(ctx context.Context, tab *model.MCPClient) *errs.Stat
 	return nil
 }
 
-func (c *Client) DeleteMCP(ctx context.Context, mcpID uint32) *errs.Status {
-	if err := sqlopt.WithID(mcpID).Apply(c.db).WithContext(ctx).Delete(&model.MCPClient{}).Error; err != nil {
+func (c *Client) DeleteMCP(ctx context.Context, mcpID uint32, userID, orgID string) *errs.Status {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithID(mcpID),
+		sqlopt.WithUserID(userID),
+		sqlopt.WithOrgID(orgID),
+	).Apply(c.db).WithContext(ctx).Delete(&model.MCPClient{}).Error; err != nil {
 		return toErrStatus("mcp_delete_err", err.Error())
 	}
 	return nil

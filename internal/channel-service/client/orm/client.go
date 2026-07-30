@@ -91,9 +91,11 @@ func (c *Client) UpdateChannel(ctx context.Context, channelID string, updates ma
 	return c.GetChannel(ctx, channelID)
 }
 
-func (c *Client) DeleteChannel(ctx context.Context, channelID string) error {
+func (c *Client) DeleteChannel(ctx context.Context, channelID, userID, orgID string) error {
 	result := sqlopt.SQLOptions(
 		sqlopt.WithChannelID(channelID),
+		sqlopt.WithUserID(userID),
+		sqlopt.WithOrgID(orgID),
 	).Apply(c.db.WithContext(ctx)).Delete(&model.Channel{})
 	if result.Error != nil {
 		return fmt.Errorf("channel_delete: %w", result.Error)

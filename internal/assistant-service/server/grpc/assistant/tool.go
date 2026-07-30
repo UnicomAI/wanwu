@@ -11,7 +11,8 @@ import (
 )
 
 func (s *Service) AssistantToolDeleteByToolId(ctx context.Context, req *assistant_service.AssistantToolDeleteByToolIdReq) (*empty.Empty, error) {
-	if status := s.cli.DeleteAssistantToolByToolId(ctx, req.ToolId, req.ToolType); status != nil {
+	userId, orgId := req.Identity.UserId, req.Identity.OrgId
+	if status := s.cli.DeleteAssistantToolByToolId(ctx, req.ToolId, req.ToolType, userId, orgId); status != nil {
 		return nil, errStatus(errs.Code_AssistantToolErr, status)
 	}
 	return &empty.Empty{}, nil

@@ -52,7 +52,7 @@ func (s *Service) ConversationDelete(ctx context.Context, req *assistant_service
 	conversationID := util.MustU32(req.ConversationId)
 
 	// 调用client方法删除对话
-	if status := s.cli.DeleteConversation(ctx, conversationID); status != nil {
+	if status := s.cli.DeleteConversation(ctx, conversationID, req.Identity.UserId, req.Identity.OrgId); status != nil {
 		return nil, errStatus(errs.Code_AssistantConversationErr, status)
 	}
 

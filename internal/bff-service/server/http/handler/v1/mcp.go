@@ -73,7 +73,7 @@ func DeleteMCP(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	gin_util.Response(ctx, nil, service.DeleteMCP(ctx, req.MCPID))
+	gin_util.Response(ctx, nil, service.DeleteMCP(ctx, getUserID(ctx), getOrgID(ctx), req.MCPID))
 }
 
 // GetMCPList

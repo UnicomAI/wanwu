@@ -151,7 +151,8 @@ func DeleteRag(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.DeleteRag(ctx, req)
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	err := service.DeleteRag(ctx, req, userId, orgId)
 	gin_util.Response(ctx, nil, err)
 }
 

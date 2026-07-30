@@ -28,8 +28,12 @@ func (c *Client) CreateAppUrl(ctx context.Context, appUrl *model.AppUrl) *err_co
 	return nil
 }
 
-func (c *Client) DeleteAppUrl(ctx context.Context, urlID uint32) *err_code.Status {
-	if err := sqlopt.WithID(urlID).Apply(c.db.WithContext(ctx)).Delete(&model.AppUrl{}).Error; err != nil {
+func (c *Client) DeleteAppUrl(ctx context.Context, urlID uint32, userId, orgId string) *err_code.Status {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithID(urlID),
+		sqlopt.WithUserID(userId),
+		sqlopt.WithOrgID(orgId),
+	).Apply(c.db.WithContext(ctx)).Delete(&model.AppUrl{}).Error; err != nil {
 		return toErrStatus("app_url_delete", util.Int2Str(urlID), err.Error())
 	}
 	return nil

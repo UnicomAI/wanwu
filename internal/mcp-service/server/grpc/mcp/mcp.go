@@ -98,7 +98,10 @@ func (s *Service) GetCustomMCP(ctx context.Context, req *mcp_service.GetCustomMC
 }
 
 func (s *Service) DeleteCustomMCP(ctx context.Context, req *mcp_service.DeleteCustomMCPReq) (*emptypb.Empty, error) {
-	if err := s.cli.DeleteMCP(ctx, util.MustU32(req.McpId)); err != nil {
+	if req.UserId == "" || req.OrgId == "" {
+		return nil, errStatus(errs.Code_MCPDeleteCustomMCPErr, toErrStatus("mcp_delete_custom_mcp_err", "userId or orgId is empty"))
+	}
+	if err := s.cli.DeleteMCP(ctx, util.MustU32(req.McpId), req.UserId, req.OrgId); err != nil {
 		return nil, errStatus(errs.Code_MCPDeleteCustomMCPErr, err)
 	}
 	return &emptypb.Empty{}, nil

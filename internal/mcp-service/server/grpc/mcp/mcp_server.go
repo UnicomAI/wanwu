@@ -81,7 +81,12 @@ func (s *Service) GetMCPServer(ctx context.Context, req *mcp_service.GetMCPServe
 }
 
 func (s *Service) DeleteMCPServer(ctx context.Context, req *mcp_service.DeleteMCPServerReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteMCPServer(ctx, req.McpServerId)
+	if req.GetIdentity() == nil {
+		return nil, errStatus(errs.Code_MCPDeleteMCPServerErr, toErrStatus("mcp_delete_mcp_server_err", "identity is empty"))
+	}
+	userId := req.Identity.UserId
+	orgId := req.Identity.OrgId
+	err := s.cli.DeleteMCPServer(ctx, req.McpServerId, userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_MCPDeleteMCPServerErr, err)
 	}
@@ -172,6 +177,11 @@ func (s *Service) GetMCPServerTool(ctx context.Context, req *mcp_service.GetMCPS
 }
 
 func (s *Service) CreateMCPServerTool(ctx context.Context, req *mcp_service.CreateMCPServerToolReq) (*emptypb.Empty, error) {
+	if req.GetIdentity() == nil {
+		return nil, errStatus(errs.Code_MCPCreateMCPServerToolErr, toErrStatus("mcp_create_mcp_server_tool_err", "identity is empty"))
+	}
+	userId := req.Identity.UserId
+	orgId := req.Identity.OrgId
 	var mcpServerTools []*model.MCPServerTool
 	for _, info := range req.McpServiceToolInfos {
 		mcpServerTools = append(mcpServerTools, &model.MCPServerTool{
@@ -187,6 +197,8 @@ func (s *Service) CreateMCPServerTool(ctx context.Context, req *mcp_service.Crea
 			AuthIn:          info.ApiAuth.AuthIn,
 			AuthName:        info.ApiAuth.AuthName,
 			AuthValue:       info.ApiAuth.AuthValue,
+			UserID:          userId,
+			OrgID:           orgId,
 		})
 	}
 	err := s.cli.CreateMCPServerTool(ctx, mcpServerTools)
@@ -211,7 +223,12 @@ func (s *Service) UpdateMCPServerTool(ctx context.Context, req *mcp_service.Upda
 }
 
 func (s *Service) DeleteMCPServerTool(ctx context.Context, req *mcp_service.DeleteMCPServerToolReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteMCPServerTool(ctx, req.McpServerToolId)
+	if req.GetIdentity() == nil {
+		return nil, errStatus(errs.Code_MCPDeleteMCPServerToolErr, toErrStatus("mcp_delete_mcp_server_tool_err", "identity is empty"))
+	}
+	userId := req.Identity.UserId
+	orgId := req.Identity.OrgId
+	err := s.cli.DeleteMCPServerTool(ctx, req.McpServerToolId, userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_MCPDeleteMCPServerToolErr, err)
 	}

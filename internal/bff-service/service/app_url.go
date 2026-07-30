@@ -47,9 +47,11 @@ func AppUrlCreate(ctx *gin.Context, userId, orgId string, req request.AppUrlCrea
 	return err
 }
 
-func AppUrlDelete(ctx *gin.Context, req request.AppUrlIdRequest) error {
+func AppUrlDelete(ctx *gin.Context, req request.AppUrlIdRequest, userId, orgId string) error {
 	_, err := app.AppUrlDelete(ctx.Request.Context(), &app_service.AppUrlDeleteReq{
-		UrlId: req.UrlId,
+		UrlId:  req.UrlId,
+		UserId: userId,
+		OrgId:  orgId,
 	})
 	return err
 }

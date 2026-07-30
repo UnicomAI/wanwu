@@ -39,8 +39,12 @@ func (c *Client) CreateApiKey(ctx context.Context, userId, orgId, name, desc str
 }
 
 // DeleteApiKey 删除API Key
-func (c *Client) DeleteApiKey(ctx context.Context, keyId uint32) *errs.Status {
-	if err := sqlopt.WithID(keyId).Apply(c.db.WithContext(ctx)).Delete(&model.OpenApiKey{}).Error; err != nil {
+func (c *Client) DeleteApiKey(ctx context.Context, keyId uint32, userId, orgId string) *errs.Status {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithID(keyId),
+		sqlopt.WithUserID(userId),
+		sqlopt.WithOrgID(orgId),
+	).Apply(c.db.WithContext(ctx)).Delete(&model.OpenApiKey{}).Error; err != nil {
 		return toErrStatus("api_key_delete", util.Int2Str(keyId), err.Error())
 	}
 	return nil

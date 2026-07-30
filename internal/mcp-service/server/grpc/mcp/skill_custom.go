@@ -33,7 +33,12 @@ func (s *Service) CustomSkillCreate(ctx context.Context, req *mcp_service.Custom
 }
 
 func (s *Service) CustomSkillDelete(ctx context.Context, req *mcp_service.CustomSkillDeleteReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteCustomSkill(ctx, req.SkillId)
+	if req.GetIdentity() == nil {
+		return nil, errStatus(errs.Code_MCPCustomSkillErr, toErrStatus("mcp_custom_skill_delete", "identity is empty"))
+	}
+	userId := req.Identity.UserId
+	orgId := req.Identity.OrgId
+	err := s.cli.DeleteCustomSkill(ctx, req.SkillId, userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_MCPCustomSkillErr, err)
 	}

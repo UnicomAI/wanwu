@@ -73,8 +73,9 @@ func (s *Service) AssistantWorkFlowEnableSwitch(ctx context.Context, req *assist
 
 func (s *Service) AssistantWorkFlowDeleteByWorkflowId(ctx context.Context, req *assistant_service.AssistantWorkFlowDeleteByWorkflowIdReq) (*emptypb.Empty, error) {
 	workflowId := req.WorkflowId
+	userId, orgId := req.Identity.UserId, req.Identity.OrgId
 
-	if status := s.cli.DeleteAssistantWorkflowByWorkflowId(ctx, workflowId); status != nil {
+	if status := s.cli.DeleteAssistantWorkflowByWorkflowId(ctx, workflowId, userId, orgId); status != nil {
 		return nil, errStatus(errs.Code_AssistantWorkflowErr, status)
 	}
 

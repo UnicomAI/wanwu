@@ -36,6 +36,10 @@ func GetAcquiredSkillList(ctx *gin.Context, userId, orgId, name string) (*respon
 func DeleteAcquiredSkill(ctx *gin.Context, userId, orgId, acquiredSkillId string) error {
 	_, err := mcp.AcquiredSkillDelete(ctx.Request.Context(), &mcp_service.AcquiredSkillDeleteReq{
 		AcquiredSkillId: acquiredSkillId,
+		Identity: &mcp_service.Identity{
+			UserId: userId,
+			OrgId:  orgId,
+		},
 	})
 	return err
 }

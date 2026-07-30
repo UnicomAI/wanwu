@@ -74,7 +74,7 @@ func DeleteMCPServer(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.DeleteMCPServer(ctx, req.MCPServerID)
+	err := service.DeleteMCPServer(ctx, getUserID(ctx), getOrgID(ctx), req.MCPServerID)
 	gin_util.Response(ctx, nil, err)
 }
 
@@ -108,7 +108,7 @@ func CreateMCPServerTool(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	gin_util.Response(ctx, nil, service.CreateMCPServerTool(ctx, req))
+	gin_util.Response(ctx, nil, service.CreateMCPServerTool(ctx, getUserID(ctx), getOrgID(ctx), req))
 }
 
 // UpdateMCPServerTool
@@ -144,7 +144,7 @@ func DeleteMCPServerTool(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.DeleteMCPServerTool(ctx, req.MCPServerToolID)
+	err := service.DeleteMCPServerTool(ctx, getUserID(ctx), getOrgID(ctx), req.MCPServerToolID)
 	gin_util.Response(ctx, nil, err)
 }
 

@@ -255,7 +255,7 @@ func (s *Service) UpdateRagConfig(ctx context.Context, in *rag_service.UpdateRag
 }
 
 func (s *Service) DeleteRag(ctx context.Context, in *rag_service.RagDeleteReq) (*emptypb.Empty, error) {
-	errDelete := s.cli.DeleteRag(ctx, in)
+	errDelete := s.cli.DeleteRag(ctx, in, in.Identity.UserId, in.Identity.OrgId)
 	if errDelete != nil {
 		return nil, errStatus(errs.Code_RagDeleteErr, errDelete)
 	}

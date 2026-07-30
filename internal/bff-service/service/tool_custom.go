@@ -105,6 +105,10 @@ func DeleteCustomTool(ctx *gin.Context, userID, orgID string, req request.Custom
 	_, err := assistant.AssistantToolDeleteByToolId(ctx.Request.Context(), &assistant_service.AssistantToolDeleteByToolIdReq{
 		ToolId:   req.CustomToolID,
 		ToolType: constant.ToolTypeCustom,
+		Identity: &assistant_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	})
 	if err != nil {
 		return err
@@ -112,6 +116,10 @@ func DeleteCustomTool(ctx *gin.Context, userID, orgID string, req request.Custom
 
 	_, err = mcp.DeleteCustomTool(ctx.Request.Context(), &mcp_service.DeleteCustomToolReq{
 		CustomToolId: req.CustomToolID,
+		Identity: &mcp_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	})
 	return err
 }

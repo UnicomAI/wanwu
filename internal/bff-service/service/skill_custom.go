@@ -323,6 +323,8 @@ func DeleteCustomSkill(ctx *gin.Context, userId, orgId, skillId string) error {
 	if _, err := app.DeleteApp(ctx.Request.Context(), &app_service.DeleteAppReq{
 		AppId:   skillId,
 		AppType: constant.AppTypeSkill,
+		UserId:  userId,
+		OrgId:   orgId,
 	}); err != nil {
 		return err
 	}
@@ -339,6 +341,10 @@ func DeleteCustomSkill(ctx *gin.Context, userId, orgId, skillId string) error {
 
 	if _, err := mcp.CustomSkillDelete(ctx.Request.Context(), &mcp_service.CustomSkillDeleteReq{
 		SkillId: skillId,
+		Identity: &mcp_service.Identity{
+			UserId: userId,
+			OrgId:  orgId,
+		},
 	}); err != nil {
 		return err
 	}

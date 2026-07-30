@@ -99,15 +99,19 @@ func (c *Client) UpdateSensitiveWordTableReply(ctx context.Context, tableId uint
 	return nil
 }
 
-func (c *Client) DeleteSensitiveWordTable(ctx context.Context, tableId uint32) *errs.Status {
+func (c *Client) DeleteSensitiveWordTable(ctx context.Context, tableId uint32, userId, orgId string) *errs.Status {
 	err := c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithTableID(tableId),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
 		).Apply(tx).Delete(&model.SensitiveWordVocabulary{}).Error; err != nil {
 			return fmt.Errorf("failed to delete sensitiveWordVocabulary: %v", err)
 		}
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithID(tableId),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
 		).Apply(tx).Delete(&model.SensitiveWordTable{}).Error; err != nil {
 			return fmt.Errorf("failed to delete sensitiveWordTable: %v", err)
 		}
@@ -274,10 +278,12 @@ func (c *Client) UploadSensitiveVocabulary(ctx context.Context, userId, orgId, i
 	return nil
 }
 
-func (c *Client) DeleteSensitiveVocabulary(ctx context.Context, tableId, wordId uint32) *errs.Status {
+func (c *Client) DeleteSensitiveVocabulary(ctx context.Context, tableId, wordId uint32, userId, orgId string) *errs.Status {
 	err := c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithID(tableId),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
 		).Apply(tx).Model(&model.SensitiveWordTable{}).
 			Update("version", getSensitiveTableVersion()).Error; err != nil {
 			return fmt.Errorf("update table version failed: %w", err)
@@ -285,6 +291,8 @@ func (c *Client) DeleteSensitiveVocabulary(ctx context.Context, tableId, wordId 
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithTableID(tableId),
 			sqlopt.WithID(wordId),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
 		).Apply(tx).Delete(&model.SensitiveWordVocabulary{}).Error; err != nil {
 			return fmt.Errorf("failed to delete sensitiveWordVocabulary: %v", err)
 		}

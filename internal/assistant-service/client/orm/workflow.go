@@ -75,8 +75,12 @@ func (c *Client) DeleteAssistantWorkflow(ctx context.Context, assistantId uint32
 	return nil
 }
 
-func (c *Client) DeleteAssistantWorkflowByWorkflowId(ctx context.Context, workflowId string) *err_code.Status {
-	if err := sqlopt.WithWorkflowID(workflowId).Apply(c.db.WithContext(ctx)).Delete(&model.AssistantWorkflow{}).Error; err != nil {
+func (c *Client) DeleteAssistantWorkflowByWorkflowId(ctx context.Context, workflowId string, userId, orgId string) *err_code.Status {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithWorkflowID(workflowId),
+		sqlopt.WithUserID(userId),
+		sqlopt.WithOrgID(orgId),
+	).Apply(c.db.WithContext(ctx)).Delete(&model.AssistantWorkflow{}).Error; err != nil {
 		return toErrStatus("assistant_workflow_delete", err.Error())
 	}
 	return nil

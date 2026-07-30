@@ -78,6 +78,8 @@ message CreateApiKeyReq {
 // 删除API Key请求
 message DeleteApiKeyReq {
   string keyId = 1;
+  string userId = 2;
+  string orgId = 3;
 }
 
 // 更新API Key请求
@@ -152,6 +154,8 @@ message AppKeyInfo {
 
 message DelAppKeyReq {
   string appKeyId = 1;
+  string userId = 2;
+  string orgId = 3;
 }
 
 message GetAppKeyByKeyReq {
@@ -246,6 +250,8 @@ message AppList {
 message DeleteAppReq {
   string appId = 1 ;
   string appType = 2;
+  string userId = 3;
+  string orgId = 4;
 }
 
 message GetAppInfoReq {
@@ -289,6 +295,8 @@ message AppUrlUpdateReq {
 
 message AppUrlDeleteReq {
   string urlId = 1;
+  string userId = 2;
+  string orgId = 3;
 }
 
 message GetAppUrlListReq {

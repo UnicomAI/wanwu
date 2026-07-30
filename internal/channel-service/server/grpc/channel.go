@@ -457,7 +457,7 @@ func (s *ChannelService) DeleteChannel(ctx context.Context, req *channel_service
 		log.Errorf("failed to stop adapter for channel %s: %v", req.ChannelId, err)
 	}
 
-	if err := s.cli.DeleteChannel(ctx, req.ChannelId); err != nil {
+	if err := s.cli.DeleteChannel(ctx, req.ChannelId, req.UserId, req.OrgId); err != nil {
 		return nil, grpc_util.ErrorStatus(err_code.Code_ChannelGeneral, fmt.Sprintf("failed to delete channel: %v", err))
 	}
 

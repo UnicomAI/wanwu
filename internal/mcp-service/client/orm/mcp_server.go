@@ -98,12 +98,20 @@ func (c *Client) ListMCPServersAdmin(ctx context.Context, orgIDs, userIDs []stri
 	return mcpServerInfos, total, nil
 }
 
-func (c *Client) DeleteMCPServer(ctx context.Context, mcpServerId string) *errs.Status {
+func (c *Client) DeleteMCPServer(ctx context.Context, mcpServerId, userID, orgID string) *errs.Status {
 	return c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
-		if err := sqlopt.WithMcpServerId(mcpServerId).Apply(tx).WithContext(ctx).Delete(&model.MCPServer{}).Error; err != nil {
+		if err := sqlopt.SQLOptions(
+			sqlopt.WithMcpServerId(mcpServerId),
+			sqlopt.WithUserID(userID),
+			sqlopt.WithOrgID(orgID),
+		).Apply(tx).WithContext(ctx).Delete(&model.MCPServer{}).Error; err != nil {
 			return toErrStatus("mcp_delete_mcp_server_err", err.Error())
 		}
-		if err := sqlopt.WithMcpServerId(mcpServerId).Apply(tx).WithContext(ctx).Delete(&model.MCPServerTool{}).Error; err != nil {
+		if err := sqlopt.SQLOptions(
+			sqlopt.WithMcpServerId(mcpServerId),
+			sqlopt.WithUserID(userID),
+			sqlopt.WithOrgID(orgID),
+		).Apply(tx).WithContext(ctx).Delete(&model.MCPServerTool{}).Error; err != nil {
 			return toErrStatus("mcp_delete_mcp_server_tool_err", err.Error())
 		}
 		return nil
