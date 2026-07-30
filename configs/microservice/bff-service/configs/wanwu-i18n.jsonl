@@ -50,6 +50,7 @@
 {"code":110000,"key":"bff_user_cannot_change_password","langs":{"en":"cannot modify user's password","zh":"无法修改密码"}}
 {"code":110000,"key":"bff_user_batch_import_file","langs":{"zh":"批量创建用户失败: %v"}}
 {"code":110000,"key":"bff_org_admin_required","langs":{"zh":"非该组织管理员无法操作"}}
+{"code":110000,"key":"bff_user_cannot_reset_password","langs":{"zh":"无权限重置密码"}}
 {"code":0,"key":"------ file upload ------","langs":{}}
 {"code":110000,"key":"bff_file_upload_check","langs":{"en":"file verification failed, please try again later!","zh":"文件校验失败，请稍后重试！(%v)"}}
 {"code":110000,"key":"bff_file_upload_merge","langs":{"en":"file merge failed, please try again later!","zh":"文件合并失败，请稍后重试！(%v)"}}
@@ -199,6 +200,7 @@
 {"code":120011,"key":"iam_org_user_add","langs":{"en":"add org %v user %v role %v err: %v","zh":"为组织(%v) 用户(%v) 添加角色(%v) 错误: %v"}}
 {"code":120011,"key":"iam_org_user_remove_top","langs":{"en":"remove org user but remove from top org","zh":"无法从系统中移除用户"}}
 {"code":120011,"key":"iam_org_user_remove","langs":{"en":"remove org %v user %v err: %v","zh":"移除组织(%v) 用户(%v) 错误: %v"}}
+{"code":120011,"key":"iam_org_user_batch_remove","langs":{"zh":"批量移除组织(%v)用户错误: %v"}}
 {"code":120011,"key":"iam_orgs_get_by_ids","langs":{"en":"get orgs by org id err: %v","zh":"通过组织id获取组织错误: %v"}}
 {"code":120011,"key":"iam_admin_org_sub_tree","langs":{"en":"get admin org sub tree err: %v","zh":"获取管理组织子树错误: %v"}}
 {"code":120011,"key":"iam_perm_check_user_ok","langs":{"en":"check user %v status  err: %v","zh":"检查用户(%v) 状态错误: %v"}}
@@ -243,6 +245,8 @@
 {"code":120031,"key":"iam_user_batch_create","langs":{"zh":"批量创建用户失败: %v"}}
 {"code":120031,"key":"iam_user_is_admin_of_org","langs":{"en":"check user %v is admin of org %v err: %v","zh":"校验用户(%v) 是否组织(%v) 管理员错误: %v"}}
 {"code":120031,"key":"iam_user_is_org_admin","langs":{"en":"check user %v is org admin err: %v","zh":"校验用户(%v) 是否组织管理员错误: %v"}}
+{"code":120031,"key":"iam_org_user_ids_get","langs":{"zh":"获取用户列表错误: %v"}}
+{"code":120031,"key":"iam_user_batch_delete","langs":{"zh":"批量删除用户错误: %v"}}
 {"code":120002,"key":"iam_login_captcha","langs":{"en":"refresh captcha err:  %v","zh":"刷新验证码错误: %v"}}
 {"code":120021,"key":"iam_role_create","langs":{"en":"create role err: %v","zh":"创建角色错误: %v"}}
 {"code":120031,"key":"iam_user_overview","langs":{"en":"get user over view err: %v","zh":"获取用户总览错误: %v"}}
@@ -262,6 +266,7 @@
 {"code":250004,"key":"model_delete_err","langs":{"zh":"模型删除异常:%v"}}
 {"code":250005,"key":"model_get_err","langs":{"zh":"模型查询异常:%v"}}
 {"code":250006,"key":"model_list_models_err","langs":{"zh":"模型列表异常:%v"}}
+{"code":250006,"key":"model_admin_page_list_err","langs":{"zh":"模型全局列表异常:%v"}}
 {"code":250007,"key":"model_change_model_status_err","langs":{"zh":"模型启停异常:%v"}}
 {"code":250008,"key":"model_list_type_models_err","langs":{"zh":"模型类型列表异常:%v"}}
 {"code":250009,"key":"model_get_by_ids_err","langs":{"zh":"根据id列表获取模型列表信息异常:%v"}}
@@ -442,6 +447,7 @@
 {"code":150003,"key":"rag_delete_err","langs":{"zh":"删除文本问答错误：%v"}}
 {"code":150004,"key":"rag_get_err","langs":{"zh":"获取文本问答错误：%v"}}
 {"code":150005,"key":"rag_list_err","langs":{"zh":"获取文本问答列表错误：%v"}}
+{"code":150005,"key":"rag_admin_page_list_err","langs":{"zh":"知识问答全局列表异常：%v"}}
 {"code":150006,"key":"rag_create_err","langs":{"zh":"创建文本问答错误：%v"}}
 {"code":150007,"key":"rag_update_err","langs":{"zh":"更新文本问答错误：%v"}}
 {"code":150008,"key":"rag_chat_err","langs":{"zh":"问答错误：%v"}}
@@ -638,5 +644,3 @@
 {"code":0,"key":"ope_statistic_new_client_line","langs":{"zh":"新增用户量"}}
 {"code":0,"key":"ope_statistic_browse_table","langs":{"zh":"平台浏览量"}}
 {"code":0,"key":"ope_statistic_browse_line","langs":{"zh":"浏览量"}}
-{"code":250006,"key":"model_admin_page_list_err","langs":{"zh":"模型全局列表异常:%v"}}
-{"code":150005,"key":"rag_admin_page_list_err","langs":{"zh":"知识问答全局列表异常：%v"}}
