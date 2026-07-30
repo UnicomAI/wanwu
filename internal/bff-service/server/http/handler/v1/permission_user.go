@@ -160,7 +160,7 @@ func ChangeUserPassword(ctx *gin.Context) {
 // AdminChangeUserPassword
 //
 //	@Tags		admin_center
-//	@Summary	重置用户密码（by 管理员）
+//	@Summary	重置用户密码（by 系统管理员）
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
@@ -172,7 +172,11 @@ func AdminChangeUserPassword(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.AdminChangeUserPassword(ctx, req.UserID, &req)
+	if req.OrgID != config.TopOrgID || req.UserID == config.SystemAdminUserID {
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_user_cannot_reset_password"))
+		return
+	}
+	err := service.AdminChangeUserPassword(ctx, &req)
 	gin_util.Response(ctx, nil, err)
 }
 

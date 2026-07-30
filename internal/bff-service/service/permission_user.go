@@ -206,13 +206,13 @@ func ChangeUserPassword(ctx *gin.Context, userID string, req *request.UserPasswo
 	return err
 }
 
-func AdminChangeUserPassword(ctx *gin.Context, userID string, req *request.UserPasswordByAdmin) error {
+func AdminChangeUserPassword(ctx *gin.Context, req *request.UserPasswordByAdmin) error {
 	password, err := decryptCipherRSA(ctx.Request.Context(), req.Cipher, req.KeyID, challengeConsume)
 	if err != nil {
 		return fmt.Errorf("decrypt password err: %v", err)
 	}
 	_, err = iam.ResetUserPassword(ctx.Request.Context(), &iam_service.ResetUserPasswordReq{
-		UserId:   userID,
+		UserId:   req.UserID,
 		Password: password,
 	})
 	return err

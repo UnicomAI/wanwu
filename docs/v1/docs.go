@@ -22251,7 +22251,7 @@ const docTemplate = `{
                 "tags": [
                     "admin_center"
                 ],
-                "summary": "重置用户密码（by 管理员）",
+                "summary": "重置用户密码（by 系统管理员）",
                 "parameters": [
                     {
                         "description": "用户信息",

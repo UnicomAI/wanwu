@@ -24778,7 +24778,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - JWT: []
-      summary: 重置用户密码（by 管理员）
+      summary: 重置用户密码（by 系统管理员）
       tags:
       - admin_center
   /user/avatar:
