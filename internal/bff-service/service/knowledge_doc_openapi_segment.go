@@ -32,9 +32,9 @@ func CreateDocSegmentOpenapi(ctx *gin.Context, userId, orgId string, r *request.
 }
 
 // UpdateDocSegmentOpenapi openapi 更新文档切片（多模态知识库可插入图片，普通知识库不行）
-func UpdateDocSegmentOpenapi(ctx *gin.Context, userId, orgId string, r *request.UpdateDocSegmentReq) error {
+func UpdateDocSegmentOpenapi(ctx *gin.Context, userId, orgId string, r *request.UpdateDocSegmentReq) (*response.UpdateDocSegmentResp, error) {
 	if err := checkSegmentImageContent(ctx, userId, orgId, r.DocId, r.Content); err != nil {
-		return err
+		return nil, err
 	}
 	return UpdateDocSegment(ctx, userId, orgId, r)
 }

@@ -136,6 +136,10 @@ type DocChildSegmentResp struct {
 	SegmentContentList []*ChildSegmentInfo `json:"contentList"` //内容
 }
 
+type UpdateDocSegmentResp struct {
+	ContentId string `json:"contentId"` // 更新后的分段id，内容变化时与请求传入的contentId不同
+}
+
 type DocUploadLimitResp struct {
 	UploadLimitList []*DocUploadLimit `json:"uploadLimitList"`
 }

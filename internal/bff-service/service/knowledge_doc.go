@@ -675,15 +675,18 @@ func DeleteDocSegment(ctx *gin.Context, userId, orgId string, r *request.DeleteD
 	return err
 }
 
-func UpdateDocSegment(ctx *gin.Context, userId, orgId string, r *request.UpdateDocSegmentReq) error {
-	_, err := knowledgeBaseDoc.UpdateDocSegment(ctx.Request.Context(), &knowledgebase_doc_service.UpdateDocSegmentReq{
+func UpdateDocSegment(ctx *gin.Context, userId, orgId string, r *request.UpdateDocSegmentReq) (*response.UpdateDocSegmentResp, error) {
+	resp, err := knowledgeBaseDoc.UpdateDocSegment(ctx.Request.Context(), &knowledgebase_doc_service.UpdateDocSegmentReq{
 		UserId:    userId,
 		OrgId:     orgId,
 		DocId:     r.DocId,
 		ContentId: r.ContentId,
 		Content:   r.Content,
 	})
-	return err
+	if err != nil {
+		return nil, err
+	}
+	return &response.UpdateDocSegmentResp{ContentId: resp.ContentId}, nil
 }
 
 func CreateDocChildSegment(ctx *gin.Context, userId, orgId string, r *request.CreateDocChildSegmentReq) error {

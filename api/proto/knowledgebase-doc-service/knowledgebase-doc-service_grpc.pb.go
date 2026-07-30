@@ -90,7 +90,7 @@ type KnowledgeBaseDocServiceClient interface {
 	// 删除文档分片
 	DeleteDocSegment(ctx context.Context, in *DeleteDocSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 更新文档分片
-	UpdateDocSegment(ctx context.Context, in *UpdateDocSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	UpdateDocSegment(ctx context.Context, in *UpdateDocSegmentReq, opts ...grpc.CallOption) (*UpdateDocSegmentResp, error)
 	// 获取文档子分段列表
 	GetDocChildSegmentList(ctx context.Context, in *GetDocChildSegmentListReq, opts ...grpc.CallOption) (*GetDocChildSegmentListResp, error)
 	// 新增文档子分片
@@ -301,9 +301,9 @@ func (c *knowledgeBaseDocServiceClient) DeleteDocSegment(ctx context.Context, in
 	return out, nil
 }
 
-func (c *knowledgeBaseDocServiceClient) UpdateDocSegment(ctx context.Context, in *UpdateDocSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *knowledgeBaseDocServiceClient) UpdateDocSegment(ctx context.Context, in *UpdateDocSegmentReq, opts ...grpc.CallOption) (*UpdateDocSegmentResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
+	out := new(UpdateDocSegmentResp)
 	err := c.cc.Invoke(ctx, KnowledgeBaseDocService_UpdateDocSegment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -404,7 +404,7 @@ type KnowledgeBaseDocServiceServer interface {
 	// 删除文档分片
 	DeleteDocSegment(context.Context, *DeleteDocSegmentReq) (*emptypb.Empty, error)
 	// 更新文档分片
-	UpdateDocSegment(context.Context, *UpdateDocSegmentReq) (*emptypb.Empty, error)
+	UpdateDocSegment(context.Context, *UpdateDocSegmentReq) (*UpdateDocSegmentResp, error)
 	// 获取文档子分段列表
 	GetDocChildSegmentList(context.Context, *GetDocChildSegmentListReq) (*GetDocChildSegmentListResp, error)
 	// 新增文档子分片
@@ -482,7 +482,7 @@ func (UnimplementedKnowledgeBaseDocServiceServer) BatchCreateDocSegment(context.
 func (UnimplementedKnowledgeBaseDocServiceServer) DeleteDocSegment(context.Context, *DeleteDocSegmentReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDocSegment not implemented")
 }
-func (UnimplementedKnowledgeBaseDocServiceServer) UpdateDocSegment(context.Context, *UpdateDocSegmentReq) (*emptypb.Empty, error) {
+func (UnimplementedKnowledgeBaseDocServiceServer) UpdateDocSegment(context.Context, *UpdateDocSegmentReq) (*UpdateDocSegmentResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDocSegment not implemented")
 }
 func (UnimplementedKnowledgeBaseDocServiceServer) GetDocChildSegmentList(context.Context, *GetDocChildSegmentListReq) (*GetDocChildSegmentListResp, error) {

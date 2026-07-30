@@ -346,7 +346,7 @@ func DeleteDocSegment(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.UpdateDocSegmentReq	true	"更新文档切片请求参数"
-//	@Success		200		{object}	response.Response
+//	@Success		200		{object}	response.Response{data=response.UpdateDocSegmentResp}
 //	@Router			/knowledge/doc/segment/update [post]
 func UpdateDocSegment(ctx *gin.Context) {
 	userId, orgId := getUserID(ctx), getOrgID(ctx)
@@ -354,8 +354,8 @@ func UpdateDocSegment(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.UpdateDocSegment(ctx, userId, orgId, &req)
-	gin_util.Response(ctx, nil, err)
+	data, err := service.UpdateDocSegment(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, data, err)
 }
 
 // GetDocChildSegmentList
