@@ -73,7 +73,11 @@
             <div v-if="!isCollapse" class="flat-menu-list">
               <template v-for="(n, i) in menuList" v-if="checkPerm(n.perm)">
                 <!-- 有子级：渲染每个子项 -->
-                <div v-if="n.children" :key="`${i}ml`" class="menu-group">
+                <div
+                  v-if="n.children && n.children.length"
+                  :key="`${i}ml`"
+                  class="menu-group"
+                >
                   <div class="menu-group-title">{{ n.name }}</div>
                   <div
                     v-for="(m, j) in n.children"
@@ -122,7 +126,7 @@
                   class="collapse-menu-divider"
                 ></div>
                 <!-- 有子级：渲染每个子项图标 -->
-                <template v-if="n.children">
+                <template v-if="n.children && n.children.length">
                   <div
                     v-for="(m, j) in n.children"
                     :key="`${i}-${j}cl`"
