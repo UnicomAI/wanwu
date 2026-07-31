@@ -4,6 +4,8 @@ from urllib.parse import urlparse, urlunparse
 import subprocess
 import os
 import shutil
+import signal
+import tempfile
 import argparse
 import logging
 import datetime
@@ -15,7 +17,7 @@ import re
 import uuid
 import copy
 import traceback
-
+import threading
 from easyofd.ofd import OFD
 from ofdparser import OfdParser
 import base64
@@ -825,6 +827,41 @@ def replace_minio_ip(search_list, only_meta=False):
                 rerank_item['content'] = minio_url_re.sub(lambda m: get_presigned(m.group(0)), rerank_item['content'])
 
 
+def _kill_process_tree(proc):
+    """杀掉整个进程组，避免僵尸 soffice 子进程残留。"""
+    if proc is None:
+        return
+    try:
+        pgid = os.getpgid(proc.pid)
+    except ProcessLookupError:
+        return
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        try:
+            os.killpg(pgid, sig)
+        except Exception:
+            pass
+        time.sleep(1)
+        if proc.poll() is not None:
+            break
+
+
+def _cleanup_profile_locks(profile_dir):
+    """清理 soffice profile 目录中的残留锁文件。"""
+    if not profile_dir or not os.path.isdir(profile_dir):
+        return
+    for root, dirs, files in os.walk(profile_dir, topdown=False):
+        for name in files:
+            if name.startswith(".~lock") or name == ".lock" or name == "lock":
+                try:
+                    os.remove(os.path.join(root, name))
+                except Exception:
+                    pass
+
+
+# 模块级锁：串行化 soffice 调用，作为单实例锁冲突的双保险
+_soffice_lock = threading.Lock()
+
+
 def convert_office_file(file_path, target_dir, target_format):
     # 检查文件夹是否存在，如果不存在则创建
     if not os.path.exists(target_dir):
@@ -868,17 +905,79 @@ def convert_office_file(file_path, target_dir, target_format):
             # print(e)
             logger.info(f"Error ofd2pdf: {e}")
     else:  # 使用 soffice 转换
-        # 构造命令
-        command = f"/usr/bin/soffice --headless --convert-to {target_format} {temp_file_path} --outdir {target_dir}"
-        # 执行命令并等待完成
-        try:
-            # 设置命令运行超时时间
-            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True, timeout=300)
-        except subprocess.TimeoutExpired:
-            logger.info(f"{command}命令超时，已尝试终止进程。")
-        except subprocess.CalledProcessError as e:
-            logger.info(f"Error during command execution: {e}")
+        # 每次调用使用独立的 UserInstallation profile，规避单实例锁冲突
+        profile_dir = os.path.join(target_dir, f"profile_{temp_file_name}")
+        # 用 list 形式传参，去掉 shell=True，避免参数注入与僵尸子进程
+        command = [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--norestore",
+            "--nolockcheck",  # 忽略残留锁，配合独立 profile 双保险
+            f"-env:UserInstallation=file://{profile_dir}",
+            "--convert-to", target_format,
+            temp_file_path,
+            "--outdir", target_dir,
+        ]
+        logger.info(f"soffice command: {' '.join(command)}")
+
+        max_retries = 2
+        converted = False
+        with _soffice_lock:  # 串行化，避免同时启动多个 soffice
+            for attempt in range(max_retries + 1):
+                proc = None
+                try:
+                    # start_new_session=True 起独立进程组，超时可 killpg 整组
+                    proc = subprocess.Popen(
+                        command,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        start_new_session=True,
+                    )
+                    stdout, stderr = proc.communicate(timeout=300)
+                    if proc.returncode == 0:
+                        converted = True
+                        logger.info(
+                            f"soffice convert success, attempt={attempt}, "
+                            f"file={file_path}, stdout={stdout.strip()}"
+                        )
+                        break
+                    else:
+                        logger.warning(
+                            f"soffice returncode={proc.returncode}, attempt={attempt}, "
+                            f"file={file_path}, stderr={stderr.strip()}"
+                        )
+                except subprocess.TimeoutExpired:
+                    logger.warning(
+                        f"soffice 超时，杀掉进程组, attempt={attempt}, file={file_path}"
+                    )
+                    _kill_process_tree(proc)
+                    try:
+                        proc.communicate(timeout=5)
+                    except Exception:
+                        pass
+                except Exception as e:
+                    logger.warning(
+                        f"soffice 执行异常: {e}, attempt={attempt}, file={file_path}"
+                    )
+                finally:
+                    _cleanup_profile_locks(profile_dir)
+
+                if attempt < max_retries:
+                    time.sleep(2)  # 短退避后重试
+
+        if not converted:
+            logger.error(f"soffice 转换失败（已重试 {max_retries} 次）: {file_path}")
     res_filename = os.path.join(target_dir, f"{temp_file_name}.{target_format}")
+
+    # 清理临时源文件（不影响结果判断）
+    # try:
+    #     if os.path.exists(temp_file_path):
+    #         os.remove(temp_file_path)
+    # except Exception:
+    #     pass
+
     # 检查文件是否存在
     if os.path.exists(res_filename):
         logger.info(f"{file_path} convert_office_file successfully => {res_filename}")
