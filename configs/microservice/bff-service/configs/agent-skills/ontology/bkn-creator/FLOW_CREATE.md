@@ -314,9 +314,9 @@ id 口径（MUST）：
 命令模板（MUST 按此结构委托 ontology-core 执行）：
 
 ```bash
-# 直接推送目录（branch 固定为 main；如需业务域显式声明，再追加 -bd <business-domain>）
+# 直接推送目录（branch 固定为 main，CLI 无需也无法指定其他分支；如需业务域显式声明，再追加 -bd <business-domain>）
 # network.bkn 的 id 已由阶段二写入本地生成的 UUID v4，无需再走 bkn create
-ontology --user-id <accountId> bkn push <network_dir> --branch main [-bd <business-domain>]
+ontology --user-id <accountId> bkn push <network_dir> [-bd <business-domain>]
 ```
 
 推送结果后必须执行（MUST，成功/失败均执行）：
@@ -334,7 +334,7 @@ ontology --user-id <accountId> bkn push <network_dir> --branch main [-bd <busine
 
 阶段五退出条件（MUST，缺一不可）：
 
-- `ontology --user-id <accountId> bkn push <network_dir> --branch main` 已**真实执行**并取得回执（成功或失败均算执行；未执行即未退出）
+- `ontology --user-id <accountId> bkn push <network_dir>` 已**真实执行**并取得回执（成功或失败均算执行；未执行即未退出）
 - `network.bkn` 的 `id` 字段为合法 UUID v4（推送前已通过回读校验，且与 push 命令使用的 `kn_id` 一致）
 - 完整性检查与 HTML 报告均已产出
 - 若用户未确认“执行推送”，必须停在执行前门禁继续等待，Never 以“草案已完整”“报告已生成”等理由跳过推送、宣告阶段五完成
