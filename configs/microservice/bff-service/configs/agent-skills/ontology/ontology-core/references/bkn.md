@@ -25,10 +25,10 @@ ontology bkn update <kn_id> [--name <n>] [--description <d>] [--tag <t> ...]
 ontology bkn build <kn_id> [--wait/--no-wait] [--timeout 300]
 ontology bkn delete <kn_id> [--yes]
 ontology bkn validate <directory> [--detect-encoding/--no-detect-encoding] [--source-encoding <name>]
-ontology bkn push <directory> [--branch main] [--detect-encoding/--no-detect-encoding] [--source-encoding <name>]
+ontology bkn push <directory> [--detect-encoding/--no-detect-encoding] [--source-encoding <name>]
 # 规范上 .bkn 应为 UTF-8。默认会检测 .bkn 编码并规范为 UTF-8 再校验/打包；可用 --no-detect-encoding 要求严格 UTF-8；
 # 已知为 GBK/GB18030 等时可 --source-encoding gb18030（整目录统一）。检测置信度不足时会报错并提示指定编码。
-ontology bkn pull <kn_id> [<directory>] [--branch main]  # 下载 BKN tar 并解压
+ontology bkn pull <kn_id> [<directory>]  # 下载 BKN tar 并解压
 ```
 
 ## Object Type
@@ -38,7 +38,7 @@ ontology bkn object-type list <kn_id>
 ontology bkn object-type get <kn_id> <ot_id>                # -v 显示完整 data_properties
 ontology bkn object-type create <kn_id> --name <n> --dataview-id <dv> --primary-key <pk> --display-key <dk> [--property '<json>' ...]
 # update：合并模式会先 GET 当前对象类，再合并参数后 PUT（与 Studio 行为一致）
-ontology bkn object-type update <kn_id> <ot_id> [--name <n>] [--display-key <dk>] [--add-property|--update-property '<json>' ...] [--remove-property <name> ...] [--tags '["标签"]'] [--comment <s>] [--icon <i>] [--color <c>] [--branch main]
+ontology bkn object-type update <kn_id> <ot_id> [--name <n>] [--display-key <dk>] [--add-property|--update-property '<json>' ...] [--remove-property <name> ...] [--tags '["标签"]'] [--comment <s>] [--icon <i>] [--color <c>]
 # update：原始 JSON 模式（整段 PUT body，勿与上面合并参数同时使用）
 ontology bkn object-type update <kn_id> <ot_id> '<full-json-body>'
 ontology bkn object-type delete <kn_id> <ot_ids> [--yes/-y]

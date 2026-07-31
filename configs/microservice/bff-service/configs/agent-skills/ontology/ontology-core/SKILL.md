@@ -111,7 +111,7 @@ ontology --user-id <accountId> <command> [options]
 ontology bkn list
 ontology vega health
 ontology ds list
-ontology dataview list
+ontology dataview list --limit -1
 ```
 
 

@@ -44,7 +44,10 @@ BKN is Markdown + YAML frontmatter for schema; one file per definition under typ
    - The locally generated UUID is the final `kn_id`; any other `.bkn` file that references the network id (e.g. `network_id` in `object_types/*.bkn`) must reuse the same UUID.
 5. **Create `object_types/*.bkn`** — one file per object, `{id}.bkn`
 6. **Create `relation_types/*.bkn`** — one file per relation
-7. **Create `action_types/*.bkn`** — one file per action
+7. **Create `action_types/*.bkn`** — **optional, may be empty**. One file per genuine write-operation on instances. Decide per the rules below; if none apply, create no files and leave `action_types/` and the Network Overview ActionType list empty (keep them consistent).
+   - **Build an action** when the PRD contains an explicit write-operation (create/update/delete of instances) with an identifiable trigger condition or a bound tool.
+   - **Create none** when the PRD is read-only (query / monitor / analysis / stats / trace) — those belong to object-type query / subgraph / metric / semantic search, not ActionType.
+   - **Ambiguous cases** (e.g. whether "approval" is a write-action vs. a status transition) — surface to the user for confirmation; never silently build or silently skip.
 8. **Create `concept_groups/*.bkn`** — optional
 9. **Update `network.bkn`** — list all IDs in Network Overview
 10. **Add root `SKILL.md` in the BKN directory** — same folder as `network.bkn` (this is **not** the create-bkn skill file); agent-facing guide for that network (see [Delivered BKN: root SKILL.md](#delivered-bkn-root-skillmd))
@@ -60,7 +63,7 @@ BKN is Markdown + YAML frontmatter for schema; one file per definition under typ
 - **BKN validation** — If workflow step 12 (`ontology bkn validate <dir>`) **already succeeded** for this directory, **do not** repeat validate before `push` unless you changed `.bkn` files. If you have **not** validated yet, run `validate` before `push`.
 
 ```bash
-ontology bkn push <dir> [--branch main] [-bd <business-domain>]
+ontology bkn push <dir> [-bd <business-domain>]
 ```
 
 `-bd` / `--biz-domain` is optional. If you omit it, the CLI resolves the business domain automatically.

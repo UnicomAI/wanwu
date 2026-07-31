@@ -152,6 +152,14 @@ requires_approval: boolean          # 可选
 > **缺失即报错**：每个 ActionType 文件 frontmatter 都必须包含 `action_type:` 这一行，缺了 backend 报 `actual is []`。
 >
 > **只读语义不要建为 ActionType**：ActionType 只承载对实例的写操作。查询/监控/追溯/校验等只读语义请用 **object-type query / subgraph / metric / semantic search**，不要落到 `action_types/*.bkn`。
+>
+> **何时生成 ActionType（按需，可为空）**：
+>
+> - ActionType 是按需生成的，**可整组为空**；空 `action_types/` 不影响网络合法性。
+> - **该建**：PRD 含对实例的明确写操作（增/改/删），且能识别出触发条件或绑定工具——每个写操作建一个 ActionType。
+> - **该空**：PRD 全为只读语义（查询/监控/分析/统计/追溯）——走 object-type query / subgraph / metric / semantic search，不建 ActionType。
+> - **灰色地带**（如"审批"是写操作还是状态流转）——交用户确认，不默认建也不默认跳过。
+> - **一致性**：`action_types/` 是否为空，必须与 `network.bkn` Network Overview 的 ActionType 列表一致（都空，或一一对应）。
 
 正文：
 - `## ActionType: {显示名称}` + 简短描述
