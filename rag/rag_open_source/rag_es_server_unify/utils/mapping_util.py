@@ -88,6 +88,23 @@ vector_dynamic_templates = [
         }
     },
     {
+        "vector_2560": {
+            "match": "*_2560_content_vector",
+            "mapping": {
+                "type": "dense_vector",
+                "dims": 2560,
+                "element_type": "float",
+                "index": True,
+                "similarity": "cosine",
+                "index_options": {
+                    "type": "hnsw",
+                    "m": 16,
+                    "ef_construction": 100
+                }
+            }
+        }
+    },
+    {
         "vector_4096": {
             "match": "*_4096_content_vector",
             "mapping": {
@@ -282,3 +299,38 @@ def update_doc_meta_mapping(index_name):
             }
         )
         logger.info(f"已为索引 '{index_name}' 添加 doc_meta 字段映射")
+
+
+def update_vector_dynamic_templates(index_name):
+    """为已存在的索引补齐缺失的向量动态模板。
+
+    动态模板在索引创建时固化，旧索引不会自动获得新增的向量模板
+    （如 vector_2560）。Put Mapping 对 dynamic_templates 按名合并，
+    只追加缺失模板、不覆盖已有的 vector_512/768/... ，故补缺失子集是
+    安全且幂等的。补齐后，新写入的 q_{dim}_content_vector 会自动按模板
+    建为可 knn 检索的 dense_vector 字段。
+    """
+    mapping = es.indices.get_mapping(index=index_name)
+    existing_templates = mapping[index_name].get('mappings', {}).get('dynamic_templates', []) or []
+
+    # 收敛现有模板名；dynamic_templates 每个元素形如 {name: {...}}
+    existing_names = set()
+    for tpl in existing_templates:
+        if isinstance(tpl, dict):
+            existing_names.update(tpl.keys())
+
+    # 筛出规范的向量模板里缺失的（按名比对）
+    missing_templates = [
+        tpl for tpl in vector_dynamic_templates
+        if isinstance(tpl, dict) and not (set(tpl.keys()) & existing_names)
+    ]
+
+    if not missing_templates:
+        return
+
+    missing_names = [list(tpl.keys())[0] for tpl in missing_templates]
+    es.indices.put_mapping(
+        index=index_name,
+        body={"dynamic_templates": missing_templates}
+    )
+    logger.info(f"已为索引 '{index_name}' 补充向量动态模板: {missing_names}")
