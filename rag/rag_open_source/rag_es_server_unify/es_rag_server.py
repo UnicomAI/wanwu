@@ -708,8 +708,10 @@ def get_content_list(request_json=None):
             searched_index_name = 'content_control_' + index_name
         elif content_type == "community_report":
             searched_index_name = 'community_report_' + index_name
+        # 子串过滤仅对 text 类型生效；community_report 类型不传 query_text，保持原行为
+        effective_query_text = query_text if content_type == "text" else None
         content_result = es_ops.get_file_content_list(searched_index_name, kb_id, file_name, page_size, search_after,
-                                                       query_text=query_text)
+                                                       query_text=effective_query_text)
         content_list = content_result["content_list"]
         for content in content_list:
             content["kb_id"] = kb_id
