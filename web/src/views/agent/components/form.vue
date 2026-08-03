@@ -70,7 +70,6 @@
         <VersionPopover
           ref="versionPopover"
           v-if="publishType"
-          style="pointer-events: auto"
           :appId="editForm.assistantId"
           :appType="AGENT"
           @reloadData="reloadData"
