@@ -62,7 +62,7 @@
             >
               <span class="appName">
                 <span class="appTag"></span>
-                {{ n.title }}
+                {{ convertTitle(n.title) }}
               </span>
               <span
                 class="el-icon-delete appDelete"
@@ -614,6 +614,11 @@ export default {
     },
     openApiDialog() {
       this.$refs.apiKeyDialog.showDialog();
+    },
+    // 转换title
+    convertTitle(titleText) {
+      const t = titleText.trim();
+      return !t ? this.$t('app.defaultConversationTitle') : t;
     },
   },
 };
