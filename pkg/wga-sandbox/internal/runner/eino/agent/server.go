@@ -180,6 +180,14 @@ func resolveAgent(workspace, agentTypeQuery string) (shared.AppConfig, string) {
 		BaseURL:   getEnvValue(envMap, "OPENAI_BASE_URL"),
 		ModelID:   getEnvValue(envMap, "OPENAI_MODEL_ID"),
 	}
+	if raw := getEnvValue(envMap, "OPENAI_LLM_PARAMS"); raw != "" {
+		var p shared.LLMParams
+		if err := json.Unmarshal([]byte(raw), &p); err == nil {
+			cfg.Params = &p
+		} else {
+			log.Printf("[Chat] unmarshal OPENAI_LLM_PARAMS failed: %v", err)
+		}
+	}
 	return cfg, agentType
 }
 
