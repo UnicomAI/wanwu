@@ -40,7 +40,7 @@ func BuildAgentToolsConfig(ctx *gin.Context, req *request.AgentChatParams, chatI
 		toolList = append(toolList, docTool)
 	}
 	//skill 工具
-	skillToolList, skillToolIDNameMap, _ := GetToolsFromSkills(ctx, req.ToolParams.SkillToolList, req.Input, req.AgentBaseParams.Name, req.UploadFile, chatInfo, changeToolName)
+	skillToolList, skillToolIDNameMap, _ := GetToolsFromSkills(ctx, req.ToolParams.SkillToolList, req.Input, req.AgentBaseParams.Name, req.UploadFile, chatInfo, changeToolName, req.ModelParams)
 	if len(skillToolList) > 0 {
 		toolList = append(toolList, skillToolList...)
 	}

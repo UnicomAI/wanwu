@@ -43,6 +43,17 @@ func (r *Runner) setupEnv(ctx context.Context) error {
 		lines = append(lines, fmt.Sprintf("OPENAI_MODEL_ID=%s", r.req.ModelConfig.Model))
 	}
 
+	// LLM 采样参数（temperature/topP/maxTokens 等）以 JSON 序列化成单行写入。
+	// 沙箱内 resolveAgent 读回后 json.Unmarshal 进 AppConfig.Params。
+	// 用 JSON 而非多行 env：规避 godotenv 对含 $ 值的变量展开，且 *Enable 开关一并携带。
+	if r.req.ModelConfig.Params != nil {
+		if data, err := json.Marshal(r.req.ModelConfig.Params); err == nil {
+			lines = append(lines, fmt.Sprintf("OPENAI_LLM_PARAMS=%s", string(data)))
+		} else {
+			log.Warnf("%s marshal ModelConfig.Params failed: %v", r.logPrefix, err)
+		}
+	}
+
 	// 追加 trace 环境变量，供沙箱内 bash 进程（含 curl 调用）继续传播 trace。
 	if traceParent != "" {
 		lines = append(lines, fmt.Sprintf("TRACEPARENT=%s", traceParent))

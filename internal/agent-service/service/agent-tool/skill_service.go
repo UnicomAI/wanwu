@@ -18,6 +18,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
+	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
 	safe_go_util "github.com/UnicomAI/wanwu/pkg/safe-go-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	wga_sandbox "github.com/UnicomAI/wanwu/pkg/wga-sandbox"
@@ -49,13 +50,14 @@ type SkillParams struct {
 
 // skillTool 实现了 tool.StreamableTool 接口
 type skillTool struct {
-	skillName  string // 处理后的技能名称
-	info       *schema.ToolInfo
-	Skill      *request.SkillToolInfo
-	userQuery  string
-	uploadFile []string
-	agentName  string
-	chatInfo   *service_model.AgentChatInfo
+	skillName   string // 处理后的技能名称
+	info        *schema.ToolInfo
+	Skill       *request.SkillToolInfo
+	userQuery   string
+	uploadFile  []string
+	agentName   string
+	chatInfo    *service_model.AgentChatInfo
+	modelParams *request.ModelParams // 智能体配置里的 LLM 参数，透传到沙箱内 chat model
 }
 
 type skillRunEnv struct {
@@ -79,13 +81,13 @@ type SkillExecutor struct {
 }
 
 // GetToolsFromSkills 根据技能列表创建工具列表
-func GetToolsFromSkills(ctx context.Context, skillToolList []*request.SkillToolInfo, query, agentName string, uploadFile []string, chatInfo *service_model.AgentChatInfo, changeToolName bool) ([]tool.BaseTool, map[string]*request.ToolConfig, error) {
+func GetToolsFromSkills(ctx context.Context, skillToolList []*request.SkillToolInfo, query, agentName string, uploadFile []string, chatInfo *service_model.AgentChatInfo, changeToolName bool, modelParams *request.ModelParams) ([]tool.BaseTool, map[string]*request.ToolConfig, error) {
 	if len(skillToolList) == 0 {
 		return nil, nil, nil
 	}
 	var toolMap = make(map[string]*request.ToolConfig)
 	rs := lo.Map(skillToolList, func(skill *request.SkillToolInfo, index int) tool.BaseTool {
-		skillToolInfo := buildSkillTool(skill, query, agentName, uploadFile, chatInfo, changeToolName)
+		skillToolInfo := buildSkillTool(skill, query, agentName, uploadFile, chatInfo, changeToolName, modelParams)
 		var toolId = skillToolInfo.info.Name
 		toolMap[toolId] = &request.ToolConfig{
 			Avatar:   skillToolInfo.Skill.Avatar,
@@ -121,16 +123,17 @@ func (t *skillTool) StreamableRun(ctx context.Context, argumentsInJSON string, o
 }
 
 // buildSkillTool 构建技能工具
-func buildSkillTool(skill *request.SkillToolInfo, query, agentName string, uploadFile []string, chatInfo *service_model.AgentChatInfo, changeToolName bool) *skillTool {
+func buildSkillTool(skill *request.SkillToolInfo, query, agentName string, uploadFile []string, chatInfo *service_model.AgentChatInfo, changeToolName bool, modelParams *request.ModelParams) *skillTool {
 	toolInfo, skillName := buildToolInfo(skill, changeToolName)
 	return &skillTool{
-		skillName:  skillName,
-		info:       toolInfo,
-		Skill:      skill,
-		userQuery:  query,
-		agentName:  agentName,
-		chatInfo:   chatInfo,
-		uploadFile: uploadFile,
+		skillName:   skillName,
+		info:        toolInfo,
+		Skill:       skill,
+		userQuery:   query,
+		agentName:   agentName,
+		chatInfo:    chatInfo,
+		uploadFile:  uploadFile,
+		modelParams: modelParams,
 	}
 }
 
@@ -239,7 +242,7 @@ func (s *SkillExecutor) runStream(runnerType wga_sandbox_option.RunnerType) (*sc
 	}
 	sr, sw := schema.Pipe[string](1)
 	conv := wga_sandbox_converter.NewEinoConverter(runnerType)
-	skillOpts := buildSkillOptions(buildModeConfig(s.skill.chatInfo), s.runEnv, s.messages, runnerType)
+	skillOpts := buildSkillOptions(buildModeConfig(s.skill.chatInfo, s.skill.modelParams), s.runEnv, s.messages, runnerType)
 	//执行调用
 	_, jsonCh, err := wga_sandbox.Run(s.ctx, skillOpts...)
 	var errResp string
@@ -365,13 +368,14 @@ func buildDirZipName(path string) string {
 	return filepath.Base(path) + ".zip"
 }
 
-func buildModeConfig(chatInfo *service_model.AgentChatInfo) *wga_sandbox_option.ModelConfig {
+func buildModeConfig(chatInfo *service_model.AgentChatInfo, modelParams *request.ModelParams) *wga_sandbox_option.ModelConfig {
 	modelInfo := chatInfo.ModelInfo
 	modelConfig := wga_sandbox_option.ModelConfig{
 		Provider:     modelInfo.Provider,
 		ProviderName: modelInfo.Provider,
 		Model:        modelInfo.Model,
 		ModelName:    modelInfo.DisplayName,
+		Params:       toLLMParams(modelParams),
 	}
 	endpoint := mp.ToModelEndpoint(modelInfo.ModelId, modelInfo.Model)
 	for k, v := range endpoint {
@@ -381,6 +385,38 @@ func buildModeConfig(chatInfo *service_model.AgentChatInfo) *wga_sandbox_option.
 		}
 	}
 	return &modelConfig
+}
+
+// toLLMParams 把 agent-service 内部的 request.ModelParams（*float32/*int 指针形态，
+// 非 nil 即启用）转成沙箱 ModelConfig.Params 期望的 *mp_common.LLMParams（float64+bool 开关）。
+// 指针为 nil 时对应 *Enable=false（该参数不启用，沙箱内用模型默认值）。
+// ThinkingEnable 不设：保持 nil，沙箱内 NewNoReasonChatModel 继续硬编码 enable_thinking:false。
+func toLLMParams(p *request.ModelParams) *mp_common.LLMParams {
+	if p == nil {
+		return nil
+	}
+	out := &mp_common.LLMParams{}
+	if p.Temperature != nil {
+		out.TemperatureEnable = true
+		out.Temperature = float64(*p.Temperature)
+	}
+	if p.TopP != nil {
+		out.TopPEnable = true
+		out.TopP = float64(*p.TopP)
+	}
+	if p.FrequencyPenalty != nil {
+		out.FrequencyPenaltyEnable = true
+		out.FrequencyPenalty = float64(*p.FrequencyPenalty)
+	}
+	if p.PresencePenalty != nil {
+		out.PresencePenaltyEnable = true
+		out.PresencePenalty = float64(*p.PresencePenalty)
+	}
+	if p.MaxTokens != nil {
+		out.MaxTokensEnable = true
+		out.MaxTokens = int32(*p.MaxTokens)
+	}
+	return out
 }
 func buildSkillOptions(modelConfig *wga_sandbox_option.ModelConfig, runEnv *skillRunEnv, messages []adk.Message, runnerType wga_sandbox_option.RunnerType) []wga_sandbox_option.Option {
 	skillCreatorCfg := config.SkillCreatorConfig{
