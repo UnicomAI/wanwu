@@ -78,12 +78,13 @@ func main() {
 	if err := es.InitWgaChatHistoryEventIndexTemplate(ctx); err != nil {
 		log.Fatalf("init wga chat history index template err: %v", err)
 	}
-
-	if err := minio.InitAssistant(ctx, minio.Config{
-		Endpoint: config.Cfg().Minio.EndPoint,
-		User:     config.Cfg().Minio.User,
-		Password: config.Cfg().Minio.Password,
-	}, config.Cfg().Minio.Bucket); err != nil {
+	minioConfig := config.Cfg().Minio
+	if err := minio.InitFileUpload(ctx, minio.Config{
+		Endpoint:    minioConfig.EndPoint,
+		User:        minioConfig.User,
+		Password:    minioConfig.Password,
+		DownloadURL: minioConfig.DownloadURL,
+	}); err != nil {
 		log.Fatalf("init minio err: %v", err)
 	}
 

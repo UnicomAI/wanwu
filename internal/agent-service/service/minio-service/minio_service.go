@@ -84,6 +84,7 @@ func UploadLocalFile(ctx context.Context, minioDir string, minioFileName string,
 }
 
 func CopyFile(ctx context.Context, srcFilePath string, destObjectNamePre string, open bool) (string, string, int64, error) {
+	srcFilePath = strings.ReplaceAll(srcFilePath, "minio/download/api/", "")
 	bucketName, objectName, fileName := SplitFilePath(srcFilePath)
 	if len(bucketName) == 0 || len(objectName) == 0 {
 		return "", "", 0, errors.New("invalid file path")

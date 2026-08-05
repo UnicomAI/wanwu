@@ -55,11 +55,16 @@ func (k *HistoryProcess) Prepare(agent *AgentInfo, prepareParams *AgentPreparePa
 			log.Warnf("Assistant服务解析ES历史聊天记录失败: %v", err)
 			continue
 		}
+		if !checkDetail(&detail) {
+			log.Infof("conversation detail fail response %s", doc)
+			continue
+		}
 		conversationList = append(conversationList, &detail)
 	}
 	prepareParams.ConversionDetailList = conversationList
 	return nil
 }
+
 func (k *HistoryProcess) Build(assistant *AgentInfo, prepareParams *AgentPrepareParams, agentChatParams *assistant_service.AgentDetail) error {
 	var historyList []*assistant_service.ConversionHistory
 	if len(prepareParams.ConversionDetailList) > 0 {
@@ -73,6 +78,17 @@ func (k *HistoryProcess) Build(assistant *AgentInfo, prepareParams *AgentPrepare
 	}
 	agentChatParams.ModelParams.History = historyList
 	return nil
+}
+
+func checkDetail(detail *model.ConversationDetails) bool {
+	respLen := len(detail.ResponseList)
+	if respLen > 0 {
+		resp := detail.ResponseList[respLen-1]
+		if len(resp.ErrResponse) > 0 {
+			return false
+		}
+	}
+	return true
 }
 
 func buildConversationResp(response string, respList []*model.ConversationResponse) string {
