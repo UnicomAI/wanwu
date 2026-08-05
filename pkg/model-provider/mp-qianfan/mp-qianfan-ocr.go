@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"io"
 	"net/http"
 	"net/url"
@@ -197,7 +198,7 @@ func replaceImageKeys(ctx context.Context, text string, images map[string]string
 	})
 }
 
-// downloadAndUploadImage 下载千帆公网图片字节并转存到 minio，返回 minio 可访问 URL。
+// downloadAndUploadImage 下载千帆公网图片字节并转存到 minio，返回 rag要求的minio 可访问 URL。
 func downloadAndUploadImage(ctx context.Context, imgUrl string) (string, error) {
 	resp, err := http_client.Default().GetOriResp(ctx, &http_client.HttpRequestParams{
 		Url:        imgUrl,
@@ -222,11 +223,24 @@ func downloadAndUploadImage(ctx context.Context, imgUrl string) (string, error) 
 	// 扩展名优先用响应 content-type，兜底 .png
 	ext := extFromContentType(resp.Header.Get("Content-Type"))
 	fileName := util.GenUUID() + ext
-	minioUrl, _, err := minio.UploadFile(ctx, minio.BucketFileUpload, minio.DirFileNotExpire, fileName, bytes.NewReader(data), int64(len(data)))
-	if err != nil {
+	// rag 适配：文档内图片需上传到 rag 可访问的桶（rag-public）下，且 object 不带目录前缀，
+	// 以便 rag 端按 {downloadUrl}/{bucket}/{object} 解析下载。
+	//   存储: rag-public/{fileName}
+	//   URL : {DownloadURL}/rag-public/{fileName}  如 http://192.168.0.21:8081/minio/download/api/rag-public/765607c4-...jpg
+	ragBucket := config.Cfg().RagKnowledgeConfig.UploadBucket
+	if err := minio.FileUpload().CreateBucketIfNotExist(ctx, ragBucket); err != nil {
+		return "", fmt.Errorf("ensure rag bucket (%v) err: %v", ragBucket, err)
+	}
+	if _, _, err := minio.UploadFile(ctx, ragBucket, "", fileName, bytes.NewReader(data), int64(len(data))); err != nil {
 		return "", fmt.Errorf("upload to minio err: %v", err)
 	}
-	return minioUrl, nil
+	// UploadFile 返回的是 minio 内网地址（http://{endpoint}/...），rag 无法访问，
+	// 改用外部下载地址拼接 rag 可访问的下载 URL
+	ragUrl, err := url.JoinPath(config.Cfg().Minio.DownloadURL, ragBucket, fileName)
+	if err != nil {
+		return "", fmt.Errorf("build rag download url err: %v", err)
+	}
+	return ragUrl, nil
 }
 
 // extFromContentType 根据响应 content-type 推断图片扩展名，无法识别时兜底 .png
