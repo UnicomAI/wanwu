@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	minio_service "github.com/UnicomAI/wanwu/internal/assistant-service/service/minio-service"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"net/http"
 	"sort"
 	"time"
@@ -175,7 +177,7 @@ func buildConversationDetail(req *ConversationParams, conversationResp *conversa
 		AssistantId:               req.AssistantId,
 		ConversationId:            req.ConversationId,
 		Prompt:                    req.Query,
-		FileInfo:                  req.FileInfo,
+		FileInfo:                  restoreFileList(req.FileInfo),
 		ResponseList:              conversationResp.ResponseList(),
 		Response:                  conversationResp.Response(),
 		SearchList:                conversationResp.References(),
@@ -241,4 +243,33 @@ func buildConversationType(eventType int) model.ConversationType {
 	default:
 		return model.SubAgent
 	}
+}
+
+func restoreFileList(agentFileList []model.FileInfo) (retFileList []model.FileInfo) {
+	if len(agentFileList) == 0 {
+		return agentFileList
+	}
+	defer util.PrintPanicStackWithCall(func(panicOccur bool, recoverError error) {
+		if panicOccur {
+			retFileList = agentFileList
+			return
+		}
+	})
+	for _, file := range agentFileList {
+		retFileList = append(retFileList, model.FileInfo{
+			FileName: file.FileName,
+			FileSize: file.FileSize,
+			FileUrl:  restoreFile(file.FileUrl),
+		})
+	}
+	return
+}
+
+// restoreFile 重新存储文件地址，原来是临时的，需要做永久存储
+func restoreFile(fileUrl string) string {
+	newFileUrl, _, _, err := minio_service.CopyFile(context.Background(), fileUrl, "file-not-expire", true)
+	if err != nil || len(newFileUrl) == 0 {
+		return fileUrl
+	}
+	return newFileUrl
 }

@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
+	minio_service "github.com/UnicomAI/wanwu/internal/assistant-service/service/minio-service"
+	"github.com/UnicomAI/wanwu/pkg/log"
+	safe_go_util "github.com/UnicomAI/wanwu/pkg/safe-go-util"
 	"os"
 	"strings"
 
@@ -42,9 +46,16 @@ func (s *Service) DeleteFromES(ctx context.Context, req *assistant_service.Delet
 		conditions[k] = v
 	}
 
+	//查询数据
+	fields, _, _ := es.Assistant().SearchByFields(ctx, req.IndexName, conditions, 0, 1000, "desc")
+	detailList := buildConversationDetails(fields)
+
 	if err := es.Assistant().DeleteByFields(ctx, req.IndexName, conditions); err != nil {
 		return nil, err
 	}
+
+	//删除历史记录中的minio数据
+	asyncDeleteMinio(detailList)
 
 	return &emptypb.Empty{}, nil
 }
@@ -79,4 +90,42 @@ func (s *Service) SearchFromES(ctx context.Context, req *assistant_service.Searc
 		DocJsonList: docJsonList,
 		Total:       total,
 	}, nil
+}
+
+func asyncDeleteMinio(detailList []*model.ConversationDetails) {
+	marshal, _ := json.Marshal(detailList)
+	log.Infof("开始异步删除文件数据, detailList %s", string(marshal))
+	if len(detailList) > 0 {
+		safe_go_util.SafeGo(func() {
+			for _, detail := range detailList {
+				if len(detail.FileInfo) > 0 {
+					for _, info := range detail.FileInfo {
+						log.Infof("异步删除输入文件：%s", info.FileUrl)
+						_ = minio_service.DeleteFile(context.Background(), info.FileUrl)
+					}
+				}
+				if len(detail.ResponseFiles) > 0 {
+					for _, file := range detail.ResponseFiles {
+						log.Infof("异步删除输出文件：%s", file.FileUrl)
+						_ = minio_service.DeleteFile(context.Background(), file.FileUrl)
+					}
+				}
+			}
+		})
+	}
+}
+
+func buildConversationDetails(fields []json.RawMessage) []*model.ConversationDetails {
+	var detailList []*model.ConversationDetails
+	if len(fields) > 0 {
+		for _, field := range fields {
+			var detail model.ConversationDetails
+			if err := json.Unmarshal(field, &detail); err != nil {
+				log.Warnf("解析ES文档失败: %v", err)
+				continue
+			}
+			detailList = append(detailList, &detail)
+		}
+	}
+	return detailList
 }
