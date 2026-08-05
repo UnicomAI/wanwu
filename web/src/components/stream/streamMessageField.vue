@@ -43,33 +43,37 @@
                     style="z-index: 10"
                   ></el-button>
                   <div class="imgList" :ref="`imgList-${i}`">
-                    <div
-                      v-for="(file, j) in n.fileList"
-                      :key="`${j}sdsl`"
-                      class="docInfo-img-container"
-                    >
-                      <el-image
-                        v-if="hasImgs(n, file)"
-                        :src="file.fileUrl"
-                        class="docIcon imgIcon"
-                        :preview-src-list="[file.fileUrl]"
-                        fit="cover"
-                      />
-                      <div v-else class="docInfo-container">
-                        <FileIcon
-                          :type="getFileIconType(file)"
-                          size="30px"
-                          class="docIcon"
+                    <div class="imgList-content">
+                      <div
+                        v-for="(file, j) in n.fileList"
+                        :key="`${j}sdsl`"
+                        class="docInfo-img-container"
+                      >
+                        <el-image
+                          v-if="hasImgs(n, file)"
+                          :src="file.fileUrl"
+                          class="docIcon imgIcon"
+                          :preview-src-list="[file.fileUrl]"
+                          fit="cover"
                         />
-                        <div class="docInfo">
-                          <p class="docInfo_name">
-                            {{ $t('knowledgeManage.fileName') }}:{{ file.name }}
-                          </p>
-                          <p class="docInfo_size">
-                            {{ $t('knowledgeManage.fileSize') }}:{{
-                              getFileSizeDisplay(file.size)
-                            }}
-                          </p>
+                        <div v-else class="docInfo-container">
+                          <FileIcon
+                            :type="getFileIconType(file)"
+                            size="30px"
+                            class="docIcon"
+                          />
+                          <div class="docInfo">
+                            <p class="docInfo_name">
+                              {{ $t('knowledgeManage.fileName') }}:{{
+                                file.name
+                              }}
+                            </p>
+                            <p class="docInfo_size">
+                              {{ $t('knowledgeManage.fileSize') }}:{{
+                                getFileSizeDisplay(file.size)
+                              }}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -750,11 +754,7 @@
             <div
               class="opera-right"
               style="flex: 0"
-              @click="
-                () => {
-                  copy(n.oriResponse) && copycb();
-                }
-              "
+              @click="handleCopyMessage(n)"
             >
               <img :src="require('@/assets/imgs/copy-icon.png')" />
             </div>
@@ -1400,12 +1400,38 @@ export default {
     queryCopy(text) {
       this.$emit('queryCopy', text);
     },
+    getMessageCopyText(message) {
+      const parts = [];
+      const append = value => {
+        const text = String(value || '').trim();
+        if (text && !parts.includes(text)) parts.push(text);
+      };
+
+      append(message.oriResponse);
+
+      if (message.error) {
+        append(message.errResponse || message.response);
+        append(message.errorDetail);
+      }
+
+      (message.messageSequence || []).forEach(item => {
+        if (!item.errMsg && !item.errResponse) return;
+        append(item.errResponse || item.response);
+        append(item.errMsg);
+      });
+
+      return parts.join('\n\n') || message.response || '';
+    },
+    handleCopyMessage(message) {
+      const text = this.getMessageCopyText(message);
+      if (text && this.copy(text)) this.copycb();
+    },
     getSessionData() {
       return this.session_data;
     },
     copy(text) {
-      const processedText = text.replaceAll('<br/>', '\n');
-      return this.$copy(processedText);
+      const processedText = String(text || '').replace(/<br\s*\/?\s*>/gi, '\n');
+      return processedText && this.$copy(processedText);
     },
     copycb() {
       this.$message.success(this.$t('agent.copyTips'));
@@ -2473,11 +2499,16 @@ export default {
           }
           .imgList {
             width: 100%;
-            gap: 10px;
             overflow-x: hidden;
             scroll-behavior: smooth;
-            display: flex;
-            flex-wrap: nowrap;
+            .imgList-content {
+              display: flex;
+              flex-wrap: nowrap;
+              gap: 10px;
+              width: max-content;
+              min-width: 100%;
+              justify-content: flex-end;
+            }
           }
           .docInfo-container {
             display: flex;
