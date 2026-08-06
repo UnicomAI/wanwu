@@ -27,6 +27,7 @@
 {"code":110004,"key":"bff_auth_license_permission_error","langs":{"en":"abnormal permission data","zh":"权限数据异常"}}
 {"code":110004,"key":"bff_auth_code_not_define","langs":{"en":"code currently undefined","zh":"code暂无定义"}}
 {"code":0,"key":"------ org ------","langs":{}}
+{"code":110000,"key":"bff_app_publish_no_permission","langs":{"en":"app not published or no access permission","zh":"应用未发布或无访问权限"}}
 {"code":110000,"key":"bff_org_disable","langs":{"en":"the organization has been deactivated","zh":"组织已停用"}}
 {"code":110000,"key":"bff_org_cannot_change","langs":{"en":"cannot modify organization","zh":"无法编辑组织"}}
 {"code":110000,"key":"bff_org_cannot_delete","langs":{"en":"cannot delete organization","zh":"无法删除组织"}}
