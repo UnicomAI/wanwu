@@ -11,7 +11,7 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/cloudwego/eino v0.7.37
 	github.com/cloudwego/eino-ext/callbacks/cozeloop v0.1.8
-	github.com/cloudwego/eino-ext/components/model/deepseek v0.1.6
+	github.com/cloudwego/eino-ext/components/model/deepseek v0.1.7
 	github.com/cloudwego/eino-ext/components/model/openai v0.1.4
 	github.com/cloudwego/eino-ext/components/tool/mcp v0.0.6
 	github.com/coze-dev/cozeloop-go v0.1.22
