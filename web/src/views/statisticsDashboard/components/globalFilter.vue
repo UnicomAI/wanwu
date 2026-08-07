@@ -1,7 +1,7 @@
 <template>
   <div class="global-filter-wrapper">
     <span class="global-filter-label">
-      {{ $t('statisticsDashboard.global') }}:
+      {{ $t('statisticsDashboard.select') }}:
     </span>
     <el-select
       v-model="filterParams.orgIds"
@@ -11,10 +11,11 @@
         'scroll-select',
         { 'hide-tag-close': isOrgSelectedAll },
       ]"
-      style="margin-left: 15px; width: 420px"
+      style="margin-left: 15px; width: 260px"
       multiple
       filterable
       clearable
+      collapse-tags
       @change="handleOrgChange"
     >
       <el-option :label="$t('statisticsDashboard.all')" :value="ALL" />
@@ -33,8 +34,9 @@
         'scroll-select',
         { 'hide-tag-close': isUserSelectedAll },
       ]"
-      style="margin-left: 15px; width: 420px"
+      style="margin-left: 15px; width: 260px"
       multiple
+      collapse-tags
       filterable
       clearable
       @change="handleUserChange"

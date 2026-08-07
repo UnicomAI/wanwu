@@ -30,12 +30,6 @@
       <div class="dashboard-section info-section">
         <div class="info-grid">
           <div class="info-item">
-            <label>{{ $t('statisticsDashboard.module') }}</label>
-            <div>
-              <AppTypeTag :app-type="currentRow.module" />
-            </div>
-          </div>
-          <div class="info-item">
             <label>{{ $t('statisticsDashboard.appType') }}</label>
             <div>
               <AppTypeTag :app-type="currentRow.appType" />
@@ -55,7 +49,9 @@
           </div>
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.userOrg') }}</label>
-            <div>{{ currentRow.orgName || '--' }}</div>
+            <div>
+              {{ currentRow.orgName || '--' }}
+            </div>
           </div>
           <div class="info-item">
             <label>{{ $t('statisticsDashboard.callTime') }}</label>
@@ -122,7 +118,7 @@
 
 <script>
 import { formatAmount, formatSec } from '@/utils/util.js';
-import AppTypeTag from '../app/appTypeTag.vue';
+import AppTypeTag from './appTypeTag.vue';
 
 export default {
   components: { AppTypeTag },
@@ -149,7 +145,7 @@ export default {
       return this.row || {};
     },
     title() {
-      const name = this.currentRow?.apiName || '';
+      const name = this.currentRow?.appName || '';
       return name
         ? `${name} - ${this.$t('statisticsDashboard.detailTitle')}`
         : this.$t('statisticsDashboard.detailTitle');

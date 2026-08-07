@@ -1,0 +1,127 @@
+.modal-toolbar {
+  margin-bottom: 16px;
+  margin-top: -66px;
+  margin-left: 120px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: $color_title;
+  margin-bottom: 12px;
+}
+
+.type-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.tag-blue {
+  color: $tag_color !important;
+  background: $tag_bg !important;
+}
+
+.tag-green {
+  color: #00A56E !important;
+  background: rgba(92, 192, 103, 0.15) !important;
+}
+
+.tag-orange {
+  color: #E87B00 !important;
+  background: #FFF3E5 !important;
+}
+
+.tag-purple {
+  color: #6349E8 !important;
+  background: #F1EDFF !important;
+}
+
+.tag-yellow {
+  color: #E6A23C !important;
+  background: #FDF6EC !important;
+}
+
+.tag-cyan {
+  color: #0DA5A5 !important;
+  background: #E7F7F7 !important;
+}
+
+.tag-ltGreen {
+  color: #67C23A !important;
+  background: #F0F9EB !important;
+}
+
+.tag-gray {
+  color: #909399 !important;
+  background: rgba(144, 147, 153, 0.1) !important;
+}
+
+.token-purple {
+  color: #5951e7;
+  font-weight: 500;
+}
+
+.btn-user, .btn-api-app {
+  color: #366fed;
+  border: 1px solid #dcebfe;
+  background: #eff6ff;
+  padding: 2px 8px;
+  border-radius: 6px;
+
+  &:hover,
+  &:focus {
+    color: #366fed;
+    border: 1px solid #dcebfe;
+    background: #eff6ff !important;
+  }
+}
+
+.btn-app, .btn-model {
+  color: #a55fef;
+  border: 1px solid #eedfff;
+  background: #faf5ff;
+  padding: 2px 8px;
+  border-radius: 6px;
+
+  &:hover,
+  &:focus {
+    color: #a55fef;
+    border: 1px solid #eedfff;
+    background: #faf5ff !important;
+  }
+}
+
+.btn-detail {
+  color: #5951e7;
+  border: 1px solid #d2dafe;
+  background: #eef2ff;
+  padding: 2px 8px;
+  border-radius: 6px;
+
+  &:hover,
+  &:focus {
+    color: #5951e7;
+    border: 1px solid #d2dafe;
+    background: #eef2ff !important;
+  }
+}
+
+.status-tag {
+  font-weight: 500;
+  border-radius: 12px;
+  border: none !important;
+}
+
+::v-deep .status-tag.el-tag--success {
+  background-color: #eefbf3 !important;
+  color: #16a24a !important;
+}
+
+::v-deep .status-tag.el-tag--danger {
+  background-color: #fcf0f1 !important;
+  color: #dd3637 !important;
+}

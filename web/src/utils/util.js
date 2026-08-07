@@ -293,6 +293,15 @@ export const formatReqUrl = reqUrl => {
   return basePath + reqUrl;
 };
 
+export const formatSec = val => {
+  if (!val) return '0ms';
+  const num = Number(val);
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 's';
+  }
+  return num + 'ms';
+};
+
 // 换算单位万/亿/万亿，保留2位小数
 export const formatAmount = (
   num,

@@ -1,0 +1,137 @@
+.ranking-card {
+  width: 100%;
+  background: #fff;
+  border-radius: 5px;
+  padding: 20px;
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.06);
+  .ranking-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 16px;
+  }
+  .ranking-list {
+    .ranking-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      &:last-child {
+        border-bottom: none;
+      }
+      .ranking-index {
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        text-align: center;
+        border-radius: 50%;
+        background: #f0f2f5;
+        color: #666;
+        font-size: 12px;
+        margin-right: 12px;
+        flex-shrink: 0;
+        &.ranking-index-first {
+          background: #4c7cf6;
+          color: #fff;
+        }
+      }
+      .ranking-avatar-wrap {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        margin-right: 12px;
+        flex-shrink: 0;
+        .ranking-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+        .ranking-badge {
+          position: absolute;
+          top: -4px;
+          right: -4px;
+          width: 16px;
+          height: 16px;
+          line-height: 16px;
+          text-align: center;
+          border-radius: 50%;
+          color: #fff;
+          font-size: 10px;
+          font-weight: bold;
+          border: 2px solid #fff;
+          box-sizing: content-box;
+          &-1 {
+            background: #ff4d4f;
+          }
+          &-2 {
+            background: #ff7a45;
+          }
+          &-3 {
+            background: #ffa940;
+          }
+        }
+      }
+      .ranking-info {
+        flex: 1;
+        min-width: 0;
+        .ranking-name-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 4px;
+          .ranking-name {
+            font-size: 14px;
+            color: #303133;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .ranking-tag {
+            flex-shrink: 0;
+            padding: 0 6px;
+            height: 18px;
+            line-height: 18px;
+            background: $tag_bg;
+            color: $tag_color;
+            font-size: 11px;
+            border-radius: 2px;
+          }
+        }
+        .ranking-desc {
+          font-size: 12px;
+          color: #909399;
+          line-height: 1.4;
+          span {
+            margin-right: 12px;
+            &:last-child {
+              margin-right: 0;
+            }
+          }
+        }
+      }
+      .ranking-value {
+        font-size: 14px;
+        color: #2563eb;
+        font-weight: bold;
+        margin-left: 12px;
+        white-space: nowrap;
+      }
+    }
+    .ranking-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      ::v-deep .el-empty__image {
+        width: 120px !important;
+        height: auto;
+      }
+      p {
+        margin: 12px 0 0;
+        color: #909399;
+        font-size: 14px;
+      }
+    }
+  }
+}

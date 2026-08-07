@@ -27,6 +27,8 @@ export default {
   data() {
     return {
       api: null,
+      resizeHandler: null,
+      roHandler: null,
     };
   },
   computed: {
@@ -47,23 +49,50 @@ export default {
   watch: {
     content: {
       handler(val) {
-        if (val.length > 0) {
-          if (this.api) {
-            this.api.dispose();
-          }
-          this.api = echarts.init(this.$refs.api);
-
-          window.addEventListener('resize', () => {
-            this.api.resize();
-          });
-          this.handleLine();
-        }
+        this.renderChart();
       },
       deep: true,
     },
   },
-  mounted() {},
+  mounted() {
+    this.renderChart();
+  },
   methods: {
+    renderChart() {
+      const val = this.content;
+      if (!val || val.length === 0 || !this.$refs.api) {
+        return;
+      }
+      if (this.api) {
+        this.api.dispose();
+      }
+      this.api = echarts.init(this.$refs.api);
+      if (!this.resizeHandler) {
+        this.resizeHandler = () => {
+          if (this.api) {
+            this.api.resize();
+          }
+        };
+        window.addEventListener('resize', this.resizeHandler);
+      }
+      if (!this.roHandler && typeof ResizeObserver !== 'undefined') {
+        this._roInitialized = false;
+        this.roHandler = () => {
+          // 跳过首次回调，避免打断 setOption 的初始动效
+          if (!this._roInitialized) {
+            this._roInitialized = true;
+            return;
+          }
+          if (this.api) {
+            this.api.resize();
+          }
+        };
+        const ro = new ResizeObserver(this.roHandler);
+        ro.observe(this.$refs.api);
+        this._ro = ro;
+      }
+      this.handleLine();
+    },
     handleLine() {
       let seriesData = [];
       let legendData = [];
@@ -252,10 +281,16 @@ export default {
     if (this.api) {
       this.api.dispose();
     }
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+    }
+    if (this._ro) {
+      this._ro.disconnect();
+    }
   },
 };
 </script>
 
-<style lang="scss">
-@import '@/style/echart';
+<style lang="scss" scoped>
+@import '@/style/echart.scss';
 </style>
