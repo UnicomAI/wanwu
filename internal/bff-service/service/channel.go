@@ -15,7 +15,7 @@ import (
 )
 
 // ListWanwuDIPAgents 获取数字员工列表（用于 DIP 通道选择绑定的数字员工）。
-// 数据源复用 GetGeneralAgentOntologyEmployeeSelect（「知识网络构建专员」固定排第一），
+// 数据源复用 GetGeneralAgentOntologyEmployeeSelect（「本体自动构建专员」固定排第一），
 // 返回 ListResult 以对齐前端 getAppSelect 期望的 {list, total} 结构。
 func ListWanwuDIPAgents(ctx *gin.Context, userID, orgID, name string) (*response.ListResult, error) {
 	employees, err := GetGeneralAgentOntologyEmployeeSelect(ctx, userID, orgID, name)
