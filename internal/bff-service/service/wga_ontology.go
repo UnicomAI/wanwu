@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	defaultDIPAgentName = "知识网络构建专员"
+	defaultDIPAgentName = "本体自动构建专员"
 )
 
 type ontologyDigitalEmployeeListResp struct {
@@ -90,7 +90,7 @@ func GetGeneralAgentOntologyEmployeeSelect(ctx *gin.Context, userId, orgId, name
 
 	var items []*response.GeneralAgentOntologyEmployee
 
-	// "知识网络构建专员" 固定放在第一个，用于创建知识网络
+	// "本体自动构建专员" 固定放在第一个，用于创建知识网络
 	items = append(items, &response.GeneralAgentOntologyEmployee{
 		ID:     defaultDIPAgentName,
 		Name:   defaultDIPAgentName,
@@ -278,7 +278,7 @@ func checkWgaOntologyKnowledgeConfig(ctx *gin.Context, userId, orgId string, ont
 //
 // DIP Agent 模式：用于创建本体知识网络或使用数字员工执行任务。
 // 通过 WithInstruction 覆盖 prompt.md、WithOverallTask 传入数字员工 task、WithSkill 注入技能。
-// "知识网络构建专员"（默认数字员工）仅注入 userId 提示，不渲染 prompt 模板。
+// "本体自动构建专员"（默认数字员工）仅注入 userId 提示，不渲染 prompt 模板。
 func buildWgaOntologyDIPMode(ctx *gin.Context, userId, orgId, threadId, runId, text string) ([]wga_option.Option, *schema.Message, error) {
 
 	dipAgentName := defaultDIPAgentName
@@ -290,13 +290,13 @@ func buildWgaOntologyDIPMode(ctx *gin.Context, userId, orgId, threadId, runId, t
 			// @后面有空格，数字员工名称是@和第一个空格之间的部分
 			dipAgentName = text[1:spaceIndex]
 		}
-		// else 非法的@提及格式，默认使用"知识网络构建专员"
+		// else 非法的@提及格式，默认使用"本体自动构建专员"
 	}
 
 	var contentBuilder strings.Builder
 	_, _ = fmt.Fprintf(&contentBuilder, "【当前用户ID为：%s】如果技能参数需要 userId、user-id、accountId、x-account-id 等相关信息，可以使用此用户ID进行查询。\n", userId)
 
-	// --- "知识网络构建专员" ---
+	// --- "本体自动构建专员" ---
 	if dipAgentName == defaultDIPAgentName {
 		return nil, &schema.Message{
 			Role:    schema.System,
