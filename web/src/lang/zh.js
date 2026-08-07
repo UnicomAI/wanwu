@@ -70,7 +70,7 @@ export default {
     ontologyAgent: '本体智能体',
     dataConnect: '数据连接',
     digitalHuman: '数字员工',
-    ontology: '知识网络',
+    ontology: '本体建模',
     atomDataView: '数据视图',
     modelService: '模型服务',
     resource: '资源库',

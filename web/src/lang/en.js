@@ -71,7 +71,7 @@ export default {
     aiAssistant: 'OpenClaw',
     ontologyAgent: 'Ontology Agent',
     dataConnect: 'Data Connect',
-    ontology: 'Knowledge Network',
+    ontology: 'Ontology Modeling',
     atomDataView: 'Data View',
     modelService: 'Model Service',
     resource: '资源库',
