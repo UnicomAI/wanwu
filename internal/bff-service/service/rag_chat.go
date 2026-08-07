@@ -36,7 +36,8 @@ type ragChatStreamParams struct {
 	startTime         time.Time
 	firstTokenLatency int64
 	hasRecorded       bool
-	hasErr            bool
+	err               error
+	errMsg            string
 }
 
 // ragChunkData 对应 rag-service / rag-wanwu 返回的每条 SSE JSON 结构
@@ -58,22 +59,24 @@ type ragChunkInner struct {
 
 // ChatRagStream RAG 私域问答，流式返回 AG-UI 协议事件
 func ChatRagStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool, source string) (err error) {
-	streamParams := &ragChatStreamParams{ctx: ctx, startTime: time.Now()}
+	// startTime 在上游流就绪后打点
+	streamParams := &ragChatStreamParams{ctx: ctx}
 	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	defer func() {
-		if source != constant.AppStatisticSourceDraft {
-			go func() {
-				defer util.PrintPanicStack()
-				RecordAppStatistic(detachedCtx, userId, orgId, req.RagID, constant.AppTypeRag, !streamParams.hasErr, true, streamParams.firstTokenLatency, 0, source)
-			}()
-		}
+		statusCode, failureReason := appStreamStatisticStatus(streamParams.err, streamParams.errMsg)
+		go func() {
+			defer util.PrintPanicStack()
+			RecordAppStatistic(detachedCtx, userId, orgId, req.RagID, constant.AppTypeRag, "",
+				statusCode, failureReason, true, streamParams.firstTokenLatency, 0, source, MarshalStatisticBody(req), "", req.Question, "")
+		}()
 	}()
 
 	chatCh, kbNameMap, err := CallRagChatStream(ctx, userId, orgId, req, needLatestPublished)
 	if err != nil {
-		streamParams.hasErr = true
+		streamParams.err = err
 		return err
 	}
+	streamParams.startTime = time.Now()
 
 	// AG-UI 协议要求 threadId/runId 每次 run 唯一；RAG 当前无持久化会话概念，
 	// 两者均使用 uuid（若后续引入 conversationID，可以把 threadID 换成它）
@@ -158,7 +161,7 @@ func convertRagStream2AGUIEvents(
 					//  - 未 finalize（上游异常断流，例如 rag-wanwu 遇到模型不可用
 					//    但只关流没发错误帧）：兜底发 RUN_ERROR，避免前端卡 loading
 					if !c.hasFinalized {
-						c.streamParams.hasErr = true
+						c.streamParams.errMsg = "upstream stream closed without finish"
 						c.finalizeError(RagErrCodeUnknown, "upstream stream closed without finish")
 					}
 					return
@@ -188,23 +191,24 @@ func convertRagStream2AGUIEvents(
 //
 // 两者共用同一个底层 CallRagChatStream，仅输出层不同。
 func ChatRagStreamLegacy(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool, source string) (err error) {
-	streamParams := &ragChatStreamParams{ctx: ctx, startTime: time.Now()}
+	streamParams := &ragChatStreamParams{ctx: ctx}
 	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	defer func() {
-		if source != constant.AppStatisticSourceDraft {
-			go func() {
-				defer util.PrintPanicStack()
-				RecordAppStatistic(detachedCtx, userId, orgId, req.RagID, constant.AppTypeRag, !streamParams.hasErr, true, streamParams.firstTokenLatency, 0, source)
-			}()
-		}
+		statusCode, failureReason := appStreamStatisticStatus(streamParams.err, streamParams.errMsg)
+		go func() {
+			defer util.PrintPanicStack()
+			RecordAppStatistic(detachedCtx, userId, orgId, req.RagID, constant.AppTypeRag, "",
+				statusCode, failureReason, true, streamParams.firstTokenLatency, 0, source, MarshalStatisticBody(req), "", req.Question, "")
+		}()
 	}()
 
 	// openapi 不需要 kbNameMap（旧格式没有 user_kb_name 字段），忽略第二个返回值
 	chatCh, _, err := CallRagChatStream(ctx, userId, orgId, req, needLatestPublished)
 	if err != nil {
-		streamParams.hasErr = true
+		streamParams.err = err
 		return err
 	}
+	streamParams.startTime = time.Now()
 	// 旧版行处理器：带 data: 前缀的原样透传，error: 开头的转成 {code:-1,...}
 	_ = sse_util.NewSSEWriter(ctx, fmt.Sprintf("[RAG] %v user %v org %v", req.RagID, userId, orgId), sse_util.DONE_MSG).
 		WriteStream(chatCh, streamParams, buildRagChatRespLineProcessorLegacy(), nil)
@@ -226,7 +230,7 @@ func buildRagChatRespLineProcessorLegacy() func(sse_util.SSEWriterClient[string]
 		}
 		if strings.HasPrefix(lineText, "error:") {
 			if p, ok := params.(*ragChatStreamParams); ok {
-				p.hasErr = true
+				p.errMsg = strings.TrimPrefix(lineText, "error:")
 			}
 			errorText := fmt.Sprintf("data: {\"code\": -1, \"message\": \"%s\"}\n\n", strings.TrimPrefix(lineText, "error:"))
 			return errorText, false, nil

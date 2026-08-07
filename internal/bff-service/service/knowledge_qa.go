@@ -1,8 +1,10 @@
 package service
 
 import (
+	"encoding/json"
 	"net/url"
 	"strings"
+	"time"
 
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
@@ -11,10 +13,13 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/minio"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/lo"
 )
@@ -366,7 +371,35 @@ func buildKnowledgeExportAuthorMap(ctx *gin.Context, dataList []*knowledgebase_s
 }
 
 // KnowledgeQAHit 知识库命中
-func KnowledgeQAHit(ctx *gin.Context, userId, orgId string, r *request.KnowledgeQAHitReq) (*response.KnowledgeQAHitResp, error) {
+func KnowledgeQAHit(ctx *gin.Context, userId, orgId string, r *request.KnowledgeQAHitReq) (ret *response.KnowledgeQAHitResp, err error) {
+	startTime := time.Now()
+	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
+	defer func() {
+		var appID string
+		// 与 WithKnowledgeHitResource 一致：按有效 knowledgeId 数量判定；openapi 可传多项但 len=1 仍记。
+		switch len(r.KnowledgeList) {
+		case 1:
+			appID = r.KnowledgeList[0].ID
+		default:
+			return // 多知识库命中暂不记应用统计
+		}
+		statusCode, failureReason := GrpcErrorToHTTPStatus(err)
+		source := resolveAppStatisticSource(detachedCtx, constant.BizSourceWeb)
+		// appType 由 RecordAppStatistic 从 Trace.moduleResourceType 回填（knowledge）
+		costs := time.Since(startTime).Milliseconds()
+		respBody := ""
+		if ret != nil {
+			if b, e := json.Marshal(ret); e == nil {
+				respBody = string(b)
+			}
+		}
+		go func() {
+			defer util.PrintPanicStack()
+			RecordAppStatistic(detachedCtx, userId, orgId, appID, "", constant.BizModuleResourceKnowledge,
+				statusCode, failureReason, false, 0, costs, source, MarshalStatisticBody(r), respBody, r.Question, "")
+		}()
+	}()
+
 	matchParams := r.KnowledgeMatchParams
 	resp, err := knowledgeBaseQA.KnowledgeQAHit(ctx.Request.Context(), &knowledgebase_qa_service.KnowledgeQAHitReq{
 		Question:      r.Question,

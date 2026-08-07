@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"encoding/json"
-	"strconv"
 	"time"
 
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
@@ -63,13 +62,8 @@ func APIKeyRecord(StreamType string) gin.HandlerFunc {
 		// 计算耗时
 		var streamCosts, nonStreamCosts int64
 		if isStream {
-			// 流式请求：从 ctx 获取首 token 时延
-			if firstTokenLatency := ctx.GetInt64(gin_util.FIRST_RESP_LATENCY); firstTokenLatency > 0 {
-				streamCosts = firstTokenLatency
-			} else {
-				// 兜底：如果没有设置，使用总耗时
-				streamCosts = time.Since(startTime).Milliseconds()
-			}
+			// 流式请求：从 ctx 获取首 token 时延；未设置则保持 0（不用总耗时冒充 TTFT）
+			streamCosts = ctx.GetInt64(gin_util.FIRST_RESP_LATENCY)
 		} else {
 			nonStreamCosts = time.Since(startTime).Milliseconds()
 		}
@@ -93,7 +87,7 @@ func APIKeyRecord(StreamType string) gin.HandlerFunc {
 				apiKeyID,
 				methodPath,
 				startTime.UnixMilli(),
-				strconv.Itoa(httpStatus),
+				int64(httpStatus),
 				isStream,
 				streamCosts,
 				nonStreamCosts,

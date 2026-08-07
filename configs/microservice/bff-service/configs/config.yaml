@@ -489,3 +489,6 @@ ontology:
     - name: yj-ocr-parser
       desc: "文档解析技能，用于解析PDF文档和图片（jpg/png/jpeg）并将其转换为Markdown格式输出。支持标题层级、表格（HTML格式）、公式（LaTeX格式）、图片（链接形式）等复杂内容的解析。当用户提到\"解析PDF\"、\"文档解析\"、\"PDF转Markdown\"、\"提取PDF内容\"、\"解析文档\"、\"文档内容提取\"、\"PDF内容识别\"、\"图片解析\"、\"图片转文字\"、\"识别图片内容\"等场景时使用此技能。即使用户只是要求读取或查看PDF/图片文件内容，也应考虑使用此技能。"
       skillPath: configs/microservice/bff-service/configs/agent-skills/ontology/yj-ocr-parser
+
+statistic:
+  record_body: 0

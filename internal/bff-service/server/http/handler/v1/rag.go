@@ -25,7 +25,7 @@ func ChatDraftRag(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	if err := service.ChatRagStream(ctx, userId, orgId, req, false, constant.AppStatisticSourceDraft); err != nil {
+	if err := service.ChatRagStream(ctx, userId, orgId, req, false, constant.BizSourceWeb); err != nil {
 		gin_util.Response(ctx, nil, err)
 	}
 }
@@ -68,7 +68,7 @@ func ChatPublishedRag(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	if err := service.ChatRagStream(ctx, userId, orgId, req, true, constant.AppStatisticSourceWeb); err != nil {
+	if err := service.ChatRagStream(ctx, userId, orgId, req, true, constant.BizSourceWeb); err != nil {
 		gin_util.Response(ctx, nil, err)
 	}
 }

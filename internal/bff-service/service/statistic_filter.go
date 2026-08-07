@@ -51,7 +51,8 @@ func GetStatisticUsersSelect(ctx *gin.Context, userID, orgID string, isAdmin boo
 		return &response.ListResult{List: []response.StatisticUserName{{UserID: user.UserId, UserName: user.UserName}}, Total: 1}, nil
 	}
 
-	// 管理员（系统管理员/组织管理员同逻辑）
+	// 管理员（系统管理员/组织管理员同逻辑）：批量接口一次拿全部可见组织用户（IAM 侧去重），
+	// 避免 per-org GetUserList 的 N+1 RPC 与 IAM 侧逐用户组装 UserInfo 的放大开销。
 	orgsResp, err := iam.GetOrgAndSubOrgSelectByUser(ctx.Request.Context(), &iam_service.GetOrgAndSubOrgSelectByUserReq{
 		UserId: userID,
 		OrgId:  orgID,
@@ -59,30 +60,30 @@ func GetStatisticUsersSelect(ctx *gin.Context, userID, orgID string, isAdmin boo
 	if err != nil {
 		return nil, err
 	}
-	items := []response.StatisticUserName{}
-	seen := make(map[string]struct{})
+	orgIds := make([]string, 0, len(orgsResp.Orgs))
 	for _, org := range orgsResp.Orgs {
-		resp, err := iam.GetUserList(ctx.Request.Context(), &iam_service.GetUserListReq{
-			OrgId:    org.Id,
-			PageNo:   -1,
-			PageSize: -1,
+		if org != nil && org.Id != "" {
+			orgIds = append(orgIds, org.Id)
+		}
+	}
+	if len(orgIds) == 0 {
+		return &response.ListResult{List: []response.StatisticUserName{}, Total: 0}, nil
+	}
+	usersResp, err := iam.GetUsersByOrgIDs(ctx.Request.Context(), &iam_service.GetUsersByOrgIDsReq{
+		OrgIds: orgIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	items := []response.StatisticUserName{}
+	for _, user := range usersResp.Users {
+		if user == nil || user.Id == "" {
+			continue
+		}
+		items = append(items, response.StatisticUserName{
+			UserID:   user.Id,
+			UserName: user.Name,
 		})
-		if err != nil {
-			return nil, err
-		}
-		for _, user := range resp.Users {
-			if user.UserId == "" {
-				continue
-			}
-			if _, ok := seen[user.UserId]; ok {
-				continue
-			}
-			seen[user.UserId] = struct{}{}
-			items = append(items, response.StatisticUserName{
-				UserID:   user.UserId,
-				UserName: user.UserName,
-			})
-		}
 	}
 	sort.Slice(items, func(i, j int) bool {
 		return items[i].UserName < items[j].UserName
@@ -213,39 +214,23 @@ func ResolveStatisticScope(ctx *gin.Context, filter request.StatisticFilter, use
 	return &statisticScope{OrgIds: orgIds, UserIds: userIds}, nil
 }
 
+// collectStatisticUserIDsInOrgs 批量取多个组织下的全部用户 ID（IAM 侧去重）。
 func collectStatisticUserIDsInOrgs(ctx *gin.Context, orgIds []string) ([]string, error) {
-	seen := make(map[string]struct{})
-	userIds := make([]string, 0)
-	for _, oid := range orgIds {
-		if oid == "" {
-			continue
-		}
-		users, err := listOrgUsers(ctx, oid)
-		if err != nil {
-			return nil, err
-		}
-		for _, user := range users {
-			if user.UserId == "" {
-				continue
-			}
-			if _, ok := seen[user.UserId]; ok {
-				continue
-			}
-			seen[user.UserId] = struct{}{}
-			userIds = append(userIds, user.UserId)
-		}
+	if len(orgIds) == 0 {
+		return []string{}, nil
 	}
-	return userIds, nil
-}
-
-func listOrgUsers(ctx *gin.Context, orgID string) ([]*iam_service.UserInfo, error) {
-	resp, err := iam.GetUserList(ctx.Request.Context(), &iam_service.GetUserListReq{
-		OrgId:    orgID,
-		PageNo:   -1,
-		PageSize: -1,
+	resp, err := iam.GetUsersByOrgIDs(ctx.Request.Context(), &iam_service.GetUsersByOrgIDsReq{
+		OrgIds: orgIds,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return resp.Users, nil
+	userIds := make([]string, 0, len(resp.Users))
+	for _, user := range resp.Users {
+		if user == nil || user.Id == "" {
+			continue
+		}
+		userIds = append(userIds, user.Id)
+	}
+	return userIds, nil
 }

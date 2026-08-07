@@ -59,6 +59,7 @@ type Config struct {
 	Workflow            WorkflowServiceConfig `json:"workflow" mapstructure:"workflow"`
 	WgaSandbox          WgaSandboxConfig      `json:"wga-sandbox" mapstructure:"wga-sandbox"`
 	Ontology            OntologyServiceConfig `json:"ontology" mapstructure:"ontology"`
+	Statistic           StatisticConfig       `json:"statistic" mapstructure:"statistic"`
 }
 
 type ServerConfig struct {
@@ -77,6 +78,10 @@ type ServiceModelConfig struct {
 	PdfTestFilePath          string `json:"pdf_test_file_path" mapstructure:"pdf_test_file_path"`
 	AsrTestFilePath          string `json:"asr_test_file_path" mapstructure:"asr_test_file_path"`
 	RecommendModelConfigPath string `json:"recommend_model_config_path" mapstructure:"recommend_model_config_path"`
+}
+
+type StatisticConfig struct {
+	RecordBody int `json:"record_body" mapstructure:"record_body"`
 }
 
 type RecommendModelItemLLM struct {

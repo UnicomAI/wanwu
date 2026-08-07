@@ -67,21 +67,32 @@ type IClient interface {
 	GetChatflowApplicationByApplicationID(ctx context.Context, orgId, userId, applicationId string) (*model.ChatflowApplcation, *err_code.Status)
 	CreateChatflowApplication(ctx context.Context, orgId, userId, workflowId, applicationId string) *err_code.Status
 
-	// ---model statistic ---
-	GetModelStatistic(ctx context.Context, orgIds, userIds []string, startDate, endDate string, modelIds []string, modelType string) (*orm.ModelStatistic, *err_code.Status)
-	GetModelStatisticList(ctx context.Context, orgIds, userIds []string, startDate, endDate string, modelIds []string, modelType string, offset, limit int32) (*orm.ModelStatisticList, *err_code.Status)
-	RecordModelStatistic(ctx context.Context, userId, orgId, modelId, model, modelType string,
-		promptTokens, completionTokens, totalTokens, firstTokenLatency, costs int64, isSuccess bool, isStream bool, provider string) *err_code.Status
+	// --- model statistic v2 ---
+	RecordModelStatisticV2(ctx context.Context, req *orm.RecordModelStatisticV2Input) *err_code.Status
+	GetModelStatisticV2Overview(ctx context.Context, orgIds, userIds []string, startDate, endDate string, modelIds []string, modelType, viewScope string) (*orm.ModelStatisticV2Overview, *err_code.Status)
+	GetModelStatisticV2Chart(ctx context.Context, orgIds, userIds []string, startDate, endDate string, modelIds []string, modelType, viewScope string, limit int32) (*orm.ModelStatisticV2Chart, *err_code.Status)
+	GetModelStatisticV2List(ctx context.Context, orgIds, userIds []string, startDate, endDate string, modelIds []string, modelType, viewScope, sortExpr, sortOrder string, offset, limit int32) ([]orm.ModelStatisticV2ListItem, int32, *err_code.Status)
+	GetModelStatisticV2UserList(ctx context.Context, orgIds, userIds []string, startDate, endDate string, modelIds []string, modelType, viewScope, modelId, sortExpr, sortOrder string, offset, limit int32) ([]orm.ModelStatisticV2UserListItem, int32, *err_code.Status)
+	GetModelStatisticV2AppList(ctx context.Context, orgIds, userIds []string, startDate, endDate string, modelIds []string, modelType, viewScope, modelId, sortExpr, sortOrder string, offset, limit int32) ([]orm.ModelStatisticV2AppListItem, int32, *err_code.Status)
+	GetModelStatisticV2Record(ctx context.Context, orgIds, userIds []string, startDate, endDate string, modelIds []string, modelType, viewScope, modelId, sortExpr, sortOrder string, offset, limit int32) ([]orm.ModelStatisticV2RecordItem, int32, *err_code.Status)
+	ListModelStatisticV2Select(ctx context.Context, orgIds, userIds []string, modelType, viewScope string) ([]orm.ModelStatisticV2SelectItem, *err_code.Status)
 
-	// --- app statistic ---
-	GetAppStatistic(ctx context.Context, orgIds, userIds []string, startDate, endDate string, appIds []string, appType string) (*orm.AppStatistic, *err_code.Status)
-	GetAppStatisticList(ctx context.Context, orgIds, userIds []string, startDate, endDate string, appIds []string, appType string, offset, limit int32) (*orm.AppStatisticList, *err_code.Status)
-	RecordAppStatistic(ctx context.Context, userId, orgId, appId, appType string, isSuccess, isStream bool, streamCosts, nonStreamCosts int64, source string) *err_code.Status
+	// --- app statistic v2 ---
+	RecordAppStatisticV2(ctx context.Context, req *orm.RecordAppStatisticV2Input) *err_code.Status
+	GetAppStatisticV2Overview(ctx context.Context, orgIds, userIds []string, startDate, endDate, module string, apps []string, viewScope, source string) (*orm.AppStatisticV2Overview, *err_code.Status)
+	GetAppStatisticV2Chart(ctx context.Context, orgIds, userIds []string, startDate, endDate, module string, apps []string, viewScope, source string, limit int32) (*orm.AppStatisticV2Chart, *err_code.Status)
+	GetAppStatisticV2List(ctx context.Context, orgIds, userIds []string, startDate, endDate, module string, apps []string, viewScope, source, sortExpr, sortOrder string, offset, limit int32) ([]orm.AppStatisticV2ListItem, int32, *err_code.Status)
+	GetAppStatisticV2UserList(ctx context.Context, orgIds, userIds []string, startDate, endDate, module string, apps []string, viewScope, source, appId, moduleCreatorUserId, moduleCreatorOrgId, sortExpr, sortOrder string, offset, limit int32) ([]orm.AppStatisticV2UserListItem, int32, *err_code.Status)
+	GetAppStatisticV2ModelList(ctx context.Context, orgIds, userIds []string, startDate, endDate, module string, apps []string, viewScope, source, appId, moduleCreatorUserId, moduleCreatorOrgId, sortExpr, sortOrder string, offset, limit int32) ([]orm.AppStatisticV2ModelListItem, int32, *err_code.Status)
+	GetAppStatisticV2Record(ctx context.Context, orgIds, userIds []string, startDate, endDate, module string, apps []string, viewScope, appId, source, sortExpr, sortOrder string, offset, limit int32) ([]orm.AppStatisticV2RecordItem, int32, *err_code.Status)
+	ListAppStatisticV2Select(ctx context.Context, orgIds, userIds []string, module, viewScope string) ([]orm.AppStatisticV2SelectItem, *err_code.Status)
 
-	// --- api key statistic ---
-	GetAPIKeyStatistic(ctx context.Context, orgIds, userIds []string, startDate, endDate string, apiKeyIds, methodPaths []string) (*orm.APIKeyStatistic, *err_code.Status)
-	GetAPIKeyStatisticList(ctx context.Context, orgIds, userIds []string, startDate, endDate string, apiKeyIds, methodPaths []string, offset, limit int32) (*orm.APIKeyStatisticList, *err_code.Status)
-	GetAPIKeyStatisticRecord(ctx context.Context, orgIds, userIds []string, startDate, endDate string, apiKeyIds, methodPaths []string, offset, limit int32) (*orm.APIKeyStatisticRecordList, *err_code.Status)
-	RecordAPIKeyStatistic(ctx context.Context, userId, orgId, apiKeyId, methodPath string,
-		callTime int64, httpStatus string, isStream bool, streamCosts, nonStreamCosts int64, requestBody, responseBody string) *err_code.Status
+	// --- api key statistic v2 ---
+	RecordAPIKeyStatisticV2(ctx context.Context, req *orm.RecordAPIKeyStatisticV2Input) *err_code.Status
+	GetAPIKeyStatisticV2Overview(ctx context.Context, orgIds, userIds []string, startDate, endDate string, apiKeyIds, methodPaths []string) (*orm.APIKeyStatisticV2Overview, *err_code.Status)
+	GetAPIKeyStatisticV2Chart(ctx context.Context, orgIds, userIds []string, startDate, endDate string, apiKeyIds, methodPaths []string, limit int32) (*orm.APIKeyStatisticV2Chart, *err_code.Status)
+	GetAPIKeyStatisticV2List(ctx context.Context, orgIds, userIds []string, startDate, endDate string, apiKeyIds, methodPaths []string, sortExpr, sortOrder string, offset, limit int32) ([]orm.APIKeyStatisticV2ListItem, int32, *err_code.Status)
+	GetAPIKeyStatisticV2AppList(ctx context.Context, orgIds, userIds []string, startDate, endDate string, apiKeyIds, methodPaths []string, apiKeyId, methodPath, sortExpr, sortOrder string, offset, limit int32) ([]orm.APIKeyStatisticV2AppListItem, int32, *err_code.Status)
+	GetAPIKeyStatisticV2ModelList(ctx context.Context, orgIds, userIds []string, startDate, endDate string, apiKeyIds, methodPaths []string, apiKeyId, methodPath, sortExpr, sortOrder string, offset, limit int32) ([]orm.APIKeyStatisticV2ModelListItem, int32, *err_code.Status)
+	GetAPIKeyStatisticV2Record(ctx context.Context, orgIds, userIds []string, startDate, endDate string, apiKeyIds, methodPaths []string, sortExpr, sortOrder string, offset, limit int32) ([]orm.APIKeyStatisticV2RecordItem, int32, *err_code.Status)
 }

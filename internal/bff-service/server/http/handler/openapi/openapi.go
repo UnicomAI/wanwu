@@ -126,7 +126,7 @@ func ChatAgent(ctx *gin.Context) {
 			ConversationId: req.ConversationID,
 			Prompt:         req.Query,
 			FileInfo:       req.FileInfo,
-		}, true, constant.AppStatisticSourceOpenAPI); err != nil {
+		}, true, constant.BizSourceOpenAPI); err != nil {
 			gin_util.Response(ctx, nil, err)
 			return
 		}
@@ -147,14 +147,16 @@ func ChatAgent(ctx *gin.Context) {
 		FileInfo:       req.FileInfo,
 	}, true)
 	if err != nil {
+		statusCode, failureReason := service.GrpcErrorToHTTPStatus(err)
 		go func() {
 			defer util.PrintPanicStack()
-			service.RecordAppStatistic(detachedCtx, userID, orgID, appID, constant.AppTypeAgent, false, false, 0, 0, constant.AppStatisticSourceOpenAPI)
+			service.RecordAppStatistic(detachedCtx, userID, orgID, appID, constant.AppTypeAgent, "",
+				statusCode, failureReason, false, 0, 0, constant.BizSourceOpenAPI, service.MarshalStatisticBody(req), "", req.Query, "")
 		}()
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	var output string
+	var output strings.Builder
 	resp := &response.OpenAPIAgentChatResponse{}
 	for chat := range chatCh {
 		// 注意这里智能体的原始流式返回没有data:前缀
@@ -167,14 +169,15 @@ func ChatAgent(ctx *gin.Context) {
 			continue
 		}
 		resp = curr
-		output += curr.Response
+		output.WriteString(curr.Response)
 	}
-	resp.Response = output
+	resp.Response = output.String()
 	resp.RecommendQuestions = service.GenAgentRecommendQuestions(ctx, userID, orgID, appID, req.ConversationID, req.Query, true)
 	costs := time.Since(startTime).Milliseconds()
 	go func() {
 		defer util.PrintPanicStack()
-		service.RecordAppStatistic(detachedCtx, userID, orgID, appID, constant.AppTypeAgent, true, false, 0, int64(costs), constant.AppStatisticSourceOpenAPI)
+		service.RecordAppStatistic(detachedCtx, userID, orgID, appID, constant.AppTypeAgent, "",
+			200, "", false, 0, int64(costs), constant.BizSourceOpenAPI, service.MarshalStatisticBody(req), service.MarshalStatisticBody(resp), req.Query, resp.Response)
 	}()
 	b, _ := json.Marshal(resp)
 	status := http.StatusOK
@@ -212,7 +215,7 @@ func ChatRag(ctx *gin.Context) {
 	// 流式 —— openapi 固定走 legacy 格式（原 rag-service SSE JSON 透传），
 	// 不跟随 web 的 AG-UI 协议改造，避免破坏外部集成方的解析逻辑
 	if req.Stream {
-		if err := service.ChatRagStreamLegacy(ctx, userID, orgID, request.ChatRagRequest{RagID: req.UUID, Question: req.Query, History: req.History}, true, constant.AppStatisticSourceOpenAPI); err != nil {
+		if err := service.ChatRagStreamLegacy(ctx, userID, orgID, request.ChatRagRequest{RagID: req.UUID, Question: req.Query, History: req.History}, true, constant.BizSourceOpenAPI); err != nil {
 			gin_util.Response(ctx, nil, err)
 		}
 		return
@@ -221,14 +224,16 @@ func ChatRag(ctx *gin.Context) {
 	startTime := time.Now()
 	chatCh, _, err := service.CallRagChatStream(ctx, userID, orgID, request.ChatRagRequest{RagID: req.UUID, Question: req.Query, History: req.History}, true)
 	if err != nil {
+		statusCode, failureReason := service.GrpcErrorToHTTPStatus(err)
 		go func() {
 			defer util.PrintPanicStack()
-			service.RecordAppStatistic(detachedCtx, userID, orgID, req.UUID, constant.AppTypeRag, false, false, 0, 0, constant.AppStatisticSourceOpenAPI)
+			service.RecordAppStatistic(detachedCtx, userID, orgID, req.UUID, constant.AppTypeRag, "",
+				statusCode, failureReason, false, 0, 0, constant.BizSourceOpenAPI, service.MarshalStatisticBody(req), "", req.Query, "")
 		}()
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	var output string
+	var output strings.Builder
 	resp := &response.OpenAPIRagChatResponse{}
 	for chat := range chatCh {
 		if !strings.HasPrefix(chat, "data:") || strings.HasPrefix(chat, strings.TrimSpace(sse_util.DONE_MSG)) {
@@ -240,13 +245,14 @@ func ChatRag(ctx *gin.Context) {
 			continue
 		}
 		resp = curr
-		output += curr.Data.Output
+		output.WriteString(curr.Data.Output)
 	}
-	resp.Data.Output = output
+	resp.Data.Output = output.String()
 	costs := time.Since(startTime).Milliseconds()
 	go func() {
 		defer util.PrintPanicStack()
-		service.RecordAppStatistic(detachedCtx, userID, orgID, req.UUID, constant.AppTypeRag, true, false, 0, int64(costs), constant.AppStatisticSourceOpenAPI)
+		service.RecordAppStatistic(detachedCtx, userID, orgID, req.UUID, constant.AppTypeRag, "",
+			200, "", false, 0, int64(costs), constant.BizSourceOpenAPI, service.MarshalStatisticBody(req), service.MarshalStatisticBody(resp), req.Query, resp.Data.Output)
 	}()
 	b, _ := json.Marshal(resp)
 	status := http.StatusOK
@@ -259,7 +265,7 @@ func ChatRag(ctx *gin.Context) {
 //
 //	@Tags			openapi
 //	@Summary		智能体草稿态对话OpenAPI
-//	@Description	智能体草稿态对话OpenAPI，基于草稿配置进行问答，不要求智能体已发布，不计入统计
+//	@Description	智能体草稿态对话OpenAPI，基于草稿配置进行问答，不要求智能体已发布，计入统计
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.OpenAPIAgentDraftChatRequest	true	"请求参数"
@@ -325,7 +331,7 @@ func DraftChatAgent(ctx *gin.Context) {
 		ConversationId: req.ConversationID,
 		Prompt:         req.Query,
 		FileInfo:       req.FileInfo,
-	}, false, constant.AppStatisticSourceDraft); err != nil {
+	}, false, constant.BizSourceOpenAPI); err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
 	}

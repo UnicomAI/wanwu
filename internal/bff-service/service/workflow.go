@@ -383,13 +383,21 @@ func WorkflowConvert(ctx *gin.Context, orgId, workflowId, flowMode string) error
 func PublishedWorkflowRun(ctx *gin.Context, userId, orgId string, req request.WorkflowRunReq) (result *response.CozeNodeResult, err error) {
 	// Step 1: 触发异步执行（使用web的test_run接口），获取executeId
 	startTime := time.Now()
-	isSuccess := false
 	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	defer func() {
 		costs := time.Since(startTime).Milliseconds()
+		statusCode, failureReason := GrpcErrorToHTTPStatus(err)
+		respBody := ""
+		if result != nil {
+			if b, e := json.Marshal(result); e == nil {
+				respBody = string(b)
+			}
+		}
 		go func() {
 			defer util.PrintPanicStack()
-			RecordAppStatistic(detachedCtx, userId, orgId, req.WorkflowID, constant.AppTypeWorkflow, isSuccess, false, 0, int64(costs), constant.AppStatisticSourceWeb)
+			question := MarshalStatisticBody(req.Input)
+			RecordAppStatistic(detachedCtx, userId, orgId, req.WorkflowID, constant.AppTypeWorkflow, "",
+				statusCode, failureReason, false, 0, int64(costs), constant.BizSourceWeb, MarshalStatisticBody(req), respBody, question, respBody)
 		}()
 	}()
 
@@ -482,7 +490,6 @@ func PublishedWorkflowRun(ctx *gin.Context, userId, orgId string, req request.Wo
 			case 2: // Success
 				for _, nodeResult := range data.NodeResults {
 					if nodeResult.NodeType == "End" && nodeResult.NodeId == "900001" {
-						isSuccess = true
 						return nodeResult, nil
 					}
 				}

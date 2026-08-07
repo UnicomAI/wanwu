@@ -156,32 +156,33 @@ func GetConversationMessageList(ctx *gin.Context, userId, orgId, appId, conversa
 	}, nil
 }
 
-func ChatflowChat(ctx *gin.Context, userId, orgId, workflowId, conversationId, message string, parameters map[string]any) (err error) {
-	startTime := time.Now()
+func ChatflowChat(ctx *gin.Context, userId, orgId string, req request.OpenAPIChatflowChatRequest) (err error) {
+	var startTime time.Time
 	var firstTokenLatency int64
 	var firstTokenRecorded bool
-	var hasErr bool
+	var statErrMsg string
 	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	defer func() {
+		statusCode, failureReason := appStreamStatisticStatus(err, statErrMsg)
 		go func() {
 			defer util.PrintPanicStack()
-			RecordAppStatistic(detachedCtx, userId, orgId, workflowId, constant.AppTypeChatflow, !hasErr, true, firstTokenLatency, 0, constant.AppStatisticSourceOpenAPI)
+			RecordAppStatistic(detachedCtx, userId, orgId, req.UUID, constant.AppTypeChatflow, "",
+				statusCode, failureReason, true, firstTokenLatency, 0, constant.BizSourceOpenAPI, MarshalStatisticBody(req), "", req.Query, "")
 		}()
 	}()
 
 	url, _ := url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ChatflowRunByOpenapiUri)
-	p, err := json.Marshal(parameters)
+	p, err := json.Marshal(req.Parameters)
 	if err != nil {
-		hasErr = true
 		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_chatflow_chat", err.Error())
 	}
 	cvInfo, err := app.GetConversationByID(ctx.Request.Context(), &app_service.GetConversationByIDReq{
-		ConversionId: conversationId,
+		ConversionId: req.ConversationId,
 	})
 	if err != nil {
-		hasErr = true
 		return err
 	}
+	startTime = time.Now()
 	resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx).
@@ -199,14 +200,14 @@ func ChatflowChat(ctx *gin.Context, userId, orgId, workflowId, conversationId, m
 				{
 					"role":         "user",
 					"content_type": "text",
-					"content":      message,
+					"content":      req.Query,
 				},
 			},
 			"parameters":      string(p),
 			"connector_id":    "1024",
-			"workflow_id":     workflowId,
+			"workflow_id":     req.UUID,
 			"app_id":          cvInfo.AppId,
-			"conversation_id": conversationId,
+			"conversation_id": req.ConversationId,
 			"ext": map[string]any{
 				"_caller": "CANVAS",
 				"user_id": "",
@@ -216,11 +217,9 @@ func ChatflowChat(ctx *gin.Context, userId, orgId, workflowId, conversationId, m
 		Post(url)
 
 	if err != nil {
-		hasErr = true
 		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_chatflow_chat", err.Error())
 	}
 	if resp.StatusCode() >= 300 {
-		hasErr = true
 		b, err := io.ReadAll(resp.RawResponse.Body)
 		if err != nil {
 			return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_chatflow_chat", fmt.Sprintf("[%v] %v", resp.StatusCode(), err))
@@ -253,7 +252,7 @@ func ChatflowChat(ctx *gin.Context, userId, orgId, workflowId, conversationId, m
 		}
 		// 写入数据到响应体（添加双换行符符合SSE格式）
 		if _, err := ctx.Writer.Write([]byte(scan.Text() + "\n")); err != nil {
-			log.Errorf("chatflow id [%v]chat conversationId [%v]: failed to write to client: %v", workflowId, conversationId, err)
+			log.Errorf("chatflow id [%v]chat conversationId [%v]: failed to write to client: %v", req.UUID, req.ConversationId, err)
 			break
 		}
 		// 刷新缓冲区，确保数据立即发送到客户端
@@ -263,10 +262,10 @@ func ChatflowChat(ctx *gin.Context, userId, orgId, workflowId, conversationId, m
 	if err := scan.Err(); err != nil && !errors.Is(err, io.EOF) {
 		// 如果是客户端断开连接，记录info级别日志
 		if errors.Is(err, context.Canceled) {
-			log.Debugf("chatflow id [%v]chat conversationId [%v]: client disconnected: %v", workflowId, conversationId, err)
+			log.Debugf("chatflow id [%v]chat conversationId [%v]: client disconnected: %v", req.UUID, req.ConversationId, err)
 		} else {
-			hasErr = true
-			log.Errorf("chatflow id [%v]chat conversationId [%v]: failed to scan response body: %v", workflowId, conversationId, err)
+			statErrMsg = err.Error()
+			log.Errorf("chatflow id [%v]chat conversationId [%v]: failed to scan response body: %v", req.UUID, req.ConversationId, err)
 		}
 		return nil
 	}

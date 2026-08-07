@@ -5,6 +5,7 @@ import (
 
 	v1 "github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/v1"
 	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/middleware"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	mid "github.com/UnicomAI/wanwu/pkg/gin-util/mid-wrap"
 	"github.com/gin-gonic/gin"
 )
@@ -45,9 +46,9 @@ func registerAssistant(apiV1 *gin.RouterGroup) {
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/multi-agent/config", http.MethodPut, v1.MultiAgentConfigUpdate, "编辑多智能体配置中子智能体描述")
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/multi-agent/switch", http.MethodPut, v1.MultiAgentEnableSwitch, "启用/停用多智能体配置-子智能体")
 
-	mid.Sub("app.agent").Reg(apiV1, "/assistant/stream/draft", http.MethodPost, v1.DraftAssistantConversionStream, "草稿智能体流式问答", middleware.TraceAppID("assistantId"))
+	mid.Sub("app.agent").Reg(apiV1, "/assistant/stream/draft", http.MethodPost, v1.DraftAssistantConversionStream, "草稿智能体流式问答", middleware.TraceWeb(constant.BizModuleAppAgent, middleware.WithDraftAppResource(constant.AppTypeAgent, "assistantId")))
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/select", http.MethodGet, v1.GetAssistantSelect, "添加多智能体配置-下拉列表接口")
-	mid.Sub("app.agent").Reg(apiV1, "/assistant/question/recommend", http.MethodPost, v1.AssistantQuestionRecommend, "智能体问题推荐接口")
+	mid.Sub("app.agent").Reg(apiV1, "/assistant/question/recommend", http.MethodPost, v1.AssistantQuestionRecommend, "智能体问题推荐接口", middleware.TraceWeb(constant.BizModuleAppAgent, middleware.WithDraftAppResource(constant.AppTypeAgent, "assistantId")))
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/conversation/draft/detail", http.MethodGet, v1.DraftAssistantConversationDetailList, "草稿智能体对话详情历史列表")
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/conversation/draft", http.MethodDelete, v1.DraftAssistantConversationDelete, "草稿智能体对话删除")
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/pending/conversation", http.MethodPost, v1.GetAssistantPendingConversion, "获取智能体运行中会话")

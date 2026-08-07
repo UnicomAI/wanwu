@@ -11,6 +11,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/router/openapi"
 	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/router/openurl"
 	v1 "github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/router/v1"
+	v2 "github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/router/v2"
 	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/middleware"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
@@ -43,7 +44,7 @@ func Start(ctx context.Context) {
 	// v1
 	v1.Register(r.Group("/v1"))
 	// v2
-	// v3
+	v2.Register(r.Group("/v2"))
 	// ..
 	// openapi v1
 	openapi.Register(r.Group("/openapi/v1"))

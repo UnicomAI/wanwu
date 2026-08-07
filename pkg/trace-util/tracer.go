@@ -82,6 +82,11 @@ func GetTraceID(ctx context.Context) string {
 	return spanCtx.TraceID().String()
 }
 
+// IsTraceContextValid reports whether ctx carries a valid OpenTelemetry trace.
+func IsTraceContextValid(ctx context.Context) bool {
+	return trace.SpanContextFromContext(ctx).IsValid()
+}
+
 func GetSpanID(ctx context.Context) string {
 	spanCtx := trace.SpanContextFromContext(ctx)
 	return spanCtx.SpanID().String()

@@ -8,7 +8,7 @@ import (
 
 func Init(r *gin.Engine) {
 
-	mid.InitWrapper([]gin.HandlerFunc{Record}, []gin.HandlerFunc{TraceUser})
+	mid.InitWrapper([]gin.HandlerFunc{Record}, []gin.HandlerFunc{TraceStatistic})
 	r.Use(CacheAvatar)
 
 	// --- openapi ---

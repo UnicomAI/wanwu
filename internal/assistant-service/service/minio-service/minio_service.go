@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"net/url"
+	"strings"
+
 	"github.com/UnicomAI/wanwu/internal/assistant-service/config"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	minio_client "github.com/UnicomAI/wanwu/pkg/minio"
 	"github.com/minio/minio-go/v7"
-	"net/url"
-	"strings"
 )
 
 func DeleteFile(ctx context.Context, minioFilePath string) error {

@@ -2659,7 +2659,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: 智能体草稿态对话OpenAPI，基于草稿配置进行问答，不要求智能体已发布，不计入统计
+      description: 智能体草稿态对话OpenAPI，基于草稿配置进行问答，不要求智能体已发布，计入统计
       parameters:
       - description: 请求参数
         in: body

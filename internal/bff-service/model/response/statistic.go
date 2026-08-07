@@ -5,10 +5,6 @@ type StatisticUserName struct {
 	UserName string `json:"username"`
 }
 
-type ClientCumulative struct {
-	Total int32 `json:"total"` // 累计客户端数量
-}
-
 type ClientStatistic struct {
 	Overview ClientOverView `json:"overview"` // 统计面板
 	Trend    ClientTrend    `json:"trend"`    // 统计趋势

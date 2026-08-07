@@ -131,7 +131,7 @@ func (c *ragStreamConverter) recordTTFT() {
 func (c *ragStreamConverter) handleChunk(chunk ragChunkData) (done bool) {
 	// 非零 code（0外）视为错误
 	if chunk.Code != 0 {
-		c.streamParams.hasErr = true
+		c.streamParams.errMsg = chunk.Message
 		code := RagErrCodeUnknown
 		if chunk.Code == ragChunkCodeBusinessError {
 			code = RagErrCodeUpstream
@@ -142,7 +142,7 @@ func (c *ragStreamConverter) handleChunk(chunk ragChunkData) (done bool) {
 
 	// finish=2：敏感词拦截
 	if chunk.Finish == 2 {
-		c.streamParams.hasErr = true
+		c.streamParams.errMsg = "Content blocked by sensitive word filter"
 		c.finalizeError(RagErrCodeSensitiveBlock, "Content blocked by sensitive word filter")
 		return true
 	}

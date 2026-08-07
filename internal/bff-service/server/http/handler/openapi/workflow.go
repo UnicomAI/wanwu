@@ -1,7 +1,6 @@
 package openapi
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
@@ -35,12 +34,7 @@ func WorkflowRun(ctx *gin.Context) {
 		return
 	}
 
-	jsonBytes, err := json.Marshal(req.Parameters)
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
-	resp, err := service.OpenAPIWorkflowRun(ctx, userID, orgID, req.UUID, jsonBytes)
+	resp, err := service.OpenAPIWorkflowRun(ctx, userID, orgID, req)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
@@ -184,7 +178,7 @@ func ChatflowChat(ctx *gin.Context) {
 	}
 
 	// 流式处理 - 直接操作响应流
-	err := service.ChatflowChat(ctx, userID, orgID, req.UUID, req.ConversationId, req.Query, req.Parameters)
+	err := service.ChatflowChat(ctx, userID, orgID, req)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return

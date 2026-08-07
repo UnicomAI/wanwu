@@ -40,28 +40,30 @@ type agentChatStreamParams struct {
 	startTime         time.Time
 	firstTokenLatency int64
 	hasRecorded       bool
-	hasErr            bool
+	err               error
+	errMsg            string
 }
 
 func AssistantConversionStream(ctx *gin.Context, userId, orgId, clientID string, req request.ConversionStreamRequest, needLatestPublished bool, source string) (err error) {
 	// 1. CallAssistantConversationStream
-	streamParams := &agentChatStreamParams{ctx: ctx, startTime: time.Now()}
+	streamParams := &agentChatStreamParams{ctx: ctx}
 	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	defer func() {
-		if source != constant.AppStatisticSourceDraft {
-			go func() {
-				defer util.PrintPanicStack()
-				RecordAppStatistic(detachedCtx, userId, orgId, req.AssistantId, constant.AppTypeAgent, !streamParams.hasErr, true, streamParams.firstTokenLatency, 0, source)
-			}()
-		}
+		statusCode, failureReason := appStreamStatisticStatus(streamParams.err, streamParams.errMsg)
+		go func() {
+			defer util.PrintPanicStack()
+			RecordAppStatistic(detachedCtx, userId, orgId, req.AssistantId, constant.AppTypeAgent, "",
+				statusCode, failureReason, true, streamParams.firstTokenLatency, 0, source, MarshalStatisticBody(req), "", req.Prompt, "")
+		}()
 	}()
 
 	chatCh, err := CallAssistantConversationStream(ctx, userId, orgId, clientID, req, needLatestPublished)
 	if err != nil {
-		streamParams.hasErr = true
+		streamParams.err = err
 		return err
 	}
 	// 2. 流式返回结果
+	streamParams.startTime = time.Now()
 	_ = sse_util.NewSSEWriter(ctx, fmt.Sprintf("[Agent] %v conversation %v user %v org %v recv", req.AssistantId, req.ConversationId, userId, orgId), sse_util.DONE_MSG).
 		WriteStream(chatCh, streamParams, buildAgentChatRespLineProcessor(), nil)
 	return nil
@@ -142,7 +144,7 @@ func getConversationID(ctx *gin.Context, userId, orgId string, req request.Pendi
 }
 func AssistantConversionStreamConnect(ctx *gin.Context, userId, orgId, clientID string, req request.ConversionStreamConnectRequest) error {
 	// 1. CallAssistantConversationStream
-	streamParams := &agentChatStreamParams{ctx: ctx, startTime: time.Now()}
+	streamParams := &agentChatStreamParams{ctx: ctx}
 	chatCh, err := sse_connector.Connect[string](ctx, &sse_model.Session{ConversationID: req.ConversationId, ClientID: clientID}, func(data *sse_model.Message) string {
 		return data.Data.(string)
 	})
@@ -150,6 +152,7 @@ func AssistantConversionStreamConnect(ctx *gin.Context, userId, orgId, clientID 
 		return err
 	}
 	// 2. 流式返回结果
+	streamParams.startTime = time.Now()
 	_ = sse_util.NewSSEWriter(ctx, fmt.Sprintf("[Agent] %v conversation %v user %v org %v recv", req.AssistantId, req.ConversationId, userId, orgId), sse_util.DONE_MSG).
 		WriteStream(chatCh, streamParams, buildAgentChatRespLineProcessor(), nil)
 	return nil
@@ -378,7 +381,7 @@ func buildAgentChatRespLineProcessor() func(sse_util.SSEWriterClient[string], st
 		}
 		if strings.HasPrefix(lineText, "error:") {
 			if p, ok := params.(*agentChatStreamParams); ok {
-				p.hasErr = true
+				p.errMsg = strings.TrimPrefix(lineText, "error:")
 			}
 			errorText := fmt.Sprintf("data: {\"code\": -1, \"message\": \"%s\"}\n\n", strings.TrimPrefix(lineText, "error:"))
 			return errorText, false, nil

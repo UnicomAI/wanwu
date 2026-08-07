@@ -16,6 +16,8 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	ag_ui_util "github.com/UnicomAI/wanwu/pkg/ag-ui-util"
+	"github.com/UnicomAI/wanwu/pkg/constant"
+	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	sse_connector "github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector"
@@ -47,6 +49,9 @@ type WgaChatParams struct {
 	ThreadID string
 	Messages []request.GeneralAgentConversationMessage
 
+	// Module 应用统计板块（WGA / Skill 共用本函数，须由调用方显式传入）
+	Module string
+
 	// ClientID - 客户端标识，用于 SSE 断线重连的 session 隔离
 	// 非空时启用断线重连能力，为空时行为与改造前完全一致（断连即停止后端执行）
 	ClientID string
@@ -61,7 +66,7 @@ type WgaChatParams struct {
 	// - 通用智能体：NewGeneralAgentWorkspaceStore(threadID)，store 与 threadID 绑定
 	// - 新业务跨 thread：自定义 Store（如共享 workspace），与请求 threadID 解耦
 	// - 无 workspace：传 nil
-	WorkspaceStore *wga_persistent.Store
+	WorkspaceStore *wga_persistent.Store `json:"-"`
 
 	// WorkspaceReadOnly - 工作空间只读模式（控制文件写入）
 	// - true: 只设置 InputDir，agent 执行产出不写回 workspace
@@ -95,7 +100,31 @@ func wgaConversationHistoryEventESIndexNotFound(err error) bool {
 
 // WgaConversationChat 通用的 WGA 对话执行（完整流程，包含 SSE 响应）
 // 支持不同业务场景通过传入不同的 WorkspaceStore 实现 workspace 与 threadID 的解耦
-func WgaConversationChat(ctx *gin.Context, params *WgaChatParams) error {
+func WgaConversationChat(ctx *gin.Context, params *WgaChatParams) (err error) {
+	var startTime time.Time
+	var firstTokenLatency int64
+	var firstTokenRecorded bool
+	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
+	defer func() {
+		statusCode, failureReason := GrpcErrorToHTTPStatus(err)
+		source := resolveAppStatisticSource(detachedCtx, constant.BizSourceWeb)
+		// 流式：记录真实首 token 时延；未打到则保持 0（不用总耗时冒充 TTFT）
+		// requestBody 落整体 params（WorkspaceStore 不可序列化，已通过 json:"-" 排除）
+		// question 取最后一条 user 消息的文本内容（在 defer 内抽取，避免依赖后续才赋值的 userInputMessage）
+		question := ""
+		for i := len(params.Messages) - 1; i >= 0; i-- {
+			if params.Messages[i].Role == ag_ui_util.RoleUser {
+				question = params.Messages[i].GetTextContent()
+				break
+			}
+		}
+		go func() {
+			defer util.PrintPanicStack()
+			RecordAppStatistic(detachedCtx, params.UserID, params.OrgID, "", "", params.Module,
+				statusCode, failureReason, true, firstTokenLatency, 0, source, MarshalStatisticBody(params), "", question, "")
+		}()
+	}()
+
 	// 参数检查
 	if params.UserID == "" {
 		return grpc_util.ErrorStatus(err_code.Code_BFFGeneral, "userId is required")
@@ -166,6 +195,8 @@ func WgaConversationChat(ctx *gin.Context, params *WgaChatParams) error {
 	bgCtx := sseSessionManager.GetBgContext()
 
 	// 运行 WGA（使用 bgCtx，不随客户端断连中断）
+	// TTFT 起点紧挨 Run
+	startTime = time.Now()
 	_, iter, err := wga.Run(bgCtx, params.AgentID, opts...)
 	if err != nil {
 		_ = sse_connector.Close(sseSession)
@@ -283,6 +314,11 @@ func WgaConversationChat(ctx *gin.Context, params *WgaChatParams) error {
 			if !ok {
 				log.Infof("[WgaConversationChat] threadId=%s, runId=%s, outputCh closed", params.ThreadID, runID)
 				return false
+			}
+			if !firstTokenRecorded {
+				firstTokenLatency = time.Since(startTime).Milliseconds()
+				firstTokenRecorded = true
+				ctx.Set(gin_util.FIRST_RESP_LATENCY, firstTokenLatency)
 			}
 			_, _ = fmt.Fprintf(w, "data: %s\n\n", line)
 			return true

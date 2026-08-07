@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
 	minio_service "github.com/UnicomAI/wanwu/internal/assistant-service/service/minio-service"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	safe_go_util "github.com/UnicomAI/wanwu/pkg/safe-go-util"
-	"os"
-	"strings"
 
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/config"

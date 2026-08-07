@@ -54,10 +54,15 @@ func ModelTextRerank(ctx *gin.Context, modelID string, req *mp_common.TextRerank
 		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v rerank NewReq err: %v", modelInfo.ModelId, err)))
 		return
 	}
+	requestBody := MarshalStatisticBody(req)
 	startTime := time.Now()
 	resp, err := iRerank.Rerank(ctx.Request.Context(), rerankReq)
 	if err != nil {
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v rerank err: %v", modelInfo.ModelId, err)))
+		go func() {
+			defer util.PrintPanicStack()
+			recordModelStatisticV2Failure(detachedCtx, modelInfo, false, requestBody, err)
+		}()
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error()))
 		return
 	}
 	if data, ok := resp.ConvertResp(); ok {
@@ -69,16 +74,19 @@ func ModelTextRerank(ctx *gin.Context, modelID string, req *mp_common.TextRerank
 		//ctx.Set(config.RESULT, resp.String())
 		ctx.JSON(status, data)
 		costs := int(time.Since(startTime).Milliseconds())
+		responseBody := MarshalStatisticBody(data)
 		go func() {
 			defer util.PrintPanicStack()
-			recordModelStatistic(detachedCtx, modelInfo, true,
-				data.Usage.PromptTokens, data.Usage.CompletionTokens, data.Usage.TotalTokens, costs, 0, false)
+			recordModelStatisticV2(detachedCtx, modelInfo,
+				data.Usage.PromptTokens, data.Usage.CompletionTokens, data.Usage.TotalTokens, costs, 0, false,
+				http.StatusOK, requestBody, responseBody, "", "")
 		}()
 		return
 	}
+	errMsg := fmt.Sprintf("model %v rerank err: invalid resp", modelInfo.ModelId)
 	go func() {
 		defer util.PrintPanicStack()
-		recordModelStatistic(detachedCtx, modelInfo, false, 0, 0, 0, 0, 0, false)
+		recordModelStatisticV2Failure(detachedCtx, modelInfo, false, requestBody, fmt.Errorf("%s", errMsg))
 	}()
-	gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v rerank err: invalid resp", modelInfo.ModelId)))
+	gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, errMsg))
 }
