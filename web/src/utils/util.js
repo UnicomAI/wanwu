@@ -288,6 +288,11 @@ export function avatarSrc(path, defaultImg = '') {
   return basePath + '/user/api/' + path;
 }
 
+export const formatReqUrl = reqUrl => {
+  if (!reqUrl) return '';
+  return basePath + reqUrl;
+};
+
 export const formatSec = val => {
   if (!val) return '0ms';
   const num = Number(val);

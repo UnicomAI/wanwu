@@ -148,6 +148,8 @@ export default {
       uploadLimitTip: '最多上传{limit}个文件，支持图片、文档混合上传',
       continueAddFile: '可继续添加文件',
       clickBlankContinueUpload: '点击空白处继续上传',
+      uploadSummary:
+        '本次共上传{total}个文件，其中成功{success}个，失败{failed}个',
     },
     datePicker: {
       placeholder: '选择日期时间',
@@ -2243,6 +2245,7 @@ export default {
       title: '闲聊模式',
       tips: '开启闲聊模式，用户可进行大模型闲聊;禁用闲聊模式则只支持对知识库、问答库内涉及的内容进行问答。若只关联问答库，暂不支持开启闲聊模式',
     },
+    defaultConversationTitle: '新会话',
   },
   generalAgent: {
     sidebar: {
@@ -2617,6 +2620,7 @@ export default {
             category: 'Category',
             version: 'Version',
             overview: 'Introduction Overview',
+            emptyTip: 'Skill Not Generated Yet',
           },
         },
         safety: {
@@ -2640,6 +2644,11 @@ export default {
             linkKnowledge: 'Linked Knowledge Base',
             linkTool: 'Linked Tools',
             linkAgent: 'Linked Agents',
+            noSystemPrompt: 'No System Prompt Configured',
+            noModel: 'No Model Configured',
+            noKnowledge: 'No Knowledge Base Linked',
+            noTool: 'No Tools Linked',
+            noAgent: 'No Agents Linked',
             safetyGuardrail: 'Safety Guardrail',
             recommendConfig: 'Recommend Config',
             retrievalConfig: 'Retrieval Config',
@@ -2676,7 +2685,6 @@ export default {
             },
             viewMore: 'View More',
             collapse: 'Collapse',
-            noData: 'No Data',
           },
         },
         workflow: {
@@ -2691,6 +2699,9 @@ export default {
           detail: {
             knowledgeBase: 'Knowledge Base',
             qaDatabase: 'QA Database',
+            noModel: 'No Model Linked',
+            noKnowledge: 'No Knowledge Base Linked',
+            noQaDatabase: 'No QA Database Linked',
             model: 'Model',
             modelConfig: 'Model Config',
             retrievalConfig: 'Retrieval Config',
@@ -2718,7 +2729,6 @@ export default {
             },
             viewMore: 'View More',
             collapse: 'Collapse',
-            noData: 'No Data',
           },
         },
       },

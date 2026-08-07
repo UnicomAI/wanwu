@@ -251,9 +251,11 @@ export default {
           : mergeChunks(formData);
         await mergeRequest.then(res => {
           if (res.code === 0) {
-            this.$message.success(
-              `${this.file.name}` + i18n.t('fileChunk.uploadFinish'),
-            );
+            if (this.showUploadFileMessage !== false) {
+              this.$message.success(
+                `${this.file.name}` + i18n.t('fileChunk.uploadFinish'),
+              );
+            }
             this.fileList[this.fileIndex].percentage = 100;
             this.fileList[this.fileIndex]['progressStatus'] = 'success';
             this.fileList[this.fileIndex]['showRetry'] = 'false';
@@ -267,9 +269,11 @@ export default {
               res.data.filePath,
             );
           } else {
-            this.$message.error(
-              `${this.file.name}` + i18n.t('fileChunk.uploadFail'),
-            );
+            if (this.showUploadFileMessage !== false) {
+              this.$message.error(
+                `${this.file.name}` + i18n.t('fileChunk.uploadFail'),
+              );
+            }
             if (this.handleUploadFailure) {
               this.handleUploadFailure({ showMessage: false });
             } else {

@@ -15,7 +15,11 @@
         v-on="$listeners"
       />
 
-      <i slot="reference" :class="iconClass" :style="iconStyle" />
+      <i
+        slot="reference"
+        :class="['version-popover-trigger', iconClass]"
+        :style="iconStyle"
+      />
     </el-popover>
   </div>
 </template>
@@ -31,12 +35,10 @@ export default {
     appId: {
       type: String,
       required: true,
-      default: () => '',
     },
     appType: {
       type: String,
       required: true,
-      default: () => '',
     },
     iconStyle: {
       type: Object,
@@ -64,3 +66,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.version-popover-trigger {
+  pointer-events: auto !important;
+}
+</style>

@@ -153,6 +153,8 @@ export default {
       uploadLimitTip: '最多上传{limit}个文件，支持图片、文档混合上传',
       continueAddFile: '可继续添加文件',
       clickBlankContinueUpload: '点击空白处继续上传',
+      uploadSummary:
+        '本次共上传{total}个文件，其中成功{success}个，失败{failed}个',
     },
     datePicker: {
       placeholder: '选择日期时间',
@@ -2479,6 +2481,7 @@ export default {
       title: '闲聊模式',
       tips: '开启闲聊模式，用户可进行大模型闲聊;禁用闲聊模式则只支持对知识库、问答库内涉及的内容进行问答。若只关联问答库，暂不支持开启闲聊模式',
     },
+    defaultConversationTitle: '新会话',
   },
   generalAgent: {
     sidebar: {
@@ -2910,6 +2913,7 @@ export default {
             category: '分类',
             version: '版本',
             overview: '介绍概览',
+            emptyTip: '暂未生成Skill',
           },
         },
         safety: {
@@ -2933,6 +2937,11 @@ export default {
             linkKnowledge: '关联知识库',
             linkTool: '关联工具',
             linkAgent: '关联智能体',
+            noSystemPrompt: '暂未配置系统提示词',
+            noModel: '暂未配置模型',
+            noKnowledge: '暂未关联知识库',
+            noTool: '暂未关联工具',
+            noAgent: '暂未关联智能体',
             safetyGuardrail: '安全护栏',
             recommendConfig: '追问配置',
             retrievalConfig: '检索方式配置',
@@ -2969,7 +2978,6 @@ export default {
             },
             viewMore: '查看更多',
             collapse: '收起',
-            noData: '暂无数据',
           },
         },
         workflow: {
@@ -2984,6 +2992,9 @@ export default {
           detail: {
             knowledgeBase: '关联知识库',
             qaDatabase: '关联问答库',
+            noModel: '暂未配置模型',
+            noKnowledge: '暂未关联知识库',
+            noQaDatabase: '暂未关联问答库',
             model: '关联模型',
             modelConfig: '模型配置',
             retrievalConfig: '检索方式配置',
@@ -3011,7 +3022,6 @@ export default {
             },
             viewMore: '查看更多',
             collapse: '收起',
-            noData: '暂无数据',
           },
         },
       },

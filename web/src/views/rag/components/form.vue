@@ -59,7 +59,6 @@
         <VersionPopover
           ref="versionPopover"
           v-if="publishType"
-          style="pointer-events: auto"
           :appId="editForm.appId"
           :appType="RAG"
           @reloadData="reloadData"

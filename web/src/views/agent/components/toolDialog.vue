@@ -433,7 +433,7 @@ export default {
       } else if (this.activeValue === AGENT_TOOL_TYPE.WORKFLOW) {
         this.$router.push({ path: '/appSpace/workflow' });
       } else {
-        this.$router.push({ path: '/skill?type=custom' });
+        this.$router.push({ path: '/skill?type=skill_custom' });
       }
     },
     createText() {

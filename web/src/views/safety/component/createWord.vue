@@ -159,7 +159,7 @@
 import uploadChunk from '@/mixins/uploadChunk';
 import { delfile } from '@/api/chunkFile';
 import { uploadSensitiveWord } from '@/api/safety';
-import { filterSize, authDownload } from '@/utils/util';
+import { filterSize, authDownload, avatarSrc } from '@/utils/util';
 
 export default {
   mixins: [uploadChunk],
@@ -234,7 +234,7 @@ export default {
     async handleDownloadTemplate() {
       try {
         await authDownload(
-          this.basePath + '/user/api/v1/files/docs/sensitive.xlsx',
+          avatarSrc('/v1/files/docs/sensitive.xlsx'),
           'sensitive.xlsx',
         );
       } catch (error) {

@@ -21,9 +21,14 @@
       <div v-if="detail.instructions" class="prompt-text input-box">
         {{ detail.instructions }}
       </div>
-      <div v-else class="empty-text">
-        {{ $t('adminCenter.pageModules.appDevelopment.agent.detail.noData') }}
-      </div>
+      <EmptyState
+        v-else
+        :tip="
+          $t(
+            'adminCenter.pageModules.appDevelopment.agent.detail.noSystemPrompt',
+          )
+        "
+      />
     </DetailCard>
 
     <!-- 模型配置 -->
@@ -32,7 +37,11 @@
         $t('adminCenter.pageModules.appDevelopment.agent.detail.modelConfig')
       "
     >
-      <InfoGrid :items="modelItems" />
+      <InfoGrid v-if="modelConfig.modelId" :items="modelItems" />
+      <EmptyState
+        v-else
+        :tip="$t('adminCenter.pageModules.appDevelopment.agent.detail.noModel')"
+      />
     </DetailCard>
 
     <!-- 对话配置 -->
@@ -64,9 +73,7 @@
             {{ detail.prologue }}
           </div>
           <div v-else class="dialog-value empty-text">
-            {{
-              $t('adminCenter.pageModules.appDevelopment.agent.detail.noData')
-            }}
+            {{ $t('common.noData') }}
           </div>
         </div>
         <div class="dialog-row is-stack">
@@ -89,9 +96,7 @@
               </div>
             </template>
             <div v-else class="empty-text">
-              {{
-                $t('adminCenter.pageModules.appDevelopment.agent.detail.noData')
-              }}
+              {{ $t('common.noData') }}
             </div>
           </div>
         </div>
@@ -175,9 +180,12 @@
           </span>
         </div>
       </template>
-      <div v-else class="empty-text">
-        {{ $t('adminCenter.pageModules.appDevelopment.agent.detail.noData') }}
-      </div>
+      <EmptyState
+        v-else
+        :tip="
+          $t('adminCenter.pageModules.appDevelopment.agent.detail.noKnowledge')
+        "
+      />
     </DetailCard>
 
     <!-- 关联工具 -->
@@ -228,9 +236,10 @@
           </span>
         </div>
       </template>
-      <div v-else class="empty-text">
-        {{ $t('adminCenter.pageModules.appDevelopment.agent.detail.noData') }}
-      </div>
+      <EmptyState
+        v-else
+        :tip="$t('adminCenter.pageModules.appDevelopment.agent.detail.noTool')"
+      />
     </DetailCard>
 
     <!-- 关联智能体 -->
@@ -287,9 +296,10 @@
           </span>
         </div>
       </template>
-      <div v-else class="empty-text">
-        {{ $t('adminCenter.pageModules.appDevelopment.agent.detail.noData') }}
-      </div>
+      <EmptyState
+        v-else
+        :tip="$t('adminCenter.pageModules.appDevelopment.agent.detail.noAgent')"
+      />
     </DetailCard>
 
     <!-- 安全护栏 -->
@@ -348,6 +358,7 @@ import DetailHeader from '../components/DetailHeader.vue';
 import DetailCard from '../components/DetailCard.vue';
 import InfoGrid from '../components/InfoGrid.vue';
 import VisibleUsers from '../components/VisibleUsers.vue';
+import EmptyState from '../components/EmptyState.vue';
 import metaDataFilterField from '@/components/app/metaDataFilterField.vue';
 import { MULTIPLE_AGENT, SINGLE_AGENT } from '@/views/agent/constants';
 import detailMixin from '../mixins/detailMixin';
@@ -361,6 +372,7 @@ export default {
     DetailCard,
     InfoGrid,
     VisibleUsers,
+    EmptyState,
     metaDataFilterField,
   },
   mixins: [detailMixin],

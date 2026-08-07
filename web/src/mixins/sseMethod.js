@@ -9,7 +9,7 @@ import {
 import { mapActions, mapGetters } from 'vuex';
 import { i18n } from '@/lang';
 import StreamProcessor from '@/utils/streamProcessor.js';
-import { guid, getXClientId } from '@/utils/util';
+import { guid, getXClientId, formatReqUrl } from '@/utils/util';
 
 var originalFetch = window.fetch;
 
@@ -31,7 +31,7 @@ export default {
   data() {
     return {
       isTestChat: false,
-      defaultUrl: '/img/smart/logo.png',
+      defaultUrl: '/v1/static/icon/model-default-icon.png', // 模型体验默认URL
       inputVal: '',
       eventSource: null,
       ctrlAbort: null,
@@ -268,7 +268,7 @@ export default {
         ...rest
       } = options;
       this.ctrlAbort = new AbortController();
-      return new fetchEventSource(this.origin + url, {
+      return new fetchEventSource(this.origin + formatReqUrl(url), {
         method: 'POST',
         headers: headers || {
           'Content-Type': 'application/json',

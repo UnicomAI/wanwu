@@ -30,6 +30,7 @@
             drag
             action=""
             :show-file-list="false"
+            multiple
             :auto-upload="false"
             :limit="uploadLimit"
             :accept="tipsArr"
@@ -109,9 +110,9 @@
               </div>
               <div class="tips">
                 <el-progress
-                  :percentage="file.percentage"
-                  v-if="file.percentage !== 100"
-                  :status="file.progressStatus"
+                  :percentage="uploadProgressPercentage"
+                  v-if="shouldShowUploadProgress"
+                  :status="uploadProgressStatus"
                   max="100"
                   style="width: 360px; margin: 0 auto"
                 ></el-progress>
@@ -226,6 +227,12 @@ export default {
       fileInfo: [],
       lastFileType: '',
       imgUrl: '',
+      uploadBatches: {},
+      pendingBatchId: '',
+      isSelectionBatchPending: false,
+      isSelectionLimitMessageShown: false,
+      // 供mixin共享使用
+      showUploadFileMessage: false,
     };
   },
   watch: {
@@ -347,6 +354,31 @@ export default {
       }
       return tips.join('，');
     },
+    currentUploadBatch() {
+      if (!this.file || !this.file.batchId) return null;
+      return this.uploadBatches[this.file.batchId] || null;
+    },
+    isMultiFileBatch() {
+      return this.currentUploadBatch && this.currentUploadBatch.totalCount > 1;
+    },
+    uploadProgressPercentage() {
+      if (!this.isMultiFileBatch) {
+        return (this.file && this.file.percentage) || 0;
+      }
+
+      const { totalCount, successCount, failedCount } = this.currentUploadBatch;
+      const activeTotal = totalCount - failedCount;
+      if (activeTotal <= 0) return 0;
+      return Math.floor((successCount / activeTotal) * 100);
+    },
+    uploadProgressStatus() {
+      return this.isMultiFileBatch
+        ? 'active'
+        : (this.file && this.file.progressStatus) || 'active';
+    },
+    shouldShowUploadProgress() {
+      return !!this.file && this.uploadProgressPercentage < 100;
+    },
     allFilesUploaded() {
       return (
         this.fileList.length > 0 &&
@@ -424,6 +456,10 @@ export default {
       this.fileUrl = '';
       this.imgUrl = '';
       this.fileInfo = [];
+      this.uploadBatches = {};
+      this.pendingBatchId = '';
+      this.isSelectionBatchPending = false;
+      this.isSelectionLimitMessageShown = false;
       this.isUploading = false;
       this.canScroll = false;
     },
@@ -431,13 +467,22 @@ export default {
       this.clearFile();
       this.dialogVisible = false;
     },
+    showSelectionLimitMessage(message) {
+      if (this.isSelectionLimitMessageShown) return;
+
+      this.isSelectionLimitMessageShown = true;
+      this.$message.warning(message);
+      this.$nextTick(() => {
+        this.isSelectionLimitMessageShown = false;
+      });
+    },
     showFileLimitMessage() {
-      this.$message.warning(
+      this.showSelectionLimitMessage(
         this.$t('app.uploadFileLimitTips', { num: this.displayMaxFileNum }),
       );
     },
     showImageLimitMessage() {
-      this.$message.warning(
+      this.showSelectionLimitMessage(
         this.$t('app.uploadImgTips', { num: this.displayMaxPicNum }),
       );
     },
@@ -504,13 +549,58 @@ export default {
       }
 
       this.fileList = nextFileList;
-      const currentFile = this.normalizeUploadFile(file);
+      const currentFile = this.fileList.find(item => item.uid === file.uid);
+      this.addFileToPendingBatch(currentFile);
       this.fileType = currentFile.fileType;
       this.imgUrl = currentFile.imgUrl || '';
       this.fileUrl = currentFile.fileUrl;
       this.checkScrollable();
 
-      this.triggerNextUpload();
+      this.scheduleBatchUpload();
+    },
+    addFileToPendingBatch(file) {
+      if (!file || file.batchId) return;
+
+      if (!this.pendingBatchId) {
+        this.pendingBatchId = this.$guid();
+        this.$set(this.uploadBatches, this.pendingBatchId, {
+          totalCount: 0,
+          successCount: 0,
+          failedCount: 0,
+          isCompleted: false,
+        });
+      }
+
+      this.$set(file, 'batchId', this.pendingBatchId);
+      this.uploadBatches[this.pendingBatchId].totalCount++;
+    },
+    scheduleBatchUpload() {
+      if (this.isSelectionBatchPending) return;
+
+      this.isSelectionBatchPending = true;
+      this.$nextTick(() => {
+        this.pendingBatchId = '';
+        this.isSelectionBatchPending = false;
+        this.triggerNextUpload();
+      });
+    },
+    updateUploadBatch(file, result) {
+      if (!file || !file.batchId) return;
+      const batch = this.uploadBatches[file.batchId];
+      if (!batch || batch.isCompleted) return;
+
+      if (result === 'success') batch.successCount++;
+      if (result === 'failed') batch.failedCount++;
+
+      if (batch.successCount + batch.failedCount !== batch.totalCount) return;
+
+      batch.isCompleted = true;
+      const message = this.$t('common.fileUpload.uploadSummary', {
+        total: batch.totalCount,
+        success: batch.successCount,
+        failed: batch.failedCount,
+      });
+      this.$message[batch.failedCount ? 'warning' : 'success'](message);
     },
     removeUploadFile(file, fileList) {
       const index = fileList.indexOf(file);
@@ -581,7 +671,7 @@ export default {
     },
     showUploadValidateMessage(validateResult) {
       if (validateResult.type === 'imageSize') {
-        this.$message.warning(
+        this.showSelectionLimitMessage(
           this.$t('knowledgeManage.multiKnowledgeDatabase.imageSizeLimit', {
             maxSize: this.maxImageSizeMB,
           }),
@@ -590,7 +680,7 @@ export default {
       }
 
       if (validateResult.type === 'fileSize') {
-        this.$message.warning(
+        this.showSelectionLimitMessage(
           this.$t('app.uploadFileSizeLimitTips', {
             maxSize: this.maxFileSizeMB,
           }),
@@ -628,11 +718,13 @@ export default {
         return;
       }
 
-      if (showMessage) {
+      if (showMessage && this.showUploadFileMessage !== false) {
         this.$message.error(
           `${currentFile.name}` + this.$t('fileChunk.uploadFail'),
         );
       }
+
+      this.updateUploadBatch(currentFile, 'failed');
 
       const fileIndex = this.fileList.findIndex(
         file => file.uid === currentFile.uid,
@@ -674,6 +766,7 @@ export default {
         return;
       }
       this.lastFileType = currentFile.fileType || this.fileType;
+      this.updateUploadBatch(currentFile, 'success');
       this.$set(currentFile, 'uploadStatus', 'success');
       this.$set(currentFile, 'uploaded', true);
       this.$set(currentFile, 'percentage', 100);
@@ -818,10 +911,11 @@ export default {
         }
       }
       .docFile {
-        height: 100px;
+        height: 80px;
         display: flex;
         align-items: center;
         justify-content: center;
+        margin: 12px auto;
         .docIcon {
           flex: 0 0 auto;
         }

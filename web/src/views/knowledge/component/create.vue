@@ -366,7 +366,7 @@ import {
   DB,
 } from '@/views/knowledge/constants';
 import uploadAvatar from '@/components/uploadAvatar.vue';
-import { filterSize, authDownload } from '@/utils/util';
+import { filterSize, authDownload, avatarSrc } from '@/utils/util';
 
 export default {
   props: {
@@ -574,7 +574,7 @@ export default {
     async downloadTemplate() {
       try {
         await authDownload(
-          '/user/api/v1/files/docs/graph_schema.xlsx',
+          avatarSrc('/v1/files/docs/graph_schema.xlsx'),
           'graph_schema.xlsx',
         );
       } catch (error) {
