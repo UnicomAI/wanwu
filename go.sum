@@ -100,8 +100,8 @@ github.com/cloudwego/eino v0.7.37 h1:T73Y/8X7ERW4h3jP+brB/I4+N5ATDyGLx5bs2H4ev8I
 github.com/cloudwego/eino v0.7.37/go.mod h1:nA8Vacmuqv3pqKBQbTWENBLQ8MmGmPt/WqiyLeB8ohQ=
 github.com/cloudwego/eino-ext/callbacks/cozeloop v0.1.8 h1:lqOAH/EWWRJuv9awmMxETEfcer2Gq2AVuZrrKqP+CzA=
 github.com/cloudwego/eino-ext/callbacks/cozeloop v0.1.8/go.mod h1:1FgtKIRv/LrUVuA7ojeViyRQhuIKaUDQOf+KjHuW+cg=
-github.com/cloudwego/eino-ext/components/model/deepseek v0.1.6 h1:t/1zvkXIKJZbTADrTL1AEdd7MHxQUiheR9otFfkUBsY=
-github.com/cloudwego/eino-ext/components/model/deepseek v0.1.6/go.mod h1:YVjkAAxwLqk/dyA7AfVksaxPMG7snikx0hjje8iIZBE=
+github.com/cloudwego/eino-ext/components/model/deepseek v0.1.7 h1:V+u0hA/E4E/CMABqkR3D0IOM/RxtKhN/HyMXMWm+Xto=
+github.com/cloudwego/eino-ext/components/model/deepseek v0.1.7/go.mod h1:YVjkAAxwLqk/dyA7AfVksaxPMG7snikx0hjje8iIZBE=
 github.com/cloudwego/eino-ext/components/model/openai v0.1.4 h1:M1GWqYL7bTPQ5MfRWnflL9NDg92UCvBJP7eQLZ/1krw=
 github.com/cloudwego/eino-ext/components/model/openai v0.1.4/go.mod h1:roUSwYROrFZ71aXZJAk48RhEHQWD97+ME0blTdzbsi0=
 github.com/cloudwego/eino-ext/components/tool/mcp v0.0.6 h1:+KGa6ZUtMMNmMpJORjRVVR/lzw49bhJ0MY91Ak3BnSc=
