@@ -113,6 +113,15 @@ func WithAppType(appType string) SQLOption {
 	})
 }
 
+func WithAppTypes(appTypes []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(appTypes) > 0 {
+			return db.Where("app_type IN ?", appTypes)
+		}
+		return db
+	})
+}
+
 func WithID(id uint32) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		return db.Where("id = ?", id)
@@ -361,6 +370,116 @@ func WithMethodPaths(methodPaths []string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if len(methodPaths) > 0 {
 			return db.Where("method_path IN ?", methodPaths)
+		}
+		return db
+	})
+}
+
+func WithModule(module string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if module != "" {
+			return db.Where("module = ?", module)
+		}
+		return db
+	})
+}
+
+func WithSource(source string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if source != "" {
+			return db.Where("source = ?", source)
+		}
+		return db
+	})
+}
+
+func WithModuleCreatorOrgIDs(orgIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgIDs) > 0 {
+			return db.Where("module_creator_org_id IN ?", orgIDs)
+		}
+		return db
+	})
+}
+
+func WithModuleCreatorUserIDs(userIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(userIDs) > 0 {
+			return db.Where("module_creator_user_id IN ?", userIDs)
+		}
+		return db
+	})
+}
+
+func WithModelCreatorOrgIDs(orgIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgIDs) > 0 {
+			return db.Where("model_creator_org_id IN ?", orgIDs)
+		}
+		return db
+	})
+}
+
+func WithModelCreatorUserIDs(userIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(userIDs) > 0 {
+			return db.Where("model_creator_user_id IN ?", userIDs)
+		}
+		return db
+	})
+}
+
+// WithStatisticAppIDFilter 应用统计查询的 app_id 。
+// - 允许空 appId 的板块（wga/model/skill/knowledge/prompt）：不加限制
+// - module 空（查全部）：保留有 appId 的行，以及允许空 appId 的板块级行
+// - 其它指定 module：要求 app_id 非空
+func WithStatisticAppIDFilter(module string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if constant.StatisticModuleAllowsEmptyAppID(module) {
+			return db
+		}
+		if module == "" {
+			return db.Where("(app_id != '' AND app_id IS NOT NULL) OR module IN ?", []string{
+				constant.BizModuleWGA,
+				constant.BizModuleModel,
+				constant.BizModuleResourceSkill,
+				constant.BizModuleResourceKnowledge,
+				constant.BizModuleResourcePrompt,
+			})
+		}
+		return db.Where("app_id != '' AND app_id IS NOT NULL")
+	})
+}
+
+// WithStatisticAppID 钻取定位主表行：非空按 app_id 精确匹配；空串匹配空 app_id（板块级行）。
+func WithStatisticAppID(appID string) SQLOption {
+	if appID != "" {
+		return WithAppID(appID)
+	}
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		return db.Where("(app_id = '' OR app_id IS NULL)")
+	})
+}
+
+func WithNonEmptyModelID() SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		return db.Where("model_id != '' AND model_id IS NOT NULL")
+	})
+}
+
+func WithAPIKeyID(apiKeyID string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if apiKeyID != "" {
+			return db.Where("api_key_id = ?", apiKeyID)
+		}
+		return db
+	})
+}
+
+func WithMethodPath(methodPath string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if methodPath != "" {
+			return db.Where("method_path = ?", methodPath)
 		}
 		return db
 	})

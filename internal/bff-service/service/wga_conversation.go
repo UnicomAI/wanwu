@@ -15,6 +15,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
@@ -594,6 +595,7 @@ func GeneralAgentConversationChat(ctx *gin.Context, userId, orgId, clientId stri
 		ThreadID:             req.ThreadID,
 		Messages:             req.Messages,
 		ClientID:             clientId,
+		Module:               constant.BizModuleWGA,
 		ModelConfig:          modelConfig,
 		WorkspaceStore:       workspaceStore,
 		SendWorkspaceEvent:   true,
@@ -659,6 +661,7 @@ func GeneralAgentSkillConversationChat(ctx *gin.Context, userId, orgId, clientId
 		ThreadID:             chatThreadID,
 		Messages:             req.Messages,
 		ClientID:             clientId,
+		Module:               constant.BizModuleResourceSkill,
 		ModelConfig:          modelConfig,
 		WorkspaceStore:       workspaceStore,
 		WorkspaceReadOnly:    mode == generalAgentSkillChatModePreview,

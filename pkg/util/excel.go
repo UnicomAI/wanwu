@@ -128,6 +128,26 @@ func (wb *Workbook) WriteRow(sheet string, row int, values []any) error {
 	return nil
 }
 
+// WriteSheet 创建工作簿并写入表头 + 数据行（调用方负责 Close）。
+func WriteSheet(sheet string, title []any, rows [][]any) (*Workbook, error) {
+	wb := NewWorkbook()
+	if _, err := wb.CreateSheet(sheet); err != nil {
+		_ = wb.Close()
+		return nil, err
+	}
+	if err := wb.WriteRow(sheet, 1, title); err != nil {
+		_ = wb.Close()
+		return nil, err
+	}
+	for i, row := range rows {
+		if err := wb.WriteRow(sheet, i+2, row); err != nil {
+			_ = wb.Close()
+			return nil, err
+		}
+	}
+	return wb, nil
+}
+
 // ReadColumn 读取单列数据（带跳过行、表名配置）
 func (wb *Workbook) ReadColumn(opts ReadColumnsOptions) ([]string, error) {
 	if wb == nil || wb.f == nil {

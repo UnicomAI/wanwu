@@ -51,6 +51,7 @@ func modelSyncAsr(ctx *gin.Context, modelInfo *model_service.ModelInfo, modelId,
 		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v sync_asr err: invalid provider", modelId)))
 		return
 	}
+	requestBody := MarshalStatisticBody(req)
 	startTime := time.Now()
 	asrReq, err := iSyncAsr.NewReq(req)
 	if err != nil {
@@ -59,7 +60,11 @@ func modelSyncAsr(ctx *gin.Context, modelInfo *model_service.ModelInfo, modelId,
 	}
 	resp, err := iSyncAsr.SyncAsr(ctx, asrReq)
 	if err != nil {
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v sync_asr err: %v", modelId, err)))
+		go func() {
+			defer util.PrintPanicStack()
+			recordModelStatisticV2Failure(detachedCtx, modelInfo, false, requestBody, err)
+		}()
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error()))
 		return
 	}
 	if data, ok := resp.ConvertResp(); ok {
@@ -68,15 +73,22 @@ func modelSyncAsr(ctx *gin.Context, modelInfo *model_service.ModelInfo, modelId,
 		//ctx.Set(config.RESULT, resp.String())
 		ctx.JSON(status, data)
 		costs := int(time.Since(startTime).Milliseconds())
+		responseBody := MarshalStatisticBody(data)
+		finishReason := ""
+		if len(data.Choices) > 0 {
+			finishReason = data.Choices[0].FinishReason
+		}
 		go func() {
 			defer util.PrintPanicStack()
-			recordModelStatistic(detachedCtx, modelInfo, true, 0, 0, 0, costs, 0, false)
+			recordModelStatisticV2(detachedCtx, modelInfo, 0, 0, 0, costs, 0, false,
+				http.StatusOK, requestBody, responseBody, finishReason, "")
 		}()
 		return
 	}
+	errMsg := fmt.Sprintf("model %v sync_asr err: invalid resp", modelId)
 	go func() {
 		defer util.PrintPanicStack()
-		recordModelStatistic(detachedCtx, modelInfo, false, 0, 0, 0, 0, 0, false)
+		recordModelStatisticV2Failure(detachedCtx, modelInfo, false, requestBody, fmt.Errorf("%s", errMsg))
 	}()
-	gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v sync_asr err: invalid resp", modelId)))
+	gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, errMsg))
 }

@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	v1 "github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/v1"
+	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/middleware"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	mid "github.com/UnicomAI/wanwu/pkg/gin-util/mid-wrap"
 	"github.com/gin-gonic/gin"
 )
@@ -42,7 +44,7 @@ func registerWGA(apiV1 *gin.RouterGroup) {
 	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/conversation/workspace", http.MethodGet, v1.GeneralAgentWorkspaceInfo, "通用智能体workspace目录树")
 
 	// 通用智能体流式对话相关接口
-	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/conversation/chat", http.MethodPost, v1.GeneralAgentConversationChat, "通用智能体流式问答")
+	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/conversation/chat", http.MethodPost, v1.GeneralAgentConversationChat, "通用智能体流式问答", middleware.TraceWeb(constant.BizModuleWGA, middleware.WithModuleCreatorFromContext()))
 	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/conversation/pending", http.MethodGet, v1.GeneralAgentConversationPending, "通用智能体运行中会话查询")
 	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/conversation/connect", http.MethodPost, v1.GeneralAgentConversationConnect, "通用智能体流式问答断线重连")
 	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/conversation/cancel", http.MethodPost, v1.GeneralAgentConversationCancel, "通用智能体流式问答手动停止")
@@ -52,10 +54,10 @@ func registerWGA(apiV1 *gin.RouterGroup) {
 	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/skill/import/conversation", http.MethodPost, v1.ImportGeneralAgentSkillConversation, "导入Skill专用对话")
 	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/skill/convert/conversation", http.MethodPost, v1.ConvertGeneralAgentSkillConversation, "一键转化为Skill专用对话")
 	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/skill/refresh/conversation", http.MethodPost, v1.RefreshGeneralAgentSkillConversation, "刷新Skill专用对话")
+	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/skill/conversation/chat", http.MethodPost, v1.GeneralAgentSkillConversationChat, "Skill对话流", middleware.TraceWeb(constant.BizModuleResourceSkill, middleware.WithModuleCreatorFromContext()))
 	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/skill/preview/conversation/detail", http.MethodGet, v1.GetGeneralAgentSkillPreviewConversationDetail, "Skill preview对话详情")
 
 	// Skill对话流式相关接口
-	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/skill/conversation/chat", http.MethodPost, v1.GeneralAgentSkillConversationChat, "Skill对话流")
 	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/skill/conversation/pending", http.MethodGet, v1.GeneralAgentSkillConversationPending, "Skill对话运行中会话查询")
 	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/skill/conversation/connect", http.MethodPost, v1.GeneralAgentSkillConversationConnect, "Skill对话流式问答断线重连")
 	mid.Sub("wga.wanwu_bot").Reg(apiV1, "/general/agent/skill/conversation/cancel", http.MethodPost, v1.GeneralAgentSkillConversationCancel, "Skill对话流式问答手动停止")

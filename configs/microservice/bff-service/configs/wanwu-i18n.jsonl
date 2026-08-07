@@ -616,22 +616,58 @@
 {"code":300013,"key":"api_key_list","langs":{"zh":"获取ApiKey列表错误:%v"}}
 {"code":300013,"key":"api_key_update_status","langs":{"zh":"更新ApiKey状态错误:%v"}}
 {"code":300013,"key":"api_key_get_by_key","langs":{"zh":"获取ApiKey信息错误:%v"}}
-{"code":0,"key":"app_statistic_model_call_trend","langs":{"zh":"模型调用趋势表"}}
-{"code":0,"key":"app_statistic_call_count_total","langs":{"zh":"调用总数"}}
-{"code":0,"key":"app_statistic_call_success","langs":{"zh":"模型调用成功数"}}
-{"code":0,"key":"app_statistic_call_failure","langs":{"zh":"模型调用失败数"}}
-{"code":0,"key":"app_statistic_model_tokens_usage_trend","langs":{"zh":"模型调用Token统计表"}}
-{"code":0,"key":"app_statistic_total_tokens","langs":{"zh":"模型调用总Token"}}
-{"code":0,"key":"app_statistic_completion_tokens","langs":{"zh":"模型调用输出Token"}}
-{"code":0,"key":"app_statistic_prompt_tokens","langs":{"zh":"模型调用输入Token"}}
-{"code":0,"key":"app_statistic_web_call_count","langs":{"zh":"应用网页端调用总数"}}
-{"code":0,"key":"app_statistic_app_call_trend","langs":{"zh":"应用调用趋势表"}}
-{"code":0,"key":"app_statistic_openapi_call_count","langs":{"zh":"应用OpenAPI调用总数"}}
-{"code":0,"key":"app_statistic_web_url_call_count","langs":{"zh":"应用网页URL调用总数"}}
-{"code":0,"key":"app_statistic_api_key_call_trend","langs":{"zh":"APIKey调用趋势表"}}
-{"code":0,"key":"app_statistic_api_call_count_total","langs":{"zh":"APIKey调用总次数"}}
-{"code":0,"key":"app_statistic_api_call_success","langs":{"zh":"APIKey调用成功次数"}}
-{"code":0,"key":"app_statistic_api_call_failure","langs":{"zh":"APIKey调用失败次数"}}
+{"code":300014,"key":"app_model_statistic_get","langs":{"en":"get model statistic err: %v","zh":"获取模型统计错误: %v"}}
+{"code":300014,"key":"app_model_statistic_list_get","langs":{"en":"get model statistic list err: %v","zh":"获取模型统计列表错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_overview","langs":{"en":"get model statistic v2 overview err: %v","zh":"获取模型统计概览错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_chart","langs":{"en":"get model statistic v2 chart err: %v","zh":"获取模型统计趋势错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_list","langs":{"en":"get model statistic v2 list err: %v","zh":"获取模型调用统计列表错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_user_list","langs":{"en":"get model statistic v2 user list err: %v","zh":"获取模型用户使用列表错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_app_list","langs":{"en":"get model statistic v2 app list err: %v","zh":"获取模型应用使用列表错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_record","langs":{"en":"model statistic v2 record err: %v","zh":"模型调用明细错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_select","langs":{"en":"get model statistic v2 select err: %v","zh":"获取模型统计下拉列表错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_get","langs":{"en":"get api key statistic err: %v","zh":"获取API Key统计错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_list","langs":{"en":"get api key statistic list err: %v","zh":"获取API Key调用统计错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_record","langs":{"en":"api key statistic record err: %v","zh":"API Key调用记录错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_record_list","langs":{"en":"get api key statistic record list err: %v","zh":"获取API Key调用记录错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_v2_overview","langs":{"en":"get api key statistic v2 overview err: %v","zh":"获取API Key统计概览错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_v2_chart","langs":{"en":"get api key statistic v2 chart err: %v","zh":"获取API Key统计趋势错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_v2_list","langs":{"en":"get api key statistic v2 list err: %v","zh":"获取API Key调用统计列表错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_v2_app_list","langs":{"en":"get api key statistic v2 app list err: %v","zh":"获取API Key应用调用统计列表错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_v2_record","langs":{"en":"api key statistic v2 record err: %v","zh":"API Key调用明细错误: %v"}}
+{"code":300000,"key":"app_statistic_get","langs":{"en":"get app statistic err: %v","zh":"获取应用统计错误: %v"}}
+{"code":300000,"key":"app_statistic_list_get","langs":{"en":"get app statistic list err: %v","zh":"获取应用统计列表错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_overview","langs":{"en":"get app statistic v2 overview err: %v","zh":"获取应用统计概览错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_chart","langs":{"en":"get app statistic v2 chart err: %v","zh":"获取应用统计趋势错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_list","langs":{"en":"get app statistic v2 list err: %v","zh":"获取应用调用统计列表错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_user_list","langs":{"en":"get app statistic v2 user list err: %v","zh":"获取应用用户使用列表错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_model_list","langs":{"en":"get app statistic v2 model list err: %v","zh":"获取应用模型使用列表错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_record","langs":{"en":"app statistic v2 record err: %v","zh":"应用调用明细错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_select","langs":{"en":"get app statistic v2 select err: %v","zh":"获取应用统计下拉列表错误: %v"}}
+{"code":0,"key":"app_statistic_model_call_trend","langs":{"en":"Model Call Trend","zh":"模型调用趋势表"}}
+{"code":0,"key":"app_statistic_call_count_total","langs":{"en":"Total Calls","zh":"调用总数"}}
+{"code":0,"key":"app_statistic_call_success","langs":{"en":"Successful Calls","zh":"调用成功数"}}
+{"code":0,"key":"app_statistic_call_failure","langs":{"en":"Failed Calls","zh":"调用失败数"}}
+{"code":0,"key":"app_statistic_model_tokens_usage_trend","langs":{"en":"Model Token Usage Trend","zh":"模型调用Token统计表"}}
+{"code":0,"key":"app_statistic_total_tokens","langs":{"en":"Total Tokens","zh":"模型调用总Token"}}
+{"code":0,"key":"app_statistic_completion_tokens","langs":{"en":"Completion Tokens","zh":"模型调用输出Token"}}
+{"code":0,"key":"app_statistic_prompt_tokens","langs":{"en":"Prompt Tokens","zh":"模型调用输入Token"}}
+{"code":0,"key":"app_statistic_web_call_count","langs":{"en":"Web Calls","zh":"应用网页端调用总数"}}
+{"code":0,"key":"app_statistic_app_call_trend","langs":{"en":"App Call Trend","zh":"应用调用趋势表"}}
+{"code":0,"key":"app_statistic_openapi_call_count","langs":{"en":"OpenAPI Calls","zh":"应用OpenAPI调用总数"}}
+{"code":0,"key":"app_statistic_web_url_call_count","langs":{"en":"Web URL Calls","zh":"应用网页URL调用总数"}}
+{"code":0,"key":"app_statistic_api_key_call_trend","langs":{"en":"API Key Call Trend","zh":"API Key调用趋势表"}}
+{"code":0,"key":"app_statistic_api_call_count_total","langs":{"en":"API Key Total Calls","zh":"API Key调用总次数"}}
+{"code":0,"key":"app_statistic_api_call_success","langs":{"en":"API Key Successful Calls","zh":"API Key调用成功次数"}}
+{"code":0,"key":"app_statistic_api_call_failure","langs":{"en":"API Key Failed Calls","zh":"API Key调用失败次数"}}
+{"code":0,"key":"api_key_statistic_calls","langs":{"en":"API Key Call Trend","zh":"API Key调用趋势表"}}
+{"code":0,"key":"app_statistic_call_result","langs":{"en":"Call Result","zh":"调用结果"}}
+{"code":0,"key":"app_statistic_call_trend","langs":{"en":"App Call Trend","zh":"应用调用趋势表"}}
+{"code":0,"key":"app_statistic_source_web","langs":{"en":"Web","zh":"网页端调用"}}
+{"code":0,"key":"app_statistic_source_openapi","langs":{"en":"OpenAPI","zh":"OpenAPI调用"}}
+{"code":0,"key":"app_statistic_source_weburl","langs":{"en":"Web URL","zh":"网页URL调用"}}
+{"code":0,"key":"app_statistic_model_deleted","langs":{"en":"This model has been deleted","zh":"该模型已被删除"}}
+{"code":0,"key":"app_statistic_app_deleted","langs":{"en":"This app has been deleted","zh":"该应用已被删除"}}
+{"code":0,"key":"app_statistic_api_key_deleted","langs":{"en":"This API Key has been deleted","zh":"该API Key已被删除"}}
 {"code":320001,"key":"ope_system_custom_query","langs":{"zh":"查询自定义配置(%v)错误: %v"}}
 {"code":320001,"key":"ope_system_custom_create","langs":{"zh":"创建自定义配置(%v)错误: %v"}}
 {"code":320001,"key":"ope_system_custom_update","langs":{"zh":"更新自定义配置(%v)错误: %v"}}

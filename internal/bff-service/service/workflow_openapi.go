@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	net_url "net/url"
@@ -11,27 +12,40 @@ import (
 
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
+	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
-func OpenAPIWorkflowRun(ctx *gin.Context, userId, orgId, workflowID string, input []byte) (result []byte, err error) {
+func OpenAPIWorkflowRun(ctx *gin.Context, userId, orgId string, req request.OpenAPIWorkflowRunReq) (result []byte, err error) {
 	// 生成调用工作流的url
-	// 将用户输入的intput透传
+	// 将用户输入的 parameters 透传
 	startTime := time.Now()
 	isSuccess := false
 	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	defer func() {
 		costs := time.Since(startTime).Milliseconds()
+		statusCode, failureReason := GrpcErrorToHTTPStatus(err)
+		respBody := ""
+		if isSuccess && len(result) > 0 {
+			respBody = string(result)
+		}
 		go func() {
 			defer util.PrintPanicStack()
-			RecordAppStatistic(detachedCtx, userId, orgId, workflowID, constant.AppTypeWorkflow, isSuccess, false, 0, int64(costs), constant.AppStatisticSourceOpenAPI)
+			question := MarshalStatisticBody(req.Parameters)
+			RecordAppStatistic(detachedCtx, userId, orgId, req.UUID, constant.AppTypeWorkflow, "",
+				statusCode, failureReason, false, 0, int64(costs), constant.BizSourceOpenAPI, MarshalStatisticBody(req), respBody, question, respBody)
 		}()
 	}()
 
-	testRunUrl, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, fmt.Sprintf(config.Cfg().Workflow.WorkflowRunByOpenapiUri, workflowID))
+	input, err := json.Marshal(req.Parameters)
+	if err != nil {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_openapi_workflow_run", err.Error())
+	}
+
+	testRunUrl, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, fmt.Sprintf(config.Cfg().Workflow.WorkflowRunByOpenapiUri, req.UUID))
 	resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx).

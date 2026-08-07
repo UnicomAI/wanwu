@@ -61,16 +61,17 @@ func AgentRecommendChatCompletions(ctx *gin.Context, modelID string, req *mp_com
 		recommendFail(ctx, "%v", err)
 		return
 	}
+	requestBody := MarshalStatisticBody(req)
 	_, sseCh, err := iLLM.ChatCompletions(ctx.Request.Context(), llmReq)
 	if err != nil {
 		go func() {
 			defer util.PrintPanicStack()
-			recordModelStatistic(detachedCtx, modelInfo, false, 0, 0, 0, 0, 0, false)
+			recordModelStatisticV2Failure(detachedCtx, modelInfo, false, requestBody, err)
 		}()
 		recommendFail(ctx, "model %v chat completions err: %v", modelInfo.ModelId, err)
 		return
 	}
-	streamRecommend(ctx, detachedCtx, modelInfo, sseCh, startTime)
+	streamRecommend(ctx, detachedCtx, modelInfo, sseCh, startTime, requestBody)
 }
 
 // setupRecommendLLMReq 完成推荐模型的获取、校验、配置与请求构造（GetModel→ToModelConfig→关 thinking→NewReq），
@@ -119,7 +120,8 @@ func recommendFail(ctx *gin.Context, format string, args ...interface{}) {
 
 // streamRecommend 消费 LLM 的 SSE 流，按推荐协议剥离标识后下发，并记录统计。
 // detachedCtx 用于请求结束后异步上报统计，避免被 gin 请求上下文取消影响。
-func streamRecommend(ctx *gin.Context, detachedCtx context.Context, modelInfo *model_service.ModelInfo, sseCh <-chan mp_common.ILLMResp, startTime time.Time) {
+func streamRecommend(ctx *gin.Context, detachedCtx context.Context, modelInfo *model_service.ModelInfo, sseCh <-chan mp_common.ILLMResp, startTime time.Time, requestBody string) {
+	// stream
 	ctx.Header("Cache-Control", "no-cache")
 	ctx.Header("Connection", "keep-alive")
 	ctx.Header("Content-Type", "text/event-stream; charset=utf-8")
@@ -130,6 +132,7 @@ func streamRecommend(ctx *gin.Context, detachedCtx context.Context, modelInfo *m
 		promptTokens      int
 		completionTokens  int
 		totalTokens       int
+		finishReason      string
 	)
 	p := &recommendStreamProcessor{}
 	for sseResp := range sseCh {
@@ -146,6 +149,9 @@ func streamRecommend(ctx *gin.Context, detachedCtx context.Context, modelInfo *m
 			promptTokens = data.Usage.PromptTokens
 			completionTokens = data.Usage.CompletionTokens
 			totalTokens = data.Usage.TotalTokens
+			if len(data.Choices) > 0 && data.Choices[0].FinishReason != "" {
+				finishReason = data.Choices[0].FinishReason
+			}
 
 			if len(data.Choices) > 0 && data.Choices[0].Delta != nil {
 				answer = answer + data.Choices[0].Delta.Content
@@ -173,8 +179,9 @@ func streamRecommend(ctx *gin.Context, detachedCtx context.Context, modelInfo *m
 	}
 	go func() {
 		defer util.PrintPanicStack()
-		recordModelStatistic(detachedCtx, modelInfo, true,
-			promptTokens, completionTokens, totalTokens, 0, firstTokenLatency, true)
+		recordModelStatisticV2(detachedCtx, modelInfo,
+			promptTokens, completionTokens, totalTokens, 0, firstTokenLatency, true,
+			http.StatusOK, requestBody, answer, finishReason, "")
 	}()
 }
 

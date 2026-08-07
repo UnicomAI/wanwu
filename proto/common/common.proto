@@ -95,6 +95,7 @@ message TraceUser {
   string userId = 2;
   string apiKey = 3;//openapi 使用的api key
   string urlId = 4; //h5 url id
+  string apiKeyId = 5; //openapi 使用的api key id
 }
 
 message TraceApp {

@@ -1,0 +1,4364 @@
+basePath: /v2
+definitions:
+  mp.ProviderModelByDeepSeek:
+    properties:
+      llm:
+        $ref: '#/definitions/mp_deepseek.LLM'
+    type: object
+  mp.ProviderModelByHuoShan:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_huoshan.Embedding'
+      llm:
+        $ref: '#/definitions/mp_huoshan.LLM'
+    type: object
+  mp.ProviderModelByInfini:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_infini.Embedding'
+      llm:
+        $ref: '#/definitions/mp_infini.LLM'
+      rerank:
+        $ref: '#/definitions/mp_infini.Rerank'
+    type: object
+  mp.ProviderModelByOllama:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_ollama.Embedding'
+      llm:
+        $ref: '#/definitions/mp_ollama.LLM'
+    type: object
+  mp.ProviderModelByOpenAICompatible:
+    properties:
+      asr:
+        $ref: '#/definitions/mp_openai_compatible.SyncAsr'
+      embedding:
+        $ref: '#/definitions/mp_openai_compatible.Embedding'
+      llm:
+        $ref: '#/definitions/mp_openai_compatible.LLM'
+      rerank:
+        $ref: '#/definitions/mp_openai_compatible.Rerank'
+    type: object
+  mp.ProviderModelByQianFan:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_qianfan.Embedding'
+      llm:
+        $ref: '#/definitions/mp_qianfan.LLM'
+      rerank:
+        $ref: '#/definitions/mp_qianfan.Rerank'
+    type: object
+  mp.ProviderModelByQwen:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_qwen.Embedding'
+      llm:
+        $ref: '#/definitions/mp_qwen.LLM'
+      multiModalEmbedding:
+        $ref: '#/definitions/mp_qwen.MultiModalEmbedding'
+      multiModalRerank:
+        $ref: '#/definitions/mp_qwen.MultiModalRerank'
+      rerank:
+        $ref: '#/definitions/mp_qwen.Rerank'
+    type: object
+  mp.ProviderModelByYuanjing:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_yuanjing.Embedding'
+      gui:
+        $ref: '#/definitions/mp_yuanjing.Gui'
+      llm:
+        $ref: '#/definitions/mp_yuanjing.LLM'
+      ocr:
+        $ref: '#/definitions/mp_yuanjing.Ocr'
+      pdf-parser:
+        $ref: '#/definitions/mp_yuanjing.PdfParser'
+      rerank:
+        $ref: '#/definitions/mp_yuanjing.Rerank'
+    type: object
+  mp.ProviderModelByZhipu:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_zhipu.Embedding'
+      llm:
+        $ref: '#/definitions/mp_zhipu.LLM'
+      rerank:
+        $ref: '#/definitions/mp_zhipu.Rerank'
+    type: object
+  mp.ProviderModelConfig:
+    properties:
+      providerDeepSeek:
+        $ref: '#/definitions/mp.ProviderModelByDeepSeek'
+      providerHuoShan:
+        $ref: '#/definitions/mp.ProviderModelByHuoShan'
+      providerInfini:
+        $ref: '#/definitions/mp.ProviderModelByInfini'
+      providerOllama:
+        $ref: '#/definitions/mp.ProviderModelByOllama'
+      providerOpenAICompatible:
+        $ref: '#/definitions/mp.ProviderModelByOpenAICompatible'
+      providerQianFan:
+        $ref: '#/definitions/mp.ProviderModelByQianFan'
+      providerQwen:
+        $ref: '#/definitions/mp.ProviderModelByQwen'
+      providerYuanJing:
+        $ref: '#/definitions/mp.ProviderModelByYuanjing'
+      providerZhipu:
+        $ref: '#/definitions/mp.ProviderModelByZhipu'
+    type: object
+  mp_common.Tag:
+    properties:
+      text:
+        type: string
+    type: object
+  mp_deepseek.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_huoshan.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_huoshan.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_infini.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_infini.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_infini.Rerank:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_ollama.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_ollama.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_openai_compatible.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_openai_compatible.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_openai_compatible.Rerank:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_openai_compatible.SyncAsr:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      endpointUrl:
+        description: 推理url（完整地址，含 /v1/chat/completions）
+        type: string
+      maxAsrFileSize:
+        type: integer
+    type: object
+  mp_qianfan.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_qianfan.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_qianfan.Rerank:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_qwen.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_qwen.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_qwen.MultiModalEmbedding:
+    properties:
+      apiKey:
+        type: string
+      contextSize:
+        type: integer
+      endpointUrl:
+        type: string
+      maxImageSize:
+        type: integer
+      maxTextLength:
+        type: integer
+      maxVideoClipSize:
+        type: integer
+      supportFileTypes:
+        items:
+          type: string
+        type: array
+    type: object
+  mp_qwen.MultiModalRerank:
+    properties:
+      apiKey:
+        type: string
+      contextSize:
+        type: integer
+      endpointUrl:
+        type: string
+      maxImageSize:
+        type: integer
+      maxTextLength:
+        type: integer
+      maxVideoClipSize:
+        type: integer
+      supportFileTypes:
+        items:
+          type: string
+        type: array
+      supportImageInQuery:
+        type: boolean
+    type: object
+  mp_qwen.Rerank:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_yuanjing.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_yuanjing.Gui:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_yuanjing.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_yuanjing.Ocr:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      endpointUrl:
+        description: 推理url
+        type: string
+      supportFileTypes:
+        description: 支持的文件类型，由 bff-service 从 recommend_model_config.yaml 注入
+        items:
+          type: string
+        type: array
+    type: object
+  mp_yuanjing.PdfParser:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_yuanjing.Rerank:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_zhipu.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_zhipu.LLM:
+    properties:
+      apiKey:
+        type: string
+      contextSize:
+        type: integer
+      endpointUrl:
+        type: string
+      functionCalling:
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        type: integer
+      maxTokens:
+        type: integer
+      thinkingSupport:
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_zhipu.Rerank:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  request.APIKeyStatisticV2AppExportReq:
+    properties:
+      apiKeyId:
+        type: string
+      apiKeyIds:
+        description: 空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      methodPath:
+        type: string
+      methodPaths:
+        description: 空=全部，如 POST-/v1/chat/completions
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+    required:
+    - apiKeyId
+    - endDate
+    - methodPath
+    - startDate
+    type: object
+  request.APIKeyStatisticV2AppListReq:
+    properties:
+      apiKeyId:
+        type: string
+      apiKeyIds:
+        description: 空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      methodPath:
+        type: string
+      methodPaths:
+        description: 空=全部，如 POST-/v1/chat/completions
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+    required:
+    - apiKeyId
+    - endDate
+    - methodPath
+    - pageNo
+    - pageSize
+    - startDate
+    type: object
+  request.APIKeyStatisticV2ChartReq:
+    properties:
+      apiKeyIds:
+        description: 空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      limit:
+        description: 排行 TopN，默认 5
+        type: integer
+      methodPaths:
+        description: 空=全部，如 POST-/v1/chat/completions
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+    required:
+    - endDate
+    - startDate
+    type: object
+  request.APIKeyStatisticV2ExportListReq:
+    properties:
+      apiKeyIds:
+        description: 空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      methodPaths:
+        description: 空=全部，如 POST-/v1/chat/completions
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+    required:
+    - endDate
+    - startDate
+    type: object
+  request.APIKeyStatisticV2ListReq:
+    properties:
+      apiKeyIds:
+        description: 空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      methodPaths:
+        description: 空=全部，如 POST-/v1/chat/completions
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+    required:
+    - endDate
+    - pageNo
+    - pageSize
+    - startDate
+    type: object
+  request.APIKeyStatisticV2ModelExportReq:
+    properties:
+      apiKeyId:
+        type: string
+      apiKeyIds:
+        description: 空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      methodPath:
+        type: string
+      methodPaths:
+        description: 空=全部，如 POST-/v1/chat/completions
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+    required:
+    - apiKeyId
+    - endDate
+    - methodPath
+    - startDate
+    type: object
+  request.APIKeyStatisticV2ModelListReq:
+    properties:
+      apiKeyId:
+        type: string
+      apiKeyIds:
+        description: 空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      methodPath:
+        type: string
+      methodPaths:
+        description: 空=全部，如 POST-/v1/chat/completions
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+    required:
+    - apiKeyId
+    - endDate
+    - methodPath
+    - pageNo
+    - pageSize
+    - startDate
+    type: object
+  request.APIKeyStatisticV2RecordExportReq:
+    properties:
+      apiKeyIds:
+        description: 空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      methodPaths:
+        description: 空=全部，如 POST-/v1/chat/completions
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+    required:
+    - endDate
+    - startDate
+    type: object
+  request.APIKeyStatisticV2RecordReq:
+    properties:
+      apiKeyIds:
+        description: 空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      methodPaths:
+        description: 空=全部，如 POST-/v1/chat/completions
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+    required:
+    - endDate
+    - pageNo
+    - pageSize
+    - startDate
+    type: object
+  request.APIKeyStatisticV2Req:
+    properties:
+      apiKeyIds:
+        description: 空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      methodPaths:
+        description: 空=全部，如 POST-/v1/chat/completions
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+    required:
+    - endDate
+    - startDate
+    type: object
+  request.APIKeyStatisticV2SelectReq:
+    properties:
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+    type: object
+  request.AppStatisticV2ChartReq:
+    properties:
+      apps:
+        description: appId 列表，空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      limit:
+        description: 排行 TopN，默认 5
+        type: integer
+      module:
+        description: 板块 wga|skill|knowledge|...，空=全部
+        type: string
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      source:
+        description: 调用来源 web|openapi|webURL；空=全部（钻取见子结构必填）
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - startDate
+    - viewScope
+    type: object
+  request.AppStatisticV2ExportListReq:
+    properties:
+      apps:
+        description: appId 列表，空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      module:
+        description: 板块 wga|skill|knowledge|...，空=全部
+        type: string
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      source:
+        description: 调用来源 web|openapi|webURL；空=全部（钻取见子结构必填）
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - startDate
+    - viewScope
+    type: object
+  request.AppStatisticV2ListReq:
+    properties:
+      apps:
+        description: appId 列表，空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      module:
+        description: 板块 wga|skill|knowledge|...，空=全部
+        type: string
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      source:
+        description: 调用来源 web|openapi|webURL；空=全部（钻取见子结构必填）
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - pageNo
+    - pageSize
+    - startDate
+    - viewScope
+    type: object
+  request.AppStatisticV2ModelExportReq:
+    properties:
+      appId:
+        description: 空=板块级行（wga/model/skill/knowledge/prompt）
+        type: string
+      apps:
+        description: appId 列表，空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      module:
+        description: 板块 wga|skill|knowledge|...，空=全部
+        type: string
+      moduleCreatorOrgId:
+        description: 主表行应用作者组织，定位钻取行
+        type: string
+      moduleCreatorUserId:
+        description: 主表行应用作者，定位钻取行
+        type: string
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      source:
+        description: 主表行来源，必填
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - source
+    - startDate
+    - viewScope
+    type: object
+  request.AppStatisticV2ModelListReq:
+    properties:
+      appId:
+        description: 空=板块级行（wga/model/skill/knowledge/prompt）
+        type: string
+      apps:
+        description: appId 列表，空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      module:
+        description: 板块 wga|skill|knowledge|...，空=全部
+        type: string
+      moduleCreatorOrgId:
+        description: 主表行应用作者组织，定位钻取行
+        type: string
+      moduleCreatorUserId:
+        description: 主表行应用作者，定位钻取行
+        type: string
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      source:
+        description: 主表行来源，必填
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - pageNo
+    - pageSize
+    - source
+    - startDate
+    - viewScope
+    type: object
+  request.AppStatisticV2RecordExportReq:
+    properties:
+      appId:
+        type: string
+      apps:
+        description: appId 列表，空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      module:
+        description: 板块 wga|skill|knowledge|...，空=全部
+        type: string
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      source:
+        description: 调用来源 web|openapi|webURL；空=全部（钻取见子结构必填）
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - startDate
+    - viewScope
+    type: object
+  request.AppStatisticV2RecordReq:
+    properties:
+      appId:
+        description: 单应用筛选，空=不限（仍可用 apps[]）
+        type: string
+      apps:
+        description: appId 列表，空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      module:
+        description: 板块 wga|skill|knowledge|...，空=全部
+        type: string
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      source:
+        description: 调用来源 web|openapi|webURL；空=全部（钻取见子结构必填）
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - pageNo
+    - pageSize
+    - startDate
+    - viewScope
+    type: object
+  request.AppStatisticV2Req:
+    properties:
+      apps:
+        description: appId 列表，空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      module:
+        description: 板块 wga|skill|knowledge|...，空=全部
+        type: string
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      source:
+        description: 调用来源 web|openapi|webURL；空=全部（钻取见子结构必填）
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - startDate
+    - viewScope
+    type: object
+  request.AppStatisticV2SelectReq:
+    properties:
+      module:
+        description: agent|rag|workflow|knowledge（chatflow→workflow）
+        type: string
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - module
+    - viewScope
+    type: object
+  request.AppStatisticV2UserExportReq:
+    properties:
+      appId:
+        description: 空=板块级行（wga/model/skill/knowledge/prompt）
+        type: string
+      apps:
+        description: appId 列表，空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      module:
+        description: 板块 wga|skill|knowledge|...，空=全部
+        type: string
+      moduleCreatorOrgId:
+        description: 主表行应用作者组织，定位钻取行
+        type: string
+      moduleCreatorUserId:
+        description: 主表行应用作者，定位钻取行
+        type: string
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      source:
+        description: 主表行来源，必填
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - source
+    - startDate
+    - viewScope
+    type: object
+  request.AppStatisticV2UserListReq:
+    properties:
+      appId:
+        description: 空=板块级行（wga/model/skill/knowledge/prompt）
+        type: string
+      apps:
+        description: appId 列表，空=全部
+        items:
+          type: string
+        type: array
+      endDate:
+        type: string
+      module:
+        description: 板块 wga|skill|knowledge|...，空=全部
+        type: string
+      moduleCreatorOrgId:
+        description: 主表行应用作者组织，定位钻取行
+        type: string
+      moduleCreatorUserId:
+        description: 主表行应用作者，定位钻取行
+        type: string
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      source:
+        description: 主表行来源，必填
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - pageNo
+    - pageSize
+    - source
+    - startDate
+    - viewScope
+    type: object
+  request.Avatar:
+    properties:
+      key:
+        description: 前端透传给后端用于保存avatar，例如：custom-upload/avatar/abc/def.png
+        type: string
+      path:
+        description: 前端请求地址，例如：/v1/static/avatar/abc/def.png (请求非必填)
+        type: string
+    type: object
+  request.ModelStatisticV2AppExportReq:
+    properties:
+      endDate:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        description: llm|embedding|...
+        type: string
+      models:
+        description: modelId 列表，空=全部
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - modelId
+    - modelType
+    - startDate
+    - viewScope
+    type: object
+  request.ModelStatisticV2AppListReq:
+    properties:
+      endDate:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        description: llm|embedding|...
+        type: string
+      models:
+        description: modelId 列表，空=全部
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - modelId
+    - modelType
+    - pageNo
+    - pageSize
+    - startDate
+    - viewScope
+    type: object
+  request.ModelStatisticV2ChartReq:
+    properties:
+      endDate:
+        type: string
+      limit:
+        description: 排行 TopN，默认 5
+        type: integer
+      modelType:
+        description: llm|embedding|...
+        type: string
+      models:
+        description: modelId 列表，空=全部
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - modelType
+    - startDate
+    - viewScope
+    type: object
+  request.ModelStatisticV2ExportListReq:
+    properties:
+      endDate:
+        type: string
+      modelType:
+        description: llm|embedding|...
+        type: string
+      models:
+        description: modelId 列表，空=全部
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - modelType
+    - startDate
+    - viewScope
+    type: object
+  request.ModelStatisticV2ListReq:
+    properties:
+      endDate:
+        type: string
+      modelType:
+        description: llm|embedding|...
+        type: string
+      models:
+        description: modelId 列表，空=全部
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - modelType
+    - pageNo
+    - pageSize
+    - startDate
+    - viewScope
+    type: object
+  request.ModelStatisticV2RecordExportReq:
+    properties:
+      endDate:
+        type: string
+      modelType:
+        description: llm|embedding|...
+        type: string
+      models:
+        description: modelId 列表，空=全部
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - modelType
+    - startDate
+    - viewScope
+    type: object
+  request.ModelStatisticV2RecordReq:
+    properties:
+      endDate:
+        type: string
+      modelType:
+        description: llm|embedding|...
+        type: string
+      models:
+        description: modelId 列表，空=全部
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - modelType
+    - pageNo
+    - pageSize
+    - startDate
+    - viewScope
+    type: object
+  request.ModelStatisticV2Req:
+    properties:
+      endDate:
+        type: string
+      modelType:
+        description: llm|embedding|...
+        type: string
+      models:
+        description: modelId 列表，空=全部
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - modelType
+    - startDate
+    - viewScope
+    type: object
+  request.ModelStatisticV2SelectReq:
+    properties:
+      modelType:
+        type: string
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - modelType
+    - viewScope
+    type: object
+  request.ModelStatisticV2UserExportReq:
+    properties:
+      endDate:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        description: llm|embedding|...
+        type: string
+      models:
+        description: modelId 列表，空=全部
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - modelId
+    - modelType
+    - startDate
+    - viewScope
+    type: object
+  request.ModelStatisticV2UserListReq:
+    properties:
+      endDate:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        description: llm|embedding|...
+        type: string
+      models:
+        description: modelId 列表，空=全部
+        items:
+          type: string
+        type: array
+      orgIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=可见全部组织；["id",...]=指定组织
+        items:
+          type: string
+        type: array
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      sortField:
+        description: 见各列表接口 Description 中的可选值
+        example: callCount
+        type: string
+      sortOrder:
+        description: asc|desc，默认 desc
+        example: desc
+        type: string
+      startDate:
+        description: yyyy-MM-dd
+        type: string
+      userIds:
+        description: 空=按角色解析（见上方约定）；["ALL"]=已解析组织下全部用户；["id",...]=指定用户
+        items:
+          type: string
+        type: array
+      viewScope:
+        description: published|used
+        type: string
+    required:
+    - endDate
+    - modelId
+    - modelType
+    - pageNo
+    - pageSize
+    - startDate
+    - viewScope
+    type: object
+  response.APIKeyDetailResponse:
+    properties:
+      createdAt:
+        description: 创建ApiKey的时间
+        type: string
+      creator:
+        description: 创建者
+        type: string
+      desc:
+        description: 描述
+        type: string
+      expiredAt:
+        description: 过期时间
+        type: string
+      key:
+        description: 生成的ApiKey
+        type: string
+      keyId:
+        description: ID
+        type: string
+      name:
+        description: 名称
+        type: string
+      status:
+        description: 状态
+        type: boolean
+    type: object
+  response.APIKeyStatisticV2AppListItem:
+    properties:
+      apiKey:
+        description: 脱敏展示 sk-xxxx****xxxx
+        type: string
+      apiKeyId:
+        type: string
+      apiName:
+        description: API Key 名称
+        type: string
+      appId:
+        description: 应用ID
+        type: string
+      appName:
+        description: 应用名称
+        type: string
+      appType:
+        description: 应用类型 agent|rag|workflow|chatflow|...
+        type: string
+      avgCosts:
+        description: 非流式平均耗时 ms
+        type: number
+      avgFirstTokenLatency:
+        description: 流式平均首Token时延 ms
+        type: number
+      callCount:
+        type: integer
+      callFailure:
+        type: integer
+      failureRate:
+        type: number
+      methodPath:
+        description: 路径
+        type: string
+      module:
+        description: 板块 code：wga|skill|knowledge|...
+        type: string
+      moduleAvatar:
+        $ref: '#/definitions/request.Avatar'
+      moduleCreatorOrgId:
+        type: string
+      moduleCreatorOrgName:
+        type: string
+      moduleCreatorUserId:
+        type: string
+      moduleCreatorUserName:
+        type: string
+      moduleName:
+        description: 板块展示名：通用智能体|智能体|知识库|...
+        type: string
+      nonStreamCount:
+        type: integer
+      orgId:
+        type: string
+      orgName:
+        description: 调用人组织（≠ module/model creator org）
+        type: string
+      source:
+        description: 调用来源 code：web|openapi|webURL
+        type: string
+      sourceName:
+        description: 调用来源展示名：Web|Openapi|WebURL
+        type: string
+      streamCount:
+        type: integer
+      userAvatar:
+        $ref: '#/definitions/request.Avatar'
+      userId:
+        type: string
+      userName:
+        type: string
+    type: object
+  response.APIKeyStatisticV2Chart:
+    properties:
+      rank:
+        $ref: '#/definitions/response.APIKeyStatisticV2Rank'
+      trend:
+        $ref: '#/definitions/response.APIKeyStatisticV2Trend'
+    type: object
+  response.APIKeyStatisticV2ListItem:
+    properties:
+      apiKey:
+        description: 脱敏展示 sk-xxxx****xxxx
+        type: string
+      apiKeyId:
+        type: string
+      apiName:
+        description: API Key 名称
+        type: string
+      avgCosts:
+        description: 非流式平均耗时 ms
+        type: number
+      avgFirstTokenLatency:
+        description: 流式平均首Token时延 ms
+        type: number
+      callCount:
+        type: integer
+      callFailure:
+        type: integer
+      failureRate:
+        type: number
+      methodPath:
+        description: 路径
+        type: string
+      nonStreamCount:
+        type: integer
+      orgId:
+        type: string
+      orgName:
+        description: 调用人组织（≠ module/model creator org）
+        type: string
+      streamCount:
+        type: integer
+      userAvatar:
+        $ref: '#/definitions/request.Avatar'
+      userId:
+        type: string
+      userName:
+        type: string
+    type: object
+  response.APIKeyStatisticV2ModelListItem:
+    properties:
+      apiKey:
+        description: 脱敏展示 sk-xxxx****xxxx
+        type: string
+      apiKeyId:
+        type: string
+      apiName:
+        description: API Key 名称
+        type: string
+      avgCosts:
+        description: 非流式平均耗时 ms
+        type: number
+      avgFirstTokenLatency:
+        description: 流式平均首Token时延 ms
+        type: number
+      callCount:
+        type: integer
+      callFailure:
+        type: integer
+      completionTokens:
+        type: integer
+      failureRate:
+        type: number
+      methodPath:
+        description: 路径
+        type: string
+      model:
+        type: string
+      modelAvatar:
+        $ref: '#/definitions/request.Avatar'
+      modelCreatorOrgId:
+        type: string
+      modelCreatorOrgName:
+        type: string
+      modelCreatorUserId:
+        type: string
+      modelCreatorUserName:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        type: string
+      nonStreamCount:
+        description: 非流式调用次数
+        type: integer
+      orgId:
+        type: string
+      orgName:
+        description: 调用人组织（≠ module/model creator org）
+        type: string
+      promptTokens:
+        type: integer
+      provider:
+        type: string
+      streamCount:
+        description: 流式调用次数
+        type: integer
+      totalTokens:
+        type: integer
+      userAvatar:
+        $ref: '#/definitions/request.Avatar'
+      userId:
+        type: string
+      userName:
+        type: string
+    type: object
+  response.APIKeyStatisticV2Overview:
+    properties:
+      avgCosts:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 非流式平均耗时 ms
+      avgFirstTokenLatency:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 流式平均首Token时延 ms
+      callCount:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 调用总次数
+      callFailure:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 失败次数
+      dailyAvgCallCount:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 日均调用总次数
+      dailyAvgCallFailure:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 日均失败次数
+      dailyAvgNonStreamCount:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 日均调用次数(非流式)
+      dailyAvgStreamCount:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 日均调用次数(流式)
+      nonStreamCount:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 非流式调用次数
+      streamCount:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 流式调用次数
+    type: object
+  response.APIKeyStatisticV2Rank:
+    properties:
+      byApi:
+        items:
+          $ref: '#/definitions/response.APIKeyStatisticV2RankItem'
+        type: array
+    type: object
+  response.APIKeyStatisticV2RankItem:
+    properties:
+      apiName:
+        type: string
+      callCount:
+        type: integer
+      orgId:
+        type: string
+      orgName:
+        description: 调用人组织（≠ module/model creator org）
+        type: string
+      userAvatar:
+        $ref: '#/definitions/request.Avatar'
+      userId:
+        type: string
+      userName:
+        type: string
+    type: object
+  response.APIKeyStatisticV2RecordItem:
+    properties:
+      apiKey:
+        description: 脱敏展示 sk-xxxx****xxxx
+        type: string
+      apiKeyId:
+        type: string
+      apiName:
+        description: API Key 名称
+        type: string
+      appId:
+        description: 应用ID
+        type: string
+      appName:
+        description: 应用名称
+        type: string
+      appType:
+        description: 应用类型 agent|rag|workflow|chatflow|...
+        type: string
+      calledAt:
+        type: string
+      costs:
+        description: 本次非流式耗时 ms
+        type: integer
+      failureReason:
+        type: string
+      firstTokenLatency:
+        description: 本次流式首Token时延(TTFT) ms
+        type: integer
+      id:
+        type: integer
+      isSuccess:
+        type: boolean
+      methodPath:
+        description: 路径
+        type: string
+      module:
+        description: 板块 code：wga|skill|knowledge|...
+        type: string
+      moduleAvatar:
+        $ref: '#/definitions/request.Avatar'
+      moduleCreatorOrgId:
+        type: string
+      moduleCreatorOrgName:
+        type: string
+      moduleCreatorUserId:
+        type: string
+      moduleCreatorUserName:
+        type: string
+      moduleName:
+        description: 板块展示名：通用智能体|智能体|知识库|...
+        type: string
+      orgId:
+        type: string
+      orgName:
+        description: 调用人组织（≠ module/model creator org）
+        type: string
+      requestBody:
+        type: string
+      responseBody:
+        type: string
+      source:
+        description: 调用来源 code：web|openapi|webURL
+        type: string
+      sourceName:
+        description: 调用来源展示名：Web|Openapi|WebURL
+        type: string
+      statusCode:
+        type: integer
+      userAvatar:
+        $ref: '#/definitions/request.Avatar'
+      userId:
+        type: string
+      userName:
+        type: string
+    type: object
+  response.APIKeyStatisticV2Trend:
+    properties:
+      apiKeyCalls:
+        allOf:
+        - $ref: '#/definitions/response.StatisticChart'
+        description: APIKey 总/成功/失败 折线
+      callResult:
+        allOf:
+        - $ref: '#/definitions/response.StatisticChart'
+        description: 成功/失败 堆叠柱
+    type: object
+  response.ApiKeyStatisticRouteItem:
+    properties:
+      method:
+        type: string
+      path:
+        type: string
+    type: object
+  response.AppStatisticV2Chart:
+    properties:
+      rank:
+        $ref: '#/definitions/response.AppStatisticV2Rank'
+      trend:
+        $ref: '#/definitions/response.AppStatisticV2Trend'
+    type: object
+  response.AppStatisticV2ListItem:
+    properties:
+      appId:
+        description: 应用ID
+        type: string
+      appName:
+        description: 应用名称
+        type: string
+      appType:
+        description: 应用类型 agent|rag|workflow|chatflow|...
+        type: string
+      avgCosts:
+        description: 非流式平均耗时 ms
+        type: number
+      avgFirstTokenLatency:
+        description: 流式平均首Token时延 ms
+        type: number
+      callCount:
+        type: integer
+      callFailure:
+        type: integer
+      completionTokens:
+        type: integer
+      failureRate:
+        type: number
+      module:
+        description: 板块 code：wga|skill|knowledge|...
+        type: string
+      moduleAvatar:
+        $ref: '#/definitions/request.Avatar'
+      moduleCreatorOrgId:
+        type: string
+      moduleCreatorOrgName:
+        type: string
+      moduleCreatorUserId:
+        type: string
+      moduleCreatorUserName:
+        type: string
+      moduleName:
+        description: 板块展示名：通用智能体|智能体|知识库|...
+        type: string
+      nonStreamCount:
+        description: 非流式调用次数
+        type: integer
+      promptTokens:
+        type: integer
+      source:
+        description: 调用来源 code：web|openapi|webURL
+        type: string
+      sourceName:
+        description: 调用来源展示名：Web|Openapi|WebURL
+        type: string
+      streamCount:
+        description: 流式调用次数
+        type: integer
+      totalTokens:
+        type: integer
+    type: object
+  response.AppStatisticV2ModelListItem:
+    properties:
+      appId:
+        description: 应用ID
+        type: string
+      appName:
+        description: 应用名称
+        type: string
+      appType:
+        description: 应用类型 agent|rag|workflow|chatflow|...
+        type: string
+      avgCosts:
+        description: 非流式平均耗时 ms
+        type: number
+      avgFirstTokenLatency:
+        description: 流式平均首Token时延 ms
+        type: number
+      callCount:
+        type: integer
+      callFailure:
+        type: integer
+      completionTokens:
+        type: integer
+      failureRate:
+        type: number
+      model:
+        type: string
+      modelAvatar:
+        $ref: '#/definitions/request.Avatar'
+      modelCreatorOrgId:
+        type: string
+      modelCreatorOrgName:
+        type: string
+      modelCreatorUserId:
+        type: string
+      modelCreatorUserName:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        type: string
+      module:
+        description: 板块 code：wga|skill|knowledge|...
+        type: string
+      moduleAvatar:
+        $ref: '#/definitions/request.Avatar'
+      moduleCreatorOrgId:
+        type: string
+      moduleCreatorOrgName:
+        type: string
+      moduleCreatorUserId:
+        type: string
+      moduleCreatorUserName:
+        type: string
+      moduleName:
+        description: 板块展示名：通用智能体|智能体|知识库|...
+        type: string
+      nonStreamCount:
+        description: 非流式调用次数
+        type: integer
+      promptTokens:
+        type: integer
+      provider:
+        type: string
+      source:
+        description: 调用来源 code：web|openapi|webURL
+        type: string
+      sourceName:
+        description: 调用来源展示名：Web|Openapi|WebURL
+        type: string
+      streamCount:
+        description: 流式调用次数
+        type: integer
+      totalTokens:
+        type: integer
+    type: object
+  response.AppStatisticV2Overview:
+    properties:
+      avgCosts:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 非流式平均耗时 ms
+      avgFirstTokenLatency:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 流式平均首Token时延 ms
+      callCount:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 调用总次数
+      callFailure:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 失败次数
+      dailyAvgCallCount:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 日均调用总次数
+      dailyAvgCallFailure:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 日均失败次数
+      dailyAvgNonStreamCount:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 日均调用次数(非流式)
+      dailyAvgStreamCount:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 日均调用次数(流式)
+      nonStreamCount:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 非流式调用次数
+      streamCount:
+        allOf:
+        - $ref: '#/definitions/response.StatisticOverviewItem'
+        description: 流式调用次数
+    type: object
+  response.AppStatisticV2Rank:
+    properties:
+      byAgent:
+        description: 智能体使用量排行
+        items:
+          $ref: '#/definitions/response.StatisticV2RankItem'
+        type: array
+      byChatflow:
+        description: 对话流使用排行（图1 红字新增）
+        items:
+          $ref: '#/definitions/response.StatisticV2RankItem'
+        type: array
+      byRag:
+        description: 知识问答使用排行
+        items:
+          $ref: '#/definitions/response.StatisticV2RankItem'
+        type: array
+      byWorkflow:
+        description: 工作流使用排行
+        items:
+          $ref: '#/definitions/response.StatisticV2RankItem'
+        type: array
+    type: object
+  response.AppStatisticV2RecordItem:
+    properties:
+      answer:
+        description: 回复（精简）；导出用；流式底层强制为空
+        type: string
+      appId:
+        description: 应用ID
+        type: string
+      appName:
+        description: 应用名称
+        type: string
+      appType:
+        description: 应用类型 agent|rag|workflow|chatflow|...
+        type: string
+      calledAt:
+        type: string
+      costs:
+        description: 本次非流式耗时 ms
+        type: integer
+      failureReason:
+        type: string
+      firstTokenLatency:
+        description: 本次流式首Token时延(TTFT) ms
+        type: integer
+      id:
+        type: integer
+      isSuccess:
+        type: boolean
+      module:
+        description: 板块 code：wga|skill|knowledge|...
+        type: string
+      moduleAvatar:
+        $ref: '#/definitions/request.Avatar'
+      moduleCreatorOrgId:
+        type: string
+      moduleCreatorOrgName:
+        type: string
+      moduleCreatorUserId:
+        type: string
+      moduleCreatorUserName:
+        type: string
+      moduleName:
+        description: 板块展示名：通用智能体|智能体|知识库|...
+        type: string
+      orgId:
+        type: string
+      orgName:
+        description: 调用人组织（≠ module/model creator org）
+        type: string
+      question:
+        description: 用户问题（精简）；导出用
+        type: string
+      requestBody:
+        description: 输入内容
+        type: string
+      responseBody:
+        description: 输出内容
+        type: string
+      source:
+        description: 调用来源 code：web|openapi|webURL
+        type: string
+      sourceName:
+        description: 调用来源展示名：Web|Openapi|WebURL
+        type: string
+      statusCode:
+        type: integer
+      traceId:
+        type: string
+      userAvatar:
+        $ref: '#/definitions/request.Avatar'
+      userId:
+        type: string
+      userName:
+        type: string
+    type: object
+  response.AppStatisticV2Trend:
+    properties:
+      callResult:
+        allOf:
+        - $ref: '#/definitions/response.StatisticChart'
+        description: 应用调用次数统计表（成功/失败堆叠柱）
+      callTrend:
+        allOf:
+        - $ref: '#/definitions/response.StatisticChart'
+        description: 应用调用趋势表（总数/Web/OpenAPI/WebURL 折线）
+    type: object
+  response.AppStatisticV2UserListItem:
+    properties:
+      appId:
+        description: 应用ID
+        type: string
+      appName:
+        description: 应用名称
+        type: string
+      appType:
+        description: 应用类型 agent|rag|workflow|chatflow|...
+        type: string
+      avgCosts:
+        description: 非流式平均耗时 ms
+        type: number
+      avgFirstTokenLatency:
+        description: 流式平均首Token时延 ms
+        type: number
+      callCount:
+        type: integer
+      callFailure:
+        type: integer
+      completionTokens:
+        type: integer
+      failureRate:
+        type: number
+      module:
+        description: 板块 code：wga|skill|knowledge|...
+        type: string
+      moduleAvatar:
+        $ref: '#/definitions/request.Avatar'
+      moduleCreatorOrgId:
+        type: string
+      moduleCreatorOrgName:
+        type: string
+      moduleCreatorUserId:
+        type: string
+      moduleCreatorUserName:
+        type: string
+      moduleName:
+        description: 板块展示名：通用智能体|智能体|知识库|...
+        type: string
+      nonStreamCount:
+        description: 非流式调用次数
+        type: integer
+      orgId:
+        type: string
+      orgName:
+        description: 调用人组织（≠ module/model creator org）
+        type: string
+      promptTokens:
+        type: integer
+      source:
+        description: 调用来源 code：web|openapi|webURL
+        type: string
+      sourceName:
+        description: 调用来源展示名：Web|Openapi|WebURL
+        type: string
+      streamCount:
+        description: 流式调用次数
+        type: integer
+      totalTokens:
+        type: integer
+      userAvatar:
+        $ref: '#/definitions/request.Avatar'
+      userId:
+        type: string
+      userName:
+        type: string
+    type: object
+  response.ListResult:
+    properties:
+      list: {}
+      total:
+        type: integer
+    type: object
+  response.ModelInfo:
+    properties:
+      allowEdit:
+        description: '是否允许前端编辑（true: 允许编辑，false: 隐藏编辑按钮）'
+        type: boolean
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 模型图标路径
+      config: {}
+      createdAt:
+        type: string
+      displayName:
+        description: 模型显示名称
+        type: string
+      examples:
+        allOf:
+        - $ref: '#/definitions/mp.ProviderModelConfig'
+        description: 仅用于swagger展示；模型对应供应商中的对应llm、embedding或rerank结构是config实际的参数
+      importSource:
+        description: 模型导入来源(builtin=平台内置,external=外部URL)
+        type: string
+      isActive:
+        description: '启用状态（true: 启用，false: 禁用）'
+        type: boolean
+      model:
+        description: 模型名称
+        type: string
+      modelDesc:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        enum:
+        - llm
+        - embedding
+        - rerank
+        type: string
+      orgId:
+        type: string
+      provider:
+        description: 模型供应商
+        enum:
+        - OpenAI-API-compatible
+        - YuanJing
+        type: string
+      publishDate:
+        description: 模型发布时间
+        type: string
+      scopeType:
+        description: 模型公开范围(1-私有 2-公开 3-组织)
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/mp_common.Tag'
+        type: array
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      uuid:
+        type: string
+    required:
+    - model
+    - modelType
+    - provider
+    type: object
+  response.ModelStatisticV2AppListItem:
+    properties:
+      appId:
+        description: 应用ID
+        type: string
+      appName:
+        description: 应用名称
+        type: string
+      appType:
+        description: 应用类型 agent|rag|workflow|chatflow|...
+        type: string
+      avgCosts:
+        description: 非流式平均耗时 ms
+        type: number
+      avgFirstTokenLatency:
+        description: 流式平均耗时 ms
+        type: number
+      callCount:
+        type: integer
+      callFailure:
+        type: integer
+      completionTokens:
+        type: integer
+      failureRate:
+        type: number
+      model:
+        type: string
+      modelAvatar:
+        $ref: '#/definitions/request.Avatar'
+      modelCreatorOrgId:
+        type: string
+      modelCreatorOrgName:
+        type: string
+      modelCreatorUserId:
+        type: string
+      modelCreatorUserName:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        type: string
+      module:
+        description: 板块 code：wga|skill|knowledge|...
+        type: string
+      moduleAvatar:
+        $ref: '#/definitions/request.Avatar'
+      moduleCreatorOrgId:
+        type: string
+      moduleCreatorOrgName:
+        type: string
+      moduleCreatorUserId:
+        type: string
+      moduleCreatorUserName:
+        type: string
+      moduleName:
+        description: 板块展示名：通用智能体|智能体|知识库|...
+        type: string
+      promptTokens:
+        type: integer
+      provider:
+        type: string
+      source:
+        description: 调用来源 code：web|openapi|webURL
+        type: string
+      sourceName:
+        description: 调用来源展示名：Web|Openapi|WebURL
+        type: string
+      totalTokens:
+        type: integer
+    type: object
+  response.ModelStatisticV2Chart:
+    properties:
+      rank:
+        $ref: '#/definitions/response.ModelStatisticV2Rank'
+      trend:
+        $ref: '#/definitions/response.ModelStatisticV2Trend'
+    type: object
+  response.ModelStatisticV2ListItem:
+    properties:
+      avgCosts:
+        description: 非流式平均耗时 ms
+        type: number
+      avgFirstTokenLatency:
+        description: 流式平均耗时 ms
+        type: number
+      callCount:
+        type: integer
+      callFailure:
+        type: integer
+      completionTokens:
+        type: integer
+      failureRate:
+        type: number
+      model:
+        type: string
+      modelAvatar:
+        $ref: '#/definitions/request.Avatar'
+      modelCreatorOrgId:
+        type: string
+      modelCreatorOrgName:
+        type: string
+      modelCreatorUserId:
+        type: string
+      modelCreatorUserName:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        type: string
+      promptTokens:
+        type: integer
+      provider:
+        type: string
+      totalTokens:
+        type: integer
+    type: object
+  response.ModelStatisticV2Overview:
+    properties:
+      avgCosts:
+        $ref: '#/definitions/response.StatisticOverviewItem'
+      avgFirstTokenLatency:
+        $ref: '#/definitions/response.StatisticOverviewItem'
+      callCount:
+        $ref: '#/definitions/response.StatisticOverviewItem'
+      callFailure:
+        $ref: '#/definitions/response.StatisticOverviewItem'
+      completionTokens:
+        $ref: '#/definitions/response.StatisticOverviewItem'
+      dailyAvgCompletionTokens:
+        $ref: '#/definitions/response.StatisticOverviewItem'
+      dailyAvgPromptTokens:
+        $ref: '#/definitions/response.StatisticOverviewItem'
+      dailyAvgTotalTokens:
+        $ref: '#/definitions/response.StatisticOverviewItem'
+      promptTokens:
+        $ref: '#/definitions/response.StatisticOverviewItem'
+      totalTokens:
+        $ref: '#/definitions/response.StatisticOverviewItem'
+    type: object
+  response.ModelStatisticV2Rank:
+    properties:
+      byModel:
+        items:
+          $ref: '#/definitions/response.ModelStatisticV2RankByModelItem'
+        type: array
+      byOrg:
+        items:
+          $ref: '#/definitions/response.ModelStatisticV2RankByOrgItem'
+        type: array
+      byUser:
+        items:
+          $ref: '#/definitions/response.ModelStatisticV2RankByUserItem'
+        type: array
+    type: object
+  response.ModelStatisticV2RankByModelItem:
+    properties:
+      model:
+        type: string
+      modelAvatar:
+        $ref: '#/definitions/request.Avatar'
+      modelCreatorOrgId:
+        type: string
+      modelCreatorOrgName:
+        type: string
+      modelCreatorUserId:
+        type: string
+      modelCreatorUserName:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        type: string
+      provider:
+        type: string
+      totalTokens:
+        type: integer
+    type: object
+  response.ModelStatisticV2RankByOrgItem:
+    properties:
+      avatar:
+        $ref: '#/definitions/request.Avatar'
+      orgId:
+        type: string
+      orgName:
+        type: string
+      totalTokens:
+        type: integer
+    type: object
+  response.ModelStatisticV2RankByUserItem:
+    properties:
+      avatar:
+        $ref: '#/definitions/request.Avatar'
+      orgId:
+        type: string
+      orgName:
+        type: string
+      totalTokens:
+        type: integer
+      userId:
+        type: string
+      userName:
+        type: string
+    type: object
+  response.ModelStatisticV2RecordItem:
+    properties:
+      appId:
+        description: 应用ID
+        type: string
+      appName:
+        description: 应用名称
+        type: string
+      appType:
+        description: 应用类型 agent|rag|workflow|chatflow|...
+        type: string
+      calledAt:
+        type: string
+      completionTokens:
+        type: integer
+      costs:
+        description: 本次非流式耗时 ms
+        type: integer
+      failureReason:
+        type: string
+      finishReason:
+        type: string
+      firstTokenLatency:
+        description: 本次流式首Token时延(TTFT) ms
+        type: integer
+      id:
+        type: string
+      isSuccess:
+        type: boolean
+      model:
+        type: string
+      modelAvatar:
+        $ref: '#/definitions/request.Avatar'
+      modelCreatorOrgId:
+        type: string
+      modelCreatorOrgName:
+        type: string
+      modelCreatorUserId:
+        type: string
+      modelCreatorUserName:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        type: string
+      module:
+        description: 板块 code：wga|skill|knowledge|...
+        type: string
+      moduleAvatar:
+        $ref: '#/definitions/request.Avatar'
+      moduleCreatorOrgId:
+        type: string
+      moduleCreatorOrgName:
+        type: string
+      moduleCreatorUserId:
+        type: string
+      moduleCreatorUserName:
+        type: string
+      moduleName:
+        description: 板块展示名：通用智能体|智能体|知识库|...
+        type: string
+      orgId:
+        type: string
+      orgName:
+        description: 调用人组织（≠ module/model creator org）
+        type: string
+      promptTokens:
+        type: integer
+      provider:
+        type: string
+      requestBody:
+        type: string
+      responseBody:
+        type: string
+      source:
+        description: 调用来源 code：web|openapi|webURL
+        type: string
+      sourceName:
+        description: 调用来源展示名：Web|Openapi|WebURL
+        type: string
+      statusCode:
+        type: integer
+      totalTokens:
+        type: integer
+      traceId:
+        type: string
+      userAvatar:
+        $ref: '#/definitions/request.Avatar'
+      userId:
+        type: string
+      userName:
+        type: string
+    type: object
+  response.ModelStatisticV2Trend:
+    properties:
+      modelCalls:
+        $ref: '#/definitions/response.StatisticChart'
+      tokensUsage:
+        $ref: '#/definitions/response.StatisticChart'
+    type: object
+  response.ModelStatisticV2UserListItem:
+    properties:
+      avgCosts:
+        description: 非流式平均耗时 ms
+        type: number
+      avgFirstTokenLatency:
+        description: 流式平均耗时 ms
+        type: number
+      callCount:
+        type: integer
+      callFailure:
+        type: integer
+      completionTokens:
+        type: integer
+      failureRate:
+        type: number
+      model:
+        type: string
+      modelAvatar:
+        $ref: '#/definitions/request.Avatar'
+      modelCreatorOrgId:
+        type: string
+      modelCreatorOrgName:
+        type: string
+      modelCreatorUserId:
+        type: string
+      modelCreatorUserName:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        type: string
+      orgId:
+        type: string
+      orgName:
+        description: 调用人组织（≠ module/model creator org）
+        type: string
+      promptTokens:
+        type: integer
+      provider:
+        type: string
+      totalTokens:
+        type: integer
+      userAvatar:
+        $ref: '#/definitions/request.Avatar'
+      userId:
+        type: string
+      userName:
+        type: string
+    type: object
+  response.MyAppItem:
+    properties:
+      appId:
+        type: string
+      appType:
+        type: string
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      createdAt:
+        type: integer
+      name:
+        type: string
+      publishType:
+        type: string
+    type: object
+  response.PageResult:
+    properties:
+      list: {}
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  response.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      msg:
+        type: string
+    type: object
+  response.StatisticChart:
+    properties:
+      lines:
+        description: 统计表中线段集合
+        items:
+          $ref: '#/definitions/response.StatisticChartLine'
+        type: array
+      tableName:
+        description: 统计表名字
+        type: string
+    type: object
+  response.StatisticChartLine:
+    properties:
+      items:
+        description: 线段横纵坐标值
+        items:
+          $ref: '#/definitions/response.StatisticChartLineItem'
+        type: array
+      lineName:
+        description: 线段名字
+        type: string
+    type: object
+  response.StatisticChartLineItem:
+    properties:
+      key:
+        type: string
+      value:
+        type: number
+    type: object
+  response.StatisticOverviewItem:
+    properties:
+      periodOverPeriod:
+        description: 环比上周期百分比
+        type: number
+      value:
+        description: 数量
+        type: number
+    type: object
+  response.StatisticV2RankItem:
+    properties:
+      appId:
+        type: string
+      appName:
+        type: string
+      avatar:
+        $ref: '#/definitions/request.Avatar'
+      callCount:
+        type: integer
+      moduleCreatorOrgId:
+        type: string
+      moduleCreatorOrgName:
+        type: string
+      moduleCreatorUserId:
+        type: string
+      moduleCreatorUserName:
+        type: string
+    type: object
+info:
+  contact: {}
+  title: AI Agent Productivity Platform API V2
+  version: v0.0.1
+paths:
+  /statistic/api/chart:
+    post:
+      consumes:
+      - application/json
+      description: API Key调用趋势 + API Key调用次数排行
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.APIKeyStatisticV2ChartReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.APIKeyStatisticV2Chart'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取API Key统计趋势+排行
+      tags:
+      - app_observability.statistic
+  /statistic/api/list:
+    post:
+      consumes:
+      - application/json
+      description: 按API Key+路径聚合的调用统计（分页）。sortField 可选数值指标：callCount、callFailure、streamCount、nonStreamCount、streamFailure、nonStreamFailure、failureRate、avgFirstTokenLatency、avgCosts、firstTokenLatency、costs
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.APIKeyStatisticV2ListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.APIKeyStatisticV2ListItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取API Key调用统计列表
+      tags:
+      - app_observability.statistic
+  /statistic/api/list/app:
+    post:
+      consumes:
+      - application/json
+      description: 指定API Key下的应用调用统计（分页）。sortField 可选数值指标：callCount、callFailure、streamCount、nonStreamCount、streamFailure、nonStreamFailure、failureRate、avgFirstTokenLatency、avgCosts、firstTokenLatency、costs
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.APIKeyStatisticV2AppListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.APIKeyStatisticV2AppListItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取API Key应用调用统计列表
+      tags:
+      - app_observability.statistic
+  /statistic/api/list/app/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出API Key应用调用统计列表。sortField 可选数值指标：callCount、callFailure、streamCount、nonStreamCount、streamFailure、nonStreamFailure、failureRate、avgFirstTokenLatency、avgCosts、firstTokenLatency、costs
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.APIKeyStatisticV2AppExportReq'
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 导出API Key应用调用统计列表
+      tags:
+      - app_observability.statistic
+  /statistic/api/list/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出API Key调用统计列表。sortField 可选数值指标：callCount、callFailure、streamCount、nonStreamCount、streamFailure、nonStreamFailure、failureRate、avgFirstTokenLatency、avgCosts、firstTokenLatency、costs
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.APIKeyStatisticV2ExportListReq'
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 导出API Key调用统计列表
+      tags:
+      - app_observability.statistic
+  /statistic/api/list/model:
+    post:
+      consumes:
+      - application/json
+      description: 指定API Key下的模型使用统计（分页）。钻取需传当前主表行的 apiKeyId/methodPath。sortField
+        可选数值指标：totalTokens、promptTokens、completionTokens、callCount、callFailure、failureRate、avgFirstTokenLatency、avgCosts
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.APIKeyStatisticV2ModelListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.APIKeyStatisticV2ModelListItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取API Key模型使用列表
+      tags:
+      - app_observability.statistic
+  /statistic/api/list/model/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出API Key模型使用列表。sortField 可选数值指标：totalTokens、promptTokens、completionTokens、callCount、callFailure、failureRate、avgFirstTokenLatency、avgCosts
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.APIKeyStatisticV2ModelExportReq'
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 导出API Key模型使用列表
+      tags:
+      - app_observability.statistic
+  /statistic/api/overview:
+    post:
+      consumes:
+      - application/json
+      description: 10张指标卡（调用总次数、失败次数、日均调用/失败、日均流式/非流式、平均耗时、流式/非流式调用次数）
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.APIKeyStatisticV2Req'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.APIKeyStatisticV2Overview'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取API Key统计概览
+      tags:
+      - app_observability.statistic
+  /statistic/api/record/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出API Key调用明细（不支持用户排序；后端固定按调用时间倒序）
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.APIKeyStatisticV2RecordExportReq'
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 导出API Key调用明细
+      tags:
+      - app_observability.statistic
+  /statistic/api/record/list:
+    post:
+      consumes:
+      - application/json
+      description: API Key调用明细记录（分页，不支持用户排序；后端固定按调用时间倒序）
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.APIKeyStatisticV2RecordReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.APIKeyStatisticV2RecordItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取API Key调用明细列表
+      tags:
+      - app_observability.statistic
+  /statistic/api/routes:
+    get:
+      consumes:
+      - application/json
+      description: 根据 openApiType 获取对应的路由信息，不传则返回所有 OpenAPI 路由
+      parameters:
+      - description: 'OpenAPI类型: agent, rag, workflow, chatflow, knowledge'
+        in: query
+        name: openApiType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ApiKeyStatisticRouteItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取API Key统计路由列表
+      tags:
+      - app_observability.statistic
+  /statistic/api/select:
+    post:
+      consumes:
+      - application/json
+      description: 组织→用户→API Key名称级联
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.APIKeyStatisticV2SelectReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.APIKeyDetailResponse'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取API Key下拉列表
+      tags:
+      - app_observability.statistic
+  /statistic/app/chart:
+    post:
+      consumes:
+      - application/json
+      description: 调用趋势 + 智能体/工作流/对话流/知识问答排行
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AppStatisticV2ChartReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AppStatisticV2Chart'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取应用统计趋势+排行
+      tags:
+      - app_observability.statistic
+  /statistic/app/list:
+    post:
+      consumes:
+      - application/json
+      description: 按应用聚合的调用统计（分页）。sortField 可选数值指标：callCount、callFailure、streamCount、nonStreamCount、failureRate、avgFirstTokenLatency、avgCosts
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AppStatisticV2ListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.AppStatisticV2ListItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取应用调用统计列表
+      tags:
+      - app_observability.statistic
+  /statistic/app/list/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出应用调用统计列表。sortField 可选数值指标：callCount、callFailure、streamCount、nonStreamCount、streamFailure、nonStreamFailure、failureRate、avgFirstTokenLatency、avgCosts、firstTokenLatency、costs
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AppStatisticV2ExportListReq'
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 导出应用调用统计列表
+      tags:
+      - app_observability.statistic
+  /statistic/app/list/model:
+    post:
+      consumes:
+      - application/json
+      description: 指定应用下的模型使用统计（分页）。钻取需传当前主表行的 source/appId/moduleCreatorUserId/moduleCreatorOrgId。sortField
+        可选数值指标：totalTokens、promptTokens、completionTokens、callCount、callFailure、failureRate、avgFirstTokenLatency、avgCosts
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AppStatisticV2ModelListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.AppStatisticV2ModelListItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取应用模型使用列表
+      tags:
+      - app_observability.statistic
+  /statistic/app/list/model/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出应用模型使用列表。sortField 可选数值指标：totalTokens、promptTokens、completionTokens、callCount、callFailure、streamCount、nonStreamCount、streamFailure、nonStreamFailure、failureRate、avgFirstTokenLatency、avgCosts、firstTokenLatency、costs
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AppStatisticV2ModelExportReq'
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 导出应用模型使用列表
+      tags:
+      - app_observability.statistic
+  /statistic/app/list/user:
+    post:
+      consumes:
+      - application/json
+      description: 指定应用下的用户使用统计（分页）。钻取需传当前主表行的 source/appId/moduleCreatorUserId/moduleCreatorOrgId。sortField
+        可选数值指标：callCount、callFailure、streamCount、nonStreamCount、failureRate、avgFirstTokenLatency、avgCosts
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AppStatisticV2UserListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.AppStatisticV2UserListItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取应用用户使用列表
+      tags:
+      - app_observability.statistic
+  /statistic/app/list/user/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出应用用户使用列表。sortField 可选数值指标：callCount、callFailure、streamCount、nonStreamCount、streamFailure、nonStreamFailure、failureRate、avgFirstTokenLatency、avgCosts、firstTokenLatency、costs
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AppStatisticV2UserExportReq'
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 导出应用用户使用列表
+      tags:
+      - app_observability.statistic
+  /statistic/app/overview:
+    post:
+      consumes:
+      - application/json
+      description: 10张指标卡（调用次数、Tokens、流式/非流式维度）
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AppStatisticV2Req'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AppStatisticV2Overview'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取应用统计概览
+      tags:
+      - app_observability.statistic
+  /statistic/app/record/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出应用调用明细（不支持用户排序；后端固定按调用时间倒序）
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AppStatisticV2RecordExportReq'
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 导出应用调用明细
+      tags:
+      - app_observability.statistic
+  /statistic/app/record/list:
+    post:
+      consumes:
+      - application/json
+      description: 应用调用明细记录（分页，不支持用户排序；后端固定按调用时间倒序）
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AppStatisticV2RecordReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.AppStatisticV2RecordItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取应用调用明细列表
+      tags:
+      - app_observability.statistic
+  /statistic/app/select:
+    post:
+      consumes:
+      - application/json
+      description: viewScope=published 查主表（我发布的）；used 查聚合表（我使用的）
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AppStatisticV2SelectReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.MyAppItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取应用统计下拉列表
+      tags:
+      - app_observability.statistic
+  /statistic/model/chart:
+    post:
+      consumes:
+      - application/json
+      description: tokens用量/调用趋势 + 模型/用户/组织三维度排行
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ModelStatisticV2ChartReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ModelStatisticV2Chart'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取模型统计趋势+排行
+      tags:
+      - app_observability.statistic
+  /statistic/model/list:
+    post:
+      consumes:
+      - application/json
+      description: 按模型聚合的调用统计（分页）。sortField 可选数值指标：totalTokens、promptTokens、completionTokens、callCount、callFailure、failureRate、avgFirstTokenLatency、avgCosts
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ModelStatisticV2ListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ModelStatisticV2ListItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取模型调用统计列表
+      tags:
+      - app_observability.statistic
+  /statistic/model/list/app:
+    post:
+      consumes:
+      - application/json
+      description: 指定模型下的应用使用统计（分页）。sortField 可选数值指标：totalTokens、promptTokens、completionTokens、callCount、callFailure、failureRate、avgFirstTokenLatency、avgCosts
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ModelStatisticV2AppListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ModelStatisticV2AppListItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取模型应用使用列表
+      tags:
+      - app_observability.statistic
+  /statistic/model/list/app/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出模型应用使用列表。sortField 可选数值指标：totalTokens、promptTokens、completionTokens、callCount、callFailure、failureRate、avgFirstTokenLatency、avgCosts
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ModelStatisticV2AppExportReq'
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 导出模型应用使用列表
+      tags:
+      - app_observability.statistic
+  /statistic/model/list/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出模型调用统计列表。sortField 可选数值指标：totalTokens、promptTokens、completionTokens、callCount、callFailure、failureRate、avgFirstTokenLatency、avgCosts
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ModelStatisticV2ExportListReq'
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 导出模型调用统计列表
+      tags:
+      - app_observability.statistic
+  /statistic/model/list/user:
+    post:
+      consumes:
+      - application/json
+      description: 指定模型下的用户使用统计（分页）。sortField 可选数值指标：totalTokens、promptTokens、completionTokens、callCount、callFailure、failureRate、avgFirstTokenLatency、avgCosts
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ModelStatisticV2UserListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ModelStatisticV2UserListItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取模型用户使用列表
+      tags:
+      - app_observability.statistic
+  /statistic/model/list/user/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出模型用户使用列表。sortField 可选数值指标：totalTokens、promptTokens、completionTokens、callCount、callFailure、failureRate、avgFirstTokenLatency、avgCosts
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ModelStatisticV2UserExportReq'
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 导出模型用户使用列表
+      tags:
+      - app_observability.statistic
+  /statistic/model/overview:
+    post:
+      consumes:
+      - application/json
+      description: 10张指标卡（含日均Tokens）
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ModelStatisticV2Req'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ModelStatisticV2Overview'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取模型统计概览
+      tags:
+      - app_observability.statistic
+  /statistic/model/record/export:
+    post:
+      consumes:
+      - application/json
+      description: 导出模型调用明细（不支持用户排序；后端固定按调用时间倒序）
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ModelStatisticV2RecordExportReq'
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 导出模型调用明细
+      tags:
+      - app_observability.statistic
+  /statistic/model/record/list:
+    post:
+      consumes:
+      - application/json
+      description: 模型调用明细记录（分页，不支持用户排序；后端固定按调用时间倒序）
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ModelStatisticV2RecordReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ModelStatisticV2RecordItem'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取模型调用明细列表
+      tags:
+      - app_observability.statistic
+  /statistic/model/select:
+    post:
+      consumes:
+      - application/json
+      description: viewScope=published 查主表（我发布的）；used 查聚合表（我使用的）
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ModelStatisticV2SelectReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ModelInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取模型统计下拉列表
+      tags:
+      - app_observability.statistic
+securityDefinitions:
+  JWT:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

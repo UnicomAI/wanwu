@@ -48,99 +48,6 @@ type SensitiveWordTableWithWord struct {
 	SensitiveWords []string
 }
 
-type ModelStatistic struct {
-	Overview ModelStatisticOverview `json:"overview"`
-	Trend    ModelStatisticTrend    `json:"trend"`
-}
-
-type ModelStatisticList struct {
-	Items []ModelStatisticItem
-	Total int32
-}
-
-type ModelStatisticItem struct {
-	ModelId              string
-	Model                string
-	Provider             string
-	OrgId                string
-	UserId               string
-	CallCount            int32
-	CallFailure          int32
-	FailureRate          float32
-	PromptTokens         int64
-	CompletionTokens     int64
-	TotalTokens          int64
-	AvgCosts             float32
-	AvgFirstTokenLatency float32
-}
-
-type ModelStatisticOverview struct {
-	CallCount            StatisticOverviewItem `json:"callCount"`
-	CallFailure          StatisticOverviewItem `json:"callFailure"`
-	TotalTokens          StatisticOverviewItem `json:"totalTokens"`
-	CompletionTokens     StatisticOverviewItem `json:"completionTokens"`
-	PromptTokens         StatisticOverviewItem `json:"promptTokens"`
-	AvgCosts             StatisticOverviewItem `json:"avgCosts"`
-	AvgFirstTokenLatency StatisticOverviewItem `json:"avgFirstTokenLatency"`
-}
-
-type ModelStatisticTrend struct {
-	ModelCalls  StatisticChart `json:"modelCalls"`
-	TokensUsage StatisticChart `json:"tokensUsage"`
-}
-
-type AppStatistic struct {
-	Overview AppStatisticOverview `json:"overview"`
-	Trend    AppStatisticTrend    `json:"trend"`
-}
-
-type AppStatisticList struct {
-	Items []AppStatisticItem
-	Total int32
-}
-
-type AppStatisticItem struct {
-	AppId             string
-	AppType           string
-	OrgId             string
-	UserId            string
-	CallCount         int32
-	CallFailure       int32
-	FailureRate       float32
-	StreamCount       int32
-	NonStreamCount    int32
-	AvgStreamCosts    float32
-	AvgNonStreamCosts float32
-}
-
-type AppStatisticOverview struct {
-	CallCount         StatisticOverviewItem `json:"callCount"`
-	CallFailure       StatisticOverviewItem `json:"callFailure"`
-	StreamCount       StatisticOverviewItem `json:"streamCount"`
-	NonStreamCount    StatisticOverviewItem `json:"nonStreamCount"`
-	AvgStreamCosts    StatisticOverviewItem `json:"avgStreamCosts"`
-	AvgNonStreamCosts StatisticOverviewItem `json:"avgNonStreamCosts"`
-}
-
-type AppStatisticTrend struct {
-	CallTrend StatisticChart `json:"callTrend"`
-}
-
-type StatisticChart struct {
-	Name  string               `json:"name"`
-	Lines []StatisticChartLine `json:"lines"`
-}
-
-type StatisticChartLine struct {
-	Name  string                   `json:"name"`
-	Items []StatisticChartLineItem `json:"items"`
-}
-
-type StatisticChartLineItem struct {
-	Key   string  `json:"key"`
-	Value float32 `json:"value"`
-}
-
 func NewClient(db *gorm.DB) (*Client, error) {
 	// 先迁移 Metadata 表（用于记录状态）
 	if err := db.AutoMigrate(&Metadata{}); err != nil {
@@ -159,10 +66,12 @@ func NewClient(db *gorm.DB) (*Client, error) {
 		model.SensitiveWordTable{},
 		model.SensitiveWordVocabulary{},
 		model.ChatflowApplcation{},
-		model.ModelStatistic{},
-		model.AppStatistic{},
-		model.APIKeyRecord{},
-		model.APIKeyStatistic{},
+		model.StatisticModel{},
+		model.ModelRecordV2{},
+		model.AppRecordV2{},
+		model.StatisticApp{},
+		model.APIKeyRecordV2{},
+		model.StatisticApiKey{},
 	); err != nil {
 		return nil, err
 	}

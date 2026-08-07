@@ -11,6 +11,12 @@ import (
 	"strings"
 	"time"
 
+	sse_util "github.com/UnicomAI/wanwu/pkg/sse-util"
+	sse_connector "github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector"
+	sse_model "github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector/model"
+	"github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector/store"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
@@ -23,11 +29,6 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/log"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
-	sse_util "github.com/UnicomAI/wanwu/pkg/sse-util"
-	sse_connector "github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector"
-	sse_model "github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector/model"
-	"github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector/store"
-	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
@@ -177,6 +178,7 @@ func ModelExperienceLLM(ctx *gin.Context, userId, orgId, clientId string, req *r
 		return
 	}
 	startTime := time.Now()
+	requestBody := MarshalStatisticBody(llmReq)
 
 	// chat completions
 	iLLMReq, err := iLLM.NewReq(llmReq)
@@ -194,7 +196,7 @@ func ModelExperienceLLM(ctx *gin.Context, userId, orgId, clientId string, req *r
 	if err != nil {
 		go func() {
 			defer util.PrintPanicStack()
-			recordModelStatistic(bgCtx, modelInfo, false, 0, 0, 0, 0, 0, false)
+			recordModelStatisticV2Failure(bgCtx, modelInfo, true, requestBody, err)
 			_ = sseSessionManager.Cancel()
 		}()
 		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error()))
@@ -203,6 +205,7 @@ func ModelExperienceLLM(ctx *gin.Context, userId, orgId, clientId string, req *r
 	// stream
 	var answer string
 	var reasonContent string
+	var finishReason string
 	var (
 		firstTokenLatency int
 		promptTokens      int
@@ -226,6 +229,9 @@ func ModelExperienceLLM(ctx *gin.Context, userId, orgId, clientId string, req *r
 					firstTokenReceived = true
 					firstTokenLatency = int(time.Since(startTime).Milliseconds())
 				}
+				if len(resp.Choices) > 0 && resp.Choices[0].FinishReason != "" {
+					finishReason = resp.Choices[0].FinishReason
+				}
 				promptTokens = resp.Usage.PromptTokens
 				completionTokens = resp.Usage.CompletionTokens
 				totalTokens = resp.Usage.TotalTokens
@@ -241,8 +247,6 @@ func ModelExperienceLLM(ctx *gin.Context, userId, orgId, clientId string, req *r
 			default:
 			}
 		}
-		recordModelStatistic(bgCtx, modelInfo, true,
-			promptTokens, completionTokens, totalTokens, 0, firstTokenLatency, true)
 	}()
 
 	// 敏感词过滤（必须过滤，全局敏感词）
@@ -279,6 +283,14 @@ func ModelExperienceLLM(ctx *gin.Context, userId, orgId, clientId string, req *r
 		}
 	}
 
+	// outputCh 关闭意味着上游 drain sseCh 的 goroutine 已结束，此时 token 指标与 answer 均已就绪。
+	go func() {
+		defer util.PrintPanicStack()
+		recordModelStatisticV2(bgCtx, modelInfo,
+			promptTokens, completionTokens, totalTokens, 0, firstTokenLatency, true,
+			http.StatusOK, requestBody, answer, finishReason, "")
+	}()
+
 	defer func() {
 		// 如果没有累积任何内容，不保存
 		if answer == "" && reasonContent == "" {
@@ -302,6 +314,20 @@ func ModelExperienceLLM(ctx *gin.Context, userId, orgId, clientId string, req *r
 		}
 
 	}()
+	// save answer
+	if _, err := model.SaveModelExperienceDialogRecord(ctx.Request.Context(), &model_service.SaveModelExperienceDialogRecordReq{
+		UserId:            userId,
+		OrgId:             orgId,
+		ModelExperienceId: req.ModelExperienceId,
+		ModelId:           req.ModelId,
+		SessionId:         req.SessionId,
+		OriginalContent:   answer,
+		ReasoningContent:  reasonContent,
+		Role:              string(mp_common.MsgRoleAssistant),
+	}); err != nil {
+		log.Errorf("model experience save record err: %v", err)
+		return
+	}
 
 	ctx.Set(gin_util.STATUS, http.StatusOK)
 	ctx.Set(gin_util.RESULT, answer)

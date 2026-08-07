@@ -559,7 +559,7 @@ func DraftAssistantConversionStream(ctx *gin.Context) {
 	//启用链接保持
 	req.SseHold = true
 
-	if err := service.AssistantConversionStream(ctx, userId, orgId, clientId, req, false, constant.AppStatisticSourceDraft); err != nil {
+	if err := service.AssistantConversionStream(ctx, userId, orgId, clientId, req, false, constant.BizSourceWeb); err != nil {
 		gin_util.Response(ctx, nil, err)
 	}
 }
@@ -714,7 +714,7 @@ func PublishedAssistantConversionStream(ctx *gin.Context) {
 	}
 	//启用链接保持
 	req.SseHold = true
-	if err := service.AssistantConversionStream(ctx, userId, orgId, clientId, req, true, constant.AppStatisticSourceWeb); err != nil {
+	if err := service.AssistantConversionStream(ctx, userId, orgId, clientId, req, true, constant.BizSourceWeb); err != nil {
 		gin_util.Response(ctx, nil, err)
 	}
 }

@@ -4161,17 +4161,26 @@ const docTemplate = `{
         "request.AppRecordRequest": {
             "type": "object",
             "properties": {
+                "answer": {
+                    "description": "回复（精简）；始终落库；流式可空",
+                    "type": "string"
+                },
                 "appId": {
                     "type": "string"
                 },
                 "appType": {
                     "type": "string"
                 },
+                "failureReason": {
+                    "description": "FailureReason 失败原因；成功时传空。",
+                    "type": "string"
+                },
                 "isStream": {
                     "type": "boolean"
                 },
-                "isSuccess": {
-                    "type": "boolean"
+                "module": {
+                    "description": "板块 agent|rag|workflow|knowledge|...；空则按 appType 推断",
+                    "type": "string"
                 },
                 "nonStreamCosts": {
                     "type": "integer"
@@ -4179,8 +4188,24 @@ const docTemplate = `{
                 "orgId": {
                     "type": "string"
                 },
+                "question": {
+                    "description": "用户提问（精简）；始终落库",
+                    "type": "string"
+                },
+                "requestBody": {
+                    "description": "整体请求 JSON；受 statistic.record_body 控制",
+                    "type": "string"
+                },
+                "responseBody": {
+                    "description": "整体响应 JSON；流式忽略；受 statistic.record_body 控制",
+                    "type": "string"
+                },
                 "source": {
                     "type": "string"
+                },
+                "statusCode": {
+                    "description": "StatusCode 调用方透传的 HTTP 语义状态码；成功传 200，失败传对应码（如 500）。",
+                    "type": "integer"
                 },
                 "streamCosts": {
                     "type": "integer"

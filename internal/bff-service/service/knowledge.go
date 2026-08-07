@@ -28,6 +28,7 @@ import (
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	http_client "github.com/UnicomAI/wanwu/pkg/http-client"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -255,7 +256,35 @@ func DeleteKnowledge(ctx *gin.Context, userId, orgId string, r *request.DeleteKn
 }
 
 // KnowledgeHit 知识库命中
-func KnowledgeHit(ctx *gin.Context, userId, orgId string, r *request.KnowledgeHitReq) (*response.KnowledgeHitResp, error) {
+func KnowledgeHit(ctx *gin.Context, userId, orgId string, r *request.KnowledgeHitReq) (ret *response.KnowledgeHitResp, err error) {
+	startTime := time.Now()
+	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
+	defer func() {
+		var appID string
+		// 与 WithKnowledgeHitResource 一致：按有效 knowledgeId 数量判定；openapi 可传多项但 len=1 仍记。
+		switch len(r.KnowledgeList) {
+		case 1:
+			appID = r.KnowledgeList[0].ID
+		default:
+			return
+		}
+		statusCode, failureReason := GrpcErrorToHTTPStatus(err)
+		source := resolveAppStatisticSource(detachedCtx, constant.BizSourceWeb)
+		// appType 由 RecordAppStatistic 从 Trace.moduleResourceType 回填（knowledge）
+		costs := time.Since(startTime).Milliseconds()
+		respBody := ""
+		if ret != nil {
+			if b, e := json.Marshal(ret); e == nil {
+				respBody = string(b)
+			}
+		}
+		go func() {
+			defer utils.PrintPanicStack()
+			RecordAppStatistic(detachedCtx, userId, orgId, appID, "", constant.BizModuleResourceKnowledge,
+				statusCode, failureReason, false, 0, costs, source, MarshalStatisticBody(r), respBody, r.Question, "")
+		}()
+	}()
+
 	matchParams := r.KnowledgeMatchParams
 	resp, err := knowledgeBase.KnowledgeHit(ctx.Request.Context(), &knowledgebase_service.KnowledgeHitReq{
 		Question:      r.Question,

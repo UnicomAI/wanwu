@@ -16,7 +16,7 @@ func registerExploration(apiV1 *gin.RouterGroup) {
 
 	// rag 相关接口
 	mid.Sub("exploration.app").Reg(apiV1, "/appspace/rag", http.MethodGet, v1.GetPublishedRag, "获取已发布rag详情", middleware.AuthAppPublish("ragId", constant.AppTypeRag))
-	mid.Sub("exploration.app").Reg(apiV1, "/rag/chat", http.MethodPost, v1.ChatPublishedRag, "已发布rag流式接口", middleware.AppHistoryRecord("ragId", constant.AppTypeRag))
+	mid.Sub("exploration.app").Reg(apiV1, "/rag/chat", http.MethodPost, v1.ChatPublishedRag, "已发布rag流式接口", append([]gin.HandlerFunc{middleware.TraceWeb(constant.BizModuleAppRag, middleware.WithAppResource(constant.AppTypeRag, "ragId"))}, middleware.AppHistoryRecord("ragId", constant.AppTypeRag))...)
 
 	// agent 相关接口
 	mid.Sub("exploration.app").Reg(apiV1, "/assistant", http.MethodGet, v1.GetPublishedAssistantInfo, "查看已发布智能体详情")
@@ -28,10 +28,10 @@ func registerExploration(apiV1 *gin.RouterGroup) {
 	mid.Sub("exploration.app").Reg(apiV1, "/assistant/stream/connect", http.MethodPost, v1.AssistantConversionStreamConnect, "智能体流式问答断开后重连")
 	mid.Sub("exploration.app").Reg(apiV1, "/assistant/stream/cancel", http.MethodPost, v1.AssistantConversionStreamCancel, "智能体流式问答手动停止")
 	mid.Sub("exploration.app").Reg(apiV1, "/assistant/conversation/clear", http.MethodDelete, v1.ClearPublishedAssistantConversation, "清空已发布智能体对话")
-	mid.Sub("exploration.app").Reg(apiV1, "/assistant/stream", http.MethodPost, v1.PublishedAssistantConversionStream, "已发布智能体流式问答", middleware.AppHistoryRecord("assistantId", constant.AppTypeAgent))
+	mid.Sub("exploration.app").Reg(apiV1, "/assistant/stream", http.MethodPost, v1.PublishedAssistantConversionStream, "已发布智能体流式问答", append([]gin.HandlerFunc{middleware.TraceWeb(constant.BizModuleAppAgent, middleware.WithAppResource(constant.AppTypeAgent, "assistantId"))}, middleware.AppHistoryRecord("assistantId", constant.AppTypeAgent))...)
 
 	// workflow 相关接口
-	mid.Sub("exploration.app").Reg(apiV1, "/workflow/run", http.MethodPost, v1.PublishedWorkflowRun, "已发布工作流运行接口", middleware.AppHistoryRecord("workflow_id", constant.AppTypeWorkflow))
+	mid.Sub("exploration.app").Reg(apiV1, "/workflow/run", http.MethodPost, v1.PublishedWorkflowRun, "已发布工作流运行接口", append([]gin.HandlerFunc{middleware.TraceWeb(constant.BizModuleAppWorkflow, middleware.WithAppResource(constant.AppTypeWorkflow, "workflow_id"))}, middleware.AppHistoryRecord("workflow_id", constant.AppTypeWorkflow))...)
 	mid.Sub("exploration.app").Reg(apiV1, "/appspace/workflow/export", http.MethodGet, v1.ExportWorkflow, "导出workflow")
 	mid.Sub("exploration.app").Reg(apiV1, "/appspace/workflow/copy", http.MethodPost, v1.CopyWorkflow, "拷贝workflow")
 

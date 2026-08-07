@@ -161,12 +161,14 @@ func AppUrlConversionStream(ctx *gin.Context, req request.UrlConversionStreamReq
 	if err != nil {
 		return err
 	}
-	streamParams := &agentChatStreamParams{startTime: time.Now()}
+	streamParams := &agentChatStreamParams{ctx: ctx}
 	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	defer func() {
+		statusCode, failureReason := appStreamStatisticStatus(streamParams.err, streamParams.errMsg)
 		go func() {
 			defer util.PrintPanicStack()
-			RecordAppStatistic(detachedCtx, appUrlInfo.UserId, appUrlInfo.OrgId, appUrlInfo.AppId, constant.AppTypeAgent, !streamParams.hasErr, true, streamParams.firstTokenLatency, 0, constant.AppStatisticSourceWebUrl)
+			RecordAppStatistic(detachedCtx, appUrlInfo.UserId, appUrlInfo.OrgId, appUrlInfo.AppId, constant.AppTypeAgent, "",
+				statusCode, failureReason, true, streamParams.firstTokenLatency, 0, constant.BizSourceWebUrl, MarshalStatisticBody(req), "", req.Prompt, "")
 		}()
 	}()
 
@@ -178,10 +180,11 @@ func AppUrlConversionStream(ctx *gin.Context, req request.UrlConversionStreamReq
 		SseHold:        true,
 	}, true)
 	if err != nil {
-		streamParams.hasErr = true
+		streamParams.err = err
 		return err
 	}
 	// 2. 流式返回结果
+	streamParams.startTime = time.Now()
 	_ = sse_util.NewSSEWriter(ctx, fmt.Sprintf("[Agent] %v conversation %v recv", appUrlInfo.AppId, req.ConversationId), sse_util.DONE_MSG).
 		WriteStream(chatCh, streamParams, buildAgentChatRespLineProcessor(), nil)
 	return nil

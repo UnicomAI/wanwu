@@ -3,10 +3,11 @@ package service
 import (
 	"fmt"
 
+	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
+
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	safety_service "github.com/UnicomAI/wanwu/api/proto/safety-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/pkg/ahocorasick"
-	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	queue_util "github.com/UnicomAI/wanwu/pkg/queue-util"
