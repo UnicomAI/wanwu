@@ -18,8 +18,7 @@ import (
 )
 
 const (
-	statisticFieldMethodPathMaxLen = 128
-	luaUpdateStatisticModel        = `
+	luaUpdateStatisticModel = `
 local key = KEYS[1]
 local field = KEYS[2]
 local delta = cjson.decode(ARGV[1])
@@ -92,7 +91,7 @@ func recordStatisticModelToRedis(ctx context.Context, req *RecordModelStatisticV
 		req.ModelID, req.UserID, req.OrgID,
 		req.Source, req.Module, req.AppID, req.AppType,
 		req.APIKey,
-		truncateStatisticField(req.MethodPath, statisticFieldMethodPathMaxLen),
+		req.MethodPath,
 		req.ModuleCreatorUserID, req.ModuleCreatorOrgID,
 	)
 
@@ -271,7 +270,7 @@ func buildModelCallRecord(req *RecordModelStatisticV2Input) *model.ModelRecordV2
 		IsStream:            req.IsStream,
 		APIKeyID:            req.APIKeyID,
 		APIKey:              req.APIKey,
-		MethodPath:          truncateStatisticField(req.MethodPath, statisticFieldMethodPathMaxLen),
+		MethodPath:          req.MethodPath,
 		PromptTokens:        req.PromptTokens,
 		CompletionTokens:    req.CompletionTokens,
 		TotalTokens:         req.TotalTokens,
@@ -283,11 +282,4 @@ func buildModelCallRecord(req *RecordModelStatisticV2Input) *model.ModelRecordV2
 		FinishReason:        req.FinishReason,
 		FailureReason:       req.FailureReason,
 	}
-}
-
-func truncateStatisticField(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
-	}
-	return s[:maxLen]
 }
