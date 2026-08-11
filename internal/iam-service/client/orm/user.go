@@ -1087,10 +1087,6 @@ func getCreatorTx(tx *gorm.DB, creatorID uint32) (IDNameWithAvatar, error) {
 }
 
 func checkUserIsAdmin(tx *gorm.DB, userID uint32, org *model.Org) (bool, []*model.UserRole, error) {
-	// check org
-	if !org.Status {
-		return false, nil, fmt.Errorf("org %v status false", org.ID)
-	}
 	// check user admin
 	if userID == config.AdminUserID() {
 		return true, nil, nil
@@ -1162,6 +1158,9 @@ func getUserPermission(tx *gorm.DB, userID, orgID uint32) (*Permission, error) {
 	org := &model.Org{}
 	if err := sqlopt.WithID(orgID).Apply(tx).First(org).Error; err != nil {
 		return nil, fmt.Errorf("get org %v err: %v", orgID, err)
+	}
+	if !org.Status {
+		return nil, fmt.Errorf("org %v disable", orgID)
 	}
 	// check org user 用户在组织中的状态校验
 	orgUser := &model.OrgUser{}
