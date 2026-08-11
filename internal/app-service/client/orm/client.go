@@ -94,6 +94,15 @@ func NewClient(db *gorm.DB) (*Client, error) {
 			return nil, fmt.Errorf("query metadata failed: %w", err)
 		}
 	}
+
+	// 旧统计表 → V2（仅 MySQL）
+	// 多副本互斥靠 CAS pending→running（见 migrateStatisticV2FromLegacy）：
+	// 抢到的副本迁移；done 放行；running（含 CAS 失败）报错，避免未迁完就对外服务。
+	// 优雅失败自动置 pending 让下家续迁；进程崩溃留 running，需人工改 pending。
+	if err := migrateStatisticV2FromLegacy(db); err != nil {
+		return nil, fmt.Errorf("failed to migrate statistic v2 from legacy: %w", err)
+	}
+
 	return &Client{
 		db: db,
 	}, nil
