@@ -51,6 +51,7 @@ func NewClient(db *gorm.DB) (*Client, error) {
 		model.MultiAgentRelation{},
 		model.WgaConversationConfig{},
 		model.WgaConfig{},
+		model.DigitalEmployeeConversationConfig{},
 	); err != nil {
 		return nil, err
 	}

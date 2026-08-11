@@ -112,46 +112,35 @@ func GetGeneralAgentOntologyEmployeeSelect(ctx *gin.Context, userId, orgId, name
 	return items, nil
 }
 
+// ontologyDigitalEmployeeInfoResp 旧接口 /digital-humans/{digitalEmployeeId}（vega 非版本）响应
+// knowledge/skills 直接复用 digitalEmployeeKnowledge/Skill 结构（字段一致）
 type ontologyDigitalEmployeeInfoResp struct {
-	Code int                         `json:"code"`
-	Data ontologyDigitalEmployeeInfo `json:"data"`
-	Msg  string                      `json:"msg"`
+	Code int `json:"code"`
+	Data struct {
+		ID            string                     `json:"id"`
+		Name          string                     `json:"name"`
+		Role          string                     `json:"role"`
+		Task          string                     `json:"task"`
+		Workflow      string                     `json:"workflow"`
+		SkillPriority string                     `json:"skillPriority"`
+		Knowledge     []digitalEmployeeKnowledge `json:"knowledge"`
+		Skills        []digitalEmployeeSkill     `json:"skills"`
+	} `json:"data"`
+	Msg string `json:"msg"`
 }
 
-type ontologyDigitalEmployeeInfo struct {
-	ontologyDigitalEmployeeBrief
-	Role          string                     `json:"role"`
-	Task          string                     `json:"task"`
-	Workflow      string                     `json:"workflow"`
-	SkillPriority string                     `json:"skillPriority"`
-	Knowledge     []ontologyDigitalKnowledge `json:"knowledge"` // 有且只有一个
-	Skills        []ontologyDigitalSkill     `json:"skills"`
-}
-
-type ontologyDigitalKnowledge struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
-
-type ontologyDigitalSkill struct {
-	SkillID     string `json:"skillId"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Type        string `json:"type"`
-}
-
-func GetGeneralAgentOntologyEmployeeInfo(ctx *gin.Context, userId, orgId, digitalEmployeeId string) (*ontologyDigitalEmployeeInfo, error) {
+// GetGeneralAgentOntologyEmployeeInfo 获取数字员工详情（通用智能体 @数字员工 注入用）。
+// 走旧接口 /vega/api/digital-humans/{digitalEmployeeId}（vega 非版本），区别于 DE 发布场景的 /versions/latest。
+// 返回注入所需字段（digitalEmployeeInjectInfo），与 DE 适配器共用后续注入流程。
+func GetGeneralAgentOntologyEmployeeInfo(ctx *gin.Context, userId, orgId, digitalEmployeeId string) (*digitalEmployeeInjectInfo, error) {
 	if config.Cfg().Ontology.Enable == 0 {
 		return nil, nil
 	}
 
-	// 构建URL
 	endpoint := config.Cfg().Ontology.Endpoint
-	infoUri := config.Cfg().Ontology.DigitalEmployeeInfoUri
-	requestUrl := endpoint + infoUri // 注意这里uri中有{digitalEmployeeId}，只能字符串拼接，不能url.JoinPath
+	infoUri := config.Cfg().Ontology.DigitalEmployeeInfoUri // 含 {digitalEmployeeId} 占位，只能字符串拼接，不能 url.JoinPath
+	requestUrl := endpoint + infoUri
 
-	// 发送HTTP请求
 	ret := &ontologyDigitalEmployeeInfoResp{}
 	resp, err := trace_util.NewResty(ctx).
 		R().
@@ -163,15 +152,24 @@ func GetGeneralAgentOntologyEmployeeInfo(ctx *gin.Context, userId, orgId, digita
 		SetPathParam("digitalEmployeeId", digitalEmployeeId).
 		SetResult(ret).
 		Get(requestUrl)
-
 	if err != nil {
 		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_ontology_employee_info", err.Error())
 	}
 	if resp.StatusCode() >= 300 {
 		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_ontology_employee_info", fmt.Sprintf("[%d] http error", resp.StatusCode()))
 	}
-
-	return &ret.Data, nil
+	if ret.Data.ID == "" {
+		return nil, nil // 不存在
+	}
+	return &digitalEmployeeInjectInfo{
+		Name:          ret.Data.Name,
+		Role:          ret.Data.Role,
+		Task:          ret.Data.Task,
+		Workflow:      ret.Data.Workflow,
+		SkillPriority: ret.Data.SkillPriority,
+		Knowledge:     ret.Data.Knowledge,
+		Skills:        ret.Data.Skills,
+	}, nil
 }
 
 // --- internal wga ontology ---
@@ -293,11 +291,10 @@ func buildWgaOntologyDIPMode(ctx *gin.Context, userId, orgId, threadId, runId, t
 		// else 非法的@提及格式，默认使用"本体自动构建专员"
 	}
 
-	var contentBuilder strings.Builder
-	_, _ = fmt.Fprintf(&contentBuilder, "【当前用户ID为：%s】如果技能参数需要 userId、user-id、accountId、x-account-id 等相关信息，可以使用此用户ID进行查询。\n", userId)
-
 	// --- "本体自动构建专员" ---
 	if dipAgentName == defaultDIPAgentName {
+		var contentBuilder strings.Builder
+		_, _ = fmt.Fprintf(&contentBuilder, "【当前用户ID为：%s】如果技能参数需要 userId、user-id、accountId、x-account-id 等相关信息，可以使用此用户ID进行查询。\n", userId)
 		return nil, &schema.Message{
 			Role:    schema.System,
 			Content: contentBuilder.String(),
@@ -323,31 +320,61 @@ func buildWgaOntologyDIPMode(ctx *gin.Context, userId, orgId, threadId, runId, t
 	if err != nil {
 		return nil, nil, err
 	}
-	if dipAgent == nil || dipAgent.ID == "" {
+	if dipAgent == nil { // 未发布/不存在
 		return nil, nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_ontology_employee_info", fmt.Sprintf("dip agent (%v) not found", dipAgentName))
 	}
 
+	// 数字员工详情注入（instruction/overallTask/knowledge/skills + 系统提示）
+	return buildDigitalEmployeeInjection(ctx, userId, orgId, threadId, runId, dipAgent)
+}
+
+// buildWgaDigitalEmployeeMode 构建数字员工发布对话的 Ontology 配置选项
+//
+// 与 buildWgaOntologyDIPMode（@name 文本解析 + 列表搜名）不同，试用对话的 employeeId 由请求显式给出，
+// 直接按 ID 拉取员工详情并注入（instruction/overallTask/knowledge/skills）。
+// 统一走 DE 版本化详情接口（GetDigitalEmployeeInfo → /versions/latest）。
+func buildWgaDigitalEmployeeMode(ctx *gin.Context, userId, orgId, threadId, runId, employeeId string) ([]wga_option.Option, *schema.Message, error) {
+	employeeId = strings.TrimSpace(employeeId)
+	if employeeId == "" {
+		return nil, nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_ontology_employee_info", "digital employee id is required")
+	}
+	dipAgent, err := GetDigitalEmployeeInfo(ctx, userId, orgId, employeeId)
+	if err != nil {
+		return nil, nil, err
+	}
+	if dipAgent == nil { // 未发布/不存在
+		return nil, nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_ontology_employee_info", fmt.Sprintf("digital employee (%v) not found", employeeId))
+	}
+	return buildDigitalEmployeeInjection(ctx, userId, orgId, threadId, runId, dipAgent)
+}
+
+// buildDigitalEmployeeInjection 构建数字员工详情注入（instruction + overallTask + knowledge + skills + 系统提示）
+// 供 buildWgaOntologyDIPMode（@数字员工）与 buildWgaDigitalEmployeeMode（发布对话）共用，直接消费契约结构 digitalEmployeeVersion。
+func buildDigitalEmployeeInjection(ctx *gin.Context, userId, orgId, threadId, runId string, de *digitalEmployeeInjectInfo) ([]wga_option.Option, *schema.Message, error) {
+	var contentBuilder strings.Builder
+	_, _ = fmt.Fprintf(&contentBuilder, "【当前用户ID为：%s】如果技能参数需要 userId、user-id、accountId、x-account-id 等相关信息，可以使用此用户ID进行查询。\n", userId)
+
 	var opts []wga_option.Option
 	// 数字员工的 instruction
-	instruction, err := formatWgaOntologyDIPInstruction(dipAgent.Name, dipAgent.Role, dipAgent.Workflow, dipAgent.SkillPriority)
+	instruction, err := formatWgaOntologyDIPInstruction(de.Name, de.Role, de.Workflow, de.SkillPriority)
 	if err != nil {
 		return nil, nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_ontology_dip_prompt", fmt.Sprintf("render digital employee prompt failed: %v", err))
 	}
 	opts = append(opts, wga_option.WithInstruction(instruction))
 	// 数字员工的 task 作为整体任务传入
-	if dipAgent.Task != "" {
-		opts = append(opts, wga_option.WithOverallTask(dipAgent.Task))
+	if de.Task != "" {
+		opts = append(opts, wga_option.WithOverallTask(de.Task))
 	}
 	// 数字员工的 knowledge（本体知识网络）
-	if len(dipAgent.Knowledge) > 0 {
-		_, _ = fmt.Fprintf(&contentBuilder, "\n【当前配置的知识网络为：%s】%s", dipAgent.Knowledge[0].Name, dipAgent.Knowledge[0].Description)
-		_, _ = fmt.Fprintf(&contentBuilder, "\n【当前配置的知识网络ID为：%s】如果需要用到本体智能体知识网络，可以使用此知识网络ID作为 kn_id 或 KN ID 等相关参数进行查询。", dipAgent.Knowledge[0].ID)
+	if len(de.Knowledge) > 0 {
+		_, _ = fmt.Fprintf(&contentBuilder, "\n【当前配置的知识网络为：%s】%s", de.Knowledge[0].Name, de.Knowledge[0].Description)
+		_, _ = fmt.Fprintf(&contentBuilder, "\n【当前配置的知识网络ID为：%s】如果需要用到本体智能体知识网络，可以使用此知识网络ID作为 kn_id 或 KN ID 等相关参数进行查询。", de.Knowledge[0].ID)
 	}
 	// 数字员工的 skills
-	if len(dipAgent.Skills) > 0 {
+	if len(de.Skills) > 0 {
 		_, _ = fmt.Fprintf(&contentBuilder, "\n\n【如果需要，优先使用以下skills】")
 		var skillList []*assistant_service.WgaConfigSkill
-		for _, skill := range dipAgent.Skills {
+		for _, skill := range de.Skills {
 			if skill.Type == constant.SkillTypeBuiltIn { // 内置ontology skills都挂载到wga-sandbox-ontology-wanwu容器了
 				_, _ = fmt.Fprintf(&contentBuilder, "\n- %s: %s", path.Base(skill.SkillID), skill.Description)
 			} else {

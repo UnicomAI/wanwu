@@ -67,4 +67,8 @@ func Register(callbackAPI *gin.RouterGroup) {
 	mid.Sub("callback").Reg(callbackAPI, "/api/knowledge/status", http.MethodPost, callback.UpdateKnowledgeStatus, "更新知识库相关状态")
 	mid.Sub("callback").Reg(callbackAPI, "/api/doc_status_init", http.MethodGet, callback.DocStatusInit, "将正在解析的文档设置为解析失败")
 
+	// 数字员工发布状态同步（外部系统回调；发布 upsert / 删除下架，均幂等）
+	mid.Sub("callback").Reg(callbackAPI, "/digital-employee/publish/sync", http.MethodPost, callback.SyncDigitalEmployeePublish, "数字员工发布状态同步")
+	mid.Sub("callback").Reg(callbackAPI, "/digital-employee/publish/sync", http.MethodDelete, callback.SyncDigitalEmployeeUnpublish, "数字员工删除/下架同步")
+
 }

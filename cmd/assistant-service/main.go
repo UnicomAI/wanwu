@@ -78,6 +78,11 @@ func main() {
 	if err := es.InitWgaChatHistoryEventIndexTemplate(ctx); err != nil {
 		log.Fatalf("init wga chat history index template err: %v", err)
 	}
+
+	if err := es.InitDigitalEmployeeChatHistoryEventIndexTemplate(ctx); err != nil {
+		log.Fatalf("init digital employee chat history index template err: %v", err)
+	}
+
 	minioConfig := config.Cfg().Minio
 	if err := minio.InitFileUpload(ctx, minio.Config{
 		Endpoint:    minioConfig.EndPoint,

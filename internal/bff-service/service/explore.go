@@ -45,7 +45,14 @@ func GetExplorationAppList(ctx *gin.Context, userId, orgId string, req request.G
 	if err != nil {
 		return nil, err
 	}
-	apps := append(rags, append(agents, append(workFlows, chatFlows...)...)...)
+	digitalEmployees, err := explorerationFilterDigitalEmployee(ctx, userId, orgId, explorationApp.Infos, req.Name)
+	if err != nil {
+		return nil, err
+	}
+	apps := append(rags, agents...)
+	apps = append(apps, workFlows...)
+	apps = append(apps, chatFlows...)
+	apps = append(apps, digitalEmployees...)
 	sort.SliceStable(apps, func(i, j int) bool {
 		// 按更新时间降序排序，保证列表刷新时最新的优先展示
 		return apps[i].UpdatedAt > apps[j].UpdatedAt
@@ -348,6 +355,69 @@ func explorerationFilterChatFlow(ctx *gin.Context, apps []*app_service.Explorati
 				break
 			}
 		}
+	}
+	return retAppList, nil
+}
+
+// explorerationFilterDigitalEmployee 广场数字员工列表富化
+//
+// app 表只登记 appType=digitalemployee 行（appId=employeeId + publishType，无展示字段，见 SyncDigitalEmployeePublish）。
+// 展示字段（name/desc）**按 app 表登记的 employeeId 批量调外部 latest 接口**实时获取（契约 §3.2，决策 D6 不做缓存）；
+// 未发布/已下架的员工（批量结果缺省）跳过。
+func explorerationFilterDigitalEmployee(ctx *gin.Context, userId, orgId string, apps []*app_service.ExplorationAppInfo, name string) ([]*response.ExplorationAppInfo, error) {
+	// 收集所有数字员工类型的 appId（即 employeeId）
+	var ids []string
+	for _, info := range apps {
+		if info.AppType == constant.AppTypeDigitalEmployee {
+			ids = append(ids, info.AppId)
+		}
+	}
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	// 按 app 表登记的 ids 批量调外部 latest 接口（契约 §3.2：dh_ids，未发布缺省）
+	employeeByID, err := GetDigitalEmployeeBatchInfo(ctx, userId, orgId, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	var retAppList []*response.ExplorationAppInfo
+	for _, id := range ids {
+		employee := employeeByID[id]
+		if employee == nil {
+			// 批量结果缺省（未发布/已下架），跳过该条，避免广场出现无展示字段的空壳
+			continue
+		}
+		for _, expApp := range apps {
+			if expApp.AppId == id {
+				appInfo := &response.ExplorationAppInfo{
+					AppBriefInfo: appBriefProto2Model(ctx, &common.AppBrief{
+						AppId:     id,
+						AppType:   constant.AppTypeDigitalEmployee,
+						Name:      employee.Name,
+						Desc:      employee.Description,
+						CreatedAt: expApp.CreatedAt,
+						UpdatedAt: expApp.UpdatedAt,
+					}, 0),
+				}
+				appInfo.Avatar = request.Avatar{Path: "/v1/static/icon/wga-digital-employee-icon.svg"} // 契约 latest 无头像字段，用默认图标
+				appInfo.PublishType = expApp.PublishType
+				appInfo.IsFavorite = expApp.IsFavorite
+				appInfo.User.UserId = expApp.UserId
+				retAppList = append(retAppList, appInfo)
+				break
+			}
+		}
+	}
+	// 如果name不为空，过滤结果
+	if name != "" {
+		var filteredList []*response.ExplorationAppInfo
+		for _, ret := range retAppList {
+			if strings.Contains(strings.ToLower(ret.Name), strings.ToLower(name)) {
+				filteredList = append(filteredList, ret)
+			}
+		}
+		return filteredList, nil
 	}
 	return retAppList, nil
 }

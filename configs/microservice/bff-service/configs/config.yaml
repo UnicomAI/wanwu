@@ -423,6 +423,9 @@ ontology:
   knowledge_network_list_uri: /vega/api/ontology-manager/v1/knowledge-networks
   digital_employee_list_uri: /vega/api/digital-humans
   digital_employee_info_uri: /vega/api/digital-humans/{digitalEmployeeId}
+  digital_employee_info_version_uri: /vega/api/digital-humans/{dh_id}/versions/latest
+  digital_employee_batch_latest_uri: /vega/api/digital-humans/versions/latest
+  digital_employee_chat_placeholder: "请先选择一款模型，发送你的问题或任务指令，让数字员工开始为你工作吧"
   digital_employee_prompt_template: |
     # 名称
     {{ agent_name }}

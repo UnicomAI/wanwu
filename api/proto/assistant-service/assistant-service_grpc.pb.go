@@ -20,73 +20,79 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AssistantService_SaveToES_FullMethodName                            = "/assistant_service.AssistantService/SaveToES"
-	AssistantService_DeleteFromES_FullMethodName                        = "/assistant_service.AssistantService/DeleteFromES"
-	AssistantService_SearchFromES_FullMethodName                        = "/assistant_service.AssistantService/SearchFromES"
-	AssistantService_GetAssistantByIds_FullMethodName                   = "/assistant_service.AssistantService/GetAssistantByIds"
-	AssistantService_AssistantCreate_FullMethodName                     = "/assistant_service.AssistantService/AssistantCreate"
-	AssistantService_AssistantUpdate_FullMethodName                     = "/assistant_service.AssistantService/AssistantUpdate"
-	AssistantService_AssistantConfigUpdate_FullMethodName               = "/assistant_service.AssistantService/AssistantConfigUpdate"
-	AssistantService_AssistantDelete_FullMethodName                     = "/assistant_service.AssistantService/AssistantDelete"
-	AssistantService_GetAssistantListMyAll_FullMethodName               = "/assistant_service.AssistantService/GetAssistantListMyAll"
-	AssistantService_GetAssistantInfo_FullMethodName                    = "/assistant_service.AssistantService/GetAssistantInfo"
-	AssistantService_GetAssistantIdByUuid_FullMethodName                = "/assistant_service.AssistantService/GetAssistantIdByUuid"
-	AssistantService_AssistantCopy_FullMethodName                       = "/assistant_service.AssistantService/AssistantCopy"
-	AssistantService_GetAssistantDetailById_FullMethodName              = "/assistant_service.AssistantService/GetAssistantDetailById"
-	AssistantService_GetMultiAssistantById_FullMethodName               = "/assistant_service.AssistantService/GetMultiAssistantById"
-	AssistantService_AssistantSnapshotCreate_FullMethodName             = "/assistant_service.AssistantService/AssistantSnapshotCreate"
-	AssistantService_AssistantSnapshotUpdate_FullMethodName             = "/assistant_service.AssistantService/AssistantSnapshotUpdate"
-	AssistantService_AssistantSnapshotList_FullMethodName               = "/assistant_service.AssistantService/AssistantSnapshotList"
-	AssistantService_AssistantSnapshotRollback_FullMethodName           = "/assistant_service.AssistantService/AssistantSnapshotRollback"
-	AssistantService_AssistantSnapshotInfo_FullMethodName               = "/assistant_service.AssistantService/AssistantSnapshotInfo"
-	AssistantService_AssistantSnapshotLatest_FullMethodName             = "/assistant_service.AssistantService/AssistantSnapshotLatest"
-	AssistantService_AssistantSnapshotLatestBatch_FullMethodName        = "/assistant_service.AssistantService/AssistantSnapshotLatestBatch"
-	AssistantService_AssistantWorkFlowCreate_FullMethodName             = "/assistant_service.AssistantService/AssistantWorkFlowCreate"
-	AssistantService_AssistantWorkFlowDelete_FullMethodName             = "/assistant_service.AssistantService/AssistantWorkFlowDelete"
-	AssistantService_AssistantWorkFlowEnableSwitch_FullMethodName       = "/assistant_service.AssistantService/AssistantWorkFlowEnableSwitch"
-	AssistantService_AssistantWorkFlowDeleteByWorkflowId_FullMethodName = "/assistant_service.AssistantService/AssistantWorkFlowDeleteByWorkflowId"
-	AssistantService_AssistantMCPCreate_FullMethodName                  = "/assistant_service.AssistantService/AssistantMCPCreate"
-	AssistantService_AssistantMCPDelete_FullMethodName                  = "/assistant_service.AssistantService/AssistantMCPDelete"
-	AssistantService_AssistantMCPEnableSwitch_FullMethodName            = "/assistant_service.AssistantService/AssistantMCPEnableSwitch"
-	AssistantService_AssistantMCPGetList_FullMethodName                 = "/assistant_service.AssistantService/AssistantMCPGetList"
-	AssistantService_AssistantMCPDeleteByMCPId_FullMethodName           = "/assistant_service.AssistantService/AssistantMCPDeleteByMCPId"
-	AssistantService_AssistantToolCreate_FullMethodName                 = "/assistant_service.AssistantService/AssistantToolCreate"
-	AssistantService_AssistantToolDelete_FullMethodName                 = "/assistant_service.AssistantService/AssistantToolDelete"
-	AssistantService_AssistantToolEnableSwitch_FullMethodName           = "/assistant_service.AssistantService/AssistantToolEnableSwitch"
-	AssistantService_AssistantToolConfig_FullMethodName                 = "/assistant_service.AssistantService/AssistantToolConfig"
-	AssistantService_AssistantToolDeleteByToolId_FullMethodName         = "/assistant_service.AssistantService/AssistantToolDeleteByToolId"
-	AssistantService_AssistantSkillCreate_FullMethodName                = "/assistant_service.AssistantService/AssistantSkillCreate"
-	AssistantService_AssistantSkillDelete_FullMethodName                = "/assistant_service.AssistantService/AssistantSkillDelete"
-	AssistantService_AssistantSkillEnableSwitch_FullMethodName          = "/assistant_service.AssistantService/AssistantSkillEnableSwitch"
-	AssistantService_ConversationCreate_FullMethodName                  = "/assistant_service.AssistantService/ConversationCreate"
-	AssistantService_ConversationDelete_FullMethodName                  = "/assistant_service.AssistantService/ConversationDelete"
-	AssistantService_ClearConversationES_FullMethodName                 = "/assistant_service.AssistantService/ClearConversationES"
-	AssistantService_GetConversationIdByAssistantId_FullMethodName      = "/assistant_service.AssistantService/GetConversationIdByAssistantId"
-	AssistantService_GetConversationList_FullMethodName                 = "/assistant_service.AssistantService/GetConversationList"
-	AssistantService_GetConversationDetailList_FullMethodName           = "/assistant_service.AssistantService/GetConversationDetailList"
-	AssistantService_AssistantConversionStream_FullMethodName           = "/assistant_service.AssistantService/AssistantConversionStream"
-	AssistantService_MultiAssistantConversionStream_FullMethodName      = "/assistant_service.AssistantService/MultiAssistantConversionStream"
-	AssistantService_CustomPromptCreate_FullMethodName                  = "/assistant_service.AssistantService/CustomPromptCreate"
-	AssistantService_CustomPromptDelete_FullMethodName                  = "/assistant_service.AssistantService/CustomPromptDelete"
-	AssistantService_CustomPromptUpdate_FullMethodName                  = "/assistant_service.AssistantService/CustomPromptUpdate"
-	AssistantService_CustomPromptGet_FullMethodName                     = "/assistant_service.AssistantService/CustomPromptGet"
-	AssistantService_CustomPromptGetList_FullMethodName                 = "/assistant_service.AssistantService/CustomPromptGetList"
-	AssistantService_CustomPromptCopy_FullMethodName                    = "/assistant_service.AssistantService/CustomPromptCopy"
-	AssistantService_MultiAgentCreate_FullMethodName                    = "/assistant_service.AssistantService/MultiAgentCreate"
-	AssistantService_MultiAgentDelete_FullMethodName                    = "/assistant_service.AssistantService/MultiAgentDelete"
-	AssistantService_MultiAgentEnableSwitch_FullMethodName              = "/assistant_service.AssistantService/MultiAgentEnableSwitch"
-	AssistantService_MultiAgentConfigUpdate_FullMethodName              = "/assistant_service.AssistantService/MultiAgentConfigUpdate"
-	AssistantService_GetWgaConversationConfig_FullMethodName            = "/assistant_service.AssistantService/GetWgaConversationConfig"
-	AssistantService_UpdateWgaConversationConfig_FullMethodName         = "/assistant_service.AssistantService/UpdateWgaConversationConfig"
-	AssistantService_GetWgaConfig_FullMethodName                        = "/assistant_service.AssistantService/GetWgaConfig"
-	AssistantService_UpdateWgaConfig_FullMethodName                     = "/assistant_service.AssistantService/UpdateWgaConfig"
-	AssistantService_WgaConversationCreate_FullMethodName               = "/assistant_service.AssistantService/WgaConversationCreate"
-	AssistantService_WgaConversationDelete_FullMethodName               = "/assistant_service.AssistantService/WgaConversationDelete"
-	AssistantService_WgaConversationList_FullMethodName                 = "/assistant_service.AssistantService/WgaConversationList"
-	AssistantService_WgaConversationExists_FullMethodName               = "/assistant_service.AssistantService/WgaConversationExists"
-	AssistantService_GetAdminCustomPromptPageList_FullMethodName        = "/assistant_service.AssistantService/GetAdminCustomPromptPageList"
-	AssistantService_AdminAssistantPageList_FullMethodName              = "/assistant_service.AssistantService/AdminAssistantPageList"
-	AssistantService_SyncAssistantPublish_FullMethodName                = "/assistant_service.AssistantService/SyncAssistantPublish"
+	AssistantService_SaveToES_FullMethodName                                = "/assistant_service.AssistantService/SaveToES"
+	AssistantService_DeleteFromES_FullMethodName                            = "/assistant_service.AssistantService/DeleteFromES"
+	AssistantService_SearchFromES_FullMethodName                            = "/assistant_service.AssistantService/SearchFromES"
+	AssistantService_GetAssistantByIds_FullMethodName                       = "/assistant_service.AssistantService/GetAssistantByIds"
+	AssistantService_AssistantCreate_FullMethodName                         = "/assistant_service.AssistantService/AssistantCreate"
+	AssistantService_AssistantUpdate_FullMethodName                         = "/assistant_service.AssistantService/AssistantUpdate"
+	AssistantService_AssistantConfigUpdate_FullMethodName                   = "/assistant_service.AssistantService/AssistantConfigUpdate"
+	AssistantService_AssistantDelete_FullMethodName                         = "/assistant_service.AssistantService/AssistantDelete"
+	AssistantService_GetAssistantListMyAll_FullMethodName                   = "/assistant_service.AssistantService/GetAssistantListMyAll"
+	AssistantService_GetAssistantInfo_FullMethodName                        = "/assistant_service.AssistantService/GetAssistantInfo"
+	AssistantService_GetAssistantIdByUuid_FullMethodName                    = "/assistant_service.AssistantService/GetAssistantIdByUuid"
+	AssistantService_AssistantCopy_FullMethodName                           = "/assistant_service.AssistantService/AssistantCopy"
+	AssistantService_GetAssistantDetailById_FullMethodName                  = "/assistant_service.AssistantService/GetAssistantDetailById"
+	AssistantService_GetMultiAssistantById_FullMethodName                   = "/assistant_service.AssistantService/GetMultiAssistantById"
+	AssistantService_AssistantSnapshotCreate_FullMethodName                 = "/assistant_service.AssistantService/AssistantSnapshotCreate"
+	AssistantService_AssistantSnapshotUpdate_FullMethodName                 = "/assistant_service.AssistantService/AssistantSnapshotUpdate"
+	AssistantService_AssistantSnapshotList_FullMethodName                   = "/assistant_service.AssistantService/AssistantSnapshotList"
+	AssistantService_AssistantSnapshotRollback_FullMethodName               = "/assistant_service.AssistantService/AssistantSnapshotRollback"
+	AssistantService_AssistantSnapshotInfo_FullMethodName                   = "/assistant_service.AssistantService/AssistantSnapshotInfo"
+	AssistantService_AssistantSnapshotLatest_FullMethodName                 = "/assistant_service.AssistantService/AssistantSnapshotLatest"
+	AssistantService_AssistantSnapshotLatestBatch_FullMethodName            = "/assistant_service.AssistantService/AssistantSnapshotLatestBatch"
+	AssistantService_AssistantWorkFlowCreate_FullMethodName                 = "/assistant_service.AssistantService/AssistantWorkFlowCreate"
+	AssistantService_AssistantWorkFlowDelete_FullMethodName                 = "/assistant_service.AssistantService/AssistantWorkFlowDelete"
+	AssistantService_AssistantWorkFlowEnableSwitch_FullMethodName           = "/assistant_service.AssistantService/AssistantWorkFlowEnableSwitch"
+	AssistantService_AssistantWorkFlowDeleteByWorkflowId_FullMethodName     = "/assistant_service.AssistantService/AssistantWorkFlowDeleteByWorkflowId"
+	AssistantService_AssistantMCPCreate_FullMethodName                      = "/assistant_service.AssistantService/AssistantMCPCreate"
+	AssistantService_AssistantMCPDelete_FullMethodName                      = "/assistant_service.AssistantService/AssistantMCPDelete"
+	AssistantService_AssistantMCPEnableSwitch_FullMethodName                = "/assistant_service.AssistantService/AssistantMCPEnableSwitch"
+	AssistantService_AssistantMCPGetList_FullMethodName                     = "/assistant_service.AssistantService/AssistantMCPGetList"
+	AssistantService_AssistantMCPDeleteByMCPId_FullMethodName               = "/assistant_service.AssistantService/AssistantMCPDeleteByMCPId"
+	AssistantService_AssistantToolCreate_FullMethodName                     = "/assistant_service.AssistantService/AssistantToolCreate"
+	AssistantService_AssistantToolDelete_FullMethodName                     = "/assistant_service.AssistantService/AssistantToolDelete"
+	AssistantService_AssistantToolEnableSwitch_FullMethodName               = "/assistant_service.AssistantService/AssistantToolEnableSwitch"
+	AssistantService_AssistantToolConfig_FullMethodName                     = "/assistant_service.AssistantService/AssistantToolConfig"
+	AssistantService_AssistantToolDeleteByToolId_FullMethodName             = "/assistant_service.AssistantService/AssistantToolDeleteByToolId"
+	AssistantService_AssistantSkillCreate_FullMethodName                    = "/assistant_service.AssistantService/AssistantSkillCreate"
+	AssistantService_AssistantSkillDelete_FullMethodName                    = "/assistant_service.AssistantService/AssistantSkillDelete"
+	AssistantService_AssistantSkillEnableSwitch_FullMethodName              = "/assistant_service.AssistantService/AssistantSkillEnableSwitch"
+	AssistantService_ConversationCreate_FullMethodName                      = "/assistant_service.AssistantService/ConversationCreate"
+	AssistantService_ConversationDelete_FullMethodName                      = "/assistant_service.AssistantService/ConversationDelete"
+	AssistantService_ClearConversationES_FullMethodName                     = "/assistant_service.AssistantService/ClearConversationES"
+	AssistantService_GetConversationIdByAssistantId_FullMethodName          = "/assistant_service.AssistantService/GetConversationIdByAssistantId"
+	AssistantService_GetConversationList_FullMethodName                     = "/assistant_service.AssistantService/GetConversationList"
+	AssistantService_GetConversationDetailList_FullMethodName               = "/assistant_service.AssistantService/GetConversationDetailList"
+	AssistantService_AssistantConversionStream_FullMethodName               = "/assistant_service.AssistantService/AssistantConversionStream"
+	AssistantService_MultiAssistantConversionStream_FullMethodName          = "/assistant_service.AssistantService/MultiAssistantConversionStream"
+	AssistantService_CustomPromptCreate_FullMethodName                      = "/assistant_service.AssistantService/CustomPromptCreate"
+	AssistantService_CustomPromptDelete_FullMethodName                      = "/assistant_service.AssistantService/CustomPromptDelete"
+	AssistantService_CustomPromptUpdate_FullMethodName                      = "/assistant_service.AssistantService/CustomPromptUpdate"
+	AssistantService_CustomPromptGet_FullMethodName                         = "/assistant_service.AssistantService/CustomPromptGet"
+	AssistantService_CustomPromptGetList_FullMethodName                     = "/assistant_service.AssistantService/CustomPromptGetList"
+	AssistantService_CustomPromptCopy_FullMethodName                        = "/assistant_service.AssistantService/CustomPromptCopy"
+	AssistantService_MultiAgentCreate_FullMethodName                        = "/assistant_service.AssistantService/MultiAgentCreate"
+	AssistantService_MultiAgentDelete_FullMethodName                        = "/assistant_service.AssistantService/MultiAgentDelete"
+	AssistantService_MultiAgentEnableSwitch_FullMethodName                  = "/assistant_service.AssistantService/MultiAgentEnableSwitch"
+	AssistantService_MultiAgentConfigUpdate_FullMethodName                  = "/assistant_service.AssistantService/MultiAgentConfigUpdate"
+	AssistantService_GetWgaConversationConfig_FullMethodName                = "/assistant_service.AssistantService/GetWgaConversationConfig"
+	AssistantService_UpdateWgaConversationConfig_FullMethodName             = "/assistant_service.AssistantService/UpdateWgaConversationConfig"
+	AssistantService_GetWgaConfig_FullMethodName                            = "/assistant_service.AssistantService/GetWgaConfig"
+	AssistantService_UpdateWgaConfig_FullMethodName                         = "/assistant_service.AssistantService/UpdateWgaConfig"
+	AssistantService_WgaConversationCreate_FullMethodName                   = "/assistant_service.AssistantService/WgaConversationCreate"
+	AssistantService_WgaConversationDelete_FullMethodName                   = "/assistant_service.AssistantService/WgaConversationDelete"
+	AssistantService_WgaConversationList_FullMethodName                     = "/assistant_service.AssistantService/WgaConversationList"
+	AssistantService_WgaConversationExists_FullMethodName                   = "/assistant_service.AssistantService/WgaConversationExists"
+	AssistantService_DigitalEmployeeConversationCreate_FullMethodName       = "/assistant_service.AssistantService/DigitalEmployeeConversationCreate"
+	AssistantService_DigitalEmployeeConversationDelete_FullMethodName       = "/assistant_service.AssistantService/DigitalEmployeeConversationDelete"
+	AssistantService_DigitalEmployeeConversationList_FullMethodName         = "/assistant_service.AssistantService/DigitalEmployeeConversationList"
+	AssistantService_GetDigitalEmployeeConversationConfig_FullMethodName    = "/assistant_service.AssistantService/GetDigitalEmployeeConversationConfig"
+	AssistantService_TouchDigitalEmployeeConversationConfig_FullMethodName  = "/assistant_service.AssistantService/TouchDigitalEmployeeConversationConfig"
+	AssistantService_UpdateDigitalEmployeeConversationConfig_FullMethodName = "/assistant_service.AssistantService/UpdateDigitalEmployeeConversationConfig"
+	AssistantService_GetAdminCustomPromptPageList_FullMethodName            = "/assistant_service.AssistantService/GetAdminCustomPromptPageList"
+	AssistantService_AdminAssistantPageList_FullMethodName                  = "/assistant_service.AssistantService/AdminAssistantPageList"
+	AssistantService_SyncAssistantPublish_FullMethodName                    = "/assistant_service.AssistantService/SyncAssistantPublish"
 )
 
 // AssistantServiceClient is the client API for AssistantService service.
@@ -169,6 +175,13 @@ type AssistantServiceClient interface {
 	WgaConversationDelete(ctx context.Context, in *WgaConversationDeleteReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	WgaConversationList(ctx context.Context, in *WgaConversationListReq, opts ...grpc.CallOption) (*WgaConversationListResp, error)
 	WgaConversationExists(ctx context.Context, in *WgaConversationExistsReq, opts ...grpc.CallOption) (*WgaConversationExistsResp, error)
+	// --- digital-employee conversation（数字员工发布会话，独立表，与 wga conversation 物理隔离）---
+	DigitalEmployeeConversationCreate(ctx context.Context, in *DigitalEmployeeConversationCreateReq, opts ...grpc.CallOption) (*DigitalEmployeeConversationCreateResp, error)
+	DigitalEmployeeConversationDelete(ctx context.Context, in *DigitalEmployeeConversationDeleteReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DigitalEmployeeConversationList(ctx context.Context, in *DigitalEmployeeConversationListReq, opts ...grpc.CallOption) (*DigitalEmployeeConversationListResp, error)
+	GetDigitalEmployeeConversationConfig(ctx context.Context, in *GetDigitalEmployeeConversationConfigReq, opts ...grpc.CallOption) (*GetDigitalEmployeeConversationConfigResp, error)
+	TouchDigitalEmployeeConversationConfig(ctx context.Context, in *GetDigitalEmployeeConversationConfigReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	UpdateDigitalEmployeeConversationConfig(ctx context.Context, in *UpdateDigitalEmployeeConversationConfigReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// --- admin center ---
 	GetAdminCustomPromptPageList(ctx context.Context, in *GetAdminCustomPromptPageListReq, opts ...grpc.CallOption) (*CustomPromptList, error)
 	// --- admin center ---
@@ -842,6 +855,66 @@ func (c *assistantServiceClient) WgaConversationExists(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *assistantServiceClient) DigitalEmployeeConversationCreate(ctx context.Context, in *DigitalEmployeeConversationCreateReq, opts ...grpc.CallOption) (*DigitalEmployeeConversationCreateResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DigitalEmployeeConversationCreateResp)
+	err := c.cc.Invoke(ctx, AssistantService_DigitalEmployeeConversationCreate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assistantServiceClient) DigitalEmployeeConversationDelete(ctx context.Context, in *DigitalEmployeeConversationDeleteReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AssistantService_DigitalEmployeeConversationDelete_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assistantServiceClient) DigitalEmployeeConversationList(ctx context.Context, in *DigitalEmployeeConversationListReq, opts ...grpc.CallOption) (*DigitalEmployeeConversationListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DigitalEmployeeConversationListResp)
+	err := c.cc.Invoke(ctx, AssistantService_DigitalEmployeeConversationList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assistantServiceClient) GetDigitalEmployeeConversationConfig(ctx context.Context, in *GetDigitalEmployeeConversationConfigReq, opts ...grpc.CallOption) (*GetDigitalEmployeeConversationConfigResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDigitalEmployeeConversationConfigResp)
+	err := c.cc.Invoke(ctx, AssistantService_GetDigitalEmployeeConversationConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assistantServiceClient) TouchDigitalEmployeeConversationConfig(ctx context.Context, in *GetDigitalEmployeeConversationConfigReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AssistantService_TouchDigitalEmployeeConversationConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assistantServiceClient) UpdateDigitalEmployeeConversationConfig(ctx context.Context, in *UpdateDigitalEmployeeConversationConfigReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AssistantService_UpdateDigitalEmployeeConversationConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *assistantServiceClient) GetAdminCustomPromptPageList(ctx context.Context, in *GetAdminCustomPromptPageListReq, opts ...grpc.CallOption) (*CustomPromptList, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CustomPromptList)
@@ -952,6 +1025,13 @@ type AssistantServiceServer interface {
 	WgaConversationDelete(context.Context, *WgaConversationDeleteReq) (*emptypb.Empty, error)
 	WgaConversationList(context.Context, *WgaConversationListReq) (*WgaConversationListResp, error)
 	WgaConversationExists(context.Context, *WgaConversationExistsReq) (*WgaConversationExistsResp, error)
+	// --- digital-employee conversation（数字员工发布会话，独立表，与 wga conversation 物理隔离）---
+	DigitalEmployeeConversationCreate(context.Context, *DigitalEmployeeConversationCreateReq) (*DigitalEmployeeConversationCreateResp, error)
+	DigitalEmployeeConversationDelete(context.Context, *DigitalEmployeeConversationDeleteReq) (*emptypb.Empty, error)
+	DigitalEmployeeConversationList(context.Context, *DigitalEmployeeConversationListReq) (*DigitalEmployeeConversationListResp, error)
+	GetDigitalEmployeeConversationConfig(context.Context, *GetDigitalEmployeeConversationConfigReq) (*GetDigitalEmployeeConversationConfigResp, error)
+	TouchDigitalEmployeeConversationConfig(context.Context, *GetDigitalEmployeeConversationConfigReq) (*emptypb.Empty, error)
+	UpdateDigitalEmployeeConversationConfig(context.Context, *UpdateDigitalEmployeeConversationConfigReq) (*emptypb.Empty, error)
 	// --- admin center ---
 	GetAdminCustomPromptPageList(context.Context, *GetAdminCustomPromptPageListReq) (*CustomPromptList, error)
 	// --- admin center ---
@@ -1158,6 +1238,24 @@ func (UnimplementedAssistantServiceServer) WgaConversationList(context.Context, 
 }
 func (UnimplementedAssistantServiceServer) WgaConversationExists(context.Context, *WgaConversationExistsReq) (*WgaConversationExistsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WgaConversationExists not implemented")
+}
+func (UnimplementedAssistantServiceServer) DigitalEmployeeConversationCreate(context.Context, *DigitalEmployeeConversationCreateReq) (*DigitalEmployeeConversationCreateResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DigitalEmployeeConversationCreate not implemented")
+}
+func (UnimplementedAssistantServiceServer) DigitalEmployeeConversationDelete(context.Context, *DigitalEmployeeConversationDeleteReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DigitalEmployeeConversationDelete not implemented")
+}
+func (UnimplementedAssistantServiceServer) DigitalEmployeeConversationList(context.Context, *DigitalEmployeeConversationListReq) (*DigitalEmployeeConversationListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DigitalEmployeeConversationList not implemented")
+}
+func (UnimplementedAssistantServiceServer) GetDigitalEmployeeConversationConfig(context.Context, *GetDigitalEmployeeConversationConfigReq) (*GetDigitalEmployeeConversationConfigResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDigitalEmployeeConversationConfig not implemented")
+}
+func (UnimplementedAssistantServiceServer) TouchDigitalEmployeeConversationConfig(context.Context, *GetDigitalEmployeeConversationConfigReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TouchDigitalEmployeeConversationConfig not implemented")
+}
+func (UnimplementedAssistantServiceServer) UpdateDigitalEmployeeConversationConfig(context.Context, *UpdateDigitalEmployeeConversationConfigReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDigitalEmployeeConversationConfig not implemented")
 }
 func (UnimplementedAssistantServiceServer) GetAdminCustomPromptPageList(context.Context, *GetAdminCustomPromptPageListReq) (*CustomPromptList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAdminCustomPromptPageList not implemented")
@@ -2327,6 +2425,114 @@ func _AssistantService_WgaConversationExists_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AssistantService_DigitalEmployeeConversationCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DigitalEmployeeConversationCreateReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssistantServiceServer).DigitalEmployeeConversationCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssistantService_DigitalEmployeeConversationCreate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssistantServiceServer).DigitalEmployeeConversationCreate(ctx, req.(*DigitalEmployeeConversationCreateReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssistantService_DigitalEmployeeConversationDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DigitalEmployeeConversationDeleteReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssistantServiceServer).DigitalEmployeeConversationDelete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssistantService_DigitalEmployeeConversationDelete_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssistantServiceServer).DigitalEmployeeConversationDelete(ctx, req.(*DigitalEmployeeConversationDeleteReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssistantService_DigitalEmployeeConversationList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DigitalEmployeeConversationListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssistantServiceServer).DigitalEmployeeConversationList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssistantService_DigitalEmployeeConversationList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssistantServiceServer).DigitalEmployeeConversationList(ctx, req.(*DigitalEmployeeConversationListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssistantService_GetDigitalEmployeeConversationConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDigitalEmployeeConversationConfigReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssistantServiceServer).GetDigitalEmployeeConversationConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssistantService_GetDigitalEmployeeConversationConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssistantServiceServer).GetDigitalEmployeeConversationConfig(ctx, req.(*GetDigitalEmployeeConversationConfigReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssistantService_TouchDigitalEmployeeConversationConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDigitalEmployeeConversationConfigReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssistantServiceServer).TouchDigitalEmployeeConversationConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssistantService_TouchDigitalEmployeeConversationConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssistantServiceServer).TouchDigitalEmployeeConversationConfig(ctx, req.(*GetDigitalEmployeeConversationConfigReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssistantService_UpdateDigitalEmployeeConversationConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDigitalEmployeeConversationConfigReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssistantServiceServer).UpdateDigitalEmployeeConversationConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssistantService_UpdateDigitalEmployeeConversationConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssistantServiceServer).UpdateDigitalEmployeeConversationConfig(ctx, req.(*UpdateDigitalEmployeeConversationConfigReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AssistantService_GetAdminCustomPromptPageList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAdminCustomPromptPageListReq)
 	if err := dec(in); err != nil {
@@ -2635,6 +2841,30 @@ var AssistantService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WgaConversationExists",
 			Handler:    _AssistantService_WgaConversationExists_Handler,
+		},
+		{
+			MethodName: "DigitalEmployeeConversationCreate",
+			Handler:    _AssistantService_DigitalEmployeeConversationCreate_Handler,
+		},
+		{
+			MethodName: "DigitalEmployeeConversationDelete",
+			Handler:    _AssistantService_DigitalEmployeeConversationDelete_Handler,
+		},
+		{
+			MethodName: "DigitalEmployeeConversationList",
+			Handler:    _AssistantService_DigitalEmployeeConversationList_Handler,
+		},
+		{
+			MethodName: "GetDigitalEmployeeConversationConfig",
+			Handler:    _AssistantService_GetDigitalEmployeeConversationConfig_Handler,
+		},
+		{
+			MethodName: "TouchDigitalEmployeeConversationConfig",
+			Handler:    _AssistantService_TouchDigitalEmployeeConversationConfig_Handler,
+		},
+		{
+			MethodName: "UpdateDigitalEmployeeConversationConfig",
+			Handler:    _AssistantService_UpdateDigitalEmployeeConversationConfig_Handler,
 		},
 		{
 			MethodName: "GetAdminCustomPromptPageList",

@@ -259,3 +259,56 @@ func InitWgaChatHistoryEventIndexTemplate(ctx context.Context) error {
 
 	return nil
 }
+
+// InitDigitalEmployeeChatHistoryEventIndexTemplate 数字员工发布会话历史ES索引模板
+// 数字员工发布会话历史独立索引（digital_employee_chat_history_event），与 wga 索引同构（keyword 字段），
+// 保证按 threadId/userId/orgId 的 term 查询命中（auto_create 的动态映射会把字符串标为 text 导致查询失效）。
+func InitDigitalEmployeeChatHistoryEventIndexTemplate(ctx context.Context) error {
+	templateName := "digital_employee_chat_history_event_template"
+
+	// 创建或更新索引模板
+	template := `{
+		"index_patterns": [
+			"digital_employee_chat_history_event"
+		],
+		"template": {
+			"mappings": {
+				"properties": {
+					"id": {
+						"type": "keyword",
+						"index": true
+					},
+					"threadId": {
+						"type": "keyword",
+						"index": true
+					},
+					"runId": {
+						"type": "keyword",
+						"index": true
+					},
+					"userId": {
+						"type": "keyword",
+						"index": true
+					},
+					"orgId": {
+						"type": "keyword",
+						"index": true
+					},
+					"events": {
+						"type": "text",
+						"index": false
+					},
+					"createdAt": {
+						"type": "long"
+					}
+				}
+			}
+		}
+	}`
+	if err := Assistant().CreateIndexTemplate(ctx, templateName, template); err != nil {
+		return fmt.Errorf("创建ES索引模板失败: %v", err)
+	}
+	log.Infof("成功创建ES索引模板: %s", templateName)
+
+	return nil
+}

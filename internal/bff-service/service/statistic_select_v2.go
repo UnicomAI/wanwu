@@ -268,7 +268,7 @@ func firstNonEmpty(vals ...string) string {
 // chatflow 写入口径为 module=workflow，请求 chatflow 时按 workflow 处理（返回 workflow+chatflow）。
 func resolveAppStatisticSelectModule(module string) (string, bool) {
 	switch module {
-	case constant.BizModuleAppAgent, constant.BizModuleAppRag, constant.BizModuleAppWorkflow, constant.BizModuleResourceKnowledge:
+	case constant.BizModuleAppAgent, constant.BizModuleAppRag, constant.BizModuleAppWorkflow, constant.BizModuleResourceKnowledge, constant.BizModuleAppDigitalEmployee:
 		return module, true
 	case constant.AppTypeChatflow:
 		return constant.BizModuleAppWorkflow, true
@@ -278,13 +278,15 @@ func resolveAppStatisticSelectModule(module string) (string, bool) {
 }
 
 // statisticModuleToPublishedAppType 将 V2 module 映射为发布表 appType。
-// 仅 agent / rag；workflow 合并 chatflow、knowledge 走 knowledge-service，均在调用方单独处理。
+// 仅 agent / rag / digitalemployee；workflow 合并 chatflow、knowledge 走 knowledge-service，均在调用方单独处理。
 func statisticModuleToPublishedAppType(module string) (appType string, ok bool) {
 	switch module {
 	case constant.BizModuleAppAgent:
 		return constant.AppTypeAgent, true
 	case constant.BizModuleAppRag:
 		return constant.AppTypeRag, true
+	case constant.BizModuleAppDigitalEmployee:
+		return constant.AppTypeDigitalEmployee, true
 	default:
 		return "", false
 	}

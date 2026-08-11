@@ -169,11 +169,11 @@ func DeleteGeneralAgentConversation(ctx *gin.Context, userId, orgId string, req 
 			return err
 		}
 	}
-	return deleteGeneralAgentConversationCore(ctx, userId, orgId, threadID)
+	return deleteGeneralAgentConversationCore(ctx, userId, orgId, threadID, "")
 }
 
 func deleteGeneralAgentConversationForSkillDelete(ctx *gin.Context, userId, orgId string, req request.DeleteGeneralAgentConversationReq) error {
-	return deleteGeneralAgentConversationCore(ctx, userId, orgId, strings.TrimSpace(req.ThreadID))
+	return deleteGeneralAgentConversationCore(ctx, userId, orgId, strings.TrimSpace(req.ThreadID), "")
 }
 
 type customSkillThreadBinding struct {
@@ -225,7 +225,12 @@ func clearCustomSkillThreadBinding(ctx *gin.Context, binding *customSkillThreadB
 	return nil
 }
 
-func deleteGeneralAgentConversationCore(ctx *gin.Context, userId, orgId, threadID string) error {
+// deleteGeneralAgentConversationCore 删除通用智能体会话（DB 行 + ES 历史）
+// indexName 为空时使用默认 wga 索引（向后兼容）；数字员工场景不经过本函数，走 BFF 侧独立删除
+func deleteGeneralAgentConversationCore(ctx *gin.Context, userId, orgId, threadID, indexName string) error {
+	if indexName == "" {
+		indexName = wgaConversationHistoryEventESIndexName
+	}
 	_, err := assistant.WgaConversationDelete(ctx.Request.Context(), &assistant_service.WgaConversationDeleteReq{
 		ThreadId: threadID,
 		Identity: &assistant_service.Identity{
@@ -238,14 +243,14 @@ func deleteGeneralAgentConversationCore(ctx *gin.Context, userId, orgId, threadI
 	}
 
 	_, err = assistant.DeleteFromES(ctx.Request.Context(), &assistant_service.DeleteFromESReq{
-		IndexName: wgaConversationHistoryEventESIndexName,
+		IndexName: indexName,
 		Conditions: map[string]string{
 			"threadId": threadID,
 			"userId":   userId,
 			"orgId":    orgId,
 		},
 	})
-	if err != nil && !wgaConversationHistoryEventESIndexNotFound(err) {
+	if err != nil && !esIndexNotFound(err, indexName) {
 		log.Errorf("[wga] thread %v delete chat history from ES err: %v", threadID, err)
 	}
 
@@ -348,16 +353,21 @@ func GetGeneralAgentConversationDetail(ctx *gin.Context, userId, orgId, threadId
 		return &response.ListResult{}, nil
 	}
 
-	return getWgaConversationDetailFromES(ctx, userId, orgId, threadId)
+	return getWgaConversationDetailFromES(ctx, userId, orgId, threadId, "")
 }
 
 func GetGeneralAgentSkillPreviewConversationDetail(ctx *gin.Context, userId, orgId string, req request.GetGeneralAgentSkillPreviewConversationDetailReq) (*response.ListResult, error) {
-	return getWgaConversationDetailFromES(ctx, userId, orgId, req.PreviewID)
+	return getWgaConversationDetailFromES(ctx, userId, orgId, req.PreviewID, "")
 }
 
-func getWgaConversationDetailFromES(ctx *gin.Context, userId, orgId, threadId string) (*response.ListResult, error) {
+// getWgaConversationDetailFromES 从 ES 回放会话历史
+// indexName 为空时使用默认 wga 索引（向后兼容）；数字员工场景传入 digital_employee_chat_history_event
+func getWgaConversationDetailFromES(ctx *gin.Context, userId, orgId, threadId, indexName string) (*response.ListResult, error) {
+	if indexName == "" {
+		indexName = wgaConversationHistoryEventESIndexName
+	}
 	resp, err := assistant.SearchFromES(ctx.Request.Context(), &assistant_service.SearchFromESReq{
-		IndexName: wgaConversationHistoryEventESIndexName,
+		IndexName: indexName,
 		Conditions: map[string]string{
 			"threadId": threadId,
 			"userId":   userId,
@@ -368,7 +378,7 @@ func getWgaConversationDetailFromES(ctx *gin.Context, userId, orgId, threadId st
 		PageSize:  1000,
 	})
 	if err != nil {
-		if wgaConversationHistoryEventESIndexNotFound(err) {
+		if esIndexNotFound(err, indexName) {
 			return &response.ListResult{}, nil
 		}
 		return nil, err

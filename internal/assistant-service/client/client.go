@@ -102,4 +102,13 @@ type IClient interface {
 	//=================WgaConfig================
 	GetWgaConfig(ctx context.Context, userId, orgId string) (*model.WgaConfig, *err_code.Status)
 	UpdateWgaConfig(ctx context.Context, config *model.WgaConfig) *err_code.Status
+
+	//=================DigitalEmployeeConversationConfig================
+	CreateDigitalEmployeeConversationConfig(ctx context.Context, config *model.DigitalEmployeeConversationConfig) *err_code.Status
+	GetDigitalEmployeeConversationConfig(ctx context.Context, threadId string, userId, orgId string) (*model.DigitalEmployeeConversationConfig, *err_code.Status)
+	GetDigitalEmployeeConversationConfigList(ctx context.Context, userID, orgID, employeeID, searchText string, offset, limit int32) ([]*model.DigitalEmployeeConversationConfig, int64, *err_code.Status)
+	DeleteDigitalEmployeeConversationConfig(ctx context.Context, threadId string, userId, orgId string) *err_code.Status
+	DigitalEmployeeConversationConfigExists(ctx context.Context, threadId, userID, orgID string) (bool, *err_code.Status)
+	TouchDigitalEmployeeConversationConfig(ctx context.Context, threadId, userId, orgId string) *err_code.Status
+	UpdateDigitalEmployeeConversationConfig(ctx context.Context, threadId, modelConfig, userId, orgId string) *err_code.Status
 }

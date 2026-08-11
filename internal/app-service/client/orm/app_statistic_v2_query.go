@@ -31,10 +31,11 @@ type AppStatisticV2RankItem struct {
 }
 
 type AppStatisticV2Rank struct {
-	ByAgent    []AppStatisticV2RankItem
-	ByWorkflow []AppStatisticV2RankItem
-	ByChatflow []AppStatisticV2RankItem
-	ByRag      []AppStatisticV2RankItem
+	ByAgent           []AppStatisticV2RankItem
+	ByWorkflow        []AppStatisticV2RankItem
+	ByChatflow        []AppStatisticV2RankItem
+	ByRag             []AppStatisticV2RankItem
+	ByDigitalEmployee []AppStatisticV2RankItem
 }
 
 type AppStatisticV2Chart struct {
@@ -464,10 +465,14 @@ func (c *Client) GetAppStatisticV2Chart(ctx context.Context, orgIds, userIds []s
 	if err != nil {
 		return nil, toErrStatus("app_statistic_v2_chart", fmt.Sprintf("rank by rag err: %v", err))
 	}
+	byDigitalEmployee, err := appV2RankByType(ctx, c.db, orgIds, userIds, startDate, endDate, module, apps, viewScope, constant.AppTypeDigitalEmployee, source, limit)
+	if err != nil {
+		return nil, toErrStatus("app_statistic_v2_chart", fmt.Sprintf("rank by digital employee err: %v", err))
+	}
 	return &AppStatisticV2Chart{
 		Trend: *trend,
 		Rank: AppStatisticV2Rank{
-			ByAgent: byAgent, ByWorkflow: byWorkflow, ByChatflow: byChatflow, ByRag: byRag,
+			ByAgent: byAgent, ByWorkflow: byWorkflow, ByChatflow: byChatflow, ByRag: byRag, ByDigitalEmployee: byDigitalEmployee,
 		},
 	}, nil
 }
