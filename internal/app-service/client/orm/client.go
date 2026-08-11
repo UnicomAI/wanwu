@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -48,7 +49,7 @@ type SensitiveWordTableWithWord struct {
 	SensitiveWords []string
 }
 
-func NewClient(db *gorm.DB) (*Client, error) {
+func NewClient(ctx context.Context, db *gorm.DB) (*Client, error) {
 	// 先迁移 Metadata 表（用于记录状态）
 	if err := db.AutoMigrate(&Metadata{}); err != nil {
 		return nil, err
@@ -94,6 +95,12 @@ func NewClient(db *gorm.DB) (*Client, error) {
 			return nil, fmt.Errorf("query metadata failed: %w", err)
 		}
 	}
+
+	// 旧统计表 → V2 迁移（见 migrateStatisticV2FromLegacy）。
+	if err := migrateStatisticV2FromLegacy(ctx, db); err != nil {
+		return nil, fmt.Errorf("failed to migrate statistic v2 from legacy: %w", err)
+	}
+
 	return &Client{
 		db: db,
 	}, nil

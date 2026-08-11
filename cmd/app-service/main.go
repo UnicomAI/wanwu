@@ -81,7 +81,7 @@ func main() {
 		log.Fatalf("init db err: %v", err)
 	}
 
-	c, err := orm.NewClient(db)
+	c, err := orm.NewClient(ctx, db)
 	if err != nil {
 		log.Fatalf("init client err: %v", err)
 	}
