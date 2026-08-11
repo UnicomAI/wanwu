@@ -13,6 +13,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
+	"github.com/UnicomAI/wanwu/pkg/log"
 	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -84,7 +85,8 @@ func getCustomToolSelect4Workflow(ctx *gin.Context, userId, orgId, name string) 
 	for _, item := range resp.List.([]response.CustomToolInfo) {
 		detail, err := GetCustomTool(ctx, userId, orgId, item.CustomToolId)
 		if err != nil {
-			return nil, err
+			log.Errorf("skip custom tool %s(%s) for workflow select: %v", item.Name, item.CustomToolId, err)
+			continue
 		}
 		url, _ := net_url.JoinPath(config.Cfg().Server.ApiBaseUrl, detail.Avatar.Path)
 		list = append(list, response.ToolSelect4Workflow{
