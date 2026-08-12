@@ -335,7 +335,7 @@ func toRoleInfo(role *iam_service.RoleInfo, template *response.RoleTemplate) *re
 		RoleTemplate: template,
 	}
 	if role.IsAdmin {
-		ret.Permissions = toPermissions(true, false, false, nil)
+		ret.Permissions = toPermissions(role.IsAdmin, role.IsSystem, false, nil)
 		return ret
 	}
 	if role.IsGlobal {
