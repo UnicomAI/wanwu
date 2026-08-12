@@ -128,36 +128,6 @@ func Init(r *gin.Engine) {
 	// admin_center.setting
 	mid.Sub("admin_center").NewSub("setting", "平台配置", route.PermNeedCheck, true, true)
 
-	// admin_center.model
-	mid.Sub("admin_center").NewSub("model", "模型管理", route.PermNeedCheck, true, true)
-
-	// admin_center.knowledge
-	mid.Sub("admin_center").NewSub("knowledge", "知识库", route.PermNeedCheck, true, true)
-
-	// admin_center.mcp
-	mid.Sub("admin_center").NewSub("mcp", "mcp服务", route.PermNeedCheck, true, true)
-
-	// admin_center.tool
-	mid.Sub("admin_center").NewSub("tool", "插件工具", route.PermNeedCheck, true, true)
-
-	// admin_center.prompt
-	mid.Sub("admin_center").NewSub("prompt", "提示词", route.PermNeedCheck, true, true)
-
-	// admin_center.skill
-	mid.Sub("admin_center").NewSub("skill", "skills", route.PermNeedCheck, true, true)
-
-	// admin_center.sensitive
-	mid.Sub("admin_center").NewSub("sensitive", "安全护栏", route.PermNeedCheck, true, true)
-
-	// admin_center.assistant
-	mid.Sub("admin_center").NewSub("assistant", "智能体", route.PermNeedCheck, true, true)
-
-	// admin_center.workflow
-	mid.Sub("admin_center").NewSub("workflow", "工作流", route.PermNeedCheck, true, true)
-
-	// admin_center.rag
-	mid.Sub("admin_center").NewSub("rag", "知识问答", route.PermNeedCheck, true, true)
-
 	// open_source
 	mid.NewSub("open_source", "开源仓库", route.PermNeedCheck, true, true, JWTUser, CheckUserPerm)
 
