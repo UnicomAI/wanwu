@@ -28,6 +28,7 @@
 {"code":110004,"key":"bff_auth_code_not_define","langs":{"en":"code currently undefined","zh":"code暂无定义"}}
 {"code":0,"key":"------ org ------","langs":{}}
 {"code":110000,"key":"bff_app_publish_no_permission","langs":{"en":"app not published or no access permission","zh":"应用未发布或无访问权限"}}
+{"code":110000,"key":"bff_rag_conversation_no_permission","langs":{"en":"conversation not found or no access permission","zh":"会话不存在或无访问权限"}}
 {"code":110000,"key":"bff_org_disable","langs":{"en":"the organization has been deactivated","zh":"组织已停用"}}
 {"code":110000,"key":"bff_org_cannot_change","langs":{"en":"cannot modify organization","zh":"无法编辑组织"}}
 {"code":110000,"key":"bff_org_cannot_delete","langs":{"en":"cannot delete organization","zh":"无法删除组织"}}
@@ -455,6 +456,13 @@
 {"code":150009,"key":"rag_list_by_ids_err","langs":{"zh":"id列表为空：%v"}}
 {"code":150010,"key":"rag_duplicate_name","langs":{"zh":"已存在同名文本问答"}}
 {"code":150011,"key":"rag_publish_err","langs":{"zh":"发布失败：%v"}}
+{"code":150012,"key":"rag_conversation_create_err","langs":{"zh":"创建知识问答会话错误：%v"}}
+{"code":150012,"key":"rag_conversation_update_err","langs":{"zh":"更新知识问答会话错误：%v"}}
+{"code":150012,"key":"rag_conversation_delete_err","langs":{"zh":"删除知识问答会话错误：%v"}}
+{"code":150012,"key":"rag_conversation_list_err","langs":{"zh":"获取知识问答会话列表错误：%v"}}
+{"code":150012,"key":"rag_conversation_detail_err","langs":{"zh":"获取知识问答对话详情错误：%v"}}
+{"code":150012,"key":"rag_conversation_clear_err","langs":{"zh":"清除知识问答对话记录错误：%v"}}
+{"code":150013,"key":"rag_conversation_not_exist","langs":{"zh":"知识问答会话不存在"}}
 {"code":160001,"key":"assistant_create","langs":{"zh":"创建智能体错误: %v"}}
 {"code":160001,"key":"assistant_update","langs":{"zh":"更新智能体错误: %v"}}
 {"code":160001,"key":"assistant_delete","langs":{"zh":"删除智能体错误: %v"}}

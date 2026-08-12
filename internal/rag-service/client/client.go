@@ -25,4 +25,13 @@ type IClient interface {
 	FetchPublishRagListByRagIds(ctx context.Context, ragIds []string, userId, orgId string) ([]*model.RagPublish, *err_code.Status)
 	UpdatePublishRag(ctx context.Context, req *model.RagPublish) *err_code.Status
 	FetchPublishRagList(ctx context.Context, ragId, userId, orgId string) ([]*model.RagPublish, *err_code.Status)
+
+	// --- 会话 ---
+	CreateRagConversation(ctx context.Context, conversation *model.RagConversation) *err_code.Status
+	TouchRagConversation(ctx context.Context, conversationID string) *err_code.Status
+	FetchRagConversation(ctx context.Context, conversationID, ragID, userId, orgId string) (*model.RagConversation, *err_code.Status)
+	DeleteRagConversation(ctx context.Context, conversationID, ragID, userId, orgId string) *err_code.Status
+	DeleteRagConversationByRagID(ctx context.Context, ragID string) *err_code.Status
+	ListRagConversation(ctx context.Context, ragID, conversationType, userId, orgId, searchText string, offset, limit int32) ([]*model.RagConversation, int64, *err_code.Status)
+	FetchDraftRagConversation(ctx context.Context, ragID, userId, orgId string) (*model.RagConversation, *err_code.Status)
 }

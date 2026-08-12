@@ -12,52 +12,31 @@ import (
 
 // --- AG-UI 事件名常量（RAG 专属）---
 const (
-	// EventNameRagSearchList CUSTOM 事件名：知识库检索命中列表
-	EventNameRagSearchList = "rag_search_list"
-	// EventNameRagKnowledgeStart CUSTOM 事件名：即将进入知识库检索（前端据此来创建"知识库检索"卡片）
-	EventNameRagKnowledgeStart = "rag_knowledge_start"
-	// EventNameRagQAStart CUSTOM 事件名：即将进入问答库检索（前端据此来创建"问答库检索"卡片）
-	EventNameRagQAStart = "rag_qa_start"
-	// EventNameRagQASearchList CUSTOM 事件名：问答库检索结果列表（与 KB 分开，前端独立渲染 QA 卡片）。
-	// 即使命中为空也会发一次（payload=[]），以便前端把"问答库检索"卡片从 running 切到 done（未命中）。
-	EventNameRagQASearchList = "rag_qa_search_list"
+	EventNameRagSearchList     = "rag_search_list"     // CUSTOM 事件名：知识库检索命中列表
+	EventNameRagKnowledgeStart = "rag_knowledge_start" // CUSTOM 事件名：即将进入知识库检索
+	EventNameRagQAStart        = "rag_qa_start"        // CUSTOM 事件名：即将进入问答库检索
+	EventNameRagQASearchList   = "rag_qa_search_list"  // CUSTOM 事件名：问答库检索结果列表
+	EventNameRagQAEnd          = "rag_qa_end"          // CUSTOM 事件名：问答库检索结束
+	EventNameRagKnowledgeEnd   = "rag_knowledge_end"   // CUSTOM 事件名：知识库检索结束
+	EventNameRagQAError        = "rag_qa_error"        // CUSTOM 事件名：问答库检索报错
 )
 
 // --- rag-service SSE msg_type 常量（对应 rag-service 的 RagMessageType）---
 const (
 	ragMsgTypeQAStart        = "qa_start"
 	ragMsgTypeQAFinish       = "qa_finish"
+	ragMsgTypeQAError        = "qa_error"
 	ragMsgTypeKnowledgeStart = "knowledge_start"
 )
 
 // --- RAG RUN_ERROR 错误码 ---
-// 前端通过该 code 查 vue-i18n 文案。新增码时须同步更新
-// web/src/mixins/sseMethod.js 的 RAG_ERROR_CODE_I18N 映射表。
 const (
 	RagErrCodeSensitiveBlock = "sensitive_block" // 上游 finish=2：敏感词拦截
 	RagErrCodeUpstream       = "upstream_error"  // 上游返回非零业务错误码
 	RagErrCodeUnknown        = "unknown_error"   // 未分类错误（兜底）
 )
 
-// ragStreamConverter 封装 rag-service 原始 SSE → AG-UI 事件的转换器。
-//
-// 拆分原因：原来 convertRagStream2AGUIEvents 把 "goroutine 骨架 / 事件发射 /
-// 首 token 埋点 / chunk 业务分支" 四种关注点揉在 150 行单函数里，嵌 6 层缩进。
-// 拆成 struct 后每个方法 5–15 行，handleChunk 可独立单测。
-//
-// 转换规则：
-//  1. 首条事件：RUN_STARTED
-//  2. msg_type=qa_start 状态帧：CUSTOM(rag_qa_start) — 通知前端懒创建"问答库检索"卡片
-//  3. msg_type=qa_finish：CUSTOM(rag_qa_search_list)（命中/未命中都发，未命中 payload=[]）+ 透传 output
-//     —— 不走通用 searchList 分支，QA 结果与 KB 结果在前端独立渲染
-//  4. msg_type=knowledge_start 状态帧：CUSTOM(rag_knowledge_start) — 通知前端懒创建"知识库检索"卡片
-//  5. 收到第一个非空 searchList（knowledge_content）时：CUSTOM(rag_search_list) — 必须在任何文字事件之前
-//  6. reasoning_content 非空：REASONING_MESSAGE_START / CONTENT（逐 token）
-//  7. output 非空（reasoning 阶段已结束）：REASONING_MESSAGE_END + TEXT_MESSAGE_START / CONTENT
-//  8. finish=1（终止帧）：BaseState.FinishBase —— 自动关闭所有开放消息 + RUN_FINISHED
-//  9. 错误 / finish=2（敏感词拦截）：RUN_ERROR（带 code 字段供前端 i18n 查表）
-//
-// 事件序列化由调用方通过 ag_ui_util.EventsToJSONChannel 完成。
+// ragStreamConverter 把 rag-service 原始 SSE 帧转成 AG-UI 事件
 type ragStreamConverter struct {
 	ctx                   context.Context
 	out                   chan<- aguievents.Event
@@ -69,8 +48,11 @@ type ragStreamConverter struct {
 	hasSentQASearchList   bool
 	hasSentKnowledgeStart bool
 	hasSentQAStart        bool
-	// hasFinalized 标记是否已发出 RUN_FINISHED 或 RUN_ERROR；用于在上游 channel 异常关闭时
-	// 兜底补发 RUN_ERROR，避免前端收到无收尾事件的 SSE 流（症状：前端一直 loading）。
+	hasSentQAError        bool
+	// 两个检索阶段的结束事件是否已发
+	hasSentQAEnd        bool
+	hasSentKnowledgeEnd bool
+	// hasFinalized 标记是否已发出 RUN_FINISHED 或 RUN_ERROR
 	hasFinalized bool
 }
 
@@ -95,6 +77,7 @@ func (c *ragStreamConverter) finalizeError(code, msg string) {
 	if msg == "" {
 		msg = code // 兜底：至少让 Message 非空满足协议 Validate
 	}
+	c.emitPendingPhaseEnds()
 	c.emit(c.state.EnsureRunStarted()...)
 	c.emit(c.state.EndAll()...)
 	c.emit(aguievents.NewRunErrorEvent(msg,
@@ -108,6 +91,7 @@ func (c *ragStreamConverter) finalizeSuccess() {
 	if c.hasFinalized {
 		return
 	}
+	c.emitPendingPhaseEnds()
 	c.emit(c.state.FinishBase()...)
 	c.hasFinalized = true
 }
@@ -152,7 +136,13 @@ func (c *ragStreamConverter) handleChunk(chunk ragChunkData) (done bool) {
 	switch chunk.MsgType {
 	case ragMsgTypeQAStart:
 		c.emitQAStartOnce()
+	case ragMsgTypeQAError:
+		c.emitQAStartOnce()
+		c.emitQAError(chunk.ErrMessage)
+		c.emitQAEndOnce()
 	case ragMsgTypeKnowledgeStart:
+		// 未命中转知识库时上游不发 qa_finish，问答库检索就结束在这一刻
+		c.emitQAEndOnce()
 		c.emitKnowledgeStartOnce()
 	}
 
@@ -165,26 +155,30 @@ func (c *ragStreamConverter) handleChunk(chunk ragChunkData) (done bool) {
 		return false
 	}
 
-	// qa_finish（问答库检索结束）：独立发 QA 搜索列表（未命中 payload=[]，前端据此把卡片从 running 切到 done），
-	// 然后透传 output（命中则 output 是答案，未命中且无 KB 时 output 是"无法回答"兜底文案）。
-	// 不走通用 searchList 分支，避免 QA 结果混入 KB 的 rag_search_list 事件。
-	// 错误路径（chunk.Code 非零 / finish=2）在上方已处理，QA 阶段的错误仍会正常透出。
 	if chunk.MsgType == ragMsgTypeQAFinish {
 		c.emitQASearchListOnce(chunk.Data.SearchList)
+		c.emitQAEndOnce()
 		c.emitOutput(chunk.Data.Output)
 		if chunk.Finish == 1 {
-			c.emit(c.state.FinishBase()...)
+			c.finalizeSuccess()
 			return true
 		}
 		return false
 	}
 
 	c.emitSearchListOnce(chunk.Data.SearchList)
+	if c.hasSentSearchList {
+		c.emitKnowledgeEndOnce() // 首个非空 searchList 即知识库检索结束
+	}
+	if chunk.Data.Output != "" || chunk.Data.ReasoningContent != "" {
+		c.emitQAEndOnce()
+		c.emitKnowledgeEndOnce()
+	}
 	c.emitReasoning(chunk.Data.ReasoningContent)
 	c.emitOutput(chunk.Data.Output)
 
 	if chunk.Finish == 1 {
-		c.emit(c.state.FinishBase()...)
+		c.finalizeSuccess()
 		return true
 	}
 	return false
@@ -201,6 +195,39 @@ func (c *ragStreamConverter) emitKnowledgeStartOnce() {
 	c.hasSentKnowledgeStart = true
 }
 
+// emitQAError 透出问答库检索失败原因
+func (c *ragStreamConverter) emitQAError(message string) {
+	c.emit(aguievents.NewCustomEvent(EventNameRagQAError,
+		aguievents.WithValue(message)))
+	c.hasSentQAError = true
+}
+
+// emitQAEndOnce 问答库检索结束
+func (c *ragStreamConverter) emitQAEndOnce() {
+	if c.hasSentQAEnd || !c.hasSentQAStart {
+		return
+	}
+	c.emit(aguievents.NewCustomEvent(EventNameRagQAEnd,
+		aguievents.WithValue(json.RawMessage("null"))))
+	c.hasSentQAEnd = true
+}
+
+// emitKnowledgeEndOnce 知识库检索结束，正常路径是首个非空 searchList 到达时。
+func (c *ragStreamConverter) emitKnowledgeEndOnce() {
+	if c.hasSentKnowledgeEnd || !c.hasSentKnowledgeStart {
+		return
+	}
+	c.emit(aguievents.NewCustomEvent(EventNameRagKnowledgeEnd,
+		aguievents.WithValue(json.RawMessage("null"))))
+	c.hasSentKnowledgeEnd = true
+}
+
+// emitPendingPhaseEnds 收尾前给已开始却没收到结束帧的检索阶段补发 end
+func (c *ragStreamConverter) emitPendingPhaseEnds() {
+	c.emitQAEndOnce()
+	c.emitKnowledgeEndOnce()
+}
+
 // emitQAStartOnce 在首次收到 qa_start 状态帧时发 CUSTOM 事件，通知前端创建"问答库检索"卡片。
 func (c *ragStreamConverter) emitQAStartOnce() {
 	if c.hasSentQAStart {
@@ -211,21 +238,23 @@ func (c *ragStreamConverter) emitQAStartOnce() {
 	c.hasSentQAStart = true
 }
 
-// emitQASearchListOnce 在首次收到 qa_finish 时发 QA 搜索列表事件。
-// 与 emitSearchListOnce 不同：空数组也发（payload=[]），让前端把"问答库检索"卡片从 running 切到 done（未命中态）。
+// emitQASearchListOnce 在首次收到 qa_finish 时发 QA 搜索列表事件
 func (c *ragStreamConverter) emitQASearchListOnce(raw json.RawMessage) {
 	if c.hasSentQASearchList {
 		return
 	}
-	// 非空时复用 KB 端的富化逻辑（补 user_kb_name）；空/解析失败回落为空数组。
+	if c.hasSentQAError && len(raw) <= 2 {
+		c.hasSentQASearchList = true
+		return
+	}
+	// 非空时补 user_kb_name；空/解析失败回落为空数组
 	payload := enrichSearchListWithUserKbName(raw, c.kbNameMap)
 	c.emit(aguievents.NewCustomEvent(EventNameRagQASearchList,
 		aguievents.WithValue(payload)))
 	c.hasSentQASearchList = true
 }
 
-// emitSearchListOnce 在首次收到非空 searchList 时发 CUSTOM 事件。
-// 用 raw JSON 长度快速过滤空数组（"[]" 只有 2 字节），避免反序列化两次。
+// emitSearchListOnce 在首次收到非空 searchList 时发 CUSTOM 事件
 func (c *ragStreamConverter) emitSearchListOnce(raw json.RawMessage) {
 	if c.hasSentSearchList || len(raw) <= 2 {
 		return

@@ -411,9 +411,9 @@ func DeleteRag(ctx *gin.Context, userId, orgId string, req request.RagReq) error
 	return err
 }
 
-// GetRag userId/orgId 均为空表示不做校验（管理员中心跨用户查看详情）。
-// 草稿按归属过滤；已发布走发布范围校验——GET /appspace/rag 同时挂在 exploration.app 下，
-// 探索页 /explore/rag 用它渲染别人发布的应用，不能按归属拦
+// GetRag userId/orgId 均为空表示不做校验（管理员中心跨用户查看详情）
+// 草稿按用户本人过滤
+// 发布后校验由中间件 AuthAppPublish 负责
 func GetRag(ctx *gin.Context, userId, orgId string, req request.RagReq, needPublished bool) (*response.RagInfo, error) {
 	var identity *rag_service.Identity
 	if !needPublished {
@@ -429,11 +429,6 @@ func GetRag(ctx *gin.Context, userId, orgId string, req request.RagReq, needPubl
 		return nil, err
 	}
 	appInfo, _ := app.GetAppInfo(ctx.Request.Context(), &app_service.GetAppInfoReq{AppId: req.RagID, AppType: constant.AppTypeRag})
-	if needPublished {
-		if err := checkRagPublishScope(userId, orgId, req.RagID, resp.GetIdentity(), appInfo); err != nil {
-			return nil, err
-		}
-	}
 	modelConfig, rerankConfig, qaRerankConfig, err := appModelRerankProto2Model(ctx, resp)
 	if err != nil {
 		log.Errorf("ragId: %v gets config fail: %v", req.RagID, err.Error())
@@ -455,31 +450,6 @@ func GetRag(ctx *gin.Context, userId, orgId string, req request.RagReq, needPubl
 	}
 
 	return ragInfo, nil
-}
-
-// checkRagPublishScope 已发布 rag 的访问校验：本人不受限，其余按发布范围放行。
-// 规则与探索列表的 sqlopt.WithSearchType 保持一致：public 全体可见、organization
-// 限同组织、private 仅本人；没有发布记录（appInfo 为空）则只有本人可见。
-// userId/orgId 均为空表示不校验（管理员中心）
-func checkRagPublishScope(userId, orgId, ragId string, owner *rag_service.Identity, appInfo *app_service.AppInfo) error {
-	// 管理员中心不校验
-	if userId == "" && orgId == "" {
-		return nil
-	}
-	// 本人
-	if owner.GetUserId() == userId && owner.GetOrgId() == orgId {
-		return nil
-	}
-	// 发布范围
-	switch appInfo.GetPublishType() {
-	case constant.AppPublishPublic:
-		return nil
-	case constant.AppPublishOrganization:
-		if appInfo.GetOrgId() == orgId {
-			return nil
-		}
-	}
-	return grpc_util.ErrorStatusWithKey(err_code.Code_RagInfoNotExist, "rag_info_not_exist", ragId)
 }
 
 func appModelRerankProto2Model(ctx *gin.Context, resp *rag_service.RagInfo) (request.AppModelConfig, request.AppModelConfig, request.AppModelConfig, error) {

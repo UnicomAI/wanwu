@@ -413,6 +413,9 @@ type agentEventData struct {
 	Order     int    `json:"order"`
 }
 
+// onForward 智能体侧不依赖"已转发内容"落历史，空实现
+func (s *agentSensitiveService) onForward(string) {}
+
 func (s *agentSensitiveService) serviceType() string {
 	return constant.AppTypeAgent
 }

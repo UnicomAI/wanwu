@@ -48,6 +48,11 @@ func FileUpload() *client {
 	return _minioFileUpload
 }
 
+// PermanentDir 把临时文件转永久存储时用的目标目录：file-not-expire/<uuid前4位>。
+func PermanentDir() string {
+	return DirFileNotExpire + "/" + util.GenUUID()[:4]
+}
+
 func UploadFileCommon(ctx context.Context, reader io.Reader, fileType string, objectSize int64, isPermanent bool) (string, int64, error) {
 	if isPermanent {
 		return UploadFileCommonWithNotExpire(ctx, reader, fileType, objectSize)

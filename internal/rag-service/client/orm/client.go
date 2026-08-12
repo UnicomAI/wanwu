@@ -20,6 +20,7 @@ func NewClient(ctx context.Context, db *gorm.DB) (*Client, error) {
 	if err := db.AutoMigrate(
 		model.RagInfo{},
 		model.RagPublish{},
+		model.RagConversation{},
 	); err != nil {
 		return nil, err
 	}

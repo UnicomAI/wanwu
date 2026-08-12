@@ -112,6 +112,9 @@ func main() {
 	if err := redis.InitAssistant(ctx, config.Cfg().Redis); err != nil {
 		log.Fatalf("init assistant redis err: %v", err)
 	}
+	if err := redis.InitRag(ctx, config.Cfg().Redis); err != nil {
+		log.Fatalf("init rag redis err: %v", err)
+	}
 
 	// init rsa challenge manager (depends on redis)
 	bff_rsautil.InitChallengeManager()

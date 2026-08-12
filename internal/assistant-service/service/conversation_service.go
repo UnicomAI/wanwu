@@ -16,6 +16,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/assistant-service/service/conversation"
 	"github.com/UnicomAI/wanwu/pkg/es"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	"github.com/UnicomAI/wanwu/pkg/minio"
 	"github.com/UnicomAI/wanwu/pkg/redis"
 	sse_util "github.com/UnicomAI/wanwu/pkg/sse-util"
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
@@ -268,7 +269,7 @@ func restoreFileList(agentFileList []model.FileInfo) (retFileList []model.FileIn
 
 // restoreFile 重新存储文件地址，原来是临时的，需要做永久存储
 func restoreFile(fileUrl string) string {
-	newFileUrl, _, _, err := minio_service.CopyFile(context.Background(), fileUrl, "file-not-expire", true)
+	newFileUrl, _, _, err := minio_service.CopyFile(context.Background(), fileUrl, minio.PermanentDir(), true)
 	if err != nil || len(newFileUrl) == 0 {
 		return fileUrl
 	}

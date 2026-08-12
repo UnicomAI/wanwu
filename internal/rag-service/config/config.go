@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/UnicomAI/wanwu/pkg/db"
+	"github.com/UnicomAI/wanwu/pkg/es"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/redis"
 	"github.com/UnicomAI/wanwu/pkg/util"
@@ -16,8 +17,18 @@ type Config struct {
 	Log       LogConfig       `json:"log" mapstructure:"log"`
 	DB        db.Config       `json:"db" mapstructure:"db"`
 	Redis     redis.Config    `json:"redis" mapstructure:"redis"`
+	ES        es.Config       `json:"es" mapstructure:"es"`
 	Knowledge Knowledge       `mapstructure:"knowledge" json:"knowledge" yaml:"knowledge"`
 	RagServer RagServerConfig `mapstructure:"ragServer" json:"ragServer"`
+	Minio     *MinioConfig    `mapstructure:"minio" json:"minio"`
+}
+
+type MinioConfig struct {
+	EndPoint    string `json:"endpoint" mapstructure:"endpoint"`
+	User        string `mapstructure:"user" json:"user"`
+	Password    string `mapstructure:"password" json:"password"`
+	DownloadURL string `json:"download_url" mapstructure:"download_url"`
+	Bucket      string `mapstructure:"bucket" json:"bucket"`
 }
 
 type RagServerConfig struct {
