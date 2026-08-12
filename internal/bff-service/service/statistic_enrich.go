@@ -4,6 +4,7 @@ import (
 	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -101,14 +102,36 @@ func buildStatisticOrgUserNameMaps(ctx *gin.Context, orgIDs []string, userIDs []
 	return orgNameMap, userNameMap, nil
 }
 
-func buildUserBriefInfo(userId, orgId string, userNameMap, orgNameMap map[string]string, userAvatarMap map[string]request.Avatar) response.UserBriefInfo {
-	avatar := request.Avatar{}
+// pickStatisticUserName 用户仍在时返回真实用户名；userId 非空但查不到时返回「用户已被删除」。
+func pickStatisticUserName(ctx *gin.Context, userNameMap map[string]string, userId string) string {
+	if userId == "" {
+		return ""
+	}
+	if name := userNameMap[userId]; name != "" {
+		return name
+	}
+	return gin_util.I18nKey(ctx, "iam_user_deleted")
+}
+
+// pickStatisticAppName 应用仍在时返回名称；appId 非空但查不到时返回「该应用已被删除」。
+func pickStatisticAppName(ctx *gin.Context, appBriefMap map[string]map[string]appBrief, appType, appId string) string {
+	fallback := ""
+	if appId != "" {
+		fallback = gin_util.I18nKey(ctx, "app_statistic_app_deleted")
+	}
+	return pickAppName(appBriefMap, appType, appId, fallback)
+}
+
+func buildUserBriefInfo(ctx *gin.Context, userId, orgId string, userNameMap, orgNameMap map[string]string, userAvatarMap map[string]request.Avatar) response.UserBriefInfo {
+	avatar := cacheUserAvatar("")
 	if userAvatarMap != nil {
-		avatar = userAvatarMap[userId]
+		if a, ok := userAvatarMap[userId]; ok && a.Path != "" {
+			avatar = a
+		}
 	}
 	return response.UserBriefInfo{
 		UserId:     userId,
-		UserName:   userNameMap[userId],
+		UserName:   pickStatisticUserName(ctx, userNameMap, userId),
 		UserAvatar: avatar,
 		OrgId:      orgId,
 		OrgName:    orgNameMap[orgId],

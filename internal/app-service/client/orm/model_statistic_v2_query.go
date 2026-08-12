@@ -50,10 +50,13 @@ type ModelStatisticV2Chart struct {
 }
 
 type ModelStatisticV2RankByModelItem struct {
-	ModelId     string
-	Model       string
-	Provider    string
-	TotalTokens int64
+	ModelId            string
+	Model              string
+	Provider           string
+	ModelType          string
+	ModelCreatorUserId string
+	ModelCreatorOrgId  string
+	TotalTokens        int64
 }
 
 type ModelStatisticV2RankByUserItem struct {
@@ -353,17 +356,24 @@ func statisticV2RankByModel(ctx context.Context, db *gorm.DB, orgIds, userIds []
 	var stats []model.StatisticModel
 	query := sqlopt.SQLOptions(opts...).Apply(db).WithContext(ctx).Model(&model.StatisticModel{})
 	if err := query.
-		Select("model_id, ANY_VALUE(model) as model, ANY_VALUE(provider) as provider, SUM(total_tokens) as total_tokens").
+		Select("model_id, ANY_VALUE(model) as model, ANY_VALUE(provider) as provider, " +
+			"ANY_VALUE(model_type) as model_type, " +
+			"ANY_VALUE(model_creator_user_id) as model_creator_user_id, " +
+			"ANY_VALUE(model_creator_org_id) as model_creator_org_id, " +
+			"SUM(total_tokens) as total_tokens").
 		Group("model_id").Order("SUM(total_tokens) DESC").Limit(int(limit)).Find(&stats).Error; err != nil {
 		return nil, fmt.Errorf("rank by model err: %v", err)
 	}
 	items := make([]ModelStatisticV2RankByModelItem, 0, len(stats))
 	for _, s := range stats {
 		items = append(items, ModelStatisticV2RankByModelItem{
-			ModelId:     s.ModelID,
-			Model:       s.Model,
-			Provider:    s.Provider,
-			TotalTokens: s.TotalTokens,
+			ModelId:            s.ModelID,
+			Model:              s.Model,
+			Provider:           s.Provider,
+			ModelType:          s.ModelType,
+			ModelCreatorUserId: s.ModelCreatorUserID,
+			ModelCreatorOrgId:  s.ModelCreatorOrgID,
+			TotalTokens:        s.TotalTokens,
 		})
 	}
 	return items, nil

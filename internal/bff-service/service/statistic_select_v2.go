@@ -47,10 +47,7 @@ func getModelStatisticV2SelectUsed(ctx *gin.Context, req *request.ModelStatistic
 	items := make([]*response.ModelInfo, 0, len(resp.GetItems()))
 	for _, it := range resp.GetItems() {
 		info := modelMap[it.GetModelId()]
-		displayName := pickModelDisplayName(info, it.GetModel())
-		if displayName == "" {
-			displayName = gin_util.I18nKey(ctx, "app_statistic_model_deleted")
-		}
+		displayName := pickStatisticModelDisplayName(ctx, info, it.GetModelId(), it.GetModel())
 		modelType := info.ModelType
 		if modelType == "" {
 			modelType = it.GetModelType()
@@ -176,9 +173,9 @@ func getAppStatisticV2SelectUsed(ctx *gin.Context, req *request.AppStatisticV2Se
 		}
 		items = append(items, response.MyAppItem{
 			AppId:   it.GetAppId(),
-			Name:    pickAppName(appBriefMap, it.GetAppType(), it.GetAppId(), gin_util.I18nKey(ctx, "app_statistic_app_deleted")),
+			Name:    pickStatisticAppName(ctx, appBriefMap, it.GetAppType(), it.GetAppId()),
 			AppType: it.GetAppType(),
-			Avatar:  pickAppAvatar(appBriefMap, it.GetAppType(), it.GetAppId()),
+			Avatar:  pickAppAvatar(ctx, appBriefMap, it.GetAppType(), it.GetAppId()),
 		})
 	}
 	sort.Slice(items, func(i, j int) bool {
@@ -223,6 +220,7 @@ func getKnowledgeStatisticSelectUsed(ctx *gin.Context, statItems []*app_service.
 			AppId:   id,
 			Name:    gin_util.I18nKey(ctx, "app_statistic_app_deleted"),
 			AppType: constant.BizModuleResourceKnowledge,
+			Avatar:  cacheKnowledgeAvatar(ctx, "", constant.KnowledgeBase),
 		}
 		if k, ok := infoMap[id]; ok {
 			item.Name = k.GetName()

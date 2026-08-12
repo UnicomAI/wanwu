@@ -91,7 +91,7 @@ func buildAPIKeyStatisticV2RankResponse(ctx *gin.Context, scope *statisticScope,
 		byApi = append(byApi, response.APIKeyStatisticV2RankItem{
 			ApiName:       info.name,
 			CallCount:     it.GetCallCount(),
-			UserBriefInfo: buildUserBriefInfo(it.GetUserId(), it.GetOrgId(), userNameMap, orgNameMap, userAvatarMap),
+			UserBriefInfo: buildUserBriefInfo(ctx, it.GetUserId(), it.GetOrgId(), userNameMap, orgNameMap, userAvatarMap),
 		})
 	}
 	return &response.APIKeyStatisticV2Rank{ByApi: byApi}, nil
@@ -379,7 +379,7 @@ func buildAPIKeyStatisticV2ListItems(ctx *gin.Context, scope *statisticScope, pr
 	for _, item := range protoItems {
 		info := getAPIKeyDisplayInfo(ctx, infoMap, item.GetApiKeyId())
 		items = append(items, response.APIKeyStatisticV2ListItem{
-			ApiKeyBriefInfo: buildStatisticV2ApiKeyInfo(info.name, info.key, item.GetApiKeyId(), item.GetMethodPath(),
+			ApiKeyBriefInfo: buildStatisticV2ApiKeyInfo(ctx, info.name, info.key, item.GetApiKeyId(), item.GetMethodPath(),
 				item.GetOrgId(), item.GetUserId(), orgNameMap, userNameMap, nil),
 			APIKeyStatisticV2Metrics: convertAPIKeyV2Metrics(item.GetMetrics()),
 		})
@@ -411,9 +411,9 @@ func buildAPIKeyStatisticV2AppListItems(ctx *gin.Context, scope *statisticScope,
 	for _, item := range protoItems {
 		info := getAPIKeyDisplayInfo(ctx, infoMap, item.GetApiKeyId())
 		items = append(items, response.APIKeyStatisticV2AppListItem{
-			ApiKeyBriefInfo: buildStatisticV2ApiKeyInfo(info.name, info.key, item.GetApiKeyId(), item.GetMethodPath(),
+			ApiKeyBriefInfo: buildStatisticV2ApiKeyInfo(ctx, info.name, info.key, item.GetApiKeyId(), item.GetMethodPath(),
 				item.GetOrgId(), item.GetUserId(), orgNameMap, userNameMap, nil),
-			ModuleBriefInfo: buildStatisticV2AppInfo(item.GetSource(), item.GetModule(), item.GetAppId(), item.GetAppType(),
+			ModuleBriefInfo: buildStatisticV2AppInfo(ctx, item.GetSource(), item.GetModule(), item.GetAppId(), item.GetAppType(),
 				item.GetModuleCreatorUserId(), item.GetModuleCreatorOrgId(), appBriefMap, orgNameMap, userNameMap),
 			APIKeyStatisticV2Metrics: convertAPIKeyV2Metrics(item.GetMetrics()),
 		})
@@ -452,9 +452,9 @@ func buildAPIKeyStatisticV2ModelListItems(ctx *gin.Context, scope *statisticScop
 		info := getAPIKeyDisplayInfo(ctx, infoMap, item.GetApiKeyId())
 		modelInfo := modelMap[item.GetModelId()]
 		items = append(items, response.APIKeyStatisticV2ModelListItem{
-			ApiKeyBriefInfo: buildStatisticV2ApiKeyInfo(info.name, info.key, item.GetApiKeyId(), item.GetMethodPath(),
+			ApiKeyBriefInfo: buildStatisticV2ApiKeyInfo(ctx, info.name, info.key, item.GetApiKeyId(), item.GetMethodPath(),
 				item.GetOrgId(), item.GetUserId(), orgNameMap, userNameMap, nil),
-			ModelBriefInfo: buildModelBriefInfo(item.GetModelId(), item.GetModel(), item.GetProvider(), item.GetModelType(),
+			ModelBriefInfo: buildModelBriefInfo(ctx, item.GetModelId(), item.GetModel(), item.GetProvider(), item.GetModelType(),
 				modelInfo.creatorUserId, modelInfo.creatorOrgId, modelInfo, modelCreatorUserNameMap, modelCreatorOrgNameMap),
 			StatisticV2Metrics: convertAppV2Metrics(item.GetMetrics()),
 		})
@@ -492,9 +492,9 @@ func buildAPIKeyStatisticV2RecordItems(ctx *gin.Context, scope *statisticScope, 
 			FailureReason: item.GetFailureReason(),
 			RequestBody:   item.GetRequestBody(),
 			ResponseBody:  item.GetResponseBody(),
-			ApiKeyBriefInfo: buildStatisticV2ApiKeyInfo(info.name, info.key, item.GetApiKeyId(), item.GetMethodPath(),
+			ApiKeyBriefInfo: buildStatisticV2ApiKeyInfo(ctx, info.name, info.key, item.GetApiKeyId(), item.GetMethodPath(),
 				item.GetOrgId(), item.GetUserId(), orgNameMap, userNameMap, nil),
-			ModuleBriefInfo: buildStatisticV2AppInfo(item.GetSource(), item.GetModule(), item.GetAppId(), item.GetAppType(),
+			ModuleBriefInfo: buildStatisticV2AppInfo(ctx, item.GetSource(), item.GetModule(), item.GetAppId(), item.GetAppType(),
 				item.GetModuleCreatorUserId(), item.GetModuleCreatorOrgId(), appBriefMap, orgNameMap, userNameMap),
 			StatisticV2RecordPerformance: response.StatisticV2RecordPerformance{
 				FirstTokenLatency: item.GetFirstTokenLatency(), // 流式耗时 ms
@@ -505,14 +505,14 @@ func buildAPIKeyStatisticV2RecordItems(ctx *gin.Context, scope *statisticScope, 
 	return items, nil
 }
 
-func buildStatisticV2ApiKeyInfo(apiName, apiKey, apiKeyId, methodPath, orgId, userId string,
+func buildStatisticV2ApiKeyInfo(ctx *gin.Context, apiName, apiKey, apiKeyId, methodPath, orgId, userId string,
 	orgNameMap, userNameMap map[string]string, userAvatarMap map[string]request.Avatar) response.ApiKeyBriefInfo {
 	return response.ApiKeyBriefInfo{
 		ApiName:       apiName,
 		ApiKeyId:      apiKeyId,
 		ApiKey:        apiKey,
 		MethodPath:    methodPath,
-		UserBriefInfo: buildUserBriefInfo(userId, orgId, userNameMap, orgNameMap, userAvatarMap),
+		UserBriefInfo: buildUserBriefInfo(ctx, userId, orgId, userNameMap, orgNameMap, userAvatarMap),
 	}
 }
 
