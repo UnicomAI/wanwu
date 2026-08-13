@@ -2268,6 +2268,7 @@ export default {
     nameHint: '为该渠道起一个便于识别的名称',
     appType: '应用类型',
     agent: '智能体',
+    chatflow: '对话流',
     generalAgent: '通用智能体',
     digitalEmployee: '数字员工',
     bindApp: '关联应用',

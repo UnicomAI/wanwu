@@ -188,6 +188,7 @@ import {
   DING_TALK,
   GENERAL_AGENT,
   DIGITAL_EMPLOYEE,
+  CHATFLOW,
   APP_TYPE_OPTIONS,
 } from '../constants';
 import ScanDialog from './scanDialog.vue';
@@ -201,6 +202,7 @@ export default {
     return {
       GENERAL_AGENT,
       DIGITAL_EMPLOYEE,
+      CHATFLOW,
       dialogVisible: false,
       saveLoading: false,
       form: {
@@ -234,7 +236,8 @@ export default {
         appId: [
           {
             validator: (rule, value, callback) => {
-              if (this.form.appType !== AGENT) return callback();
+              if (this.form.appType !== AGENT && this.form.appType !== CHATFLOW)
+                return callback();
               if (!value) {
                 return callback(
                   new Error(this.$t('common.select.placeholder')),
@@ -291,7 +294,7 @@ export default {
       return this.row.channelType;
     },
     isBindAppType() {
-      return this.form.appType === AGENT;
+      return this.form.appType === AGENT || this.form.appType === CHATFLOW;
     },
     isModelType() {
       return (
@@ -311,7 +314,7 @@ export default {
     },
     fetchInit() {
       const value = this.form.appType;
-      if (value === AGENT) {
+      if (value === AGENT || value === CHATFLOW) {
         this.fetchAppList();
       } else if (value === GENERAL_AGENT || value === DIGITAL_EMPLOYEE) {
         this.fetchModelList();
@@ -342,7 +345,7 @@ export default {
     },
     formatValue() {
       const value = { ...this.form };
-      if (value.appType === AGENT) {
+      if (value.appType === AGENT || value.appType === CHATFLOW) {
         delete value.modelUuid;
         delete value.agentId;
       } else if ([GENERAL_AGENT, DIGITAL_EMPLOYEE].includes(value.appType)) {
@@ -370,7 +373,12 @@ export default {
       this.form.appId = '';
       this.form.modelUuid = '';
       this.form.agentId = '';
-      if (newVal === AGENT) {
+      // 切换应用类型时，先清空所有下拉列表，避免展示旧类型的数据
+      this.appList = [];
+      this.modelList = [];
+      this.sceneList = [];
+      this.employeeList = [];
+      if (newVal === AGENT || newVal === CHATFLOW) {
         this.fetchAppList();
       } else if (newVal === GENERAL_AGENT || newVal === DIGITAL_EMPLOYEE) {
         this.fetchModelList();
