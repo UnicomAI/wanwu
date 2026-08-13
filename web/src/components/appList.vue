@@ -223,7 +223,6 @@
 </template>
 
 <script>
-import { AppType } from '@/utils/commonSet';
 import {
   deleteApp,
   appCancelPublish,
@@ -237,7 +236,14 @@ import {
   transformWorkflow,
 } from '@/api/workflow';
 import { setFavorite } from '@/api/explore';
-import { AGENT, RAG, CHAT, WORKFLOW } from '@/utils/commonSet';
+import {
+  AppType,
+  AGENT,
+  RAG,
+  CHAT,
+  WORKFLOW,
+  DIGITAL_EMPLOYEE,
+} from '@/utils/commonSet';
 import { avatarSrc, resDownloadFile } from '@/utils/util';
 
 export default {
@@ -247,7 +253,6 @@ export default {
     appData: {
       type: Array,
       required: true,
-      default: [],
     },
     isShowTool: false,
     isShowPublished: false,
@@ -274,6 +279,7 @@ export default {
       chat: CHAT,
       agent: AGENT,
       rag: RAG,
+      digitalEmployee: DIGITAL_EMPLOYEE,
       listData: [],
       row: {},
       publishType: 'private',
@@ -605,6 +611,12 @@ export default {
         case CHAT:
           this.jumpToWorkflowRun(row);
           break;
+        case DIGITAL_EMPLOYEE:
+          this.$router.push({
+            path: '/explore/digitalEmployee',
+            query: { employeeId: row.appId },
+          });
+          break;
       }
     },
     commonMethods(method, row) {
@@ -684,6 +696,8 @@ export default {
           return 'blue';
         case CHAT:
           return 'purple';
+        case DIGITAL_EMPLOYEE:
+          return 'green';
       }
     },
     // 转换飘带文字内容（为区分多智能体）

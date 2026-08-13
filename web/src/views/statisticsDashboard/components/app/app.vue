@@ -207,6 +207,14 @@
                   :loading="loading"
                 />
               </template>
+              <template v-else-if="module.id === 'byDigitalEmployee'">
+                <AppRanking
+                  :title="$t('statisticsDashboard.appRankingByDigitalEmployee')"
+                  dimension="app"
+                  :data="rankingData.byDigitalEmployee || []"
+                  :loading="loading"
+                />
+              </template>
             </div>
           </div>
         </div>
@@ -416,6 +424,12 @@ export default {
         {
           id: 'byRag',
           name: this.$t('statisticsDashboard.appRankingByRag'),
+          type: 'ranking',
+          visible: true,
+        },
+        {
+          id: 'byDigitalEmployee',
+          name: this.$t('statisticsDashboard.appRankingByDigitalEmployee'),
           type: 'ranking',
           visible: true,
         },

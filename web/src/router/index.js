@@ -196,6 +196,11 @@ const constantRoutes = [
         meta: { perm: [PERMS.EXPLORE] },
       },
       {
+        path: '/explore/digitalEmployee',
+        component: resolve => require(['@/views/digitalEmployee'], resolve),
+        meta: { perm: [PERMS.EXPLORE] },
+      },
+      {
         path: '/agent/test',
         component: resolve =>
           require(['@/views/agent/components/form'], resolve),

@@ -226,7 +226,7 @@ export const updateGeneralAgentConversationConfig = data => {
  * @param {AbortSignal} signal - 取消信号
  * @param {number} timeout - 超时时间（毫秒），默认 5 分钟
  */
-const streamSSE = async ({
+export const streamSSE = async ({
   url,
   body,
   onMessage,

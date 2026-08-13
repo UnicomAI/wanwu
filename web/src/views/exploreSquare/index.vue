@@ -47,7 +47,13 @@ import SearchInput from '@/components/searchInput.vue';
 import AppList from '@/components/appList.vue';
 import CreateTotalDialog from '@/components/createTotalDialog.vue';
 import { getExplorationList } from '@/api/explore';
-import { AGENT, WORKFLOW, RAG, CHAT } from '@/utils/commonSet';
+import {
+  AGENT,
+  WORKFLOW,
+  RAG,
+  CHAT,
+  DIGITAL_EMPLOYEE,
+} from '@/utils/commonSet';
 
 export default {
   name: 'ExploreSquare',
@@ -92,6 +98,7 @@ export default {
         { name: this.$t('menu.app.rag'), type: RAG },
         { name: this.$t('menu.app.workflow'), type: WORKFLOW },
         { name: this.$t('menu.app.chatflow'), type: CHAT },
+        { name: this.$t('menu.app.digitalEmployee'), type: DIGITAL_EMPLOYEE },
       ],
     };
   },
@@ -106,7 +113,9 @@ export default {
   },
   created() {
     const { type } = this.$route.query || {};
-    this.activeName = [WORKFLOW, RAG, CHAT].includes(type) ? type : AGENT;
+    this.activeName = [WORKFLOW, RAG, CHAT, DIGITAL_EMPLOYEE].includes(type)
+      ? type
+      : AGENT;
     this.getExplorationList(this.activeName, this.active);
   },
   mounted() {},
