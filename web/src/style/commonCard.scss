@@ -112,32 +112,36 @@
     }
 
     .blue {
-      color: #0055CE;
-      background: linear-gradient(135deg, #95C8FF 5%, #CEE6FF 54%, #61ADFF 93%);
+      color: #0055ce;
+      background: linear-gradient(135deg, #95c8ff 5%, #cee6ff 54%, #61adff 93%);
     }
 
     .gold {
-      color: #C89001;
-      background: linear-gradient(135deg, #FFE095 5%, #FFF3D5 54%, #FACE62 93%);
+      color: #c89001;
+      background: linear-gradient(135deg, #ffe095 5%, #fff3d5 54%, #face62 93%);
     }
 
     .cyan {
-      color: #009DBB;
-      background: linear-gradient(135deg, #00D1F6 5%, #C1F6FF 52%, #00D1F6 93%);
+      color: #009dbb;
+      background: linear-gradient(135deg, #00d1f6 5%, #c1f6ff 52%, #00d1f6 93%);
     }
 
     .purple {
-      color: #543AD4;
-      background: linear-gradient(135deg, #977CFF 5%, #CBBEFF 55%, #977CFF 93%);
+      color: #543ad4;
+      background: linear-gradient(135deg, #977cff 5%, #cbbeff 55%, #977cff 93%);
     }
 
+    .green {
+      color: #008f5b;
+      background: linear-gradient(135deg, #59dca6 5%, #c9f5e5 55%, #59dca6 93%);
+    }
 
     .tags {
       .favorite-wrap {
         margin-left: auto;
         display: flex;
         align-items: center;
-        gap:4px;
+        gap: 4px;
       }
 
       .favorite {
@@ -156,7 +160,6 @@
       top: 37px;
       z-index: 10;
     }
-
 
     .logo ::v-deep {
       width: 46px;

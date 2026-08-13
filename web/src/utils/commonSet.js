@@ -12,11 +12,13 @@ export const MCP = 'mcp';
 export const TOOL = 'tool';
 export const PROMPT = 'prompt';
 export const SAFETY = 'safety';
+export const DIGITAL_EMPLOYEE = 'digitalemployee';
 export const AppType = {
   [WORKFLOW]: i18n.t('appSpace.workflow'),
   [CHAT]: i18n.t('appSpace.chat'),
   [RAG]: i18n.t('appSpace.rag'),
   [AGENT]: i18n.t('appSpace.agent'),
+  [DIGITAL_EMPLOYEE]: i18n.t('appSpace.digitalEmployee'),
 };
 export const WorkflowTypeList = [
   { value: WORKFLOW, name: i18n.t('appSpace.workflow') },
@@ -27,6 +29,7 @@ export const TotalTypeObj = {
   [WORKFLOW]: i18n.t('appSpace.workflow'),
   [CHAT]: i18n.t('appSpace.chat'),
   [RAG]: i18n.t('appSpace.rag'),
+  [DIGITAL_EMPLOYEE]: i18n.t('appSpace.digitalEmployee'),
   [WGA]: i18n.t('appSpace.generalAgent'),
   [MODEL]: i18n.t('appSpace.model'),
   [KNOWLEDGE]: i18n.t('appSpace.knowledge'),
@@ -36,12 +39,19 @@ export const TotalTypeObj = {
   [SKILL]: i18n.t('appSpace.skill'),
   [SAFETY]: i18n.t('appSpace.safety'),
 };
-export const ShowSelectAppList = [KNOWLEDGE, RAG, WORKFLOW, AGENT];
+export const ShowSelectAppList = [
+  KNOWLEDGE,
+  RAG,
+  WORKFLOW,
+  AGENT,
+  DIGITAL_EMPLOYEE,
+];
 export const TagColorObj = {
   [AGENT]: 'tag-purple',
   [WORKFLOW]: 'tag-green',
   [RAG]: 'tag-blue',
   [CHAT]: 'tag-orange',
+  [DIGITAL_EMPLOYEE]: 'tag-purple',
   [WGA]: 'tag-purple',
   [MODEL]: 'tag-cyan',
   [KNOWLEDGE]: 'tag-yellow',

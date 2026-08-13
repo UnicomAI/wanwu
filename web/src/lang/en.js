@@ -97,6 +97,7 @@ export default {
       rag: '知识问答',
       workflow: '工作流',
       chatflow: '对话流',
+      digitalEmployee: '数字员工',
       custom: '自定义工具',
       openapi: 'OpenAPI',
       builtIn: '内置工具',
@@ -343,6 +344,7 @@ export default {
     agent: '智能体',
     agentTemp: '智能体模板',
     agentAuto: '自定义智能体',
+    digitalEmployee: '数字员工',
     publishSet: '发布配置',
     public: '公开',
     private: '私密',
@@ -2031,6 +2033,7 @@ export default {
     appRankingByWorkflow: '工作流使用量排行',
     appRankingByChat: '对话流使用量排行',
     appRankingByRag: '知识问答使用量排行',
+    appRankingByDigitalEmployee: '数字员工使用量排行',
   },
   statistics: {
     title: '统计分析',
