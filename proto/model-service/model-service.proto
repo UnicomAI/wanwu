@@ -10,8 +10,8 @@ service ModelService {
 
     // --- model ---
 
-    // 模型导入
-    rpc ImportModel(ModelInfo) returns (google.protobuf.Empty) {}
+    // 模型导入（返回落库后的模型信息，含新生成的 modelId）
+    rpc ImportModel(ModelInfo) returns (ModelInfo) {}
     // 导入模型更新
     rpc UpdateModel(ModelInfo) returns (google.protobuf.Empty) {}
     // 导入模型删除

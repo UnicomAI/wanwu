@@ -44,8 +44,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ModelServiceClient interface {
-	// 模型导入
-	ImportModel(ctx context.Context, in *ModelInfo, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 模型导入（返回落库后的模型信息，含新生成的 modelId）
+	ImportModel(ctx context.Context, in *ModelInfo, opts ...grpc.CallOption) (*ModelInfo, error)
 	// 导入模型更新
 	UpdateModel(ctx context.Context, in *ModelInfo, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 导入模型删除
@@ -90,9 +90,9 @@ func NewModelServiceClient(cc grpc.ClientConnInterface) ModelServiceClient {
 	return &modelServiceClient{cc}
 }
 
-func (c *modelServiceClient) ImportModel(ctx context.Context, in *ModelInfo, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *modelServiceClient) ImportModel(ctx context.Context, in *ModelInfo, opts ...grpc.CallOption) (*ModelInfo, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
+	out := new(ModelInfo)
 	err := c.cc.Invoke(ctx, ModelService_ImportModel_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -274,8 +274,8 @@ func (c *modelServiceClient) GetModelExperienceDialogRecords(ctx context.Context
 // All implementations must embed UnimplementedModelServiceServer
 // for forward compatibility.
 type ModelServiceServer interface {
-	// 模型导入
-	ImportModel(context.Context, *ModelInfo) (*emptypb.Empty, error)
+	// 模型导入（返回落库后的模型信息，含新生成的 modelId）
+	ImportModel(context.Context, *ModelInfo) (*ModelInfo, error)
 	// 导入模型更新
 	UpdateModel(context.Context, *ModelInfo) (*emptypb.Empty, error)
 	// 导入模型删除
@@ -320,7 +320,7 @@ type ModelServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedModelServiceServer struct{}
 
-func (UnimplementedModelServiceServer) ImportModel(context.Context, *ModelInfo) (*emptypb.Empty, error) {
+func (UnimplementedModelServiceServer) ImportModel(context.Context, *ModelInfo) (*ModelInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ImportModel not implemented")
 }
 func (UnimplementedModelServiceServer) UpdateModel(context.Context, *ModelInfo) (*emptypb.Empty, error) {

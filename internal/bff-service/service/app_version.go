@@ -144,7 +144,10 @@ func UpdateAppVersion(ctx *gin.Context, userID, orgID, appType, appID, descripti
 		UserId:      userID,
 		OrgId:       orgID,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func RollbackAppVersion(ctx *gin.Context, userID, orgID, appType, appID, version string) error {

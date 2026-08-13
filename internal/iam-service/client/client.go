@@ -63,6 +63,11 @@ type IClient interface {
 	RemoveOrgUser(ctx context.Context, orgID, userID uint32) *errs.Status
 	BatchRemoveOrgUser(ctx context.Context, orgID uint32, userIDs []uint32) *errs.Status
 
+	// FilterValidUserOrgPairs 过滤出真实存在且有效的 (userID, orgID) 二元组（消息中心受众校验）
+	FilterValidUserOrgPairs(ctx context.Context, pairs []orm.UserOrgPair) ([]orm.UserOrgPair, *errs.Status)
+	// GetUserOrgMembership 查询单用户在指定组织的成员关系（joinedAt + 状态）
+	GetUserOrgMembership(ctx context.Context, userID, orgID uint32) (*orm.UserOrgMembership, *errs.Status)
+
 	// --- role ---
 
 	GetAdminRole(ctx context.Context) (uint32, error)

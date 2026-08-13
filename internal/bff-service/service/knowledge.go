@@ -244,6 +244,11 @@ func UpdateKnowledge(ctx *gin.Context, userId, orgId string, r *request.UpdateKn
 
 // DeleteKnowledge 删除知识库
 func DeleteKnowledge(ctx *gin.Context, userId, orgId string, r *request.DeleteKnowledge) (interface{}, error) {
+	// 删除知识库：全部被共享者收「已被删除」。
+	// ⚠ 删库是异步清权限，必须在发起删除**前**查全量共享名单与库名，事后查不到
+	sharedPairs := listKnowledgeSharedPairs(ctx, userId, orgId, r.KnowledgeId)
+	knowledgeName := resolveKnowledgeName(ctx, userId, orgId, r.KnowledgeId)
+
 	resp, err := knowledgeBase.DeleteKnowledge(ctx.Request.Context(), &knowledgebase_service.DeleteKnowledgeReq{
 		KnowledgeId: r.KnowledgeId,
 		UserId:      userId,
@@ -252,6 +257,10 @@ func DeleteKnowledge(ctx *gin.Context, userId, orgId string, r *request.DeleteKn
 	if err != nil {
 		return nil, err
 	}
+	notifyKnowledgeDelta(ctx, userId, orgId, r.KnowledgeId, knowledgeName,
+		nil, sharedPairs, nil,
+		noticeVariantDeleted, "",
+		fmt.Sprintf("knowledge:%v:deleted", r.KnowledgeId))
 	return resp, nil
 }
 

@@ -203,6 +203,8 @@
 {"code":120011,"key":"iam_org_user_remove_top","langs":{"en":"remove org user but remove from top org","zh":"无法从系统中移除用户"}}
 {"code":120011,"key":"iam_org_user_remove","langs":{"en":"remove org %v user %v err: %v","zh":"移除组织(%v) 用户(%v) 错误: %v"}}
 {"code":120011,"key":"iam_org_user_batch_remove","langs":{"zh":"批量移除组织(%v)用户错误: %v"}}
+{"code":120011,"key":"iam_org_user_pairs_validate","langs":{"zh":"校验用户组织关系错误: %v"}}
+{"code":120011,"key":"iam_org_user_membership_get","langs":{"zh":"获取用户(%v)组织关系错误: %v"}}
 {"code":120011,"key":"iam_orgs_get_by_ids","langs":{"en":"get orgs by org id err: %v","zh":"通过组织id获取组织错误: %v"}}
 {"code":120011,"key":"iam_admin_org_sub_tree","langs":{"en":"get admin org sub tree err: %v","zh":"获取管理组织子树错误: %v"}}
 {"code":120011,"key":"iam_perm_check_user_ok","langs":{"en":"check user %v status  err: %v","zh":"检查用户(%v) 状态错误: %v"}}
@@ -683,6 +685,13 @@
 {"code":320002,"key":"ope_client_record_create","langs":{"zh":"新增客户端记录错误: %V"}}
 {"code":320002,"key":"ope_client_overview_get","langs":{"zh":"获取客户端统计总览错误: %v"}}
 {"code":320002,"key":"ope_client_statistic_get","langs":{"zh":"获取客户端统计错误: %v"}}
+{"code":320003,"key":"notice_create","langs":{"zh":"生成消息错误: %v"}}
+{"code":320003,"key":"notice_unread_count","langs":{"zh":"获取未读消息数错误: %v"}}
+{"code":320003,"key":"notice_list","langs":{"zh":"获取消息列表错误: %v"}}
+{"code":320003,"key":"notice_read","langs":{"zh":"标记消息已读错误: %v"}}
+{"code":320003,"key":"notice_read_all","langs":{"zh":"一键已读错误: %v"}}
+{"code":320003,"key":"notice_delete","langs":{"zh":"删除消息错误: %v"}}
+{"code":320003,"key":"notice_watermark_get","langs":{"zh":"获取已读水位错误: %v"}}
 {"code":0,"key":"ope_statistic_client_table","langs":{"zh":"用户量"}}
 {"code":0,"key":"ope_statistic_cumulative_client_line","langs":{"zh":"累计用户量"}}
 {"code":0,"key":"ope_statistic_active_client_line","langs":{"zh":"活跃用户量"}}

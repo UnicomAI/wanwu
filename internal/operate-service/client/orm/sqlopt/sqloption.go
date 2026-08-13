@@ -67,6 +67,21 @@ func WithKey(key string) SQLOption {
 	})
 }
 
+func WithMessageID(messageID int64) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		return db.Where("message_id = ?", messageID)
+	})
+}
+
+func InMessageIDs(messageIDs []int64) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(messageIDs) > 0 {
+			return db.Where("message_id IN ?", messageIDs)
+		}
+		return db
+	})
+}
+
 func StartDate(date string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if date != "" {
