@@ -1,14 +1,34 @@
 <template>
-  <div class="rag-step-card" :data-rag-step-type="type">
+  <div
+    :class="['rag-step-card', { error: status === 'error' }]"
+    :data-rag-step-type="type"
+  >
     <div
-      :class="['rag-step-header', { streaming: status === 'running' }]"
+      :class="[
+        'rag-step-header',
+        { streaming: status === 'running', error: status === 'error' },
+      ]"
       @click="toggleExpand"
     >
       <div class="header-left">
         <i :class="isExpanded ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
-        <div class="step-icon-wrapper">
-          <i :class="['step-icon', iconClass]"></i>
-        </div>
+        <el-tooltip
+          :disabled="status !== 'error' || !errorMessage"
+          effect="dark"
+          placement="top"
+        >
+          <template #content>
+            <div class="rag-step-error-tooltip">{{ errorMessage }}</div>
+          </template>
+          <div
+            :class="[
+              'step-icon-wrapper',
+              { 'session-error-icon': status === 'error' },
+            ]"
+          >
+            <i :class="['step-icon', iconClass]"></i>
+          </div>
+        </el-tooltip>
         <span class="step-title">{{ title }}</span>
       </div>
       <div class="header-right">
@@ -17,7 +37,7 @@
           <span class="status-dot"></span>
           <span class="status-text">{{ $t('rag.step.running') }}</span>
         </div>
-        <div v-else class="status-badge completed">
+        <div v-else-if="status !== 'error'" class="status-badge completed">
           <span class="status-dot"></span>
           <span class="status-text">{{ $t('rag.step.completed') }}</span>
         </div>
@@ -62,6 +82,10 @@ export default {
       type: String,
       default: '', // 完成态最终耗时，父组件算好（e.g. '2.982s'）
     },
+    errorMessage: {
+      type: String,
+      default: '',
+    },
     defaultExpanded: {
       type: Boolean,
       default: true,
@@ -94,6 +118,7 @@ export default {
     },
     iconClass() {
       // 使用 element-ui 内置 icon，避免新增图片资源
+      if (this.status === 'error') return 'el-icon-warning-outline';
       if (this.type === 'qa_search') return 'el-icon-chat-line-square';
       if (this.type === 'knowledge_search') return 'el-icon-document';
       return 'el-icon-cpu';
@@ -113,6 +138,9 @@ export default {
         if (val === 'running') {
           this.isExpanded = true;
           this.startLiveTimer();
+        } else if (val === 'error') {
+          this.stopLiveTimer();
+          this.isExpanded = false;
         } else {
           // done：停止计时；qa_search / knowledge_search 立即收起，thinking 等 shouldCollapse 信号
           this.stopLiveTimer();
@@ -177,6 +205,24 @@ export default {
     background: linear-gradient(180deg, #f5f7f9 0%, #f3f4f6 100%);
   }
 
+  &.error {
+    border-color: rgba(245, 108, 108, 0.35);
+    background: linear-gradient(
+      135deg,
+      rgba(245, 108, 108, 0.08) 0%,
+      #fafafa 100%
+    );
+    box-shadow: 0 4px 12px rgba(245, 108, 108, 0.1);
+
+    .step-title,
+    .step-icon {
+      color: #d93025;
+    }
+
+    .step-icon {
+      animation: none;
+    }
+  }
   &.streaming {
     border-color: rgba(99, 102, 241, 0.4);
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12);
@@ -213,6 +259,18 @@ export default {
       width: 22px;
       height: 22px;
 
+      &.session-error-icon {
+        border-radius: 50%;
+        background: rgba(245, 108, 108, 0.1);
+        border: 1px solid rgba(245, 108, 108, 0.22);
+        color: #d93025;
+
+        .step-icon {
+          color: inherit;
+          font-size: 13px;
+          font-weight: bold;
+        }
+      }
       .step-icon {
         font-size: 16px;
         color: #6b7280;
@@ -291,6 +349,14 @@ export default {
   }
 }
 
+.rag-step-card.error .rag-step-body {
+  background: linear-gradient(
+    180deg,
+    rgba(245, 108, 108, 0.08) 0%,
+    rgba(245, 108, 108, 0.03) 100%
+  );
+  border-color: rgba(245, 108, 108, 0.22);
+}
 .rag-step-body {
   position: relative;
   margin: 10px 0 4px;

@@ -306,6 +306,7 @@
       </div>
       <div class="drawer-test block">
         <Chat
+          ref="ragDraftChat"
           :editForm="editForm"
           :chatType="'test'"
           :disableClick="disableClick"
@@ -711,6 +712,7 @@ export default {
               // 更新基准数据，避免 watch 误判
               this.initialEditForm = structuredClone(this.editForm);
               this.isSettingFromDetail = false;
+              this.$refs.ragDraftChat?.loadDraftConversationHistory();
             });
           } else {
             this.isSettingFromDetail = false;

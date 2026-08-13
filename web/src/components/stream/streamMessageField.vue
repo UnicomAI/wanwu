@@ -334,13 +334,21 @@
                     :status="step.status"
                     :start-at="step.startAt"
                     :duration="step.duration"
+                    :error-message="step.errorMessage"
+                    :default-expanded="!n.isHistory"
                     :should-collapse="
                       step.type === 'thinking' && hasFinalAnswerStarted(n)
                     "
                   >
                     <template v-if="step.type === 'qa_search'">
                       <div
-                        v-if="n.qaSearchList && n.qaSearchList.length"
+                        v-if="step.status === 'error'"
+                        class="rag-step-error-message"
+                      >
+                        {{ step.errorMessage || $t('sse.error') }}
+                      </div>
+                      <div
+                        v-else-if="n.qaSearchList && n.qaSearchList.length"
                         class="rag-source-list"
                         @click="$refs.imagePreview.handleImageClick($event)"
                       >
@@ -760,7 +768,8 @@
             </div>
             <svg-icon
               v-if="
-                chatType === 'agent' && (n.finish === 1 || sessionStatus !== 0)
+                ['agent', 'rag'].includes(chatType) &&
+                (n.finish === 1 || sessionStatus !== 0)
               "
               icon-class="trash"
               class="del-icon"
@@ -3102,6 +3111,13 @@ img.failed::after {
   &:hover {
     opacity: 0.8;
   }
+}
+.rag-step-error-message {
+  color: #d93025;
+  font-size: 13px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 .rag-source-empty {
   color: #9ca3af;
