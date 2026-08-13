@@ -1,6 +1,7 @@
 package es
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -122,7 +123,7 @@ func (c *client) IndexDocument(ctx context.Context, index string, document inter
 
 	res, err := c.cli.Index(
 		index,
-		strings.NewReader(string(docJSON)),
+		bytes.NewReader(docJSON),
 		c.cli.Index.WithContext(ctx),
 		c.cli.Index.WithRefresh("true"),
 	)

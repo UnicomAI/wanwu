@@ -45,3 +45,45 @@ func RagUploadSuccess(index int, ragUploadFile *RagUploadFile) *RagUploadRespons
 type RagUploadResponse struct {
 	FileList []*RagUploadFile `json:"fileList"`
 }
+
+type RagConversationCreateResp struct {
+	ConversationId string `json:"conversationId"`
+}
+
+type RagConversationInfo struct {
+	ConversationId string `json:"conversationId"`
+	RagId          string `json:"ragId"`
+	Title          string `json:"title"`
+	CreatedAt      string `json:"createdAt"`
+	UpdatedAt      string `json:"updatedAt"`
+}
+
+type RagConversationDetailInfo struct {
+	DetailId             string           `json:"detailId"`
+	RagId                string           `json:"ragId"`
+	ConversationId       string           `json:"conversationId"`
+	Prompt               string           `json:"prompt"`
+	Response             string           `json:"response"`
+	ReasoningContent     *string          `json:"reasoningContent"` // 深度思考过程；null=整轮没思考，""=思考过但无内容
+	SearchList           *string          `json:"searchList"`       // 知识库引用段落；null=没走知识库检索，""=检索无召回
+	QaSearchList         *string          `json:"qaSearchList"`     // 问答库命中结果，与 searchList 互斥；null=没走问答库检索，""=检索未命中
+	ErrMessage           string           `json:"errMessage"`
+	QaErrMessage         string           `json:"qaErrMessage"` // 问答库检索失败原因，非空表示这轮是问答库报错后转的知识库
+	RequestFiles         []RagRequestFile `json:"requestFiles"`
+	CreatedAt            int64            `json:"createdAt"`
+	ReasoningTimeCost    RagTimeCost      `json:"reasoningTimeCost"`    // 深度思考起止
+	SearchListTimeCost   RagTimeCost      `json:"searchListTimeCost"`   // 知识库检索起止
+	QaSearchListTimeCost RagTimeCost      `json:"qaSearchListTimeCost"` // 问答库检索起止
+}
+
+// RagTimeCost 一个阶段的起止时刻(毫秒)，两个字段均为0表示该阶段未发生
+type RagTimeCost struct {
+	Start int64 `json:"start"`
+	End   int64 `json:"end"`
+}
+
+type RagRequestFile struct {
+	FileName string `json:"fileName"`
+	FileSize int64  `json:"fileSize"`
+	FileUrl  string `json:"fileUrl"`
+}

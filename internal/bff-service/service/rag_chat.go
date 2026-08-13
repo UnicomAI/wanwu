@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
-	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	rag_service "github.com/UnicomAI/wanwu/api/proto/rag-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	ag_ui_util "github.com/UnicomAI/wanwu/pkg/ag-ui-util"
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
+	"github.com/UnicomAI/wanwu/pkg/log"
+	"github.com/UnicomAI/wanwu/pkg/redis"
 	sse_util "github.com/UnicomAI/wanwu/pkg/sse-util"
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
@@ -42,12 +43,13 @@ type ragChatStreamParams struct {
 
 // ragChunkData 对应 rag-service / rag-wanwu 返回的每条 SSE JSON 结构
 type ragChunkData struct {
-	Code    int            `json:"code"`
-	Message string         `json:"message"`
-	MsgID   string         `json:"msg_id"`
-	MsgType string         `json:"msg_type"`
-	Data    *ragChunkInner `json:"data"`
-	Finish  int            `json:"finish"`
+	Code       int            `json:"code"`
+	Message    string         `json:"message"`
+	MsgID      string         `json:"msg_id"`
+	MsgType    string         `json:"msg_type"`
+	Data       *ragChunkInner `json:"data"`
+	Finish     int            `json:"finish"`
+	ErrMessage string         `json:"errMessage"`
 }
 
 // ragChunkInner 对应 data 字段，SearchList 保持 json.RawMessage 以便原样透传
@@ -59,7 +61,6 @@ type ragChunkInner struct {
 
 // ChatRagStream RAG 私域问答，流式返回 AG-UI 协议事件
 func ChatRagStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool, source string) (err error) {
-	// startTime 在上游流就绪后打点
 	streamParams := &ragChatStreamParams{ctx: ctx}
 	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	defer func() {
@@ -71,6 +72,8 @@ func ChatRagStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRe
 		}()
 	}()
 
+	// detailId 由 bff 生成：护栏命中时要用它拼 redis 键把替换后的回复递给 rag-service
+	req.DetailID = uuid.NewString()
 	chatCh, kbNameMap, err := CallRagChatStream(ctx, userId, orgId, req, needLatestPublished)
 	if err != nil {
 		streamParams.err = err
@@ -78,15 +81,14 @@ func ChatRagStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRe
 	}
 	streamParams.startTime = time.Now()
 
-	// AG-UI 协议要求 threadId/runId 每次 run 唯一；RAG 当前无持久化会话概念，
-	// 两者均使用 uuid（若后续引入 conversationID，可以把 threadID 换成它）
+	// runId 每轮问答唯一，threadId 取 conversationId
 	runID := uuid.NewString()
-	threadID := uuid.NewString()
+	threadID := req.ConversationID
 
 	eventCh := convertRagStream2AGUIEvents(ctx.Request.Context(), chatCh, threadID, runID, streamParams, kbNameMap)
 	outputCh := ag_ui_util.EventsToJSONChannel(ctx.Request.Context(), eventCh)
 
-	//流式返回结果
+	// 流式返回结果
 	return sse_util.NewSSEWriter(ctx, fmt.Sprintf("[RAG-Stream] %v user %v org %v", req.RagID, userId, orgId), "").
 		WriteStream(outputCh, streamParams, buildRagChatResp(), nil)
 }
@@ -201,8 +203,6 @@ func ChatRagStreamLegacy(ctx *gin.Context, userId, orgId string, req request.Cha
 				statusCode, failureReason, true, streamParams.firstTokenLatency, 0, source, MarshalStatisticBody(req), "", req.Question, "")
 		}()
 	}()
-
-	// openapi 不需要 kbNameMap（旧格式没有 user_kb_name 字段），忽略第二个返回值
 	chatCh, _, err := CallRagChatStream(ctx, userId, orgId, req, needLatestPublished)
 	if err != nil {
 		streamParams.err = err
@@ -242,9 +242,7 @@ func buildRagChatRespLineProcessorLegacy() func(sse_util.SSEWriterClient[string]
 	}
 }
 
-// CallRagChatStream 调用 Rag 对话，返回经敏感词处理后的原始 SSE 字符串 channel。
-// 第二个返回值 kbNameMap 是 rag 内部 kb_name → 用户可见知识库名的映射，
-// 供上层在透传 searchList 前为每个引用段落补填 user_kb_name。
+// CallRagChatStream 调用 Rag 对话，返回经敏感词处理后的原始 SSE 字符串 channel
 func CallRagChatStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool) (<-chan string, map[string]string, error) {
 	ragInfo, kbNameMap, err := buildRagInfo(ctx, userId, orgId, req, needLatestPublished)
 	if err != nil {
@@ -252,9 +250,11 @@ func CallRagChatStream(ctx *gin.Context, userId, orgId string, req request.ChatR
 	}
 	sensitiveConfig := ragInfo.SensitiveConfig
 	//创建敏感词校验器
-	sensitiveChecker := CreateSensitiveChecker(sensitiveConfig.GetTableIds(), &ragSensitiveService{}, sensitiveConfig.Enable)
+	// 同一个实例贯穿检测与回调：护栏命中时要从它身上取已转发给前端的内容
+	sensitiveSrv := &ragSensitiveService{}
+	sensitiveChecker := CreateSensitiveChecker(sensitiveConfig.GetTableIds(), sensitiveSrv, sensitiveConfig.Enable)
 	//任务执行器
-	streamExecutor := ragStream(ctx, userId, orgId, req, needLatestPublished)
+	streamExecutor := ragStream(ctx, userId, orgId, req, needLatestPublished, sensitiveSrv)
 	//带敏感词校验的任务执行
 	retCh, err := sensitiveChecker.Check(ctx, req.Question, streamExecutor)
 	if err != nil {
@@ -264,10 +264,12 @@ func CallRagChatStream(ctx *gin.Context, userId, orgId string, req request.ChatR
 }
 
 // rag流式会话
-func ragStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool) func() (ch <-chan string, callback func(string, string), err error) {
+func ragStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool, sensitiveSrv *ragSensitiveService) func() (ch <-chan string, callback func(string, string), err error) {
 	return func() (ch <-chan string, callback func(string, string), err error) {
-		stream, err := rag.ChatRag(ctx.Request.Context(), buildRagStreamParams(userId, orgId, req, needLatestPublished))
+		streamCtx, cancelStream := context.WithCancel(ctx.Request.Context())
+		stream, err := rag.ChatRag(streamCtx, buildRagStreamParams(userId, orgId, req, needLatestPublished))
 		if err != nil {
+			cancelStream()
 			return nil, nil, err
 		}
 
@@ -280,16 +282,30 @@ func ragStream(ctx *gin.Context, userId, orgId string, req request.ChatRagReques
 			return resp.Content
 		})
 		if err != nil {
+			cancelStream()
 			return nil, nil, err
 		}
-		return rawCh, nil, nil
+		return rawCh, buildRagSensitiveCallback(req, sensitiveSrv, cancelStream), nil
+	}
+}
+
+// buildRagSensitiveCallback 护栏命中时把"用户实际看到的内容"暂存到 redis，再掐断上游流。
+func buildRagSensitiveCallback(req request.ChatRagRequest, sensitiveSrv *ragSensitiveService, cancelStream context.CancelFunc) func(string, string) {
+	return func(_ string, sensitiveMsg string) {
+		defer cancelStream()
+		_, reply := (&ragSensitiveService{}).parseContent(sensitiveMsg)
+		if reply == "" {
+			log.Warnf("[RAG] 安全护栏回复解析不出正文，历史将保留模型原文")
+			return
+		}
+		redis.StoreRagSensitiveConversation(req.ConversationID, req.DetailID, &redis.RagSensitiveReply{
+			Response:  sensitiveSrv.safeOutput.String() + reply,
+			Reasoning: sensitiveSrv.safeReasoning.String(),
+		})
 	}
 }
 
 func buildRagInfo(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool) (*rag_service.RagInfo, map[string]string, error) {
-	// 根据 ragID 获取敏感词配置。
-	// 草稿按归属过滤（只能问自己的）；已发布要服务探索页/公开应用，不能按归属拦，
-	// 改为按发布范围校验（见 checkRagPublishScope）
 	var identity *rag_service.Identity
 	if !needLatestPublished {
 		identity = &rag_service.Identity{UserId: userId, OrgId: orgId}
@@ -301,12 +317,6 @@ func buildRagInfo(ctx *gin.Context, userId, orgId string, req request.ChatRagReq
 	})
 	if err != nil {
 		return nil, nil, err
-	}
-	if needLatestPublished {
-		appInfo, _ := app.GetAppInfo(ctx.Request.Context(), &app_service.GetAppInfoReq{AppId: req.RagID, AppType: constant.AppTypeRag})
-		if err := checkRagPublishScope(userId, orgId, req.RagID, ragInfo.GetIdentity(), appInfo); err != nil {
-			return nil, nil, err
-		}
 	}
 	// 构造 kb_name → user_kb_name 映射（失败时仅退化为空 map，不中断对话）
 	kbNameMap := buildRagKbNameMap(ctx, userId, ragInfo)
@@ -333,8 +343,10 @@ func buildRagStreamParams(userId, orgId string, req request.ChatRagRequest, need
 			UserId: userId,
 			OrgId:  orgId,
 		},
-		Publish:      util.IfElse(needLatestPublished, int32(1), int32(0)),
-		FileInfoList: buildRagFileInfoList(req.FileInfo),
+		Publish:        util.IfElse(needLatestPublished, int32(1), int32(0)),
+		FileInfoList:   buildRagFileInfoList(req.FileInfo),
+		ConversationId: req.ConversationID,
+		DetailId:       req.DetailID,
 	}
 }
 
@@ -459,32 +471,46 @@ func buildRagFileInfoList(fileInfoList []request.ConversionStreamFile) []*rag_se
 
 // --- ragSensitiveService: 实现 sensitiveService 接口，供 ProcessSensitiveWords 使用 ---
 
-type ragSensitiveService struct{}
+type ragSensitiveService struct {
+	// 已转发给前端的正文与思考。rag-service 侧累积的是未过滤的全量，落历史不能用它
+	safeOutput    strings.Builder
+	safeReasoning strings.Builder
+	// 本帧解析结果，由 parseContent 填、onForward 取，避免每帧解两遍 JSON。
+	// 过滤器对每帧固定按 parseContent → (转发时) onForward 的顺序调用，二者串行
+	currOutput    string
+	currReasoning string
+}
 
 func (s *ragSensitiveService) serviceType() string {
 	return constant.AppTypeRag
 }
 
+// parseContent 送检内容包含正文与思考：模型可能把敏感词说在思考过程里
 func (s *ragSensitiveService) parseContent(raw string) (id, content string) {
-	// 1. 清理数据前缀
-	raw = strings.TrimPrefix(raw, "data:")
-	raw = strings.TrimSpace(raw)
+	raw = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(raw), "data:"))
+	s.currOutput, s.currReasoning = "", ""
 	if raw == "" {
 		return "", ""
 	}
-	// 2. 解析 JSON
 	resp := struct {
 		MsgID string `json:"msg_id"`
 		Data  struct {
-			Output string `json:"output"`
+			Output           string `json:"output"`
+			ReasoningContent string `json:"reasoning_content"`
 		} `json:"data"`
 	}{}
-
 	if err := json.Unmarshal([]byte(raw), &resp); err != nil {
 		return "", ""
 	}
-	// 3. 返回 content
-	return resp.MsgID, resp.Data.Output
+	s.currOutput, s.currReasoning = resp.Data.Output, resp.Data.ReasoningContent
+	return resp.MsgID, resp.Data.Output + resp.Data.ReasoningContent
+}
+
+// onForward 累积已经发给前端的内容。命中的那一帧不会被转发，所以这里攒到的
+// 就是用户看到的全部，护栏命中时以它为准落历史。直接复用 parseContent 的结果，不重复解析
+func (s *ragSensitiveService) onForward(string) {
+	s.safeOutput.WriteString(s.currOutput)
+	s.safeReasoning.WriteString(s.currReasoning)
 }
 
 func (s *ragSensitiveService) buildSensitiveResp(id string, content string) []string {

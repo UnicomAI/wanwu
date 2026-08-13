@@ -20,5 +20,7 @@ func registerRag(apiV1 *gin.RouterGroup) {
 	mid.Sub("app.rag").Reg(apiV1, "/appspace/rag", http.MethodGet, v1.GetPublishedRag, "获取已发布rag详情", middleware.AuthAppPublish("ragId", constant.AppTypeRag))
 	mid.Sub("app.rag").Reg(apiV1, "/appspace/rag/copy", http.MethodPost, v1.CopyRag, "复制rag")
 	mid.Sub("app.rag").Reg(apiV1, "/rag/chat/draft", http.MethodPost, v1.ChatDraftRag, "草稿rag流式接口", middleware.TraceWeb(constant.BizModuleAppRag, middleware.WithDraftAppResource(constant.AppTypeRag, "ragId")))
+	mid.Sub("app.rag").Reg(apiV1, "/rag/conversation/draft/detail", http.MethodGet, v1.RagConversationDraftDetailList, "草稿知识问答对话详情历史列表")
+	mid.Sub("app.rag").Reg(apiV1, "/rag/conversation/draft", http.MethodDelete, v1.RagConversationDraftDelete, "草稿知识问答对话删除")
 	mid.Sub("app.rag").Reg(apiV1, "/rag/upload", http.MethodPost, v1.RagUpload, "文档上传直接传到rag")
 }

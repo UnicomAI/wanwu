@@ -13,6 +13,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/rag-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/rag-service/client/orm"
 	message_builder "github.com/UnicomAI/wanwu/internal/rag-service/service/message-builder"
+	rag_conversation "github.com/UnicomAI/wanwu/internal/rag-service/service/rag-conversation"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	http_client "github.com/UnicomAI/wanwu/pkg/http-client"
 	"github.com/UnicomAI/wanwu/pkg/log"
@@ -71,15 +72,58 @@ func (s *Service) ChatRag(req *rag_service.ChatRagReq, stream grpc.ServerStreami
 		return err
 	}
 	knowledgeIds, qaIds, knowledgeIDToName := splitKnowledgeIdList(knowledgeInfoList)
-	//3.构造rag流式问答消息
+	//3.回填历史会话
+	s.prepareHistory(ctx, req, rag)
+	//4.构造rag流式问答消息
 	return message_builder.BuildMessage(ctx, &message_builder.RagContext{
-		MessageId:         util.NewID(),
+		MessageId:         util.IfElse(req.DetailId != "", req.DetailId, util.NewID()),
 		Req:               req,
 		Rag:               rag,
 		KnowledgeIDToName: knowledgeIDToName,
 		KnowledgeIds:      knowledgeIds,
 		QAIds:             qaIds,
 	}, stream)
+}
+
+// prepareHistory 传了 conversationId 时以服务端存的历史为准，覆盖调用方传上来的 history
+func (s *Service) prepareHistory(ctx context.Context, req *rag_service.ChatRagReq, rag *model.RagInfo) {
+	if req.ConversationId == "" {
+		return
+	}
+	userId, orgId := identityOf(req.Identity)
+	conversation, status := s.cli.FetchRagConversation(ctx, req.ConversationId, req.RagId, userId, orgId)
+	if status != nil {
+		log.Errorf("知识问答会话不存在或不属于本知识问答，ragId: %s, conversationId: %s, err: %v", req.RagId, req.ConversationId, status)
+		req.History = nil
+		return
+	}
+	// 刷新 updated_at，使会话列表按最近聊天排序
+	if status := s.cli.TouchRagConversation(ctx, conversation.ConversationID); status != nil {
+		log.Errorf("刷新知识问答会话时间失败，conversationId: %s, err: %v", req.ConversationId, status)
+	}
+
+	req.History = nil
+	maxHistory := rag_conversation.BuildMaxHistory(rag)
+	if maxHistory <= 0 {
+		return
+	}
+	// 按时间倒序取最近 maxHistory 轮，再反转成正序
+	details, _, err := rag_conversation.SearchDetail(ctx, req.ConversationId, userId, orgId, 0, maxHistory, "desc")
+	if err != nil {
+		log.Errorf("查询知识问答历史失败，conversationId: %s, err: %v", req.ConversationId, err)
+		return
+	}
+	for i := len(details) - 1; i >= 0; i-- {
+		detail := details[i]
+		if detail.Prompt == "" {
+			continue
+		}
+		req.History = append(req.History, &rag_service.HistoryItem{
+			Query:       detail.Prompt,
+			Response:    detail.Response,
+			NeedHistory: true,
+		})
+	}
 }
 
 func (s *Service) CreateRag(ctx context.Context, in *rag_service.CreateRagReq) (*rag_service.CreateRagResp, error) {
@@ -307,6 +351,13 @@ func (s *Service) DeleteRag(ctx context.Context, in *rag_service.RagDeleteReq) (
 	errDelete := s.cli.DeleteRag(ctx, in)
 	if errDelete != nil {
 		return nil, errStatus(errs.Code_RagDeleteErr, errDelete)
+	}
+	// 应用已删除，会话与明细的清理失败只记日志，不把已成功的删除报成失败
+	if status := s.cli.DeleteRagConversationByRagID(ctx, in.RagId); status != nil {
+		log.Errorf("删除知识问答会话失败，ragId: %s, err: %v", in.RagId, status)
+	}
+	if err := rag_conversation.DeleteRagDetail(ctx, in.RagId); err != nil {
+		log.Errorf("删除知识问答明细失败，ragId: %s, err: %v", in.RagId, err)
 	}
 	return nil, nil
 }

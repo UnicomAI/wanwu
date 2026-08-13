@@ -16,7 +16,12 @@ func registerExploration(apiV1 *gin.RouterGroup) {
 
 	// rag 相关接口
 	mid.Sub("exploration.app").Reg(apiV1, "/appspace/rag", http.MethodGet, v1.GetPublishedRag, "获取已发布rag详情", middleware.AuthAppPublish("ragId", constant.AppTypeRag))
-	mid.Sub("exploration.app").Reg(apiV1, "/rag/chat", http.MethodPost, v1.ChatPublishedRag, "已发布rag流式接口", append([]gin.HandlerFunc{middleware.TraceWeb(constant.BizModuleAppRag, middleware.WithAppResource(constant.AppTypeRag, "ragId"))}, middleware.AppHistoryRecord("ragId", constant.AppTypeRag))...)
+	mid.Sub("exploration.app").Reg(apiV1, "/rag/chat", http.MethodPost, v1.ChatPublishedRag, "已发布rag流式接口", append([]gin.HandlerFunc{middleware.TraceWeb(constant.BizModuleAppRag, middleware.WithAppResource(constant.AppTypeRag, "ragId"))}, middleware.AuthAppPublish("ragId", constant.AppTypeRag), middleware.AuthRagConversationAccess("ragId", "conversationId"), middleware.AppHistoryRecord("ragId", constant.AppTypeRag))...)
+	mid.Sub("exploration.app").Reg(apiV1, "/rag/conversation", http.MethodPost, v1.RagConversationCreate, "创建知识问答会话", middleware.AuthAppPublish("ragId", constant.AppTypeRag))
+	mid.Sub("exploration.app").Reg(apiV1, "/rag/conversation", http.MethodDelete, v1.RagConversationDelete, "删除知识问答会话", middleware.AuthAppPublish("ragId", constant.AppTypeRag), middleware.AuthRagConversationAccess("ragId", "conversationId"))
+	mid.Sub("exploration.app").Reg(apiV1, "/rag/conversation/clear", http.MethodDelete, v1.RagConversationClear, "清空知识问答会话记录", middleware.AuthAppPublish("ragId", constant.AppTypeRag), middleware.AuthRagConversationAccess("ragId", "conversationId"))
+	mid.Sub("exploration.app").Reg(apiV1, "/rag/conversation/list", http.MethodGet, v1.RagConversationList, "知识问答会话列表", middleware.AuthAppPublish("ragId", constant.AppTypeRag))
+	mid.Sub("exploration.app").Reg(apiV1, "/rag/conversation/detail", http.MethodGet, v1.RagConversationDetailList, "知识问答对话详情历史列表", middleware.AuthAppPublish("ragId", constant.AppTypeRag), middleware.AuthRagConversationAccess("ragId", "conversationId"))
 
 	// agent 相关接口
 	mid.Sub("exploration.app").Reg(apiV1, "/assistant", http.MethodGet, v1.GetPublishedAssistantInfo, "查看已发布智能体详情")

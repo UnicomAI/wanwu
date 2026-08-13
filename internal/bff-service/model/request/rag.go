@@ -31,11 +31,57 @@ type RagConfig struct {
 }
 
 type ChatRagRequest struct {
-	RagID    string                 `json:"ragId" validate:"required"`
-	Question string                 `json:"question" validate:"required"`
-	History  []*History             `json:"history"`
-	FileInfo []ConversionStreamFile `json:"fileInfo" form:"fileInfo"` //上传文档列表
+	RagID          string                 `json:"ragId" validate:"required"`
+	Question       string                 `json:"question" validate:"required"`
+	History        []*History             `json:"history"`
+	FileInfo       []ConversionStreamFile `json:"fileInfo" form:"fileInfo"` //上传文档列表
+	ConversationID string                 `json:"conversationId"`           // 已发布问答必填（须先建会话），草稿不传则服务端 get-or-create
+	DetailID       string                 `json:"-"`                        // 本轮明细id，bff 内部生成后透传给 rag-service，不接受调用方传入
 }
+
+type RagConversationCreateReq struct {
+	RagID  string `json:"ragId" validate:"required"`
+	Prompt string `json:"prompt" validate:"required"` // 首次提问，用作会话标题
+}
+
+func (r *RagConversationCreateReq) Check() error { return nil }
+
+type RagConversationIDReq struct {
+	RagID          string `json:"ragId" form:"ragId" validate:"required"`
+	ConversationID string `json:"conversationId" form:"conversationId" validate:"required"`
+	DetailID       string `json:"detailId" form:"detailId"` // 可选，传值则只删单条对话，不传则清空全部
+}
+
+func (r *RagConversationIDReq) Check() error { return nil }
+
+type RagConversationListReq struct {
+	RagID      string `form:"ragId" validate:"required"`
+	SearchText string `form:"searchText"`
+	PageNo     int    `form:"pageNo" validate:"required"`
+	PageSize   int    `form:"pageSize" validate:"required"`
+}
+
+func (r *RagConversationListReq) Check() error { return nil }
+
+// RagConversationDraftReq 草稿态按ragId 定位会话
+// 分页参数仅查询详情时使用，删除时不传
+type RagConversationDraftReq struct {
+	RagID    string `json:"ragId" form:"ragId" validate:"required"`
+	DetailID string `json:"detailId" form:"detailId"` // 删除时可选，传值则只删单条对话
+	PageNo   int    `json:"pageNo" form:"pageNo"`
+	PageSize int    `json:"pageSize" form:"pageSize"`
+}
+
+func (r *RagConversationDraftReq) Check() error { return nil }
+
+type RagConversationDetailListReq struct {
+	RagID          string `form:"ragId" validate:"required"`
+	ConversationID string `form:"conversationId" validate:"required"`
+	PageNo         int    `form:"pageNo" validate:"required"`
+	PageSize       int    `form:"pageSize" validate:"required"`
+}
+
+func (r *RagConversationDetailListReq) Check() error { return nil }
 
 type RagUploadParams struct {
 	Markdown bool `json:"markdown"` // 是否返回markdown格式url

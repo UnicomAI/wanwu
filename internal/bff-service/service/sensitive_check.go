@@ -25,6 +25,9 @@ type chatService interface {
 	serviceType() string
 	buildSensitiveResp(id, content string) []string
 	parseContent(raw string) (id, content string)
+	// onForward 在一帧真正转发给调用方后回调。命中敏感词的那一帧不会转发，
+	// 所以这里累积到的才是用户实际看到的内容，落历史要以它为准
+	onForward(raw string)
 }
 
 type SensitiveChecker struct {
@@ -188,6 +191,7 @@ func ProcessSensitiveWordsWithCallback(ctx *gin.Context, rawCh <-chan string, ma
 				log.Errorf("[%v] content (%v) check sensitive err: %v", chatSrv.serviceType(), content, err)
 				select {
 				case outputCh <- raw:
+					chatSrv.onForward(raw)
 				default:
 					//	log.Warnf("[%v] outputCh full, dropping message", chatSrv.serviceType())
 				}
@@ -223,6 +227,7 @@ func ProcessSensitiveWordsWithCallback(ctx *gin.Context, rawCh <-chan string, ma
 
 			select {
 			case outputCh <- raw:
+				chatSrv.onForward(raw)
 			default:
 				//log.Warnf("[%v] outputCh full, dropping message", chatSrv.serviceType())
 			}

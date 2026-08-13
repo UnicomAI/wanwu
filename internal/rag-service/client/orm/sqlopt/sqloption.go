@@ -78,6 +78,33 @@ func WithRagID(ragID string) SQLOption {
 	})
 }
 
+func WithConversationID(conversationID string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if conversationID != "" {
+			return db.Where("conversation_id = ?", conversationID)
+		}
+		return db
+	})
+}
+
+func WithConversationType(conversationType string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if conversationType != "" {
+			return db.Where("conversation_type = ?", conversationType)
+		}
+		return db
+	})
+}
+
+func LikeTitle(title string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if title != "" {
+			return db.Where("title LIKE ?", "%"+title+"%")
+		}
+		return db
+	})
+}
+
 func WithVersion(version string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if version != "" {

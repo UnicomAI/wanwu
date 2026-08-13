@@ -23,6 +23,7 @@ func (KnowledgeContentBuilder) Build(ctx context.Context, ragContext *RagContext
 			Error: err,
 		}
 	}
+	ragContext.MarkChatStart()
 	chatChan, err := rag_manage_service.RagStreamChat(ctx, ragContext.Rag.UserID, buildParams)
 	if err != nil {
 		log.Errorf("errk = %s", err.Error())

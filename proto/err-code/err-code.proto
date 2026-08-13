@@ -161,6 +161,8 @@ enum Code {
   RagListByIdsErr = 150009; // id列表为空
   RagDuplicateName = 150010; // 已存在同名文本问答
   RagPublishErr = 150011; // 发布错误
+  RagConversationErr = 150012; // rag会话错误
+  RagConversationNotExist = 150013; // rag会话不存在
 
   // --- assistant-service ---
   // [160000, 169999]

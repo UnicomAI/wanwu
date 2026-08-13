@@ -18920,6 +18920,412 @@ const docTemplate = `{
                 }
             }
         },
+        "/rag/conversation": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "创建知识问答会话",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "创建知识问答会话",
+                "parameters": [
+                    {
+                        "description": "知识问答会话创建参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RagConversationCreateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.RagConversationCreateResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "删除知识问答会话，传 detailId 则只删单条对话",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "删除知识问答会话",
+                "parameters": [
+                    {
+                        "description": "知识问答会话id",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RagConversationIDReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/conversation/clear": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "清空会话下的对话记录但保留会话，传 detailId 则只删单条",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "清空知识问答会话记录",
+                "parameters": [
+                    {
+                        "description": "知识问答会话id",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RagConversationIDReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/conversation/detail": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "知识问答对话详情历史列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "知识问答对话详情历史列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "conversationId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "ragId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.RagConversationDetailInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/conversation/draft": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "不传 detailId 删除整条草稿会话，传了则只删单条对话",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "删除草稿知识问答对话",
+                "parameters": [
+                    {
+                        "description": "知识问答id",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RagConversationDraftReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/conversation/draft/detail": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "草稿态每个知识问答仅一条会话，按 ragId 取",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "草稿知识问答对话详情历史列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "删除时可选，传值则只删单条对话",
+                        "name": "detailId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageNo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "ragId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.RagConversationDetailInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/conversation/list": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "知识问答会话列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "知识问答会话列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "ragId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "searchText",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.RagConversationInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/rag/upload": {
             "post": {
                 "security": [
@@ -25687,6 +26093,10 @@ const docTemplate = `{
                 "ragId"
             ],
             "properties": {
+                "conversationId": {
+                    "description": "已发布问答必填（须先建会话），草稿不传则服务端 get-or-create",
+                    "type": "string"
+                },
                 "fileInfo": {
                     "description": "上传文档列表",
                     "type": "array",
@@ -29140,6 +29550,62 @@ const docTemplate = `{
                             "$ref": "#/definitions/request.VisionConfig"
                         }
                     ]
+                }
+            }
+        },
+        "request.RagConversationCreateReq": {
+            "type": "object",
+            "required": [
+                "prompt",
+                "ragId"
+            ],
+            "properties": {
+                "prompt": {
+                    "description": "首次提问，用作会话标题",
+                    "type": "string"
+                },
+                "ragId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.RagConversationDraftReq": {
+            "type": "object",
+            "required": [
+                "ragId"
+            ],
+            "properties": {
+                "detailId": {
+                    "description": "删除时可选，传值则只删单条对话",
+                    "type": "string"
+                },
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "ragId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.RagConversationIDReq": {
+            "type": "object",
+            "required": [
+                "conversationId",
+                "ragId"
+            ],
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                },
+                "detailId": {
+                    "description": "可选，传值则只删单条对话，不传则清空全部",
+                    "type": "string"
+                },
+                "ragId": {
+                    "type": "string"
                 }
             }
         },
@@ -37285,6 +37751,106 @@ const docTemplate = `{
                 }
             }
         },
+        "response.RagConversationCreateResp": {
+            "type": "object",
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.RagConversationDetailInfo": {
+            "type": "object",
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "integer"
+                },
+                "detailId": {
+                    "type": "string"
+                },
+                "errMessage": {
+                    "type": "string"
+                },
+                "prompt": {
+                    "type": "string"
+                },
+                "qaErrMessage": {
+                    "description": "问答库检索失败原因，非空表示这轮是问答库报错后转的知识库",
+                    "type": "string"
+                },
+                "qaSearchList": {
+                    "description": "问答库命中结果，与 searchList 互斥；null=没走问答库检索，\"\"=检索未命中",
+                    "type": "string"
+                },
+                "qaSearchListTimeCost": {
+                    "description": "问答库检索起止",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.RagTimeCost"
+                        }
+                    ]
+                },
+                "ragId": {
+                    "type": "string"
+                },
+                "reasoningContent": {
+                    "description": "深度思考过程；null=整轮没思考，\"\"=思考过但无内容",
+                    "type": "string"
+                },
+                "reasoningTimeCost": {
+                    "description": "深度思考起止",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.RagTimeCost"
+                        }
+                    ]
+                },
+                "requestFiles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RagRequestFile"
+                    }
+                },
+                "response": {
+                    "type": "string"
+                },
+                "searchList": {
+                    "description": "知识库引用段落；null=没走知识库检索，\"\"=检索无召回",
+                    "type": "string"
+                },
+                "searchListTimeCost": {
+                    "description": "知识库检索起止",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.RagTimeCost"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.RagConversationInfo": {
+            "type": "object",
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "ragId": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "response.RagInfo": {
             "type": "object",
             "required": [
@@ -37394,6 +37960,31 @@ const docTemplate = `{
                             "$ref": "#/definitions/request.VisionConfig"
                         }
                     ]
+                }
+            }
+        },
+        "response.RagRequestFile": {
+            "type": "object",
+            "properties": {
+                "fileName": {
+                    "type": "string"
+                },
+                "fileSize": {
+                    "type": "integer"
+                },
+                "fileUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.RagTimeCost": {
+            "type": "object",
+            "properties": {
+                "end": {
+                    "type": "integer"
+                },
+                "start": {
+                    "type": "integer"
                 }
             }
         },

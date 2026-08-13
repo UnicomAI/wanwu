@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
+	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
@@ -24,6 +25,15 @@ func ChatDraftRag(ctx *gin.Context) {
 	var req request.ChatRagRequest
 	if !gin_util.Bind(ctx, &req) {
 		return
+	}
+	// 草稿态每个知识问答仅维护一条会话，调用方不传则 get-or-create，确保历史能落库
+	if req.ConversationID == "" {
+		conversationId, err := service.GetOrCreateDraftRagConversation(ctx, userId, orgId, req.RagID, req.Question)
+		if err != nil {
+			gin_util.Response(ctx, nil, err)
+			return
+		}
+		req.ConversationID = conversationId
 	}
 	if err := service.ChatRagStream(ctx, userId, orgId, req, false, constant.BizSourceWeb); err != nil {
 		gin_util.Response(ctx, nil, err)
@@ -213,5 +223,188 @@ func CopyRag(ctx *gin.Context) {
 		return
 	}
 	resp, err := service.CopyRag(ctx, userId, orgId, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// RagConversationCreate
+//
+//	@Tags			rag
+//	@Summary		创建知识问答会话
+//	@Description	创建知识问答会话
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.RagConversationCreateReq	true	"知识问答会话创建参数"
+//	@Success		200		{object}	response.Response{data=response.RagConversationCreateResp}
+//	@Router			/rag/conversation [post]
+func RagConversationCreate(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.RagConversationCreateReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.RagConversationCreate(ctx, userId, orgId, req, constant.ConversationTypePublished)
+	gin_util.Response(ctx, resp, err)
+}
+
+// RagConversationDelete
+//
+//	@Tags			rag
+//	@Summary		删除知识问答会话
+//	@Description	删除知识问答会话，传 detailId 则只删单条对话
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.RagConversationIDReq	true	"知识问答会话id"
+//	@Success		200		{object}	response.Response
+//	@Router			/rag/conversation [delete]
+func RagConversationDelete(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.RagConversationIDReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.RagConversationDelete(ctx, userId, orgId, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// RagConversationClear
+//
+//	@Tags			rag
+//	@Summary		清空知识问答会话记录
+//	@Description	清空会话下的对话记录但保留会话，传 detailId 则只删单条
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.RagConversationIDReq	true	"知识问答会话id"
+//	@Success		200		{object}	response.Response
+//	@Router			/rag/conversation/clear [delete]
+func RagConversationClear(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.RagConversationIDReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.RagConversationClear(ctx, userId, orgId, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// RagConversationList
+//
+//	@Tags			rag
+//	@Summary		知识问答会话列表
+//	@Description	知识问答会话列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	query		request.RagConversationListReq	true	"知识问答会话列表参数"
+//	@Success		200		{object}	response.Response{data=response.PageResult{list=[]response.RagConversationInfo}}
+//	@Router			/rag/conversation/list [get]
+func RagConversationList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.RagConversationListReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	resp, err := service.RagConversationList(ctx, userId, orgId, req, constant.ConversationTypePublished)
+	gin_util.Response(ctx, resp, err)
+}
+
+// RagConversationDetailList
+//
+//	@Tags			rag
+//	@Summary		知识问答对话详情历史列表
+//	@Description	知识问答对话详情历史列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	query		request.RagConversationDetailListReq	true	"知识问答对话详情列表参数"
+//	@Success		200		{object}	response.Response{data=response.PageResult{list=[]response.RagConversationDetailInfo}}
+//	@Router			/rag/conversation/detail [get]
+func RagConversationDetailList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.RagConversationDetailListReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	resp, err := service.RagConversationDetailList(ctx, userId, orgId, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// RagConversationDraftDetailList
+//
+//	@Tags			rag
+//	@Summary		草稿知识问答对话详情历史列表
+//	@Description	草稿态每个知识问答仅一条会话，按 ragId 取
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	query		request.RagConversationDraftReq	true	"知识问答id"
+//	@Success		200		{object}	response.Response{data=response.PageResult{list=[]response.RagConversationDetailInfo}}
+//	@Router			/rag/conversation/draft/detail [get]
+func RagConversationDraftDetailList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.RagConversationDraftReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	conversationId, err := service.GetDraftRagConversationId(ctx, userId, orgId, req.RagID)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	// 草稿尚未发起过对话：返回空列表而不是报错
+	if conversationId == "" {
+		gin_util.Response(ctx, response.PageResult{List: []response.RagConversationDetailInfo{}}, nil)
+		return
+	}
+	// 草稿只有一条会话、条数有限，不传分页时给默认值，避免 size=0 查出空列表
+	if req.PageNo <= 0 {
+		req.PageNo = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+	resp, err := service.RagConversationDetailList(ctx, userId, orgId, request.RagConversationDetailListReq{
+		RagID:          req.RagID,
+		ConversationID: conversationId,
+		PageNo:         req.PageNo,
+		PageSize:       req.PageSize,
+	})
+	gin_util.Response(ctx, resp, err)
+}
+
+// RagConversationDraftDelete
+//
+//	@Tags			rag
+//	@Summary		删除草稿知识问答对话
+//	@Description	不传 detailId 删除整条草稿会话，传了则只删单条对话
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.RagConversationDraftReq	true	"知识问答id"
+//	@Success		200		{object}	response.Response
+//	@Router			/rag/conversation/draft [delete]
+func RagConversationDraftDelete(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.RagConversationDraftReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	conversationId, err := service.GetDraftRagConversationId(ctx, userId, orgId, req.RagID)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	// 草稿会话尚未创建：删除请求幂等成功
+	if conversationId == "" {
+		gin_util.Response(ctx, nil, nil)
+		return
+	}
+	resp, err := service.RagConversationDelete(ctx, userId, orgId, request.RagConversationIDReq{
+		RagID:          req.RagID,
+		ConversationID: conversationId,
+		DetailID:       req.DetailID,
+	})
 	gin_util.Response(ctx, resp, err)
 }

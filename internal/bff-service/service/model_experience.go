@@ -487,6 +487,9 @@ func toModelExperienceDialog(dialog *model_service.ModelExperienceDialog) *respo
 // --- modelExperienceSensitiveService: 实现 chatService 接口，供 ProcessSensitiveWords 使用 ---
 type modelExperienceSensitiveService struct{}
 
+// onForward 模型体验不落对话历史，空实现
+func (m *modelExperienceSensitiveService) onForward(string) {}
+
 func (m *modelExperienceSensitiveService) serviceType() string {
 	return "ModelExperience"
 }
