@@ -624,8 +624,11 @@ export default {
       const CUSTOM_EVENT_SEARCH_LIST = 'rag_search_list';
       // 与 EventNameRagKnowledgeStart 对应：后端通知即将进入知识库检索，前端据此来创建"知识库检索"卡片
       const CUSTOM_EVENT_KNOWLEDGE_START = 'rag_knowledge_start';
+      const CUSTOM_EVENT_KNOWLEDGE_END = 'rag_knowledge_end';
       // 与 EventNameRagQAStart 对应：后端通知即将进入问答库检索，前端据此来创建"问答库检索"卡片
       const CUSTOM_EVENT_QA_START = 'rag_qa_start';
+      const CUSTOM_EVENT_QA_END = 'rag_qa_end';
+      const CUSTOM_EVENT_QA_ERROR = 'rag_qa_error';
       // 与 EventNameRagQASearchList 对应：问答库检索结果（含命中/未命中，未命中 value=[]）
       const CUSTOM_EVENT_QA_SEARCH_LIST = 'rag_qa_search_list';
       // RAG RUN_ERROR code → vue-i18n key 映射表
@@ -679,26 +682,6 @@ export default {
         },
       });
 
-      // 按 RAG 配置的 maxHistory 裁剪历史轮次：
-      //   - response 取 oriResponse（StreamProcessor 记录的正文原文，不含思考过程）
-      //   - 只纳入已完成、有 query + oriResponse 的轮次
-      //   - 从 0..lastIndex 取（lastIndex 位为本次 pending，不计入自己的历史）
-      //   - maxHistory=0 视为不携带历史
-      //   - needHistory 固定 true（与后端 rag-service 约定）
-      const maxHistory = Number(this.sseParams.maxHistory) || 0;
-      const sessionHistory = sessionCom.getSessionData().history || [];
-      const completed = sessionHistory
-        .slice(0, lastIndex)
-        .filter(turn => turn && turn.query && turn.oriResponse);
-      const history =
-        maxHistory > 0
-          ? completed.slice(-maxHistory).map(turn => ({
-              query: turn.query,
-              response: turn.oriResponse,
-              needHistory: true,
-            }))
-          : [];
-
       // 贯穿整个流的 searchList（KB 检索结果，由 rag_search_list 更新，初始为空）
       let currentSearchList = [];
       // 问答库检索结果（由 rag_qa_search_list 更新，即使未命中也会下发空数组）
@@ -721,34 +704,39 @@ export default {
        */
       const ragSteps = [];
       const findStep = type => ragSteps.find(s => s.type === type);
-      const createStep = type => {
+      const resolveEventTimestamp = timestamp =>
+        timestamp != null && Number.isFinite(Number(timestamp))
+          ? Number(timestamp)
+          : Date.now();
+      const createStep = (type, startAt) => {
         const step = {
           type,
           status: 'running',
-          startAt: Date.now(),
+          startAt: resolveEventTimestamp(startAt),
           endAt: 0,
           duration: '',
         };
         ragSteps.push(step);
         return step;
       };
-      const closeStep = step => {
-        if (!step || step.status !== 'running') return;
-        step.status = 'done';
-        step.endAt = Date.now();
+      const closeStep = (step, endAt) => {
+        if (!step || !['running', 'error'].includes(step.status)) return;
+        const isError = step.status === 'error';
+        step.status = isError ? 'error' : 'done';
+        step.endAt = resolveEventTimestamp(endAt);
         step.duration = `${((step.endAt - step.startAt) / 1000).toFixed(3)}s`;
       };
       // 未命中兜底：首个 CONTENT 到达时关闭所有检索卡片（qa_search / knowledge_search）
-      const ensureSearchStepClosed = () => {
+      const ensureSearchStepClosed = endAt => {
         ['qa_search', 'knowledge_search'].forEach(t => {
           const s = findStep(t);
-          if (s && s.status === 'running') closeStep(s);
+          if (s && s.status === 'running') closeStep(s, endAt);
         });
       };
       // 错误/结束兜底：任何还 running 的步骤都关闭
-      const closeAllRunning = () => {
+      const closeAllRunning = endAt => {
         ragSteps.forEach(s => {
-          if (s.status === 'running') closeStep(s);
+          if (['running', 'error'].includes(s.status)) closeStep(s, endAt);
         });
       };
       // knowledge_search 步骤改为懒创建：等后端 CUSTOM(rag_knowledge_start) 明确告知
@@ -817,11 +805,9 @@ export default {
         }
       };
 
-      // maxHistory 只用于前端裁剪 history，不是后端请求字段，需剔除。
-      const { maxHistory: _maxHistory, ...ragSseParams } = this.sseParams;
       this.eventSource = this.fetchEventSource(
         this.rag_sseApi,
-        { ...ragSseParams, history },
+        this.sseParams,
         {
           onopen: async e => {
             if (e.status !== 200) {
@@ -865,7 +851,7 @@ export default {
 
               case 'RUN_FINISHED': {
                 // 兜底：关闭所有还在 running 的过程卡片
-                closeAllRunning();
+                closeAllRunning(data.timestamp);
 
                 // Fast-forward：后端已声明运行结束，把两个打字机队列里的剩余内容
                 // 一次性灌进 processor，并停止动画。
@@ -965,7 +951,7 @@ export default {
 
               case 'RUN_ERROR': {
                 this.setStoreSessionStatus(-1);
-                closeAllRunning();
+                closeAllRunning(data.timestamp);
                 // response: 面向用户的短文案（走 i18n 错误码表），作为错误卡片标题；
                 // errorDetail: 后端 data.message 原文（含上游具体原因），作为副标题展示，
                 //   便于用户/排查人员看到真实原因，而不只是"未知错误"四个字。
@@ -983,11 +969,12 @@ export default {
                 break;
               }
 
-              // ── CUSTOM 事件（rag_qa_start / rag_qa_search_list / rag_knowledge_start / rag_search_list）──
+              // ── CUSTOM 事件（rag_qa_start/end、rag_knowledge_start/end 及检索结果）──
               case 'CUSTOM':
                 if (data.name === CUSTOM_EVENT_QA_START) {
                   // 后端通知即将进入问答库检索：懒创建卡片
-                  if (!findStep('qa_search')) createStep('qa_search');
+                  if (!findStep('qa_search'))
+                    createStep('qa_search', data.timestamp);
                   sessionCom.replaceLastData(lastIndex, {
                     ...commonData,
                     responseLoading: true,
@@ -1012,7 +999,7 @@ export default {
                       snippet: raw ? md.render(raw) : '',
                     };
                   });
-                  closeStep(findStep('qa_search'));
+                  // 检索结果只更新内容；阶段结束时间由 rag_qa_end 提供。
                   sessionCom.replaceLastData(lastIndex, {
                     ...commonData,
                     responseLoading: true,
@@ -1022,10 +1009,51 @@ export default {
                     ragSteps: [...ragSteps],
                   });
                   this.$nextTick(() => sessionCom.scrollBottom());
+                } else if (data.name === CUSTOM_EVENT_QA_ERROR) {
+                  // 问答库错误不结束步骤；最终耗时仍以 rag_qa_end 的 timestamp 为准。
+                  const qaStep =
+                    findStep('qa_search') ||
+                    createStep('qa_search', data.timestamp);
+                  qaStep.status = 'error';
+                  qaStep.errorMessage =
+                    typeof data.value === 'string'
+                      ? data.value
+                      : data.value == null
+                        ? ''
+                        : JSON.stringify(data.value);
+                  sessionCom.replaceLastData(lastIndex, {
+                    ...commonData,
+                    responseLoading: true,
+                    finish: 0,
+                    searchList: currentSearchList,
+                    qaSearchList: currentQASearchList,
+                    ragSteps: [...ragSteps],
+                  });
+                  this.$nextTick(() => sessionCom.scrollBottom());
+                } else if (data.name === CUSTOM_EVENT_QA_END) {
+                  closeStep(findStep('qa_search'), data.timestamp);
+                  sessionCom.replaceLastData(lastIndex, {
+                    ...commonData,
+                    responseLoading: true,
+                    finish: 0,
+                    searchList: currentSearchList,
+                    qaSearchList: currentQASearchList,
+                    ragSteps: [...ragSteps],
+                  });
                 } else if (data.name === CUSTOM_EVENT_KNOWLEDGE_START) {
                   // 后端通知即将进入知识库检索：懒创建卡片（幂等，重复帧不重复建）
                   if (!findStep('knowledge_search'))
-                    createStep('knowledge_search');
+                    createStep('knowledge_search', data.timestamp);
+                  sessionCom.replaceLastData(lastIndex, {
+                    ...commonData,
+                    responseLoading: true,
+                    finish: 0,
+                    searchList: currentSearchList,
+                    qaSearchList: currentQASearchList,
+                    ragSteps: [...ragSteps],
+                  });
+                } else if (data.name === CUSTOM_EVENT_KNOWLEDGE_END) {
+                  closeStep(findStep('knowledge_search'), data.timestamp);
                   sessionCom.replaceLastData(lastIndex, {
                     ...commonData,
                     responseLoading: true,
@@ -1040,7 +1068,7 @@ export default {
                     snippet: n.snippet ? md.render(n.snippet) : '',
                   }));
                   // 命中结果到达：关闭 knowledge_search 步骤（若存在）
-                  closeStep(findStep('knowledge_search'));
+                  // 检索结果只更新内容；阶段结束时间由 rag_knowledge_end 提供。
                   // 在流式文字开始之前先把引用来源渲染到 UI
                   sessionCom.replaceLastData(lastIndex, {
                     ...commonData,
@@ -1064,7 +1092,7 @@ export default {
                 const reasoning = data.delta || '';
                 if (!reasoning) break;
                 // 未命中兜底：没有 CUSTOM 也要关闭检索卡片
-                ensureSearchStepClosed();
+                ensureSearchStepClosed(data.timestamp);
                 // 首个 reasoning_content 到达才创建思考卡片（有些模型无推理过程）
                 if (!findStep('thinking')) createStep('thinking');
                 this._dispatchReasoningOrOutput({
@@ -1098,15 +1126,21 @@ export default {
 
               // ── 正文内容（text output）───────────────────────────
               case 'TEXT_MESSAGE_START':
-                // 正文流即将开始，无需特殊处理
+                // RAG 的 messageId 即持久化问答 detailId，统一写入 detailId 供单条删除使用。
+                if (data.messageId) {
+                  commonData.detailId = data.messageId;
+                }
                 break;
 
               case 'TEXT_MESSAGE_CONTENT': {
+                if (data.messageId) {
+                  commonData.detailId = data.messageId;
+                }
                 streamHasContent = true;
                 const output = data.delta || '';
                 if (!output) break;
                 // 未命中兜底：没有 CUSTOM、也没有 reasoning，正文到达也要关闭检索卡片
-                ensureSearchStepClosed();
+                ensureSearchStepClosed(data.timestamp);
                 // 非推理模型不会发 REASONING_MESSAGE_END；正文到达即视为思考阶段结束
                 closeStep(findStep('thinking'));
                 this._dispatchReasoningOrOutput({
@@ -1121,6 +1155,9 @@ export default {
               }
 
               case 'TEXT_MESSAGE_END':
+                if (data.messageId) {
+                  commonData.detailId = data.messageId;
+                }
                 // 发送 finish=1 信号给 Print；Print 动画结束时调用 doRender，
                 // doRender 在 worldObj.isEnd && worldObj.finish===1 时调用 setStoreSessionStatus(-1)
                 this._dispatchReasoningOrOutput({
