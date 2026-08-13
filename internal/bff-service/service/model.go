@@ -65,10 +65,13 @@ func ImportModel(ctx *gin.Context, userId, orgId string, req *request.ImportOrUp
 	if err = ValidateModel(ctx, clientReq); err != nil {
 		return grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("An error occurred during model import validation: Invalid model: %v, err : %v", clientReq.Model, err))
 	}
-	_, err = model.ImportModel(ctx.Request.Context(), clientReq)
+	imported, err := model.ImportModel(ctx.Request.Context(), clientReq)
 	if err != nil {
 		return err
 	}
+	// 消息中心（best-effort）：按选定可见范围通知（模型导入）；私有范围受众为空集，消息域会自动跳过
+	notifyModelScopeChange(ctx, userId, orgId, imported.GetModelId(), req.DisplayName,
+		noticeScopeNone, normalizeModelScope(req.ScopeType), "imported")
 	return nil
 }
 
@@ -102,6 +105,9 @@ func UpdateModel(ctx *gin.Context, userId, orgId string, req *request.ImportOrUp
 }
 
 func DeleteModel(ctx *gin.Context, userId, orgId string, req *request.DeleteModelRequest) error {
+	// 消息中心：删除是硬删，必须在删除前把 scope 与名称快照下来
+	snapshot := fetchModelSnapshot(ctx, userId, orgId, req.ModelId)
+
 	_, err := model.DeleteModel(ctx.Request.Context(), &model_service.DeleteModelReq{
 		ModelId: req.ModelId,
 		UserId:  userId,
@@ -109,6 +115,11 @@ func DeleteModel(ctx *gin.Context, userId, orgId string, req *request.DeleteMode
 	})
 	if err != nil {
 		return err
+	}
+	// 原可见者收「下线」（模型删除，best-effort）
+	if snapshot != nil {
+		notifyModelScopeChange(ctx, userId, orgId, req.ModelId, snapshot.DisplayName,
+			normalizeModelScope(snapshot.ScopeType), noticeScopeNone, "deleted")
 	}
 	return nil
 }
@@ -154,6 +165,9 @@ func ListModels(ctx *gin.Context, userId, orgId string, req *request.ListModelsR
 }
 
 func ChangeModelStatus(ctx *gin.Context, userId, orgId string, req *request.ModelStatusRequest) error {
+	// 消息中心：状态改完旧值就没了，必须先查
+	snapshot := fetchModelSnapshot(ctx, userId, orgId, req.ModelId)
+
 	_, err := model.ChangeModelStatus(ctx.Request.Context(), &model_service.ModelStatusReq{
 		ModelId:  req.ModelId,
 		IsActive: req.IsActive,
@@ -162,6 +176,16 @@ func ChangeModelStatus(ctx *gin.Context, userId, orgId string, req *request.Mode
 	})
 	if err != nil {
 		return err
+	}
+	// 模型停用/启用：模型选择器强制 is_active=true，停用后所有可见者在选择器中消失，对使用者近似下线。
+	// 故停用等效 (scope→"")、启用等效 (""→scope)，代入同一差分公式。
+	if snapshot != nil && snapshot.IsActive != req.IsActive {
+		scope := normalizeModelScope(snapshot.ScopeType)
+		oldScope, newScope, suffix := scope, noticeScopeNone, "disabled"
+		if req.IsActive {
+			oldScope, newScope, suffix = noticeScopeNone, scope, "enabled"
+		}
+		notifyModelScopeChange(ctx, userId, orgId, req.ModelId, snapshot.DisplayName, oldScope, newScope, suffix)
 	}
 	return nil
 }

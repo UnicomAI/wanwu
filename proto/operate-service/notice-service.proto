@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+package operate_service;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/UnicomAI/wanwu/api/proto/operate-service";
+
+// 消息中心（消息域独立 service，与 OperateService 并列双注册）
+service NoticeService {
+    // --- 写入类（按业务场景拆分） ---
+
+    // 应用：发布版本/删除（发布版本 → 范围收「已上线」；删除 → 范围收「已下线」；
+    rpc CreateAppNotice(CreateAppNoticeReq) returns (CreateNoticeResp) {}
+    // 模型：导入/删除/停用启用（导入/启用 → 范围收「上线」；删除/停用 → 范围收「下线」）
+    rpc CreateModelNotice(CreateModelNoticeReq) returns (CreateNoticeResp) {}
+    // 知识库：共享/取消共享/改权限/删除（名单增减维度）
+    rpc CreateKnowledgeNotice(CreateKnowledgeNoticeReq) returns (CreateNoticeResp) {}
+
+    // --- 查询/操作类（对外 5 个 HTTP 接口的底层实现；全部含 userId+orgId 双维度） ---
+
+    // 未读总数 + 分类角标
+    rpc GetUnreadCount(GetUnreadCountReq) returns (GetUnreadCountResp) {}
+    // 已读+未读混排，每条带 isRead（isRead = s.IsRead OR (CreatedAt,ID)≤水位）
+    rpc ListNotice(ListNoticeReq) returns (ListNoticeResp) {}
+    // 单条已读：upsert user_status IsRead=TRUE（按 messageId+uid+oid）
+    rpc ReadNotice(ReadNoticeReq) returns (google.protobuf.Empty) {}
+    // 一键已读：快照边界 + read_watermark 单行成对字典序单调更新（全部未读，不分类别）
+    rpc ReadAllNotice(ReadAllNoticeReq) returns (google.protobuf.Empty) {}
+    // 软删：upsert user_status IsDeleted=TRUE（无行则 INSERT）
+    rpc DeleteNotice(DeleteNoticeReq) returns (DeleteNoticeResp) {}
+}
+
+// --- 公共 ---
+
+message NoticeUserOrgPair {
+    string userId = 1;
+    string orgId = 2;
+}
+
+// 跳转动作：content 中 $${}$$ 超链按顺序对应 actions[i]（正文模型统一为 content，前端解析）
+message NoticeAction {
+    string msgType = 1;      // agent/workflow/chatflow/rag/skill/knowledge/model/about/custom_url
+    string actionType = 2;   // link 当前页跳 / blank 新页面跳
+    string actionParams = 3; // 跳转参数 JSON，如 {"appId":"X","appType":"agent"}
+}
+
+// --- 写入类 ---
+
+message CreateAppNoticeReq {
+    string appId = 1;
+    string appType = 2;      // agent/workflow/chatflow/rag/skill（SubjectType 取此值）
+    string appName = 3;      // bff 预查好传入
+    string orgId = 4;        // 应用归属组织
+    string oldScope = 5;     // public/organization/private/""；删除时取旧范围（下线受众）
+    string newScope = 6;     // 受众 = 整个新范围；"" = 删除应用 → oldScope 全体收「已下线」；private → 空受众不发
+    string version = 7;      // 空 = 只改范围不发版本 → 整事件不发；非空 = 发新版本 → 整个新范围收「已上线」
+    string senderId = 8;     // 受众默认剔除操作者本人（二元组级）
+    string senderOrgId = 9;  // 操作者所在组织上下文
+    string eventId = 10;     // 幂等键：源事件唯一标识，落 (EventId,EventVariant) 唯一约束
+}
+
+message CreateModelNoticeReq {
+    string modelId = 1;
+    string modelName = 2;    // bff 预查好传入
+    string orgId = 3;        // 模型归属组织
+    string oldScope = 4;     // 1私有/2公开/3组织（归一化后）；删除/停用时取旧范围（下线受众）
+    string newScope = 5;     // 导入/启用传可见范围（上线受众）；删除/停用传 ""（旧范围全体收下线）
+    string senderId = 6;     // 受众默认剔除操作者本人（二元组级）
+    string senderOrgId = 7;  // 操作者所在组织上下文
+    string eventId = 8;      // 幂等键
+}
+
+message CreateKnowledgeNoticeReq {
+    string knowledgeId = 1;
+    string knowledgeName = 2;
+    repeated NoticeUserOrgPair gained = 3;   // → shared 文案
+    repeated NoticeUserOrgPair lost = 4;     // → unshared / deleted
+    repeated NoticeUserOrgPair changed = 5;  // → perm_changed
+    string senderId = 6;
+    string senderOrgId = 7;
+    string changedDetail = 8;  // 变更后的权限名/状态描述，用于 perm_changed 文案
+    string variant = 9;        // 文案变体（一段式）：shared/unshared/deleted/perm_changed；仅 lost 维度用 deleted 区分删除
+    string eventId = 10;       // 幂等键
+    repeated NoticeAction actions = 11; // 跳转集合，与 content 中 $${}$$ 顺序对应；无跳转则空
+}
+
+// 本体行数 + 名单行数（仅特定用户消息非0；按组织发送的 org 行不计入）
+message CreateNoticeResp {
+    int32 messagesCreated = 1;
+    int32 audienceRowsCreated = 2;
+    int32 ignoredCount = 3; // 名单入口清洗被忽略的二元组数（打点用）
+}
+
+// --- 查询/操作类 ---
+
+message GetUnreadCountReq {
+    string userId = 1;
+    string orgId = 2;
+}
+
+message GetUnreadCountResp {
+    int32 total = 1;                   // 当前组织上下文未读总数
+    map<int32, int32> byCategory = 2;  // key 为 category（1 公告 / 2 产品服务 / 3 工单）
+}
+
+message ListNoticeReq {
+    string userId = 1;
+    string orgId = 2;
+    int32 category = 3;   // 0 全部 / 1 公告 / 2 产品服务 / 3 工单
+    bool onlyUnread = 4;
+    string keyword = 5;   // 标题/正文模糊；服务端转义 % _ \
+    int32 pageNo = 6;
+    int32 pageSize = 7;
+}
+
+message NoticeItem {
+    string messageId = 1;
+    string title = 2;
+    int32 category = 3;
+    string content = 4; // $${超链文字}$$ 占位符按序对应 actions[i]
+    repeated NoticeAction actions = 5;
+    int64 receivedAt = 6; // 毫秒时间戳
+    bool isRead = 7;
+}
+
+message ListNoticeResp {
+    int64 total = 1;
+    repeated NoticeItem list = 2;
+}
+
+message ReadNoticeReq {
+    string userId = 1;
+    string orgId = 2;
+    string messageId = 3;
+}
+
+message ReadAllNoticeReq {
+    string userId = 1;
+    string orgId = 2;
+}
+
+message DeleteNoticeReq {
+    string userId = 1;
+    string orgId = 2;
+    repeated string messageIds = 3; // 数量上限 100
+}
+
+message DeleteNoticeResp {
+    int32 affectedCount = 1; // 实际删除条数（跳过的不可见/不存在 ID 不计入）
+}

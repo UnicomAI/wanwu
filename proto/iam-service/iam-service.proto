@@ -56,6 +56,10 @@ service IAMService {
   rpc GetOrgByOrgIDs(GetOrgByOrgIDsReq) returns (GetOrgByOrgIDsResp) {}
   // 通过多个orgId获取用户列表（去重、不过滤禁用状态）
   rpc GetUsersByOrgIDs(GetUsersByOrgIDsReq) returns (GetUsersByOrgIDsResp) {}
+  // 校验用户-组织二元组有效性（去重 + 过滤禁用账号/禁用成员 + 数量上限）
+  rpc ValidateUserOrgPairs(ValidateUserOrgPairsReq) returns (ValidateUserOrgPairsResp) {}
+  // 查询单用户在指定组织的成员关系（加入时间 + 状态）
+  rpc GetUserOrgMembership(GetUserOrgMembershipReq) returns (GetUserOrgMembershipResp) {}
   // 获取子组织信息
   rpc GetOrgAndSubOrgSelectByUser(GetOrgAndSubOrgSelectByUserReq) returns (GetOrgAndSubOrgSelectByUserResp) {}
   // 获取组织树
@@ -378,6 +382,33 @@ message GetUsersByOrgIDsReq {
 
 message GetUsersByOrgIDsResp {
   repeated IDNameWithAvatar users = 1; // 去重后的用户列表
+}
+
+message UserOrgPair {
+  string userId = 1;
+  string orgId = 2;
+}
+
+message ValidateUserOrgPairsReq {
+  repeated UserOrgPair pairs = 1;
+  int32 limit = 2; // 0=不限；超限时返回 exceeded=true 且 pairs 为空
+}
+
+message ValidateUserOrgPairsResp {
+  repeated UserOrgPair pairs = 1; // 去重、过滤后的合法二元组
+  bool exceeded = 2;              // 超过 limit
+  int32 filteredCount = 3;        // 被过滤掉的数量（打点用）
+}
+
+message GetUserOrgMembershipReq {
+  string userId = 1;
+  string orgId = 2;
+}
+
+message GetUserOrgMembershipResp {
+  bool exists = 1;   // org_users 有行
+  int64 joinedAt = 2; // org_users.created_at（毫秒）
+  bool active = 3;    // org_users.status != 'disable' 且 users.status = true
 }
 
 message GetOrgAndSubOrgSelectByUserReq {

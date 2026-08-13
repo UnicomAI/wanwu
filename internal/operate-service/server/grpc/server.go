@@ -11,6 +11,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/operate-service/client"
 	"github.com/UnicomAI/wanwu/internal/operate-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/operate-service/config"
+	"github.com/UnicomAI/wanwu/internal/operate-service/server/grpc/notice"
 	"github.com/UnicomAI/wanwu/internal/operate-service/server/grpc/operate"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"google.golang.org/grpc"
@@ -23,11 +24,14 @@ type Server struct {
 	serv *grpc.Server
 
 	operate *operate.Service
+	// notice 消息中心（独立 service，与 OperateService 并列双注册）
+	notice *notice.Service
 }
 
 func NewServer(cfg *config.Config, cli client.IClient) (*Server, error) {
 	s := &Server{
 		operate: operate.NewService(cli),
+		notice:  notice.NewService(cli),
 		cfg:     cfg,
 	}
 	return s, nil
@@ -46,6 +50,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	// register service
 	operate_service.RegisterOperateServiceServer(s.serv, s.operate)
+	operate_service.RegisterNoticeServiceServer(s.serv, s.notice)
 
 	// listen
 	lis, err := net.Listen("tcp", s.cfg.Server.GrpcEndpoint)

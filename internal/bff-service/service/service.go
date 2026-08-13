@@ -47,6 +47,7 @@ var (
 	assistant               assistant_service.AssistantServiceClient
 	safety                  safety_service.SafetyServiceClient
 	operate                 operate_service.OperateServiceClient
+	notice                  operate_service.NoticeServiceClient
 	channel                 channel_service.ChannelServiceClient
 )
 
@@ -108,6 +109,8 @@ func Init() error {
 	assistant = assistant_service.NewAssistantServiceClient(assistantConn)
 	safety = safety_service.NewSafetyServiceClient(appConn)
 	operate = operate_service.NewOperateServiceClient(operateConn)
+	// 消息中心与 OperateService 同宿主，复用同一条连接
+	notice = operate_service.NewNoticeServiceClient(operateConn)
 	channel = channel_service.NewChannelServiceClient(channelConn)
 	return nil
 }

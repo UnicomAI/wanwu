@@ -11,6 +11,9 @@ func Register(apiV1 *gin.RouterGroup) {
 	// common
 	registerCommon(apiV1)
 
+	// notice 消息中心
+	registerNotice(apiV1)
+
 	// callback
 	registerV1Callback(apiV1)
 

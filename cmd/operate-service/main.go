@@ -12,6 +12,7 @@ import (
 
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 
+	"github.com/UnicomAI/wanwu/internal/operate-service/client/iam"
 	"github.com/UnicomAI/wanwu/internal/operate-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/operate-service/config"
 	"github.com/UnicomAI/wanwu/internal/operate-service/server/grpc"
@@ -66,7 +67,13 @@ func main() {
 		log.Fatalf("init db err: %v", err)
 	}
 
-	c, err := orm.NewClient(db)
+	// 消息中心的受众校验与 joinedAt 查询依赖 iam；懒连接、不阻塞启动
+	iamCli, err := iam.NewClient(config.Cfg().Iam.Host)
+	if err != nil {
+		log.Fatalf("init iam client err: %v", err)
+	}
+
+	c, err := orm.NewClient(db, iamCli, config.Cfg().Notice)
 	if err != nil {
 		log.Fatalf("init client err: %v", err)
 	}

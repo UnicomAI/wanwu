@@ -41,6 +41,8 @@ const (
 	IAMService_GetOrgInfo_FullMethodName                  = "/iam_service.IAMService/GetOrgInfo"
 	IAMService_GetOrgByOrgIDs_FullMethodName              = "/iam_service.IAMService/GetOrgByOrgIDs"
 	IAMService_GetUsersByOrgIDs_FullMethodName            = "/iam_service.IAMService/GetUsersByOrgIDs"
+	IAMService_ValidateUserOrgPairs_FullMethodName        = "/iam_service.IAMService/ValidateUserOrgPairs"
+	IAMService_GetUserOrgMembership_FullMethodName        = "/iam_service.IAMService/GetUserOrgMembership"
 	IAMService_GetOrgAndSubOrgSelectByUser_FullMethodName = "/iam_service.IAMService/GetOrgAndSubOrgSelectByUser"
 	IAMService_GetFirstClassOrgAndSubs_FullMethodName     = "/iam_service.IAMService/GetFirstClassOrgAndSubs"
 	IAMService_GetAdminOrgSelect_FullMethodName           = "/iam_service.IAMService/GetAdminOrgSelect"
@@ -129,6 +131,10 @@ type IAMServiceClient interface {
 	GetOrgByOrgIDs(ctx context.Context, in *GetOrgByOrgIDsReq, opts ...grpc.CallOption) (*GetOrgByOrgIDsResp, error)
 	// 通过多个orgId获取用户列表（去重、不过滤禁用状态）
 	GetUsersByOrgIDs(ctx context.Context, in *GetUsersByOrgIDsReq, opts ...grpc.CallOption) (*GetUsersByOrgIDsResp, error)
+	// 校验用户-组织二元组有效性（去重 + 过滤禁用账号/禁用成员 + 数量上限）
+	ValidateUserOrgPairs(ctx context.Context, in *ValidateUserOrgPairsReq, opts ...grpc.CallOption) (*ValidateUserOrgPairsResp, error)
+	// 查询单用户在指定组织的成员关系（加入时间 + 状态）
+	GetUserOrgMembership(ctx context.Context, in *GetUserOrgMembershipReq, opts ...grpc.CallOption) (*GetUserOrgMembershipResp, error)
 	// 获取子组织信息
 	GetOrgAndSubOrgSelectByUser(ctx context.Context, in *GetOrgAndSubOrgSelectByUserReq, opts ...grpc.CallOption) (*GetOrgAndSubOrgSelectByUserResp, error)
 	// 获取组织树
@@ -426,6 +432,26 @@ func (c *iAMServiceClient) GetUsersByOrgIDs(ctx context.Context, in *GetUsersByO
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetUsersByOrgIDsResp)
 	err := c.cc.Invoke(ctx, IAMService_GetUsersByOrgIDs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ValidateUserOrgPairs(ctx context.Context, in *ValidateUserOrgPairsReq, opts ...grpc.CallOption) (*ValidateUserOrgPairsResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateUserOrgPairsResp)
+	err := c.cc.Invoke(ctx, IAMService_ValidateUserOrgPairs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetUserOrgMembership(ctx context.Context, in *GetUserOrgMembershipReq, opts ...grpc.CallOption) (*GetUserOrgMembershipResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserOrgMembershipResp)
+	err := c.cc.Invoke(ctx, IAMService_GetUserOrgMembership_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -878,6 +904,10 @@ type IAMServiceServer interface {
 	GetOrgByOrgIDs(context.Context, *GetOrgByOrgIDsReq) (*GetOrgByOrgIDsResp, error)
 	// 通过多个orgId获取用户列表（去重、不过滤禁用状态）
 	GetUsersByOrgIDs(context.Context, *GetUsersByOrgIDsReq) (*GetUsersByOrgIDsResp, error)
+	// 校验用户-组织二元组有效性（去重 + 过滤禁用账号/禁用成员 + 数量上限）
+	ValidateUserOrgPairs(context.Context, *ValidateUserOrgPairsReq) (*ValidateUserOrgPairsResp, error)
+	// 查询单用户在指定组织的成员关系（加入时间 + 状态）
+	GetUserOrgMembership(context.Context, *GetUserOrgMembershipReq) (*GetUserOrgMembershipResp, error)
 	// 获取子组织信息
 	GetOrgAndSubOrgSelectByUser(context.Context, *GetOrgAndSubOrgSelectByUserReq) (*GetOrgAndSubOrgSelectByUserResp, error)
 	// 获取组织树
@@ -1033,6 +1063,12 @@ func (UnimplementedIAMServiceServer) GetOrgByOrgIDs(context.Context, *GetOrgByOr
 }
 func (UnimplementedIAMServiceServer) GetUsersByOrgIDs(context.Context, *GetUsersByOrgIDsReq) (*GetUsersByOrgIDsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsersByOrgIDs not implemented")
+}
+func (UnimplementedIAMServiceServer) ValidateUserOrgPairs(context.Context, *ValidateUserOrgPairsReq) (*ValidateUserOrgPairsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ValidateUserOrgPairs not implemented")
+}
+func (UnimplementedIAMServiceServer) GetUserOrgMembership(context.Context, *GetUserOrgMembershipReq) (*GetUserOrgMembershipResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserOrgMembership not implemented")
 }
 func (UnimplementedIAMServiceServer) GetOrgAndSubOrgSelectByUser(context.Context, *GetOrgAndSubOrgSelectByUserReq) (*GetOrgAndSubOrgSelectByUserResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrgAndSubOrgSelectByUser not implemented")
@@ -1549,6 +1585,42 @@ func _IAMService_GetUsersByOrgIDs_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMServiceServer).GetUsersByOrgIDs(ctx, req.(*GetUsersByOrgIDsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ValidateUserOrgPairs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateUserOrgPairsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ValidateUserOrgPairs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ValidateUserOrgPairs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ValidateUserOrgPairs(ctx, req.(*ValidateUserOrgPairsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetUserOrgMembership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserOrgMembershipReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetUserOrgMembership(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetUserOrgMembership_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetUserOrgMembership(ctx, req.(*GetUserOrgMembershipReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2363,6 +2435,14 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUsersByOrgIDs",
 			Handler:    _IAMService_GetUsersByOrgIDs_Handler,
+		},
+		{
+			MethodName: "ValidateUserOrgPairs",
+			Handler:    _IAMService_ValidateUserOrgPairs_Handler,
+		},
+		{
+			MethodName: "GetUserOrgMembership",
+			Handler:    _IAMService_GetUserOrgMembership_Handler,
 		},
 		{
 			MethodName: "GetOrgAndSubOrgSelectByUser",

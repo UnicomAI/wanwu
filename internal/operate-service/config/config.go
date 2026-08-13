@@ -16,11 +16,40 @@ type Config struct {
 	Log    LogConfig    `json:"log" mapstructure:"log"`
 	DB     db.Config    `json:"db" mapstructure:"db"`
 	Redis  redis.Config `json:"redis" mapstructure:"redis"`
+
+	// --- microservice ---
+	Iam ServiceConfig `json:"iam" mapstructure:"iam"`
+
+	// --- 消息中心 ---
+	Notice NoticeConfig `json:"notice" mapstructure:"notice"`
 }
 
 type ServerConfig struct {
 	GrpcEndpoint   string `json:"grpc_endpoint" mapstructure:"grpc_endpoint"`
 	MaxRecvMsgSize int    `json:"max_recv_msg_size" mapstructure:"max_recv_msg_size"`
+}
+
+type ServiceConfig struct {
+	Host string `json:"host" mapstructure:"host"`
+}
+
+// NoticeConfig 消息中心配置
+type NoticeConfig struct {
+	// MaxAudienceSize 特定用户名单 S 的规模上限；超限拒绝生成该事件消息（打点告警），不阻塞业务主流程
+	MaxAudienceSize int `json:"max_audience_size" mapstructure:"max_audience_size"`
+}
+
+// 消息中心配置默认值（配置缺省时生效）
+const (
+	DefaultNoticeMaxAudienceSize = 500
+)
+
+// Fill 用默认值补齐未配置项
+func (c NoticeConfig) Fill() NoticeConfig {
+	if c.MaxAudienceSize <= 0 {
+		c.MaxAudienceSize = DefaultNoticeMaxAudienceSize
+	}
+	return c
 }
 
 type LogConfig struct {

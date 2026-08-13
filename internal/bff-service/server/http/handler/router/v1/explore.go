@@ -54,10 +54,10 @@ func registerExploration(apiV1 *gin.RouterGroup) {
 	mid.Sub("exploration.skill").Reg(apiV1, "/square/skill/builtin/detail", http.MethodGet, v1.GetSquareBuiltinSkillDetail, "获取广场内置skill详情")
 
 	mid.Sub("exploration.skill").Reg(apiV1, "/square/skill/share/list", http.MethodGet, v1.GetSquareShareSkillList, "共享skill列表")
-	mid.Sub("exploration.skill").Reg(apiV1, "/square/skill/share", http.MethodPost, v1.ShareSquareSkill, "添加共享skill到资源库")
-	mid.Sub("exploration.skill").Reg(apiV1, "/square/skill/share/detail", http.MethodGet, v1.GetSquareShareSkillDetail, "获取共享skill详情")
-	mid.Sub("exploration.skill").Reg(apiV1, "/square/skill/share/download", http.MethodGet, v1.DownloadSquareShareSkill, "下载共享skill")
-	mid.Sub("exploration.skill").Reg(apiV1, "/square/skill/share/version/list", http.MethodGet, v1.GetSquareShareSkillVersionList, "获取共享skill版本列表")
+	mid.Sub("exploration.skill").Reg(apiV1, "/square/skill/share", http.MethodPost, v1.ShareSquareSkill, "添加共享skill到资源库", middleware.AuthAppPublish("skillId", constant.AppTypeSkill))
+	mid.Sub("exploration.skill").Reg(apiV1, "/square/skill/share/detail", http.MethodGet, v1.GetSquareShareSkillDetail, "获取共享skill详情", middleware.AuthAppPublish("skillId", constant.AppTypeSkill))
+	mid.Sub("exploration.skill").Reg(apiV1, "/square/skill/share/download", http.MethodGet, v1.DownloadSquareShareSkill, "下载共享skill", middleware.AuthAppPublish("skillId", constant.AppTypeSkill))
+	mid.Sub("exploration.skill").Reg(apiV1, "/square/skill/share/version/list", http.MethodGet, v1.GetSquareShareSkillVersionList, "获取共享skill版本列表", middleware.AuthAppPublish("skillId", constant.AppTypeSkill))
 
 	mid.Sub("exploration.skill").Reg(apiV1, "/square/skill/created/list", http.MethodGet, v1.GetSquareCreatedSkillList, "获取我发布skill列表")
 	mid.Sub("exploration.skill").Reg(apiV1, "/square/skill/created/detail", http.MethodGet, v1.GetSquareCreatedSkillDetail, "获取我发布skill详情")

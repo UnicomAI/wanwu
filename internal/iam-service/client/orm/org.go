@@ -589,6 +589,95 @@ func (c *Client) BatchRemoveOrgUser(ctx context.Context, orgID uint32, userIDs [
 	})
 }
 
+// UserOrgPair 用户-组织二元组（消息中心受众计算的基本元素）
+type UserOrgPair struct {
+	UserID uint32
+	OrgID  uint32
+}
+
+// UserOrgMembership 单用户在指定组织的成员关系
+type UserOrgMembership struct {
+	Exists   bool  // org_users 有行
+	JoinedAt int64 // org_users.created_at（毫秒）
+	Active   bool  // org_users.status != disable 且 users.status = true
+}
+
+// FilterValidUserOrgPairs 过滤出真实存在且有效的 (userID, orgID) 二元组。
+// 有效 = org_users 有行 且 org_users.status != disable 且 users.status = true
+// （判据与 IsUserOrgAdmin / checkUserIsAdmin 保持一致）。
+// 实现取 orgIDs × userIDs 超集后内存过滤——二元组数受调用方上限（数百）约束，
+// 超集无膨胀风险，且比 (org_id,user_id) IN ((..),(..)) 的行构造器更方言中立。
+func (c *Client) FilterValidUserOrgPairs(ctx context.Context, pairs []UserOrgPair) ([]UserOrgPair, *errs.Status) {
+	if len(pairs) == 0 {
+		return nil, nil
+	}
+	orgSet := make(map[uint32]struct{}, len(pairs))
+	userSet := make(map[uint32]struct{}, len(pairs))
+	want := make(map[UserOrgPair]struct{}, len(pairs))
+	for _, p := range pairs {
+		orgSet[p.OrgID] = struct{}{}
+		userSet[p.UserID] = struct{}{}
+		want[p] = struct{}{}
+	}
+	orgIDs := make([]uint32, 0, len(orgSet))
+	for id := range orgSet {
+		orgIDs = append(orgIDs, id)
+	}
+	userIDs := make([]uint32, 0, len(userSet))
+	for id := range userSet {
+		userIDs = append(userIDs, id)
+	}
+
+	var rows []UserOrgPair
+	if err := c.db.WithContext(ctx).
+		Table("org_users").
+		Joins("JOIN users ON users.id = org_users.user_id").
+		Where("org_users.org_id IN ?", orgIDs).
+		Where("org_users.user_id IN ?", userIDs).
+		Where("org_users.status IS NULL OR org_users.status != ?", sqlopt.OrgUserStatusDisabled).
+		Where("users.status = ?", true).
+		Select("org_users.user_id AS user_id, org_users.org_id AS org_id").
+		Scan(&rows).Error; err != nil {
+		return nil, toErrStatus("iam_org_user_pairs_validate", err.Error())
+	}
+
+	ret := make([]UserOrgPair, 0, len(rows))
+	for _, r := range rows {
+		if _, ok := want[r]; ok {
+			ret = append(ret, r)
+		}
+	}
+	return ret, nil
+}
+
+// GetUserOrgMembership 查询单用户在指定组织的成员关系（joinedAt + 状态）。
+// 供消息中心读侧 «vis» 的"新成员不追溯历史消息"屏蔽使用。
+func (c *Client) GetUserOrgMembership(ctx context.Context, userID, orgID uint32) (*UserOrgMembership, *errs.Status) {
+	var orgUser model.OrgUser
+	err := sqlopt.SQLOptions(
+		sqlopt.WithOrgID(orgID),
+		sqlopt.WithUserID(userID),
+	).Apply(c.db.WithContext(ctx)).First(&orgUser).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &UserOrgMembership{Exists: false}, nil
+		}
+		return nil, toErrStatus("iam_org_user_membership_get", util.Int2Str(userID), err.Error())
+	}
+	var user model.User
+	if err := sqlopt.WithID(userID).Apply(c.db.WithContext(ctx)).Select("id", "status").First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &UserOrgMembership{Exists: false}, nil
+		}
+		return nil, toErrStatus("iam_org_user_membership_get", util.Int2Str(userID), err.Error())
+	}
+	return &UserOrgMembership{
+		Exists:   true,
+		JoinedAt: orgUser.CreatedAt,
+		Active:   user.Status && orgUser.Status != sqlopt.OrgUserStatusDisabled,
+	}, nil
+}
+
 func toOrgInfoTx(tx *gorm.DB, org *model.Org) (*OrgInfo, error) {
 	ret := &OrgInfo{
 		ID:         org.ID,

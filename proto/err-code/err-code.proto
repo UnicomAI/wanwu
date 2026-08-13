@@ -267,6 +267,7 @@ enum Code {
   OperateGeneral = 320000; // 通用错误
   OperateCustom = 320001; // 自定义配置相关错误
   OperateRecord = 320002; // 客户端统计错误
+  OperateNotice = 320003; // 消息中心相关错误
 
   // --- channel-service ---
   // [420000, 429999]

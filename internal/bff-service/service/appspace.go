@@ -26,6 +26,13 @@ func DeleteAppSpaceApp(ctx *gin.Context, userId, orgId, appId, appType string) e
 			return err
 		}
 	}
+	// 消息中心：删除前把发布范围与名称快照下来——DeleteApp 之后记录已消失，事后查不到
+	oldPublishType := appPublishTypeOf(ctx, appId, appType)
+	appName, nameErr := resolveNoticeAppName(ctx, userId, orgId, appId, appType)
+	if nameErr != nil {
+		log.Errorf("notice: resolve app name (%v/%v) failed: %v", appType, appId, nameErr)
+	}
+
 	// delete publish app
 	_, err := app.DeleteApp(ctx.Request.Context(), &app_service.DeleteAppReq{
 		AppId:   appId,
@@ -35,6 +42,10 @@ func DeleteAppSpaceApp(ctx *gin.Context, userId, orgId, appId, appType string) e
 	})
 	if err != nil {
 		return err
+	}
+	// 应用删除：原可见者收「已下线」（应用删除仍发下线，范围变更不发）
+	if nameErr == nil {
+		notifyAppDeleted(ctx, userId, orgId, appId, appType, appName, oldPublishType)
 	}
 	// delete app
 	switch appType {
@@ -251,6 +262,8 @@ func PublishApp(ctx *gin.Context, userId, orgId string, req request.PublishAppRe
 		return err
 	}
 	publishPackageCommitted = true
+	// 消息中心（best-effort，不阻塞发布主流程）：发新版本 → 整个新范围统一收「已上线」
+	notifyAppPublish(ctx, userId, orgId, req.AppId, req.AppType, req.PublishType, req.Version)
 	return nil
 }
 

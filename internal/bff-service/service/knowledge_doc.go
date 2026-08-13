@@ -327,7 +327,10 @@ func DeleteDoc(ctx *gin.Context, userId, orgId string, r *request.DeleteDocReq) 
 		OrgId:       orgId,
 		KnowledgeId: r.KnowledgeId,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetDocSegmentList(ctx *gin.Context, userId, orgId string, req *request.DocSegmentListReq) (*response.DocSegmentResp, error) {
