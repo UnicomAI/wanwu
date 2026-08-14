@@ -1903,6 +1903,8 @@ export default {
     undateTime: '更新时间',
   },
   statisticsDashboard: {
+    selectOrgTitle: '组织筛选',
+    selectUserTitle: '用户筛选',
     success: '成功',
     error: '失败',
     model: '模型',

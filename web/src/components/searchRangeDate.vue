@@ -19,25 +19,12 @@
         :clearable="false"
         type="daterange"
         value-format="yyyy-MM-dd"
-        range-separator="至"
-        start-placeholder="开始日期"
-        end-placeholder="结束日期"
-      ></el-date-picker>
-      <!--<el-date-picker
-        ref="time"
-        size="mini"
-        v-model="time"
-        type="daterange"
-        :clearable="false"
-        align="right"
-        value-format="yyyy-MM-dd"
-        unlink-panels
         :range-separator="$t('common.datePicker.at')"
         :start-placeholder="$t('common.datePicker.startDate')"
         :end-placeholder="$t('common.datePicker.endDate')"
-        :disabled-date="handleFilterTime"
-        @change="handleDateChange"
-      ></el-date-picker>-->
+        :picker-options="pickerOptions"
+        @change="handleChange"
+      ></el-date-picker>
     </div>
   </div>
 </template>
@@ -57,6 +44,17 @@ export default {
       radio: 'week',
       time: [],
       nowTime: null,
+      // 选区范围（首次选中日期与 6 个月前后边界）
+      pickRange: {
+        minDate: null,
+        maxDate: null,
+        lowerLimit: null, // minDate - 6 months
+        upperLimit: null, // minDate + 6 months
+      },
+      pickerOptions: {
+        onPick: this.handleOnPick,
+        disabledDate: this.handleDisabledDate,
+      },
     };
   },
   mounted() {
@@ -69,18 +67,9 @@ export default {
     handleRadio(val) {
       this.time = this.shortcuts;
       this.radio = val;
+      // 切换快捷选项时重置选区状态
+      this.resetPickRange();
       this.$emit('handleSetTime', { type: obj[this.radio], time: this.time });
-    },
-    handleFilterTime(time) {
-      // let time = new Date();
-      return time.getTime() > Date.now() - 8.64e7;
-    },
-    handleDateChange(val) {
-      if (val === null) {
-        this.time = [];
-        return;
-      }
-      this.$emit('handleSetTime', { type: obj['cust'], time: val });
     },
     timestampToDateFormat(timestamp) {
       const dateObj = new Date(timestamp); // 创建Date对象
@@ -89,59 +78,59 @@ export default {
       const day = ('0' + dateObj.getDate()).slice(-2); // 获取日期，并补零
       return `${year}-${month}-${day}`; // 返回转换后的日期格式
     },
+    // 监听用户选中的首个日期
+    handleOnPick(picked) {
+      const { minDate, maxDate } = picked;
+      this.pickRange.minDate = minDate;
+      this.pickRange.maxDate = maxDate;
+      if (minDate && !maxDate) {
+        // 首次选完一个日期后，按 365 天作为前后一年的等价天数
+        const ONE_DAY_MS = 3600 * 1000 * 24;
+        const lower = new Date(minDate.getTime() - 365 * ONE_DAY_MS);
+        const upper = new Date(minDate.getTime() + 365 * ONE_DAY_MS);
+        // 将时分秒归零，避免边界日期被多算一天
+        lower.setHours(0, 0, 0, 0);
+        upper.setHours(23, 59, 59, 999);
+        this.pickRange.lowerLimit = lower.getTime();
+        this.pickRange.upperLimit = upper.getTime();
+      }
+    },
+    // 禁用前后 6 个月之外的日期
+    handleDisabledDate(time) {
+      const { minDate, maxDate, lowerLimit, upperLimit } = this.pickRange;
+      // 已经完整选完一个区间后，重置状态，允许下次重新选
+      if (minDate && maxDate) {
+        this.resetPickRange();
+        return false;
+      }
+      // 1. 未来日期（明天及以后）一律禁用，今天 0 点 ~ 23:59:59 之间可点
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+      if (time.getTime() > todayEnd.getTime()) {
+        return true;
+      }
+      // 2. 选完首个日期后，再叠加 ±365 天的窗口限制
+      if (minDate && lowerLimit !== null && upperLimit !== null) {
+        const t = time.getTime();
+        return t < lowerLimit || t > upperLimit;
+      }
+      return false;
+    },
+    // date-picker value 变化时同步给父组件
+    handleChange(val) {
+      if (val && val.length === 2) {
+        this.$emit('handleSetTime', { type: obj[this.radio], time: val });
+      }
+    },
+    // 重置选区状态
+    resetPickRange() {
+      this.pickRange.minDate = null;
+      this.pickRange.maxDate = null;
+      this.pickRange.lowerLimit = null;
+      this.pickRange.upperLimit = null;
+    },
   },
   computed: {
-    pickerOptions() {
-      const _this = this;
-      return {
-        shortcuts: [
-          {
-            text: this.$t('common.datePicker.day'),
-            onClick(picker) {
-              const end = new Date();
-              const start = new Date();
-              start.setTime(start.getTime());
-              end.setTime(end.getTime());
-              picker.$emit('pick', [start, end]);
-            },
-          },
-          {
-            text: this.$t('common.datePicker.week'),
-            onClick(picker) {
-              const end = new Date();
-              const start = new Date();
-              start.setTime(start.getTime() - 3600 * 1000 * 24 * 6);
-              end.setTime(end.getTime());
-              picker.$emit('pick', [start, end]);
-            },
-          },
-          {
-            text: this.$t('common.datePicker.oneMonth'),
-            onClick(picker) {
-              const end = new Date();
-              const start = new Date();
-              start.setTime(start.getTime() - 3600 * 1000 * 24 * 29);
-              end.setTime(end.getTime());
-              picker.$emit('pick', [start, end]);
-            },
-          },
-        ],
-        disabledDate(time) {
-          if (_this.nowTime) {
-            return (
-              time.getTime() > Date.now() ||
-              time.getTime() < _this.nowTime.getTime() - 90 * 24 * 3600000 ||
-              time.getTime() > _this.nowTime.getTime() + 90 * 24 * 3600000
-            );
-          } else {
-            return time.getTime() > Date.now(); // 只能选择今天及今天之前的日期
-          }
-        },
-        onPick(picker, date, dateString) {
-          _this.nowTime = picker.minDate;
-        },
-      };
-    },
     shortcuts() {
       const end = new Date();
       const start = new Date();

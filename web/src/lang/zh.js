@@ -2064,6 +2064,8 @@ export default {
     add: '新增关键词',
   },
   statisticsDashboard: {
+    selectOrgTitle: '组织筛选',
+    selectUserTitle: '用户筛选',
     success: '成功',
     error: '失败',
     model: '模型',

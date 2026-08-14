@@ -1,8 +1,8 @@
 <template>
   <div class="global-filter-wrapper">
-    <span class="global-filter-label">
-      {{ $t('statisticsDashboard.select') }}:
-    </span>
+    <div class="global-filter-label">
+      {{ $t('statisticsDashboard.selectOrgTitle') }}:
+    </div>
     <el-select
       v-model="filterParams.orgIds"
       :placeholder="$t('statisticsDashboard.selectOrg')"
@@ -26,6 +26,9 @@
         :value="item.id"
       />
     </el-select>
+    <div class="global-filter-label" style="margin-left: 10px">
+      {{ $t('statisticsDashboard.selectUserTitle') }}:
+    </div>
     <el-select
       v-model="filterParams.userIds"
       :placeholder="$t('statisticsDashboard.selectUser')"
@@ -142,6 +145,10 @@ export default {
   display: flex;
   align-items: center;
   padding: 5px 24px;
+  .global-filter-label {
+    width: 56px;
+    margin-right: -3px;
+  }
 }
 .hide-tag-close {
   ::v-deep .el-tag__close {
