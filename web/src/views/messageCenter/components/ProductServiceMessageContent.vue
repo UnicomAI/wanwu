@@ -18,8 +18,8 @@
 <script>
 const MESSAGE_TYPE_ROUTE_MAP = Object.freeze({
   agent: '/explore/agent',
-  workflow: '/explore/workflow',
-  chatflow: '/explore/workflow',
+  workflow: '/explore',
+  chatflow: '/explore',
   rag: '/explore/rag',
   skill: '/skillSquare/detail',
   knowledge: '/knowledge/doclist',
@@ -77,7 +77,13 @@ export default {
       const { msgType, actionParams = {} } = action;
       const { id, skillType } = actionParams;
       const path = MESSAGE_TYPE_ROUTE_MAP[msgType];
-      if (!path || !id) return null;
+      if (!path) return null;
+
+      if (msgType === 'workflow' || msgType === 'chatflow') {
+        return { path, query: { type: msgType } };
+      }
+
+      if (!id) return null;
 
       let query = { id };
       if (msgType === 'skill') {
