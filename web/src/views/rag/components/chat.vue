@@ -46,7 +46,10 @@
             :hasHistory="hasHistory"
             :maxImageSize="maxImageSize"
             :maxPicNum="maxPicNum"
-            :visibleUpload="editForm.visionsupport === 'support'"
+            :visibleUpload="
+              editForm.visionsupport === 'support' &&
+              editForm.visionConfig.picNum === 1
+            "
             @preSend="preSend"
             @setSessionStatus="setSessionStatus"
             @clearHistory="clearHistory"
