@@ -16,6 +16,29 @@ func registerExploration(apiV1 *gin.RouterGroup) {
 	// 数字员工广场详情（应用广场展示，实时调外部详情）
 	mid.Sub("exploration.app").Reg(apiV1, "/digital-employee/detail", http.MethodGet, v1.GetDigitalEmployeeSquareDetail, "数字员工广场详情")
 
+	// 数字员工发布试用对话（应用广场，权限对齐智能体/rag 的 exploration.app）
+	mid.Sub("exploration.app").Reg(apiV1, "/digital-employee/conversation", http.MethodPost, v1.CreateDigitalEmployeeConversation, "创建数字员工发布会话")
+	mid.Sub("exploration.app").Reg(apiV1, "/digital-employee/conversation", http.MethodDelete, v1.DeleteDigitalEmployeeConversation, "删除数字员工发布会话")
+	mid.Sub("exploration.app").Reg(apiV1, "/digital-employee/conversation/list", http.MethodGet, v1.GetDigitalEmployeeConversationList, "数字员工发布会话列表")
+	mid.Sub("exploration.app").Reg(apiV1, "/digital-employee/conversation/detail", http.MethodGet, v1.GetDigitalEmployeeConversationDetail, "数字员工发布会话详情")
+	mid.Sub("exploration.app").Reg(apiV1, "/digital-employee/conversation/config", http.MethodGet, v1.GetDigitalEmployeeConversationConfig, "数字员工发布会话配置")
+	mid.Sub("exploration.app").Reg(apiV1, "/digital-employee/conversation/config", http.MethodPut, v1.UpdateDigitalEmployeeConversationConfig, "修改数字员工发布会话配置")
+	mid.Sub("exploration.app").Reg(apiV1, "/digital-employee/chat", http.MethodPost, v1.DigitalEmployeeChat, "数字员工发布对话", append([]gin.HandlerFunc{
+		middleware.TraceWeb(constant.BizModuleAppDigitalEmployee, middleware.WithAppResource(constant.AppTypeDigitalEmployee, "employeeId")),
+	}, middleware.AppHistoryRecord("employeeId", constant.AppTypeDigitalEmployee))...)
+
+	// 数字员工发布对话复用的通用智能体能力（断线重连/workspace/资源选择/HITL 问答）
+	// 从 wga.wanwu_bot 改挂 exploration.app：应用广场用户即可用，前端零改动；通用智能体调这些接口也走应用广场权限
+	mid.Sub("exploration.app").Reg(apiV1, "/general/agent/resource/select", http.MethodGet, v1.GetGeneralAgentResourceSelect, "通用智能体资源选择列表")
+	mid.Sub("exploration.app").Reg(apiV1, "/general/agent/conversation/workspace/download", http.MethodGet, v1.GeneralAgentWorkspaceDownload, "通用智能体workspace下载")
+	mid.Sub("exploration.app").Reg(apiV1, "/general/agent/conversation/workspace/preview", http.MethodGet, v1.GeneralAgentWorkspacePreview, "通用智能体workspace预览")
+	mid.Sub("exploration.app").Reg(apiV1, "/general/agent/conversation/workspace", http.MethodGet, v1.GeneralAgentWorkspaceInfo, "通用智能体workspace目录树")
+	mid.Sub("exploration.app").Reg(apiV1, "/general/agent/conversation/pending", http.MethodGet, v1.GeneralAgentConversationPending, "通用智能体运行中会话查询")
+	mid.Sub("exploration.app").Reg(apiV1, "/general/agent/conversation/connect", http.MethodPost, v1.GeneralAgentConversationConnect, "通用智能体流式问答断线重连")
+	mid.Sub("exploration.app").Reg(apiV1, "/general/agent/conversation/cancel", http.MethodPost, v1.GeneralAgentConversationCancel, "通用智能体流式问答手动停止")
+	mid.Sub("exploration.app").Reg(apiV1, "/general/agent/question/reply", http.MethodPost, v1.GeneralAgentReplyQuestion, "回答问题")
+	mid.Sub("exploration.app").Reg(apiV1, "/general/agent/question/reject", http.MethodPost, v1.GeneralAgentRejectQuestion, "拒绝问题")
+
 	// rag 相关接口
 	mid.Sub("exploration.app").Reg(apiV1, "/appspace/rag", http.MethodGet, v1.GetPublishedRag, "获取已发布rag详情", middleware.AuthAppPublish("ragId", constant.AppTypeRag))
 	mid.Sub("exploration.app").Reg(apiV1, "/rag/chat", http.MethodPost, v1.ChatPublishedRag, "已发布rag流式接口", append([]gin.HandlerFunc{middleware.TraceWeb(constant.BizModuleAppRag, middleware.WithAppResource(constant.AppTypeRag, "ragId"))}, middleware.AuthAppPublish("ragId", constant.AppTypeRag), middleware.AuthRagConversationAccess("ragId", "conversationId"), middleware.AppHistoryRecord("ragId", constant.AppTypeRag))...)
