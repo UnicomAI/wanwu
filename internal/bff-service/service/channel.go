@@ -10,6 +10,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/gin-gonic/gin"
 )
@@ -177,6 +178,56 @@ func ListWanwuAgents(ctx *gin.Context, userID, orgID, appType, name string) (*re
 			}
 		}
 		result = append(result, agent)
+	}
+	return &response.ListResult{
+		List:  result,
+		Total: int64(len(result)),
+	}, nil
+}
+
+// ListWanwuChatflows 获取万悟对话流列表（用于通道绑定对话流下拉）。
+// 数据源复用 ListWorkflow（上游 Coze 工作流平台，flow_mode=3 拉对话流，login_user_create=true 已过滤本人创建），
+// 经 fillAppPublishInfo 回填发布信息后，仅保留「本人创建且已发布」的对话流（与 ListWanwuAgents 契约对齐，
+// 避免选到不可调用的草稿）。AppId 为 workflow_id（channel-service 称 UUID，见 chatflow.go:67），
+// 不经 UUID 转换直通 channel-service，与 agent（AppId 转 assistant UUID）不同。
+func ListWanwuChatflows(ctx *gin.Context, userID, orgID, name string) (*response.ListResult, error) {
+	// 拉取本人创建的对话流（Coze 平台）
+	chatflowResp, err := ListWorkflow(ctx, orgID, name, constant.AppTypeChatflow)
+	if err != nil {
+		return nil, err
+	}
+	var ret []response.AppBriefInfo
+	for _, chatflowInfo := range chatflowResp.Workflows {
+		ret = append(ret, cozeChatflowInfo2Model(chatflowInfo))
+	}
+	// 回填 PublishType/Version + 按 UpdatedAt 降序
+	listResult, err := fillAppPublishInfo(ctx, userID, orgID, ret)
+	if err != nil {
+		return nil, err
+	}
+
+	// 仅保留已发布的（PublishType 非空），转成 WanwuAgentResponse（与 /channel/agent 同构）
+	apps, ok := listResult.List.([]response.AppBriefInfo)
+	if !ok {
+		// fillAppPublishInfo 空列表时返回 []AppBriefInfo，类型应匹配；防御性兜底
+		apps = nil
+	}
+	result := make([]*response.WanwuAgentResponse, 0, len(apps))
+	for _, info := range apps {
+		if info.PublishType == "" {
+			continue
+		}
+		avatar := info.Avatar.Path
+		if avatar == "" {
+			avatar = config.Cfg().DefaultIcon.ChatflowIcon
+		}
+		result = append(result, &response.WanwuAgentResponse{
+			AppId:   info.AppId, // workflow_id，直通 channel-service
+			AppType: constant.AppTypeChatflow,
+			Name:    info.Name,
+			Desc:    info.Desc,
+			Avatar:  avatar,
+		})
 	}
 	return &response.ListResult{
 		List:  result,

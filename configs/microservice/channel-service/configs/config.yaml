@@ -49,6 +49,11 @@ redis:
 bff:
   api_base_url: "http://bff-service:6667"
 
+# 下游 workflow 服务：用于获取对话流开始节点输入参数
+# GET /v1/workflow/{uuid}/schema_by_wanwu（鉴权只要 X-Org-Id/X-User-Id）
+workflow:
+  endpoint: "http://workflow-wanwu:8999"
+
 dingtalk:
   stream_mode: true
 

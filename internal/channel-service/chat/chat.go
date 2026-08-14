@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/UnicomAI/wanwu/internal/channel-service/adapter/types"
 	"github.com/UnicomAI/wanwu/internal/channel-service/client"
@@ -27,16 +28,19 @@ type Handler struct {
 	cfg             config.Config
 	cli             client.IClient
 	manager         adapterManager
-	convManager     *wanwu.ConversationManager
-	artifactMgr     *wanwu.ArtifactManager
-	questionMgr     *QuestionManager
-	attachmentCache *AttachmentCache
+	convManager        *wanwu.ConversationManager
+	artifactMgr        *wanwu.ArtifactManager
+	questionMgr        *QuestionManager
+	attachmentCache    *AttachmentCache
+	chatflowInputCache *ChatflowInputCache
+	chatflowPendingInputs *ChatflowPendingInputCache
 }
 
 // adapterManager 适配器管理接口（避免循环依赖）
 type adapterManager interface {
 	GetAdapter(channelID string) (types.Adapter, bool)
 	SendMessage(ctx context.Context, channelID, userID, content string, extra map[string]string) error
+	SendMarkdown(ctx context.Context, channelID, userID, title, content string) error
 	CreateStreamSender(ctx context.Context, channelID, userID string, extra map[string]string) types.StreamSender
 	SendFile(ctx context.Context, channelID, userID, fileName, mimeType string, data []byte, extra map[string]string) error
 }
@@ -47,10 +51,12 @@ func NewHandler(cfg config.Config, cli client.IClient, manager adapterManager) *
 		cfg:             cfg,
 		cli:             cli,
 		manager:         manager,
-		convManager:     wanwu.NewConversationManager(cli),
-		artifactMgr:     wanwu.NewArtifactManager(cli),
-		questionMgr:     NewQuestionManager(cfg.BFF.ApiBaseUrl),
-		attachmentCache: NewAttachmentCache(),
+		convManager:        wanwu.NewConversationManager(cli),
+		artifactMgr:        wanwu.NewArtifactManager(cli),
+		questionMgr:        NewQuestionManager(cfg.BFF.ApiBaseUrl),
+		attachmentCache:    NewAttachmentCache(),
+		chatflowInputCache: NewChatflowInputCache(),
+		chatflowPendingInputs: NewChatflowPendingInputCache(),
 	}
 }
 
@@ -85,12 +91,21 @@ func (h *Handler) HandlePlatformMessage(ctx context.Context, msg *types.Platform
 		return h.handleQuestionReply(ctx, ch, msg, pq)
 	}
 
+	// 4.5 优先处理对话流待补入参：chatflow 通道且该用户有追问状态时，
+	// 本次消息当作入参回复（按 schema 类型转换填入 parameters），不发给对话流后端。
+	// 追问状态仅在 chatflow 链路写入，不会误命中其他通道。
+	if ps, ok := h.chatflowPendingInputs.Get(msg.ChannelID, msg.UserID); ok {
+		return h.handleChatflowInputReply(ctx, ch, msg, ps)
+	}
+
 	// 5. 按 appType 分发
 	switch ch.AppType {
 	case "wga":
 		return h.handleWGAMessage(ctx, ch, msg)
 	case "dip":
 		return h.handleDIPMessage(ctx, ch, msg)
+	case "chatflow":
+		return h.handleChatflowMessage(ctx, ch, msg)
 	default: // "agent"
 		return h.handleAgentMessage(ctx, ch, msg)
 	}
@@ -427,6 +442,13 @@ func (h *Handler) handleAgentSSEResponse(ctx context.Context, ch *model.Channel,
 	reader := bufio.NewReader(resp.Body)
 	chunkCount := 0
 
+	// 钉钉走 markdown 卡片整段下发（SendMarkdown，渲染 md），微信走纯文本一次性下发（SendMessage）。
+	// 钉钉非流式路径：循环内按段落边界增量下发（攒够一段发一条卡片），缓解长回复干等；微信循环内只累积。
+	isWeChat := ch.ChannelType == "wechat"
+
+	// dingSt 仅钉钉非流式路径用（streamSender==nil && !isWeChat）：跟踪流式分段下发的累积状态。
+	var dingSt dingStreamState
+
 	log.Infof("[AgentSSE] channel=%s user=%s start streaming from agent %s (streamSender=%v)",
 		ch.ChannelID, msg.UserID, ch.AppID, streamSender != nil)
 
@@ -482,6 +504,8 @@ func (h *Handler) handleAgentSSEResponse(ctx context.Context, ch *model.Channel,
 		}
 
 		if sseData.Response != "" {
+			fullContent.WriteString(sseData.Response)
+			chunkCount++
 			// 流式路径：逐 chunk 更新卡片
 			if streamSender != nil {
 				if err := streamSender.SendChunk(ctx, sseData.Response, false); err != nil {
@@ -491,10 +515,15 @@ func (h *Handler) handleAgentSSEResponse(ctx context.Context, ch *model.Channel,
 					closeStreamSender(streamSender, ctx, fmt.Errorf("stream chunk failed: %w", err))
 					streamSender = nil
 				}
+			} else if !isWeChat {
+				// 钉钉非流式：攒够一段（段落边界切）就增量下发，缓解生成期间干等。
+				// 失败只 Warn，不中止生成（继续累积，循环后 isFinal 兜底重发剩余，含已失败段）。
+				if err := h.flushDingTalkSegments(ctx, msg, fullContent.String(), &dingSt, false); err != nil {
+					log.Warnf("[AgentSSE] channel=%s user=%s incremental segment send failed (will retry at end): %v",
+						ch.ChannelID, msg.UserID, err)
+				}
 			}
-			fullContent.WriteString(sseData.Response)
-			chunkCount++
-			// log.Debugf("[AgentSSE] channel=%s user=%s chunk #%d: %q", ch.ChannelID, msg.UserID, chunkCount, truncate(sseData.Response, 100))
+			// 微信：循环内不下发（攒到最后 SendMessage 一次性，原逻辑）
 		}
 	}
 
@@ -522,26 +551,40 @@ func (h *Handler) handleAgentSSEResponse(ctx context.Context, ch *model.Channel,
 		return nil
 	}
 
+	// ===== 非流式路径：循环结束后统一下发（streamSender == nil）=====
+	// 钉钉：流式分段下发已在循环内增量发掉攒够的段，此处发剩余未发的尾巴段（isFinal 强制发全部剩余）
+	// + 图片。微信：SendMessage 纯文本一次性下发（循环内只累积）。
+	// 图片判断从 replyContent 算（无论是否已增量发，原图 URL 不变）。
 	log.Infof("[AgentSSE] channel=%s user=%s stream completed, total %d chunks, reply length=%d, content: %s",
 		ch.ChannelID, msg.UserID, chunkCount, len(replyContent), truncate(replyContent, 200))
 
-	// 普通智能体回复正文可能内嵌 markdown 图片（知识库问答场景，图片 URL 为 minio 带签名直链）。
-	// 微信 text_item 不渲染 markdown，且 URL 是内网地址用户打不开：先从正文剥离图片语法发纯文本，
-	// 再把图片下载后作为图片消息单独下发（复用 sendFileWithRetry，含 ret=-2 退避）。
-	textToSend := replyContent
-	hasInlineImage := inlineImageRe.MatchString(replyContent)
-	if hasInlineImage {
-		textToSend = stripInlineImages(replyContent)
+	hasImg := inlineImageRe.MatchString(replyContent)
+
+	if !isWeChat {
+		// 钉钉：发剩余未下发的尾巴段（isFinal 强制发全部剩余，含循环内失败重发的段），再发图片。
+		// flushDingTalkSegments 内部已对每段做 stripInvalidUTF8/stripInlineImages/stripCitations/TrimSpace，
+		// 故此处不再需要循环外的 textToSend 后处理链。
+		if dingSt.sentBytes < len(replyContent) {
+			if err := h.flushDingTalkSegments(ctx, msg, replyContent, &dingSt, true); err != nil {
+				return fmt.Errorf("failed to send final markdown segment: %w", err)
+			}
+		}
+		if hasImg {
+			h.sendInlineImages(ctx, msg, replyContent)
+		}
+		return nil
 	}
 
-	// 先清洗非法 UTF-8 字节（上游 LLM 偶发坏字节，被解码成 U+FFFD，微信端显示 ��），再做正则剥离更稳。
+	// 微信：纯文本一次性下发（原逻辑不变，保留 textToSend 后处理链）
+	textToSend := replyContent
+	if hasImg {
+		textToSend = stripInlineImages(replyContent)
+	}
+	// 先清洗非法 UTF-8 字节（上游 LLM 偶发坏字节，被解码成 U+FFFD，IM 端显示 ��），再做引用剥离更稳。
 	textToSend = stripInvalidUTF8(textToSend)
-
-	// 知识库问答正文里的【x^】引用标注仅供网页端渲染来源脚注，微信 text_item 不渲染会显示成字面乱码，
-	// 发文本前剥离（连带收敛剥离后的多余空白）。图片 URL 仍随下方 sendInlineImages 单独下发。
+	// 知识库问答正文里的【x^】引用标注仅供网页端渲染来源脚注，IM 端不渲染会显示成字面乱码，发前剥离
+	// （连带收敛剥离后的多余空白）。图片 URL 仍随下方 sendInlineImages 单独下发。
 	textToSend = stripCitations(textToSend)
-
-	// 先发文本（去图后的纯文本），优先送达
 	textToSend = strings.TrimSpace(textToSend)
 	if textToSend != "" {
 		if err := h.manager.SendMessage(ctx, msg.ChannelID, msg.UserID, textToSend, msg.Extra); err != nil {
@@ -549,9 +592,7 @@ func (h *Handler) handleAgentSSEResponse(ctx context.Context, ch *model.Channel,
 		}
 		log.Infof("[AgentSSE] channel=%s user=%s reply text sent to platform successfully", msg.ChannelID, msg.UserID)
 	}
-
-	// 再发正文内嵌图片（下载 + 下发）
-	if hasInlineImage {
+	if hasImg {
 		h.sendInlineImages(ctx, msg, replyContent)
 	}
 
@@ -607,6 +648,216 @@ func (h *Handler) sendInlineImages(ctx context.Context, msg *types.PlatformMessa
 // stripInlineImages 从文本中去掉 markdown 图片语法 ![alt](url)，避免微信 text_item 当文字显示。
 func stripInlineImages(text string) string {
 	return inlineImageRe.ReplaceAllString(text, "")
+}
+
+// deriveMarkdownTitle 从 markdown 内容生成钉钉卡片标题：取第一行非空文本，
+// 去掉行首 # 标记与前后空白，截断 20 字（rune 计数，避免中文截半）。空内容兜底 "消息通知"。
+// 钉钉 sampleMarkdown 的 title 字段必填，用于通知栏/会话列表预览。
+func deriveMarkdownTitle(content string) string {
+	for _, line := range strings.Split(content, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		line = strings.TrimSpace(strings.TrimLeft(line, "#"))
+		if line == "" {
+			continue
+		}
+		r := []rune(line)
+		if len(r) > 20 {
+			line = string(r[:20])
+		}
+		return line
+	}
+	return "消息通知"
+}
+
+// dingMarkdownMaxBytes 钉钉 sampleMarkdown 单条 msgParam body 上限 20000 bytes。
+// content 经 JSON 转义会膨胀（\n→\\n、"→\" 等，中文不变），按 18000 留余量，
+// 避免超限被钉钉 400 拒收（invalidParameter.msgParam.tooLong）。
+const dingMarkdownMaxBytes = 18000
+
+// dingMarkdownSegGap 钉钉多条 markdown卡片间的发送间隔，降低撞频控（130101/4001003）概率。
+const dingMarkdownSegGap = 300 * time.Millisecond
+
+// dingStreamSegmentBytes 钉钉非流式路径流式分段下发的「攒够阈值」。
+// SSE 生成期间，未下发部分攒够该字节量就切出一条完整段落下发（不等全部生成完），缓解长回复干等。
+// 必须 < dingMarkdownMaxBytes：若等于/超过，5000 字回复（~15000 bytes）永远攒不够一段，
+// 会一路攒到 isFinal 一次性发，干等问题不解决。3000 bytes ≈ 1000 中文字，5000 字回复约 5 条卡片、
+// 首条约 6 秒到达（按 167 字/秒估），兼顾实时性与刷屏。单段仍以 dingMarkdownMaxBytes 为上限防 20000 超限。
+const dingStreamSegmentBytes = 3000
+
+// dingStreamState 钉钉流式分段下发的累积状态。
+// sentBytes 标记 fullContent 中已成功下发的前缀长度（失败段不前移，循环后 isFinal 兜底重发）；
+// segCount 已下发段数，用于续号 title；baseTitle 缓存首段计算的标题（内容增长 title 不变，避免重复计算）。
+type dingStreamState struct {
+	sentBytes int
+	segCount  int
+	baseTitle string
+	hasTitle  bool
+}
+
+// planDingStreamCuts 为钉钉流式分段下发计算切分点（pending 内的字节偏移，递增，最后一个 <= len(pending)）。
+// 纯函数，不下发，便于表驱动测试。pending 为未下发部分（fullContent[sentBytes:]）。
+//   - 非最终（!isFinal）：仅在攒够阈值（len(pending) >= streamBytes）时切，每段 ≤ maxBytes。先在
+//     pending[:min(len,maxBytes)] 找最后一个 \n\n 切（段落边界，干净）；找不到且 pending >= 2*maxBytes
+//     （极端长段落）按行（\n）兜底切；仍找不到则不切（留到 isFinal），避免切断正在生成的标题/行。
+//     非最终不发没有 \n\n 收尾的尾巴段（可能还在生成），故只返回最多 1 个切分点。
+//   - 最终（isFinal）：从 pending 头部逐段切到尾部，发出全部剩余（含尾巴）。每段 ≤ maxBytes：
+//     段落边界优先 → 行兜底 → 字节硬切（UTF-8 边界回退）。
+//
+// 返回 nil 表示本轮不下发（短回复攒不够、或非最终未找到边界）。
+func planDingStreamCuts(pending string, streamBytes, maxBytes int, isFinal bool) []int {
+	if pending == "" {
+		return nil
+	}
+	if !isFinal {
+		// 非最终：攒够阈值才切，避免碎卡
+		if len(pending) < streamBytes {
+			return nil
+		}
+		// 段落边界优先：在前 maxBytes 范围内找最后一个 \n\n
+		if cut := lastParagraphBoundary(pending, maxBytes); cut > 0 {
+			return []int{cut}
+		}
+		// 极端长段落（pending >= 2*maxBytes 仍无 \n\n）：按行兜底切
+		if len(pending) >= 2*maxBytes {
+			if cut := lastLineBoundary(pending, maxBytes); cut > 0 {
+				return []int{cut}
+			}
+		}
+		// 单行超长且无边界（maxBytes 内无 \n）：不切，留到下个 chunk 或 isFinal，避免切断正在生成的内容
+		return nil
+	}
+	// 最终：从头部逐段切到尾部，发全部剩余（含尾巴），每段 ≤ maxBytes
+	var cuts []int
+	pos := 0
+	for pos < len(pending) {
+		remain := pending[pos:]
+		// 先尝试段落边界（切点 <= maxBytes）
+		if cut := lastParagraphBoundary(remain, maxBytes); cut > 0 {
+			pos += cut
+			cuts = append(cuts, pos)
+			continue
+		}
+		// 行兜底（单段落超 maxBytes）
+		if cut := lastLineBoundary(remain, maxBytes); cut > 0 {
+			pos += cut
+			cuts = append(cuts, pos)
+			continue
+		}
+		// 字节硬切：单行超 maxBytes。取 maxBytes 回退到 UTF-8 字符边界；不足 maxBytes 则取剩余全部（尾巴）
+		end := maxBytes
+		if end > len(remain) {
+			end = len(remain)
+		}
+		for end < len(remain) && end > 0 && !utf8.RuneStart(remain[end]) {
+			end--
+		}
+		if end == 0 {
+			end = maxBytes // maxBytes 小于单字符，强制切避免死循环
+			if end > len(remain) {
+				end = len(remain)
+			}
+		}
+		pos += end
+		cuts = append(cuts, pos)
+	}
+	return cuts
+}
+
+// lastParagraphBoundary 返回 s[:min(len(s),limit)] 内最后一个 \n\n 的切分点（\n\n 之后的位置）。
+// 找不到返回 0。切分点 <= limit。
+func lastParagraphBoundary(s string, limit int) int {
+	end := len(s)
+	if end > limit {
+		end = limit
+	}
+	idx := strings.LastIndex(s[:end], "\n\n")
+	if idx < 0 {
+		return 0
+	}
+	return idx + 2 // 跳过 \n\n，下一段从此处开始
+}
+
+// lastLineBoundary 返回 s[:min(len(s),limit)] 内最后一个 \n 的切分点（\n 之后的位置）。
+// 找不到返回 0。
+func lastLineBoundary(s string, limit int) int {
+	end := len(s)
+	if end > limit {
+		end = limit
+	}
+	idx := strings.LastIndexByte(s[:end], '\n')
+	if idx <= 0 {
+		return 0
+	}
+	return idx + 1
+}
+
+// flushDingTalkSegments 从 fullContent[st.sentBytes:] 切出可下发的完整段并 SendMarkdown 下发。
+// 钉钉非流式路径（!isWeChat && streamSender==nil）的流式分段下发：SSE 生成期间攒够一段就发一条 markdown
+// 卡片，不等全部生成完，缓解长回复干等。
+//
+// 切分由 planDingStreamCuts 计算（段落边界优先，干净）；每个下发的段先 stripInvalidUTF8（字符级安全）
+// + stripInlineImages + stripCitations（段在 \n\n/\n 边界切出，标记完整包含、不跨边界，安全）+ TrimSpace，
+// 空段跳过。isFinal=false 时只发完整段（有边界收尾），不发可能还在生成的尾巴；isFinal=true 强制发全部剩余。
+//
+// sentBytes 按下发原文前移，但仅在该段 SendMarkdown 成功后才前移 + segCount++ —— 失败段不前移，
+// 循环后 isFinal 会兜底重发（含已失败段）。返回发送中遇到的第一个 error（频控/网络），nil 表示正常。
+func (h *Handler) flushDingTalkSegments(ctx context.Context, msg *types.PlatformMessage, fullContent string, st *dingStreamState, isFinal bool) error {
+	pending := fullContent[st.sentBytes:]
+	cuts := planDingStreamCuts(pending, dingStreamSegmentBytes, dingMarkdownMaxBytes, isFinal)
+	if len(cuts) == 0 {
+		return nil
+	}
+	// 首段计算并缓存标题（内容增长 title 不变）
+	if !st.hasTitle {
+		st.baseTitle = deriveMarkdownTitle(fullContent)
+		st.hasTitle = true
+	}
+	sentThisRound := 0 // 本轮已成功下发字节数（用于段间间隔判断）
+	for _, cut := range cuts {
+		rawSeg := pending[sentThisRound:cut]
+		sentThisRound = cut
+		seg := stripInvalidUTF8(rawSeg)
+		seg = stripInlineImages(seg)
+		seg = stripCitations(seg)
+		seg = strings.TrimSpace(seg)
+		if seg == "" {
+			// 空段（如纯引用/纯图片段 strip 后为空）：不下发，但仍前移 sentBytes 跳过，避免卡死
+			st.sentBytes += len(rawSeg)
+			continue
+		}
+		title := st.baseTitle
+		if st.segCount > 0 {
+			title = fmt.Sprintf("%s(续%d)", st.baseTitle, st.segCount+1)
+		}
+		if err := h.manager.SendMarkdown(ctx, msg.ChannelID, msg.UserID, title, seg); err != nil {
+			return err
+		}
+		st.sentBytes += len(rawSeg)
+		st.segCount++
+		log.Infof("[AgentSSE] channel=%s user=%s incremental markdown segment %d sent (final=%v), %d chars, sentBytes=%d/%d",
+			msg.ChannelID, msg.UserID, st.segCount, isFinal, len(seg), st.sentBytes, len(fullContent))
+		// 段间短间隔（最后一段除外），降低撞钉钉频控（130101/4001003）概率
+		if cut != cuts[len(cuts)-1] {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(dingMarkdownSegGap):
+			}
+		}
+	}
+	return nil
+}
+
+// sendWGADingTalkMarkdown 钉钉 WGA 正文段以 markdown 卡片下发（渲染 md），与普通 agent 路径一致。
+// WGA 逐段实时下发，每段一张 md 卡片：title 取段首行（deriveMarkdownTitle，去#截20字，空兜底"消息通知"），
+// content 为段原文（md 语法由钉钉 sampleMarkdown 渲染）。失败返回 error，调用方 Warn 不中止生成
+// （与原 SendMessage 行为对齐——过程段丢失不阻断后续段/产物下发）。
+func (h *Handler) sendWGADingTalkMarkdown(ctx context.Context, msg *types.PlatformMessage, segment string) error {
+	title := deriveMarkdownTitle(segment)
+	return h.manager.SendMarkdown(ctx, msg.ChannelID, msg.UserID, title, segment)
 }
 
 // downloadImage HTTP GET 下载图片字节。URL 为 minio 带签名直链（签名全在 query，无需鉴权 header），
@@ -866,7 +1117,23 @@ func (h *Handler) handleWGASSEResponse(ctx context.Context, ch *model.Channel, m
 					}
 					continue
 				}
-				if err := h.manager.SendMessage(ctx, msg.ChannelID, msg.UserID, segment, msg.Extra); err != nil {
+				// 钉钉：markdown 卡片渲染 md（与普通 agent 路径一致，治 WGA 正文 md 语法裸露）；
+				// 微信/飞书：纯文本 SendMessage。
+				if ch.ChannelType == types.ChannelTypeDingTalk {
+					if err := h.sendWGADingTalkMarkdown(ctx, msg, segment); err != nil {
+						log.Warnf("[WGA-SSE] channel=%s user=%s send markdown segment failed: %v",
+							ch.ChannelID, msg.UserID, err)
+					} else {
+						log.Infof("[WGA-SSE] channel=%s user=%s sent markdown segment (%d chars): %s",
+							ch.ChannelID, msg.UserID, len(segment), truncate(segment, 50))
+					}
+					// 段间短间隔，降低撞钉钉频控（130101/4001003）概率
+					select {
+					case <-ctx.Done():
+						return ctx.Err()
+					case <-time.After(dingMarkdownSegGap):
+					}
+				} else if err := h.manager.SendMessage(ctx, msg.ChannelID, msg.UserID, segment, msg.Extra); err != nil {
 					log.Warnf("[WGA-SSE] channel=%s user=%s send text segment failed: %v",
 						ch.ChannelID, msg.UserID, err)
 				} else {
@@ -948,6 +1215,15 @@ wgaDone:
 			if !strings.HasSuffix(segment, "\n") {
 				deferredText.WriteByte('\n')
 			}
+		} else if ch.ChannelType == types.ChannelTypeDingTalk {
+			// 钉钉：markdown 卡片渲染 md（与循环内逐段一致）
+			if err := h.sendWGADingTalkMarkdown(ctx, msg, segment); err != nil {
+				log.Warnf("[WGA-SSE] channel=%s user=%s send trailing markdown segment failed: %v",
+					ch.ChannelID, msg.UserID, err)
+			} else {
+				log.Infof("[WGA-SSE] channel=%s user=%s sent trailing markdown segment (%d chars)",
+					ch.ChannelID, msg.UserID, len(segment))
+			}
 		} else if err := h.manager.SendMessage(ctx, msg.ChannelID, msg.UserID, segment, msg.Extra); err != nil {
 			log.Warnf("[WGA-SSE] channel=%s user=%s send trailing text segment failed: %v",
 				ch.ChannelID, msg.UserID, err)
@@ -999,7 +1275,10 @@ wgaDone:
 	// 加载 thread 累积清单，作为跨 run 回发信号传入 sendWorkspaceFiles。
 	accumulated := h.artifactMgr.ListArtifacts(ctx, ch.ChannelID, msg.UserID, threadID)
 
-	_ = h.sendWorkspaceFiles(ctx, ch, msg, threadID, runID, mentionedFiles, fullText.String(), producedFiles, accumulated)
+	if err := h.sendWorkspaceFiles(ctx, ch, msg, threadID, runID, mentionedFiles, fullText.String(), producedFiles, accumulated); err != nil {
+		log.Warnf("[WGA-SSE] channel=%s user=%s send workspace files failed: %v",
+			ch.ChannelID, msg.UserID, err)
+	}
 	return nil
 }
 

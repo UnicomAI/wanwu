@@ -218,10 +218,10 @@ func (s *ChannelService) CreateChannel(ctx context.Context, req *channel_service
 
 	// 微信通道 baseUrl 为空时设置默认值
 	if req.ChannelType == "wechat" {
+		if req.Config == nil {
+			req.Config = make(map[string]string)
+		}
 		if req.Config["baseUrl"] == "" {
-			if req.Config == nil {
-				req.Config = make(map[string]string)
-			}
 			req.Config["baseUrl"] = "https://ilinkai.weixin.qq.com"
 		}
 	}

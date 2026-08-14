@@ -192,6 +192,242 @@ func (c *Client) ChatWithAgent(ctx context.Context, apiKey string, chatReq *Chat
 	return resp, nil
 }
 
+// --- 对话流（chatflow）API ---
+
+// ChatflowCreateConversationRequest 对话流创建会话请求
+type ChatflowCreateConversationRequest struct {
+	UUID             string `json:"uuid"`
+	ConversationName string `json:"conversation_name"`
+}
+
+// ChatflowCreateConversationResponse 对话流创建会话响应
+type ChatflowCreateConversationResponse struct {
+	ConversationID string `json:"conversation_id"`
+}
+
+// ChatflowChatRequest 对话流对话请求（SSE 流式）
+type ChatflowChatRequest struct {
+	UUID           string         `json:"uuid"`
+	ConversationID string         `json:"conversation_id"`
+	Query          string         `json:"query"`
+	Parameters     map[string]any `json:"parameters,omitempty"`
+}
+
+// ChatflowInput 对话流开始节点的单个输入参数（解析自 workflow 服务的 schema_by_wanwu）
+type ChatflowInput struct {
+	Name        string // 入参变量名（画布开始节点声明）
+	Type        string // 类型：string / integer / ...
+	Required    bool   // 是否必填
+	Description string // schema 的 description，用于启发式区分文件型入参
+}
+
+// CreateChatflowConversation 调用对话流创建会话接口（对齐 bff /openapi/v1/chatflow/conversation）
+func (c *Client) CreateChatflowConversation(ctx context.Context, apiKey string, req *ChatflowCreateConversationRequest) (*ChatflowCreateConversationResponse, error) {
+	reqURL := fmt.Sprintf("%s/openapi/v1/chatflow/conversation", c.baseURL)
+
+	bodyBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal chatflow create conversation request: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(string(bodyBytes)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+apiKey)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call chatflow create conversation api: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("chatflow create conversation api returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var wanwuResp wanwuResponse
+	if err := json.Unmarshal(body, &wanwuResp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+	if wanwuResp.Code != 0 {
+		return nil, fmt.Errorf("chatflow create conversation api error: code=%d, msg=%s", wanwuResp.Code, wanwuResp.Msg)
+	}
+
+	var convResp ChatflowCreateConversationResponse
+	if err := json.Unmarshal(wanwuResp.Data, &convResp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal chatflow conversation data: %w", err)
+	}
+	return &convResp, nil
+}
+
+// ChatWithChatflow 调用对话流对话接口（SSE 流式，对齐 bff /openapi/v1/chatflow/chat）
+func (c *Client) ChatWithChatflow(ctx context.Context, apiKey string, chatReq *ChatflowChatRequest) (*http.Response, error) {
+	reqURL := fmt.Sprintf("%s/openapi/v1/chatflow/chat", c.baseURL)
+
+	bodyBytes, err := json.Marshal(chatReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal chatflow chat request: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(string(bodyBytes)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "text/event-stream")
+
+	// SSE 流式不设置超时（同 ChatWithAgent）
+	streamClient := &http.Client{}
+	resp, err := streamClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call chatflow chat api: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		return nil, fmt.Errorf("chatflow chat api returned status %d: %s", resp.StatusCode, string(body))
+	}
+	return resp, nil
+}
+
+// UploadChatflowFile 上传文件到对话流（对齐 bff /openapi/v1/chatflow/file/upload）。
+// 与 UploadFile 的差异：multipart 字段名是 "file"（单文件），响应是 plain text 的 presign URL（非 JSON）。
+// 该 presign URL 作为对话流 chat parameters 的 value（key=开始节点入参变量名）。
+func (c *Client) UploadChatflowFile(ctx context.Context, apiKey, fileName, mimeType string, data []byte) (string, error) {
+	reqURL := fmt.Sprintf("%s/openapi/v1/chatflow/file/upload", c.baseURL)
+
+	var buf bytes.Buffer
+	writer := multipart.NewWriter(&buf)
+	// 对话流文件上传字段名为 "file"（单文件），非 "files"
+	part, err := writer.CreateFormFile("file", fileName)
+	if err != nil {
+		return "", fmt.Errorf("failed to create form file: %w", err)
+	}
+	if _, err := part.Write(data); err != nil {
+		return "", fmt.Errorf("failed to write file data: %w", err)
+	}
+	if err := writer.Close(); err != nil {
+		return "", fmt.Errorf("failed to close multipart writer: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, &buf)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+apiKey)
+	httpReq.Header.Set("Content-Type", writer.FormDataContentType())
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return "", fmt.Errorf("failed to call chatflow upload api: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("chatflow upload api returned status %d: %s", resp.StatusCode, string(body))
+	}
+	// 响应是 plain text 的 presign URL（无 JSON 包裹）
+	return strings.TrimSpace(string(body)), nil
+}
+
+// GetChatflowInputs 获取对话流开始节点的输入参数列表。
+// 调下游 workflow 服务 GET {workflowEndpoint}/v1/workflow/{uuid}/schema_by_wanwu，
+// 解析 OpenAPI schema 的 requestBody.properties + required。
+// 鉴权：只要 X-Org-Id / X-User-Id（不要 JWT，实测确认）。
+// uuid 即 workflow_id，无需转换（实测确认）。
+func (c *Client) GetChatflowInputs(ctx context.Context, workflowEndpoint, uuid, orgID, userID string) ([]ChatflowInput, error) {
+	reqURL := fmt.Sprintf("%s/v1/workflow/%s/schema_by_wanwu", strings.TrimRight(workflowEndpoint, "/"), uuid)
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	httpReq.Header.Set("X-Org-Id", orgID)
+	httpReq.Header.Set("X-User-Id", userID)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call chatflow schema api: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("chatflow schema api returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	return parseChatflowInputs(body)
+}
+
+// parseChatflowInputs 从 OpenAPI schema 响应中解析开始节点输入参数。
+// schema 结构（实测）：paths.{path}.post.requestBody.content.application/json.schema.properties = {name:{type}}
+// 及同层 .required = [name,...]
+func parseChatflowInputs(schemaJSON []byte) ([]ChatflowInput, error) {
+	var schema struct {
+		Paths map[string]struct {
+			Post struct {
+				RequestBody struct {
+					Content struct {
+						AppJSON struct {
+							Schema struct {
+								Properties map[string]struct {
+									Type        string `json:"type"`
+									Description string `json:"description"`
+								} `json:"properties"`
+								Required []string `json:"required"`
+							} `json:"schema"`
+						} `json:"application/json"`
+					} `json:"content"`
+				} `json:"requestBody"`
+			} `json:"post"`
+		} `json:"paths"`
+	}
+	if err := json.Unmarshal(schemaJSON, &schema); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal chatflow schema: %w", err)
+	}
+
+	// 遍历 paths（实测只有一个），取首个含 requestBody 的
+	for _, path := range schema.Paths {
+		props := path.Post.RequestBody.Content.AppJSON.Schema.Properties
+		if len(props) == 0 {
+			return nil, nil
+		}
+		requiredSet := make(map[string]bool, len(path.Post.RequestBody.Content.AppJSON.Schema.Required))
+		for _, r := range path.Post.RequestBody.Content.AppJSON.Schema.Required {
+			requiredSet[r] = true
+		}
+		inputs := make([]ChatflowInput, 0, len(props))
+		// required 优先排在前面，便于调用方按顺序填附件
+		for name := range props {
+			if requiredSet[name] {
+				inputs = append(inputs, ChatflowInput{Name: name, Type: props[name].Type, Required: true, Description: props[name].Description})
+			}
+		}
+		for name := range props {
+			if !requiredSet[name] {
+				inputs = append(inputs, ChatflowInput{Name: name, Type: props[name].Type, Required: false, Description: props[name].Description})
+			}
+		}
+		return inputs, nil
+	}
+	return nil, nil
+}
+
 // --- WGA 通用智能体数据结构 ---
 
 // WGACreateConversationRequest WGA 创建对话请求

@@ -11,6 +11,7 @@ import (
 func registerChannel(apiV1 *gin.RouterGroup) {
 	// 万悟平台代理
 	mid.Sub("operation").Reg(apiV1, "/channel/agent", http.MethodGet, v1.ListWanwuAgents, "获取万悟智能体列表")
+	mid.Sub("operation").Reg(apiV1, "/channel/chatflow", http.MethodGet, v1.ListWanwuChatflows, "获取万悟对话流列表")
 	mid.Sub("operation").Reg(apiV1, "/channel/apikeys", http.MethodGet, v1.ListWanwuApiKeys, "获取万悟API Key列表")
 	mid.Sub("operation").Reg(apiV1, "/channel/models", http.MethodGet, v1.ListWanwuModels, "获取万悟模型列表")
 

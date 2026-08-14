@@ -97,7 +97,26 @@ func (c *StreamClient) OnMessage(handler MessageHandler) {
 // Start 启动 Stream 连接（非阻塞）
 func (c *StreamClient) Start(ctx context.Context) error {
 	go c.run(ctx)
+	// 去重缓存定期清理：每 2 分钟清一次过期记录（5 分钟前），随 ctx/stopChan 退出。
+	// 不再每条消息触发全量扫描，避免高频入站时的 goroutine 风暴与重复 O(n) 遍历。
+	go c.cleanupSeenMsgIDsLoop(ctx)
 	return nil
+}
+
+// cleanupSeenMsgIDsLoop 定时清理过期的消息去重记录，随 ctx 或 stopChan 退出而结束。
+func (c *StreamClient) cleanupSeenMsgIDsLoop(ctx context.Context) {
+	ticker := time.NewTicker(2 * time.Minute)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-c.stopChan:
+			return
+		case <-ticker.C:
+			c.cleanupSeenMsgIDs()
+		}
+	}
 }
 
 // run 主循环：连接 → 处理消息 → 断线重连
@@ -426,7 +445,7 @@ func (c *StreamClient) handleCallbackMessage(ctx context.Context, message []byte
 		if msg.Sender != "" && msg.Content != "" {
 			c.seenMsgDigest.Store(msg.Sender+":"+msg.Content, time.Now())
 		}
-		go c.cleanupSeenMsgIDs()
+		// 过期记录由 cleanupSeenMsgIDsLoop 定时清理，不再每条消息触发。
 
 		log.Infof("[DingTalk Stream] Received message from %s, content=%s, channelID=%s, sessionWebhook=%s, messageId=%s",
 			msg.Sender, truncate(msg.Content, 100), msg.ChannelID, truncate(msg.SessionWebhook, 50), msg.MessageID)
@@ -1271,6 +1290,9 @@ func (c *StreamClient) CreateAndDeliverCard(
 	cardInstanceID := generateCardInstanceID(senderID, conversationID)
 
 	// 构建创建卡片请求
+	// 注意：不设置 userIdType。官方 dingtalk_stream SDK 的 AICardReplier.create_and_deliver_card
+	// 单聊/群聊均不发送 userIdType 字段；硬编码 userIdType=1(unionId) 会与 openSpaceId 里的
+	// staffId 类型不匹配，导致卡片实例创建成功(200)但投递目标无效、用户收不到。
 	createReq := CreateAndDeliverCardRequest{
 		CardTemplateID: cardTemplateID,
 		OutTrackID:     cardInstanceID,
@@ -1280,7 +1302,6 @@ func (c *StreamClient) CreateAndDeliverCard(
 		CallbackType:          "STREAM",
 		ImGroupOpenSpaceModel: &CardSpaceModel{SupportForward: true},
 		ImRobotOpenSpaceModel: &CardSpaceModel{SupportForward: true},
-		UserIDType:            1,
 	}
 
 	// 根据群聊/单聊设置投放目标
@@ -1313,6 +1334,8 @@ func (c *StreamClient) CreateAndDeliverCard(
 	defer func() { _ = resp.Body.Close() }()
 
 	respBody, _ := io.ReadAll(resp.Body)
+	log.Infof("[DingTalk Stream] createAndDeliver resp: status=%d, openSpaceId=%s, senderID=%s, isInGroup=%v, body=%s",
+		resp.StatusCode, createReq.OpenSpaceID, senderID, isInGroup, string(respBody))
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("create card failed: status=%d, body=%s", resp.StatusCode, string(respBody))
 	}
@@ -1363,10 +1386,12 @@ func (c *StreamClient) StreamingCard(
 	}
 	defer func() { _ = resp.Body.Close() }()
 
+	respBody, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		respBody, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("streaming card failed: status=%d, body=%s", resp.StatusCode, string(respBody))
 	}
+	log.Debugf("[DingTalk Stream] streaming resp: status=%d, cardInstanceID=%s, isFinalize=%v, body=%s",
+		resp.StatusCode, cardInstanceID, isFinalize, string(respBody))
 
 	return nil
 }
@@ -1421,8 +1446,10 @@ func (c *StreamClient) updateCard(ctx context.Context, cardInstanceID string, ca
 	}
 	defer func() { _ = resp.Body.Close() }()
 
+	respBody, _ := io.ReadAll(resp.Body)
+	log.Debugf("[DingTalk Stream] updateCard resp: status=%d, cardInstanceID=%s, flowStatus=%s, body=%s",
+		resp.StatusCode, cardInstanceID, cardData["flowStatus"], string(respBody))
 	if resp.StatusCode != http.StatusOK {
-		respBody, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("update card failed: status=%d, body=%s", resp.StatusCode, string(respBody))
 	}
 

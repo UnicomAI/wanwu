@@ -17,6 +17,7 @@ type Config struct {
 	DB       db.Config      `json:"db" mapstructure:"db"`
 	Redis    redis.Config   `json:"redis" mapstructure:"redis"`
 	BFF      BFFConfig      `json:"bff" mapstructure:"bff"`
+	Workflow WorkflowConfig `json:"workflow" mapstructure:"workflow"`
 	DingTalk DingTalkConfig `json:"dingtalk" mapstructure:"dingtalk"`
 	WeChat   WeChatConfig   `json:"wechat" mapstructure:"wechat"`
 }
@@ -35,6 +36,12 @@ type LogConfig struct {
 // BFFConfig 万悟 BFF 服务地址，用于代理调用 OpenAPI
 type BFFConfig struct {
 	ApiBaseUrl string `json:"api_base_url" mapstructure:"api_base_url"`
+}
+
+// WorkflowConfig 下游 workflow 服务地址，用于获取对话流开始节点输入参数
+// （GET /v1/workflow/{uuid}/schema_by_wanwu，鉴权只要 X-Org-Id/X-User-Id）
+type WorkflowConfig struct {
+	Endpoint string `json:"endpoint" mapstructure:"endpoint"`
 }
 
 // DingTalkConfig 钉钉通道配置
