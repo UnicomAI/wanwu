@@ -319,6 +319,7 @@ func DeleteCustomSkill(ctx *gin.Context, userId, orgId, skillId string) error {
 	if skill == nil {
 		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_custom_not_found")
 	}
+	oldPublishType := appPublishTypeOf(ctx, skillId, constant.AppTypeSkill)
 
 	if _, err := app.DeleteApp(ctx.Request.Context(), &app_service.DeleteAppReq{
 		AppId:   skillId,
@@ -328,6 +329,7 @@ func DeleteCustomSkill(ctx *gin.Context, userId, orgId, skillId string) error {
 	}); err != nil {
 		return err
 	}
+	notifyAppDeleted(ctx, userId, orgId, skillId, constant.AppTypeSkill, skill.GetName(), oldPublishType)
 	if skill.WgaThreadId != "" {
 		if err := deleteGeneralAgentConversationForSkillDelete(ctx, userId, orgId, request.DeleteGeneralAgentConversationReq{ThreadID: skill.WgaThreadId}); err != nil {
 			return err
