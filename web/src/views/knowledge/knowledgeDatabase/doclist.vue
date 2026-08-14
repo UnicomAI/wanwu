@@ -624,8 +624,17 @@ export default {
     FilterPopover,
     createKnowledge,
   },
+  beforeRouteLeave(to, from, next) {
+    // 仅当返回知识库列表时标记下次进入需重置;去文件详情/图谱等子页返回时保留
+    if (to.path === '/knowledge') {
+      this.shouldResetOnNextEntry = true;
+    }
+    next();
+  },
   data() {
     return {
+      // 从知识库返回列表(/knowledge)后再进入时,需重置搜索/页码;从文件详情等子页返回则保留
+      shouldResetOnNextEntry: false,
       avatar: '',
       knowledgeName: '',
       description: '',
@@ -726,6 +735,10 @@ export default {
   },
   activated() {
     if (this.readonly) return;
+    if (this.shouldResetOnNextEntry) {
+      this.shouldResetOnNextEntry = false;
+      this.resetDocQueryState();
+    }
     this.docQuery.knowledgeId = this.effectiveKnowledgeId;
     this.getTableData(this.docQuery);
     getDocDetail({ knowledgeId: this.docQuery.knowledgeId }).then(res => {
@@ -768,6 +781,22 @@ export default {
   methods: {
     convertModelIcon(iconPath) {
       return iconPath ? avatarSrc(iconPath) : getModelDefaultIcon();
+    },
+    resetDocQueryState() {
+      this.docQuery.docName = '';
+      this.docQuery.metaType = 'string';
+      this.docQuery.metaValue = '';
+      this.docQuery.metaStartTime = '';
+      this.docQuery.metaEndTime = '';
+      this.docQuery.status = [ALL];
+      this.docQuery.graphStatus = [ALL];
+      this.docQuery.docIdList = [];
+      this.metaDateRange = null;
+      this.$refs.searchInput?.clearValue();
+      this.$refs.searchInputMeta?.clearValue();
+      if (this.$refs.pagination) {
+        this.$refs.pagination.pageNo = 1;
+      }
     },
     showEdit() {
       this.$refs.createKnowledge.showDialog({

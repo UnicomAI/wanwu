@@ -1,8 +1,8 @@
 <template>
   <div class="global-filter-wrapper">
-    <span class="global-filter-label">
-      {{ $t('statisticsDashboard.global') }}:
-    </span>
+    <div class="global-filter-label">
+      {{ $t('statisticsDashboard.selectOrgTitle') }}:
+    </div>
     <el-select
       v-model="filterParams.orgIds"
       :placeholder="$t('statisticsDashboard.selectOrg')"
@@ -11,10 +11,11 @@
         'scroll-select',
         { 'hide-tag-close': isOrgSelectedAll },
       ]"
-      style="margin-left: 15px; width: 420px"
+      style="margin-left: 15px; width: 260px"
       multiple
       filterable
       clearable
+      collapse-tags
       @change="handleOrgChange"
     >
       <el-option :label="$t('statisticsDashboard.all')" :value="ALL" />
@@ -25,6 +26,9 @@
         :value="item.id"
       />
     </el-select>
+    <div class="global-filter-label" style="margin-left: 10px">
+      {{ $t('statisticsDashboard.selectUserTitle') }}:
+    </div>
     <el-select
       v-model="filterParams.userIds"
       :placeholder="$t('statisticsDashboard.selectUser')"
@@ -33,8 +37,9 @@
         'scroll-select',
         { 'hide-tag-close': isUserSelectedAll },
       ]"
-      style="margin-left: 15px; width: 420px"
+      style="margin-left: 15px; width: 260px"
       multiple
+      collapse-tags
       filterable
       clearable
       @change="handleUserChange"
@@ -140,6 +145,10 @@ export default {
   display: flex;
   align-items: center;
   padding: 5px 24px;
+  .global-filter-label {
+    width: 56px;
+    margin-right: -3px;
+  }
 }
 .hide-tag-close {
   ::v-deep .el-tag__close {

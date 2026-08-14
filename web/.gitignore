@@ -28,5 +28,6 @@ jsconfig.json
 
 # Agent files
 .lingma
+.claude
 .learnings
 CLAUDE.md

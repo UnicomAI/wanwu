@@ -106,6 +106,7 @@ import {
   convertLatexSyntax,
   parseSubConversation,
   getXClientId,
+  formatReqUrl,
 } from '@/utils/util.js';
 import { processToolResultBlocks } from '@/utils/toolResultProcessor.js';
 import {
@@ -632,7 +633,7 @@ export default {
 
       const api = getRecommendQuestionUrl(this.type, params.assistantId);
       let headers = {
-        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Content-Type': 'application/json',
         Authorization: 'Bearer ' + this.token,
         'x-user-id': this.userInfo.uid,
         'x-org-id': this.userInfo.orgId,
@@ -650,7 +651,7 @@ export default {
       }
 
       const _this = this;
-      fetchEventSource(api, {
+      fetchEventSource(formatReqUrl(api), {
         method: 'POST',
         signal,
         openWhenHidden: true,
@@ -678,7 +679,7 @@ export default {
         },
 
         onmessage: msgData => {
-          if (msgData.data) {
+          if (msgData.data && msgData.data !== '[DONE]') {
             try {
               const _data = JSON.parse(msgData.data);
               const choice = _data.choices && _data.choices[0];

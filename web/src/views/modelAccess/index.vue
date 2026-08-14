@@ -326,6 +326,8 @@ export default {
       modelSelection: [],
       type: '',
       tabList: TAB_LIST,
+      isDefaultListLoaded: false,
+      openingMessageModelId: '',
     };
   },
   computed: {
@@ -338,8 +340,18 @@ export default {
   created() {
     this.type = this.$route.query.type || '';
   },
-  mounted() {
-    this.getTableData();
+  watch: {
+    '$route.query': {
+      handler() {
+        this.openModelFromMessageCenter();
+      },
+      deep: true,
+    },
+  },
+  async mounted() {
+    await this.getTableData();
+    this.isDefaultListLoaded = true;
+    this.openModelFromMessageCenter();
   },
   methods: {
     avatarSrc,
@@ -402,15 +414,36 @@ export default {
       this.$refs.createDialog &&
         this.$refs.createDialog.openDialog(item.key, null, providerType);
     },
+    async openModelDetail(modelId, provider) {
+      if (!modelId) return;
+
+      const res = await getModelDetail({ modelId });
+      const rowObj = res.data || {};
+      const newRow = { ...rowObj, ...rowObj.config };
+      this.$refs.createDialog &&
+        this.$refs.createDialog.openDialog(provider || rowObj.provider, newRow);
+    },
+    async openModelFromMessageCenter() {
+      const { from, modelId } = this.$route.query || {};
+      if (
+        !this.isDefaultListLoaded ||
+        from !== 'messageCenter' ||
+        !modelId ||
+        this.openingMessageModelId === modelId
+      ) {
+        return;
+      }
+
+      this.openingMessageModelId = modelId;
+      try {
+        await this.openModelDetail(modelId);
+      } finally {
+        this.openingMessageModelId = '';
+      }
+    },
     preUpdate(row) {
       const { modelId, provider } = row || {};
-
-      getModelDetail({ modelId }).then(res => {
-        const rowObj = res.data || {};
-        const newRow = { ...rowObj, ...rowObj.config };
-        this.$refs.createDialog &&
-          this.$refs.createDialog.openDialog(provider, newRow);
-      });
+      this.openModelDetail(modelId, provider);
     },
     preDel(row) {
       this.$confirm(

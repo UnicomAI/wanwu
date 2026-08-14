@@ -222,6 +222,6 @@ export default {
   },
 };
 </script>
-<style lang="scss">
-@import '@/style/echart';
+<style lang="scss" scoped>
+@import '@/style/echart.scss';
 </style>

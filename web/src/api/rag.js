@@ -43,3 +43,107 @@ export const delRag = data => {
     data,
   });
 };
+/**
+ * 创建已发布知识问答应用的会话。
+ * @param {Object} data 请求参数。
+ * @param {string} data.ragId 知识问答应用 ID。
+ * @param {string} data.prompt 首轮提问，用于生成会话标题。
+ */
+export const createRagConversation = data => {
+  return service({
+    url: `${USER_API}/rag/conversation`,
+    method: 'post',
+    data,
+  });
+};
+
+/**
+ * 查询已发布知识问答应用的历史会话列表。
+ * @param {Object} params 查询参数。
+ * @param {string} params.ragId 知识问答应用 ID。
+ * @param {number} params.pageNo 页码，从 1 开始。
+ * @param {number} params.pageSize 每页条数。
+ * @param {string} [params.searchText] 会话标题搜索关键字。
+ */
+export const getRagConversationList = params => {
+  return service({
+    url: `${USER_API}/rag/conversation/list`,
+    method: 'get',
+    params,
+  });
+};
+
+/**
+ * 查询指定已发布知识问答会话的多轮消息详情。
+ * @param {Object} params 查询参数。
+ * @param {string} params.ragId 知识问答应用 ID。
+ * @param {string} params.conversationId 会话 ID。
+ * @param {number} params.pageNo 页码，从 1 开始。
+ * @param {number} params.pageSize 每页条数。
+ */
+export const getRagConversationDetail = params => {
+  return service({
+    url: `${USER_API}/rag/conversation/detail`,
+    method: 'get',
+    params,
+  });
+};
+
+/**
+ * 删除已发布知识问答会话；传入 detailId 时仅删除指定的一轮问答。
+ * @param {Object} data 请求参数。
+ * @param {string} data.ragId 知识问答应用 ID。
+ * @param {string} data.conversationId 会话 ID。
+ * @param {string} [data.detailId] 单轮问答 ID。
+ */
+export const deleteRagConversation = data => {
+  return service({
+    url: `${USER_API}/rag/conversation`,
+    method: 'delete',
+    data,
+  });
+};
+
+/**
+ * 清空已发布知识问答会话的消息，但保留会话本身；传入 detailId 时仅清除指定的一轮问答。
+ * @param {Object} data 请求参数。
+ * @param {string} data.ragId 知识问答应用 ID。
+ * @param {string} data.conversationId 会话 ID。
+ * @param {string} [data.detailId] 单轮问答 ID。
+ */
+export const clearRagConversation = data => {
+  return service({
+    url: `${USER_API}/rag/conversation/clear`,
+    method: 'delete',
+    data,
+  });
+};
+
+/**
+ * 查询知识问答草稿态的单一会话历史。
+ * @param {Object} params 查询参数。
+ * @param {string} params.ragId 知识问答应用 ID。
+ * @param {number} [params.pageNo=1] 页码，从 1 开始。
+ * @param {number} [params.pageSize=20] 每页条数。
+ */
+export const getRagDraftConversationDetail = params => {
+  return service({
+    url: `${USER_API}/rag/conversation/draft/detail`,
+    method: 'get',
+    params,
+  });
+};
+
+/**
+ * 删除知识问答草稿态会话；传入 detailId 时仅删除指定的一轮问答。
+ * @param {Object} data 请求参数。
+ * @param {string} data.ragId 知识问答应用 ID。
+ * @param {string} [data.detailId] 单轮问答 ID。
+ */
+export const deleteRagDraftConversation = data => {
+  return service({
+    url: `${USER_API}/rag/conversation/draft`,
+    method: 'delete',
+    data,
+  });
+};

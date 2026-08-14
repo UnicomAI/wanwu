@@ -1,217 +1,170 @@
 <template>
   <el-dialog
-    :title="$t('statisticsDashboard.detailTitle')"
     :visible.sync="dialogVisible"
     append-to-body
     :close-on-click-modal="false"
-    width="800px"
+    width="720px"
+    custom-class="dashboard-record-detail-dialog"
   >
-    <div v-if="type === 'list'" class="detail-infos">
-      <p>
-        <label>{{ $t('statisticsDashboard.name') }}:</label>
-        <span>{{ row.name }}</span>
-      </p>
-      <p>
-        <label>{{ 'API Key' }}:</label>
-        <span>{{ row.apiKey ? row.apiKey.slice(0, 6) + '******' : '--' }}</span>
-      </p>
-      <!--<p>
-        <label>{{ $t('statisticsDashboard.model') }}:</label>
-        <span>{{ row.model || '--' }}</span>
-      </p>-->
-      <p>
-        <label>{{ $t('statisticsDashboard.apiPath') }}:</label>
-        <span>{{ row.methodPath || '--' }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.org') }}:</label>
-        <span>{{ row.orgName || '--' }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.userName') }}:</label>
-        <span>{{ row.userName || '--' }}</span>
-      </p>
-      <p>
-        <label>
-          {{
-            $t('statisticsDashboard.appCallCount') +
-            ` (${$t('statisticsDashboard.frequency')})`
-          }}:
-        </label>
-        <span>
-          {{ formatAmount(row.callCount) }}
-        </span>
-      </p>
-      <p>
-        <label>
-          {{
-            $t('statisticsDashboard.appCallFailure') +
-            ` (${$t('statisticsDashboard.frequency')})`
-          }}:
-        </label>
-        <span>{{ formatAmount(row.callFailure) }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.avgStreamCosts') + ` (ms)` }}:</label>
-        <span>{{ formatAmount(row.avgStreamCosts) }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.avgCosts') + ` (ms)` }}:</label>
-        <span>{{ formatAmount(row.avgNonStreamCosts) }}</span>
-      </p>
-      <p>
-        <label>
-          {{
-            $t('statisticsDashboard.streamCount') +
-            ` (${$t('statisticsDashboard.frequency')})`
-          }}:
-        </label>
-        <span>{{ formatAmount(row.streamCount) }}</span>
-      </p>
-      <p>
-        <label>
-          {{
-            $t('statisticsDashboard.nonStreamCount') +
-            ` (${$t('statisticsDashboard.frequency')})`
-          }}:
-        </label>
-        <span>{{ formatAmount(row.nonStreamCount) }}</span>
-      </p>
-      <!--<p>
-        <label>{{ $t('statisticsDashboard.apiPromptTokens') }}:</label>
-        <span>{{ formatAmount(row.promptTokens) }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.apiCompletionTokens') }}:</label>
-        <span>{{ formatAmount(row.completionTokens) }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.apiTotalTokens') }}:</label>
-        <span>{{ formatAmount(row.totalTokens) }}</span>
-      </p>-->
+    <div slot="title" class="dialog-title-wrap">
+      <span class="dialog-title">{{ title }}</span>
+      <el-tag
+        v-if="currentRow.isSuccess"
+        type="success"
+        size="small"
+        class="status-tag"
+      >
+        {{ $t('statisticsDashboard.success') }}
+      </el-tag>
+      <el-tag
+        v-else-if="isFailed"
+        type="danger"
+        size="small"
+        class="status-tag"
+      >
+        {{ $t('statisticsDashboard.error') }}
+      </el-tag>
     </div>
-    <div v-else class="detail-infos">
-      <p>
-        <label>{{ $t('statisticsDashboard.name') }}:</label>
-        <span>{{ row.name }}</span>
-      </p>
-      <p>
-        <label>{{ 'API Key' }}:</label>
-        <span>{{ row.apiKey ? row.apiKey.slice(0, 6) + '******' : '--' }}</span>
-      </p>
-      <!--<p>
-        <label>{{ $t('statisticsDashboard.model') }}:</label>
-        <span>{{ row.model || '&#45;&#45;' }}</span>
-      </p>-->
-      <p>
-        <label>{{ $t('statisticsDashboard.apiPath') }}:</label>
-        <span>{{ row.methodPath || '--' }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.org') }}:</label>
-        <span>{{ row.orgName || '--' }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.userName') }}:</label>
-        <span>{{ row.userName || '--' }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.responseStatus') }}:</label>
-        <span>
-          {{ row.responseStatus || '--' }}
-        </span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.callTime') }}:</label>
-        <span>{{ row.callTime || '--' }}</span>
-      </p>
-      <!--<p>
-        <label>{{ $t('statisticsDashboard.reqStart') }}:</label>
-        <span>{{ row.requestStartAt || '&#45;&#45;' }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.firstTokenCreated') }}:</label>
-        <span>{{ row.firstTokenCreated || '&#45;&#45;' }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.lastTokenCreated') }}:</label>
-        <span>{{ row.lastTokenCreated || '&#45;&#45;' }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.apiPromptTokens') }}:</label>
-        <span>{{ formatAmount(row.promptTokens) }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.apiCompletionTokens') }}:</label>
-        <span>{{ formatAmount(row.completionTokens) }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.apiTotalTokens') }}:</label>
-        <span>{{ formatAmount(row.totalTokens) }}</span>
-      </p>-->
-      <p>
-        <label>{{ $t('statisticsDashboard.streamCosts') + ` (ms)` }}:</label>
-        <span>{{ formatAmount(row.streamCosts) }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.nonStreamCosts') + ` (ms)` }}:</label>
-        <span>{{ formatAmount(row.nonStreamCosts) }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.reqContent') }}:</label>
-        <span>{{ row.requestBody || '--' }}</span>
-      </p>
-      <p>
-        <label>{{ $t('statisticsDashboard.resContent') }}:</label>
-        <span>{{ row.responseBody || '--' }}</span>
-      </p>
-      <!--<p>
-        <label>{{ $t('statisticsDashboard.finishReason') }}:</label>
-        <span>{{ row.finishReason || '&#45;&#45;' }}</span>
-      </p>-->
+    <div v-if="currentRow" class="detail-body">
+      <!-- 基本信息 -->
+      <div class="dashboard-section info-section">
+        <div class="info-grid">
+          <div class="info-item">
+            <label>{{ $t('statisticsDashboard.module') }}</label>
+            <div>
+              <AppTypeTag :app-type="currentRow.module" />
+            </div>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('statisticsDashboard.appType') }}</label>
+            <div>
+              <AppTypeTag :app-type="currentRow.appType" />
+            </div>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('statisticsDashboard.appAuthor') }}</label>
+            <div>{{ currentRow.moduleCreatorUserName || '--' }}</div>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('statisticsDashboard.appAuthorOrg') }}</label>
+            <div>{{ currentRow.moduleCreatorOrgName || '--' }}</div>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('statisticsDashboard.user') }}</label>
+            <div>{{ currentRow.userName || '--' }}</div>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('statisticsDashboard.userOrg') }}</label>
+            <div>{{ currentRow.orgName || '--' }}</div>
+          </div>
+          <div class="info-item">
+            <label>{{ $t('statisticsDashboard.callTime') }}</label>
+            <div>{{ currentRow.calledAt || '--' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 性能指标 -->
+      <div class="dashboard-section perf-section">
+        <div class="section-title">
+          {{ $t('statisticsDashboard.perfMetrics') }}
+        </div>
+        <div class="perf-grid">
+          <div class="perf-item">
+            <label>{{ $t('statisticsDashboard.costs') }}</label>
+            <span class="perf-value">
+              {{ formatSec(currentRow.costs) }}
+            </span>
+          </div>
+          <div class="perf-item">
+            <label>{{ $t('statisticsDashboard.firstTokenLatency') }}</label>
+            <span class="perf-value">
+              {{ formatSec(currentRow.firstTokenLatency) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 失败原因 -->
+      <div v-if="isFailed" class="dashboard-section fail-section">
+        <div class="section-title fail-title">
+          {{ $t('statisticsDashboard.failReason') }}
+        </div>
+        <div class="fail-content">
+          {{ currentRow.failureReason || '--' }}
+        </div>
+      </div>
+
+      <!-- 输入内容 -->
+      <div class="dashboard-section content-section">
+        <div class="section-title">
+          {{ $t('statisticsDashboard.reqContent') }}
+        </div>
+        <div class="content-box">{{ currentRow.requestBody || '--' }}</div>
+      </div>
+
+      <!-- 输出内容 -->
+      <div class="dashboard-section content-section">
+        <div class="section-title">
+          {{ $t('statisticsDashboard.resContent') }}
+        </div>
+        <div class="content-box">{{ currentRow.responseBody || '--' }}</div>
+      </div>
+    </div>
+
+    <div slot="footer" class="dialog-footer">
+      <el-button size="mini" @click="dialogVisible = false">
+        {{ $t('common.button.close') }}
+      </el-button>
     </div>
   </el-dialog>
 </template>
 
 <script>
-import { formatAmount } from '@/utils/util.js';
+import { formatAmount, formatSec } from '@/utils/util.js';
+import AppTypeTag from '../app/appTypeTag.vue';
+
 export default {
+  components: { AppTypeTag },
   props: {
-    type: '',
+    visible: {
+      type: Boolean,
+      default: false,
+    },
+    row: {
+      type: Object,
+      default: () => ({}),
+    },
   },
-  data() {
-    return {
-      dialogVisible: false,
-      row: {},
-    };
+  computed: {
+    dialogVisible: {
+      get() {
+        return this.visible;
+      },
+      set(val) {
+        this.$emit('update:visible', val);
+      },
+    },
+    currentRow() {
+      return this.row || {};
+    },
+    title() {
+      const name = this.currentRow?.apiName || '';
+      return name
+        ? `${name} - ${this.$t('statisticsDashboard.detailTitle')}`
+        : this.$t('statisticsDashboard.detailTitle');
+    },
+    isFailed() {
+      return this.currentRow.isSuccess === false;
+    },
   },
   methods: {
     formatAmount,
-    openDialog(row) {
-      this.row = row;
-      this.dialogVisible = true;
-    },
+    formatSec,
   },
 };
 </script>
 
 <style lang="scss" scoped>
-.detail-infos {
-  margin-top: -26px;
-  p {
-    padding: 10px 0;
-    display: flex;
-    label {
-      display: inline-block;
-      width: 150px;
-    }
-    span {
-      display: inline-block;
-      width: 0;
-      flex: 1;
-      position: relative;
-      margin-left: 10px;
-    }
-  }
-}
+@import '@/style/statisticsDetail.scss';
 </style>

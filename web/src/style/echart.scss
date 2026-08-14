@@ -1,12 +1,13 @@
 .apiEchartBox {
   border-radius: 5px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.06);
   padding-top: 15px;
 
   #api {
     width: 100%;
     height: 300px;
     border-radius: 5px;
+    position: relative;
 
     textarea {
       line-height: 1.8 !important;
@@ -15,6 +16,13 @@
 
     h4 {
       // margin: 10px 0 !important
+    }
+
+    ::v-deep .el-empty {
+      .el-empty__image {
+        width: 120px !important;
+        height: auto;
+      }
     }
   }
 

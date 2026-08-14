@@ -1,7 +1,7 @@
 import service from '@/utils/request';
 import { SERVICE_API } from '@/utils/requestConstants';
 import { store } from '@/store';
-import { getXClientId } from '@/utils/util';
+import { getXClientId, formatReqUrl } from '@/utils/util';
 
 // 基础路径
 const BASE_URL = `${SERVICE_API}/general/agent`;
@@ -226,7 +226,7 @@ export const updateGeneralAgentConversationConfig = data => {
  * @param {AbortSignal} signal - 取消信号
  * @param {number} timeout - 超时时间（毫秒），默认 5 分钟
  */
-const streamSSE = async ({
+export const streamSSE = async ({
   url,
   body,
   onMessage,
@@ -360,7 +360,7 @@ export const chatGeneralAgentConversation = async ({
   timeout,
 }) => {
   return streamSSE({
-    url: `${location.origin}${BASE_URL}/conversation/chat`,
+    url: `${location.origin}${formatReqUrl(BASE_URL + '/conversation/chat')}`,
     body: { threadId, agentId, messages },
     onMessage,
     onError,
@@ -390,7 +390,7 @@ export const connectGeneralAgentConversation = async ({
   timeout,
 }) => {
   return streamSSE({
-    url: `${location.origin}${BASE_URL}/conversation/connect`,
+    url: `${location.origin}${formatReqUrl(BASE_URL + '/conversation/connect')}`,
     body: { threadId },
     onMessage,
     onError,
@@ -566,7 +566,7 @@ export const chatGeneralAgentSkillConversation = async ({
   timeout,
 }) => {
   return streamSSE({
-    url: `${location.origin}${BASE_URL}/skill/conversation/chat`,
+    url: `${location.origin}${formatReqUrl(BASE_URL + '/skill/conversation/chat')}`,
     body: { customSkillId, threadId, mode, previewId, messages },
     onMessage,
     onError,
@@ -624,7 +624,7 @@ export const connectGeneralAgentSkillConversation = async ({
   timeout,
 }) => {
   return streamSSE({
-    url: `${location.origin}${BASE_URL}/skill/conversation/connect`,
+    url: `${location.origin}${formatReqUrl(BASE_URL + '/skill/conversation/connect')}`,
     body: { previewId, threadId },
     onMessage,
     onError,

@@ -196,6 +196,11 @@ const constantRoutes = [
         meta: { perm: [PERMS.EXPLORE] },
       },
       {
+        path: '/explore/digitalEmployee',
+        component: resolve => require(['@/views/digitalEmployee'], resolve),
+        meta: { perm: [PERMS.EXPLORE] },
+      },
+      {
         path: '/agent/test',
         component: resolve =>
           require(['@/views/agent/components/form'], resolve),
@@ -473,6 +478,13 @@ const constantRoutes = [
         path: '/adminCenter/rag/detail',
         component: resolve =>
           require(['@/views/adminCenter/rag/detail.vue'], resolve),
+        meta: {},
+      },
+      {
+        path: '/messageCenter',
+        name: 'messageCenter',
+        component: resolve =>
+          require(['@/views/messageCenter/index.vue'], resolve),
         meta: {},
       },
     ],

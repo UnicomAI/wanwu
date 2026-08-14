@@ -210,17 +210,43 @@
           prop="parentId"
         >
           <el-select
-            v-model="form.parentId"
+            ref="parentSelect"
+            v-model="parentOrgName"
             :placeholder="$t('common.select.placeholder')"
             style="width: 100%"
+            popper-class="org-tree-select-dropdown"
             filterable
+            :filter-method="filterParentOrg"
+            @visible-change="handleParentSelectVisibleChange"
           >
             <el-option
-              v-for="item in orgTreeData"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
+              :value="form.parentId"
+              :label="parentOrgName"
+              style="height: auto; background: #fff; padding: 0"
+            >
+              <el-tree
+                ref="parentOrgTree"
+                :data="orgTreeData"
+                :props="parentOrgTreeProps"
+                node-key="orgId"
+                default-expand-all
+                highlight-current
+                :current-node-key="form.parentId"
+                :expand-on-click-node="false"
+                :filter-node-method="filterNode"
+                @node-click="handleParentNodeClick"
+              >
+                <span
+                  slot-scope="{ node, data }"
+                  :class="[
+                    'org-tree-node-label',
+                    { 'is-disabled': !data.hasPerm },
+                  ]"
+                >
+                  {{ node.label }}
+                </span>
+              </el-tree>
+            </el-option>
           </el-select>
         </el-form-item>
         <el-form-item
@@ -295,7 +321,7 @@ import {
   editOrg,
   changeOrgStatus,
   deleteOrg,
-  fetchOrgTreeSelect,
+  fetchOrgTree,
 } from '@/api/permission/org';
 import { mapActions } from 'vuex';
 import { avatarSrc } from '@/utils/util';
@@ -360,6 +386,11 @@ export default {
       dialogVisible: false,
       submitLoading: false,
       orgTreeData: [],
+      parentOrgTreeProps: {
+        label: 'name',
+        children: 'children',
+      },
+      parentOrgName: '',
       isUpdateParent: false,
     };
   },
@@ -386,8 +417,44 @@ export default {
       this.preUpdate();
     },
     async fetchOrgTree() {
-      const res = await fetchOrgTreeSelect();
-      this.orgTreeData = res.data?.select || [];
+      const res = await fetchOrgTree();
+      this.orgTreeData = res.data || [];
+    },
+    findOrgName(orgId, nodes) {
+      if (!orgId || !nodes) return '';
+      for (const node of nodes) {
+        if (node.orgId === orgId) return node.name;
+        if (node.children && node.children.length) {
+          const found = this.findOrgName(orgId, node.children);
+          if (found) return found;
+        }
+      }
+      return '';
+    },
+    setParentOrgName(orgId) {
+      this.parentOrgName = this.findOrgName(orgId, this.orgTreeData);
+    },
+    handleParentNodeClick(node) {
+      if (!node.hasPerm) {
+        this.$refs.parentOrgTree &&
+          this.$refs.parentOrgTree.setCurrentKey(this.form.parentId);
+        return;
+      }
+      this.form.parentId = node.orgId;
+      this.parentOrgName = node.name;
+      this.$refs.parentSelect && this.$refs.parentSelect.blur();
+    },
+    filterParentOrg(val) {
+      this.$refs.parentOrgTree && this.$refs.parentOrgTree.filter(val);
+    },
+    filterNode(value, data) {
+      if (!value) return true;
+      return data.name && data.name.includes(value);
+    },
+    handleParentSelectVisibleChange(visible) {
+      if (!visible) {
+        this.$refs.parentOrgTree && this.$refs.parentOrgTree.filter('');
+      }
     },
     async fetchCurrentOrgDetail() {
       const res = await fetchOrgDetail({ orgId: this.selectedOrgId });
@@ -435,10 +502,13 @@ export default {
       });
       if (!this.isEdit) {
         this.form.parentId = this.selectedOrgId;
+        this.setParentOrgName(this.selectedOrgId);
       }
       this.dialogVisible = true;
       this.$nextTick(() => {
         this.$refs.form && this.$refs.form.clearValidate();
+        this.$refs.parentOrgTree &&
+          this.$refs.parentOrgTree.setCurrentKey(this.form.parentId);
       });
     },
     preDel(row) {
@@ -457,6 +527,7 @@ export default {
           // 删除组织后，更新左侧的组织树
           this.updateOrgTree(row.orgId);
           await this.getTableData();
+          await this.fetchOrgTree();
           await this.getOrgInfo();
         }
       });
@@ -642,6 +713,19 @@ export default {
   > .el-tree-node__content {
   background-color: $color_opacity !important;
   color: $color !important;
+  font-weight: 500 !important;
+}
+
+::v-deep .el-tree-node:focus > .el-tree-node__content {
+  background: rgba(255, 255, 255, 0);
+}
+
+::v-deep .el-tree-node__content:hover {
+  background-color: #f5f7fa !important;
+}
+
+::v-deep .org-tree-node-label.is-disabled {
+  opacity: 0.46 !important;
 }
 
 ::v-deep .el-tree-node__label {

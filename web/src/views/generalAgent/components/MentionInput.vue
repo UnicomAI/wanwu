@@ -96,6 +96,11 @@ export default {
       type: Boolean,
       default: false,
     },
+    // 禁用 @ 提及（固定数字员工场景：不展示 @ 弹窗、不解析 @ 切换，保证员工不可切换）
+    disableMention: {
+      type: Boolean,
+      default: false,
+    },
     // 提交前的处理（校验...）
     beforeEnterSubmit: {
       type: Function,
@@ -367,6 +372,8 @@ export default {
 
     handleSenderKeyup(e) {
       if (this.showConfigPopover) return;
+      else if (this.disableMention)
+        return; // 固定数字员工：禁用 @ 提及弹窗与切换
       else if (e.key === '@' || +e.key === 2) {
         const { instance, offset } = this.sender.getCurrentNode();
         if (instance?.type !== 'Write') return;

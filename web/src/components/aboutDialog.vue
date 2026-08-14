@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    :visible.sync="dialogVisible"
+    :visible="visible"
     width="720px"
     append-to-body
     :close-on-click-modal="false"
@@ -34,14 +34,22 @@ export default {
   components: {
     MdRender,
   },
+  props: {
+    visible: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     return {
-      dialogVisible: false,
       about: {},
       content: '',
     };
   },
   watch: {
+    visible(value) {
+      if (value) this.fetchAboutDetail();
+    },
     commonInfo: {
       handler(val) {
         const { about } = val.data || {};
@@ -60,12 +68,9 @@ export default {
         this.content = res.data?.releaseNotes || '';
       });
     },
-    openDialog() {
-      this.fetchAboutDetail();
-      this.dialogVisible = true;
-    },
-    handleClose() {
-      this.dialogVisible = false;
+    handleClose(done) {
+      this.$emit('update:visible', false);
+      done();
     },
   },
 };

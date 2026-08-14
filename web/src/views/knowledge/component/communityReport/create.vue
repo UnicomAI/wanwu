@@ -113,6 +113,7 @@ import {
   createCommunityReport,
   editCommunityReportList,
 } from '@/api/knowledge';
+import { avatarSrc } from '@/utils/util';
 import fileUpload from '@/components/fileUpload';
 import {
   createSegment,
@@ -137,7 +138,7 @@ export default {
       },
       type: 'add',
       dialogVisible: false,
-      templateUrl: '/user/api/v1/files/docs/report.csv',
+      templateUrl: avatarSrc('/v1/files/docs/report.csv'),
       title: '',
     };
   },

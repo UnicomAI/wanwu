@@ -162,13 +162,10 @@
     }
 
     .dataOverview {
-      padding: 20px;
       margin-bottom: 20px;
       margin-top: 15px;
-      background: #fff;
       flex: 1;
       border-radius: 5px;
-      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
 
       .client_dataOverview_content {
         display: flex;
@@ -177,60 +174,65 @@
         margin-top: 20px;
 
         .card {
-          position: relative;
-          width: 24%;
-          height: 120px;
-          background: rgb(245, 246, 249);
-          border-radius: 4px;
-          padding: 15px 0;
+          width: 19%;
+          height: 90px;
+          background: #f7f8fa;
+          border-radius: 8px;
+          padding: 20px;
           margin-left: 0.5%;
           margin-right: 0.5%;
           margin-bottom: 20px;
           display: flex;
-          flex-direction: column;
-          align-items: center;
           justify-content: space-between;
+          align-items: flex-start;
 
-          &:nth-last-child(-n + 4) {
+          &:nth-last-child(-n + 5) {
             margin-bottom: 0;
           }
 
-          span {
-            position: relative;
+          .card-left {
+            display: flex;
+            flex-direction: column;
 
-            &:last-child {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
+            .card-title {
               font-size: 12px;
-              color: rgb(171, 176, 181);
+              color: #606266;
+              margin-bottom: 8px;
             }
 
-            label {
-              color: #303133;
-              margin-left: 10px;
-              font-weight: bold;
-              font-size: 14px;
-            }
-
-            img {
-              width: 13px;
-              vertical-align: middle;
+            .card-value {
+              strong {
+                font-size: 17px;
+                font-weight: 600;
+                color: #303133;
+              }
             }
           }
 
-          strong {
-            font-size: 15px;
-          }
+          .card-right {
+            .card-tag {
+              display: inline-flex;
+              align-items: center;
+              padding: 3px 8px;
+              border-radius: 12px;
+              font-size: 11px;
+              font-weight: 500;
+              margin-top: -5px;
+              margin-right: -8px;
+              min-width: 30px;
+              text-align: center;
+              justify-content: center;
 
-          i {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            top: 5px;
-            left: -13px;
-            z-index: 1;
+              img {
+                width: 13px;
+                margin-right: 4px;
+              }
+
+              &.default-tag {
+                color: #abb0b5;
+                background: rgba(171, 176, 181, 0.1);
+              }
+            }
           }
         }
       }
@@ -259,6 +261,107 @@
       }
     }
   }
+}
+
+.dashboard-tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0 0 0;
+
+  .manage-btn {
+    border-color: $color;
+    color: $color;
+  }
+}
+
+.visual-chart-content {
+  .chart-modules {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    margin-top: 20px;
+
+    .data_echart {
+      width: calc(50% - 10px);
+      margin-bottom: 0;
+
+      &.full-width {
+        width: 100%;
+      }
+    }
+  }
+
+  .ranking-modules {
+    display: flex;
+    gap: 20px;
+
+    .ranking-module {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+}
+
+.model-list-section {
+  margin-top: 20px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+
+  .model-list-wrap {
+    margin-top: 20px;
+  }
+}
+
+.manage-tips {
+  color: #909399;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.manage-list {
+  .manage-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background: #f5f7fa;
+    border-radius: 4px;
+    cursor: move;
+
+    .drag-icon {
+      color: #909399;
+      margin-right: 12px;
+      font-size: 16px;
+    }
+
+    .manage-item-name {
+      flex: 1;
+      font-size: 14px;
+      color: #303133;
+    }
+  }
+}
+
+.data_echart_ranking {
+  .apiEchartBox {
+    padding: 20px 0;
+  }
+}
+
+::v-deep .el-dialog__body {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+::v-deep .model-manage-dialog {
+  z-index: 3000 !important;
+}
+
+::v-deep .model-manage-dialog + .v-modal {
+  z-index: 2999 !important;
 }
 
 .hide-tag-close {

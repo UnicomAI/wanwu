@@ -59,7 +59,6 @@
         <VersionPopover
           ref="versionPopover"
           v-if="publishType"
-          style="pointer-events: auto"
           :appId="editForm.appId"
           :appType="RAG"
           @reloadData="reloadData"
@@ -307,6 +306,7 @@
       </div>
       <div class="drawer-test block">
         <Chat
+          ref="ragDraftChat"
           :editForm="editForm"
           :chatType="'test'"
           :disableClick="disableClick"
@@ -658,7 +658,7 @@ export default {
             this.editForm.desc = res.data.desc;
             this.editForm.visionConfig = res.data.visionConfig;
             // 临时隐藏visionConfig的配置，全都设置为1
-            this.editForm.visionConfig.picNum = 1;
+            // this.editForm.visionConfig.picNum = 1;
 
             this.setModelInfo(res.data.modelConfig.modelId);
 
@@ -712,6 +712,7 @@ export default {
               // 更新基准数据，避免 watch 误判
               this.initialEditForm = structuredClone(this.editForm);
               this.isSettingFromDetail = false;
+              this.$refs.ragDraftChat?.loadDraftConversationHistory();
             });
           } else {
             this.isSettingFromDetail = false;
