@@ -11,7 +11,7 @@ import (
 )
 
 func Register(openAPI *gin.RouterGroup) {
-	// agent — 基础管理（无单一资源 uuid 或字段名不一，moduleCreator 取 API Key 所属用户，与 WGA 管理接口一致）
+	// agent — 基础管理
 	mid.Sub("openapi").RegWithAPIType(openAPI, "/agent", http.MethodPost, openapi.CreateAgent, "创建智能体OpenAPI", constant.OpenAPITypeAgent,
 		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppAgent, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
 	mid.Sub("openapi").RegWithAPIType(openAPI, "/agent", http.MethodPut, openapi.UpdateAgent, "更新智能体基本信息OpenAPI", constant.OpenAPITypeAgent,
@@ -47,9 +47,44 @@ func Register(openAPI *gin.RouterGroup) {
 		append([]gin.HandlerFunc{middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppAgent, middleware.WithOpenAPIAgentResource("uuid"))}, middleware.APIKeyRecord(middleware.RecordFromReq))...)
 	mid.Sub("openapi").RegWithAPIType(openAPI, "/agent/chat/draft", http.MethodPost, openapi.DraftChatAgent, "智能体草稿态对话OpenAPI", constant.OpenAPITypeAgent,
 		append([]gin.HandlerFunc{middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppAgent, middleware.WithOpenAPIDraftAgentResource("uuid"))}, middleware.APIKeyRecord(middleware.RecordStreamType))...)
-	// rag
+	// rag — 基础管理
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag", http.MethodPost, openapi.CreateRag, "创建知识问答OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag", http.MethodPut, openapi.UpdateRag, "更新知识问答基本信息OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag", http.MethodDelete, openapi.DeleteRag, "删除知识问答OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/list", http.MethodGet, openapi.ListRags, "知识问答列表OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/info", http.MethodGet, openapi.GetRagInfo, "获取知识问答详情OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/config", http.MethodPut, openapi.UpdateRagConfig, "更新知识问答配置OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType), middleware.AuthModelByUuid([]string{"modelConfig.modelId", "rerankConfig.modelId", "qaRerankConfig.modelId"}))
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/publish", http.MethodPost, openapi.PublishRag, "发布知识问答OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	// rag — 已发布会话管理
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/conversation", http.MethodPost, openapi.CreateRagConversation, "知识问答创建会话OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/conversation", http.MethodDelete, openapi.DeleteRagConversation, "删除知识问答会话OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/conversation/list", http.MethodGet, openapi.ListRagConversations, "知识问答会话列表OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/conversation/detail", http.MethodGet, openapi.GetRagConversationDetail, "知识问答会话历史消息OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/conversation/clear", http.MethodDelete, openapi.ClearRagConversation, "清空知识问答会话历史OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	// rag — 草稿态会话管理
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/conversation/draft/detail", http.MethodGet, openapi.GetRagDraftConversationDetail, "草稿知识问答会话历史消息OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/conversation/draft", http.MethodDelete, openapi.DeleteRagDraftConversation, "删除草稿知识问答会话历史OpenAPI", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	// rag — 问答
 	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/chat", http.MethodPost, openapi.ChatRag, "文本问答OpenAPI", constant.OpenAPITypeRag,
 		append([]gin.HandlerFunc{middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithAppResource(constant.AppTypeRag, "uuid"))}, middleware.APIKeyRecord(middleware.RecordFromReq))...)
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/file/upload", http.MethodPost, openapi.UploadRagFile, "知识问答OpenAPI文件上传", constant.OpenAPITypeRag,
+		middleware.AuthOpenAPIKey(), middleware.APIKeyRecord(middleware.RecordNonStreamType))
+	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/chat/draft", http.MethodPost, openapi.DraftChatRag, "知识问答草稿态对话OpenAPI", constant.OpenAPITypeRag,
+		append([]gin.HandlerFunc{middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithDraftAppResource(constant.AppTypeRag, "uuid"))}, middleware.APIKeyRecord(middleware.RecordFromReq))...)
 	// model
 	mid.Sub("openapi").RegWithAPIType(openAPI, "/model/list", http.MethodGet, openapi.ListModels, "模型列表查询OpenAPI", constant.OpenAPITypeModel, middleware.AuthOpenAPIKey(), middleware.APIKeyRecord(middleware.RecordNonStreamType))
 	// workflow

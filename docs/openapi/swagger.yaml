@@ -238,6 +238,75 @@ definitions:
         description: 模型供应商
         type: string
     type: object
+  request.AppPublishConfig:
+    properties:
+      publishType:
+        type: string
+    type: object
+  request.AppQAKnowledgeBase:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 头像
+      category:
+        description: 知识库类别 0-知识库，1-问答库，2-多模态知识库
+        type: integer
+      description:
+        description: 描述
+        type: string
+      id:
+        description: 知识库id
+        type: string
+      metaDataFilterParams:
+        $ref: '#/definitions/request.MetaDataFilterParams'
+      name:
+        type: string
+      orgName:
+        description: 知识库所属名称
+        type: string
+      share:
+        description: 是分享，还是私有
+        type: boolean
+    required:
+    - id
+    type: object
+  request.AppQAKnowledgebaseConfig:
+    properties:
+      config:
+        allOf:
+        - $ref: '#/definitions/request.AppQAKnowledgebaseParams'
+        description: 问答库参数
+      knowledgebases:
+        description: 问答库id、名字
+        items:
+          $ref: '#/definitions/request.AppQAKnowledgeBase'
+        type: array
+    type: object
+  request.AppQAKnowledgebaseParams:
+    properties:
+      keywordPriority:
+        description: 关键词权重
+        type: number
+      matchType:
+        description: matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
+        type: string
+      maxHistory:
+        description: 最长上下文
+        type: integer
+      priorityMatch:
+        description: 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1
+        type: integer
+      semanticsPriority:
+        description: 语义权重
+        type: number
+      threshold:
+        description: 过滤阈值
+        type: number
+      topK:
+        description: 知识条数
+        type: integer
+    type: object
   request.AppSafetyConfig:
     properties:
       enable:
@@ -661,15 +730,6 @@ definitions:
     - content
     - role
     type: object
-  request.History:
-    properties:
-      needHistory:
-        type: boolean
-      query:
-        type: string
-      response:
-        type: string
-    type: object
   request.KnowledgeDocExportReq:
     properties:
       docIdList:
@@ -1053,11 +1113,99 @@ definitions:
     required:
     - name
     type: object
+  request.OpenAPICreateRagRequest:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+    required:
+    - name
+    type: object
   request.OpenAPIRagChatRequest:
     properties:
-      history:
+      conversation_id:
+        description: 由创建会话接口获取，口径与页面侧一致：已发布问答必须先建会话
+        type: string
+      file_info:
+        description: 随问题携带的文件，当前仅支持 1 张图片(png/jpg/jpeg)
         items:
-          $ref: '#/definitions/request.History'
+          $ref: '#/definitions/request.ConversionStreamFile'
+        type: array
+      query:
+        type: string
+      stream:
+        type: boolean
+      uuid:
+        type: string
+    required:
+    - conversation_id
+    - query
+    - uuid
+    type: object
+  request.OpenAPIRagConfigUpdateRequest:
+    properties:
+      knowledgeBaseConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppKnowledgebaseConfig'
+        description: 知识库
+      modelConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 对话模型，modelId 传模型UUID
+      qaKnowledgeBaseConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppQAKnowledgebaseConfig'
+        description: 问答库
+      qaRerankConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 问答库Rerank模型，modelId 传模型UUID
+      recommendQuestion:
+        description: 推荐问题
+        items:
+          type: string
+        type: array
+      rerankConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 知识库Rerank模型，modelId 传模型UUID
+      safetyConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppSafetyConfig'
+        description: 安全护栏
+      uuid:
+        type: string
+      visionConfig:
+        allOf:
+        - $ref: '#/definitions/request.VisionConfig'
+        description: 视觉开关
+    required:
+    - uuid
+    type: object
+  request.OpenAPIRagCreateConversationRequest:
+    properties:
+      title:
+        description: 会话标题，一般取首个问题
+        type: string
+      uuid:
+        type: string
+    required:
+    - title
+    - uuid
+    type: object
+  request.OpenAPIRagDraftChatRequest:
+    properties:
+      file_info:
+        description: 随问题携带的文件，当前仅支持 1 张图片(png/jpg/jpeg)
+        items:
+          $ref: '#/definitions/request.ConversionStreamFile'
         type: array
       query:
         type: string
@@ -1068,6 +1216,23 @@ definitions:
     required:
     - query
     - uuid
+    type: object
+  request.OpenAPIRagPublishRequest:
+    properties:
+      desc:
+        type: string
+      publishType:
+        description: public:系统公开发布 organization:组织公开发布 private:私密发布
+        type: string
+      uuid:
+        type: string
+      version:
+        type: string
+    required:
+    - desc
+    - publishType
+    - uuid
+    - version
     type: object
   request.OpenAPIUpdateAgentRequest:
     properties:
@@ -1087,6 +1252,25 @@ definitions:
     required:
     - assistantUuid
     - name
+    type: object
+  request.OpenAPIUpdateRagRequest:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      uuid:
+        description: 知识问答UUID
+        type: string
+    required:
+    - name
+    - uuid
     type: object
   request.OpenAPIWgaConversationChatReq:
     properties:
@@ -2336,6 +2520,11 @@ definitions:
       uuid:
         type: string
     type: object
+  response.OpenAPICreateRagResponse:
+    properties:
+      uuid:
+        type: string
+    type: object
   response.OpenAPIModelListItem:
     properties:
       displayName:
@@ -2349,6 +2538,34 @@ definitions:
       scopeType:
         type: string
       uuid:
+        type: string
+    type: object
+  response.OpenAPIRagBriefInfo:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 头像信息
+      createdAt:
+        description: 创建时间
+        type: string
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      publishType:
+        description: public/organization/private，空字符串表示未发布（草稿）
+        type: string
+      updatedAt:
+        description: 最后更新时间
+        type: string
+      uuid:
+        description: 知识问答唯一标识，供后续接口使用
+        type: string
+      version:
+        description: 已发布版本号，未发布时为空
         type: string
     type: object
   response.OpenAPIRagChatData:
@@ -2376,6 +2593,18 @@ definitions:
         type: string
       msg_id:
         type: string
+    type: object
+  response.OpenAPIRagCreateConversationResponse:
+    properties:
+      conversation_id:
+        type: string
+    type: object
+  response.OpenAPIRagListResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/response.OpenAPIRagBriefInfo'
+        type: array
     type: object
   response.OpenMessageApi:
     properties:
@@ -2420,6 +2649,149 @@ definitions:
       pageSize:
         type: integer
       total:
+        type: integer
+    type: object
+  response.RagConversationDetailInfo:
+    properties:
+      conversationId:
+        type: string
+      createdAt:
+        type: integer
+      detailId:
+        type: string
+      errMessage:
+        type: string
+      prompt:
+        type: string
+      qaErrMessage:
+        description: 问答库检索失败原因，非空表示这轮是问答库报错后转的知识库
+        type: string
+      qaSearchList:
+        description: 问答库命中结果，与 searchList 互斥；null=没走问答库检索，""=检索未命中
+        type: string
+      qaSearchListTimeCost:
+        allOf:
+        - $ref: '#/definitions/response.RagTimeCost'
+        description: 问答库检索起止
+      ragId:
+        type: string
+      reasoningContent:
+        description: 深度思考过程；null=整轮没思考，""=思考过但无内容
+        type: string
+      reasoningTimeCost:
+        allOf:
+        - $ref: '#/definitions/response.RagTimeCost'
+        description: 深度思考起止
+      requestFiles:
+        items:
+          $ref: '#/definitions/response.RagRequestFile'
+        type: array
+      response:
+        type: string
+      searchList:
+        description: 知识库引用段落；null=没走知识库检索，""=检索无召回
+        type: string
+      searchListTimeCost:
+        allOf:
+        - $ref: '#/definitions/response.RagTimeCost'
+        description: 知识库检索起止
+      traceId:
+        description: 本轮问答的链路id，可据此关联应用/模型统计明细
+        type: string
+    type: object
+  response.RagConversationInfo:
+    properties:
+      conversationId:
+        type: string
+      createdAt:
+        type: string
+      ragId:
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  response.RagInfo:
+    properties:
+      appPublishConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppPublishConfig'
+        description: 发布配置
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      createdAt:
+        description: 创建时间
+        type: string
+      desc:
+        description: 描述
+        type: string
+      knowledgeBaseConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppKnowledgebaseConfig'
+        description: 知识库
+      modelConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 模型
+      name:
+        description: 名称
+        type: string
+      qaKnowledgeBaseConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppQAKnowledgebaseConfig'
+        description: 问答库
+      qaRerankConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 问答库Rerank模型
+      ragId:
+        type: string
+      recommendQuestion:
+        description: 推荐问题
+        items:
+          type: string
+        type: array
+      rerankConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: Rerank模型
+      safetyConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppSafetyConfig'
+        description: 敏感词表配置
+      updatedAt:
+        description: 更新时间
+        type: string
+      visionConfig:
+        allOf:
+        - $ref: '#/definitions/request.VisionConfig'
+        description: 视觉开关
+    required:
+    - knowledgeBaseConfig
+    - modelConfig
+    - name
+    - qaKnowledgeBaseConfig
+    - qaRerankConfig
+    - ragId
+    - rerankConfig
+    type: object
+  response.RagRequestFile:
+    properties:
+      fileName:
+        type: string
+      fileSize:
+        type: integer
+      fileUrl:
+        type: string
+    type: object
+  response.RagTimeCost:
+    properties:
+      end:
+        type: integer
+      start:
         type: integer
     type: object
   response.RagUploadFile:
@@ -4247,6 +4619,72 @@ paths:
       summary: OAuth获取用户信息
       tags:
       - openapi.OIDC
+  /rag:
+    delete:
+      description: 删除指定知识问答，同时删除其已发布版本。删除后不可恢复，请谨慎操作。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除知识问答OpenAPI
+      tags:
+      - openapi
+    post:
+      consumes:
+      - application/json
+      description: 创建一个知识问答应用（草稿态）。返回的 uuid 用于后续配置、发布与问答接口。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPICreateRagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.OpenAPICreateRagResponse'
+              type: object
+      summary: 创建知识问答OpenAPI
+      tags:
+      - openapi
+    put:
+      consumes:
+      - application/json
+      description: 修改名称、描述、图标等基本信息（模型、知识库等高级配置请使用 /rag/config）。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIUpdateRagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新知识问答基本信息OpenAPI
+      tags:
+      - openapi
   /rag/chat:
     post:
       consumes:
@@ -4271,6 +4709,385 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: 文本问答OpenAPI
+      tags:
+      - openapi
+  /rag/chat/draft:
+    post:
+      consumes:
+      - application/json
+      description: 基于草稿配置问答，不要求已发布，计入统计。响应格式与 /rag/chat 一致（stream=true 为 SSE，否则为一次性
+        JSON）。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIRagDraftChatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.OpenAPIRagChatResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 知识问答草稿态问答OpenAPI
+      tags:
+      - openapi
+  /rag/config:
+    put:
+      consumes:
+      - application/json
+      description: 更新模型、知识库、问答库、安全护栏等配置。除 uuid 外均为可选，只传要改的字段，未传的沿用当前草稿配置；模型 id 传模型UUID。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIRagConfigUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新知识问答配置OpenAPI
+      tags:
+      - openapi
+  /rag/conversation:
+    delete:
+      description: 删除整条会话（含全部历史消息）。只想清空消息、保留会话ID请用 /rag/conversation/clear。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 会话ID
+        in: query
+        name: conversation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除知识问答会话OpenAPI
+      tags:
+      - openapi
+    post:
+      consumes:
+      - application/json
+      description: 创建一条会话，返回的 conversation_id 用于 /rag/chat 携带上下文。不传 conversation_id
+        的问答不落历史。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIRagCreateConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.OpenAPIRagCreateConversationResponse'
+              type: object
+      summary: 知识问答创建会话OpenAPI
+      tags:
+      - openapi
+  /rag/conversation/clear:
+    delete:
+      description: 传 detail_id 只删该条问答，不传则清空整条会话的全部消息。两种情况会话ID都保留，可继续提问。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 会话ID
+        in: query
+        name: conversation_id
+        required: true
+        type: string
+      - description: 问答明细ID（不传则清空全部）
+        in: query
+        name: detail_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 清空/按条删除知识问答会话消息OpenAPI
+      tags:
+      - openapi
+  /rag/conversation/detail:
+    get:
+      description: 获取指定会话的历史问答明细，分页返回，含检索命中列表与耗时。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 会话ID（由创建会话接口返回）
+        in: query
+        name: conversation_id
+        required: true
+        type: string
+      - description: 页码，从 1 开始
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数，从 1 开始
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.RagConversationDetailInfo'
+                        type: array
+                    type: object
+              type: object
+      summary: 知识问答会话历史消息OpenAPI
+      tags:
+      - openapi
+  /rag/conversation/draft:
+    delete:
+      description: 传 detail_id 只删该条问答，不传则删除整条草稿会话。草稿会话尚未创建时直接返回成功。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 问答明细ID（不传则删除整条草稿会话）
+        in: query
+        name: detail_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除草稿知识问答会话消息OpenAPI
+      tags:
+      - openapi
+  /rag/conversation/draft/detail:
+    get:
+      description: 草稿态每个知识问答只维护一条会话，按 uuid 定位后分页返回问答明细。尚未发起过对话时返回空列表。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 页码，从 1 开始
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数，从 1 开始
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.RagConversationDetailInfo'
+                        type: array
+                    type: object
+              type: object
+      summary: 草稿知识问答会话历史消息OpenAPI
+      tags:
+      - openapi
+  /rag/conversation/list:
+    get:
+      description: 获取指定知识问答下的会话列表，按创建时间降序排列。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 页码，从 1 开始
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数，从 1 开始
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.RagConversationInfo'
+                        type: array
+                    type: object
+              type: object
+      summary: 知识问答会话列表OpenAPI
+      tags:
+      - openapi
+  /rag/file/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传随问题携带的文件，返回的 fileUrl 填进问答接口的 file_info 即可针对该文件提问。支持一次传多个文件。带文件提问仅支持
+        1 张图片（png/jpg/jpeg），且需打开视觉开关、对话模型支持图文问答、绑定多模态知识库、知识库 Rerank 为多模态 Rerank，不满足时问答接口直接报错。
+      parameters:
+      - description: 文件，可重复该字段传多个
+        in: formData
+        name: files
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.RagUploadResponse'
+              type: object
+      summary: 知识问答文件上传OpenAPI
+      tags:
+      - openapi
+  /rag/info:
+    get:
+      description: 获取知识问答详情，通过 published 参数控制返回草稿态或已发布态配置。返回中的模型 id 均为模型UUID。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: true=已发布态，false=草稿态（默认）
+        in: query
+        name: published
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.RagInfo'
+              type: object
+      summary: 获取知识问答详情OpenAPI
+      tags:
+      - openapi
+  /rag/list:
+    get:
+      description: 获取当前 API Key 所属用户下的全部知识问答（含草稿与已发布），可按名称模糊筛选。返回的 uuid 可用于其他知识问答接口。
+      parameters:
+      - description: 按名称模糊筛选（可选）
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.OpenAPIRagListResponse'
+              type: object
+      summary: 知识问答列表OpenAPI
+      tags:
+      - openapi
+  /rag/publish:
+    post:
+      consumes:
+      - application/json
+      description: 发布知识问答，发布后可通过 /rag/chat 进行正式问答。发布前需先配置对话模型。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIRagPublishRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 发布知识问答OpenAPI
       tags:
       - openapi
   /wga/conversation:

@@ -13,7 +13,6 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
-	sse_util "github.com/UnicomAI/wanwu/pkg/sse-util"
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
@@ -198,7 +197,6 @@ func ChatAgent(ctx *gin.Context) {
 //	@Success		400		{object}	response.Response
 //	@Router			/rag/chat [post]
 func ChatRag(ctx *gin.Context) {
-	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	var req request.OpenAPIRagChatRequest
 	if !gin_util.Bind(ctx, &req) {
 		return
@@ -211,54 +209,28 @@ func ChatRag(ctx *gin.Context) {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-
-	// 流式 —— openapi 固定走 legacy 格式（原 rag-service SSE JSON 透传），
-	// 不跟随 web 的 AG-UI 协议改造，避免破坏外部集成方的解析逻辑
-	if req.Stream {
-		if err := service.ChatRagStreamLegacy(ctx, userID, orgID, request.ChatRagRequest{RagID: req.UUID, Question: req.Query, History: req.History}, true, constant.BizSourceOpenAPI); err != nil {
+	// conversation_id 由调用方给，校验会话归属，避免写进他人会话
+	if req.ConversationID != "" {
+		if err := service.CheckRagConversationAccess(ctx, req.ConversationID, req.UUID, userID, orgID); err != nil {
 			gin_util.Response(ctx, nil, err)
+			return
 		}
-		return
 	}
-	// 非流式
-	startTime := time.Now()
-	chatCh, _, err := service.CallRagChatStream(ctx, ctx.Request.Context(), userID, orgID, request.ChatRagRequest{RagID: req.UUID, Question: req.Query, History: req.History}, true)
-	if err != nil {
-		statusCode, failureReason := service.GrpcErrorToHTTPStatus(err)
-		go func() {
-			defer util.PrintPanicStack()
-			service.RecordAppStatistic(detachedCtx, userID, orgID, req.UUID, constant.AppTypeRag, "",
-				statusCode, failureReason, false, 0, 0, constant.BizSourceOpenAPI, service.MarshalStatisticBody(req), "", req.Query, "")
-		}()
-		gin_util.Response(ctx, nil, err)
-		return
-	}
-	var output strings.Builder
-	resp := &response.OpenAPIRagChatResponse{}
-	for chat := range chatCh {
-		if !strings.HasPrefix(chat, "data:") || strings.HasPrefix(chat, strings.TrimSpace(sse_util.DONE_MSG)) {
-			continue
+	// 带文件提问的前置校验
+	if len(req.FileInfo) > 0 {
+		if err := service.CheckRagChatFileReady(ctx, userID, orgID, req.UUID, true); err != nil {
+			gin_util.Response(ctx, nil, err)
+			return
 		}
-		curr := &response.OpenAPIRagChatResponse{}
-		if err := json.Unmarshal([]byte(strings.TrimPrefix(chat, "data:")), curr); err != nil {
-			log.Errorf("[RAG] %v user %v org %v unmarshal %v err: %v", req.UUID, userID, orgID, err)
-			continue
-		}
-		resp = curr
-		output.WriteString(curr.Data.Output)
 	}
-	resp.Data.Output = output.String()
-	costs := time.Since(startTime).Milliseconds()
-	go func() {
-		defer util.PrintPanicStack()
-		service.RecordAppStatistic(detachedCtx, userID, orgID, req.UUID, constant.AppTypeRag, "",
-			200, "", false, 0, int64(costs), constant.BizSourceOpenAPI, service.MarshalStatisticBody(req), service.MarshalStatisticBody(resp), req.Query, resp.Data.Output)
-	}()
-	b, _ := json.Marshal(resp)
-	status := http.StatusOK
-	ctx.Set(gin_util.STATUS, status)
-	ctx.Set(gin_util.RESULT, string(b))
-	ctx.JSON(status, resp)
+
+	// openapi 固定走 legacy 格式，不跟随 web 的 AG-UI 协议改造
+	chatRagWithFormat(ctx, userID, orgID, request.ChatRagRequest{
+		RagID:          req.UUID,
+		Question:       req.Query,
+		FileInfo:       req.FileInfo,
+		ConversationID: req.ConversationID,
+	}, req.Stream, true, service.MarshalStatisticBody(req))
 }
 
 // DraftChatAgent

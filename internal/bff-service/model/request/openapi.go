@@ -62,14 +62,15 @@ func (req *OpenAPIAgentDraftChatRequest) Check() error {
 }
 
 type OpenAPIRagChatRequest struct {
-	UUID    string     `json:"uuid" validate:"required"`
-	Query   string     `json:"query" validate:"required"`
-	Stream  bool       `json:"stream"`
-	History []*History `json:"history"`
+	UUID           string                 `json:"uuid" validate:"required"`
+	ConversationID string                 `json:"conversation_id" validate:"required"` // 由创建会话接口获取，口径与页面侧一致：已发布问答必须先建会话
+	Query          string                 `json:"query" validate:"required"`
+	Stream         bool                   `json:"stream"`
+	FileInfo       []ConversionStreamFile `json:"file_info"` // 随问题携带的文件，当前仅支持 1 张图片(png/jpg/jpeg)
 }
 
 func (req *OpenAPIRagChatRequest) Check() error {
-	return nil
+	return checkRagChatFileInfo(req.FileInfo)
 }
 
 type OpenAPICreateAgentRequest struct {
