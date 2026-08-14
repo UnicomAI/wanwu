@@ -7,7 +7,7 @@ type UserStatus struct {
 	ID        uint32 `gorm:"primary_key"`
 	UserID    string `gorm:"type:varchar(64);not null;default:'';uniqueIndex:uk_notice_user_status_user_org_msg,priority:1"`
 	OrgID     string `gorm:"type:varchar(64);not null;default:'';uniqueIndex:uk_notice_user_status_user_org_msg,priority:2"`
-	MessageID int64 `gorm:"not null;uniqueIndex:uk_notice_user_status_user_org_msg,priority:3"`
+	MessageID int64  `gorm:"not null;uniqueIndex:uk_notice_user_status_user_org_msg,priority:3"`
 	IsRead    bool   `gorm:"not null;default:false"`
 	// 0=未读过（非 NULL 语义，与 GORM 零值一致）
 	ReadAt    int64 `gorm:"not null;default:0"`

@@ -10,7 +10,7 @@ package model
 type MessageAudience struct {
 	ID uint32 `gorm:"primary_key"`
 	// 引用 notice_messages.id（无外键）；本体后写，孤儿行不可见
-	MessageID int64 `gorm:"not null;uniqueIndex:uk_notice_msg_audience_user_org_msg,priority:3"`
+	MessageID int64  `gorm:"not null;uniqueIndex:uk_notice_msg_audience_user_org_msg,priority:3"`
 	UserID    string `gorm:"type:varchar(64);not null;default:'';uniqueIndex:uk_notice_msg_audience_user_org_msg,priority:1"`
 	OrgID     string `gorm:"type:varchar(64);not null;default:'';uniqueIndex:uk_notice_msg_audience_user_org_msg,priority:2"`
 }

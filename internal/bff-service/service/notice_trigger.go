@@ -116,15 +116,15 @@ func notifyAppPublish(ctx *gin.Context, userId, orgId, appId, appType, newPublis
 	}
 	safeNotice(appType, func(noticeCtx context.Context) error {
 		_, err := notice.CreateAppNotice(noticeCtx, &operate_service.CreateAppNoticeReq{
-			AppId:        appId,
-			AppType:      appType,
-			AppName:      name,
-			OrgId:        orgId,
-			NewScope:     normalizeAppScope(newPublishType),
-			SenderId:     userId,
-			SenderOrgId:  orgId,
-			Version:      version,
-			EventId:      fmt.Sprintf("app:%v:%v:%v:%v:%v", appType, appId, newPublishType, version, ts),
+			AppId:       appId,
+			AppType:     appType,
+			AppName:     name,
+			OrgId:       orgId,
+			NewScope:    normalizeAppScope(newPublishType),
+			SenderId:    userId,
+			SenderOrgId: orgId,
+			Version:     version,
+			EventId:     fmt.Sprintf("app:%v:%v:%v:%v:%v", appType, appId, newPublishType, version, ts),
 		})
 		return err
 	})
@@ -138,15 +138,15 @@ func notifyAppDeleted(ctx *gin.Context, userId, orgId, appId, appType, appName, 
 	ts := time.Now().UnixMilli()
 	safeNotice(appType, func(noticeCtx context.Context) error {
 		_, err := notice.CreateAppNotice(noticeCtx, &operate_service.CreateAppNoticeReq{
-			AppId:        appId,
-			AppType:      appType,
-			AppName:      appName,
-			OrgId:        orgId,
-			OldScope:     normalizeAppScope(oldPublishType),
-			NewScope:     noticeScopeNone,
-			SenderId:     userId,
-			SenderOrgId:  orgId,
-			EventId:      fmt.Sprintf("app:%v:%v:deleted:%v", appType, appId, ts),
+			AppId:       appId,
+			AppType:     appType,
+			AppName:     appName,
+			OrgId:       orgId,
+			OldScope:    normalizeAppScope(oldPublishType),
+			NewScope:    noticeScopeNone,
+			SenderId:    userId,
+			SenderOrgId: orgId,
+			EventId:     fmt.Sprintf("app:%v:%v:deleted:%v", appType, appId, ts),
 		})
 		return err
 	})
@@ -226,14 +226,14 @@ func notifyModelScopeChange(ctx *gin.Context, userId, orgId, modelId, modelName,
 	ts := time.Now().UnixMilli()
 	safeNotice(noticeResourceModel, func(noticeCtx context.Context) error {
 		_, err := notice.CreateModelNotice(noticeCtx, &operate_service.CreateModelNoticeReq{
-			ModelId:      modelId,
-			ModelName:    modelName,
-			OrgId:        orgId,
-			OldScope:     oldScope,
-			NewScope:     newScope,
-			SenderId:     userId,
-			SenderOrgId:  orgId,
-			EventId:      fmt.Sprintf("model:%v:%v:%v", modelId, eventSuffix, ts),
+			ModelId:     modelId,
+			ModelName:   modelName,
+			OrgId:       orgId,
+			OldScope:    oldScope,
+			NewScope:    newScope,
+			SenderId:    userId,
+			SenderOrgId: orgId,
+			EventId:     fmt.Sprintf("model:%v:%v:%v", modelId, eventSuffix, ts),
 		})
 		return err
 	})

@@ -25,14 +25,14 @@ import (
 // Handler 消息对话处理器
 // 接收平台消息 → 查找通道配置 → 获取 API Key → 调用万悟 OpenAPI → 流式回传
 type Handler struct {
-	cfg             config.Config
-	cli             client.IClient
-	manager         adapterManager
-	convManager        *wanwu.ConversationManager
-	artifactMgr        *wanwu.ArtifactManager
-	questionMgr        *QuestionManager
-	attachmentCache    *AttachmentCache
-	chatflowInputCache *ChatflowInputCache
+	cfg                   config.Config
+	cli                   client.IClient
+	manager               adapterManager
+	convManager           *wanwu.ConversationManager
+	artifactMgr           *wanwu.ArtifactManager
+	questionMgr           *QuestionManager
+	attachmentCache       *AttachmentCache
+	chatflowInputCache    *ChatflowInputCache
 	chatflowPendingInputs *ChatflowPendingInputCache
 }
 
@@ -48,14 +48,14 @@ type adapterManager interface {
 // NewHandler 创建消息处理器
 func NewHandler(cfg config.Config, cli client.IClient, manager adapterManager) *Handler {
 	return &Handler{
-		cfg:             cfg,
-		cli:             cli,
-		manager:         manager,
-		convManager:        wanwu.NewConversationManager(cli),
-		artifactMgr:        wanwu.NewArtifactManager(cli),
-		questionMgr:        NewQuestionManager(cfg.BFF.ApiBaseUrl),
-		attachmentCache:    NewAttachmentCache(),
-		chatflowInputCache: NewChatflowInputCache(),
+		cfg:                   cfg,
+		cli:                   cli,
+		manager:               manager,
+		convManager:           wanwu.NewConversationManager(cli),
+		artifactMgr:           wanwu.NewArtifactManager(cli),
+		questionMgr:           NewQuestionManager(cfg.BFF.ApiBaseUrl),
+		attachmentCache:       NewAttachmentCache(),
+		chatflowInputCache:    NewChatflowInputCache(),
 		chatflowPendingInputs: NewChatflowPendingInputCache(),
 	}
 }
