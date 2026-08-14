@@ -11,6 +11,7 @@
             <el-input
               v-model="publishForm.desc"
               :placeholder="$t('list.version.descPlaceholder')"
+              :readonly="isPublished"
             ></el-input>
           </el-form-item>
           <el-form-item
@@ -22,13 +23,17 @@
               :active-value="1"
               :inactive-value="0"
               active-color="var(--color)"
+              :disabled="isPublished"
             ></el-switch>
           </el-form-item>
           <el-form-item
             :label="$t('list.version.publishType')"
             prop="publishType"
           >
-            <el-radio-group v-model="publishForm.publishType">
+            <el-radio-group
+              v-model="publishForm.publishType"
+              :disabled="isPublished"
+            >
               <div>
                 <el-radio label="private">
                   {{ $t('agent.form.publishType') }}
@@ -47,7 +52,7 @@
             </el-radio-group>
           </el-form-item>
 
-          <div class="saveBtn">
+          <div v-if="!isPublished" class="saveBtn">
             <el-button size="mini" type="primary" @click="savePublish">
               {{ $t('common.button.save') }}
             </el-button>
@@ -98,6 +103,7 @@ export default {
           hideKnowledge: 0,
         },
       },
+      isPublished: false,
       publishRules: {
         version: [
           {
@@ -156,6 +162,7 @@ export default {
           hideKnowledge: Number(extra.hideKnowledge) === 1 ? 1 : 0,
         },
       };
+      this.isPublished = Boolean(res.data && res.data.publishType);
     });
   },
   methods: {

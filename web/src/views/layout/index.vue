@@ -178,7 +178,12 @@
         <div
           :class="['left-bottom-container', { 'menu-isCollapse': isCollapse }]"
         >
-          <el-popover placement="top" width="220" trigger="click">
+          <el-popover
+            placement="top"
+            width="220"
+            trigger="click"
+            @show="handleUserMenuShow"
+          >
             <div
               :class="[
                 'menu--popover-wrap',
@@ -192,9 +197,49 @@
                 v-for="item in it"
                 :key="item.name"
               >
+                <!-- 自定义气泡内容：customPopover.component 可为组件对象或已注册组件名 -->
+                <el-popover
+                  v-if="item.customPopover && item.customPopover.component"
+                  :placement="item.customPopover.placement || 'right'"
+                  :width="item.customPopover.width || 320"
+                  :trigger="item.customPopover.trigger || 'click'"
+                  :popper-class="item.customPopover.popperClass || ''"
+                  @show="handleMessagePopoverShow"
+                >
+                  <component
+                    :is="item.customPopover.component"
+                    v-bind="resolveCustomPopoverProps(item)"
+                    v-on="item.customPopover.listeners || {}"
+                  />
+                  <div
+                    slot="reference"
+                    class="menu--popover-item"
+                    @click="menuClick(item)"
+                  >
+                    <component
+                      v-if="item.iconComponent"
+                      :is="item.iconComponent"
+                      class="menu--popover-item-img"
+                      v-bind="resolveMenuIconProps(item)"
+                    />
+                    <img
+                      v-else
+                      class="menu--popover-item-img"
+                      :src="item.img"
+                      alt=""
+                    />
+                    <span class="menu--popover-item-name">{{ item.name }}</span>
+                    <img
+                      v-if="item.icon"
+                      class="menu--popover-item-icon menu--popover-item-r"
+                      :src="item.icon"
+                      alt=""
+                    />
+                  </div>
+                </el-popover>
                 <!-- 有子菜单的项 -->
                 <el-popover
-                  v-if="item.children && item.children.length"
+                  v-else-if="item.children && item.children.length"
                   placement="right"
                   width="140"
                   trigger="click"
@@ -217,7 +262,14 @@
                     </span>
                   </div>
                   <div slot="reference" class="menu--popover-item">
+                    <component
+                      v-if="item.iconComponent"
+                      :is="item.iconComponent"
+                      class="menu--popover-item-img"
+                      v-bind="resolveMenuIconProps(item)"
+                    />
                     <img
+                      v-else
                       class="menu--popover-item-img"
                       :src="item.img"
                       alt=""
@@ -225,7 +277,7 @@
                     <span class="menu--popover-item-name">{{ item.name }}</span>
                     <img
                       v-if="item.icon"
-                      class="menu--popover-item-icon"
+                      class="menu--popover-item-icon menu--popover-item-r"
                       :src="item.icon"
                       alt=""
                     />
@@ -233,7 +285,18 @@
                 </el-popover>
                 <!-- 无子菜单的普通项 -->
                 <div v-else class="menu--popover-item" @click="menuClick(item)">
-                  <img class="menu--popover-item-img" :src="item.img" alt="" />
+                  <component
+                    v-if="item.iconComponent"
+                    :is="item.iconComponent"
+                    class="menu--popover-item-img"
+                    v-bind="resolveMenuIconProps(item)"
+                  />
+                  <img
+                    v-else
+                    class="menu--popover-item-img"
+                    :src="item.img"
+                    alt=""
+                  />
                   <el-tooltip
                     v-if="item.isTip"
                     effect="dark"
@@ -252,11 +315,14 @@
                   </span>
                   <img
                     v-if="item.icon"
-                    class="menu--popover-item-icon"
+                    class="menu--popover-item-icon menu--popover-item-r"
                     :src="item.icon"
                     alt=""
                   />
-                  <span v-if="item.version" class="menu--popover-item-version">
+                  <span
+                    v-if="item.version"
+                    class="menu--popover-item-version menu--popover-item-r"
+                  >
                     {{ version || '' }}
                   </span>
                 </div>
@@ -267,20 +333,18 @@
               class="header-user-content"
               slot="reference"
             >
-              <img
-                class="header-icon"
-                v-if="userAvatar"
-                :src="avatarSrc(userAvatar)"
-              />
+              <span v-if="userAvatar" class="header-icon-wrap">
+                <img class="header-icon" :src="avatarSrc(userAvatar)" />
+                <i v-if="unreadTotal > 0" class="header-unread-dot" />
+              </span>
               <div class="header-user-name">{{ userInfo.userName }}</div>
               <i class="el-icon-more header-more"></i>
             </div>
             <div class="user-content-isCollapse" v-else slot="reference">
-              <img
-                class="header-icon"
-                v-if="userAvatar"
-                :src="avatarSrc(userAvatar)"
-              />
+              <span v-if="userAvatar" class="header-icon-wrap">
+                <img class="header-icon" :src="avatarSrc(userAvatar)" />
+                <i v-if="unreadTotal > 0" class="header-unread-dot" />
+              </span>
             </div>
           </el-popover>
           <div class="left-bottom-menu-icon" @click="changeMenuCollapse">
@@ -308,16 +372,24 @@
         </el-main>
       </el-container>
     </el-container>
-    <AboutDialog ref="aboutDialog" />
+    <AboutDialog
+      :visible="aboutDialogVisible"
+      @update:visible="handleAboutDialogVisibleChange"
+    />
   </div>
 </template>
 
 <script>
 // import { start } from 'qiankun'
-import { mapActions, mapGetters } from 'vuex';
+import { mapActions, mapGetters, mapMutations } from 'vuex';
 import { checkPerm, PERMS } from '@/router/permission';
 import { menuList as rawMenuList } from './menu';
 import { changeLang } from '@/api/user';
+import {
+  getMessageList,
+  getUnreadMessageCount,
+  markAllMessagesAsRead,
+} from '@/api/messageCenter';
 import {
   fetchPermFirPath,
   fetchCurrentPathIndex,
@@ -329,11 +401,19 @@ import {
 import ChangeLang from '@/components/changeLang.vue';
 import ChangeOrg from '@/components/changeOrg.vue';
 import AboutDialog from '@/components/aboutDialog.vue';
+import MessageCenterPop from './components/MessageCenterPop.vue';
+import MessageCenterMenuIcon from './components/MessageCenterMenuIcon.vue';
 import { DOC_FIRST_KEY } from '@/views/docCenter/constants';
 
 export default {
   name: 'Layout',
-  components: { ChangeLang, ChangeOrg, AboutDialog },
+  components: {
+    ChangeLang,
+    ChangeOrg,
+    AboutDialog,
+    MessageCenterPop,
+    MessageCenterMenuIcon,
+  },
   data() {
     return {
       menuHover: false,
@@ -349,6 +429,11 @@ export default {
       activeIndex: '',
       isShowMenu: true,
       cachedViews: [],
+      unreadMessages: [],
+      unreadTotal: 0,
+      messagePopoverLoading: false,
+      unreadCountRequestId: 0,
+      unreadListRequestId: 0,
       popoverList: [
         [
           {
@@ -410,7 +495,35 @@ export default {
             img: require('@/assets/imgs/about_icon.svg'),
             version: 'version',
             redirect: () => {
-              this.$refs.aboutDialog && this.$refs.aboutDialog.openDialog();
+              this.openAboutDialog();
+            },
+          },
+        ],
+        [
+          {
+            name: this.$t('menu.messageCenter'),
+            iconComponent: MessageCenterMenuIcon,
+            icon: require('@/assets/imgs/link_icon.png'),
+            path: '/messageCenter',
+            iconProps: () => ({
+              iconClass: 'bell',
+              hasUnread: this.unreadTotal > 0,
+            }),
+            customPopover: {
+              component: MessageCenterPop,
+              placement: 'right',
+              width: 360,
+              trigger: 'hover',
+              popperClass: 'message-center-popover',
+              props: () => ({
+                unreadMessages: this.unreadMessages,
+                totalUnread: this.unreadTotal,
+                loading: this.messagePopoverLoading,
+              }),
+              listeners: {
+                clear: this.handleMarkAllUnreadMessages,
+                select: this.handleSelectUnreadMessage,
+              },
             },
           },
         ],
@@ -479,6 +592,7 @@ export default {
       'permission',
       'userAvatar',
     ]),
+    ...mapGetters('layout', ['aboutDialogVisible']),
     menuList() {
       const MENU_NAME_MAP = {
         'generalAgent-wanwuAgent':
@@ -515,12 +629,117 @@ export default {
   },
   /* 保证容器 DIV 在 qiankun start 时一定存在 */
   mounted() {
+    this.fetchUnreadMessageCount();
     /* start() */
   },
   methods: {
     avatarSrc,
     ...mapActions('user', ['LoginOut', 'getPermissionInfo', 'getCommonInfo']),
+    ...mapMutations('layout', ['OPEN_ABOUT_DIALOG', 'CLOSE_ABOUT_DIALOG']),
     checkPerm,
+    openAboutDialog() {
+      this.OPEN_ABOUT_DIALOG();
+    },
+    handleAboutDialogVisibleChange(visible) {
+      if (!visible) this.CLOSE_ABOUT_DIALOG();
+    },
+    resolveMenuIconProps(item) {
+      const iconProps = item.iconProps;
+      const props =
+        typeof iconProps === 'function' ? iconProps() : iconProps || {};
+      return { src: item.img, ...props };
+    },
+    resolveCustomPopoverProps(item) {
+      const customPopover = item.customPopover || {};
+      const props = customPopover.props;
+      return typeof props === 'function' ? props() : props || {};
+    },
+    formatMessageReceivedAt(receivedAt) {
+      const date = new Date(Number(receivedAt));
+      if (Number.isNaN(date.getTime())) return '';
+
+      const pad = value => String(value).padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+        date.getDate(),
+      )} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+        date.getSeconds(),
+      )}`;
+    },
+    normalizeUnreadMessage(message) {
+      return {
+        id: message.messageId,
+        title: message.title,
+        msgText: message.content,
+        category: message.category,
+        actions: message.actions || [],
+        updateAt: this.formatMessageReceivedAt(message.receivedAt),
+        isRead: message.isRead,
+      };
+    },
+    async fetchUnreadMessageCount() {
+      const requestId = ++this.unreadCountRequestId;
+      try {
+        const res = await getUnreadMessageCount();
+        if (requestId !== this.unreadCountRequestId || res.code !== 0) return;
+        this.unreadTotal = Number(res.data?.total) || 0;
+      } catch (error) {
+        if (requestId === this.unreadCountRequestId) this.unreadTotal = 0;
+      }
+    },
+    async fetchUnreadMessages() {
+      const requestId = ++this.unreadListRequestId;
+      this.messagePopoverLoading = true;
+      try {
+        const res = await getMessageList({
+          category: 0,
+          onlyUnread: true,
+          keyword: '',
+          pageNo: 1,
+          pageSize: 20,
+        });
+        if (requestId !== this.unreadListRequestId || res.code !== 0) return;
+        this.unreadMessages = (res.data?.list || []).map(message =>
+          this.normalizeUnreadMessage(message),
+        );
+      } catch (error) {
+        if (requestId === this.unreadListRequestId) this.unreadMessages = [];
+      } finally {
+        if (requestId === this.unreadListRequestId) {
+          this.messagePopoverLoading = false;
+        }
+      }
+    },
+    handleUserMenuShow() {
+      this.fetchUnreadMessageCount();
+    },
+    handleMessagePopoverShow() {
+      this.fetchUnreadMessages();
+    },
+    async handleMarkAllUnreadMessages() {
+      const res = await markAllMessagesAsRead();
+      if (res.code !== 0) return;
+
+      this.unreadMessages = [];
+      await this.fetchUnreadMessageCount();
+    },
+    handleSelectUnreadMessage(message) {
+      if (!message) return;
+
+      this.unreadMessages = this.unreadMessages.filter(
+        item => item.id !== message.id,
+      );
+      if (!message.isRead) this.unreadTotal = Math.max(0, this.unreadTotal - 1);
+
+      this.$router.push({
+        name: 'messageCenter',
+        params: {
+          from: 'messageCenterPopover',
+          messageId: message.id,
+          category: message.category,
+          onlyUnread: true,
+        },
+      });
+    },
     logout() {
       localStorage.removeItem('access_cert');
       location.href = location.origin + this.$basePath + '/aibase/login';
@@ -611,6 +830,10 @@ export default {
       const info = JSON.parse(localStorage.getItem('access_cert'));
       info.user.orgId = orgId;
       localStorage.setItem('access_cert', JSON.stringify(info));
+      this.unreadMessages = [];
+      this.unreadListRequestId += 1;
+      this.messagePopoverLoading = false;
+      this.fetchUnreadMessageCount();
 
       const { path } = fetchPermFirPath();
       // 如果当前页面 path 与第一个有权限的 path 相同，需要刷新页面以确保数据为新切换组织的
@@ -708,6 +931,22 @@ export default {
             margin-right: 10px;
           }
 
+          .header-icon-wrap {
+            position: relative;
+            display: inline-flex;
+          }
+
+          .header-unread-dot {
+            position: absolute;
+            top: -1px;
+            right: 8px;
+            width: 7px;
+            height: 7px;
+            border: 1px solid #fff;
+            border-radius: 50%;
+            background: #f56c6c;
+          }
+
           .header-more {
             margin-left: 8px;
             transform: rotate(90deg);
@@ -732,6 +971,24 @@ export default {
           height: 28px;
           border-radius: 50%;
           margin: 0 auto;
+        }
+
+        .header-icon-wrap {
+          position: relative;
+          display: block;
+          width: 28px;
+          margin: 0 auto;
+        }
+
+        .header-unread-dot {
+          position: absolute;
+          top: -2px;
+          right: -2px;
+          width: 7px;
+          height: 7px;
+          border: 1px solid #fff;
+          border-radius: 50%;
+          background: #f56c6c;
         }
       }
       .menu-org-popover-icon {
@@ -951,6 +1208,11 @@ export default {
   cursor: pointer;
   border-radius: 4px;
   padding: 0 8px;
+  display: flex;
+  align-items: center;
+  .menu--popover-item-r {
+    margin-left: auto;
+  }
   .menu--popover-item-img {
     height: 16px;
     display: inline-block;
@@ -965,8 +1227,6 @@ export default {
   }
   .menu--popover-item-icon {
     width: 16px;
-    float: right;
-    margin-top: 13px;
   }
   .menu--popover-item-version {
     font-size: 13px;

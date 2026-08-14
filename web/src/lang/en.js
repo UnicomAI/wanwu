@@ -115,6 +115,7 @@ export default {
     back: '返回',
     openSource: '开源仓库',
     skillSquare: 'Skill广场',
+    messageCenter: '消息中心',
   },
   header: {
     title: '智能体平台',
@@ -202,6 +203,7 @@ export default {
       download: 'Download',
       retry: 'Retry',
       convertToSkill: '转化为Skill',
+      clear: '清空',
       user: 'User',
       model: 'Model',
       app: 'App',
@@ -2735,6 +2737,30 @@ export default {
           },
         },
       },
+    },
+  },
+  messageCenter: {
+    title: '消息中心',
+    noUnread: '暂无未读消息',
+    noUnreadMessages: '未读消息',
+    onlyUnreadMessages: '只看未读消息',
+    searchPlaceholder: '请输入消息标题或内容查询',
+    goToMessageCenter: '进入消息中心',
+    markAllAsRead: '一键已读',
+    markAllAsReadConfirm: '你确定要将所有消息标记为已读吗？',
+    deleteConfirm:
+      'Deleted messages cannot be recovered. Are you sure you want to delete them?',
+    moreMsgTips: '更多未读消息请前往消息中心查看',
+    tabs: {
+      all: '全部',
+      announcement: '公告',
+      productService: '产品服务',
+      ticket: 'Tickets',
+    },
+    columns: {
+      content: '消息内容',
+      updateAt: '接收时间',
+      type: '类别',
     },
   },
 };

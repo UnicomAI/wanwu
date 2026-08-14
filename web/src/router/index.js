@@ -480,6 +480,13 @@ const constantRoutes = [
           require(['@/views/adminCenter/rag/detail.vue'], resolve),
         meta: {},
       },
+      {
+        path: '/messageCenter',
+        name: 'messageCenter',
+        component: resolve =>
+          require(['@/views/messageCenter/index.vue'], resolve),
+        meta: {},
+      },
     ],
   },
   {
