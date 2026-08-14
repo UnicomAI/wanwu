@@ -17467,6 +17467,277 @@ const docTemplate = `{
                 }
             }
         },
+        "/notice": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "按勾选的 messageId 从当前账号在当前组织上下文的列表中移除，不影响其他收件人",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notice"
+                ],
+                "summary": "批量删除消息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前组织上下文ID",
+                        "name": "X-Org-Id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "批量删除请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.NoticeDeleteReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.NoticeDeleteResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/notice/list": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "已读与未读混排，每条带 isRead；悬浮面板的未读列表也复用本接口（onlyUnread=true）",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notice"
+                ],
+                "summary": "消息中心整页列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前组织上下文ID",
+                        "name": "X-Org-Id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Category 0 全部 / 1 公告 / 2 产品服务 / 3 工单",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Keyword 标题/正文模糊匹配；% 与 _ 按普通字符处理（服务端转义）",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "OnlyUnread true 仅未读；false 已读+未读混排（默认）",
+                        "name": "onlyUnread",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageNo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "$ref": "#/definitions/response.NoticeItem"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/notice/read": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "把单条消息标记为已读；对已读消息重复调用是幂等的",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notice"
+                ],
+                "summary": "消息已读（单条）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前组织上下文ID",
+                        "name": "X-Org-Id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "单条已读请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.NoticeReadReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/notice/read-all": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "把当前账号在当前组织上下文的全部可见未读标记为已读；不分类别，列表筛选与勾选均不影响作用范围",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notice"
+                ],
+                "summary": "一键已读",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前组织上下文ID",
+                        "name": "X-Org-Id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/notice/unread/count": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "未读总数+分类角标，驱动头像红点与各 Tab 角标；消息按账号+组织双维度隔离，切换组织需重新拉取",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notice"
+                ],
+                "summary": "未读总数+分类角标",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "当前组织上下文ID",
+                        "name": "X-Org-Id",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.NoticeUnreadCountResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/oauth/app": {
             "put": {
                 "security": [
@@ -19321,6 +19592,135 @@ const docTemplate = `{
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/pending/conversation": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取知识问答运行中会话",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "获取知识问答运行中会话",
+                "parameters": [
+                    {
+                        "description": "获取知识问答运行中会话请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RagPendingConversationReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PendingConversationResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/stream/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "知识问答流式问答手动停止",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "知识问答流式问答手动停止",
+                "parameters": [
+                    {
+                        "description": "知识问答流式问答手动停止参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RagStreamCancelReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/stream/connect": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "知识问答流式问答断开后重连",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "知识问答流式问答断开后重连",
+                "parameters": [
+                    {
+                        "description": "知识问答流式问答重连参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RagStreamConnectReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -29227,6 +29627,31 @@ const docTemplate = `{
                 }
             }
         },
+        "request.NoticeDeleteReq": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "request.NoticeReadReq": {
+            "type": "object",
+            "required": [
+                "messageId"
+            ],
+            "properties": {
+                "messageId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.OrgCreate": {
             "type": "object",
             "required": [
@@ -29633,6 +30058,25 @@ const docTemplate = `{
                 }
             }
         },
+        "request.RagPendingConversationReq": {
+            "type": "object",
+            "required": [
+                "ragId"
+            ],
+            "properties": {
+                "conversationId": {
+                    "description": "非草稿时必填",
+                    "type": "string"
+                },
+                "draft": {
+                    "description": "是否草稿态",
+                    "type": "boolean"
+                },
+                "ragId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.RagReq": {
             "type": "object",
             "required": [
@@ -29643,6 +30087,40 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.RagStreamCancelReq": {
+            "type": "object",
+            "required": [
+                "ragId"
+            ],
+            "properties": {
+                "conversationId": {
+                    "description": "非草稿时必填",
+                    "type": "string"
+                },
+                "draft": {
+                    "description": "是否草稿态",
+                    "type": "boolean"
+                },
+                "ragId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.RagStreamConnectReq": {
+            "type": "object",
+            "required": [
+                "conversationId",
+                "ragId"
+            ],
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                },
+                "ragId": {
                     "type": "string"
                 }
             }
@@ -37320,6 +37798,86 @@ const docTemplate = `{
                 }
             }
         },
+        "response.NoticeAction": {
+            "type": "object",
+            "properties": {
+                "actionParams": {
+                    "description": "ActionParams 跳转参数对象，已是对象，前端直接使用、无需 JSON.parse",
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "actionType": {
+                    "description": "ActionType 动作类型：link 当前页直接跳 / blank 新页面打开",
+                    "type": "string"
+                },
+                "msgType": {
+                    "description": "MsgType 消息类型，前端据此判断跳转地址类型：agent/workflow/chatflow/rag/skill/knowledge/model/about/custom_url",
+                    "type": "string"
+                }
+            }
+        },
+        "response.NoticeDeleteResp": {
+            "type": "object",
+            "properties": {
+                "affectedCount": {
+                    "description": "AffectedCount 实际删除条数（跳过的不可见/不存在 ID 不计入）",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.NoticeItem": {
+            "type": "object",
+            "properties": {
+                "actions": {
+                    "description": "Actions 跳转集合，按 content 中 $${}$$ 出现顺序一一对应；无超链时为空数组",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.NoticeAction"
+                    }
+                },
+                "category": {
+                    "description": "Category 消息类别：1 公告 / 2 产品服务 / 3 工单",
+                    "type": "integer"
+                },
+                "content": {
+                    "description": "Content 完整正文，$${超链文字}$$ 内为可点击超链文字，前端按出现顺序与 actions 匹配",
+                    "type": "string"
+                },
+                "isRead": {
+                    "description": "IsRead 是否已读",
+                    "type": "boolean"
+                },
+                "messageId": {
+                    "description": "MessageId 消息 ID（前端用它做已读/删除入参）",
+                    "type": "string"
+                },
+                "receivedAt": {
+                    "description": "ReceivedAt 接收时间（毫秒时间戳），列表按此倒序",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "Title 标题（列表简短展示）",
+                    "type": "string"
+                }
+            }
+        },
+        "response.NoticeUnreadCountResp": {
+            "type": "object",
+            "properties": {
+                "byCategory": {
+                    "description": "ByCategory key 固定为 announcement / productService / ticket；某类别为 0 时 key 仍返回",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "total": {
+                    "description": "Total 当前组织上下文未读总数",
+                    "type": "integer"
+                }
+            }
+        },
         "response.OAuthAppInfo": {
             "type": "object",
             "properties": {
@@ -37828,6 +38386,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.RagTimeCost"
                         }
                     ]
+                },
+                "traceId": {
+                    "description": "本轮问答的链路id，可据此关联应用/模型统计明细",
+                    "type": "string"
                 }
             }
         },

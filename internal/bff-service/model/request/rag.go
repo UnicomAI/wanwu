@@ -1,6 +1,8 @@
 package request
 
 import (
+	"fmt"
+
 	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 )
@@ -37,6 +39,33 @@ type ChatRagRequest struct {
 	FileInfo       []ConversionStreamFile `json:"fileInfo" form:"fileInfo"` //上传文档列表
 	ConversationID string                 `json:"conversationId"`           // 已发布问答必填（须先建会话），草稿不传则服务端 get-or-create
 	DetailID       string                 `json:"-"`                        // 本轮明细id，bff 内部生成后透传给 rag-service，不接受调用方传入
+	SseHold        bool                   `json:"-"`                        // 是否启用链接保持
+}
+
+// RagPendingConversationReq 查询知识问答运行中会话
+type RagPendingConversationReq struct {
+	RagID          string `json:"ragId" form:"ragId" validate:"required"`
+	Draft          bool   `json:"draft" form:"draft"`                   // 是否草稿态
+	ConversationID string `json:"conversationId" form:"conversationId"` // 非草稿时必填
+}
+
+func (r *RagPendingConversationReq) Check() error {
+	if !r.Draft && r.ConversationID == "" {
+		return fmt.Errorf("conversationId is required")
+	}
+	return nil
+}
+
+// RagStreamConnectReq 知识问答流式问答断开后重连
+type RagStreamConnectReq struct {
+	RagID          string `json:"ragId" form:"ragId" validate:"required"`
+	ConversationID string `json:"conversationId" form:"conversationId" validate:"required"`
+	CommonCheck
+}
+
+// RagStreamCancelReq 知识问答流式问答手动停止
+type RagStreamCancelReq struct {
+	RagPendingConversationReq
 }
 
 type RagConversationCreateReq struct {

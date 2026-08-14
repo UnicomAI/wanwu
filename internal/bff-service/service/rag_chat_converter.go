@@ -3,10 +3,8 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"time"
 
 	ag_ui_util "github.com/UnicomAI/wanwu/pkg/ag-ui-util"
-	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	aguievents "github.com/ag-ui-protocol/ag-ui/sdks/community/go/pkg/core/events"
 )
 
@@ -101,14 +99,7 @@ func (c *ragStreamConverter) finalizeSuccess() {
 // 不包含连接延迟与检索延迟——业界通行的 TTFT 定义。
 // 注：此口径与旧版（首条 SSE 帧即记录）有差异，旧版会把检索时延算进来。
 func (c *ragStreamConverter) recordTTFT() {
-	if c.streamParams.hasRecorded {
-		return
-	}
-	c.streamParams.firstTokenLatency = time.Since(c.streamParams.startTime).Milliseconds()
-	c.streamParams.hasRecorded = true
-	if c.streamParams.ctx != nil {
-		c.streamParams.ctx.Set(gin_util.FIRST_RESP_LATENCY, c.streamParams.firstTokenLatency)
-	}
+	c.streamParams.recordFirstToken()
 }
 
 // handleChunk 处理单条 chunk。返回 true 表示流已终止（error / finish=1/2），调用方应退出循环。

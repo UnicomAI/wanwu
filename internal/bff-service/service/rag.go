@@ -403,6 +403,30 @@ func buildRagQAGlobalConfig(kbConfig request.AppQAKnowledgebaseParams) *rag_serv
 	}
 }
 
+// publishRag 发布知识问答：先按调试态口径校验配置，再校验版本号递增，最后落发布快照
+func publishRag(ctx *gin.Context, userId, orgId, ragId, version, desc string) error {
+	if err := CheckRagPublishReady(ctx, userId, orgId, ragId); err != nil {
+		return err
+	}
+	identity := &rag_service.Identity{UserId: userId, OrgId: orgId}
+	resp, _ := rag.GetPublishRagDesc(ctx.Request.Context(), &rag_service.GetPublishRagDescReq{
+		RagId:    ragId,
+		Identity: identity,
+	})
+	if resp != nil {
+		if err := util.IsVersionGreaterThan(version, resp.Version); err != nil {
+			return grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_app_publish_version", resp.Version, version, err.Error())
+		}
+	}
+	_, err := rag.PublishRag(ctx.Request.Context(), &rag_service.PublishRagReq{
+		RagId:    ragId,
+		Version:  version,
+		Desc:     desc,
+		Identity: identity,
+	})
+	return err
+}
+
 func DeleteRag(ctx *gin.Context, userId, orgId string, req request.RagReq) error {
 	_, err := rag.DeleteRag(ctx.Request.Context(), &rag_service.RagDeleteReq{
 		RagId:    req.RagID,

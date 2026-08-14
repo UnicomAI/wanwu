@@ -41,6 +41,18 @@ type ragChatStreamParams struct {
 	errMsg            string
 }
 
+// recordFirstToken 记录首 token 延迟，只记第一次
+func (p *ragChatStreamParams) recordFirstToken() {
+	if p.hasRecorded {
+		return
+	}
+	p.firstTokenLatency = time.Since(p.startTime).Milliseconds()
+	p.hasRecorded = true
+	if p.ctx != nil {
+		p.ctx.Set(gin_util.FIRST_RESP_LATENCY, p.firstTokenLatency)
+	}
+}
+
 // ragChunkData 对应 rag-service / rag-wanwu 返回的每条 SSE JSON 结构
 type ragChunkData struct {
 	Code       int            `json:"code"`
@@ -60,23 +72,27 @@ type ragChunkInner struct {
 }
 
 // ChatRagStream RAG 私域问答，流式返回 AG-UI 协议事件
-func ChatRagStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool, source string) (err error) {
-	streamParams := &ragChatStreamParams{ctx: ctx}
+func ChatRagStream(ctx *gin.Context, userId, orgId, clientId string, req request.ChatRagRequest, needLatestPublished bool, source string) (err error) {
+	streamParams := &ragChatStreamParams{}
 	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
-	defer func() {
+	recordStat := func() {
 		statusCode, failureReason := appStreamStatisticStatus(streamParams.err, streamParams.errMsg)
 		go func() {
 			defer util.PrintPanicStack()
 			RecordAppStatistic(detachedCtx, userId, orgId, req.RagID, constant.AppTypeRag, "",
 				statusCode, failureReason, true, streamParams.firstTokenLatency, 0, source, MarshalStatisticBody(req), "", req.Question, "")
 		}()
-	}()
+	}
 
-	// detailId 由 bff 生成：护栏命中时要用它拼 redis 键把替换后的回复递给 rag-service
 	req.DetailID = uuid.NewString()
-	chatCh, kbNameMap, err := CallRagChatStream(ctx, userId, orgId, req, needLatestPublished)
+
+	sseSessionMgr := newRagSSESession(ctx, clientId, req)
+	upstreamCtx := ragUpstreamCtx(ctx, sseSessionMgr)
+	chatCh, kbNameMap, err := CallRagChatStream(ctx, upstreamCtx, userId, orgId, req, needLatestPublished)
 	if err != nil {
+		_ = sseSessionMgr.Cancel()
 		streamParams.err = err
+		recordStat()
 		return err
 	}
 	streamParams.startTime = time.Now()
@@ -85,12 +101,14 @@ func ChatRagStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRe
 	runID := uuid.NewString()
 	threadID := req.ConversationID
 
-	eventCh := convertRagStream2AGUIEvents(ctx.Request.Context(), chatCh, threadID, runID, streamParams, kbNameMap)
-	outputCh := ag_ui_util.EventsToJSONChannel(ctx.Request.Context(), eventCh)
+	eventCh := convertRagStream2AGUIEvents(upstreamCtx, chatCh, threadID, runID, streamParams, kbNameMap)
+	outputCh := ag_ui_util.EventsToJSONChannel(upstreamCtx, eventCh)
+	// 链接保持：先落会话再转发当前连接，统计等这一轮跑完再落
+	clientCh := publishRagChatStream(ctx.Request.Context(), sseSessionMgr, outputCh, recordStat)
 
 	// 流式返回结果
 	return sse_util.NewSSEWriter(ctx, fmt.Sprintf("[RAG-Stream] %v user %v org %v", req.RagID, userId, orgId), "").
-		WriteStream(outputCh, streamParams, buildRagChatResp(), nil)
+		WriteStream(clientCh, streamParams, buildRagChatResp(), nil)
 }
 
 func buildRagChatResp() func(sse_util.SSEWriterClient[string], string, interface{}) (string, bool, error) {
@@ -203,7 +221,7 @@ func ChatRagStreamLegacy(ctx *gin.Context, userId, orgId string, req request.Cha
 				statusCode, failureReason, true, streamParams.firstTokenLatency, 0, source, MarshalStatisticBody(req), "", req.Question, "")
 		}()
 	}()
-	chatCh, _, err := CallRagChatStream(ctx, userId, orgId, req, needLatestPublished)
+	chatCh, _, err := CallRagChatStream(ctx, ctx.Request.Context(), userId, orgId, req, needLatestPublished)
 	if err != nil {
 		streamParams.err = err
 		return err
@@ -220,13 +238,7 @@ func ChatRagStreamLegacy(ctx *gin.Context, userId, orgId string, req request.Cha
 func buildRagChatRespLineProcessorLegacy() func(sse_util.SSEWriterClient[string], string, interface{}) (string, bool, error) {
 	return func(c sse_util.SSEWriterClient[string], lineText string, params interface{}) (string, bool, error) {
 		if p, ok := params.(*ragChatStreamParams); ok {
-			if !p.hasRecorded {
-				p.firstTokenLatency = time.Since(p.startTime).Milliseconds()
-				p.hasRecorded = true
-				if p.ctx != nil {
-					p.ctx.Set(gin_util.FIRST_RESP_LATENCY, p.firstTokenLatency)
-				}
-			}
+			p.recordFirstToken()
 		}
 		if strings.HasPrefix(lineText, "error:") {
 			if p, ok := params.(*ragChatStreamParams); ok {
@@ -242,11 +254,19 @@ func buildRagChatRespLineProcessorLegacy() func(sse_util.SSEWriterClient[string]
 	}
 }
 
-// CallRagChatStream 调用 Rag 对话，返回经敏感词处理后的原始 SSE 字符串 channel
-func CallRagChatStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool) (<-chan string, map[string]string, error) {
+// CallRagChatStream 调用 Rag 对话，返回经敏感词处理后的原始 SSE 字符串 channel。
+// upstreamCtx 控制上游 gRPC 流的生命周期：链接保持开启时传会话的后台 ctx（客户端断开也不中断），
+// 否则传 ctx.Request.Context()（跟随请求结束）。
+func CallRagChatStream(ctx *gin.Context, upstreamCtx context.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool) (<-chan string, map[string]string, error) {
 	ragInfo, kbNameMap, err := buildRagInfo(ctx, userId, orgId, req, needLatestPublished)
 	if err != nil {
 		return nil, nil, err
+	}
+	// 草稿态问答的配置前置校验，口径与发布一致；已发布态在发布时已校验过，不重复拦
+	if !needLatestPublished {
+		if err := checkRagProtoConfigReady(ragInfo); err != nil {
+			return nil, nil, err
+		}
 	}
 	sensitiveConfig := ragInfo.SensitiveConfig
 	//创建敏感词校验器
@@ -254,7 +274,7 @@ func CallRagChatStream(ctx *gin.Context, userId, orgId string, req request.ChatR
 	sensitiveSrv := &ragSensitiveService{}
 	sensitiveChecker := CreateSensitiveChecker(sensitiveConfig.GetTableIds(), sensitiveSrv, sensitiveConfig.Enable)
 	//任务执行器
-	streamExecutor := ragStream(ctx, userId, orgId, req, needLatestPublished, sensitiveSrv)
+	streamExecutor := ragStream(ctx, upstreamCtx, userId, orgId, req, needLatestPublished, sensitiveSrv)
 	//带敏感词校验的任务执行
 	retCh, err := sensitiveChecker.Check(ctx, req.Question, streamExecutor)
 	if err != nil {
@@ -264,9 +284,9 @@ func CallRagChatStream(ctx *gin.Context, userId, orgId string, req request.ChatR
 }
 
 // rag流式会话
-func ragStream(ctx *gin.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool, sensitiveSrv *ragSensitiveService) func() (ch <-chan string, callback func(string, string), err error) {
+func ragStream(ctx *gin.Context, upstreamCtx context.Context, userId, orgId string, req request.ChatRagRequest, needLatestPublished bool, sensitiveSrv *ragSensitiveService) func() (ch <-chan string, callback func(string, string), err error) {
 	return func() (ch <-chan string, callback func(string, string), err error) {
-		streamCtx, cancelStream := context.WithCancel(ctx.Request.Context())
+		streamCtx, cancelStream := context.WithCancel(upstreamCtx)
 		stream, err := rag.ChatRag(streamCtx, buildRagStreamParams(userId, orgId, req, needLatestPublished))
 		if err != nil {
 			cancelStream()
@@ -278,7 +298,7 @@ func ragStream(ctx *gin.Context, userId, orgId string, req request.ChatRagReques
 			BusinessKey:    "chat_rag",
 			StreamReceiver: sse_util.NewGrpcStreamReceiver(stream),
 		}
-		rawCh, err := SSEReader.ReadStreamWithBuilder(ctx, func(resp *rag_service.ChatRagResp) string {
+		rawCh, err := SSEReader.ReadStreamWithBuilder(streamCtx, func(resp *rag_service.ChatRagResp) string {
 			return resp.Content
 		})
 		if err != nil {

@@ -165,8 +165,6 @@ func (r *ragChatRecorder) save(originalCtx context.Context, ragContext *RagConte
 
 func (r *ragChatRecorder) buildDetail(ctx context.Context, ragContext *RagContext, nowMilli int64) *model.RagConversationDetail {
 	req := ragContext.Req
-	// 命中安全护栏时以 bff 暂存的内容为准：词表和替换都在 bff，这里累积的是替换前的
-	// 模型原文、用户根本没看到过。sensitive 为 nil 表示这一轮没命中
 	sensitive := redis.GetRagSensitiveConversation(req.GetConversationId(), ragContext.MessageId)
 	errMessage := r.errMessage
 	if sensitive != nil {
@@ -185,6 +183,7 @@ func (r *ragChatRecorder) buildDetail(ctx context.Context, ragContext *RagContex
 		ErrMessage:       errMessage,
 		QaErrMessage:     r.qaErrMessage,
 		FileInfo:         buildRecordFileInfo(ctx, req.GetFileInfoList()),
+		TraceId:          trace_util.GetTraceID(ctx),
 		UserId:           req.GetIdentity().GetUserId(),
 		OrgId:            req.GetIdentity().GetOrgId(),
 		CreatedAt:        nowMilli,

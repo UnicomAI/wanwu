@@ -201,28 +201,7 @@ func PublishApp(ctx *gin.Context, userId, orgId string, req request.PublishAppRe
 		}
 	}
 	if req.AppType == constant.AppTypeRag {
-		resp, _ := rag.GetPublishRagDesc(ctx.Request.Context(), &rag_service.GetPublishRagDescReq{
-			RagId: req.AppId,
-			Identity: &rag_service.Identity{
-				UserId: userId,
-				OrgId:  orgId,
-			},
-		})
-		if resp != nil {
-			if err := util.IsVersionGreaterThan(req.Version, resp.Version); err != nil {
-				return grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_app_publish_version", resp.Version, req.Version, err.Error())
-			}
-		}
-		_, err := rag.PublishRag(ctx.Request.Context(), &rag_service.PublishRagReq{
-			RagId:   req.AppId,
-			Version: req.Version,
-			Desc:    req.Desc,
-			Identity: &rag_service.Identity{
-				UserId: userId,
-				OrgId:  orgId,
-			},
-		})
-		if err != nil {
+		if err := publishRag(ctx, userId, orgId, req.AppId, req.Version, req.Desc); err != nil {
 			return err
 		}
 	}

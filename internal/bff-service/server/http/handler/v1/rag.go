@@ -21,7 +21,7 @@ import (
 //	@Success	200		{object}	response.Response
 //	@Router		/rag/chat/draft [post]
 func ChatDraftRag(ctx *gin.Context) {
-	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
 	var req request.ChatRagRequest
 	if !gin_util.Bind(ctx, &req) {
 		return
@@ -35,7 +35,9 @@ func ChatDraftRag(ctx *gin.Context) {
 		}
 		req.ConversationID = conversationId
 	}
-	if err := service.ChatRagStream(ctx, userId, orgId, req, false, constant.BizSourceWeb); err != nil {
+	//启用链接保持
+	req.SseHold = true
+	if err := service.ChatRagStream(ctx, userId, orgId, clientId, req, false, constant.BizSourceWeb); err != nil {
 		gin_util.Response(ctx, nil, err)
 	}
 }
@@ -73,14 +75,83 @@ func RagUpload(ctx *gin.Context) {
 //	@Success	200		{object}	response.Response
 //	@Router		/rag/chat [post]
 func ChatPublishedRag(ctx *gin.Context) {
-	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
 	var req request.ChatRagRequest
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	if err := service.ChatRagStream(ctx, userId, orgId, req, true, constant.BizSourceWeb); err != nil {
+	//启用链接保持
+	req.SseHold = true
+	if err := service.ChatRagStream(ctx, userId, orgId, clientId, req, true, constant.BizSourceWeb); err != nil {
 		gin_util.Response(ctx, nil, err)
 	}
+}
+
+// GetRagPendingConversation
+//
+//	@Tags			rag
+//	@Summary		获取知识问答运行中会话
+//	@Description	获取知识问答运行中会话
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.RagPendingConversationReq	true	"获取知识问答运行中会话请求参数"
+//	@Success		200		{object}	response.Response{data=response.PendingConversationResp}
+//	@Router			/rag/pending/conversation [post]
+func GetRagPendingConversation(ctx *gin.Context) {
+	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
+	var req request.RagPendingConversationReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	conversation, err := service.GetRagPendingConversation(ctx, userId, orgId, clientId, req)
+	gin_util.Response(ctx, conversation, err)
+}
+
+// ChatRagStreamConnect
+//
+//	@Tags			rag
+//	@Summary		知识问答流式问答断开后重连
+//	@Description	知识问答流式问答断开后重连
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.RagStreamConnectReq	true	"知识问答流式问答重连参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/rag/stream/connect [post]
+func ChatRagStreamConnect(ctx *gin.Context) {
+	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
+	var req request.RagStreamConnectReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	if err := service.ChatRagStreamConnect(ctx, userId, orgId, clientId, req); err != nil {
+		gin_util.Response(ctx, nil, err)
+	}
+}
+
+// ChatRagStreamCancel
+//
+//	@Tags			rag
+//	@Summary		知识问答流式问答手动停止
+//	@Description	知识问答流式问答手动停止
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.RagStreamCancelReq	true	"知识问答流式问答手动停止参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/rag/stream/cancel [post]
+func ChatRagStreamCancel(ctx *gin.Context) {
+	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
+	var req request.RagStreamCancelReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	if err := service.ChatRagStreamCancel(ctx, userId, orgId, clientId, req); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	gin_util.Response(ctx, nil, nil)
 }
 
 // CreateRag
