@@ -4322,6 +4322,22 @@ definitions:
     - agentId
     - assistantId
     type: object
+  request.NoticeDeleteReq:
+    properties:
+      ids:
+        items:
+          type: string
+        type: array
+    required:
+    - ids
+    type: object
+  request.NoticeReadReq:
+    properties:
+      messageId:
+        type: string
+    required:
+    - messageId
+    type: object
   request.OrgCreate:
     properties:
       avatar:
@@ -4589,6 +4605,19 @@ definitions:
     required:
     - name
     type: object
+  request.RagPendingConversationReq:
+    properties:
+      conversationId:
+        description: 非草稿时必填
+        type: string
+      draft:
+        description: 是否草稿态
+        type: boolean
+      ragId:
+        type: string
+    required:
+    - ragId
+    type: object
   request.RagReq:
     properties:
       ragId:
@@ -4596,6 +4625,29 @@ definitions:
       version:
         type: string
     required:
+    - ragId
+    type: object
+  request.RagStreamCancelReq:
+    properties:
+      conversationId:
+        description: 非草稿时必填
+        type: string
+      draft:
+        description: 是否草稿态
+        type: boolean
+      ragId:
+        type: string
+    required:
+    - ragId
+    type: object
+  request.RagStreamConnectReq:
+    properties:
+      conversationId:
+        type: string
+      ragId:
+        type: string
+    required:
+    - conversationId
     - ragId
     type: object
   request.RagUpdateReq:
@@ -9783,6 +9835,64 @@ definitions:
       name:
         type: string
     type: object
+  response.NoticeAction:
+    properties:
+      actionParams:
+        additionalProperties: true
+        description: ActionParams 跳转参数对象，已是对象，前端直接使用、无需 JSON.parse
+        type: object
+      actionType:
+        description: ActionType 动作类型：link 当前页直接跳 / blank 新页面打开
+        type: string
+      msgType:
+        description: MsgType 消息类型，前端据此判断跳转地址类型：agent/workflow/chatflow/rag/skill/knowledge/model/about/custom_url
+        type: string
+    type: object
+  response.NoticeDeleteResp:
+    properties:
+      affectedCount:
+        description: AffectedCount 实际删除条数（跳过的不可见/不存在 ID 不计入）
+        type: integer
+    type: object
+  response.NoticeItem:
+    properties:
+      actions:
+        description: Actions 跳转集合，按 content 中 $${}$$ 出现顺序一一对应；无超链时为空数组
+        items:
+          $ref: '#/definitions/response.NoticeAction'
+        type: array
+      category:
+        description: Category 消息类别：1 公告 / 2 产品服务 / 3 工单
+        type: integer
+      content:
+        description: Content 完整正文，$${超链文字}$$ 内为可点击超链文字，前端按出现顺序与 actions 匹配
+        type: string
+      isRead:
+        description: IsRead 是否已读
+        type: boolean
+      messageId:
+        description: MessageId 消息 ID（前端用它做已读/删除入参）
+        type: string
+      receivedAt:
+        description: ReceivedAt 接收时间（毫秒时间戳），列表按此倒序
+        type: integer
+      title:
+        description: Title 标题（列表简短展示）
+        type: string
+    type: object
+  response.NoticeUnreadCountResp:
+    properties:
+      byCategory:
+        additionalProperties:
+          format: int32
+          type: integer
+        description: ByCategory key 固定为 announcement / productService / ticket；某类别为
+          0 时 key 仍返回
+        type: object
+      total:
+        description: Total 当前组织上下文未读总数
+        type: integer
+    type: object
   response.OAuthAppInfo:
     properties:
       clientId:
@@ -10119,6 +10229,9 @@ definitions:
         allOf:
         - $ref: '#/definitions/response.RagTimeCost'
         description: 知识库检索起止
+      traceId:
+        description: 本轮问答的链路id，可据此关联应用/模型统计明细
+        type: string
     type: object
   response.RagConversationInfo:
     properties:
@@ -21610,6 +21723,166 @@ paths:
       summary: 深度思考校验
       tags:
       - model
+  /notice:
+    delete:
+      consumes:
+      - application/json
+      description: 按勾选的 messageId 从当前账号在当前组织上下文的列表中移除，不影响其他收件人
+      parameters:
+      - description: 当前组织上下文ID
+        in: header
+        name: X-Org-Id
+        required: true
+        type: string
+      - description: 批量删除请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.NoticeDeleteReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.NoticeDeleteResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 批量删除消息
+      tags:
+      - notice
+  /notice/list:
+    get:
+      description: 已读与未读混排，每条带 isRead；悬浮面板的未读列表也复用本接口（onlyUnread=true）
+      parameters:
+      - description: 当前组织上下文ID
+        in: header
+        name: X-Org-Id
+        required: true
+        type: string
+      - description: Category 0 全部 / 1 公告 / 2 产品服务 / 3 工单
+        in: query
+        name: category
+        type: integer
+      - description: Keyword 标题/正文模糊匹配；% 与 _ 按普通字符处理（服务端转义）
+        in: query
+        name: keyword
+        type: string
+      - description: OnlyUnread true 仅未读；false 已读+未读混排（默认）
+        in: query
+        name: onlyUnread
+        type: boolean
+      - in: query
+        name: pageNo
+        type: integer
+      - in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        $ref: '#/definitions/response.NoticeItem'
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 消息中心整页列表
+      tags:
+      - notice
+  /notice/read:
+    put:
+      consumes:
+      - application/json
+      description: 把单条消息标记为已读；对已读消息重复调用是幂等的
+      parameters:
+      - description: 当前组织上下文ID
+        in: header
+        name: X-Org-Id
+        required: true
+        type: string
+      - description: 单条已读请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.NoticeReadReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 消息已读（单条）
+      tags:
+      - notice
+  /notice/read-all:
+    put:
+      description: 把当前账号在当前组织上下文的全部可见未读标记为已读；不分类别，列表筛选与勾选均不影响作用范围
+      parameters:
+      - description: 当前组织上下文ID
+        in: header
+        name: X-Org-Id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 一键已读
+      tags:
+      - notice
+  /notice/unread/count:
+    get:
+      description: 未读总数+分类角标，驱动头像红点与各 Tab 角标；消息按账号+组织双维度隔离，切换组织需重新拉取
+      parameters:
+      - description: 当前组织上下文ID
+        in: header
+        name: X-Org-Id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.NoticeUnreadCountResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 未读总数+分类角标
+      tags:
+      - notice
   /oauth/app:
     delete:
       consumes:
@@ -22699,6 +22972,83 @@ paths:
       security:
       - JWT: []
       summary: 知识问答会话列表
+      tags:
+      - rag
+  /rag/pending/conversation:
+    post:
+      consumes:
+      - application/json
+      description: 获取知识问答运行中会话
+      parameters:
+      - description: 获取知识问答运行中会话请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.RagPendingConversationReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PendingConversationResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取知识问答运行中会话
+      tags:
+      - rag
+  /rag/stream/cancel:
+    post:
+      consumes:
+      - application/json
+      description: 知识问答流式问答手动停止
+      parameters:
+      - description: 知识问答流式问答手动停止参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.RagStreamCancelReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 知识问答流式问答手动停止
+      tags:
+      - rag
+  /rag/stream/connect:
+    post:
+      consumes:
+      - application/json
+      description: 知识问答流式问答断开后重连
+      parameters:
+      - description: 知识问答流式问答重连参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.RagStreamConnectReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 知识问答流式问答断开后重连
       tags:
       - rag
   /rag/upload:

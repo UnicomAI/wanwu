@@ -69,6 +69,7 @@ type RagConversationDetailInfo struct {
 	QaSearchList         *string          `json:"qaSearchList"`     // 问答库命中结果，与 searchList 互斥；null=没走问答库检索，""=检索未命中
 	ErrMessage           string           `json:"errMessage"`
 	QaErrMessage         string           `json:"qaErrMessage"` // 问答库检索失败原因，非空表示这轮是问答库报错后转的知识库
+	TraceId              string           `json:"traceId"`      // 本轮问答的链路id，可据此关联应用/模型统计明细
 	RequestFiles         []RagRequestFile `json:"requestFiles"`
 	CreatedAt            int64            `json:"createdAt"`
 	ReasoningTimeCost    RagTimeCost      `json:"reasoningTimeCost"`    // 深度思考起止

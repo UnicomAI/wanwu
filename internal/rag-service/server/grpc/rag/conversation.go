@@ -143,6 +143,7 @@ func (s *Service) ListRagConversationDetail(ctx context.Context, req *rag_servic
 			QaSearchList:     detail.QaSearchList,
 			ErrMessage:       detail.ErrMessage,
 			QaErrMessage:     detail.QaErrMessage,
+			TraceId:          detail.TraceId,
 			FileInfoList:     buildDetailFileInfo(detail.FileInfo),
 			CreatedAt:        detail.CreatedAt,
 

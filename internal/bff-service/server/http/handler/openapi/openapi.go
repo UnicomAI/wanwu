@@ -222,7 +222,7 @@ func ChatRag(ctx *gin.Context) {
 	}
 	// 非流式
 	startTime := time.Now()
-	chatCh, _, err := service.CallRagChatStream(ctx, userID, orgID, request.ChatRagRequest{RagID: req.UUID, Question: req.Query, History: req.History}, true)
+	chatCh, _, err := service.CallRagChatStream(ctx, ctx.Request.Context(), userID, orgID, request.ChatRagRequest{RagID: req.UUID, Question: req.Query, History: req.History}, true)
 	if err != nil {
 		statusCode, failureReason := service.GrpcErrorToHTTPStatus(err)
 		go func() {

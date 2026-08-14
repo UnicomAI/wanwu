@@ -70,6 +70,10 @@ func InitRagChatHistoryIndexTemplate(ctx context.Context) error {
 					"publish": {
 						"type": "integer"
 					},
+					"traceId": {
+						"type": "keyword",
+						"index": true
+					},
 					"userId": {
 						"type": "keyword",
 						"index": true

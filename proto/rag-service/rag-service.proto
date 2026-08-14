@@ -407,6 +407,7 @@ message RagConversationDetailInfo {
   RagTimeCost searchListTimeCost = 13;
   RagTimeCost qaSearchListTimeCost = 14;
   string qaErrMessage = 15; // 问答库检索失败原因，非空表示该轮问答库检索报错后转的知识库
+  string traceId = 16; // 本轮问答的链路id，与应用/模型统计明细同值
 }
 
 

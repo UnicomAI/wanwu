@@ -41,6 +41,7 @@ type RagConversationDetail struct {
 	ErrMessage       string         `json:"errMessage"`
 	QaErrMessage     string         `json:"qaErrMessage"` // 问答库检索失败原因，非空表示这轮是问答库报错后转的知识库
 	FileInfo         []*RagFileInfo `json:"fileInfo"`
+	TraceId          string         `json:"traceId"` // 本轮问答的链路id，与应用/模型统计明细同值，可据此反查调用链
 	UserId           string         `json:"userId"`
 	OrgId            string         `json:"orgId"`
 	CreatedAt        int64          `json:"createdAt"`

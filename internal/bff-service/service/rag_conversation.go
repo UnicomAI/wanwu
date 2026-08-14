@@ -152,6 +152,7 @@ func RagConversationDetailList(ctx *gin.Context, userId, orgId string, req reque
 			QaSearchList:     item.QaSearchList,
 			ErrMessage:       item.ErrMessage,
 			QaErrMessage:     item.QaErrMessage,
+			TraceId:          item.TraceId,
 			RequestFiles:     buildRagRequestFiles(item.FileInfoList),
 			CreatedAt:        item.CreatedAt,
 

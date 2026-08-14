@@ -698,3 +698,7 @@
 {"code":0,"key":"ope_statistic_new_client_line","langs":{"zh":"新增用户量"}}
 {"code":0,"key":"ope_statistic_browse_table","langs":{"zh":"平台浏览量"}}
 {"code":0,"key":"ope_statistic_browse_line","langs":{"zh":"浏览量"}}
+{"code":110000,"key":"bff_rag_model_not_configured","langs":{"en":"chat model not configured, please configure the model first","zh":"对话模型未配置，请先配置对话模型"}}
+{"code":110000,"key":"bff_rag_knowledge_not_configured","langs":{"en":"no knowledge base configured, please bind at least one knowledge base or QA base","zh":"知识库未配置，请至少绑定一个知识库或问答库"}}
+{"code":110000,"key":"bff_rag_rerank_not_configured","langs":{"en":"knowledge base rerank model not configured, configure it or switch retrieval to hybrid with priority match","zh":"知识库 Rerank 模型未配置，请配置 Rerank 模型，或将知识库检索方式改为混合检索并开启权重匹配"}}
+{"code":110000,"key":"bff_rag_qa_rerank_not_configured","langs":{"en":"QA base rerank model not configured, please configure it","zh":"问答库 Rerank 模型未配置，请配置问答库 Rerank 模型"}}
