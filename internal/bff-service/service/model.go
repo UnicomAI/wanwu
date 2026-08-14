@@ -262,6 +262,10 @@ func GetModelIdByUuid(ctx *gin.Context, uuid string) (string, error) {
 	return resp.ModelId, nil
 }
 
+func GetModelByUuid(ctx *gin.Context, uuid string) (*model_service.ModelInfo, error) {
+	return model.GetModelByUuid(ctx.Request.Context(), &model_service.GetModelByUuidReq{Uuid: uuid})
+}
+
 func GetModelUuidById(ctx *gin.Context, modelId string) (string, error) {
 	resp, err := GetModelById(ctx, &request.GetModelRequest{BaseModelRequest: request.BaseModelRequest{ModelId: modelId}})
 	if err != nil {

@@ -2,8 +2,6 @@ package request
 
 import (
 	"fmt"
-	"path/filepath"
-	"strings"
 
 	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
@@ -161,10 +159,7 @@ func (req *OpenAPIRagDraftChatRequest) Check() error {
 	return checkRagChatFileInfo(req.FileInfo)
 }
 
-// ragChatImageExts 知识问答只有图片附件会被送给模型（见 rag-service buildAttachmentList）
-var ragChatImageExts = map[string]struct{}{".png": {}, ".jpg": {}, ".jpeg": {}}
-
-// checkRagChatFileInfo 校验问答附件
+// checkRagChatFileInfo 校验问答附件，只管数量与地址合法性，附件类型由 rag-service buildAttachmentList 判定
 func checkRagChatFileInfo(fileInfoList []ConversionStreamFile) error {
 	if len(fileInfoList) > 1 {
 		return fmt.Errorf("file_info 当前仅支持传 1 个文件")
@@ -175,9 +170,6 @@ func checkRagChatFileInfo(fileInfoList []ConversionStreamFile) error {
 		}
 		if err := url_util.ValidateURL(f.FileUrl); err != nil {
 			return err
-		}
-		if _, ok := ragChatImageExts[strings.ToLower(filepath.Ext(f.FileUrl))]; !ok {
-			return fmt.Errorf("file_info 当前仅支持图片(png/jpg/jpeg)，且 fileUrl 需以图片后缀结尾、不能带查询参数: %s", f.FileUrl)
 		}
 	}
 	return nil

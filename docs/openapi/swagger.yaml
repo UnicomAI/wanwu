@@ -4990,33 +4990,6 @@ paths:
       summary: 知识问答会话列表OpenAPI
       tags:
       - openapi
-  /rag/file/upload:
-    post:
-      consumes:
-      - multipart/form-data
-      description: 上传随问题携带的文件，返回的 fileUrl 填进问答接口的 file_info 即可针对该文件提问。支持一次传多个文件。带文件提问仅支持
-        1 张图片（png/jpg/jpeg），且需打开视觉开关、对话模型支持图文问答、绑定多模态知识库、知识库 Rerank 为多模态 Rerank，不满足时问答接口直接报错。
-      parameters:
-      - description: 文件，可重复该字段传多个
-        in: formData
-        name: files
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/response.RagUploadResponse'
-              type: object
-      summary: 知识问答文件上传OpenAPI
-      tags:
-      - openapi
   /rag/info:
     get:
       description: 获取知识问答详情，通过 published 参数控制返回草稿态或已发布态配置。返回中的模型 id 均为模型UUID。
