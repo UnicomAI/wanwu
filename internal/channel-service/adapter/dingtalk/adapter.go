@@ -515,14 +515,26 @@ func (d *DingTalkAdapter) OnMessage(handler types.MessageHandler) {
 	d.handler = handler
 }
 
-// CreateStreamSender 创建钉钉流式回复发送器
-// Stream 模式下默认启用流式卡片回复，配置 streamReply=false 可禁用，否则返回 nil（降级为非流式）
+// CreateStreamSender 创建钉钉流式回复发送器。
+// 流式卡片需显式配置：仅当配置了 cardTemplateId（用户在钉钉后台自建的卡片模板）且未禁用流式回复
+// 时才走卡片路径。未配 cardTemplateId 时返回 nil，降级为纯文本分段实时下发（chat.handleAgentSSEResponse）。
+//
+// 原因：官方默认 AI 模板 382e4302 在普通机器人应用上不渲染（API 返回 success 但卡片不显示），
+// 故不再作为默认值隐式启用卡片——否则未配 cardTemplateId 的通道会掉进一个不工作的路径。
+// 想用流式卡片需自建模板并填 cardTemplateId；想强制纯文本可配 streamReply=false。
 func (d *DingTalkAdapter) CreateStreamSender(ctx context.Context, userID string, extra map[string]string) types.StreamSender {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	// 检查是否禁用了流式回复（Stream 模式下默认启用）
+	// 显式禁用流式回复 → 纯文本
 	if d.config.Extra["streamReply"] == "false" {
+		return nil
+	}
+
+	// 流式卡片必须显式配置 cardTemplateId（用户自建模板）；未配置则降级纯文本
+	cardTemplateID := d.config.Extra["cardTemplateId"]
+	if cardTemplateID == "" {
+		log.Debugf("[DingTalk] cardTemplateId not configured, falling back to non-streaming text reply")
 		return nil
 	}
 
@@ -541,13 +553,7 @@ func (d *DingTalkAdapter) CreateStreamSender(ctx context.Context, userID string,
 		return nil
 	}
 
-	// 获取卡片模板 ID（默认使用钉钉 AI Markdown 模板）
-	cardTemplateID := d.config.Extra["cardTemplateId"]
-	if cardTemplateID == "" {
-		cardTemplateID = DefaultCardTemplateID
-	}
-
-	// 创建并投放 AI 卡片（382e4302 模板的数据槽字段名为 msgContent）
+	// 创建并投放 AI 卡片（自建模板的数据槽字段名应为 msgContent）
 	cardData := map[string]string{
 		"msgContent": "",
 		"flowStatus": string(AICardStatusProcessing),

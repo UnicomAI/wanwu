@@ -208,9 +208,6 @@ const (
 	AICardStatusFailed     AICardStatus = "5" // 执行失败
 )
 
-// DefaultCardTemplateID 钉钉官方 AI Markdown 卡片模板 ID
-const DefaultCardTemplateID = "382e4302-551d-4880-bf29-a30acfab2e71.schema"
-
 // CreateCardRequest 创建卡片实例请求
 type CreateCardRequest struct {
 	CardTemplateID        string          `json:"cardTemplateId"`

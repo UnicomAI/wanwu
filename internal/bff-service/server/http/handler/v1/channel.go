@@ -43,6 +43,26 @@ func ListWanwuAgents(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
+// ListWanwuChatflows 获取万悟对话流列表（用于通道绑定对话流下拉）
+//
+//	@Tags			channel
+//	@Summary		获取万悟对话流列表
+//	@Description	获取万悟对话流列表（用于通道绑定下拉），仅返回本人创建且已发布的对话流，appId 为 workflow_id（直通 channel-service）
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	query		string	false	"应用名(模糊查询)"
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.WanwuAgentResponse}}
+//	@Router			/channel/chatflow [get]
+func ListWanwuChatflows(ctx *gin.Context) {
+	var req request.ListWanwuChatflowsRequest
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	resp, err := service.ListWanwuChatflows(ctx, getUserID(ctx), getOrgID(ctx), req.Name)
+	gin_util.Response(ctx, resp, err)
+}
+
 // ListWanwuApiKeys
 //
 //	@Tags			channel

@@ -11,6 +11,13 @@ type ListWanwuAgentsRequest struct {
 
 func (r *ListWanwuAgentsRequest) Check() error { return nil }
 
+// ListWanwuChatflowsRequest 获取万悟对话流列表请求（通道绑定下拉）
+type ListWanwuChatflowsRequest struct {
+	Name string `form:"name" json:"name"` // 搜索名称
+}
+
+func (r *ListWanwuChatflowsRequest) Check() error { return nil }
+
 // --- 扫码登录 ---
 
 // CreateQRLoginRequest 发起扫码登录请求
