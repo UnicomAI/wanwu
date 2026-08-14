@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
@@ -246,7 +247,7 @@ func getBool(m map[string]interface{}, key string, defaultVal bool) bool {
 func buildAttachmentList(fileInfos []*rag_service.FileInfo) []*AttachmentInfo {
 	retList := make([]*AttachmentInfo, 0)
 	for _, file := range fileInfos {
-		ext := filepath.Ext(file.FileUrl)
+		ext := strings.ToLower(filepath.Ext(file.FileUrl))
 		switch ext {
 		case ".png", ".jpg", ".jpeg":
 			retList = append(retList, &AttachmentInfo{

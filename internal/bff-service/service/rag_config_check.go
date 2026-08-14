@@ -2,10 +2,13 @@ package service
 
 import (
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
+	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 	rag_service "github.com/UnicomAI/wanwu/api/proto/rag-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
+	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,6 +46,81 @@ func CheckRagConfigReady(ragInfo *response.RagInfo) error {
 		qaCount:         len(ragInfo.QAKnowledgeBaseConfig.Knowledgebases),
 		qaRerankID:      ragInfo.QARerankConfig.ModelId,
 	})
+}
+
+// CheckRagChatFileReady 带文件提问的前置校验，口径与页面「视觉」配置块一致：
+// 视觉开关已开、对话模型支持图文问答、至少绑定一个多模态知识库、知识库 rerank 为多模态 rerank
+func CheckRagChatFileReady(ctx *gin.Context, userId, orgId, ragID string, needLatestPublished bool) error {
+	var identity *rag_service.Identity
+	if !needLatestPublished {
+		identity = &rag_service.Identity{UserId: userId, OrgId: orgId}
+	}
+	ragInfo, err := rag.GetRagDetail(ctx.Request.Context(), &rag_service.RagDetailReq{
+		RagId:    ragID,
+		Publish:  util.IfElse(needLatestPublished, int32(1), int32(0)),
+		Identity: identity,
+	})
+	if err != nil {
+		return err
+	}
+	if ragInfo.GetVisionConfig().GetPicNum() <= 0 {
+		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_rag_vision_not_enabled")
+	}
+	if err := checkRagChatModelVision(ctx, ragInfo.GetModelConfig().GetModelId()); err != nil {
+		return err
+	}
+	if err := checkRagChatRerankMultimodal(ctx, ragInfo.GetRerankConfig().GetModelId()); err != nil {
+		return err
+	}
+	return checkRagChatKnowledgeMultimodal(ctx, userId, orgId, ragInfo.GetKnowledgeBaseConfig().GetPerKnowledgeConfigs())
+}
+
+// checkRagChatModelVision 对话模型须带「图文问答」标签
+func checkRagChatModelVision(ctx *gin.Context, modelID string) error {
+	if modelID == "" {
+		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_rag_model_not_configured")
+	}
+	modelInfo, err := model.GetModel(ctx.Request.Context(), &model_service.GetModelReq{ModelId: modelID})
+	if err != nil {
+		return err
+	}
+	visionSupport, err := checkModelExperienceModelVisionSupport(modelInfo)
+	if err != nil {
+		return err
+	}
+	if !visionSupport {
+		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_rag_model_not_vision")
+	}
+	return nil
+}
+
+// checkRagChatRerankMultimodal 知识库 rerank 模型须为 multimodal-rerank
+func checkRagChatRerankMultimodal(ctx *gin.Context, rerankModelID string) error {
+	if rerankModelID == "" {
+		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_rag_rerank_not_multimodal")
+	}
+	rerankInfo, err := model.GetModel(ctx.Request.Context(), &model_service.GetModelReq{ModelId: rerankModelID})
+	if err != nil {
+		return err
+	}
+	if rerankInfo.GetModelType() != mp.ModelTypeMultiRerank {
+		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_rag_rerank_not_multimodal")
+	}
+	return nil
+}
+
+// checkRagChatKnowledgeMultimodal 绑定的知识库至少有一个是多模态，与页面 getCategory 同口径
+func checkRagChatKnowledgeMultimodal(ctx *gin.Context, userId, orgId string, kbConfigs []*rag_service.RagPerKnowledgeConfig) error {
+	for _, kb := range kbConfigs {
+		multimodal, err := isMultimodalKnowledge(ctx, userId, orgId, kb.GetKnowledgeId())
+		if err != nil {
+			return err
+		}
+		if multimodal {
+			return nil
+		}
+	}
+	return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_rag_knowledge_not_multimodal")
 }
 
 // checkRagProtoConfigReady 校验 proto 形态的知识问答配置，供问答链路复用已拉到的详情，不额外发一次查询

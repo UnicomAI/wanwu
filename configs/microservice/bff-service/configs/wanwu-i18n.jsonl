@@ -702,3 +702,7 @@
 {"code":110000,"key":"bff_rag_knowledge_not_configured","langs":{"en":"no knowledge base configured, please bind at least one knowledge base or QA base","zh":"知识库未配置，请至少绑定一个知识库或问答库"}}
 {"code":110000,"key":"bff_rag_rerank_not_configured","langs":{"en":"knowledge base rerank model not configured, configure it or switch retrieval to hybrid with priority match","zh":"知识库 Rerank 模型未配置，请配置 Rerank 模型，或将知识库检索方式改为混合检索并开启权重匹配"}}
 {"code":110000,"key":"bff_rag_qa_rerank_not_configured","langs":{"en":"QA base rerank model not configured, please configure it","zh":"问答库 Rerank 模型未配置，请配置问答库 Rerank 模型"}}
+{"code":110000,"key":"bff_rag_model_not_vision","langs":{"en":"chat model does not support vision, please switch to a vision-capable model before asking with files","zh":"对话模型不支持图文问答，请先更换为支持视觉的对话模型再带文件提问"}}
+{"code":110000,"key":"bff_rag_vision_not_enabled","langs":{"en":"vision is not enabled, please turn on the vision switch before asking with files","zh":"视觉开关未打开，请先在应用配置中打开视觉开关再带文件提问"}}
+{"code":110000,"key":"bff_rag_knowledge_not_multimodal","langs":{"en":"no multimodal knowledge base bound, please bind at least one multimodal knowledge base","zh":"未绑定多模态知识库，请至少绑定一个多模态知识库"}}
+{"code":110000,"key":"bff_rag_rerank_not_multimodal","langs":{"en":"knowledge base rerank model is not multimodal-rerank, please switch to a multimodal rerank model","zh":"知识库 Rerank 模型不是多模态 Rerank，请更换为多模态 Rerank 模型"}}
