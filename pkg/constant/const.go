@@ -18,12 +18,13 @@ const (
 
 // app type
 const (
-	AppTypeAgent     = "agent"     // 智能体
-	AppTypeRag       = "rag"       // 文本问答
-	AppTypeWorkflow  = "workflow"  // 工作流
-	AppTypeChatflow  = "chatflow"  // 对话流
-	AppTypeSkill     = "skill"     // Skill
-	AppTypeMCPServer = "mcpserver" // mcp server
+	AppTypeAgent           = "agent"           // 智能体
+	AppTypeRag             = "rag"             // 文本问答
+	AppTypeWorkflow        = "workflow"        // 工作流
+	AppTypeChatflow        = "chatflow"        // 对话流
+	AppTypeSkill           = "skill"           // Skill
+	AppTypeMCPServer       = "mcpserver"       // mcp server
+	AppTypeDigitalEmployee = "digitalemployee" // 数字员工
 )
 
 // app publish type
@@ -101,17 +102,18 @@ const (
 
 // biz module
 const (
-	BizModuleWGA               = "wga"       // 通用智能体
-	BizModuleModel             = "model"     // 模型
-	BizModuleResourceKnowledge = "knowledge" // 知识库
-	BizModuleResourceMCP       = "mcp"       // MCP
-	BizModuleResourceTool      = "tool"      // 插件工具
-	BizModuleResourcePrompt    = "prompt"    // 提示词
-	BizModuleResourceSkill     = "skill"     // Skills
-	BizModuleResourceSafety    = "safety"    // 安全护栏
-	BizModuleAppRag            = "rag"       // 知识问答
-	BizModuleAppWorkflow       = "workflow"  // 工作流
-	BizModuleAppAgent          = "agent"     // 智能体
+	BizModuleWGA                = "wga"             // 通用智能体
+	BizModuleModel              = "model"           // 模型
+	BizModuleResourceKnowledge  = "knowledge"       // 知识库
+	BizModuleResourceMCP        = "mcp"             // MCP
+	BizModuleResourceTool       = "tool"            // 插件工具
+	BizModuleResourcePrompt     = "prompt"          // 提示词
+	BizModuleResourceSkill      = "skill"           // Skills
+	BizModuleResourceSafety     = "safety"          // 安全护栏
+	BizModuleAppRag             = "rag"             // 知识问答
+	BizModuleAppWorkflow        = "workflow"        // 工作流
+	BizModuleAppAgent           = "agent"           // 智能体
+	BizModuleAppDigitalEmployee = "digitalemployee" // 数字员工
 )
 
 // StatisticModuleAllowsEmptyAppID 应用统计 V2 写入/查询：这些板块允许 appId 为空（板块级维度）。
@@ -149,6 +151,8 @@ func BizModuleName(module string) string {
 		return "工作流"
 	case BizModuleAppAgent:
 		return "智能体"
+	case BizModuleAppDigitalEmployee:
+		return "数字员工"
 	default:
 		return module
 	}

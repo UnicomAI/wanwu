@@ -770,6 +770,7 @@ message AppStatisticV2Rank {
   repeated AppStatisticV2RankItem byWorkflow = 2;
   repeated AppStatisticV2RankItem byChatflow = 3;
   repeated AppStatisticV2RankItem byRag = 4;
+  repeated AppStatisticV2RankItem byDigitalEmployee = 5;
 }
 
 message AppStatisticV2Chart {

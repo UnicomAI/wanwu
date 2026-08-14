@@ -866,7 +866,7 @@ func deleteWgaConversationHistory(ctx *gin.Context, userId, orgId, threadId stri
 			"orgId":    orgId,
 		},
 	})
-	if err != nil && !wgaConversationHistoryEventESIndexNotFound(err) {
+	if err != nil && !esIndexNotFound(err, wgaConversationHistoryEventESIndexName) {
 		return err
 	}
 	return nil

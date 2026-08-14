@@ -73,6 +73,21 @@ func getAppBriefMap(ctx *gin.Context, appId []string, appType string) (map[strin
 			}
 		}
 		return result, nil
+	case constant.AppTypeDigitalEmployee:
+		// 数字员工名称：复用批量 latest 接口（GetDigitalEmployeeBatchInfo → POST /versions/latest，dh_ids）
+		// 契约 latest 无头像字段，用默认图标
+		infos, err := GetDigitalEmployeeBatchInfo(ctx, getUserID(ctx), getOrgID(ctx), appId)
+		if err != nil {
+			log.Errorf("get digital employee info err: %v", err)
+			return nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("get app brief error: %v", err))
+		}
+		for dhID, v := range infos {
+			result[dhID] = appBrief{
+				Name:   v.Name,
+				Avatar: request.Avatar{Path: "/v1/static/icon/wga-digital-employee-icon.svg"},
+			}
+		}
+		return result, nil
 	case constant.BizModuleResourceKnowledge:
 		// 知识库不在 app 发布表，走 knowledge-service 批量补全名称/头像
 		kbResp, err := knowledgeBase.SelectKnowledgeListByIdList(ctx.Request.Context(), &knowledgebase_service.BatchKnowledgeSelectReq{
@@ -171,6 +186,11 @@ func RecordAppStatistic(ctx context.Context, userId, orgId, appId, appType, modu
 	statCtx := parseStatisticContextOptional(ctx)
 	if appType == "" {
 		appType = resolveAppStatisticAppType(statCtx)
+	}
+	if appId == "" && statCtx != nil {
+		// 从 Trace 补 appId（如数字员工发布对话 TraceWeb 设了 employeeId；
+		// wga 通用管线传空 appId，靠这里补上具体应用，避免应用级模块空 appId 被拦截）
+		appId = statCtx.AppID
 	}
 	if module == "" {
 		module = resolveAppStatisticModule(statCtx, appType)
@@ -273,6 +293,8 @@ func resolveAppStatisticModule(statCtx *trace_util.StatisticContext, appType str
 		return constant.BizModuleAppRag
 	case constant.AppTypeWorkflow, constant.AppTypeChatflow:
 		return constant.BizModuleAppWorkflow
+	case constant.AppTypeDigitalEmployee:
+		return constant.BizModuleAppDigitalEmployee
 	default:
 		return ""
 	}
@@ -389,6 +411,28 @@ func GetAppListSelect(ctx *gin.Context, filter request.StatisticFilter, appType 
 			if workflowInfo, ok := workflowMap[info.AppId]; ok {
 				item.Name = workflowInfo.Name
 				item.Avatar = cacheWorkflowAvatar(workflowInfo.URL, appType)
+			}
+			items = append(items, item)
+		}
+
+	case constant.AppTypeDigitalEmployee:
+		// 数字员工名称：复用批量 latest（GetDigitalEmployeeBatchInfo → POST /versions/latest，dh_ids）
+		// 契约 latest 无头像字段，用默认图标
+		deInfos, err := GetDigitalEmployeeBatchInfo(ctx, getUserID(ctx), getOrgID(ctx), appIds)
+		if err != nil {
+			log.Errorf("app select get digital employee info err: %v", err)
+			return nil, err
+		}
+		for _, info := range resp.Infos {
+			item := response.MyAppItem{
+				AppId:       info.AppId,
+				AppType:     info.AppType,
+				PublishType: info.PublishType,
+				CreatedAt:   info.CreatedAt,
+			}
+			if deInfo, ok := deInfos[info.AppId]; ok {
+				item.Name = deInfo.Name
+				item.Avatar = request.Avatar{Path: "/v1/static/icon/wga-digital-employee-icon.svg"}
 			}
 			items = append(items, item)
 		}

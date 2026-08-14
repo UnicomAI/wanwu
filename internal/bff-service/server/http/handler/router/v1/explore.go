@@ -13,6 +13,8 @@ import (
 func registerExploration(apiV1 *gin.RouterGroup) {
 	mid.Sub("exploration.app").Reg(apiV1, "/exploration/app/list", http.MethodGet, v1.GetExplorationAppList, "获取应用广场应用")
 	mid.Sub("exploration.app").Reg(apiV1, "/exploration/app/favorite", http.MethodPost, v1.ChangeExplorationAppFavorite, "更改App收藏状态")
+	// 数字员工广场详情（应用广场展示，实时调外部详情）
+	mid.Sub("exploration.app").Reg(apiV1, "/digital-employee/detail", http.MethodGet, v1.GetDigitalEmployeeSquareDetail, "数字员工广场详情")
 
 	// rag 相关接口
 	mid.Sub("exploration.app").Reg(apiV1, "/appspace/rag", http.MethodGet, v1.GetPublishedRag, "获取已发布rag详情", middleware.AuthAppPublish("ragId", constant.AppTypeRag))

@@ -79,6 +79,7 @@ func buildAppStatisticV2RankResponse(ctx *gin.Context, rank *app_service.AppStat
 	allItems := append(rank.GetByAgent(), rank.GetByWorkflow()...)
 	allItems = append(allItems, rank.GetByChatflow()...)
 	allItems = append(allItems, rank.GetByRag()...)
+	allItems = append(allItems, rank.GetByDigitalEmployee()...)
 
 	appIdsByType := map[string]map[string]struct{}{}
 	var creatorUserIds, creatorOrgIds []string
@@ -116,10 +117,11 @@ func buildAppStatisticV2RankResponse(ctx *gin.Context, rank *app_service.AppStat
 		return out
 	}
 	return &response.AppStatisticV2Rank{
-		ByAgent:    convertItems(rank.GetByAgent()),
-		ByWorkflow: convertItems(rank.GetByWorkflow()),
-		ByChatflow: convertItems(rank.GetByChatflow()),
-		ByRag:      convertItems(rank.GetByRag()),
+		ByAgent:           convertItems(rank.GetByAgent()),
+		ByWorkflow:        convertItems(rank.GetByWorkflow()),
+		ByChatflow:        convertItems(rank.GetByChatflow()),
+		ByRag:             convertItems(rank.GetByRag()),
+		ByDigitalEmployee: convertItems(rank.GetByDigitalEmployee()),
 	}, nil
 }
 

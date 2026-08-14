@@ -150,6 +150,7 @@ func convertAppStatisticV2Chart(c *orm.AppStatisticV2Chart) *app_service.AppStat
 		Rank: &app_service.AppStatisticV2Rank{
 			ByAgent: convertRank(c.Rank.ByAgent), ByWorkflow: convertRank(c.Rank.ByWorkflow),
 			ByChatflow: convertRank(c.Rank.ByChatflow), ByRag: convertRank(c.Rank.ByRag),
+			ByDigitalEmployee: convertRank(c.Rank.ByDigitalEmployee),
 		},
 	}
 }

@@ -2432,6 +2432,22 @@ definitions:
     required:
     - name
     type: object
+  request.CreateDigitalEmployeeConversationReq:
+    properties:
+      employeeId:
+        description: 数字员工ID
+        type: string
+      modelConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 模型配置（可选）
+      title:
+        description: 会话标题
+        type: string
+    required:
+    - employeeId
+    - title
+    type: object
   request.CreateDocChildSegmentReq:
     properties:
       content:
@@ -2880,6 +2896,14 @@ definitions:
     required:
     - skillId
     type: object
+  request.DeleteDigitalEmployeeConversationReq:
+    properties:
+      conversationId:
+        description: 会话ID
+        type: string
+    required:
+    - conversationId
+    type: object
   request.DeleteDocChildSegmentReq:
     properties:
       childChunkNoList:
@@ -3051,6 +3075,24 @@ definitions:
         type: string
     required:
     - id
+    type: object
+  request.DigitalEmployeeChatReq:
+    properties:
+      conversationId:
+        description: 会话ID
+        type: string
+      employeeId:
+        description: 数字员工ID
+        type: string
+      messages:
+        description: 消息
+        items:
+          $ref: '#/definitions/request.GeneralAgentConversationMessage'
+        type: array
+    required:
+    - conversationId
+    - employeeId
+    - messages
     type: object
   request.DocConfigUpdateReq:
     properties:
@@ -5049,6 +5091,19 @@ definitions:
     - desc
     - name
     - prompt
+    type: object
+  request.UpdateDigitalEmployeeConversationConfigReq:
+    properties:
+      conversationId:
+        description: 会话ID
+        type: string
+      modelConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 模型配置（必填）
+    required:
+    - conversationId
+    - modelConfig
     type: object
   request.UpdateDocChildSegmentReq:
     properties:
@@ -7706,6 +7761,12 @@ definitions:
       video_understanding:
         type: boolean
     type: object
+  response.CreateDigitalEmployeeConversationResp:
+    properties:
+      conversationId:
+        description: 会话ID（即 wga threadId）
+        type: string
+    type: object
   response.CreateGeneralAgentConversationResp:
     properties:
       threadId:
@@ -7960,6 +8021,16 @@ definitions:
       status:
         description: 0:删除失败，1：已完成
         type: integer
+    type: object
+  response.DigitalEmployeeSquareDetail:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 头像
+      name:
+        description: 名称
+        type: string
     type: object
   response.DirectUploadFileInfo:
     properties:
@@ -8562,6 +8633,22 @@ definitions:
         type: string
       totalSize:
         type: integer
+    type: object
+  response.GetDigitalEmployeeConversationConfigResp:
+    properties:
+      conversationId:
+        description: 会话ID
+        type: string
+      employeeId:
+        description: 数字员工ID
+        type: string
+      modelConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 模型配置
+      title:
+        description: 会话标题
+        type: string
     type: object
   response.GetDocByKnowledgeNameAndDocNameResp:
     properties:
@@ -16967,6 +17054,240 @@ paths:
       summary: 标签页自定义配置
       tags:
       - admin_center.setting
+  /digital-employee/chat:
+    post:
+      consumes:
+      - application/json
+      description: 应用广场数字员工发布对话（wga 模式，固定 DIP Agent，SSE 流式返回；会话须先创建，conversationId
+        必填）。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DigitalEmployeeChatReq'
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: SSE流式返回
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: 数字员工发布对话
+      tags:
+      - digital-employee
+  /digital-employee/conversation:
+    delete:
+      consumes:
+      - application/json
+      description: 删除数字员工发布会话及其历史（DB 行 + 独立 ES 索引级联删除）。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteDigitalEmployeeConversationReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 删除数字员工发布会话
+      tags:
+      - digital-employee
+    post:
+      consumes:
+      - application/json
+      description: 创建数字员工发布会话（绑定数字员工，创建后不可切换；模型配置可选，落独立表）。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateDigitalEmployeeConversationReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.CreateDigitalEmployeeConversationResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 创建数字员工发布会话
+      tags:
+      - digital-employee
+  /digital-employee/conversation/config:
+    get:
+      consumes:
+      - application/json
+      description: 读回数字员工发布会话的模型配置（对齐通用智能体 GET /general/agent/conversation/config；模型未配置/无效时
+        modelConfig 为空）。
+      parameters:
+      - description: 会话ID
+        in: query
+        name: conversationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GetDigitalEmployeeConversationConfigResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 数字员工发布会话配置
+      tags:
+      - digital-employee
+    put:
+      consumes:
+      - application/json
+      description: 更新数字员工发布会话的模型配置（对齐通用智能体 PUT /general/agent/conversation/config）。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateDigitalEmployeeConversationConfigReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 修改数字员工发布会话配置
+      tags:
+      - digital-employee
+  /digital-employee/conversation/detail:
+    get:
+      consumes:
+      - application/json
+      description: 按会话ID读取发布对话历史消息（独立 ES 索引 digital_employee_chat_history_event）。
+      parameters:
+      - description: 会话ID
+        in: query
+        name: conversationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.GeneralAgentConversationDetailInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 数字员工发布会话详情
+      tags:
+      - digital-employee
+  /digital-employee/conversation/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取与数字员工绑定的发布会话列表（按 employeeId 维度、updated_at DESC，最近对话排最前）。
+      parameters:
+      - description: 数字员工ID
+        in: query
+        name: employeeId
+        required: true
+        type: string
+      - description: 页码
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页数量
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      - description: 标题关键词
+        in: query
+        name: searchText
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ListResult'
+              type: object
+      security:
+      - JWT: []
+      summary: 数字员工发布会话列表
+      tags:
+      - digital-employee
+  /digital-employee/detail:
+    get:
+      consumes:
+      - application/json
+      description: 应用广场数字员工详情展示（实时调外部详情 + 发布者信息，决策 D6 不做缓存）。
+      parameters:
+      - description: 数字员工ID
+        in: query
+        name: employeeId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.DigitalEmployeeSquareDetail'
+              type: object
+      security:
+      - JWT: []
+      summary: 数字员工广场详情
+      tags:
+      - digital-employee
   /doc_center/markdown:
     get:
       consumes:

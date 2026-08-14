@@ -239,6 +239,15 @@ func WithThreadID(threadId string) SQLOption {
 	})
 }
 
+func WithEmployeeID(employeeId string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if employeeId != "" {
+			return db.Where("employee_id = ?", employeeId)
+		}
+		return db
+	})
+}
+
 func WithTitleLike(title string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if title != "" {

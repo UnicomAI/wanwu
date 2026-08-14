@@ -96,6 +96,14 @@ service AssistantService {
   rpc WgaConversationList(WgaConversationListReq) returns (WgaConversationListResp) {}
   rpc WgaConversationExists(WgaConversationExistsReq) returns (WgaConversationExistsResp) {}
 
+  // --- digital-employee conversation（数字员工发布会话，独立表，与 wga conversation 物理隔离）---
+  rpc DigitalEmployeeConversationCreate(DigitalEmployeeConversationCreateReq) returns (DigitalEmployeeConversationCreateResp) {}
+  rpc DigitalEmployeeConversationDelete(DigitalEmployeeConversationDeleteReq) returns (google.protobuf.Empty) {}
+  rpc DigitalEmployeeConversationList(DigitalEmployeeConversationListReq) returns (DigitalEmployeeConversationListResp) {}
+  rpc GetDigitalEmployeeConversationConfig(GetDigitalEmployeeConversationConfigReq) returns (GetDigitalEmployeeConversationConfigResp) {}
+  rpc TouchDigitalEmployeeConversationConfig(GetDigitalEmployeeConversationConfigReq) returns (google.protobuf.Empty) {}
+  rpc UpdateDigitalEmployeeConversationConfig(UpdateDigitalEmployeeConversationConfigReq) returns (google.protobuf.Empty) {}
+
   // --- admin center ---
   rpc GetAdminCustomPromptPageList(GetAdminCustomPromptPageListReq) returns (CustomPromptList) {}
 
@@ -1067,4 +1075,71 @@ message UpdateWgaConfigReq {
   repeated WgaConfigSkill skillList = 6;
   repeated WgaConfigKnowledge knowledgeList = 7;
   repeated WgaConfigOntologyKnowledge ontologyKnowledgeList = 8;
+}
+
+// --- digital-employee conversation messages ---
+
+message DigitalEmployeeConversationCreateReq {
+  string prompt = 1;                          // 会话标题
+  common.AppModelConfig modelConfig = 2;      // 模型配置（可选）
+  string employeeId = 3;                       // 数字员工ID（外部）
+  Identity identity = 4;
+}
+
+message DigitalEmployeeConversationCreateResp {
+  string threadId = 1;                         // 会话ID（即 wga threadId）
+}
+
+message DigitalEmployeeConversationDeleteReq {
+  string threadId = 1;
+  Identity identity = 2;
+}
+
+message DigitalEmployeeConversationListReq {
+  int32 pageSize = 1;
+  int32 pageNo = 2;
+  Identity identity = 3;
+  string searchText = 4;                       // 标题关键词，模糊匹配，空则不过滤
+  string employeeId = 5;                       // 数字员工ID（按员工维度过滤，必填）
+}
+
+message DigitalEmployeeConversationListResp {
+  repeated DigitalEmployeeConversationInfo data = 1;
+  int64 total = 2;
+  int32 pageSize = 3;
+  int32 pageNo = 4;
+}
+
+message DigitalEmployeeConversationInfo {
+  string threadId = 1;
+  string employeeId = 2;
+  string title = 3;
+  int64 createdAt = 4;
+  int64 updatedAt = 5;
+}
+
+message DigitalEmployeeConversationConfig {
+  string threadId = 1;
+  string employeeId = 2;
+  string title = 3;
+  common.AppModelConfig modelConfig = 4;
+  string userId = 5;
+  string orgId = 6;
+  int64 createdAt = 7;
+  int64 updatedAt = 8;
+}
+
+message GetDigitalEmployeeConversationConfigReq {
+  string threadId = 1;
+  Identity identity = 2;
+}
+
+message GetDigitalEmployeeConversationConfigResp {
+  DigitalEmployeeConversationConfig config = 1;
+}
+
+message UpdateDigitalEmployeeConversationConfigReq {
+  string threadId = 1;
+  common.AppModelConfig modelConfig = 2;      // 模型配置（必填）
+  Identity identity = 3;
 }

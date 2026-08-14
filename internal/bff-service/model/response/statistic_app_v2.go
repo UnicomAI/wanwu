@@ -14,10 +14,11 @@ type AppStatisticV2Trend struct {
 
 // AppStatisticV2Rank 应用排行（按应用类型分榜单）
 type AppStatisticV2Rank struct {
-	ByAgent    []StatisticV2RankItem `json:"byAgent"`    // 智能体使用量排行
-	ByWorkflow []StatisticV2RankItem `json:"byWorkflow"` // 工作流使用排行
-	ByChatflow []StatisticV2RankItem `json:"byChatflow"` // 对话流使用排行（图1 红字新增）
-	ByRag      []StatisticV2RankItem `json:"byRag"`      // 知识问答使用排行
+	ByAgent           []StatisticV2RankItem `json:"byAgent"`           // 智能体使用量排行
+	ByWorkflow        []StatisticV2RankItem `json:"byWorkflow"`        // 工作流使用排行
+	ByChatflow        []StatisticV2RankItem `json:"byChatflow"`        // 对话流使用排行（图1 红字新增）
+	ByRag             []StatisticV2RankItem `json:"byRag"`             // 知识问答使用排行
+	ByDigitalEmployee []StatisticV2RankItem `json:"byDigitalEmployee"` // 数字员工使用量排行
 }
 
 // AppStatisticV2ListItem 调用统计主表行（聚合维度；耗时为 avgCosts / avgFirstTokenLatency）

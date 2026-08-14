@@ -174,14 +174,17 @@ type WgaSandboxSandboxConfig struct {
 }
 
 type OntologyServiceConfig struct {
-	Enable                        int                            `json:"enable" mapstructure:"enable"`
-	Endpoint                      string                         `json:"endpoint" mapstructure:"endpoint"`
-	KnowledgeNetworkListUri       string                         `json:"knowledge_network_list_uri" mapstructure:"knowledge_network_list_uri"`
-	DigitalEmployeeListUri        string                         `json:"digital_employee_list_uri" mapstructure:"digital_employee_list_uri"`
-	DigitalEmployeeInfoUri        string                         `json:"digital_employee_info_uri" mapstructure:"digital_employee_info_uri"`
-	DigitalEmployeePromptTemplate string                         `json:"digital_employee_prompt_template" mapstructure:"digital_employee_prompt_template"`
-	BuiltinSkills                 []string                       `yaml:"builtin_skills" json:"builtin_skills" mapstructure:"builtin_skills"`
-	SmartDataSkills               []OntologySmartDataSkillConfig `json:"smart_data_skills" mapstructure:"smart_data_skills"`
+	Enable                         int                            `json:"enable" mapstructure:"enable"`
+	Endpoint                       string                         `json:"endpoint" mapstructure:"endpoint"`
+	KnowledgeNetworkListUri        string                         `json:"knowledge_network_list_uri" mapstructure:"knowledge_network_list_uri"`
+	DigitalEmployeeListUri         string                         `json:"digital_employee_list_uri" mapstructure:"digital_employee_list_uri"`
+	DigitalEmployeeInfoUri         string                         `json:"digital_employee_info_uri" mapstructure:"digital_employee_info_uri"`                 // 通用智能体 @数字员工 详情（非版本，占位 {digitalEmployeeId}）
+	DigitalEmployeeInfoVersionUri  string                         `json:"digital_employee_info_version_uri" mapstructure:"digital_employee_info_version_uri"` // 数字员工发布（DE）版本最新详情（占位 {dh_id}，/versions/latest）
+	DigitalEmployeeBatchLatestUri  string                         `json:"digital_employee_batch_latest_uri" mapstructure:"digital_employee_batch_latest_uri"` // 数字员工批量最新详情（POST body dh_ids，/versions/latest）
+	DigitalEmployeePromptTemplate  string                         `json:"digital_employee_prompt_template" mapstructure:"digital_employee_prompt_template"`
+	DigitalEmployeeChatPlaceholder string                         `json:"digital_employee_chat_placeholder" mapstructure:"digital_employee_chat_placeholder"` // 数字员工发布对话输入框 placeholder（广场详情下发，区别于通用智能体 DIP Agent 的 placeholder）
+	BuiltinSkills                  []string                       `yaml:"builtin_skills" json:"builtin_skills" mapstructure:"builtin_skills"`
+	SmartDataSkills                []OntologySmartDataSkillConfig `json:"smart_data_skills" mapstructure:"smart_data_skills"`
 }
 
 type OntologySmartDataSkillConfig struct {

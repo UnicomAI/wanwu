@@ -9322,6 +9322,401 @@
                 }
             }
         },
+        "/digital-employee/chat": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "应用广场数字员工发布对话（wga 模式，固定 DIP Agent，SSE 流式返回；会话须先创建，conversationId 必填）。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "digital-employee"
+                ],
+                "summary": "数字员工发布对话",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DigitalEmployeeChatReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE流式返回",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/digital-employee/conversation": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "创建数字员工发布会话（绑定数字员工，创建后不可切换；模型配置可选，落独立表）。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "digital-employee"
+                ],
+                "summary": "创建数字员工发布会话",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateDigitalEmployeeConversationReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.CreateDigitalEmployeeConversationResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "删除数字员工发布会话及其历史（DB 行 + 独立 ES 索引级联删除）。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "digital-employee"
+                ],
+                "summary": "删除数字员工发布会话",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteDigitalEmployeeConversationReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/digital-employee/conversation/config": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "读回数字员工发布会话的模型配置（对齐通用智能体 GET /general/agent/conversation/config；模型未配置/无效时 modelConfig 为空）。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "digital-employee"
+                ],
+                "summary": "数字员工发布会话配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "会话ID",
+                        "name": "conversationId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.GetDigitalEmployeeConversationConfigResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "更新数字员工发布会话的模型配置（对齐通用智能体 PUT /general/agent/conversation/config）。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "digital-employee"
+                ],
+                "summary": "修改数字员工发布会话配置",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateDigitalEmployeeConversationConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/digital-employee/conversation/detail": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "按会话ID读取发布对话历史消息（独立 ES 索引 digital_employee_chat_history_event）。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "digital-employee"
+                ],
+                "summary": "数字员工发布会话详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "会话ID",
+                        "name": "conversationId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.GeneralAgentConversationDetailInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/digital-employee/conversation/list": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取与数字员工绑定的发布会话列表（按 employeeId 维度、updated_at DESC，最近对话排最前）。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "digital-employee"
+                ],
+                "summary": "数字员工发布会话列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "数字员工ID",
+                        "name": "employeeId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "标题关键词",
+                        "name": "searchText",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ListResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/digital-employee/detail": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "应用广场数字员工详情展示（实时调外部详情 + 发布者信息，决策 D6 不做缓存）。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "digital-employee"
+                ],
+                "summary": "数字员工广场详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "数字员工ID",
+                        "name": "employeeId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.DigitalEmployeeSquareDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/doc_center/markdown": {
             "get": {
                 "security": [
@@ -26852,6 +27247,31 @@
                 }
             }
         },
+        "request.CreateDigitalEmployeeConversationReq": {
+            "type": "object",
+            "required": [
+                "employeeId",
+                "title"
+            ],
+            "properties": {
+                "employeeId": {
+                    "description": "数字员工ID",
+                    "type": "string"
+                },
+                "modelConfig": {
+                    "description": "模型配置（可选）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppModelConfig"
+                        }
+                    ]
+                },
+                "title": {
+                    "description": "会话标题",
+                    "type": "string"
+                }
+            }
+        },
         "request.CreateDocChildSegmentReq": {
             "type": "object",
             "required": [
@@ -27529,6 +27949,18 @@
                 }
             }
         },
+        "request.DeleteDigitalEmployeeConversationReq": {
+            "type": "object",
+            "required": [
+                "conversationId"
+            ],
+            "properties": {
+                "conversationId": {
+                    "description": "会话ID",
+                    "type": "string"
+                }
+            }
+        },
         "request.DeleteDocChildSegmentReq": {
             "type": "object",
             "required": [
@@ -27781,6 +28213,31 @@
             "properties": {
                 "id": {
                     "type": "string"
+                }
+            }
+        },
+        "request.DigitalEmployeeChatReq": {
+            "type": "object",
+            "required": [
+                "conversationId",
+                "employeeId",
+                "messages"
+            ],
+            "properties": {
+                "conversationId": {
+                    "description": "会话ID",
+                    "type": "string"
+                },
+                "employeeId": {
+                    "description": "数字员工ID",
+                    "type": "string"
+                },
+                "messages": {
+                    "description": "消息",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.GeneralAgentConversationMessage"
+                    }
                 }
             }
         },
@@ -30692,6 +31149,27 @@
                 "prompt": {
                     "description": "提示词",
                     "type": "string"
+                }
+            }
+        },
+        "request.UpdateDigitalEmployeeConversationConfigReq": {
+            "type": "object",
+            "required": [
+                "conversationId",
+                "modelConfig"
+            ],
+            "properties": {
+                "conversationId": {
+                    "description": "会话ID",
+                    "type": "string"
+                },
+                "modelConfig": {
+                    "description": "模型配置（必填）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppModelConfig"
+                        }
+                    ]
                 }
             }
         },
@@ -34624,6 +35102,15 @@
                 }
             }
         },
+        "response.CreateDigitalEmployeeConversationResp": {
+            "type": "object",
+            "properties": {
+                "conversationId": {
+                    "description": "会话ID（即 wga threadId）",
+                    "type": "string"
+                }
+            }
+        },
         "response.CreateGeneralAgentConversationResp": {
             "type": "object",
             "properties": {
@@ -35025,6 +35512,23 @@
                 "status": {
                     "description": "0:删除失败，1：已完成",
                     "type": "integer"
+                }
+            }
+        },
+        "response.DigitalEmployeeSquareDetail": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "头像",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
                 }
             }
         },
@@ -35901,6 +36405,31 @@
                 },
                 "totalSize": {
                     "type": "integer"
+                }
+            }
+        },
+        "response.GetDigitalEmployeeConversationConfigResp": {
+            "type": "object",
+            "properties": {
+                "conversationId": {
+                    "description": "会话ID",
+                    "type": "string"
+                },
+                "employeeId": {
+                    "description": "数字员工ID",
+                    "type": "string"
+                },
+                "modelConfig": {
+                    "description": "模型配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppModelConfig"
+                        }
+                    ]
+                },
+                "title": {
+                    "description": "会话标题",
+                    "type": "string"
                 }
             }
         },
