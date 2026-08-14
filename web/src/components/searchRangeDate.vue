@@ -14,6 +14,17 @@
       </el-radio-group>
       <el-date-picker
         ref="time"
+        v-model="time"
+        size="mini"
+        :clearable="false"
+        type="daterange"
+        value-format="yyyy-MM-dd"
+        range-separator="至"
+        start-placeholder="开始日期"
+        end-placeholder="结束日期"
+      ></el-date-picker>
+      <!--<el-date-picker
+        ref="time"
         size="mini"
         v-model="time"
         type="daterange"
@@ -24,10 +35,9 @@
         :range-separator="$t('common.datePicker.at')"
         :start-placeholder="$t('common.datePicker.startDate')"
         :end-placeholder="$t('common.datePicker.endDate')"
-        :picker-options="pickerOptions"
         :disabled-date="handleFilterTime"
         @change="handleDateChange"
-      ></el-date-picker>
+      ></el-date-picker>-->
     </div>
   </div>
 </template>
