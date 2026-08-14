@@ -205,35 +205,28 @@ func buildRagConfigFromCurrent(ctx *gin.Context, userID, orgID string, req reque
 	return cfg, nil
 }
 
-// UploadRagFile
-//
-//	@Tags			openapi
-//	@Summary		知识问答文件上传OpenAPI
-//	@Description	上传随问题携带的文件，返回的 fileUrl 填进问答接口的 file_info 即可针对该文件提问。支持一次传多个文件。带文件提问仅支持 1 张图片（png/jpg/jpeg），且需打开视觉开关、对话模型支持图文问答、绑定多模态知识库、知识库 Rerank 为多模态 Rerank，不满足时问答接口直接报错。
-//	@Accept			multipart/form-data
-//	@Produce		json
-//	@Param			files	formData	file	true	"文件，可重复该字段传多个"
-//	@Success		200		{object}	response.Response{data=response.RagUploadResponse}
-//	@Router			/rag/file/upload [post]
-func UploadRagFile(ctx *gin.Context) {
-	userID, orgID := getUserID(ctx), getOrgID(ctx)
-	// 带文件提问要的是裸 url，markdown 形态填进 file_info 会被判为非图片
-	resp, err := service.RagUpload(ctx, userID, orgID, request.RagUploadParams{Markdown: false})
-	gin_util.Response(ctx, resp, err)
-}
-
-// resolveOpenAPIModelConfig 请求未传该模型配置时沿用 fallback；传了则把模型UUID换成内部模型id
+// resolveOpenAPIModelConfig 请求未传该模型配置时沿用 fallback；传了则把模型UUID换成内部模型id，
+// 并按模型信息补齐调用方没传的 provider/model/modelType——config 参数要靠 provider+modelType 才解析得出来
 func resolveOpenAPIModelConfig(ctx *gin.Context, in, fallback *request.AppModelConfig) (*request.AppModelConfig, error) {
 	if in == nil {
 		return fallback, nil
 	}
 	cfg := *in
 	if cfg.ModelId != "" {
-		modelID, err := service.GetModelIdByUuid(ctx, cfg.ModelId)
+		modelInfo, err := service.GetModelByUuid(ctx, cfg.ModelId)
 		if err != nil {
 			return nil, err
 		}
-		cfg.ModelId = modelID
+		cfg.ModelId = modelInfo.GetModelId()
+		if cfg.Provider == "" {
+			cfg.Provider = modelInfo.GetProvider()
+		}
+		if cfg.Model == "" {
+			cfg.Model = modelInfo.GetModel()
+		}
+		if cfg.ModelType == "" {
+			cfg.ModelType = modelInfo.GetModelType()
+		}
 	}
 	return &cfg, nil
 }

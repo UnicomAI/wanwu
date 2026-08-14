@@ -81,8 +81,6 @@ func Register(openAPI *gin.RouterGroup) {
 	// rag — 问答
 	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/chat", http.MethodPost, openapi.ChatRag, "文本问答OpenAPI", constant.OpenAPITypeRag,
 		append([]gin.HandlerFunc{middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithAppResource(constant.AppTypeRag, "uuid"))}, middleware.APIKeyRecord(middleware.RecordFromReq))...)
-	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/file/upload", http.MethodPost, openapi.UploadRagFile, "知识问答OpenAPI文件上传", constant.OpenAPITypeRag,
-		middleware.AuthOpenAPIKey(), middleware.APIKeyRecord(middleware.RecordNonStreamType))
 	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag/chat/draft", http.MethodPost, openapi.DraftChatRag, "知识问答草稿态对话OpenAPI", constant.OpenAPITypeRag,
 		append([]gin.HandlerFunc{middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithDraftAppResource(constant.AppTypeRag, "uuid"))}, middleware.APIKeyRecord(middleware.RecordFromReq))...)
 	// model
