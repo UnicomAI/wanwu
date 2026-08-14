@@ -18,13 +18,17 @@
               type="textarea"
               :rows="3"
               :placeholder="$t('list.version.descPlaceholder')"
+              :readonly="isPublished"
             ></el-input>
           </el-form-item>
           <el-form-item
             :label="$t('list.version.publishType')"
             prop="publishType"
           >
-            <el-radio-group v-model="publishForm.publishType">
+            <el-radio-group
+              v-model="publishForm.publishType"
+              :disabled="isPublished"
+            >
               <div class="radio-item">
                 <el-radio label="private">
                   {{ $t('tempSquare.skills.publishType') }}
@@ -43,7 +47,7 @@
             </el-radio-group>
           </el-form-item>
 
-          <div class="save-action">
+          <div v-if="!isPublished" class="save-action">
             <el-button
               size="medium"
               type="primary"
@@ -99,6 +103,7 @@ export default {
         version: '',
         desc: '',
       },
+      isPublished: false,
       publishRules: {
         version: [
           {
@@ -139,6 +144,7 @@ export default {
             ...this.publishForm,
             ...res.data,
           };
+          this.isPublished = Boolean(res.data.publishType);
         }
       });
     },
