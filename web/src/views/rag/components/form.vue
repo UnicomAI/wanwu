@@ -658,7 +658,7 @@ export default {
             this.editForm.desc = res.data.desc;
             this.editForm.visionConfig = res.data.visionConfig;
             // 临时隐藏visionConfig的配置，全都设置为1
-            this.editForm.visionConfig.picNum = 1;
+            // this.editForm.visionConfig.picNum = 1;
 
             this.setModelInfo(res.data.modelConfig.modelId);
 

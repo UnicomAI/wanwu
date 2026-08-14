@@ -73,7 +73,7 @@
           :active-conversation-id="activeConversationId"
           :editForm="editForm"
           :chatType="'chat'"
-          :maxPicNum="currentMaxPicNum"
+          :maxPicNum="editForm.visionConfig.picNum"
           :maxImageSize="currentMaxImageSize"
           @conversation-created="handleConversationCreated"
           @conversation-changed="handleConversationChanged"
@@ -142,12 +142,6 @@ export default {
       return (
         this.currentModelInfo.fullConfig || this.currentModelInfo.config || {}
       );
-    },
-    currentMaxPicNum() {
-      const visionSupport = this.currentModelFullConfig.visionSupport;
-      if (visionSupport === 'support') return 3;
-      if (visionSupport) return -1;
-      return 1;
     },
     currentMaxImageSize() {
       const size = Number(this.currentModelFullConfig.maxImageSize);
