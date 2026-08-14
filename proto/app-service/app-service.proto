@@ -470,10 +470,11 @@ message GetModelStatisticV2ChartReq {
 message ModelStatisticV2RankByModelItem {
   string modelId = 1;
   string model = 2;
-  string modelTypeName = 3;
-  string publisherName = 4;
-  int64 totalTokens = 5;
-  string provider = 6;
+  string modelType = 3;
+  string modelCreatorUserId = 4;
+  string modelCreatorOrgId = 5;
+  int64 totalTokens = 6;
+  string provider = 7;
 }
 
 message ModelStatisticV2RankByUserItem {

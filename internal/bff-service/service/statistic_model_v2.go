@@ -9,6 +9,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	"github.com/UnicomAI/wanwu/pkg/constant"
+	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
@@ -75,11 +76,17 @@ func GetModelStatisticV2Chart(ctx *gin.Context, req *request.ModelStatisticV2Cha
 }
 
 // buildModelStatisticV2RankResponse 富化 rank 响应（名称/头像）。
+// 模型类型/发布者与 list 一致：优先用 app-service 统计表字段，model-service 仅补展示名与头像。
 func buildModelStatisticV2RankResponse(ctx *gin.Context, rank *app_service.ModelStatisticV2Rank) (*response.ModelStatisticV2Rank, error) {
-	// 收集 ID 用于富化
-	var modelIds, userIds, orgIds []string
+	var modelIds, userIds, orgIds, creatorUserIds, creatorOrgIds []string
 	for _, m := range rank.GetByModel() {
 		modelIds = append(modelIds, m.GetModelId())
+		if m.GetModelCreatorUserId() != "" {
+			creatorUserIds = append(creatorUserIds, m.GetModelCreatorUserId())
+		}
+		if m.GetModelCreatorOrgId() != "" {
+			creatorOrgIds = append(creatorOrgIds, m.GetModelCreatorOrgId())
+		}
 	}
 	for _, u := range rank.GetByUser() {
 		userIds = append(userIds, u.GetUserId())
@@ -90,7 +97,7 @@ func buildModelStatisticV2RankResponse(ctx *gin.Context, rank *app_service.Model
 	for _, o := range rank.GetByOrg() {
 		orgIds = append(orgIds, o.GetOrgId())
 	}
-	orgNameMap, orgAvatarMap, err := buildStatisticOrgMaps(ctx, orgIds, true)
+	orgNameMap, orgAvatarMap, err := buildStatisticOrgMaps(ctx, append(orgIds, creatorOrgIds...), true)
 	if err != nil {
 		return nil, err
 	}
@@ -98,45 +105,33 @@ func buildModelStatisticV2RankResponse(ctx *gin.Context, rank *app_service.Model
 	if err != nil {
 		return nil, err
 	}
-	modelMap := getModelInfoMap(ctx, modelIds)
-	// 模型发布者名 = 模型创建者 user 名
-	var creatorUserIds []string
-	for _, m := range modelMap {
-		if m.creatorUserId != "" {
-			creatorUserIds = append(creatorUserIds, m.creatorUserId)
-		}
-	}
 	creatorUserNameMap, _, err := buildStatisticUserMaps(ctx, creatorUserIds, false)
 	if err != nil {
 		return nil, err
 	}
+	modelMap := getModelInfoMap(ctx, modelIds)
 
 	byModel := make([]response.ModelStatisticV2RankByModelItem, 0, len(rank.GetByModel()))
 	for _, m := range rank.GetByModel() {
 		info := modelMap[m.GetModelId()]
+		brief := buildModelBriefInfo(ctx, m.GetModelId(), m.GetModel(), m.GetProvider(), m.GetModelType(),
+			m.GetModelCreatorUserId(), m.GetModelCreatorOrgId(), info, creatorUserNameMap, orgNameMap)
+		brief.ModelAvatar = cacheModelAvatar(ctx, info.modelIconPath)
 		byModel = append(byModel, response.ModelStatisticV2RankByModelItem{
-			ModelBriefInfo: response.ModelBriefInfo{
-				ModelId:     m.GetModelId(),
-				Model:       pickModelDisplayName(info, m.GetModel()),
-				Provider:    m.GetProvider(),
-				ModelAvatar: cacheModelAvatar(ctx, info.modelIconPath),
-				ModelType:   info.ModelType,
-				StatisticV2ModelCreator: response.StatisticV2ModelCreator{
-					ModelCreatorUserId:   info.creatorUserId,
-					ModelCreatorUserName: creatorUserNameMap[info.creatorUserId],
-					ModelCreatorOrgId:    info.creatorOrgId,
-					ModelCreatorOrgName:  orgNameMap[info.creatorOrgId],
-				},
-			},
-			TotalTokens: m.GetTotalTokens(),
+			ModelBriefInfo: brief,
+			TotalTokens:    m.GetTotalTokens(),
 		})
 	}
 	byUser := make([]response.ModelStatisticV2RankByUserItem, 0, len(rank.GetByUser()))
 	for _, u := range rank.GetByUser() {
+		avatar := cacheUserAvatar("")
+		if a, ok := userAvatarMap[u.GetUserId()]; ok && a.Path != "" {
+			avatar = a
+		}
 		byUser = append(byUser, response.ModelStatisticV2RankByUserItem{
 			UserId:      u.GetUserId(),
-			UserName:    userNameMap[u.GetUserId()],
-			Avatar:      userAvatarMap[u.GetUserId()],
+			UserName:    pickStatisticUserName(ctx, userNameMap, u.GetUserId()),
+			Avatar:      avatar,
 			OrgId:       u.GetOrgId(),
 			OrgName:     orgNameMap[u.GetOrgId()],
 			TotalTokens: u.GetTotalTokens(),
@@ -144,10 +139,14 @@ func buildModelStatisticV2RankResponse(ctx *gin.Context, rank *app_service.Model
 	}
 	byOrg := make([]response.ModelStatisticV2RankByOrgItem, 0, len(rank.GetByOrg()))
 	for _, o := range rank.GetByOrg() {
+		avatar := cacheOrgAvatar("")
+		if a, ok := orgAvatarMap[o.GetOrgId()]; ok && a.Path != "" {
+			avatar = a
+		}
 		byOrg = append(byOrg, response.ModelStatisticV2RankByOrgItem{
 			OrgId:       o.GetOrgId(),
 			OrgName:     orgNameMap[o.GetOrgId()],
-			Avatar:      orgAvatarMap[o.GetOrgId()],
+			Avatar:      avatar,
 			TotalTokens: o.GetTotalTokens(),
 		})
 	}
@@ -198,7 +197,7 @@ func GetModelStatisticV2List(ctx *gin.Context, req *request.ModelStatisticV2List
 	for _, it := range resp.GetItems() {
 		info := modelMap[it.GetModelId()]
 		items = append(items, response.ModelStatisticV2ListItem{
-			ModelBriefInfo: buildModelBriefInfo(it.GetModelId(), it.GetModel(), it.GetProvider(), it.GetModelType(),
+			ModelBriefInfo: buildModelBriefInfo(ctx, it.GetModelId(), it.GetModel(), it.GetProvider(), it.GetModelType(),
 				it.GetModelCreatorUserId(), it.GetModelCreatorOrgId(), info, userNameMap, orgNameMap),
 			ModelStatisticV2Metrics: convertV2Metrics(it.GetMetrics()),
 		})
@@ -267,10 +266,10 @@ func GetModelStatisticV2UserList(ctx *gin.Context, req *request.ModelStatisticV2
 	for _, it := range resp.GetItems() {
 		info := modelMap[it.GetModelId()]
 		items = append(items, response.ModelStatisticV2UserListItem{
-			ModelBriefInfo: buildModelBriefInfo(it.GetModelId(), it.GetModel(), it.GetProvider(), it.GetModelType(),
+			ModelBriefInfo: buildModelBriefInfo(ctx, it.GetModelId(), it.GetModel(), it.GetProvider(), it.GetModelType(),
 				info.creatorUserId, info.creatorOrgId, info, creatorUserNameMap, creatorOrgNameMap),
 
-			UserBriefInfo:           buildUserBriefInfo(it.GetUserId(), it.GetOrgId(), userNameMap, orgNameMap, nil),
+			UserBriefInfo:           buildUserBriefInfo(ctx, it.GetUserId(), it.GetOrgId(), userNameMap, orgNameMap, nil),
 			ModelStatisticV2Metrics: convertV2Metrics(it.GetMetrics()),
 		})
 	}
@@ -345,9 +344,9 @@ func GetModelStatisticV2AppList(ctx *gin.Context, req *request.ModelStatisticV2A
 	for _, it := range resp.GetItems() {
 		info := modelMap[it.GetModelId()]
 		items = append(items, response.ModelStatisticV2AppListItem{
-			ModelBriefInfo: buildModelBriefInfo(it.GetModelId(), it.GetModel(), it.GetProvider(), it.GetModelType(),
+			ModelBriefInfo: buildModelBriefInfo(ctx, it.GetModelId(), it.GetModel(), it.GetProvider(), it.GetModelType(),
 				info.creatorUserId, info.creatorOrgId, info, modelCreatorUserNameMap, modelCreatorOrgNameMap),
-			ModuleBriefInfo: buildStatisticV2AppInfo(it.GetSource(), it.GetModule(), it.GetAppId(), it.GetAppType(),
+			ModuleBriefInfo: buildStatisticV2AppInfo(ctx, it.GetSource(), it.GetModule(), it.GetAppId(), it.GetAppType(),
 				it.GetModuleCreatorUserId(), it.GetModuleCreatorOrgId(), appBriefMap, orgNameMap, userNameMap),
 			ModelStatisticV2Metrics: convertV2Metrics(it.GetMetrics()),
 		})
@@ -426,13 +425,13 @@ func GetModelStatisticV2Record(ctx *gin.Context, req *request.ModelStatisticV2Re
 			RequestBody:      it.GetRequestBody(),
 			ResponseBody:     it.GetResponseBody(),
 			FinishReason:     it.GetFinishReason(),
-			ModelBriefInfo: buildModelBriefInfo(it.GetModelId(), it.GetModel(), it.GetProvider(), it.GetModelType(),
+			ModelBriefInfo: buildModelBriefInfo(ctx, it.GetModelId(), it.GetModel(), it.GetProvider(), it.GetModelType(),
 				it.GetModelCreatorUserId(), it.GetModelCreatorOrgId(), info, userNameMap, orgNameMap),
-			ModuleBriefInfo: buildStatisticV2AppInfo(it.GetSource(), it.GetModule(), it.GetAppId(), it.GetAppType(),
+			ModuleBriefInfo: buildStatisticV2AppInfo(ctx, it.GetSource(), it.GetModule(), it.GetAppId(), it.GetAppType(),
 				it.GetModuleCreatorUserId(), it.GetModuleCreatorOrgId(), appBriefMap, orgNameMap, userNameMap),
 			UserBriefInfo: response.UserBriefInfo{
 				UserId:   it.GetUserId(),
-				UserName: userNameMap[it.GetUserId()],
+				UserName: pickStatisticUserName(ctx, userNameMap, it.GetUserId()),
 				OrgId:    it.GetOrgId(),
 				OrgName:  orgNameMap[it.GetOrgId()],
 			},
@@ -622,17 +621,27 @@ func pickModelDisplayName(info modelBriefInfo, fallback string) string {
 	return fallback
 }
 
-func buildModelBriefInfo(modelId, model, provider, modelType, creatorUserId, creatorOrgId string,
+// pickStatisticModelDisplayName 优先 displayName，其次统计表 model 字段；
+// modelId 非空且两者皆空时返回「该模型已被删除」。
+func pickStatisticModelDisplayName(ctx *gin.Context, info modelBriefInfo, modelId, model string) string {
+	name := pickModelDisplayName(info, model)
+	if name == "" && modelId != "" {
+		return gin_util.I18nKey(ctx, "app_statistic_model_deleted")
+	}
+	return name
+}
+
+func buildModelBriefInfo(ctx *gin.Context, modelId, model, provider, modelType, creatorUserId, creatorOrgId string,
 	info modelBriefInfo, userNameMap, orgNameMap map[string]string) response.ModelBriefInfo {
 	return response.ModelBriefInfo{
 		ModelId:   modelId,
-		Model:     pickModelDisplayName(info, model),
+		Model:     pickStatisticModelDisplayName(ctx, info, modelId, model),
 		Provider:  provider,
 		ModelType: modelType,
 		// ModelAvatar 仅 chart.rank 填充；list/record 不返回头像
 		StatisticV2ModelCreator: response.StatisticV2ModelCreator{
 			ModelCreatorUserId:   creatorUserId,
-			ModelCreatorUserName: userNameMap[creatorUserId],
+			ModelCreatorUserName: pickStatisticUserName(ctx, userNameMap, creatorUserId),
 			ModelCreatorOrgId:    creatorOrgId,
 			ModelCreatorOrgName:  orgNameMap[creatorOrgId],
 		},

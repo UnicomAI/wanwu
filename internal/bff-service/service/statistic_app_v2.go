@@ -102,11 +102,11 @@ func buildAppStatisticV2RankResponse(ctx *gin.Context, rank *app_service.AppStat
 		for _, it := range items {
 			out = append(out, response.StatisticV2RankItem{
 				AppId:   it.GetAppId(),
-				AppName: pickAppName(appBriefMap, it.GetAppType(), it.GetAppId(), it.GetAppId()),
-				Avatar:  pickAppAvatar(appBriefMap, it.GetAppType(), it.GetAppId()),
+				AppName: pickStatisticAppName(ctx, appBriefMap, it.GetAppType(), it.GetAppId()),
+				Avatar:  pickAppAvatar(ctx, appBriefMap, it.GetAppType(), it.GetAppId()),
 				StatisticV2ModuleCreator: response.StatisticV2ModuleCreator{
 					ModuleCreatorUserId:   it.GetModuleCreatorUserId(),
-					ModuleCreatorUserName: userNameMap[it.GetModuleCreatorUserId()],
+					ModuleCreatorUserName: pickStatisticUserName(ctx, userNameMap, it.GetModuleCreatorUserId()),
 					ModuleCreatorOrgId:    it.GetModuleCreatorOrgId(),
 					ModuleCreatorOrgName:  orgNameMap[it.GetModuleCreatorOrgId()],
 				},
@@ -168,7 +168,7 @@ func GetAppStatisticV2List(ctx *gin.Context, req *request.AppStatisticV2ListReq,
 	items := make([]response.AppStatisticV2ListItem, 0, len(resp.GetItems()))
 	for _, it := range resp.GetItems() {
 		items = append(items, response.AppStatisticV2ListItem{
-			ModuleBriefInfo: buildStatisticV2AppInfo(it.GetSource(), it.GetModule(), it.GetAppId(), it.GetAppType(),
+			ModuleBriefInfo: buildStatisticV2AppInfo(ctx, it.GetSource(), it.GetModule(), it.GetAppId(), it.GetAppType(),
 				it.GetModuleCreatorUserId(), it.GetModuleCreatorOrgId(), appBriefMap, orgNameMap, userNameMap),
 			StatisticV2Metrics: convertAppV2Metrics(it.GetMetrics()),
 		})
@@ -232,9 +232,9 @@ func GetAppStatisticV2UserList(ctx *gin.Context, req *request.AppStatisticV2User
 	items := make([]response.AppStatisticV2UserListItem, 0, len(resp.GetItems()))
 	for _, it := range resp.GetItems() {
 		items = append(items, response.AppStatisticV2UserListItem{
-			ModuleBriefInfo: buildStatisticV2AppInfo(it.GetSource(), it.GetModule(), it.GetAppId(), it.GetAppType(),
+			ModuleBriefInfo: buildStatisticV2AppInfo(ctx, it.GetSource(), it.GetModule(), it.GetAppId(), it.GetAppType(),
 				it.GetModuleCreatorUserId(), it.GetModuleCreatorOrgId(), appBriefMap, orgNameMap, userNameMap),
-			UserBriefInfo:      buildUserBriefInfo(it.GetUserId(), it.GetOrgId(), userNameMap, orgNameMap, nil),
+			UserBriefInfo:      buildUserBriefInfo(ctx, it.GetUserId(), it.GetOrgId(), userNameMap, orgNameMap, nil),
 			StatisticV2Metrics: convertAppV2Metrics(it.GetMetrics()),
 		})
 	}
@@ -310,9 +310,9 @@ func GetAppStatisticV2ModelList(ctx *gin.Context, req *request.AppStatisticV2Mod
 	for _, it := range resp.GetItems() {
 		info := modelMap[it.GetModelId()]
 		items = append(items, response.AppStatisticV2ModelListItem{
-			ModuleBriefInfo: buildStatisticV2AppInfo(it.GetSource(), it.GetModule(), it.GetAppId(), it.GetAppType(),
+			ModuleBriefInfo: buildStatisticV2AppInfo(ctx, it.GetSource(), it.GetModule(), it.GetAppId(), it.GetAppType(),
 				it.GetModuleCreatorUserId(), it.GetModuleCreatorOrgId(), appBriefMap, orgNameMap, userNameMap),
-			ModelBriefInfo: buildModelBriefInfo(it.GetModelId(), it.GetModel(), it.GetProvider(), it.GetModelType(),
+			ModelBriefInfo: buildModelBriefInfo(ctx, it.GetModelId(), it.GetModel(), it.GetProvider(), it.GetModelType(),
 				info.creatorUserId, info.creatorOrgId, info, modelCreatorUserNameMap, modelCreatorOrgNameMap),
 			StatisticV2Metrics: convertAppV2Metrics(it.GetMetrics()),
 		})
@@ -378,9 +378,9 @@ func GetAppStatisticV2Record(ctx *gin.Context, req *request.AppStatisticV2Record
 				CalledAt:   it.GetCalledAt(),
 				IsSuccess:  it.GetIsSuccess(),
 				StatusCode: it.GetStatusCode(),
-				ModuleBriefInfo: buildStatisticV2AppInfo(it.GetSource(), it.GetModule(), it.GetAppId(), it.GetAppType(),
+				ModuleBriefInfo: buildStatisticV2AppInfo(ctx, it.GetSource(), it.GetModule(), it.GetAppId(), it.GetAppType(),
 					it.GetModuleCreatorUserId(), it.GetModuleCreatorOrgId(), appBriefMap, orgNameMap, userNameMap),
-				UserBriefInfo: buildUserBriefInfo(it.GetUserId(), it.GetOrgId(), userNameMap, orgNameMap, nil),
+				UserBriefInfo: buildUserBriefInfo(ctx, it.GetUserId(), it.GetOrgId(), userNameMap, orgNameMap, nil),
 			},
 			StatisticV2RecordPerformance: response.StatisticV2RecordPerformance{
 				FirstTokenLatency: it.GetFirstTokenLatency(),
@@ -541,7 +541,7 @@ func ExportAppStatisticV2Record(ctx *gin.Context, req *request.AppStatisticV2Rec
 
 // ============ helpers ============
 
-func buildStatisticV2AppInfo(source, module, appId, appType, authorId, authorOrgId string,
+func buildStatisticV2AppInfo(ctx *gin.Context, source, module, appId, appType, authorId, authorOrgId string,
 	appBriefMap map[string]map[string]appBrief, orgNameMap, userNameMap map[string]string) response.ModuleBriefInfo {
 	appType = resolveStatisticAppType(appType, module)
 	return response.ModuleBriefInfo{
@@ -550,12 +550,12 @@ func buildStatisticV2AppInfo(source, module, appId, appType, authorId, authorOrg
 		Module:       module,
 		ModuleName:   constant.BizModuleName(module),
 		AppId:        appId,
-		AppName:      pickAppName(appBriefMap, appType, appId, appId),
+		AppName:      pickStatisticAppName(ctx, appBriefMap, appType, appId),
 		AppType:      appType,
-		ModuleAvatar: pickAppAvatar(appBriefMap, appType, appId),
+		ModuleAvatar: pickAppAvatar(ctx, appBriefMap, appType, appId),
 		StatisticV2ModuleCreator: response.StatisticV2ModuleCreator{
 			ModuleCreatorUserId:   authorId,
-			ModuleCreatorUserName: userNameMap[authorId],
+			ModuleCreatorUserName: pickStatisticUserName(ctx, userNameMap, authorId),
 			ModuleCreatorOrgId:    authorOrgId,
 			ModuleCreatorOrgName:  orgNameMap[authorOrgId],
 		},

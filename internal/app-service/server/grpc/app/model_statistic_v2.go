@@ -159,10 +159,13 @@ func convertModelStatisticV2Rank(r *orm.ModelStatisticV2Rank) *app_service.Model
 	byModel := make([]*app_service.ModelStatisticV2RankByModelItem, 0, len(r.ByModel))
 	for _, m := range r.ByModel {
 		byModel = append(byModel, &app_service.ModelStatisticV2RankByModelItem{
-			ModelId:     m.ModelId,
-			Model:       m.Model,
-			Provider:    m.Provider,
-			TotalTokens: m.TotalTokens,
+			ModelId:            m.ModelId,
+			Model:              m.Model,
+			Provider:           m.Provider,
+			ModelType:          m.ModelType,
+			ModelCreatorUserId: m.ModelCreatorUserId,
+			ModelCreatorOrgId:  m.ModelCreatorOrgId,
+			TotalTokens:        m.TotalTokens,
 		})
 	}
 	byUser := make([]*app_service.ModelStatisticV2RankByUserItem, 0, len(r.ByUser))

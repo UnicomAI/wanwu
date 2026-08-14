@@ -137,9 +137,20 @@ func pickAppName(appBriefMap map[string]map[string]appBrief, appType, appId, fal
 	return fallback
 }
 
-func pickAppAvatar(appBriefMap map[string]map[string]appBrief, appType, appId string) request.Avatar {
+// pickAppAvatar 应用仍在时用补全头像；已删除/查不到时按 appType 复用对应 cache*Avatar
+// 传空 path 拿默认头像 path（agent/rag→cacheAppAvatar，workflow/chatflow→cacheWorkflowAvatar，
+// knowledge→cacheKnowledgeAvatar）。
+func pickAppAvatar(ctx *gin.Context, appBriefMap map[string]map[string]appBrief, appType, appId string) request.Avatar {
 	if brief, ok := pickAppBrief(appBriefMap, appType, appId); ok {
 		return brief.Avatar
+	}
+	switch appType {
+	case constant.AppTypeAgent, constant.AppTypeRag:
+		return cacheAppAvatar(ctx, "", appType)
+	case constant.AppTypeWorkflow, constant.AppTypeChatflow:
+		return cacheWorkflowAvatar("", appType)
+	case constant.BizModuleResourceKnowledge:
+		return cacheKnowledgeAvatar(ctx, "", constant.KnowledgeBase)
 	}
 	return request.Avatar{}
 }
