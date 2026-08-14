@@ -4643,10 +4643,12 @@ const docTemplate = `{
         "request.OpenAPIAgentCreateConversationRequest": {
             "type": "object",
             "required": [
+                "title",
                 "uuid"
             ],
             "properties": {
                 "title": {
+                    "description": "作为会话标题落库，为空会导致会话列表显示空白",
                     "type": "string"
                 },
                 "uuid": {

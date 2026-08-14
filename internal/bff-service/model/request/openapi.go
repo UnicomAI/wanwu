@@ -8,7 +8,7 @@ import (
 )
 
 type OpenAPIAgentCreateConversationRequest struct {
-	Title string `json:"title"`
+	Title string `json:"title" validate:"required"` // 作为会话标题落库，为空会导致会话列表显示空白
 	UUID  string `json:"uuid" validate:"required"`
 }
 

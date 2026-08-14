@@ -940,10 +940,12 @@ definitions:
   request.OpenAPIAgentCreateConversationRequest:
     properties:
       title:
+        description: 作为会话标题落库，为空会导致会话列表显示空白
         type: string
       uuid:
         type: string
     required:
+    - title
     - uuid
     type: object
   request.OpenAPIAgentDraftChatRequest:
