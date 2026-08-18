@@ -161,6 +161,11 @@ export default {
         if (res.code === 0 && res.data) {
           this.treeData = res.data.files || [];
           this.defaultExpandedKeys = this.collectDirPaths(this.treeData);
+          const skillMd = this.findSkillMd(this.treeData);
+          if (skillMd) {
+            this.activePath = skillMd.path;
+            this.loadFile(skillMd);
+          }
         }
       } finally {
         this.loading = false;
@@ -179,6 +184,22 @@ export default {
       };
       walk(nodes);
       return paths;
+    },
+    findSkillMd(nodes) {
+      let found = null;
+      const walk = list => {
+        if (!Array.isArray(list) || found) return;
+        list.forEach(n => {
+          if (found) return;
+          if (!n.isDir && n.name === 'SKILL.md') {
+            found = n;
+          } else if (n.children) {
+            walk(n.children);
+          }
+        });
+      };
+      walk(nodes);
+      return found;
     },
     refresh() {
       this.refreshing = true;
