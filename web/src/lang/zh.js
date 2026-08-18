@@ -2919,8 +2919,9 @@ export default {
           detail: {
             category: '分类',
             version: '版本',
-            overview: '介绍概览',
+            overview: 'Skill 工作区',
             emptyTip: '暂未生成Skill',
+            selectFileTip: '选择左侧文件查看内容',
           },
         },
         safety: {

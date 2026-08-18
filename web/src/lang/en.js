@@ -2626,8 +2626,9 @@ export default {
           detail: {
             category: 'Category',
             version: 'Version',
-            overview: 'Introduction Overview',
+            overview: 'Skill Workspace',
             emptyTip: 'Skill Not Generated Yet',
+            selectFileTip: 'Select a file on the left to view its content',
           },
         },
         safety: {
