@@ -173,13 +173,14 @@ func (c *Client) GetNoticeUnreadCount(ctx context.Context, userID, orgID string)
 // 最终 SQL（vis 内层 = 上面 GetNoticeUnreadCount 注释的三分支 UNION ALL，此处不再重复）：
 //
 //	/* ── 路径 A · 无 keyword（延迟关联：先取本页 id 再回表宽列） ── */
-//	-- ① COUNT：同源候选另跑一遍
+//	-- ① COUNT：vis 已包含计数所需列，不再重复关联 notice_messages
 //	SELECT COUNT(*)
 //	FROM (<vis 三分支 UNION ALL> SELECT m.id AS id, m.created_at AS created_at, m.category AS category) v
-//	JOIN notice_messages m ON m.id = v.id
-//	LEFT JOIN notice_user_status s ON s.message_id = m.id AND s.user_id = ? AND s.org_id = ?   -- uid/oid
-//	WHERE (s.is_deleted IS NULL OR s.is_deleted = ?)                                    -- false
-//	[AND m.category = ?]                                                              -- 可选
+//	WHERE NOT EXISTS (
+//	    SELECT 1 FROM notice_user_status s
+//	    WHERE s.message_id = v.id AND s.user_id = ? AND s.org_id = ? AND s.is_deleted = ?
+//	)                                                                                   -- true
+//	[AND v.category = ?]                                                               -- 可选
 //
 //	-- ② 内层：按 created_at/id 排序分页取本页 id（先过滤软删，避免已删消息占位）
 //	SELECT v.id
@@ -248,11 +249,20 @@ func (c *Client) ListNotice(ctx context.Context, req *ListNoticeReq) ([]*NoticeI
 		" LEFT JOIN notice_user_status s ON s.message_id = m.id AND s.user_id = ? AND s.org_id = ?"
 	joinArgs := []interface{}{req.UserID, req.OrgID}
 
-	// total：同源候选另跑一遍 COUNT（去掉列取值与 LIMIT/OFFSET）
+	// total：无 keyword 时 vis 已包含 id/category，直接计数并用反连接排除软删除，
+	// 避免重复关联 notice_messages 和 LEFT JOIN notice_user_status。keyword 路径仍需
+	// 回表匹配 title/content，保持原查询不变。
 	var total int64
-	countArgs := concatArgs(innerArgs, joinArgs, filterArgs)
+	var countSQL string
+	var countArgs []interface{}
+	if req.Keyword == "" {
+		countSQL, countArgs = noticeListNoKeywordCountQuery(inner, innerArgs, req)
+	} else {
+		countSQL = "SELECT COUNT(*)" + from + where
+		countArgs = concatArgs(innerArgs, joinArgs, filterArgs)
+	}
 	if err := c.db.WithContext(ctx).
-		Raw("SELECT COUNT(*)"+from+where, countArgs...).
+		Raw(countSQL, countArgs...).
 		Scan(&total).Error; err != nil {
 		return nil, 0, toErrStatus("notice_list", err.Error())
 	}
@@ -348,6 +358,21 @@ func (c *Client) ListNotice(ctx context.Context, req *ListNoticeReq) ([]*NoticeI
 		})
 	}
 	return ret, total, nil
+}
+
+// noticeListNoKeywordCountQuery 构造无 keyword 列表的 total 查询。
+// vis 的三个分支互斥且已投影 id/category，因此不需要再次关联消息本体；状态表唯一键
+// (user_id, org_id, message_id) 保证 NOT EXISTS 与原 LEFT JOIN 软删除过滤语义一致。
+func noticeListNoKeywordCountQuery(inner string, innerArgs []interface{}, req *ListNoticeReq) (string, []interface{}) {
+	query := "SELECT COUNT(*) FROM (" + inner + ") v" +
+		" WHERE NOT EXISTS (SELECT 1 FROM notice_user_status s" +
+		" WHERE s.message_id = v.id AND s.user_id = ? AND s.org_id = ? AND s.is_deleted = ?)"
+	args := concatArgs(innerArgs, []interface{}{req.UserID, req.OrgID, true})
+	if req.Category != 0 {
+		query += " AND v.category = ?"
+		args = append(args, req.Category)
+	}
+	return query, args
 }
 
 // afterWatermark 判定 (createdAt, id) 是否严格大于水位二元组（字典序）
