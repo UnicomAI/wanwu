@@ -9,6 +9,7 @@
     :visibleHistory="visibleHistory"
     :historyList="historyList"
     :visibleDownload="skillType !== 'mine'"
+    :useCustomOverview="showWorkspace"
     @init="initData"
     @back="handleBack"
     @download="handleDownload"
@@ -42,11 +43,18 @@
         }}
       </el-button>
     </template>
+    <template v-if="showWorkspace" #overview>
+      <SkillContentWorkspace
+        v-if="customSkillId"
+        :customSkillId="customSkillId"
+      />
+    </template>
   </SkillDetail>
 </template>
 
 <script>
 import SkillDetail from '@/components/skills/skillDetail.vue';
+import SkillContentWorkspace from '@/views/adminCenter/components/SkillContentWorkspace.vue';
 import {
   getBuiltinSquareSkillList,
   sendSquareSkillToResource,
@@ -68,6 +76,7 @@ export default {
   name: 'SkillSquareDetail',
   components: {
     SkillDetail,
+    SkillContentWorkspace,
   },
   data() {
     return {
@@ -85,6 +94,13 @@ export default {
   computed: {
     visibleHistory() {
       return ['shared', 'mine'].includes(this.skillType);
+    },
+    // shared/mine 类型展示只读工作区替代 markdown 概览
+    showWorkspace() {
+      return ['shared', 'mine'].includes(this.skillType);
+    },
+    customSkillId() {
+      return this.detail?.skillId || this.skillId || '';
     },
   },
   created() {
