@@ -112,7 +112,6 @@ func GetRagInfo(ctx *gin.Context) {
 		return
 	}
 	userID, orgID := getUserID(ctx), getOrgID(ctx)
-	// 已发布态查询不带 Identity 过滤，归属校验补在这里
 	if req.Published {
 		if err := service.CheckOpenAPIAccess(ctx, req.UUID, constant.AppTypeRag, userID, orgID); err != nil {
 			gin_util.Response(ctx, nil, err)

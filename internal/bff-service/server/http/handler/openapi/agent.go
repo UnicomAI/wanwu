@@ -98,7 +98,12 @@ func ListAgentConversations(ctx *gin.Context) {
 		PageNo:      req.PageNo,
 		PageSize:    req.PageSize,
 	})
-	gin_util.Response(ctx, resp, err)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp.PageNo, resp.PageSize = req.PageNo, req.PageSize
+	gin_util.Response(ctx, resp, nil)
 }
 
 // GetAgentConversationDetail
@@ -124,7 +129,12 @@ func GetAgentConversationDetail(ctx *gin.Context) {
 		PageNo:         req.PageNo,
 		PageSize:       req.PageSize,
 	})
-	gin_util.Response(ctx, resp, err)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp.PageNo, resp.PageSize = req.PageNo, req.PageSize
+	gin_util.Response(ctx, resp, nil)
 }
 
 // DeleteAgentConversation
@@ -201,7 +211,11 @@ func GetAgentDraftConversationDetail(ctx *gin.Context) {
 		return
 	}
 	if convResp == nil {
-		gin_util.Response(ctx, response.PageResult{List: []response.ConversationDetailInfo{}}, nil)
+		gin_util.Response(ctx, response.PageResult{
+			List:     []response.ConversationDetailInfo{},
+			PageNo:   req.PageNo,
+			PageSize: req.PageSize,
+		}, nil)
 		return
 	}
 
@@ -210,7 +224,12 @@ func GetAgentDraftConversationDetail(ctx *gin.Context) {
 		PageNo:         req.PageNo,
 		PageSize:       req.PageSize,
 	})
-	gin_util.Response(ctx, resp, err)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp.PageNo, resp.PageSize = req.PageNo, req.PageSize
+	gin_util.Response(ctx, resp, nil)
 }
 
 // DeleteAgentDraftConversation

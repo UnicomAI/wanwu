@@ -54,11 +54,15 @@ func (s *Service) MultiAssistantConversionStream(req *assistant_service.MultiAss
 	var saveConversationId = req.ConversationId
 	// 刷新会话 updated_at，使会话列表按最近聊天排序
 	if req.ConversationId != "" {
+		// 带归属查会话：查不到即不属于调用者，不能往他人会话里写消息
+		conversation, status := s.cli.GetConversation(stream.Context(), req.ConversationId, req.Identity.GetUserId(), req.Identity.GetOrgId())
+		if status != nil {
+			return errStatus(errs.Code_AssistantConversationErr, status)
+		}
 		if status := s.cli.UpdateConversation(stream.Context(), &model.Conversation{ConversationId: req.ConversationId}); status != nil {
 			log.Errorf("[Conversation] touch conversation updated_at failed, id: %s, err: %v", req.ConversationId, status)
 		}
-		conversation, _ := s.cli.GetConversation(stream.Context(), req.ConversationId, "", "")
-		if conversation != nil && len(conversation.ConversationId) > 0 {
+		if len(conversation.ConversationId) > 0 {
 			saveConversationId = buildConversationId(conversation)
 		}
 	}

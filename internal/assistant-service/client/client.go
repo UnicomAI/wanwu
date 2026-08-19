@@ -73,7 +73,7 @@ type IClient interface {
 	CreateConversation(ctx context.Context, conversation *model.Conversation) *err_code.Status
 	UpdateConversation(ctx context.Context, conversation *model.Conversation) *err_code.Status
 	DeleteConversation(ctx context.Context, conversationId string, userId, orgId string) *err_code.Status
-	GetConversationByAssistantID(ctx context.Context, assistantID uint32, conversationType string) (*model.Conversation, *err_code.Status)
+	GetConversationByAssistantID(ctx context.Context, assistantID uint32, conversationType, userID, orgID string) (*model.Conversation, *err_code.Status)
 	GetConversationList(ctx context.Context, assistantID uint32, conversationType, userID, orgID, searchText string, offset, limit int32) ([]*model.Conversation, int64, *err_code.Status)
 
 	//================CustomPrompt================

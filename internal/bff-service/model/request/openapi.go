@@ -152,10 +152,12 @@ func (req *OpenAPIChatflowGetConversationListRequest) Check() error {
 	return nil
 }
 
+// OpenAPIAgentConfigUpdateRequest 更新智能体配置。
+// 除 assistantUuid 外所有字段可选，只传要改的；未传的沿用当前草稿配置。
 type OpenAPIAgentConfigUpdateRequest struct {
 	AssistantUUID       string                  `json:"assistantUuid" validate:"required"`
-	Prologue            string                  `json:"prologue"`
-	Instructions        string                  `json:"instructions"`
+	Prologue            *string                 `json:"prologue"`
+	Instructions        *string                 `json:"instructions"`
 	RecommendQuestion   []string                `json:"recommendQuestion"`
 	ModelConfig         *AppModelConfig         `json:"modelConfig"`
 	KnowledgeBaseConfig *AppKnowledgebaseConfig `json:"knowledgeBaseConfig"`

@@ -43,10 +43,11 @@ func (c *Client) DeleteConversation(ctx context.Context, conversationId string, 
 
 }
 
-func (c *Client) GetConversationByAssistantID(ctx context.Context, assistantID uint32, conversationType string) (*model.Conversation, *err_code.Status) {
+func (c *Client) GetConversationByAssistantID(ctx context.Context, assistantID uint32, conversationType, userID, orgID string) (*model.Conversation, *err_code.Status) {
 	conversation := &model.Conversation{}
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithAssistantID(assistantID),
+		sqlopt.DataPerm(userID, orgID),
 		sqlopt.WithConversationType(conversationType)).Apply(c.db.WithContext(ctx).Model(&model.Conversation{})).First(&conversation).Error; err != nil {
 		return nil, toErrStatus("assistant_conversation_get", err.Error())
 	}
