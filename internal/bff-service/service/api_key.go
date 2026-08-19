@@ -1,10 +1,14 @@
 package service
 
 import (
+	"time"
+
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
+	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
@@ -89,6 +93,35 @@ func UpdateApiKeyStatus(ctx *gin.Context, req request.UpdateAPIKeyStatusRequest)
 
 func GetApiKeyByKey(ctx *gin.Context, apiKey string) (*app_service.ApiKeyInfo, error) {
 	return app.GetApiKeyByKey(ctx.Request.Context(), &app_service.GetApiKeyByKeyReq{ApiKey: apiKey})
+}
+
+// GetUserInfoByApiKey 通过api key获取用户信息（内部接口）
+func GetUserInfoByApiKey(ctx *gin.Context, apiKey string) (*response.UserInfoByApiKey, error) {
+	keyInfo, err := GetApiKeyByKey(ctx, apiKey)
+	if err != nil {
+		return nil, err
+	}
+	if !keyInfo.Status {
+		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, "api key disabled")
+	}
+	if keyInfo.ExpiredAt != 0 && keyInfo.ExpiredAt < time.Now().UnixMilli() {
+		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, "api key expired")
+	}
+	ret, err := iam.GetUserSelectByUserIDs(ctx.Request.Context(), &iam_service.GetUserSelectByUserIDsReq{
+		UserIds: []string{keyInfo.UserId},
+	})
+	if err != nil {
+		return nil, err
+	}
+	name := ""
+	if len(ret.Selects) > 0 {
+		name = ret.Selects[0].Name
+	}
+	return &response.UserInfoByApiKey{
+		UserID:   keyInfo.UserId,
+		OrgID:    keyInfo.OrgId,
+		Username: name,
+	}, nil
 }
 
 // --- internal ---

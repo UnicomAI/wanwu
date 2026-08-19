@@ -1,5 +1,12 @@
 package response
 
+// UserInfoByApiKey 通过apikey获取的用户信息
+type UserInfoByApiKey struct {
+	UserID   string `json:"userId"`
+	OrgID    string `json:"orgId"`
+	Username string `json:"username"`
+}
+
 type APIKeyDetailResponse struct {
 	KeyID     string `json:"keyId" `    // ID
 	Key       string `json:"key"`       // 生成的ApiKey
