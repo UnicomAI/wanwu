@@ -94,28 +94,23 @@ func (c *Client) DeleteAssistant(ctx context.Context, assistantID uint32, userId
 }
 
 func (c *Client) GetAssistant(ctx context.Context, assistantID uint32, userID, orgID string) (*model.Assistant, *err_code.Status) {
-	var assistant *model.Assistant
-	return assistant, c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		assistant = &model.Assistant{}
-		query := sqlopt.SQLOptions(
-			sqlopt.WithID(assistantID),
-			sqlopt.DataPerm(userID, orgID),
-		).Apply(tx)
-		if err := query.First(assistant).Error; err != nil {
-			return toErrStatus("assistant_get", err.Error())
-		}
-		return nil
-	})
+	var assistant model.Assistant
+	query := sqlopt.SQLOptions(
+		sqlopt.WithID(assistantID),
+		sqlopt.DataPerm(userID, orgID),
+	).Apply(c.db.WithContext(ctx))
+	if err := query.First(&assistant).Error; err != nil {
+		return nil, toErrStatus("assistant_get", err.Error())
+	}
+	return &assistant, nil
 }
 
 func (c *Client) GetAssistantsByIDs(ctx context.Context, assistantIDs []uint32) ([]*model.Assistant, *err_code.Status) {
 	var assistants []*model.Assistant
-	return assistants, c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		if err := sqlopt.WithIDs(assistantIDs).Apply(tx).Find(&assistants).Error; err != nil {
-			return toErrStatus("assistants_get_by_ids", err.Error())
-		}
-		return nil
-	})
+	if err := sqlopt.WithIDs(assistantIDs).Apply(c.db.WithContext(ctx)).Find(&assistants).Error; err != nil {
+		return nil, toErrStatus("assistants_get_by_ids", err.Error())
+	}
+	return assistants, nil
 }
 
 func (c *Client) GetAssistantByUuid(ctx context.Context, uuid string) (*model.Assistant, *err_code.Status) {
@@ -133,51 +128,44 @@ func (c *Client) GetAssistantByUuid(ctx context.Context, uuid string) (*model.As
 func (c *Client) GetAssistantList(ctx context.Context, userID, orgID string, name string) ([]*model.Assistant, int64, *err_code.Status) {
 	var assistants []*model.Assistant
 	var count int64
-	return assistants, count, c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		query := sqlopt.DataPerm(userID, orgID).Apply(tx.Model(&model.Assistant{}))
+	query := sqlopt.SQLOptions(
+		sqlopt.WithNameLike(name),
+		sqlopt.DataPerm(userID, orgID),
+	).Apply(c.db.WithContext(ctx).Model(&model.Assistant{}))
 
-		if name != "" {
-			query = query.Where("name LIKE ?", "%"+name+"%")
-		}
+	if err := query.Count(&count).Error; err != nil {
+		return nil, 0, toErrStatus("assistants_get_list", err.Error())
+	}
 
-		if err := query.Count(&count).Error; err != nil {
-			return toErrStatus("assistants_get_list", err.Error())
-		}
+	if err := query.Order("updated_at DESC").Find(&assistants).Error; err != nil {
+		return nil, 0, toErrStatus("assistants_get_list", err.Error())
+	}
 
-		if err := query.Order("updated_at DESC").Find(&assistants).Error; err != nil {
-			return toErrStatus("assistants_get_list", err.Error())
-		}
-
-		return nil
-	})
+	return assistants, count, nil
 }
 
 func (c *Client) CheckSameAssistantName(ctx context.Context, userID, orgID, name, assistantID string) *err_code.Status {
-	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		query := sqlopt.SQLOptions(
-			sqlopt.WithUserID(userID),
-			sqlopt.WithOrgID(orgID),
-		).Apply(tx.Model(&model.Assistant{}))
+	query := sqlopt.SQLOptions(
+		sqlopt.WithUserID(userID),
+		sqlopt.WithOrgID(orgID),
+		sqlopt.WithName(name),
+	).Apply(c.db.WithContext(ctx).Model(&model.Assistant{}))
 
-		if assistantID != "" {
-			id, _ := strconv.ParseUint(assistantID, 10, 32)
-			query = query.Where("id != ?", uint32(id))
-		}
+	if assistantID != "" {
+		id, _ := strconv.ParseUint(assistantID, 10, 32)
+		query = query.Where("id != ?", uint32(id))
+	}
 
-		if name != "" {
-			query = query.Where("name = ?", name)
-		}
-		var count int64
-		if err := query.Count(&count).Error; err != nil {
-			return toErrStatus("assistant_get_by_name", err.Error())
-		}
+	var count int64
+	if err := query.Count(&count).Error; err != nil {
+		return toErrStatus("assistant_get_by_name", err.Error())
+	}
 
-		// 存在同名智能体
-		if count > 0 {
-			return toErrStatus("assistant_same_name", name)
-		}
-		return nil
-	})
+	// 存在同名智能体
+	if count > 0 {
+		return toErrStatus("assistant_same_name", name)
+	}
+	return nil
 }
 
 func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, workflows []*model.AssistantWorkflow, mcps []*model.AssistantMCP, customTools []*model.AssistantTool, subAgents []*model.MultiAgentRelation, skills []*model.AssistantSkill) (uint32, *err_code.Status) {
