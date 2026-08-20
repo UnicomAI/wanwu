@@ -589,9 +589,10 @@ func GetDiff(dir, fromCommit, toCommit string, subDir string) (string, error) {
 }
 
 type CommitInfo struct {
-	Hash    string `json:"hash"`
-	Message string `json:"message"`
-	Time    int64  `json:"time"`
+	Hash    string   `json:"hash"`
+	Message string   `json:"message"`
+	Time    int64    `json:"time"`
+	Tags    []string `json:"tags"`
 }
 
 // GetCommitLog 获取指定仓库的提交历史。
@@ -606,7 +607,7 @@ func GetCommitLog(dir string, count int) ([]CommitInfo, error) {
 	if !hasHeadLocked(dir) {
 		return []CommitInfo{}, nil
 	}
-	out, err := runGitStdout(dir, "log", fmt.Sprintf("--format=%%H|%%s|%%ct"), "-n", strconv.Itoa(count))
+	out, err := runGitStdout(dir, "log", "--format=%H%x1f%s%x1f%ct%x1f%D", "-n", strconv.Itoa(count))
 	if err != nil {
 		return nil, fmt.Errorf("git log failed: %w", err)
 	}
@@ -617,8 +618,8 @@ func GetCommitLog(dir string, count int) ([]CommitInfo, error) {
 		if line == "" {
 			continue
 		}
-		parts := strings.SplitN(line, "|", 3)
-		if len(parts) != 3 {
+		parts := strings.SplitN(line, "\x1f", 4)
+		if len(parts) < 3 {
 			continue
 		}
 		timestamp, err := strconv.ParseInt(parts[2], 10, 64)
@@ -626,13 +627,37 @@ func GetCommitLog(dir string, count int) ([]CommitInfo, error) {
 			log.Printf("[git-util] parse commit timestamp failed: dir=%s hash=%s value=%s err=%v", dir, parts[0], parts[2], err)
 			timestamp = 0
 		}
+		var tags []string
+		if len(parts) >= 4 {
+			tags = extractTagsFromDecorations(parts[3])
+		} else {
+			tags = []string{}
+		}
 		commits = append(commits, CommitInfo{
 			Hash:    parts[0],
 			Message: parts[1],
 			Time:    timestamp,
+			Tags:    tags,
 		})
 	}
 	return commits, nil
+}
+
+// extractTagsFromDecorations 从 git log --format=%D 的装饰输出中提取 tag 名称。
+// %D 输出形如 "tag: v1.0.0, tag: v1.1.0, origin/main, HEAD -> main"，
+// 仅提取 "tag: " 前缀的条目，返回 tag 名列表；无 tag 时返回空切片。
+func extractTagsFromDecorations(decorations string) []string {
+	tags := []string{}
+	if decorations == "" {
+		return tags
+	}
+	for _, ref := range strings.Split(decorations, ", ") {
+		ref = strings.TrimSpace(ref)
+		if tagName, ok := strings.CutPrefix(ref, "tag: "); ok {
+			tags = append(tags, tagName)
+		}
+	}
+	return tags
 }
 
 // IsRepoInitialized 判断目录是否已初始化为 Git 仓库。

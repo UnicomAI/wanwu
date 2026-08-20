@@ -35,9 +35,10 @@ type SkillWorkspaceSearchResp struct {
 }
 
 type GitCommitInfo struct {
-	Hash    string `json:"hash"`
-	Message string `json:"message"`
-	Time    int64  `json:"time"`
+	Hash    string   `json:"hash"`
+	Message string   `json:"message"`
+	Time    int64    `json:"time"`
+	Tags    []string `json:"tags"`
 }
 
 type SkillWorkspaceGitLogResp struct {
