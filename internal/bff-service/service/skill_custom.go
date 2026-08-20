@@ -495,7 +495,7 @@ func buildCustomSkillPublishPackage(ctx *gin.Context, userId, orgId, skillId, ve
 	}
 
 	if !ws.repo.HasHead() {
-		return "", "", nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_uncommitted_changes", "工作区尚未提交，请先提交后再发布")
+		return "", "", nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_no_commits")
 	}
 
 	hasChanges, err := ws.repo.HasChangesInSubDir(generalAgentWorkspaceSkillDirName)
@@ -503,7 +503,7 @@ func buildCustomSkillPublishPackage(ctx *gin.Context, userId, orgId, skillId, ve
 		return "", "", nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_workspace_check_git_status_failed")
 	}
 	if hasChanges {
-		return "", "", nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_uncommitted_changes", "工作区有未提交的更改，请先提交后再发布")
+		return "", "", nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_uncommitted_changes")
 	}
 
 	tagExists, err := ws.repo.TagExists(version)
