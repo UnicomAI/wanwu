@@ -23,6 +23,7 @@ var (
 		"/v1/org/select":            true,
 		"/v1/user/login/email/code": true,
 		"/v1/user/login":            true,
+		"/v1/notice/unread/count":   true,
 	}
 )
 
