@@ -15,6 +15,8 @@ func Register(callbackAPI *gin.RouterGroup) {
 	mid.Sub("callback").Reg(callbackAPI, "/file/unarchive", http.MethodPost, callback.UnarchiveFile, "解压压缩包")
 	// user
 	mid.Sub("callback").Reg(callbackAPI, "/user/list", http.MethodPost, callback.GetUserListByUserIds, "根据userId获取用户信息")
+	// api key
+	mid.Sub("callback").Reg(callbackAPI, "/api/key/user", http.MethodGet, callback.GetUserInfoByApiKey, "通过apikey获取用户信息（内部接口）")
 	// model
 	mid.Sub("callback").Reg(callbackAPI, "/model/:modelId", http.MethodGet, callback.GetModelById, "根据modelId获取模型")
 	mid.Sub("callback").Reg(callbackAPI, "/model/:modelId/chat/completions", http.MethodPost, callback.ModelChatCompletions, "Model Chat Completions")
