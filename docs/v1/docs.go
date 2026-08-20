@@ -36576,6 +36576,12 @@ const docTemplate = `{
                 "message": {
                     "type": "string"
                 },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "time": {
                     "type": "integer"
                 }

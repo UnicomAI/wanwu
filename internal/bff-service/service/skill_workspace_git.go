@@ -40,6 +40,7 @@ func GetSkillWorkspaceGitLog(ctx *gin.Context, userId, orgId string, req request
 			Hash:    c.Hash,
 			Message: c.Message,
 			Time:    c.Time,
+			Tags:    c.Tags,
 		}
 	}
 	return &response.SkillWorkspaceGitLogResp{Commits: respCommits}, nil
