@@ -385,6 +385,20 @@
           <div class="commit-message">{{ commit.message }}</div>
           <div class="commit-meta">
             <span class="commit-hash">{{ commit.hash.substring(0, 7) }}</span>
+            <span class="commit-tags" v-if="commit.tags && commit.tags.length">
+              <span class="commit-tag" :title="commit.tags.join(', ')">
+                {{ latestTag(commit.tags) }}
+              </span>
+              <el-tooltip
+                v-if="commit.tags.length > 1"
+                :content="commit.tags.join(', ')"
+                placement="top"
+              >
+                <span class="commit-tag commit-tag-more">
+                  +{{ commit.tags.length - 1 }}
+                </span>
+              </el-tooltip>
+            </span>
             <span class="commit-time">{{ formatGitTime(commit.time) }}</span>
           </div>
         </div>
@@ -577,6 +591,10 @@ export default {
     }
   },
   methods: {
+    showGitView() {
+      this.sidebarView = 'git';
+      return this.refreshGit();
+    },
     refreshFiles() {
       if (this.$refs.fileTree) {
         this.$refs.fileTree.refreshFiles();
@@ -960,6 +978,34 @@ export default {
     },
     commitDiffId(commit) {
       return `git-commit:${commit.hash}`;
+    },
+    latestTag(tags) {
+      if (!tags || !tags.length) return '';
+      const parseVer = t => {
+        const m = t.match(/v?(\d+(?:\.\d+)*)/i);
+        if (!m) return null;
+        return m[1].split('.').map(n => parseInt(n, 10) || 0);
+      };
+      const cmp = (a, b) => {
+        const la = a.length;
+        const lb = b.length;
+        const max = Math.max(la, lb);
+        for (let i = 0; i < max; i++) {
+          const da = a[i] || 0;
+          const db = b[i] || 0;
+          if (da !== db) return db - da;
+        }
+        return 0;
+      };
+      const parsed = tags
+        .map(t => ({ t, v: parseVer(t) }))
+        .sort((a, b) => {
+          if (a.v && b.v) return cmp(a.v, b.v);
+          if (a.v) return -1;
+          if (b.v) return 1;
+          return b.t.localeCompare(a.t);
+        });
+      return parsed[0].t;
     },
     formatGitTime(timestamp) {
       if (!timestamp) return '';
@@ -1411,13 +1457,48 @@ export default {
 
     .commit-meta {
       display: flex;
+      align-items: center;
       justify-content: space-between;
+      gap: 4px;
       margin-top: 4px;
       font-size: 11px;
       color: #999;
 
       .commit-hash {
         font-family: monospace;
+        flex-shrink: 0;
+      }
+
+      .commit-tags {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        overflow: hidden;
+        min-width: 0;
+      }
+
+      .commit-tag {
+        font-size: 10px;
+        line-height: 1.4;
+        padding: 0 5px;
+        border-radius: 3px;
+        background: rgba(89, 131, 255, 0.1);
+        color: #4a6fdb;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 80px;
+
+        &.commit-tag-more {
+          max-width: none;
+          padding: 0 4px;
+          background: rgba(0, 0, 0, 0.05);
+          color: #999;
+        }
+      }
+
+      .commit-time {
+        flex-shrink: 0;
       }
     }
   }

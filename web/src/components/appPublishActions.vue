@@ -23,11 +23,17 @@
       {{ $t('agent.form.publishConfig') }}
     </el-button>
     <!-- 发布按钮弹窗 -->
-    <el-popover placement="bottom-end" trigger="click" style="margin-left: 8px">
+    <el-popover
+      v-model="publishPopoverVisible"
+      placement="bottom-end"
+      trigger="click"
+      style="margin-left: 8px"
+    >
       <el-button
         slot="reference"
         size="small"
         type="primary"
+        :disabled="disabled"
         style="padding: 9px 12px"
       >
         {{ $t('common.button.publish') }}
@@ -81,7 +87,13 @@
           </el-radio-group>
         </el-form-item>
         <div class="saveBtn" style="text-align: right; margin-top: 10px">
-          <el-button size="mini" type="primary" @click="savePublish">
+          <el-button
+            size="mini"
+            type="primary"
+            :loading="savingPublish"
+            :disabled="disabled"
+            @click="savePublish"
+          >
             {{ $t('common.button.save') }}
           </el-button>
         </div>
@@ -118,9 +130,19 @@ export default {
       type: String,
       default: '',
     },
+    beforePublish: {
+      type: Function,
+      default: null,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
+      publishPopoverVisible: false,
+      savingPublish: false,
       publishForm: {
         publishType: 'private',
         version: '',
@@ -160,6 +182,13 @@ export default {
       };
     },
   },
+  watch: {
+    disabled(value) {
+      if (value) {
+        this.publishPopoverVisible = false;
+      }
+    },
+  },
   methods: {
     reloadData() {
       this.$emit('reload-data');
@@ -194,28 +223,61 @@ export default {
         },
       });
     },
-    savePublish() {
-      this.$refs.publishForm.validate(valid => {
-        if (valid) {
-          const data = {
-            appId: this.appId,
-            appType: this.appType,
-            publishType: this.publishForm.publishType,
-            desc: this.publishForm.desc,
-            version: this.publishForm.version,
-          };
-
-          appPublish(data).then(res => {
-            if (res.code === 0) {
-              if (this.appType === 'skill') {
-                this.$router.push('/skillSquare?type=mine');
-              } else {
-                this.$router.push({ path: '/explore' });
-              }
-            }
-          });
-        }
+    validatePublishForm() {
+      return new Promise(resolve => {
+        this.$refs.publishForm.validate(valid => resolve(valid));
       });
+    },
+    getPublishData() {
+      return {
+        appId: this.appId,
+        appType: this.appType,
+        publishType: this.publishForm.publishType,
+        desc: this.publishForm.desc,
+        version: this.publishForm.version,
+      };
+    },
+    async executePublish(data) {
+      if (this.disabled) return null;
+
+      const res = await appPublish(data);
+      if (res.code === 0) {
+        if (this.appType === 'skill') {
+          this.$router.push('/skillSquare?type=mine');
+        } else {
+          this.$router.push({ path: '/explore' });
+        }
+      }
+      return res;
+    },
+    async savePublish() {
+      if (this.disabled || this.savingPublish) return;
+
+      const valid = await this.validatePublishForm();
+      if (!valid) return;
+
+      const data = this.getPublishData();
+      this.savingPublish = true;
+      try {
+        let shouldPublish = true;
+        if (this.beforePublish) {
+          try {
+            shouldPublish = (await this.beforePublish({ ...data })) !== false;
+          } catch (error) {
+            console.error('beforePublish error', error);
+            shouldPublish = false;
+          }
+        }
+
+        if (this.disabled || !shouldPublish) {
+          this.publishPopoverVisible = false;
+          return;
+        }
+
+        await this.executePublish(data);
+      } finally {
+        this.savingPublish = false;
+      }
     },
   },
 };
