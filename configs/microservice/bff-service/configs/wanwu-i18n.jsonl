@@ -163,7 +163,8 @@
 {"code":110000,"key":"bff_skill_workspace_git_diff_staged_failed","langs":{"en":"git diff --cached failed","zh":"git已暂存差异查询失败"}}
 {"code":110000,"key":"bff_skill_workspace_search_failed","langs":{"en":"search failed","zh":"搜索失败"}}
 {"code":110000,"key":"bff_skill_workspace_check_git_status_failed","langs":{"en":"check git status failed","zh":"检查git状态失败"}}
-{"code":110000,"key":"bff_skill_uncommitted_changes","langs":{"en":"workspace has uncommitted changes please commit before publishing","zh":"工作区有未提交的更改请先提交后再发布"}}
+{"code":110000,"key":"bff_skill_no_commits","langs":{"en":"workspace has no commits, please commit before publishing","zh":"工作区尚未提交，请先提交后再发布"}}
+{"code":110000,"key":"bff_skill_uncommitted_changes","langs":{"en":"workspace has uncommitted changes, please commit before publishing","zh":"工作区有未提交的更改，请先提交后再发布"}}
 {"code":110000,"key":"bff_skill_version_exists","langs":{"en":"version already exists please use another version","zh":"版本已存在请使用其他版本号"}}
 {"code":110000,"key":"bff_skill_workspace_git_restore_failed","langs":{"en":"git restore failed","zh":"git恢复失败"}}
 {"code":0,"key":"---- ratelimit ----","langs":{}}
