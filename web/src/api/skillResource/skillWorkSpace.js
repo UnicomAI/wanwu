@@ -19,6 +19,24 @@ export const getSkillWorkspaceFile = (customSkillId, path) => {
   });
 };
 
+// 获取 skill 内容文件列表（管理员中心只读概览）
+export const getSkillContentFiles = customSkillId => {
+  return request({
+    url: `${SERVICE_API}/agent/skill/content/files`,
+    method: 'get',
+    params: { customSkillId },
+  });
+};
+
+// 读取 skill 内容文件（管理员中心只读概览）
+export const getSkillContentFile = (customSkillId, path) => {
+  return request({
+    url: `${SERVICE_API}/agent/skill/content/file`,
+    method: 'get',
+    params: { customSkillId, path },
+  });
+};
+
 // 下载文件或目录
 export const downloadSkillWorkspace = (customSkillId, path) => {
   return request({

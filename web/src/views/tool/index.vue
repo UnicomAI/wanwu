@@ -10,9 +10,9 @@
         </span>
       </div>-->
 
-      <mcp v-show="![tool, prompt].includes(tabActive)" ref="mcp" />
-      <tool v-show="tabActive === tool" ref="tool" />
-      <prompt v-show="tabActive === prompt" ref="prompt" />
+      <mcp v-if="![tool, prompt].includes(tabActive)" ref="mcp" />
+      <tool v-if="tabActive === tool" ref="tool" />
+      <prompt v-if="tabActive === prompt" ref="prompt" />
     </div>
   </div>
 </template>

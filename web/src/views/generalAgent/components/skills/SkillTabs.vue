@@ -28,15 +28,29 @@
         </div>
 
         <AppPublishActions
+          ref="publishActions"
           :appId="skillPreviewParams.customSkillId"
           :appType="SKILL"
           :appName="assistantInfo.name"
           :publishType="publishType"
+          :beforePublish="beforeSkillPublish"
+          :disabled="publishDisabled"
           @reload-data="reloadData"
           @preview-version="previewVersion"
         />
       </div>
     </div>
+
+    <SkillQuickPublishDialog
+      v-model="quickPublishVisible"
+      :customSkillId="skillPreviewParams.customSkillId"
+      :files="quickPublishFiles"
+      :publishData="quickPublishData"
+      :publishHandler="executeQuickPublish"
+      :disabled="publishDisabled"
+      @view-git-details="viewGitDetails"
+      @git-changed="handleQuickPublishGitChanged"
+    />
 
     <div class="workspace-body" :class="{ 'disable-clicks': disableClick }">
       <SkillWorkspaceExplorer
@@ -65,8 +79,10 @@
 <script>
 import SkillWorkspaceExplorer from './SkillWorkspaceExplorer.vue';
 import SkillWorkbench from './SkillWorkbench.vue';
+import SkillQuickPublishDialog from './SkillQuickPublishDialog.vue';
 import AppPublishActions from '@/components/appPublishActions.vue';
 import { getCustomSkillInfo } from '@/api/templateSquare';
+import { getSkillWorkspaceGitStatus } from '@/api/skillResource/skillWorkSpace';
 import { SKILL } from '@/utils/commonSet';
 import skillManager from '../../mixins/skillManager';
 
@@ -76,6 +92,7 @@ export default {
   components: {
     SkillWorkspaceExplorer,
     SkillWorkbench,
+    SkillQuickPublishDialog,
     AppPublishActions,
   },
   props: {
@@ -92,11 +109,17 @@ export default {
       version: '',
       assistantInfo: {},
       activeGitDiffId: '',
+      quickPublishVisible: false,
+      quickPublishFiles: [],
+      quickPublishData: {},
     };
   },
   computed: {
     securityReviewDisabled() {
       return this.mainIsStreaming || this.previewIsStreaming;
+    },
+    publishDisabled() {
+      return this.mainIsStreaming;
     },
   },
   watch: {
@@ -178,6 +201,53 @@ export default {
       this.getAppDetail();
     },
     handleFileSaved() {
+      this.refreshGit();
+    },
+    async beforeSkillPublish(data) {
+      if (this.publishDisabled) return false;
+
+      if (this.hasUnsavedFiles()) {
+        this.$message.warning(
+          this.$t(
+            'generalAgent.skill.skillWorkBench.quickPublish.unsavedFiles',
+          ),
+        );
+        return false;
+      }
+
+      try {
+        const res = await getSkillWorkspaceGitStatus(
+          this.skillPreviewParams.customSkillId,
+        );
+        if (res.code !== 0) return false;
+
+        const files = (res.data && res.data.files) || [];
+        if (files.length === 0) return true;
+
+        this.quickPublishData = { ...data };
+        this.quickPublishFiles = files;
+        this.quickPublishVisible = true;
+        return false;
+      } catch (error) {
+        console.error('skill publish precheck error', error);
+        return false;
+      }
+    },
+    executeQuickPublish(data) {
+      if (this.publishDisabled) {
+        return Promise.resolve(null);
+      }
+      if (!this.$refs.publishActions) {
+        return Promise.resolve(null);
+      }
+      return this.$refs.publishActions.executePublish(data);
+    },
+    viewGitDetails() {
+      if (this.$refs.explorer) {
+        this.$refs.explorer.showGitView();
+      }
+    },
+    handleQuickPublishGitChanged() {
       this.refreshGit();
     },
     handleSecurityReview() {

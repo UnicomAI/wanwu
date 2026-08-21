@@ -2448,6 +2448,38 @@ export default {
           noResults: '无匹配结果',
           failed: '搜索失败',
         },
+        quickPublish: {
+          title: 'Commit Changes and Publish',
+          scopeDescription:
+            'All current workspace changes must be committed before publishing. Please confirm whether the following staged and unstaged changes can be committed and included in this release.',
+          version: 'Version',
+          scope: 'Publish Scope',
+          versionDescription: 'Version Description',
+          changeScope: 'Commit Scope ({count} files)',
+          viewDetails: 'View details in Version Control',
+          unstagedChanges: 'Unstaged Changes ({count})',
+          stagedChanges: 'Staged Changes ({count})',
+          commitMessage: 'Commit Message',
+          commitMessagePlaceholder: 'Enter a commit message',
+          commitMessageRequired: 'Please enter a commit message',
+          confirmSubmit: 'Commit and Publish',
+          submitting: 'Committing and publishing…',
+          retryPublish: 'Retry Publish',
+          retryingPublish: 'Publishing again…',
+          publishFailedTitle: 'Changes committed, but publishing failed',
+          publishFailedDescription:
+            'You can retry publishing without creating another commit.',
+          scopeChanged:
+            'The workspace has changed. Review the updated scope and confirm again.',
+          unsavedFiles: 'Save all open files before publishing.',
+          changeTypes: {
+            added: 'Added',
+            untracked: 'Added',
+            modified: 'Modified',
+            deleted: 'Deleted',
+            renamed: 'Renamed',
+          },
+        },
         git: {
           changes: '变更',
           stageAll: '全部暂存',
@@ -2460,7 +2492,7 @@ export default {
           commitPlaceholder: '提交信息 (Ctrl+Enter 提交)',
           commit: '提交',
           history: '历史',
-          restore: '回退',
+          restore: '回退至此',
           restoreConfirm: '回退会导致工作区未提交的内容丢失，是否确认操作？',
           noHistory: '暂无版本记录',
           stageFailed: '暂存失败',
@@ -2626,8 +2658,9 @@ export default {
           detail: {
             category: 'Category',
             version: 'Version',
-            overview: 'Introduction Overview',
+            overview: 'Skill Workspace',
             emptyTip: 'Skill Not Generated Yet',
+            selectFileTip: 'Select a file on the left to view its content',
           },
         },
         safety: {
