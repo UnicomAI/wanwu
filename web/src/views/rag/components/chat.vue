@@ -74,6 +74,7 @@ import {
   deleteRagConversation,
   deleteRagDraftConversation,
   getRagDraftConversationDetail,
+  getRagPendingConversation,
 } from '@/api/rag';
 import { mapGetters } from 'vuex';
 
@@ -134,6 +135,8 @@ export default {
       },
       fileTypeArr: ['image/*'],
       draftHistoryRequestId: 0,
+      draftReconnectRequested: false,
+      pendingRagRequestId: 0,
     };
   },
   created() {},
@@ -322,9 +325,86 @@ export default {
       this.echo = history.length === 0;
       this.$refs['session-com']?.replaceHistory(history);
     },
+    formatUnderwayRagHistory(data = {}) {
+      const fileList = (data.requestFiles || []).map(file => ({
+        ...file,
+        name: file.name || file.fileName || '',
+        size: file.size ?? file.fileSize ?? 0,
+        fileUrl: file.fileUrl || file.imgUrl || '',
+        imgUrl: file.imgUrl || file.fileUrl || '',
+      }));
+      return {
+        conversationId: data.conversationId || '',
+        query: data.prompt || '',
+        fileList,
+        requestFiles: fileList,
+        response: '',
+        oriResponse: '',
+        pendingResponse: '',
+        responseLoading: true,
+        pending: true,
+        finish: 0,
+        searchList: [],
+        qaSearchList: [],
+        ragSteps: [],
+        stableReasoningChunks: [],
+        activeReasoning: '',
+        isOpen: true,
+      };
+    },
+    async connectPendingRagStream({ conversationId = '', draft = false } = {}) {
+      const ragId = this.editForm?.appId;
+      if (!ragId || (!draft && !conversationId)) return;
+      if (draft && this.draftReconnectRequested) return;
+      const requestId = ++this.pendingRagRequestId;
+      if (draft) this.draftReconnectRequested = true;
+
+      try {
+        const requestData = { ragId, draft };
+        if (!draft) requestData.conversationId = conversationId;
+        const res = await getRagPendingConversation(requestData);
+        if (
+          res.code !== 0 ||
+          !res.data ||
+          res.data.hasPendingConversation !== true
+        ) {
+          return;
+        }
+        if (
+          requestId !== this.pendingRagRequestId ||
+          ragId !== this.editForm?.appId ||
+          (!draft && conversationId !== this.conversationId)
+        ) {
+          return;
+        }
+
+        const underwayHistory = this.formatUnderwayRagHistory({
+          ...res.data,
+          conversationId: res.data.conversationId || conversationId,
+        });
+        if (!underwayHistory.conversationId || !underwayHistory.query) return;
+
+        const sessionCom = this.$refs['session-com'];
+        if (!sessionCom) return;
+        const lastIndex = (sessionCom.getSessionData().history || []).length;
+        sessionCom.pushHistory(underwayHistory);
+        this.conversationId = underwayHistory.conversationId;
+        this.echo = false;
+        this.connectRagEventSource({
+          ragId,
+          conversationId: underwayHistory.conversationId,
+          prompt: underwayHistory.query,
+          fileList: underwayHistory.fileList,
+          lastIndex,
+        });
+      } catch (error) {
+        console.warn('[rag chat] get pending conversation failed', error);
+      }
+    },
     async loadDraftConversationHistory() {
       const ragId = this.editForm?.appId;
       const requestId = ++this.draftHistoryRequestId;
+      this.draftReconnectRequested = false;
       if (!ragId) {
         this.loadConversationHistory([]);
         return;
@@ -346,6 +426,7 @@ export default {
           return;
         }
         this.loadConversationHistory(res.data?.list || []);
+        this.$nextTick(() => this.connectPendingRagStream({ draft: true }));
       } catch (error) {
         if (requestId !== this.draftHistoryRequestId) return;
         console.warn('[rag chat] get draft conversation detail failed', error);
