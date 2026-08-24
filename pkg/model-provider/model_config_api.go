@@ -200,6 +200,12 @@ func ToModelTags(provider, modelType, cfg string) ([]mp_common.Tag, error) {
 				return nil, fmt.Errorf("unmarshal model config err: %v", err)
 			}
 			tags = asr.Tags()
+		case ModelTypeMultiEmbedding:
+			embedding := &mp_huoshan.MultiModalEmbedding{}
+			if err := json.Unmarshal([]byte(cfg), embedding); err != nil {
+				return nil, fmt.Errorf("unmarshal model config err: %v", err)
+			}
+			tags = embedding.Tags()
 		default:
 			return nil, fmt.Errorf("ToModelTags:invalid provider %v model type %v", provider, modelType)
 		}
@@ -460,6 +466,13 @@ func ToModelConfig(provider, modelType, cfg string) (interface{}, error) {
 			ret = &mp_huoshan.SyncAsr{
 				MaxAsrFileSize: &maxAsrFileSize,
 			}
+		case ModelTypeMultiEmbedding:
+			ret = &mp_huoshan.MultiModalEmbedding{
+				MaxTextLength:    &maxTextLength,
+				MaxImageSize:     &maxImageSize,
+				MaxVideoClipSize: &maxVideoClipSize,
+				SupportFileTypes: []string{"image"},
+			}
 		default:
 			return nil, fmt.Errorf("ToModelConfig:invalid provider %v model type %v", provider, modelType)
 		}
@@ -605,8 +618,9 @@ type ProviderModelByYuanjing struct {
 }
 
 type ProviderModelByHuoShan struct {
-	Llm       mp_huoshan.LLM       `json:"llm"`
-	Embedding mp_huoshan.Embedding `json:"embedding"`
+	Llm                 mp_huoshan.LLM                 `json:"llm"`
+	Embedding           mp_huoshan.Embedding           `json:"embedding"`
+	MultiModalEmbedding mp_huoshan.MultiModalEmbedding `json:"multiModalEmbedding"`
 }
 
 type ProviderModelByQwen struct {
