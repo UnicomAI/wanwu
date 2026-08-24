@@ -102,3 +102,23 @@ message TraceApp {
   string appId = 1; //应用id
   string appType = 2; //应用类型
 }
+
+message ConversationLog {
+  string appId = 1;                     // 应用id
+  string appType = 2;                   // 应用类型
+  string source = 3;                    // 来源
+  string title = 4;                     // 会话标题 <128字符
+  string conversationId = 5;            // 会话id
+  int64 messageCount = 6;               // 消息数量
+  int64 costs = 7;                      // 平均耗时
+  int64 firstTokenLatency = 8;          // 平均首token时延
+  int64 likeCount = 9;                  // 点赞数量
+  int64 dislikeCount = 10;              // 点踩数量
+  int64 errorCount = 11;                // 错误数量
+  string userId = 12;                   // 用户id
+  string orgId = 13;                    // 组织id
+  int64 createAt = 14;                  // 创建时间(毫秒)
+  int64 updateAt = 15;                  // 最后对话时间(毫秒)
+  string logId = 16;                    // 会话日志id
+  string version = 17;                  // 版本
+}
