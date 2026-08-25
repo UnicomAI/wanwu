@@ -96,7 +96,12 @@ def extract_pcm_audio_from_video(video_path, audio_path):
         # logger.info(f"音频提取完成: {result}")
         return True
     except subprocess.CalledProcessError as e:
-        logger.info(f"FFmpeg执行失败: {e.stderr}")
+        stderr = e.stderr or ""
+        if "does not contain any stream" in stderr:
+            # 视频无音轨，属于正常情况，不打印整段 ffmpeg stderr
+            logger.info("视频无音轨，跳过 ASR 音频提取")
+        else:
+            logger.info(f"FFmpeg执行失败: {stderr}")
         return False
     except Exception as e:
         logger.info(f"提取音频时发生未知错误: {e}")
