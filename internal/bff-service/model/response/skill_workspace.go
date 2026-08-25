@@ -22,6 +22,18 @@ type SkillWorkspaceFileResp struct {
 // UpdateSkillWorkspaceFileResp 文件更新响应
 type UpdateSkillWorkspaceFileResp struct{}
 
+type CreateSkillWorkspaceEntryResp struct {
+	Entry *FileNode `json:"entry"`
+}
+
+type RenameSkillWorkspaceEntryResp struct {
+	Entry *FileNode `json:"entry"`
+}
+
+type SkillWorkspaceUploadResp struct {
+	Files []*FileNode `json:"files"`
+}
+
 type SearchResult struct {
 	Path    string `json:"path"`    // 文件路径
 	Line    int    `json:"line"`    // 行号
