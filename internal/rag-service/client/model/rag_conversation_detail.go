@@ -47,4 +47,12 @@ type RagConversationDetail struct {
 	CreatedAt        int64          `json:"createdAt"`
 	UpdatedAt        int64          `json:"updatedAt"`
 	Statistic        RagStatistic   `json:"statistic"`
+	Feedback         int32          `json:"feedback"`        // 当前反馈状态: 0=无 1=点赞 2=点踩
+	FeedbackContent  string         `json:"feedbackContent"` // 反馈文本内容
 }
+
+const (
+	FeedBackNone    int32 = 0 // 无反馈
+	FeedBackLike    int32 = 1 // 点赞
+	FeedBackDislike int32 = 2 // 点踩
+)

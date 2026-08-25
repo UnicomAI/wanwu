@@ -56,6 +56,8 @@ service RagService {
   rpc GetRagDraftConversation(GetRagDraftConversationReq) returns (GetRagDraftConversationResp) {}
   // 取会话归属信息，供 bff 中间件校验（明细在 ES，bff 查不到，一并在这里判）
   rpc GetRagConversationOwner(GetRagConversationOwnerReq) returns (GetRagConversationOwnerResp) {}
+  // 问答明细点赞/点踩
+  rpc RagMessageFeedback(RagMessageFeedbackReq) returns (RagMessageFeedbackResp) {}
 
   // --- 会话日志 ---
   rpc GetConversationLog(ConversationLogReq) returns (common.ConversationLog) {}
@@ -377,6 +379,19 @@ message GetRagConversationOwnerResp {
   string orgId = 3;
 }
 
+message RagMessageFeedbackReq {
+  string conversationId = 1;
+  string detailId = 2; // 问答明细id
+  int32 feedbackType = 3; // 反馈类型: 0=取消 1=点赞 2=点踩
+  string feedbackContent = 4; // 反馈文本内容
+  Identity identity = 5;
+  string ragId = 6; // 会话归属过滤，与 conversationId 同时命中才操作
+}
+
+message RagMessageFeedbackResp {
+  int32 feedbackType = 1; // 当前反馈状态: 0=无 1=点赞 2=点踩
+}
+
 message ConversationLogReq {
   string conversationId = 1; //会话ID
   string sourceFrom = 2; // 请求来源
@@ -417,6 +432,8 @@ message RagConversationDetailInfo {
   RagTimeCost qaSearchListTimeCost = 14;
   string qaErrMessage = 15; // 问答库检索失败原因，非空表示该轮问答库检索报错后转的知识库
   string traceId = 16; // 本轮问答的链路id，与应用/模型统计明细同值
+  int32 feedback = 17; // 当前反馈状态: 0=无 1=点赞 2=点踩
+  string feedbackContent = 18; // 反馈文本内容
 }
 
 

@@ -7887,6 +7887,14 @@ const docTemplate = `{
                 "errMessage": {
                     "type": "string"
                 },
+                "feedback": {
+                    "description": "当前反馈状态: 0=无 1=点赞 2=点踩",
+                    "type": "integer"
+                },
+                "feedbackContent": {
+                    "description": "反馈文本内容",
+                    "type": "string"
+                },
                 "prompt": {
                     "type": "string"
                 },

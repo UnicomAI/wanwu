@@ -258,6 +258,59 @@ func (c *client) DeleteByFields(ctx context.Context, index string, fieldConditio
 	return nil
 }
 
+// 根据指定字段条件更新数据（逻辑删除等场景）
+func (c *client) UpdateByFields(ctx context.Context, index string, fieldConditions map[string]interface{}, updates map[string]interface{}) error {
+	if len(updates) == 0 {
+		return fmt.Errorf("更新字段为空")
+	}
+
+	// 构建 Painless script，将 updates 中每个字段赋值
+	params := map[string]interface{}{}
+	for field, value := range updates {
+		params[field] = value
+	}
+	source := ""
+	for field := range updates {
+		source += fmt.Sprintf("ctx._source.%s = params.%s; ", field, field)
+	}
+
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": buildMustQuery(fieldConditions),
+			},
+		},
+		"script": map[string]interface{}{
+			"source": source,
+			"lang":   "painless",
+			"params": params,
+		},
+	}
+
+	queryJSON, err := json.Marshal(query)
+	if err != nil {
+		return fmt.Errorf("序列化更新查询失败: %v", err)
+	}
+
+	res, err := c.cli.UpdateByQuery(
+		[]string{index},
+		c.cli.UpdateByQuery.WithBody(strings.NewReader(string(queryJSON))),
+		c.cli.UpdateByQuery.WithContext(ctx),
+		c.cli.UpdateByQuery.WithRefresh(true),
+	)
+	if err != nil {
+		return fmt.Errorf("ES更新失败: %v", err)
+	}
+	defer func() { _ = res.Body.Close() }()
+
+	if res.IsError() {
+		return fmt.Errorf("ES更新响应错误: %s", res.String())
+	}
+
+	log.Infof("成功更新ES数据，索引: %s", index)
+	return nil
+}
+
 // 创建索引模板
 func (c *client) CreateIndexTemplate(ctx context.Context, templateName string, templateBody string) error {
 	res, err := c.cli.Indices.PutIndexTemplate(

@@ -146,6 +146,8 @@ func (s *Service) ListRagConversationDetail(ctx context.Context, req *rag_servic
 			TraceId:          detail.TraceId,
 			FileInfoList:     buildDetailFileInfo(detail.FileInfo),
 			CreatedAt:        detail.CreatedAt,
+			Feedback:         detail.Feedback,
+			FeedbackContent:  detail.FeedbackContent,
 
 			ReasoningTimeCost:    buildDetailTimeCost(detail.Statistic.ReasoningTimeCost),
 			SearchListTimeCost:   buildDetailTimeCost(detail.Statistic.SearchListTimeCost),
@@ -158,6 +160,24 @@ func (s *Service) ListRagConversationDetail(ctx context.Context, req *rag_servic
 		PageSize: req.PageSize,
 		PageNo:   req.PageNo,
 	}, nil
+}
+
+// RagMessageFeedback 问答明细点赞/点踩，同一 detailId 只保留一个状态：
+// 传 1/2 直接覆盖为该状态，传其它值一律当取消(0)并清空反馈内容
+func (s *Service) RagMessageFeedback(ctx context.Context, req *rag_service.RagMessageFeedbackReq) (*rag_service.RagMessageFeedbackResp, error) {
+	userId, orgId := identityOf(req.Identity)
+	feedback, feedbackContent := req.FeedbackType, req.FeedbackContent
+	if feedback != model.FeedBackLike && feedback != model.FeedBackDislike {
+		feedback, feedbackContent = model.FeedBackNone, ""
+	}
+	// 先校验会话归属，再改明细
+	if _, status := s.cli.FetchRagConversation(ctx, req.ConversationId, req.RagId, userId, orgId); status != nil {
+		return nil, conversationErrStatus(errs.Code_RagConversationErr, status)
+	}
+	if err := rag_conversation.UpdateDetailFeedback(ctx, req.ConversationId, req.DetailId, userId, feedback, feedbackContent); err != nil {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_RagConversationErr, "rag_conversation_feedback_err", err.Error())
+	}
+	return &rag_service.RagMessageFeedbackResp{FeedbackType: feedback}, nil
 }
 
 func buildDetailTimeCost(timeCost model.RagTimeCost) *rag_service.RagTimeCost {

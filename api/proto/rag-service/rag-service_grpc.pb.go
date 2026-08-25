@@ -44,6 +44,7 @@ const (
 	RagService_ClearRagConversationDetail_FullMethodName = "/rag_service.RagService/ClearRagConversationDetail"
 	RagService_GetRagDraftConversation_FullMethodName    = "/rag_service.RagService/GetRagDraftConversation"
 	RagService_GetRagConversationOwner_FullMethodName    = "/rag_service.RagService/GetRagConversationOwner"
+	RagService_RagMessageFeedback_FullMethodName         = "/rag_service.RagService/RagMessageFeedback"
 	RagService_GetConversationLog_FullMethodName         = "/rag_service.RagService/GetConversationLog"
 )
 
@@ -98,6 +99,8 @@ type RagServiceClient interface {
 	GetRagDraftConversation(ctx context.Context, in *GetRagDraftConversationReq, opts ...grpc.CallOption) (*GetRagDraftConversationResp, error)
 	// 取会话归属信息，供 bff 中间件校验（明细在 ES，bff 查不到，一并在这里判）
 	GetRagConversationOwner(ctx context.Context, in *GetRagConversationOwnerReq, opts ...grpc.CallOption) (*GetRagConversationOwnerResp, error)
+	// 问答明细点赞/点踩
+	RagMessageFeedback(ctx context.Context, in *RagMessageFeedbackReq, opts ...grpc.CallOption) (*RagMessageFeedbackResp, error)
 	// --- 会话日志 ---
 	GetConversationLog(ctx context.Context, in *ConversationLogReq, opts ...grpc.CallOption) (*common.ConversationLog, error)
 }
@@ -349,6 +352,16 @@ func (c *ragServiceClient) GetRagConversationOwner(ctx context.Context, in *GetR
 	return out, nil
 }
 
+func (c *ragServiceClient) RagMessageFeedback(ctx context.Context, in *RagMessageFeedbackReq, opts ...grpc.CallOption) (*RagMessageFeedbackResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RagMessageFeedbackResp)
+	err := c.cc.Invoke(ctx, RagService_RagMessageFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *ragServiceClient) GetConversationLog(ctx context.Context, in *ConversationLogReq, opts ...grpc.CallOption) (*common.ConversationLog, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(common.ConversationLog)
@@ -410,6 +423,8 @@ type RagServiceServer interface {
 	GetRagDraftConversation(context.Context, *GetRagDraftConversationReq) (*GetRagDraftConversationResp, error)
 	// 取会话归属信息，供 bff 中间件校验（明细在 ES，bff 查不到，一并在这里判）
 	GetRagConversationOwner(context.Context, *GetRagConversationOwnerReq) (*GetRagConversationOwnerResp, error)
+	// 问答明细点赞/点踩
+	RagMessageFeedback(context.Context, *RagMessageFeedbackReq) (*RagMessageFeedbackResp, error)
 	// --- 会话日志 ---
 	GetConversationLog(context.Context, *ConversationLogReq) (*common.ConversationLog, error)
 	mustEmbedUnimplementedRagServiceServer()
@@ -490,6 +505,9 @@ func (UnimplementedRagServiceServer) GetRagDraftConversation(context.Context, *G
 }
 func (UnimplementedRagServiceServer) GetRagConversationOwner(context.Context, *GetRagConversationOwnerReq) (*GetRagConversationOwnerResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRagConversationOwner not implemented")
+}
+func (UnimplementedRagServiceServer) RagMessageFeedback(context.Context, *RagMessageFeedbackReq) (*RagMessageFeedbackResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RagMessageFeedback not implemented")
 }
 func (UnimplementedRagServiceServer) GetConversationLog(context.Context, *ConversationLogReq) (*common.ConversationLog, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLog not implemented")
@@ -922,6 +940,24 @@ func _RagService_GetRagConversationOwner_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RagService_RagMessageFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RagMessageFeedbackReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RagServiceServer).RagMessageFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RagService_RagMessageFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RagServiceServer).RagMessageFeedback(ctx, req.(*RagMessageFeedbackReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _RagService_GetConversationLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ConversationLogReq)
 	if err := dec(in); err != nil {
@@ -1034,6 +1070,10 @@ var RagService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRagConversationOwner",
 			Handler:    _RagService_GetRagConversationOwner_Handler,
+		},
+		{
+			MethodName: "RagMessageFeedback",
+			Handler:    _RagService_RagMessageFeedback_Handler,
 		},
 		{
 			MethodName: "GetConversationLog",

@@ -42,6 +42,7 @@ type ragStreamConverter struct {
 	runID                 string
 	streamParams          *ragChatStreamParams
 	kbNameMap             map[string]string
+	detailID              string
 	hasSentSearchList     bool
 	hasSentQASearchList   bool
 	hasSentKnowledgeStart bool
@@ -278,6 +279,28 @@ func (c *ragStreamConverter) emitOutput(output string) {
 	c.recordTTFT()
 	c.emit(c.state.EndReasoningMessage()...)
 	c.emit(c.state.StartTextMessage()...)
-	c.emit(aguievents.NewTextMessageContentEvent(
-		c.state.MessageID(), output))
+	c.emit(newRagTextContentEvent(c.state.MessageID(), output, c.detailID))
+}
+
+// ragTextContentEvent 取代 SDK 的 TextMessageContentEvent，多带一个 detailId：
+// 前端据此做单条删除与点赞点踩。嵌入 *BaseEvent 即满足 aguievents.Event 接口。
+type ragTextContentEvent struct {
+	*aguievents.BaseEvent
+	DetailID  string `json:"detailId"`
+	MessageID string `json:"messageId"`
+	Delta     string `json:"delta"`
+}
+
+func newRagTextContentEvent(messageID, delta, detailID string) *ragTextContentEvent {
+	return &ragTextContentEvent{
+		BaseEvent: aguievents.NewBaseEvent(aguievents.EventTypeTextMessageContent),
+		DetailID:  detailID,
+		MessageID: messageID,
+		Delta:     delta,
+	}
+}
+
+// ToJSON 覆盖 BaseEvent 提升上来的实现，否则只会序列化出 type 一个字段
+func (e *ragTextContentEvent) ToJSON() ([]byte, error) {
+	return json.Marshal(e)
 }
