@@ -15,10 +15,12 @@ type IClient interface {
 	DeleteAssistant(ctx context.Context, assistantID uint32, userId, orgId string) *err_code.Status
 	GetAssistant(ctx context.Context, assistantID uint32, userID, orgID string) (*model.Assistant, *err_code.Status)
 	GetAssistantsByIDs(ctx context.Context, assistantIDs []uint32) ([]*model.Assistant, *err_code.Status)
+	GetAssistantsByUuids(ctx context.Context, uuids []string) ([]*model.Assistant, *err_code.Status)
 	GetAssistantByUuid(ctx context.Context, uuid string) (*model.Assistant, *err_code.Status)
+	GetAssistantByUuidWithPerm(ctx context.Context, uuid, userId, orgId string) (*model.Assistant, *err_code.Status)
 	GetAssistantList(ctx context.Context, userID, orgID string, name string) ([]*model.Assistant, int64, *err_code.Status)
 	CheckSameAssistantName(ctx context.Context, userID, orgID, name, assistantID string) *err_code.Status
-	CopyAssistant(ctx context.Context, assistant *model.Assistant, workflows []*model.AssistantWorkflow, mcps []*model.AssistantMCP, customTools []*model.AssistantTool, subAgents []*model.MultiAgentRelation, skills []*model.AssistantSkill) (uint32, *err_code.Status)
+	CopyAssistant(ctx context.Context, assistant *model.Assistant, workflows []*model.AssistantWorkflow, mcps []*model.AssistantMCP, customTools []*model.AssistantTool, subAgents []*model.MultiAgentRelation, skills []*model.AssistantSkill) (uint32, string, *err_code.Status)
 	AdminGetAssistantListAll(ctx context.Context, userIds, orgIds []string, name string, categories []int32) ([]*model.AdminAssistantItem, int64, *err_code.Status)
 	AdminGetAssistantListPage(ctx context.Context, userIds, orgIds []string, name string, categories []int32, pageNum, pageSize int) ([]*model.AdminAssistantItem, int64, *err_code.Status)
 
@@ -67,11 +69,12 @@ type IClient interface {
 	UpdateAssistantSkillEnable(ctx context.Context, assistantId uint32, skillId, skillType string, enable bool) *err_code.Status
 
 	//================Conversation================
+	GetConversation(ctx context.Context, conversationID, userID, orgID string) (*model.Conversation, *err_code.Status)
 	CreateConversation(ctx context.Context, conversation *model.Conversation) *err_code.Status
 	UpdateConversation(ctx context.Context, conversation *model.Conversation) *err_code.Status
-	DeleteConversation(ctx context.Context, conversationID uint32, userId, orgId string) *err_code.Status
-	GetConversationByAssistantID(ctx context.Context, assistantID, conversationType string) (*model.Conversation, *err_code.Status)
-	GetConversationList(ctx context.Context, assistantID, conversationType, userID, orgID, searchText string, offset, limit int32) ([]*model.Conversation, int64, *err_code.Status)
+	DeleteConversation(ctx context.Context, conversationId string, userId, orgId string) *err_code.Status
+	GetConversationByAssistantID(ctx context.Context, assistantID uint32, conversationType string) (*model.Conversation, *err_code.Status)
+	GetConversationList(ctx context.Context, assistantID uint32, conversationType, userID, orgID, searchText string, offset, limit int32) ([]*model.Conversation, int64, *err_code.Status)
 
 	//================CustomPrompt================
 	CreateCustomPrompt(ctx context.Context, avatarPath, name, desc, prompt, userId, orgID string) (string, *err_code.Status)

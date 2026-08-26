@@ -209,12 +209,36 @@ func WithUuid(uuid string) SQLOption {
 	})
 }
 
+func WithUuids(uuids []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(uuids) > 0 {
+			return db.Where("uuid IN ?", uuids)
+		}
+		return db
+	})
+}
+
+func WithoutUuid(uuid string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(uuid) > 0 {
+			return db.Where("uuid != ?", uuid)
+		}
+		return db
+	})
+}
+
 func WithConversationType(conversationType string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if conversationType != "" {
 			return db.Where("conversation_type = ?", conversationType)
 		}
 		return db
+	})
+}
+
+func WithConversationId(conversationId string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		return db.Where("conversation_id = ?", conversationId)
 	})
 }
 

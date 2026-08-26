@@ -27,13 +27,14 @@ const (
 )
 
 type ConversationParams struct {
-	AssistantId    string           `json:"assistantId"`
-	DetailId       string           `json:"detailId"`
-	ConversationId string           `json:"conversationId"`
-	UserId         string           `json:"userId"`
-	OrgId          string           `json:"orgId"`
-	Query          string           `json:"query"`
-	FileInfo       []model.FileInfo `json:"fileInfo"`
+	AssistantId        string           `json:"assistantId"`
+	DetailId           string           `json:"detailId"`
+	ConversationId     string           `json:"conversationId"`
+	SaveConversationId string           `json:"saveConversationId"`
+	UserId             string           `json:"userId"`
+	OrgId              string           `json:"orgId"`
+	Query              string           `json:"query"`
+	FileInfo           []model.FileInfo `json:"fileInfo"`
 }
 
 type AgentChatResp struct {
@@ -135,7 +136,6 @@ func saveConversation(originalCtx context.Context, req *ConversationParams, conv
 	}
 	//todo delete
 	log.Infof("[Conversation] fullResponse: %s", conversationResp.Response())
-
 	if len(req.ConversationId) == 0 {
 		return
 	}
@@ -177,7 +177,7 @@ func buildConversationDetail(req *ConversationParams, conversationResp *conversa
 	return &model.ConversationDetails{
 		Id:                        detailId,
 		AssistantId:               req.AssistantId,
-		ConversationId:            req.ConversationId,
+		ConversationId:            req.SaveConversationId,
 		Prompt:                    req.Query,
 		FileInfo:                  restoreFileList(req.FileInfo),
 		ResponseList:              conversationResp.ResponseList(),

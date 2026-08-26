@@ -21,7 +21,8 @@ service AssistantService {
   rpc AssistantDelete(AssistantDeleteReq) returns (google.protobuf.Empty) {}
   rpc GetAssistantListMyAll(GetAssistantListMyAllReq) returns (AppBriefList) {}
   rpc GetAssistantInfo(GetAssistantInfoReq) returns (AssistantInfo) {}
-  rpc GetAssistantIdByUuid(GetAssistantIdByUuidReq) returns (GetAssistantIdByUuidResp) {}
+  rpc GetAssistantBriefByPrimaryIds(GetAssistantBriefByPrimaryIdsReq) returns (GetAssistantBriefByPrimaryIdsResp) {}  // 根据assistant自增主键id（老自增id）批量查brief，Info.AppId为uuid
+  rpc GetAssistantPrimaryIdsByUuids(GetAssistantPrimaryIdsByUuidsReq) returns (GetAssistantPrimaryIdsByUuidsResp) {}  // 根据uuid批量查assistant自增主键id（老自增id）
   rpc AssistantCopy(AssistantCopyReq) returns (AssistantCreateResp) {}
   rpc GetAssistantDetailById(GetAssistantDetailByIdReq) returns (AssistantDetailResp) {}
   rpc GetMultiAssistantById(GetMultiAssistantByIdReq) returns (MultiAssistantDetailResp) {}
@@ -172,7 +173,7 @@ message GetAssistantByIdsReq{
 }
 
 message GetMultiAssistantByIdReq{
-  uint32 assistantId = 1;
+  string assistantId = 1;
   Identity identity = 2;
   string conversationId = 3; // 如果需要历史会话，则需要传入此数据
   bool draft = 4;//是否是草稿
@@ -181,7 +182,7 @@ message GetMultiAssistantByIdReq{
 }
 
 message GetAssistantDetailByIdReq{
-  uint32 assistantId = 1;
+  string assistantId = 1;
   Identity identity = 2;
   string conversationId = 3; // 如果需要历史会话，则需要传入此数据
   bool draft = 4;//是否是草稿
@@ -356,12 +357,18 @@ message GetAssistantListMyAllReq {
   Identity identity = 2;
 }
 
-message GetAssistantIdByUuidReq {
-  string uuid = 1;
+message GetAssistantBriefByPrimaryIdsReq {
+  repeated string assistantPrimaryIds = 1;   // assistant自增主键id（老自增id，字符串形式）
+}
+message GetAssistantBriefByPrimaryIdsResp {
+  map<string, AssistantBrief> briefMap = 1;  // key=入参主键id，value=brief（Info.AppId为uuid）
 }
 
-message GetAssistantIdByUuidResp {
-  string assistantId = 1;
+message GetAssistantPrimaryIdsByUuidsReq {
+  repeated string uuids = 1;
+}
+message GetAssistantPrimaryIdsByUuidsResp {
+  map<string, string> assistantPrimaryIdMap = 1;  // key=入参uuid，value=自增主键id（老自增id，字符串）
 }
 
 message AssistantInfo {
@@ -509,7 +516,7 @@ message AssistantMCPGetListReq {
 
 message AssistantMCPInfo {
   uint32 id = 1;
-  uint32 assistantMcpId = 2;
+  string mcpAssistantId = 2;  // assistant UUID
   string mcpId = 3;
   bool enable = 4;
   string userId = 5;

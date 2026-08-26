@@ -45,14 +45,7 @@ func CreateAgent(ctx *gin.Context) {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	assistantInfo, err := service.GetAssistantInfo(ctx, userID, orgID, request.AssistantIdRequest{
-		AssistantId: assistantCreateResp.AssistantId,
-	}, false)
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
-	gin_util.Response(ctx, response.OpenAPICreateAgentResponse{UUID: assistantInfo.UUID}, nil)
+	gin_util.Response(ctx, response.OpenAPICreateAgentResponse{UUID: assistantCreateResp.AssistantId}, nil)
 }
 
 // CreateAgentConversation
@@ -72,14 +65,14 @@ func CreateAgentConversation(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
-	appID, err := service.GetAssistantIdByUuid(ctx, req.UUID)
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
+	//appID, err := service.GetAssistantIdByUuid(ctx, req.UUID)
+	//if err != nil {
+	//	gin_util.Response(ctx, nil, err)
+	//	return
+	//}
 	// OpenAPI 创建的对话和 web 已发布对话归到同一类型（type=published）
 	resp, err := service.ConversationCreate(ctx, userID, orgID, request.ConversationCreateRequest{
-		AssistantId: appID,
+		AssistantId: req.UUID,
 		Prompt:      req.Title,
 	}, constant.ConversationTypePublished)
 	if err != nil {
@@ -109,19 +102,19 @@ func ChatAgent(ctx *gin.Context) {
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
 	clientID := getClientID(ctx)
-	appID, err := service.GetAssistantIdByUuid(ctx, req.UUID)
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
-	if err := service.CheckOpenAPIAccess(ctx, appID, constant.AppTypeAgent, userID, orgID); err != nil {
+	//appID, err := service.GetAssistantIdByUuid(ctx, req.UUID)
+	//if err != nil {
+	//	gin_util.Response(ctx, nil, err)
+	//	return
+	//}
+	if err := service.CheckOpenAPIAccess(ctx, req.UUID, constant.AppTypeAgent, userID, orgID); err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
 	// 流式
 	if req.Stream {
 		if err := service.AssistantConversionStream(ctx, userID, orgID, clientID, request.ConversionStreamRequest{
-			AssistantId:    appID,
+			AssistantId:    req.UUID,
 			ConversationId: req.ConversationID,
 			Prompt:         req.Query,
 			FileInfo:       req.FileInfo,
@@ -129,7 +122,7 @@ func ChatAgent(ctx *gin.Context) {
 			gin_util.Response(ctx, nil, err)
 			return
 		}
-		if qs := service.GenAgentRecommendQuestions(ctx, userID, orgID, appID, req.ConversationID, req.Query, true); len(qs) > 0 {
+		if qs := service.GenAgentRecommendQuestions(ctx, userID, orgID, req.UUID, req.ConversationID, req.Query, true); len(qs) > 0 {
 			if b, err := json.Marshal(map[string][]string{"recommend_questions": qs}); err == nil {
 				_, _ = fmt.Fprintf(ctx.Writer, "data: %s\n\n", string(b))
 				ctx.Writer.Flush()
@@ -140,7 +133,7 @@ func ChatAgent(ctx *gin.Context) {
 	// 非流式
 	startTime := time.Now()
 	chatCh, err := service.CallAssistantConversationStream(ctx, userID, orgID, clientID, request.ConversionStreamRequest{
-		AssistantId:    appID,
+		AssistantId:    req.UUID,
 		ConversationId: req.ConversationID,
 		Prompt:         req.Query,
 		FileInfo:       req.FileInfo,
@@ -149,7 +142,7 @@ func ChatAgent(ctx *gin.Context) {
 		statusCode, failureReason := service.GrpcErrorToHTTPStatus(err)
 		go func() {
 			defer util.PrintPanicStack()
-			service.RecordAppStatistic(detachedCtx, userID, orgID, appID, constant.AppTypeAgent, "",
+			service.RecordAppStatistic(detachedCtx, userID, orgID, req.UUID, constant.AppTypeAgent, "",
 				statusCode, failureReason, false, 0, 0, constant.BizSourceOpenAPI, service.MarshalStatisticBody(req), "", req.Query, "")
 		}()
 		gin_util.Response(ctx, nil, err)
@@ -164,18 +157,18 @@ func ChatAgent(ctx *gin.Context) {
 		}
 		curr := &response.OpenAPIAgentChatResponse{}
 		if err := json.Unmarshal([]byte(strings.TrimPrefix(chat, "data:")), curr); err != nil {
-			log.Errorf("[Agent] %v conversation %v user %v org %v unmarshal %v err: %v", appID, req.ConversationID, userID, orgID, err)
+			log.Errorf("[Agent] %v conversation %v user %v org %v unmarshal %v err: %v", req.UUID, req.ConversationID, userID, orgID, err)
 			continue
 		}
 		resp = curr
 		output.WriteString(curr.Response)
 	}
 	resp.Response = output.String()
-	resp.RecommendQuestions = service.GenAgentRecommendQuestions(ctx, userID, orgID, appID, req.ConversationID, req.Query, true)
+	resp.RecommendQuestions = service.GenAgentRecommendQuestions(ctx, userID, orgID, req.UUID, req.ConversationID, req.Query, true)
 	costs := time.Since(startTime).Milliseconds()
 	go func() {
 		defer util.PrintPanicStack()
-		service.RecordAppStatistic(detachedCtx, userID, orgID, appID, constant.AppTypeAgent, "",
+		service.RecordAppStatistic(detachedCtx, userID, orgID, req.UUID, constant.AppTypeAgent, "",
 			200, "", false, 0, int64(costs), constant.BizSourceOpenAPI, service.MarshalStatisticBody(req), service.MarshalStatisticBody(resp), req.Query, resp.Response)
 	}()
 	b, _ := json.Marshal(resp)
@@ -252,11 +245,12 @@ func DraftChatAgent(ctx *gin.Context) {
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
 	clientID := getClientID(ctx)
-	appID, err := service.GetAssistantIdByUuid(ctx, req.UUID)
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
+	//appID, err := service.GetAssistantIdByUuid(ctx, req.UUID)
+	//if err != nil {
+	//	gin_util.Response(ctx, nil, err)
+	//	return
+	//}
+	appID := req.UUID
 	// 草稿态不要求已发布，所有权由 GetAssistantInfo(..., false) 的 Identity 兜底（只能调自己的）
 	assistantInfo, err := service.GetAssistantInfo(ctx, userID, orgID, request.AssistantIdRequest{AssistantId: appID}, false)
 	if err != nil {
@@ -332,11 +326,12 @@ func PublishAgent(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
-	appID, err := service.GetAssistantIdByUuid(ctx, req.AssistantUUID)
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
+	//appID, err := service.GetAssistantIdByUuid(ctx, req.AssistantUUID)
+	//if err != nil {
+	//	gin_util.Response(ctx, nil, err)
+	//	return
+	//}
+	appID := req.AssistantUUID
 	assistantInfo, err := service.GetAssistantInfo(ctx, userID, orgID, request.AssistantIdRequest{AssistantId: appID}, false)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
@@ -378,12 +373,12 @@ func GetAgentInfo(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
-	appID, err := service.GetAssistantIdByUuid(ctx, req.UUID)
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
-	resp, err := service.GetAssistantInfo(ctx, userID, orgID, request.AssistantIdRequest{AssistantId: appID}, req.Published)
+	//appID, err := service.GetAssistantIdByUuid(ctx, req.UUID)
+	//if err != nil {
+	//	gin_util.Response(ctx, nil, err)
+	//	return
+	//}
+	resp, err := service.GetAssistantInfo(ctx, userID, orgID, request.AssistantIdRequest{AssistantId: req.UUID}, req.Published)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
@@ -469,11 +464,11 @@ func UpdateAgentConfig(ctx *gin.Context) {
 		}
 	}
 
-	assistantID, err := service.GetAssistantIdByUuid(ctx, req.AssistantUUID)
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
+	//assistantID, err := service.GetAssistantIdByUuid(ctx, req.AssistantUUID)
+	//if err != nil {
+	//	gin_util.Response(ctx, nil, err)
+	//	return
+	//}
 	if req.ModelConfig != nil && req.ModelConfig.ModelId != "" {
 		modelID, convErr := service.GetModelIdByUuid(ctx, req.ModelConfig.ModelId)
 		if convErr != nil {
@@ -505,8 +500,8 @@ func UpdateAgentConfig(ctx *gin.Context) {
 		req.RecommendConfig = &recCfg
 	}
 
-	_, err = service.AssistantConfigUpdate(ctx, userID, orgID, request.AssistantConfig{
-		AssistantId:         assistantID,
+	_, err := service.AssistantConfigUpdate(ctx, userID, orgID, request.AssistantConfig{
+		AssistantId:         req.AssistantUUID,
 		Prologue:            req.Prologue,
 		Instructions:        req.Instructions,
 		RecommendQuestion:   req.RecommendQuestion,

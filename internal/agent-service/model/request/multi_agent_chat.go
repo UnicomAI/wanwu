@@ -1,7 +1,7 @@
 package request
 
 type MultiAgentChatParams struct {
-	MultiAgentId uint32 `json:"multiAgentId"  validate:"required"` //多智能体ID
+	MultiAgentId string `json:"multiAgentId"  validate:"required"` //多智能体ID
 	AgentChatBaseReq
 }
 

@@ -167,7 +167,7 @@ func AgentChatProxy(ctx *gin.Context, assistantId string, req *request.AgentChat
 	url := fmt.Sprintf("http://%s/agent/chat", config.Cfg().AgentService.Host)
 
 	agentReq := map[string]interface{}{
-		"assistantId": util.MustU32(assistantId),
+		"assistantId": assistantId,
 		"input":       req.Input,
 		"stream":      true,
 		// "uploadFile":  req.UploadFile,

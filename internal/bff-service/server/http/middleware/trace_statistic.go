@@ -211,7 +211,7 @@ func WithKnowledgeHitResource() TraceStatisticOption {
 // WithOpenAPIDraftAgentResource 草稿态 OpenAPI 智能体对话：uuid 解析为 assistantId，moduleCreator 取 API Key 所属用户。
 func WithOpenAPIDraftAgentResource(uuidField string) TraceStatisticOption {
 	return func(ctx *gin.Context) {
-		if _, ok := resolveAgentID(ctx, uuidField); !ok {
+		if _, ok := resolveAssistantID(ctx, uuidField); !ok {
 			return
 		}
 		userID, orgID, err := getUserInfo(ctx)
@@ -223,10 +223,10 @@ func WithOpenAPIDraftAgentResource(uuidField string) TraceStatisticOption {
 	}
 }
 
-// WithOpenAPIAgentResource 解析 OpenAPI uuid 为 assistantId，并查已发布 app 创建人。
+// WithOpenAPIAgentResource 解析 OpenAPI uuid 为 assistant uuid，并查已发布 app 创建人。
 func WithOpenAPIAgentResource(uuidField string) TraceStatisticOption {
 	return func(ctx *gin.Context) {
-		appID, ok := resolveAgentID(ctx, uuidField)
+		appID, ok := resolveAssistantID(ctx, uuidField)
 		if !ok {
 			return
 		}
@@ -240,19 +240,20 @@ func WithOpenAPIAgentResource(uuidField string) TraceStatisticOption {
 	}
 }
 
-// resolveAgentID 将 OpenAPI uuid 解析为内部 assistantId，并写入资源维度。
-func resolveAgentID(ctx *gin.Context, uuidField string) (appID string, ok bool) {
+// resolveAssistantID 将 OpenAPI uuid 解析为内部 assistant uuid，并写入资源维度。
+func resolveAssistantID(ctx *gin.Context, uuidField string) (appID string, ok bool) {
 	uuid := getFieldValue(ctx, uuidField)
 	if uuid == "" {
 		abortTraceStatistic(ctx, "agent uuid is required")
 		return "", false
 	}
-	appID, err := service.ResolveAssistantIDByUUID(ctx.Request.Context(), uuid)
-	if err != nil {
-		log.Errorf("trace agent uuid %q resolve failed: %v", uuid, err)
-		abortTraceStatistic(ctx, err.Error())
-		return "", false
-	}
+	// appID, err := service.GetAssistantIdByUuid(ctx.Request.Context(), uuid)
+	// if err != nil {
+	// 	log.Errorf("trace agent uuid %q resolve failed: %v", uuid, err)
+	// 	abortTraceStatistic(ctx, err.Error())
+	// 	return "", false
+	// }
+	appID = uuid
 	setModuleResource(ctx, appID, constant.AppTypeAgent)
 	return appID, true
 }

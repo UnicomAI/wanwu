@@ -30,7 +30,8 @@ const (
 	AssistantService_AssistantDelete_FullMethodName                         = "/assistant_service.AssistantService/AssistantDelete"
 	AssistantService_GetAssistantListMyAll_FullMethodName                   = "/assistant_service.AssistantService/GetAssistantListMyAll"
 	AssistantService_GetAssistantInfo_FullMethodName                        = "/assistant_service.AssistantService/GetAssistantInfo"
-	AssistantService_GetAssistantIdByUuid_FullMethodName                    = "/assistant_service.AssistantService/GetAssistantIdByUuid"
+	AssistantService_GetAssistantBriefByPrimaryIds_FullMethodName           = "/assistant_service.AssistantService/GetAssistantBriefByPrimaryIds"
+	AssistantService_GetAssistantPrimaryIdsByUuids_FullMethodName           = "/assistant_service.AssistantService/GetAssistantPrimaryIdsByUuids"
 	AssistantService_AssistantCopy_FullMethodName                           = "/assistant_service.AssistantService/AssistantCopy"
 	AssistantService_GetAssistantDetailById_FullMethodName                  = "/assistant_service.AssistantService/GetAssistantDetailById"
 	AssistantService_GetMultiAssistantById_FullMethodName                   = "/assistant_service.AssistantService/GetMultiAssistantById"
@@ -111,7 +112,8 @@ type AssistantServiceClient interface {
 	AssistantDelete(ctx context.Context, in *AssistantDeleteReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetAssistantListMyAll(ctx context.Context, in *GetAssistantListMyAllReq, opts ...grpc.CallOption) (*AppBriefList, error)
 	GetAssistantInfo(ctx context.Context, in *GetAssistantInfoReq, opts ...grpc.CallOption) (*AssistantInfo, error)
-	GetAssistantIdByUuid(ctx context.Context, in *GetAssistantIdByUuidReq, opts ...grpc.CallOption) (*GetAssistantIdByUuidResp, error)
+	GetAssistantBriefByPrimaryIds(ctx context.Context, in *GetAssistantBriefByPrimaryIdsReq, opts ...grpc.CallOption) (*GetAssistantBriefByPrimaryIdsResp, error)
+	GetAssistantPrimaryIdsByUuids(ctx context.Context, in *GetAssistantPrimaryIdsByUuidsReq, opts ...grpc.CallOption) (*GetAssistantPrimaryIdsByUuidsResp, error)
 	AssistantCopy(ctx context.Context, in *AssistantCopyReq, opts ...grpc.CallOption) (*AssistantCreateResp, error)
 	GetAssistantDetailById(ctx context.Context, in *GetAssistantDetailByIdReq, opts ...grpc.CallOption) (*AssistantDetailResp, error)
 	GetMultiAssistantById(ctx context.Context, in *GetMultiAssistantByIdReq, opts ...grpc.CallOption) (*MultiAssistantDetailResp, error)
@@ -297,10 +299,20 @@ func (c *assistantServiceClient) GetAssistantInfo(ctx context.Context, in *GetAs
 	return out, nil
 }
 
-func (c *assistantServiceClient) GetAssistantIdByUuid(ctx context.Context, in *GetAssistantIdByUuidReq, opts ...grpc.CallOption) (*GetAssistantIdByUuidResp, error) {
+func (c *assistantServiceClient) GetAssistantBriefByPrimaryIds(ctx context.Context, in *GetAssistantBriefByPrimaryIdsReq, opts ...grpc.CallOption) (*GetAssistantBriefByPrimaryIdsResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAssistantIdByUuidResp)
-	err := c.cc.Invoke(ctx, AssistantService_GetAssistantIdByUuid_FullMethodName, in, out, cOpts...)
+	out := new(GetAssistantBriefByPrimaryIdsResp)
+	err := c.cc.Invoke(ctx, AssistantService_GetAssistantBriefByPrimaryIds_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assistantServiceClient) GetAssistantPrimaryIdsByUuids(ctx context.Context, in *GetAssistantPrimaryIdsByUuidsReq, opts ...grpc.CallOption) (*GetAssistantPrimaryIdsByUuidsResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAssistantPrimaryIdsByUuidsResp)
+	err := c.cc.Invoke(ctx, AssistantService_GetAssistantPrimaryIdsByUuids_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -961,7 +973,8 @@ type AssistantServiceServer interface {
 	AssistantDelete(context.Context, *AssistantDeleteReq) (*emptypb.Empty, error)
 	GetAssistantListMyAll(context.Context, *GetAssistantListMyAllReq) (*AppBriefList, error)
 	GetAssistantInfo(context.Context, *GetAssistantInfoReq) (*AssistantInfo, error)
-	GetAssistantIdByUuid(context.Context, *GetAssistantIdByUuidReq) (*GetAssistantIdByUuidResp, error)
+	GetAssistantBriefByPrimaryIds(context.Context, *GetAssistantBriefByPrimaryIdsReq) (*GetAssistantBriefByPrimaryIdsResp, error)
+	GetAssistantPrimaryIdsByUuids(context.Context, *GetAssistantPrimaryIdsByUuidsReq) (*GetAssistantPrimaryIdsByUuidsResp, error)
 	AssistantCopy(context.Context, *AssistantCopyReq) (*AssistantCreateResp, error)
 	GetAssistantDetailById(context.Context, *GetAssistantDetailByIdReq) (*AssistantDetailResp, error)
 	GetMultiAssistantById(context.Context, *GetMultiAssistantByIdReq) (*MultiAssistantDetailResp, error)
@@ -1077,8 +1090,11 @@ func (UnimplementedAssistantServiceServer) GetAssistantListMyAll(context.Context
 func (UnimplementedAssistantServiceServer) GetAssistantInfo(context.Context, *GetAssistantInfoReq) (*AssistantInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAssistantInfo not implemented")
 }
-func (UnimplementedAssistantServiceServer) GetAssistantIdByUuid(context.Context, *GetAssistantIdByUuidReq) (*GetAssistantIdByUuidResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAssistantIdByUuid not implemented")
+func (UnimplementedAssistantServiceServer) GetAssistantBriefByPrimaryIds(context.Context, *GetAssistantBriefByPrimaryIdsReq) (*GetAssistantBriefByPrimaryIdsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAssistantBriefByPrimaryIds not implemented")
+}
+func (UnimplementedAssistantServiceServer) GetAssistantPrimaryIdsByUuids(context.Context, *GetAssistantPrimaryIdsByUuidsReq) (*GetAssistantPrimaryIdsByUuidsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAssistantPrimaryIdsByUuids not implemented")
 }
 func (UnimplementedAssistantServiceServer) AssistantCopy(context.Context, *AssistantCopyReq) (*AssistantCreateResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AssistantCopy not implemented")
@@ -1467,20 +1483,38 @@ func _AssistantService_GetAssistantInfo_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AssistantService_GetAssistantIdByUuid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAssistantIdByUuidReq)
+func _AssistantService_GetAssistantBriefByPrimaryIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAssistantBriefByPrimaryIdsReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AssistantServiceServer).GetAssistantIdByUuid(ctx, in)
+		return srv.(AssistantServiceServer).GetAssistantBriefByPrimaryIds(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AssistantService_GetAssistantIdByUuid_FullMethodName,
+		FullMethod: AssistantService_GetAssistantBriefByPrimaryIds_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AssistantServiceServer).GetAssistantIdByUuid(ctx, req.(*GetAssistantIdByUuidReq))
+		return srv.(AssistantServiceServer).GetAssistantBriefByPrimaryIds(ctx, req.(*GetAssistantBriefByPrimaryIdsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssistantService_GetAssistantPrimaryIdsByUuids_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAssistantPrimaryIdsByUuidsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssistantServiceServer).GetAssistantPrimaryIdsByUuids(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssistantService_GetAssistantPrimaryIdsByUuids_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssistantServiceServer).GetAssistantPrimaryIdsByUuids(ctx, req.(*GetAssistantPrimaryIdsByUuidsReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2635,8 +2669,12 @@ var AssistantService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AssistantService_GetAssistantInfo_Handler,
 		},
 		{
-			MethodName: "GetAssistantIdByUuid",
-			Handler:    _AssistantService_GetAssistantIdByUuid_Handler,
+			MethodName: "GetAssistantBriefByPrimaryIds",
+			Handler:    _AssistantService_GetAssistantBriefByPrimaryIds_Handler,
+		},
+		{
+			MethodName: "GetAssistantPrimaryIdsByUuids",
+			Handler:    _AssistantService_GetAssistantPrimaryIdsByUuids_Handler,
 		},
 		{
 			MethodName: "AssistantCopy",

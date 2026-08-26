@@ -12,11 +12,17 @@ var (
 )
 
 type Config struct {
-	Server ServerConfig `json:"server" mapstructure:"server"`
-	Log    LogConfig    `json:"log" mapstructure:"log"`
-	DB     db.Config    `json:"db" mapstructure:"db"`
-	Redis  redis.Config `json:"redis" mapstructure:"redis"`
-	Minio  MinioConfig  `json:"minio" mapstructure:"minio"` // 新增 MinIO 配置
+	Server    ServerConfig  `json:"server" mapstructure:"server"`
+	Log       LogConfig     `json:"log" mapstructure:"log"`
+	DB        db.Config     `json:"db" mapstructure:"db"`
+	Redis     redis.Config  `json:"redis" mapstructure:"redis"`
+	Minio     MinioConfig   `json:"minio" mapstructure:"minio"`         // 新增 MinIO 配置
+	Assistant ServiceConfig `json:"assistant" mapstructure:"assistant"` // 数据清洗依赖 assistant（agent 老 id → uuid）
+}
+
+// ServiceConfig 微服务 grpc 连接配置。
+type ServiceConfig struct {
+	Host string `json:"host" mapstructure:"host"`
 }
 
 type ServerConfig struct {
