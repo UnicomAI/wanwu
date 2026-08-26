@@ -1,11 +1,64 @@
 package v1
 
 import (
+	"net/http"
+	"strings"
+
+	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
+	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/gin-gonic/gin"
 )
+
+func CreateSkillWorkspaceFile(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.CreateSkillWorkspaceFileReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.CreateSkillWorkspaceFile(ctx, userId, orgId, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+func CreateSkillWorkspaceDirectory(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.CreateSkillWorkspaceDirectoryReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.CreateSkillWorkspaceDirectory(ctx, userId, orgId, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+func RenameSkillWorkspaceFile(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.RenameSkillWorkspaceFileReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.RenameSkillWorkspaceEntry(ctx, userId, orgId, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+func UploadSkillWorkspaceFiles(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, service.SkillWorkspaceUploadBodyLimit)
+	// 先解析一次表单，使标量字段对服务层可用，而服务层仍保留对 multipart 文件名/路径的权威校验。
+	if err := ctx.Request.ParseMultipartForm(32 << 20); err != nil {
+		key := "bff_skill_workspace_invalid_multipart"
+		if strings.Contains(strings.ToLower(err.Error()), "request body too large") {
+			key = "bff_skill_workspace_upload_too_large"
+		}
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, key))
+		return
+	}
+	customSkillID := ctx.PostForm("customSkillId")
+	path := ctx.PostForm("path")
+	resp, err := service.UploadSkillWorkspaceFiles(ctx, userId, orgId, customSkillID, path)
+	gin_util.Response(ctx, resp, err)
+}
 
 // GetSkillWorkspaceFiles 获取 Skill 工作区文件列表。
 //

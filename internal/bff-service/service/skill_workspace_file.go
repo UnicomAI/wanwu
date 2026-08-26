@@ -31,6 +31,9 @@ func resolveDiskPath(basePath, utf8RelPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if isWorkspaceMetadataPath(cleanRel) {
+		return "", fmt.Errorf("workspace metadata path is not allowed")
+	}
 	if _, err := os.Lstat(fullPath); err == nil {
 		return fullPath, nil // UTF-8 路径直接命中
 	}
@@ -246,6 +249,9 @@ func DownloadSkillWorkspace(ctx *gin.Context, userId, orgId string, req request.
 // DeleteSkillWorkspaceFile 删除工作区文件或目录。
 func DeleteSkillWorkspaceFile(ctx *gin.Context, userId, orgId string, req request.DeleteSkillWorkspaceFileReq) error {
 	log.Infof("[Workspace] DeleteFile user=%s org=%s skill=%s path=%s", userId, orgId, req.CustomSkillID, req.Path)
+	if err := authorizeSkillWorkspaceEdit(ctx, userId, orgId, req.CustomSkillID); err != nil {
+		return err
+	}
 	ws, err := resolveSkillWorkspace(req.CustomSkillID)
 	if err != nil {
 		return err
@@ -288,6 +294,9 @@ func DeleteSkillWorkspaceFile(ctx *gin.Context, userId, orgId string, req reques
 // UpdateSkillWorkspaceFile 更新工作区文件内容。
 func UpdateSkillWorkspaceFile(ctx *gin.Context, userId, orgId string, req request.UpdateSkillWorkspaceFileReq) (*response.UpdateSkillWorkspaceFileResp, error) {
 	log.Infof("[Workspace] UpdateFile user=%s org=%s skill=%s path=%s size=%d", userId, orgId, req.CustomSkillID, req.Path, len(req.Content))
+	if err := authorizeSkillWorkspaceEdit(ctx, userId, orgId, req.CustomSkillID); err != nil {
+		return nil, err
+	}
 	ws, err := resolveSkillWorkspace(req.CustomSkillID)
 	if err != nil {
 		return nil, err

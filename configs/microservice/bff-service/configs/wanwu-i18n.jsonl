@@ -167,6 +167,19 @@
 {"code":110000,"key":"bff_skill_uncommitted_changes","langs":{"en":"workspace has uncommitted changes, please commit before publishing","zh":"工作区有未提交的更改，请先提交后再发布"}}
 {"code":110000,"key":"bff_skill_version_exists","langs":{"en":"version already exists please use another version","zh":"版本已存在请使用其他版本号"}}
 {"code":110000,"key":"bff_skill_workspace_git_restore_failed","langs":{"en":"git restore failed","zh":"git恢复失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_discard_failed","langs":{"en":"git discard changes failed","zh":"git丢弃变更失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_diff_content_failed","langs":{"en":"get diff content failed","zh":"获取差异内容失败"}}
+{"code":110000,"key":"bff_skill_workspace_delete_file_failed","langs":{"en":"delete file failed","zh":"删除文件失败"}}
+{"code":110000,"key":"bff_skill_workspace_no_permission","langs":{"en":"no permission to edit this workspace","zh":"无权编辑此工作区"}}
+{"code":110000,"key":"bff_skill_workspace_path_not_allowed","langs":{"en":"path is not allowed","zh":"路径不被允许"}}
+{"code":110000,"key":"bff_skill_workspace_path_not_found","langs":{"en":"path not found","zh":"路径不存在"}}
+{"code":110000,"key":"bff_skill_workspace_name_invalid","langs":{"en":"invalid name","zh":"名称无效"}}
+{"code":110000,"key":"bff_skill_workspace_name_conflict","langs":{"en":"name already exists","zh":"名称已存在"}}
+{"code":110000,"key":"bff_skill_workspace_operation_conflict","langs":{"en":"operation conflict, please retry","zh":"操作冲突，请重试"}}
+{"code":110000,"key":"bff_skill_workspace_invalid_multipart","langs":{"en":"invalid multipart form","zh":"无效的 multipart 表单"}}
+{"code":110000,"key":"bff_skill_workspace_upload_empty","langs":{"en":"no files to upload","zh":"没有可上传的文件"}}
+{"code":110000,"key":"bff_skill_workspace_upload_too_large","langs":{"en":"upload file too large","zh":"上传文件过大"}}
+{"code":110000,"key":"bff_skill_workspace_upload_failed","langs":{"en":"upload failed","zh":"上传失败"}}
 {"code":110000,"key":"bff_skill_content_read_tree_failed","langs":{"en":"read published skill content failed","zh":"读取技能发布版本内容失败"}}
 {"code":0,"key":"---- ratelimit ----","langs":{}}
 {"code":110013,"key":"bff_rate_limited_failed_with_attempts","langs":{"en":"%v. You have %v attempt(s) remaining.","zh":"%v，您还有%v次尝试的机会"}}

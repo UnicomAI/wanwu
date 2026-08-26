@@ -98,8 +98,27 @@ func NewGeneralAgentSkillWorkspaceStore(customSkillID string) (*wga_persistent.S
 	if !cfg.Persistent.Enabled {
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, "persistent not enabled")
 	}
+	baseDir := generalAgentSkillWorkspaceBaseDir(cfg)
+	// customSkillID 会被持久化存储层拼接到目录名中。在此处（后台调用方共用的工厂方法）
+	// 校验它，避免在目录查找或 git 初始化前放过非法值。
+	if err := validateSkillWorkspaceStorePath(baseDir, customSkillID); err != nil {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_workspace_path_not_allowed")
+	}
 
-	return wga_persistent.NewStore(wga_persistent.ModeOverwrite, generalAgentSkillWorkspaceBaseDir(cfg), customSkillID)
+	store, err := wga_persistent.NewStore(wga_persistent.ModeOverwrite, baseDir, customSkillID)
+	if err != nil {
+		return nil, err
+	}
+	// 再次校验存储层返回的路径。这能抵御命名规则的后续变更，也能捕获在初次校验
+	// 与本次查找之间新增的符号链接。
+	info := store.GetThreadDir()
+	if err := validateSkillWorkspaceStorePath(baseDir, customSkillID); err != nil || info.Dir == "" {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_workspace_path_not_allowed")
+	}
+	if err := path_util.EnsureNoSymlinkInPath(baseDir, info.Dir, true); err != nil {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_workspace_path_not_allowed")
+	}
+	return store, nil
 }
 
 func generalAgentSkillWorkspaceBaseDir(cfg *config.WgaConfig) string {
