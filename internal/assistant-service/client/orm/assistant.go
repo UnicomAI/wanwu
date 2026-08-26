@@ -113,12 +113,36 @@ func (c *Client) GetAssistantsByIDs(ctx context.Context, assistantIDs []uint32) 
 	return assistants, nil
 }
 
+func (c *Client) GetAssistantsByUuids(ctx context.Context, uuids []string) ([]*model.Assistant, *err_code.Status) {
+	var assistants []*model.Assistant
+	return assistants, c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
+		if err := sqlopt.WithUuids(uuids).Apply(tx).Find(&assistants).Error; err != nil {
+			return toErrStatus("assistants_get_by_uuids", err.Error())
+		}
+		return nil
+	})
+}
+
 func (c *Client) GetAssistantByUuid(ctx context.Context, uuid string) (*model.Assistant, *err_code.Status) {
 	var assistant model.Assistant
 	if err := sqlopt.WithUuid(uuid).Apply(c.db.WithContext(ctx)).
 		First(&assistant).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, toErrStatus("assistant_get_by_uuid", "assistant not found")
+		}
+		return nil, toErrStatus("assistant_get_by_uuid", err.Error())
+	}
+	return &assistant, nil
+}
+
+func (c *Client) GetAssistantByUuidWithPerm(ctx context.Context, uuid, userId, orgId string) (*model.Assistant, *err_code.Status) {
+	var assistant model.Assistant
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithUuid(uuid),
+		sqlopt.DataPerm(userId, orgId),
+	).Apply(c.db.WithContext(ctx)).First(&assistant).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, toErrStatus("assistant_get_by_uuid", "assistant not found or no permission")
 		}
 		return nil, toErrStatus("assistant_get_by_uuid", err.Error())
 	}
@@ -145,22 +169,17 @@ func (c *Client) GetAssistantList(ctx context.Context, userID, orgID string, nam
 }
 
 func (c *Client) CheckSameAssistantName(ctx context.Context, userID, orgID, name, assistantID string) *err_code.Status {
-	query := sqlopt.SQLOptions(
+	var count int64
+	err := sqlopt.SQLOptions(
 		sqlopt.WithUserID(userID),
 		sqlopt.WithOrgID(orgID),
+		sqlopt.WithoutUuid(assistantID),
 		sqlopt.WithName(name),
-	).Apply(c.db.WithContext(ctx).Model(&model.Assistant{}))
+	).Apply(c.db.WithContext(ctx)).Model(&model.Assistant{}).Count(&count).Error
 
-	if assistantID != "" {
-		id, _ := strconv.ParseUint(assistantID, 10, 32)
-		query = query.Where("id != ?", uint32(id))
-	}
-
-	var count int64
-	if err := query.Count(&count).Error; err != nil {
+	if err != nil {
 		return toErrStatus("assistant_get_by_name", err.Error())
 	}
-
 	// 存在同名智能体
 	if count > 0 {
 		return toErrStatus("assistant_same_name", name)
@@ -168,7 +187,7 @@ func (c *Client) CheckSameAssistantName(ctx context.Context, userID, orgID, name
 	return nil
 }
 
-func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, workflows []*model.AssistantWorkflow, mcps []*model.AssistantMCP, customTools []*model.AssistantTool, subAgents []*model.MultiAgentRelation, skills []*model.AssistantSkill) (uint32, *err_code.Status) {
+func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, workflows []*model.AssistantWorkflow, mcps []*model.AssistantMCP, customTools []*model.AssistantTool, subAgents []*model.MultiAgentRelation, skills []*model.AssistantSkill) (uint32, string, *err_code.Status) {
 	// 智能体名称前缀
 	prefix := assistant.Name + "_"
 
@@ -180,7 +199,7 @@ func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, 
 		Pluck("name", &existingNames).Error
 
 	if err != nil {
-		return 0, toErrStatus("assistant_copy", err.Error())
+		return 0, "", toErrStatus("assistant_copy", err.Error())
 	}
 
 	// 解析名称
@@ -200,7 +219,8 @@ func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, 
 	newName := util.GenCopyName(assistant.Name, maxNum+1)
 
 	var newAssistantId uint32
-	return newAssistantId, c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
+	var newAssistantUuid string
+	return newAssistantId, newAssistantUuid, c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
 		// 复制并保存新智能体
 		newAssistant := *assistant
 		newAssistant.ID = 0
@@ -210,6 +230,7 @@ func (c *Client) CopyAssistant(ctx context.Context, assistant *model.Assistant, 
 			return toErrStatus("assistant_create", err.Error())
 		}
 		newAssistantId = newAssistant.ID
+		newAssistantUuid = newAssistant.UUID
 
 		// 复制并保存新智能体工作流
 		for _, workflow := range workflows {

@@ -18,7 +18,8 @@ type Config struct {
 	Redis  redis.Config `json:"redis" mapstructure:"redis"`
 
 	// --- microservice ---
-	Iam ServiceConfig `json:"iam" mapstructure:"iam"`
+	Iam       ServiceConfig `json:"iam" mapstructure:"iam"`
+	Assistant ServiceConfig `json:"assistant" mapstructure:"assistant"`
 
 	// --- 消息中心 ---
 	Notice NoticeConfig `json:"notice" mapstructure:"notice"`

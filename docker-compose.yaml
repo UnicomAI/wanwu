@@ -596,6 +596,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      assistant-service:
+        condition: service_healthy
     restart: always
     image: ${WANWU_BACKEND_IMAGE}
     container_name: operate-service
@@ -631,6 +633,8 @@ services:
       mysql:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      assistant-service:
         condition: service_healthy
     restart: always
     image: ${WANWU_BACKEND_IMAGE}

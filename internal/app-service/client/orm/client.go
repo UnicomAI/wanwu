@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
+	"github.com/UnicomAI/wanwu/internal/app-service/client/assistant"
 	"github.com/UnicomAI/wanwu/internal/app-service/client/model"
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	"gorm.io/gorm"
@@ -25,6 +26,8 @@ type Metadata struct {
 
 type Client struct {
 	db *gorm.DB
+	// assistant 数据清洗（agent 老 id → uuid）数据源
+	assistant assistant.IClient
 }
 
 type ApiKey struct {
@@ -49,7 +52,7 @@ type SensitiveWordTableWithWord struct {
 	SensitiveWords []string
 }
 
-func NewClient(ctx context.Context, db *gorm.DB) (*Client, error) {
+func NewClient(ctx context.Context, db *gorm.DB, assistantCli assistant.IClient) (*Client, error) {
 	// 先迁移 Metadata 表（用于记录状态）
 	if err := db.AutoMigrate(&Metadata{}); err != nil {
 		return nil, err
@@ -101,8 +104,14 @@ func NewClient(ctx context.Context, db *gorm.DB) (*Client, error) {
 		return nil, fmt.Errorf("failed to migrate statistic v2 from legacy: %w", err)
 	}
 
+	// 一次性迁移：app-service 各表 agent 的 app_id（assistant 老 id）→ uuid
+	if err := migrateAgentAppIDToUUID(ctx, db, assistantCli); err != nil {
+		return nil, fmt.Errorf("failed to migrate agent app id to uuid: %w", err)
+	}
+
 	return &Client{
-		db: db,
+		db:        db,
+		assistant: assistantCli,
 	}, nil
 }
 

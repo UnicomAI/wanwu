@@ -67,3 +67,8 @@ redis:
   password: Wanwu123456
   standalone: true
   master_name: mymaster
+
+# --- microservice ---
+# 数据清洗：agent 老 id → uuid 依赖 assistant
+assistant:
+  host: assistant-service:8890

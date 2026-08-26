@@ -165,15 +165,15 @@ func GetAssistantInfo(ctx *gin.Context, userId, orgId string, req request.Assist
 	return transAssistantResp2Model(ctx, resp)
 }
 
-func GetAssistantIdByUuid(ctx *gin.Context, uuid string) (string, error) {
-	resp, err := assistant.GetAssistantIdByUuid(ctx.Request.Context(), &assistant_service.GetAssistantIdByUuidReq{
-		Uuid: uuid,
-	})
-	if err != nil {
-		return "", err
-	}
-	return resp.AssistantId, nil
-}
+// func GetAssistantIdByUuid(ctx *gin.Context, uuid string) (string, error) {
+// 	resp, err := assistant.GetAssistantIdByUuid(ctx.Request.Context(), &assistant_service.GetAssistantIdByUuidReq{
+// 		Uuid: uuid,
+// 	})
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return resp.AssistantId, nil
+// }
 
 func AssistantCopy(ctx *gin.Context, userId, orgId string, req request.AssistantIdRequest) (*response.AssistantCreateResp, error) {
 	resp, err := assistant.AssistantCopy(ctx.Request.Context(), &assistant_service.AssistantCopyReq{
