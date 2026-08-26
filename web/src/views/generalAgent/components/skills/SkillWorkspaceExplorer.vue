@@ -5,36 +5,53 @@
       v-show="sidebarView === 'files'"
       :customSkillId="customSkillId"
       :activeView="sidebarView"
+      :gitStatusFiles="gitStatusFiles"
+      :gitChangeCount="gitChangeCount"
       @file-click="$emit('open-file', $event)"
       @download-file="downloadFile"
       @delete-file="handleDeleteFile"
+      @create-file="handleCreateFile"
+      @create-folder="handleCreateFolder"
+      @rename-entry="handleRenameEntry"
+      @upload-files="handleUploadFiles"
       @switch-view="sidebarView = $event"
     />
 
     <div v-show="sidebarView === 'search'" class="search-panel">
       <div class="panel-header">
         <div class="header-icons">
-          <i
-            :class="['header-icon', { active: sidebarView === 'files' }]"
-            class="el-icon-folder"
-            :title="$t('generalAgent.skill.skillWorkBench.common.files')"
-            @click="sidebarView = 'files'"
-          ></i>
-          <i
-            :class="['header-icon', { active: sidebarView === 'search' }]"
-            class="el-icon-search"
-            :title="$t('generalAgent.skill.skillWorkBench.common.search')"
-            @click="sidebarView = 'search'"
-          ></i>
           <svg-icon
             :class="[
               'header-icon svg-icon-btn',
-              { active: sidebarView === 'git' },
+              { active: sidebarView === 'files' },
             ]"
-            icon-class="gitBranch"
-            :title="$t('generalAgent.skill.skillWorkBench.common.git')"
-            @click.native="sidebarView = 'git'"
+            icon-class="skillWorkspaceFolder"
+            :title="$t('generalAgent.skill.skillWorkBench.common.files')"
+            @click.native="sidebarView = 'files'"
           />
+          <svg-icon
+            :class="[
+              'header-icon svg-icon-btn',
+              { active: sidebarView === 'search' },
+            ]"
+            icon-class="skillWorkspaceSearch"
+            :title="$t('generalAgent.skill.skillWorkBench.common.search')"
+            @click.native="sidebarView = 'search'"
+          />
+          <span class="git-icon-wrap">
+            <svg-icon
+              :class="[
+                'header-icon svg-icon-btn',
+                { active: sidebarView === 'git' },
+              ]"
+              icon-class="gitBranch"
+              :title="$t('generalAgent.skill.skillWorkBench.common.git')"
+              @click.native="sidebarView = 'git'"
+            />
+            <span v-if="gitChangeCount > 0" class="git-change-count">
+              {{ gitChangeCount > 99 ? '99+' : gitChangeCount }}
+            </span>
+          </span>
         </div>
       </div>
       <div class="search-input-wrap">
@@ -200,18 +217,24 @@
     <div v-show="sidebarView === 'git'" class="git-panel">
       <div class="panel-header">
         <div class="header-icons">
-          <i
-            :class="['header-icon', { active: sidebarView === 'files' }]"
-            class="el-icon-folder"
+          <svg-icon
+            :class="[
+              'header-icon svg-icon-btn',
+              { active: sidebarView === 'files' },
+            ]"
+            icon-class="skillWorkspaceFolder"
             :title="$t('generalAgent.skill.skillWorkBench.common.files')"
-            @click="sidebarView = 'files'"
-          ></i>
-          <i
-            :class="['header-icon', { active: sidebarView === 'search' }]"
-            class="el-icon-search"
+            @click.native="sidebarView = 'files'"
+          />
+          <svg-icon
+            :class="[
+              'header-icon svg-icon-btn',
+              { active: sidebarView === 'search' },
+            ]"
+            icon-class="skillWorkspaceSearch"
             :title="$t('generalAgent.skill.skillWorkBench.common.search')"
-            @click="sidebarView = 'search'"
-          ></i>
+            @click.native="sidebarView = 'search'"
+          />
           <svg-icon
             :class="[
               'header-icon svg-icon-btn',
@@ -420,6 +443,10 @@ import {
   getSkillWorkspaceGitDiffWorking,
   getSkillWorkspaceGitDiffStaged,
   getSkillWorkspaceGitStatus,
+  createSkillWorkspaceFile,
+  createSkillWorkspaceDirectory,
+  renameSkillWorkspaceFile,
+  uploadSkillWorkspaceFiles,
   postSkillWorkspaceGitAdd,
   postSkillWorkspaceGitReset,
   postSkillWorkspaceGitCommit,
@@ -449,6 +476,10 @@ export default {
     activeGitDiffId: {
       type: String,
       default: '',
+    },
+    checkRenameAllowed: {
+      type: Function,
+      default: () => true,
     },
   },
   data() {
@@ -486,13 +517,23 @@ export default {
     stagedFiles() {
       return this.gitStatusFiles.filter(f => f.staged);
     },
+    gitChangeCount() {
+      const paths = new Set();
+      (this.gitStatusFiles || []).forEach(file => {
+        const path = String((file && file.path) || '')
+          .replace(/\\/g, '/')
+          .replace(/^\/+|\/+$/g, '');
+        if (path) paths.add(path);
+      });
+      return paths.size;
+    },
     searchResultTree() {
       if (this.searchResults.length === 0) return [];
 
       const expandedPaths = this.searchTreeExpandedPaths;
       const expandedVersion = this.searchTreeRenderKey;
-      // Vue 2 cannot reliably react to properties added to temporary computed
-      // nodes, so this counter makes expand/collapse changes an explicit dep.
+      // Vue 2 无法可靠地响应临时计算节点上新增的属性，因此用此计数器将
+      // 展开/折叠变化显式声明为依赖。
       const isExpanded = path =>
         expandedVersion >= 0 && Boolean(expandedPaths[path]);
       const root = { name: '', children: [], isDir: true };
@@ -965,6 +1006,146 @@ export default {
         })
         .catch(() => {});
     },
+    async handleCreateFile(payload) {
+      if (!payload || !payload.path || !this.customSkillId) return;
+      try {
+        const res = await createSkillWorkspaceFile(
+          this.customSkillId,
+          payload.path,
+          '',
+        );
+        if (!res || res.code !== 0) {
+          this.$message.error(
+            (res && res.msg) ||
+              this.$t(
+                'generalAgent.skill.skillWorkBench.fileTree.createFailed',
+              ),
+          );
+          this.refreshFiles();
+          return;
+        }
+        this.$message.success(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.createSuccess'),
+        );
+        this.refreshFiles();
+        await this.fetchGitStatus();
+      } catch (error) {
+        this.$message.error(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.createFailed'),
+        );
+      }
+    },
+    async handleCreateFolder(payload) {
+      if (!payload || !payload.path || !this.customSkillId) return;
+      try {
+        const res = await createSkillWorkspaceDirectory(
+          this.customSkillId,
+          payload.path,
+        );
+        if (!res || res.code !== 0) {
+          this.$message.error(
+            (res && res.msg) ||
+              this.$t(
+                'generalAgent.skill.skillWorkBench.fileTree.createFailed',
+              ),
+          );
+          this.refreshFiles();
+          return;
+        }
+        this.$message.success(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.createSuccess'),
+        );
+        this.refreshFiles();
+        await this.fetchGitStatus();
+      } catch (error) {
+        this.$message.error(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.createFailed'),
+        );
+      }
+    },
+    async handleRenameEntry(payload) {
+      if (
+        !payload ||
+        !payload.entry ||
+        !payload.entry.path ||
+        !payload.newName
+      ) {
+        return;
+      }
+      if (!this.checkRenameAllowed(payload.entry.path)) {
+        this.$message.warning(
+          this.$t(
+            'generalAgent.skill.skillWorkBench.fileTree.unsavedRenameWarning',
+          ),
+        );
+        return;
+      }
+      try {
+        const res = await renameSkillWorkspaceFile(
+          this.customSkillId,
+          payload.entry.path,
+          payload.newName,
+        );
+        if (!res || res.code !== 0) {
+          this.$message.error(
+            (res && res.msg) ||
+              this.$t(
+                'generalAgent.skill.skillWorkBench.fileTree.renameFailed',
+              ),
+          );
+          this.refreshFiles();
+          return;
+        }
+        this.$message.success(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.renameSuccess'),
+        );
+        this.refreshFiles();
+        await this.fetchGitStatus();
+        this.$emit('close-tabs-by-path', payload.entry.path);
+      } catch (error) {
+        this.$message.error(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.renameFailed'),
+        );
+      }
+    },
+    async handleUploadFiles(payload) {
+      const files = (payload && payload.files) || [];
+      if (!this.customSkillId || files.length === 0) return;
+      if (files.some(file => file.webkitRelativePath)) {
+        this.$message.warning(
+          this.$t(
+            'generalAgent.skill.skillWorkBench.fileTree.directoryUploadNotSupported',
+          ),
+        );
+        return;
+      }
+      try {
+        const res = await uploadSkillWorkspaceFiles(
+          this.customSkillId,
+          (payload && payload.path) || '',
+          files,
+        );
+        if (!res || res.code !== 0) {
+          this.$message.error(
+            (res && res.msg) ||
+              this.$t(
+                'generalAgent.skill.skillWorkBench.fileTree.uploadFailed',
+              ),
+          );
+          this.refreshFiles();
+          return;
+        }
+        this.$message.success(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.uploadSuccess'),
+        );
+        this.refreshFiles();
+        await this.fetchGitStatus();
+      } catch (error) {
+        this.$message.error(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.uploadFailed'),
+        );
+      }
+    },
     resolveDownloadFileName(file, customSkillId) {
       if (!file.isDir) return file.name || file.path.split('/').pop();
       const dirName = file.name || file.path.split('/').pop();
@@ -1061,6 +1242,28 @@ export default {
     .header-icons {
       display: flex;
       gap: 4px;
+    }
+
+    .git-icon-wrap {
+      position: relative;
+      display: inline-flex;
+    }
+
+    .git-change-count {
+      position: absolute;
+      right: 1px;
+      bottom: -1px;
+      min-width: 11px;
+      height: 11px;
+      padding: 0 2px;
+      border-radius: 8px;
+      background: #f56c6c;
+      color: #fff;
+      font-size: 8px;
+      line-height: 11px;
+      text-align: center;
+      pointer-events: none;
+      z-index: 2;
     }
 
     .header-icon {

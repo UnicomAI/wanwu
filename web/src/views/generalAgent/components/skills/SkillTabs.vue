@@ -57,6 +57,7 @@
         ref="explorer"
         :customSkillId="skillPreviewParams.customSkillId"
         :activeGitDiffId="activeGitDiffId"
+        :checkRenameAllowed="checkRenameAllowed"
         @open-file="openFile"
         @open-search-result="openSearchResult"
         @open-git-diff="openGitDiff"
@@ -184,6 +185,11 @@ export default {
       return this.$refs.workbench
         ? this.$refs.workbench.hasUnsavedFiles()
         : false;
+    },
+    checkRenameAllowed(path) {
+      return this.$refs.workbench
+        ? !this.$refs.workbench.hasUnsavedFilesByPath(path)
+        : true;
     },
     async discardUnsavedFiles() {
       if (!this.$refs.workbench) return [];
