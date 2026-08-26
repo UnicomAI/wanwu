@@ -44,6 +44,9 @@ type Repo interface {
 	CreateTag(tagName string) (string, error)
 	DeleteTag(tagName string) error
 	ArchivePath(treeish, subDir string) ([]byte, error)
+	ListTreeFiles(treeish, subDir string) ([]TreeEntry, error)
+	GetTreeishCommitTimeMs(treeish string) (int64, error)
+	ReadBlobAtTreeish(treeish, filePath string, maxBytes int64) (BlobInfo, error)
 
 	// --- Locked 方法（调用方须持 GetMutex().Lock()） ---
 
@@ -155,6 +158,21 @@ func (r *repo) DeleteTag(tagName string) error { return DeleteTag(r.dir, tagName
 // ArchivePath 打包指定 treeish 下的路径。
 func (r *repo) ArchivePath(treeish, subDir string) ([]byte, error) {
 	return ArchivePath(r.dir, treeish, subDir)
+}
+
+// ListTreeFiles 列出指定 treeish 下子目录中的全部 blob。
+func (r *repo) ListTreeFiles(treeish, subDir string) ([]TreeEntry, error) {
+	return ListTreeFiles(r.dir, treeish, subDir)
+}
+
+// GetTreeishCommitTimeMs 获取指定 treeish 对应提交的时间（毫秒）。
+func (r *repo) GetTreeishCommitTimeMs(treeish string) (int64, error) {
+	return GetTreeishCommitTimeMs(r.dir, treeish)
+}
+
+// ReadBlobAtTreeish 读取指定 treeish 下路径对应的对象。
+func (r *repo) ReadBlobAtTreeish(treeish, filePath string, maxBytes int64) (BlobInfo, error) {
+	return ReadBlobAtTreeish(r.dir, treeish, filePath, maxBytes)
 }
 
 // InitLocked 在调用方持锁时初始化仓库。
