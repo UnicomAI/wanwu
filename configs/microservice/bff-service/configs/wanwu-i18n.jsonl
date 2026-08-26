@@ -167,6 +167,7 @@
 {"code":110000,"key":"bff_skill_uncommitted_changes","langs":{"en":"workspace has uncommitted changes, please commit before publishing","zh":"工作区有未提交的更改，请先提交后再发布"}}
 {"code":110000,"key":"bff_skill_version_exists","langs":{"en":"version already exists please use another version","zh":"版本已存在请使用其他版本号"}}
 {"code":110000,"key":"bff_skill_workspace_git_restore_failed","langs":{"en":"git restore failed","zh":"git恢复失败"}}
+{"code":110000,"key":"bff_skill_content_read_tree_failed","langs":{"en":"read published skill content failed","zh":"读取技能发布版本内容失败"}}
 {"code":0,"key":"---- ratelimit ----","langs":{}}
 {"code":110013,"key":"bff_rate_limited_failed_with_attempts","langs":{"en":"%v. You have %v attempt(s) remaining.","zh":"%v，您还有%v次尝试的机会"}}
 {"code":110013,"key":"bff_rate_limited_too_many attempts","langs":{"en":"Too many attempts. Please try again in %v minute(s).","zh":"访问太频繁，请%v分钟之后重试"}}

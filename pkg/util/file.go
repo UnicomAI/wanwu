@@ -15,6 +15,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -647,6 +648,9 @@ func WriteFileAtomic(filePath string, data []byte) error {
 	return nil
 }
 
+// binaryDetectHeadBytes 是二进制启发式判断读取的头部字节数。
+const binaryDetectHeadBytes = 8192
+
 // IsLikelyBinaryFile 通过读取文件头部 8KB 是否含 NUL 字节，启发式判断是否为二进制文件。
 func IsLikelyBinaryFile(path string) (bool, error) {
 	file, err := os.Open(path)
@@ -655,17 +659,21 @@ func IsLikelyBinaryFile(path string) (bool, error) {
 	}
 	defer func() { _ = file.Close() }()
 
-	buf := make([]byte, 8192)
+	buf := make([]byte, binaryDetectHeadBytes)
 	n, err := file.Read(buf)
 	if err != nil && err != io.EOF {
 		return false, err
 	}
-	for _, b := range buf[:n] {
-		if b == 0 {
-			return true, nil
-		}
+	return IsLikelyBinaryData(buf[:n]), nil
+}
+
+// IsLikelyBinaryData 按与 IsLikelyBinaryFile 相同的规则判断内存中的字节是否为二进制内容，
+// 供已经读入内存（如从 git 对象库取出）的数据复用。
+func IsLikelyBinaryData(data []byte) bool {
+	if len(data) > binaryDetectHeadBytes {
+		data = data[:binaryDetectHeadBytes]
 	}
-	return false, nil
+	return slices.Contains(data, 0)
 }
 
 // TruncateUTF8 按字节上限安全截断 UTF-8 字符串，保证不切坏多字节序列。

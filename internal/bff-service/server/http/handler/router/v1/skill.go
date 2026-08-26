@@ -48,6 +48,10 @@ func registerAgentSkill(apiV1 *gin.RouterGroup) {
 	mid.Sub("resource.skill").Reg(apiV1, "/agent/skill/workspace/file", http.MethodDelete, v1.DeleteSkillWorkspaceFile, "删除Skill工作区文件")
 	mid.Sub("resource.skill").Reg(apiV1, "/agent/skill/workspace/search", http.MethodPost, v1.SearchSkillWorkspace, "搜索Skill工作区内容")
 
+	// skill 内容查询（已发布返回最新发布版本，从未发布回退草稿工作区）
+	mid.Sub("resource.skill").Reg(apiV1, "/agent/skill/content/files", http.MethodGet, v1.GetSkillContentFiles, "获取Skill内容文件列表")
+	mid.Sub("resource.skill").Reg(apiV1, "/agent/skill/content/file", http.MethodGet, v1.GetSkillContentFile, "读取Skill内容文件")
+
 	// git 版本管理
 	mid.Sub("resource.skill").Reg(apiV1, "/agent/skill/workspace/git/log", http.MethodGet, v1.GetSkillWorkspaceGitLog, "获取Skill工作区Git提交历史")
 	mid.Sub("resource.skill").Reg(apiV1, "/agent/skill/workspace/git/diff", http.MethodGet, v1.GetSkillWorkspaceGitDiff, "获取Skill工作区Git diff")
