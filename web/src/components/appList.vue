@@ -128,6 +128,12 @@
                     <el-dropdown-item command="copy">
                       {{ $t('common.button.copy') }}
                     </el-dropdown-item>
+                    <el-dropdown-item
+                      command="conversationLog"
+                      v-if="n.appType === agent"
+                    >
+                      {{ $t('appSpace.conversationLog') }}
+                    </el-dropdown-item>
                     <!--不在卡片进行发布-->
                     <!--<el-dropdown-item
                       command="publish"
@@ -525,6 +531,15 @@ export default {
         case 'copy':
           // 智能体复制
           this.intelligentCopy(row);
+          break;
+        case 'conversationLog':
+          this.$router.push({
+            path: '/agent/log',
+            query: {
+              assistantId: row.appId,
+              agentName: row.name,
+            },
+          });
           break;
         case 'cancelPublish':
           this.cancelPublish(row);

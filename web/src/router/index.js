@@ -201,6 +201,12 @@ const constantRoutes = [
         meta: { perm: [PERMS.EXPLORE] },
       },
       {
+        path: '/agent/log',
+        component: resolve =>
+          require(['@/views/agent/conversationLog'], resolve),
+        meta: { perm: [PERMS.AGENT] },
+      },
+      {
         path: '/agent/test',
         component: resolve =>
           require(['@/views/agent/components/form'], resolve),

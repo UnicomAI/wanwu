@@ -24,6 +24,7 @@ import { cancelModelExperienceStream } from '@/api/modelExprience';
 
 const AGENT_API_URL = `${USER_API}/assistant/stream`;
 const AGENT_CONNECT_API_URL = `${USER_API}/assistant/stream/connect`;
+const AGENT_DRAFT_CONNECT_API_URL = `${USER_API}/assistant/draft/stream/connect`;
 const RAG_API_URL = `${USER_API}/rag/chat`;
 const RAG_CONNECT_API_URL = `${USER_API}/rag/stream/connect`;
 const EXPRIENCE_API_URL = `${USER_API}/model/experience/llm`;
@@ -1949,10 +1950,13 @@ export default {
       const targetIndex =
         typeof lastIndex === 'number' ? lastIndex : history.length;
       const shouldPushHistory = typeof lastIndex !== 'number';
+
       const connectApi =
         this.type === 'webChat'
           ? `${OPENURL_API}/agent/${assistantId}/stream/connect`
-          : AGENT_CONNECT_API_URL;
+          : this.chatType === 'test'
+            ? AGENT_DRAFT_CONNECT_API_URL
+            : AGENT_CONNECT_API_URL;
 
       this.sendEventSource(query, '', targetIndex, {
         streamApi: connectApi,
