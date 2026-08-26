@@ -19,9 +19,11 @@
             :sessionStatus="sessionStatus"
             :recommendConfig="recommendConfig"
             :supportClear="false"
+            :supportAnswerFeedback="chatType !== 'test'"
             @clearHistory="clearHistory"
             @refresh="refresh"
             @queryCopy="queryCopy"
+            @answer-feedback="submitAnswerFeedback"
             @handleRecommendClick="handleRecommendClick"
             @sub-conversion-toggle="onSubConversionToggle"
             @delConversationQA="handleDelConversationQA"
@@ -101,14 +103,7 @@
 import streamMessageField from '@/components/stream/streamMessageField';
 import streamInputField from '@/components/stream/streamInputField';
 import streamGreetingField from '@/components/stream/streamGreetingField';
-import {
-  parseSub,
-  convertLatexSyntax,
-  parseSubConversation,
-  getXClientId,
-  formatReqUrl,
-} from '@/utils/util.js';
-import { processToolResultBlocks } from '@/utils/toolResultProcessor.js';
+import { getXClientId, formatReqUrl } from '@/utils/util.js';
 import {
   delConversation,
   createConversation,
@@ -123,12 +118,13 @@ import {
   delConversationDraft,
   clearConversation,
   openurlConverDel,
+  openurlAgentfeedback,
+  agentfeedback,
 } from '@/api/agent';
 import sseMethod from '@/mixins/sseMethod';
-import { md } from '@/mixins/markdown-it';
+import { transformAgentHistory } from '@/utils/agentHistoryTransformer';
 import { mapGetters, mapState } from 'vuex';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
-import { AGENT_MESSAGE_CONFIG } from '@/components/stream/constants';
 import ProductFileCard from './productFileCard.vue';
 
 export default {
@@ -285,6 +281,7 @@ export default {
       let res = null;
       if (this.type === 'agentChat') {
         res = await getConversationHistory({
+          assistantId: this.getStreamAssistantId(),
           conversationId: id,
           pageSize: 1000,
           pageNo: 1,
@@ -317,7 +314,10 @@ export default {
       }
       let res = null;
       if (this.type === 'agentChat') {
-        res = await delConversation({ conversationId: n.conversationId });
+        res = await delConversation({
+          assistantId: this.getStreamAssistantId(),
+          conversationId: n.conversationId,
+        });
       } else {
         const config = this.getHeaderConfig();
         res = await delOpenurlConversation(
@@ -733,176 +733,7 @@ export default {
     },
     // 转换智能体历史记录数据
     convertHistoryData(data) {
-      return data
-        ? data.map((n, index) => {
-            const sequence = [];
-            let fullResponse = '';
-            let hasHistoryError = false;
-
-            // 处理主智能体片段 (responseList)
-            if (n.responseList && n.responseList.length) {
-              n.responseList.forEach(item => {
-                fullResponse += item.response || '';
-                if (item.errMessage || item.errResponse) {
-                  hasHistoryError = true;
-                }
-
-                sequence.push({
-                  type: 'main',
-                  order: item.order,
-                  renderedContent: md.render(
-                    parseSub(
-                      processToolResultBlocks(
-                        convertLatexSyntax(item.response || ''),
-                      ),
-                      index,
-                    ),
-                  ),
-                  errMsg: item.errMessage,
-                  errResponse: item.errResponse,
-                });
-              });
-            } else if (n.response) {
-              // 处理非分段片段
-              fullResponse = n.response;
-            }
-
-            // --- 处理子会话片段 (subConversationList) ---
-            const subConversions = n.subConversationList
-              ? n.subConversationList.map(m => {
-                  const citationsTagList = (
-                    (m.response || '').match(/\【([0-9]{0,2})\^\】/g) || []
-                  ).map(item => Number(item.match(/\【([0-9]{0,2})\^\】/)[1]));
-
-                  // 初始化内部穿插序列
-                  const messageSequence = [];
-                  if (m.response) {
-                    messageSequence.push({
-                      type: 'main',
-                      order: m.order,
-                      response: m.response,
-                      // 此处预渲染 Markdown 供子组件展示
-                      renderedContent: md.render(
-                        parseSubConversation(
-                          processToolResultBlocks(
-                            convertLatexSyntax(m.response || ''),
-                          ),
-                          index,
-                          typeof m.searchList === 'string'
-                            ? JSON.parse(m.searchList || '[]')
-                            : m.searchList || [],
-                          m.id,
-                        ),
-                      ),
-                    });
-                  }
-
-                  return {
-                    ...m,
-                    citationsTagList,
-                    messageSequence, // 下发嵌套序列容器
-                    searchList:
-                      typeof m.searchList === 'string'
-                        ? JSON.parse(m.searchList || '[]')
-                        : m.searchList || [],
-                    response: md.render(
-                      parseSubConversation(
-                        processToolResultBlocks(
-                          convertLatexSyntax(m.response || ''),
-                        ),
-                        index,
-                        m.searchList,
-                        m.id,
-                      ),
-                    ),
-                  };
-                })
-              : [];
-
-            // --- 建立三元嵌套/父子级序列关系 (重建 Tree) ---
-            subConversions.forEach(m => {
-              if (m.parentId) {
-                // 如果有父级ID，则寻找父级子会话，并将自己登记进父级的内部序列
-                const parent = subConversions.find(p => p.id === m.parentId);
-                if (parent) {
-                  // 如果是文本片段扩展，则将其吸收为父容器内的正文，不作为独立卡片显示
-                  if (
-                    m.conversationType ===
-                    AGENT_MESSAGE_CONFIG.SUB_TEXT.CONVERSATION_TYPE
-                  ) {
-                    parent.messageSequence.push({
-                      type: 'main',
-                      order: m.order,
-                      response: m.response,
-                      renderedContent: m.response
-                        ? md.render(
-                            parseSubConversation(
-                              convertLatexSyntax(m.response || ''),
-                              index,
-                              m.searchList,
-                              m.id,
-                            ),
-                          )
-                        : '',
-                    });
-                  } else {
-                    // 常规子会话卡片项
-                    parent.messageSequence.push({
-                      type: 'sub',
-                      id: m.id,
-                      order: m.order,
-                    });
-                  }
-                  // 内部局部排序，确保穿插顺序
-                  parent.messageSequence.sort(
-                    (a, b) => (a.order || 0) - (b.order || 0),
-                  );
-                }
-              } else if (
-                m.conversationType !==
-                AGENT_MESSAGE_CONFIG.SUB_TEXT.CONVERSATION_TYPE
-              ) {
-                // 顶级项且不是文本分段时，才登记入主序列
-                sequence.push({
-                  type: 'sub',
-                  id: m.id,
-                  order: m.order,
-                });
-              }
-            });
-
-            // 根据 order 排序
-            sequence.sort((a, b) => (a.order || 0) - (b.order || 0));
-            const r = {
-              ...n,
-              error: n.error || hasHistoryError,
-              query: n.prompt,
-              finish: 1, //兼容流式问答
-              response: md.render(
-                parseSub(
-                  processToolResultBlocks(
-                    convertLatexSyntax(fullResponse || ''),
-                  ),
-                  index,
-                ),
-              ),
-              oriResponse: fullResponse,
-              searchList:
-                typeof n.searchList === 'string'
-                  ? JSON.parse(n.searchList || '[]')
-                  : n.searchList || [],
-              fileList: n.requestFiles,
-              gen_file_url_list: n.responseFileUrls || [],
-              subConversions: subConversions,
-              messageSequence: sequence,
-              isOpen: true,
-              toolText: this.$t('agent.tooled'),
-              thinkText: this.$t('agent.thinked'),
-              showScrollBtn: null,
-            };
-            return r;
-          })
-        : [];
+      return transformAgentHistory(data);
     },
     // 获取草稿页会话历史
     async _getConversationDraftHistory() {
@@ -1068,6 +899,7 @@ export default {
           );
         } else {
           res = await clearConversation({
+            assistantId: this.getStreamAssistantId(),
             conversationId: this.conversationId,
           });
         }
@@ -1107,6 +939,7 @@ export default {
           );
         } else {
           res = await clearConversation({
+            assistantId: this.getStreamAssistantId(),
             conversationId: this.conversationId,
             detailId: qaId,
           });
@@ -1134,6 +967,52 @@ export default {
 
         this.echo = !nextHistory.length;
         sessionCom.replaceHistory(nextHistory);
+      }
+    },
+    // 提交答案反馈
+    async submitAnswerFeedback(
+      { feedbackType, feedbackContent = '', conversationId, detailId },
+      onSuccess,
+    ) {
+      const feedbackTypeMap = { up: 1, down: 2 };
+      const type = feedbackType === 0 ? 0 : feedbackTypeMap[feedbackType];
+      const currentAssistantId = this.getStreamAssistantId();
+      if (
+        ![0, 1, 2].includes(type) ||
+        !detailId ||
+        !(conversationId || this.conversationId) ||
+        !currentAssistantId
+      )
+        return;
+
+      const feedbackData = {
+        conversationId: conversationId || this.conversationId,
+        detailId,
+        feedbackContent,
+        feedbackType: type,
+      };
+
+      try {
+        const res =
+          this.type === 'webChat'
+            ? await openurlAgentfeedback(
+                currentAssistantId,
+                feedbackData,
+                this.getHeaderConfig(),
+              )
+            : await agentfeedback({
+                ...feedbackData,
+                assistantId: currentAssistantId,
+              });
+        if (!res || res.code !== 0) {
+          this.$message.error(res?.msg || this.$t('common.message.error'));
+          return;
+        }
+        if (typeof onSuccess === 'function') {
+          onSuccess();
+        }
+      } catch (error) {
+        this.$message.error(error?.message || this.$t('common.message.error'));
       }
     },
   },

@@ -492,7 +492,7 @@ export const clearConversation = data => {
  */
 export const getPendingConversation = (data, config = {}) => {
   return service({
-    url: `${USER_API}/assistant/pending/conversation`,
+    url: `${USER_API}/assistant${data.draft ? '/draft' : ''}/pending/conversation`,
     method: 'post',
     data,
     ...config,
@@ -508,7 +508,7 @@ export const getPendingConversation = (data, config = {}) => {
  */
 export const cancelAgentStream = (data, config = {}) => {
   return service({
-    url: `${USER_API}/assistant/stream/cancel`,
+    url: `${USER_API}/assistant${data.draft ? '/draft' : ''}/stream/cancel`,
     method: 'post',
     data,
     ...config,
@@ -552,5 +552,67 @@ export const getOpenurlAgentLlm = (suffix, config = {}) => {
     method: 'get',
     ...config,
     isOpenUrl: true,
+  });
+};
+
+// 智能体点赞/踩
+export const agentfeedback = (data, config = {}) => {
+  return service({
+    url: `${USER_API}/assistant/conversation/message/feedback`,
+    method: 'post',
+    data,
+    ...config,
+  });
+};
+
+// openurl 智能体点赞/踩
+export const openurlAgentfeedback = (suffix, data, config = {}) => {
+  return service({
+    url: `${OPENURL_API}/agent/${suffix}/message/feedback`,
+    method: 'post',
+    data,
+    ...config,
+    isOpenUrl: true,
+  });
+};
+/**
+ * 获取草稿智能体会话日志详情。
+ * @param {Object} data - 请求参数。
+ * @param {Object} [config={}] - 请求配置。
+ */
+export const getDraftConversationLogDetail = (data, config = {}) => {
+  return service({
+    url: `${USER_API}/assistant/draft/conversation/log/detail`,
+    method: 'post',
+    data,
+    ...config,
+  });
+};
+
+/**
+ * 获取草稿智能体会话日志列表。
+ * @param {Object} data - 请求参数。
+ * @param {Object} [config={}] - 请求配置。
+ */
+export const getDraftConversationLogList = (data, config = {}) => {
+  return service({
+    url: `${USER_API}/assistant/draft/conversation/log/list`,
+    method: 'post',
+    data,
+    ...config,
+  });
+};
+
+/**
+ * 获取草稿智能体会话日志的使用者列表。
+ * @param {Object} data - 请求参数。
+ * @param {Object} [config={}] - 请求配置。
+ */
+export const getDraftConversationLogUserSelect = (data, config = {}) => {
+  return service({
+    url: `${USER_API}/assistant/draft/conversation/log/user/select`,
+    method: 'post',
+    data,
+    ...config,
   });
 };

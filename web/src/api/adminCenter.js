@@ -517,3 +517,58 @@ export const getAdminModelDetail = data => {
     data,
   });
 };
+
+/**
+ * 管理员中心 - 获取智能体会话日志详情。
+ *
+ * @param {Object} data 查询参数
+ * @param {string} data.appId 智能体 ID
+ * @param {string} data.appType 业务类型
+ * @param {string} data.conversationId 会话 ID
+ * @param {number} data.pageNo 当前页码
+ * @param {number} data.pageSize 每页条数
+ * @param {Object} [config={}] 请求配置
+ */
+export const getAdminAssistantConversationLogDetail = (data, config = {}) => {
+  return service({
+    url: `${USER_API}/admin/center/assistant/conversation/log/detail`,
+    method: 'post',
+    data,
+    ...config,
+  });
+};
+
+/**
+ * 管理员中心 - 获取智能体会话日志列表。
+ *
+ * @param {Object} data 查询参数，格式与智能体会话日志列表接口一致
+ * @param {Object} [config={}] 请求配置
+ */
+export const getAdminAssistantConversationLogList = (data, config = {}) => {
+  return service({
+    url: `${USER_API}/admin/center/assistant/conversation/log/list`,
+    method: 'post',
+    data,
+    ...config,
+  });
+};
+
+/**
+ * 管理员中心 - 获取智能体会话日志使用者列表。
+ *
+ * @param {Object} data 查询参数
+ * @param {string} data.appId 智能体 ID
+ * @param {string} data.appType 业务类型
+ * @param {Object} [config={}] 请求配置
+ */
+export const getAdminAssistantConversationLogUserSelect = (
+  data,
+  config = {},
+) => {
+  return service({
+    url: `${USER_API}/admin/center/assistant/conversation/log/user/select`,
+    method: 'post',
+    data,
+    ...config,
+  });
+};
