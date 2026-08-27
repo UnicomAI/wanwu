@@ -49,6 +49,18 @@ func newReactAgent(ctx context.Context, cfg *config.Agent, options option.Option
 	if err != nil {
 		return nil, err
 	}
+
+	// 兜底：父级模型误调未注册工具（典型如沙箱子智能体内部工具 bash/skill）时，
+	// 返回可恢复的 Tool 结果，避免 ToolNode 因索引找不到工具而直接报错中断整个 ReAct 循环。
+	// 注意：提示词刻意不引导 transfer_to_agent，避免父级在子智能体已收尾后再次转移造成空转重跑沙箱。
+	tools.UnknownToolsHandler = func(_ context.Context, name, input string) (string, error) {
+		return fmt.Sprintf(
+			"工具 `%s` 不属于当前智能体的可调用工具，它只在子智能体（如沙箱）执行过程内部使用，"+
+				"所需结果通常已在上文对话中给出。请直接基于已有结果继续或总结回答，"+
+				"不要重复调用该工具或再次转移子智能体；确需让子智能体重新执行时，请在其指令中明确说明新的要求。",
+			name), nil
+	}
+
 	config := &adk.ChatModelAgentConfig{
 		Name:        cfg.ID,
 		Description: cfg.Description,
