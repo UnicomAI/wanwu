@@ -19,9 +19,11 @@
             :chatType="'rag'"
             :sessionStatus="sessionStatus"
             :supportClear="false"
+            :supportAnswerFeedback="chatType === 'chat'"
             @clearHistory="clearHistory"
             @refresh="refresh"
             @queryCopy="queryCopy"
+            @answer-feedback="submitAnswerFeedback"
             @delConversationQA="handleDelConversationQA"
             @handleRecommendedQuestion="handleRecommendedQuestion"
             :defaultUrl="editForm.avatar.path"
@@ -74,6 +76,7 @@ import {
   deleteRagConversation,
   deleteRagDraftConversation,
   getRagDraftConversationDetail,
+  submitRagConversationFeedback,
   getRagPendingConversation,
 } from '@/api/rag';
 import { mapGetters } from 'vuex';
@@ -281,6 +284,8 @@ export default {
           detailId: item.detailId || '',
           isHistory: true,
           conversationId: item.conversationId || this.conversationId,
+          feedback: Number(item.feedback) || 0,
+          feedbackContent: item.feedbackContent || '',
           query: item.prompt || '',
           response: this.renderHistoryContent(item.response, index),
           oriResponse: item.response || '',
@@ -557,6 +562,45 @@ export default {
       } catch (error) {
         console.warn('[rag chat] delete conversation detail failed', error);
         this.$message.error(this.$t('sse.error'));
+      }
+    },
+    // 提交已发布知识问答的答案反馈
+    async submitAnswerFeedback(
+      { feedbackType, feedbackContent = '', conversationId, detailId },
+      onSuccess,
+    ) {
+      if (this.chatType !== 'chat') return;
+
+      const feedbackTypeMap = { up: 1, down: 2 };
+      const type = feedbackType === 0 ? 0 : feedbackTypeMap[feedbackType];
+      const currentConversationId = conversationId || this.conversationId;
+      const ragId = this.editForm?.appId;
+      if (
+        ![0, 1, 2].includes(type) ||
+        !ragId ||
+        !currentConversationId ||
+        !detailId
+      )
+        return;
+
+      try {
+        const res = await submitRagConversationFeedback({
+          ragId,
+          conversationId: currentConversationId,
+          detailId,
+          feedbackType: type,
+          feedbackContent: type === 0 ? '' : feedbackContent,
+        });
+        if (!res || res.code !== 0) {
+          this.$message.error(res?.msg || this.$t('sse.error'));
+          return;
+        }
+        if (typeof onSuccess === 'function') {
+          onSuccess();
+        }
+      } catch (error) {
+        console.warn('[rag chat] submit answer feedback failed', error);
+        this.$message.error(error?.message || this.$t('sse.error'));
       }
     },
     verifiyFormParams() {

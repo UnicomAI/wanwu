@@ -179,3 +179,20 @@ export const cancelRagStream = data => {
     data,
   });
 };
+
+/**
+ * 提交已发布知识问答回答的点赞、点踩或取消反馈。
+ * @param {Object} data 请求参数。
+ * @param {string} data.ragId 知识问答应用 ID。
+ * @param {string} data.conversationId 会话 ID。
+ * @param {string} data.detailId 回答详情 ID。
+ * @param {number} data.feedbackType 反馈类型：0=取消，1=点赞，2=点踩。
+ * @param {string} [data.feedbackContent] 反馈内容。
+ */
+export const submitRagConversationFeedback = data => {
+  return service({
+    url: `${USER_API}/rag/conversation/message/feedback`,
+    method: 'post',
+    data,
+  });
+};
