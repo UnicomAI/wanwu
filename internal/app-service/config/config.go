@@ -41,10 +41,16 @@ type DBConfig struct {
 }
 
 type MinioConfig struct {
-	Endpoint string `json:"endpoint" mapstructure:"endpoint"`
-	User     string `json:"user" mapstructure:"user"`
-	Password string `json:"password" mapstructure:"password"`
-	Bucket   string `json:"bucket" mapstructure:"bucket"` // 安全模块的 bucket
+	Endpoint           string `json:"endpoint" mapstructure:"endpoint"`
+	User               string `json:"user" mapstructure:"user"`
+	Password           string `json:"password" mapstructure:"password"`
+	Bucket             string `json:"bucket" mapstructure:"bucket"` // 安全模块的 bucket
+	PublicExportBucket string `json:"public_export_bucket" mapstructure:"public_export_bucket"`
+	AppLogExportDir    string `json:"app_log_export_dir" mapstructure:"app_log_export_dir"`
+}
+
+type AssistantConfig struct {
+	Host string `json:"host" mapstructure:"host"` // assistant-service gRPC 地址
 }
 
 func LoadConfig(in string) error {

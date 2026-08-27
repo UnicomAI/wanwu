@@ -46,6 +46,9 @@ func UrlConversationDelete(ctx *gin.Context, userId, suffix string, req request.
 	if err != nil {
 		return err
 	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, userId, appUrlInfo); err != nil {
+		return err
+	}
 	_, err = assistant.ConversationDelete(ctx.Request.Context(), &assistant_service.ConversationDeleteReq{
 		ConversationId: req.ConversationId,
 		Identity: &assistant_service.Identity{
@@ -62,6 +65,9 @@ func UrlConversationDelete(ctx *gin.Context, userId, suffix string, req request.
 func UrlConversationClear(ctx *gin.Context, userId, suffix string, req request.UrlConversationIdRequest) error {
 	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
 	if err != nil {
+		return err
+	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, userId, appUrlInfo); err != nil {
 		return err
 	}
 	// 清空已发布智能体的对话ES数据（不删除会话ID）
@@ -145,6 +151,9 @@ func GetUrlConversationDetailList(ctx *gin.Context, req request.UrlConversationI
 	if err != nil {
 		return nil, err
 	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCId, appUrlInfo); err != nil {
+		return nil, err
+	}
 	resp, err := GetConversationDetailList(ctx, xCId, appUrlInfo.OrgId, request.ConversationGetDetailListRequest{
 		ConversationId: req.ConversationId,
 		PageSize:       1000,
@@ -161,6 +170,12 @@ func AppUrlConversionStream(ctx *gin.Context, req request.UrlConversionStreamReq
 	if err != nil {
 		return err
 	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCid, appUrlInfo); err != nil {
+		return err
+	}
+	ctx.Set(gin_util.CONVERSATION_ID, req.ConversationId)
+	ctx.Set(gin_util.CONVERSATION_LOG_USER_ID, xCid)
+	ctx.Set(gin_util.CONVERSATION_LOG_ORG_ID, appUrlInfo.OrgId)
 	streamParams := &agentChatStreamParams{ctx: ctx}
 	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	defer func() {
@@ -195,6 +210,9 @@ func AppUrlGetPendingConversation(ctx *gin.Context, req request.UrlPendingConver
 	if err != nil {
 		return nil, err
 	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCid, appUrlInfo); err != nil {
+		return nil, err
+	}
 	return GetPendingConversation(ctx, appUrlInfo.UserId, appUrlInfo.OrgId, xCid, request.PendingConversionRequest{
 		ConversationId: req.ConversationId,
 		Draft:          false,
@@ -207,6 +225,9 @@ func AppUrlConversionStreamConnect(ctx *gin.Context, req request.UrlConversionSt
 	if err != nil {
 		return err
 	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCid, appUrlInfo); err != nil {
+		return err
+	}
 	return AssistantConversionStreamConnect(ctx, appUrlInfo.UserId, appUrlInfo.OrgId, xCid, request.ConversionStreamConnectRequest{
 		AssistantId:    appUrlInfo.AppId,
 		ConversationId: req.ConversationId,
@@ -216,6 +237,9 @@ func AppUrlConversionStreamConnect(ctx *gin.Context, req request.UrlConversionSt
 func AppUrlConversionStreamCancel(ctx *gin.Context, req request.UrlConversionStreamCancelRequest, xCid, suffix string) error {
 	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
 	if err != nil {
+		return err
+	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCid, appUrlInfo); err != nil {
 		return err
 	}
 	return AssistantConversionStreamCancel(ctx, appUrlInfo.UserId, appUrlInfo.OrgId, xCid, request.ConversionStreamCancelRequest{
@@ -247,9 +271,22 @@ func getAppUrlInfoAndCheck(ctx *gin.Context, suffix string) (*app_service.AppUrl
 	return appUrlInfo, nil
 }
 
+// checkUrlConversationOwner 校验 conversationId 属于当前 X-Client-ID 用户且属于 suffix 对应的智能体。
+// openurl 为匿名访问，用户身份为 X-Client-ID（xCId），assistantId 来自 suffix 反查的 appUrlInfo.AppId。
+// conversationId 为空时跳过校验（首次对话等场景由后端创建）。
+func checkUrlConversationOwner(ctx *gin.Context, conversationId, xCId string, appUrlInfo *app_service.AppUrlInfo) error {
+	if conversationId == "" {
+		return nil
+	}
+	return CheckConversationOwner(ctx, conversationId, appUrlInfo.AppId, xCId, appUrlInfo.OrgId)
+}
+
 func AppUrlQuestionRecommend(ctx *gin.Context, req request.UrlQuestionRecommendRequest, xCid, suffix string) error {
 	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
 	if err != nil {
+		return err
+	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCid, appUrlInfo); err != nil {
 		return err
 	}
 	AssistantQuestionRecommend(ctx, xCid, appUrlInfo.OrgId, &request.QuestionRecommendRequest{
@@ -259,4 +296,25 @@ func AppUrlQuestionRecommend(ctx *gin.Context, req request.UrlQuestionRecommendR
 		Trial:          false,
 	})
 	return nil
+}
+
+func AppUrlMessageFeedback(ctx *gin.Context, req request.UrlMessageFeedbackRequest, xCid, suffix string) (*response.MessageFeedbackResp, error) {
+	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCid, appUrlInfo); err != nil {
+		return nil, err
+	}
+	// openurl 匿名链路：写入真实身份，供 RecordConversation 中间件异步记录会话日志(点赞/点踩后刷新 like_count)
+	ctx.Set(gin_util.CONVERSATION_ID, req.ConversationId)
+	ctx.Set(gin_util.CONVERSATION_LOG_USER_ID, xCid)
+	ctx.Set(gin_util.CONVERSATION_LOG_ORG_ID, appUrlInfo.OrgId)
+	return MessageFeedback(ctx, xCid, appUrlInfo.OrgId, &request.MessageFeedbackRequest{
+		AssistantId:     appUrlInfo.AppId,
+		ConversationId:  req.ConversationId,
+		DetailId:        req.DetailId,
+		FeedbackType:    req.FeedbackType,
+		FeedbackContent: req.FeedbackContent,
+	})
 }

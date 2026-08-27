@@ -76,6 +76,8 @@ func NewClient(ctx context.Context, db *gorm.DB, assistantCli assistant.IClient)
 		model.StatisticApp{},
 		model.APIKeyRecordV2{},
 		model.StatisticApiKey{},
+		model.ConversationLog{},
+		model.ConversationLogExportTask{},
 	); err != nil {
 		return nil, err
 	}

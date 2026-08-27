@@ -10,6 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var assistantConvBiz = &middleware.AdminCenterBiz{
+	BizId:   "conversation_id",
+	BizType: constant.BizModuleAppAgent,
+}
+
 func Register(openAPI *gin.RouterGroup) {
 	// agent — 基础管理
 	mid.Sub("openapi").RegWithAPIType(openAPI, "/agent", http.MethodPost, openapi.CreateAgent, "创建智能体OpenAPI", constant.OpenAPITypeAgent,
@@ -44,9 +49,9 @@ func Register(openAPI *gin.RouterGroup) {
 		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppAgent, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))
 	// agent — 问答
 	mid.Sub("openapi").RegWithAPIType(openAPI, "/agent/chat", http.MethodPost, openapi.ChatAgent, "智能体问答OpenAPI", constant.OpenAPITypeAgent,
-		append([]gin.HandlerFunc{middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppAgent, middleware.WithOpenAPIAgentResource("uuid"))}, middleware.APIKeyRecord(middleware.RecordFromReq))...)
+		append([]gin.HandlerFunc{middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppAgent, middleware.WithOpenAPIAgentResource("uuid"))}, middleware.APIKeyRecord(middleware.RecordFromReq), middleware.RecordConversation(assistantConvBiz, "openapi"))...)
 	mid.Sub("openapi").RegWithAPIType(openAPI, "/agent/chat/draft", http.MethodPost, openapi.DraftChatAgent, "智能体草稿态对话OpenAPI", constant.OpenAPITypeAgent,
-		append([]gin.HandlerFunc{middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppAgent, middleware.WithOpenAPIDraftAgentResource("uuid"))}, middleware.APIKeyRecord(middleware.RecordStreamType))...)
+		append([]gin.HandlerFunc{middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppAgent, middleware.WithOpenAPIDraftAgentResource("uuid"))}, middleware.APIKeyRecord(middleware.RecordStreamType), middleware.RecordConversation(assistantConvBiz, "openapi"))...)
 	// rag — 基础管理
 	mid.Sub("openapi").RegWithAPIType(openAPI, "/rag", http.MethodPost, openapi.CreateRag, "创建知识问答OpenAPI", constant.OpenAPITypeRag,
 		middleware.AuthOpenAPIKey(), middleware.TraceOpenAPI(constant.BizModuleAppRag, middleware.WithModuleCreatorFromContext()), middleware.APIKeyRecord(middleware.RecordNonStreamType))

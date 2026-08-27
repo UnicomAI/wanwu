@@ -228,8 +228,8 @@ enum Code {
   AppConversation = 300012; // 对话流相关错误
   ApiKey = 300013; //ApiKey相关错误
   AppModelRecord = 300014; //模型统计相关错误
-   AppAPIKeyRecord = 300015; //API Key统计相关错误
-
+  AppAPIKeyRecord = 300015; //API Key统计相关错误
+  AppConversationLog = 300016; //会话日志相关错误
 
   // --- mcp-service ---
   // [310000, 319999]

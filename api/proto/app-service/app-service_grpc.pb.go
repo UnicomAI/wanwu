@@ -8,6 +8,7 @@ package app_service
 
 import (
 	context "context"
+	common "github.com/UnicomAI/wanwu/api/proto/common"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -20,60 +21,69 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AppService_CreateApiKey_FullMethodName                  = "/app_service.AppService/CreateApiKey"
-	AppService_DeleteApiKey_FullMethodName                  = "/app_service.AppService/DeleteApiKey"
-	AppService_ListApiKeys_FullMethodName                   = "/app_service.AppService/ListApiKeys"
-	AppService_UpdateApiKey_FullMethodName                  = "/app_service.AppService/UpdateApiKey"
-	AppService_UpdateApiKeyStatus_FullMethodName            = "/app_service.AppService/UpdateApiKeyStatus"
-	AppService_GetApiKeyByKey_FullMethodName                = "/app_service.AppService/GetApiKeyByKey"
-	AppService_GenAppKey_FullMethodName                     = "/app_service.AppService/GenAppKey"
-	AppService_GetAppKeyList_FullMethodName                 = "/app_service.AppService/GetAppKeyList"
-	AppService_DelAppKey_FullMethodName                     = "/app_service.AppService/DelAppKey"
-	AppService_GetAppKeyByKey_FullMethodName                = "/app_service.AppService/GetAppKeyByKey"
-	AppService_GetExplorationAppList_FullMethodName         = "/app_service.AppService/GetExplorationAppList"
-	AppService_ChangeExplorationAppFavorite_FullMethodName  = "/app_service.AppService/ChangeExplorationAppFavorite"
-	AppService_RecordAppHistory_FullMethodName              = "/app_service.AppService/RecordAppHistory"
-	AppService_PublishApp_FullMethodName                    = "/app_service.AppService/PublishApp"
-	AppService_UnPublishApp_FullMethodName                  = "/app_service.AppService/UnPublishApp"
-	AppService_GetAppList_FullMethodName                    = "/app_service.AppService/GetAppList"
-	AppService_GetAppListByIds_FullMethodName               = "/app_service.AppService/GetAppListByIds"
-	AppService_DeleteApp_FullMethodName                     = "/app_service.AppService/DeleteApp"
-	AppService_GetAppInfo_FullMethodName                    = "/app_service.AppService/GetAppInfo"
-	AppService_ConvertAppType_FullMethodName                = "/app_service.AppService/ConvertAppType"
-	AppService_AppUrlCreate_FullMethodName                  = "/app_service.AppService/AppUrlCreate"
-	AppService_AppUrlDelete_FullMethodName                  = "/app_service.AppService/AppUrlDelete"
-	AppService_AppUrlUpdate_FullMethodName                  = "/app_service.AppService/AppUrlUpdate"
-	AppService_GetAppUrlList_FullMethodName                 = "/app_service.AppService/GetAppUrlList"
-	AppService_GetAppUrlInfoBySuffix_FullMethodName         = "/app_service.AppService/GetAppUrlInfoBySuffix"
-	AppService_AppUrlStatusSwitch_FullMethodName            = "/app_service.AppService/AppUrlStatusSwitch"
-	AppService_GetConversationByID_FullMethodName           = "/app_service.AppService/GetConversationByID"
-	AppService_CreateConversation_FullMethodName            = "/app_service.AppService/CreateConversation"
-	AppService_GetChatflowApplication_FullMethodName        = "/app_service.AppService/GetChatflowApplication"
-	AppService_GetChatflowByApplicationID_FullMethodName    = "/app_service.AppService/GetChatflowByApplicationID"
-	AppService_CreateChatflowApplication_FullMethodName     = "/app_service.AppService/CreateChatflowApplication"
-	AppService_RecordModelStatisticV2_FullMethodName        = "/app_service.AppService/RecordModelStatisticV2"
-	AppService_GetModelStatisticV2Overview_FullMethodName   = "/app_service.AppService/GetModelStatisticV2Overview"
-	AppService_GetModelStatisticV2Chart_FullMethodName      = "/app_service.AppService/GetModelStatisticV2Chart"
-	AppService_GetModelStatisticV2List_FullMethodName       = "/app_service.AppService/GetModelStatisticV2List"
-	AppService_GetModelStatisticV2UserList_FullMethodName   = "/app_service.AppService/GetModelStatisticV2UserList"
-	AppService_GetModelStatisticV2AppList_FullMethodName    = "/app_service.AppService/GetModelStatisticV2AppList"
-	AppService_GetModelStatisticV2Record_FullMethodName     = "/app_service.AppService/GetModelStatisticV2Record"
-	AppService_GetModelStatisticV2Select_FullMethodName     = "/app_service.AppService/GetModelStatisticV2Select"
-	AppService_RecordAppStatisticV2_FullMethodName          = "/app_service.AppService/RecordAppStatisticV2"
-	AppService_GetAppStatisticV2Overview_FullMethodName     = "/app_service.AppService/GetAppStatisticV2Overview"
-	AppService_GetAppStatisticV2Chart_FullMethodName        = "/app_service.AppService/GetAppStatisticV2Chart"
-	AppService_GetAppStatisticV2List_FullMethodName         = "/app_service.AppService/GetAppStatisticV2List"
-	AppService_GetAppStatisticV2UserList_FullMethodName     = "/app_service.AppService/GetAppStatisticV2UserList"
-	AppService_GetAppStatisticV2ModelList_FullMethodName    = "/app_service.AppService/GetAppStatisticV2ModelList"
-	AppService_GetAppStatisticV2Record_FullMethodName       = "/app_service.AppService/GetAppStatisticV2Record"
-	AppService_GetAppStatisticV2Select_FullMethodName       = "/app_service.AppService/GetAppStatisticV2Select"
-	AppService_RecordAPIKeyStatisticV2_FullMethodName       = "/app_service.AppService/RecordAPIKeyStatisticV2"
-	AppService_GetAPIKeyStatisticV2Overview_FullMethodName  = "/app_service.AppService/GetAPIKeyStatisticV2Overview"
-	AppService_GetAPIKeyStatisticV2Chart_FullMethodName     = "/app_service.AppService/GetAPIKeyStatisticV2Chart"
-	AppService_GetAPIKeyStatisticV2List_FullMethodName      = "/app_service.AppService/GetAPIKeyStatisticV2List"
-	AppService_GetAPIKeyStatisticV2AppList_FullMethodName   = "/app_service.AppService/GetAPIKeyStatisticV2AppList"
-	AppService_GetAPIKeyStatisticV2ModelList_FullMethodName = "/app_service.AppService/GetAPIKeyStatisticV2ModelList"
-	AppService_GetAPIKeyStatisticV2Record_FullMethodName    = "/app_service.AppService/GetAPIKeyStatisticV2Record"
+	AppService_CreateApiKey_FullMethodName                       = "/app_service.AppService/CreateApiKey"
+	AppService_DeleteApiKey_FullMethodName                       = "/app_service.AppService/DeleteApiKey"
+	AppService_ListApiKeys_FullMethodName                        = "/app_service.AppService/ListApiKeys"
+	AppService_UpdateApiKey_FullMethodName                       = "/app_service.AppService/UpdateApiKey"
+	AppService_UpdateApiKeyStatus_FullMethodName                 = "/app_service.AppService/UpdateApiKeyStatus"
+	AppService_GetApiKeyByKey_FullMethodName                     = "/app_service.AppService/GetApiKeyByKey"
+	AppService_GenAppKey_FullMethodName                          = "/app_service.AppService/GenAppKey"
+	AppService_GetAppKeyList_FullMethodName                      = "/app_service.AppService/GetAppKeyList"
+	AppService_DelAppKey_FullMethodName                          = "/app_service.AppService/DelAppKey"
+	AppService_GetAppKeyByKey_FullMethodName                     = "/app_service.AppService/GetAppKeyByKey"
+	AppService_GetExplorationAppList_FullMethodName              = "/app_service.AppService/GetExplorationAppList"
+	AppService_ChangeExplorationAppFavorite_FullMethodName       = "/app_service.AppService/ChangeExplorationAppFavorite"
+	AppService_RecordAppHistory_FullMethodName                   = "/app_service.AppService/RecordAppHistory"
+	AppService_PublishApp_FullMethodName                         = "/app_service.AppService/PublishApp"
+	AppService_UnPublishApp_FullMethodName                       = "/app_service.AppService/UnPublishApp"
+	AppService_GetAppList_FullMethodName                         = "/app_service.AppService/GetAppList"
+	AppService_GetAppListByIds_FullMethodName                    = "/app_service.AppService/GetAppListByIds"
+	AppService_DeleteApp_FullMethodName                          = "/app_service.AppService/DeleteApp"
+	AppService_GetAppInfo_FullMethodName                         = "/app_service.AppService/GetAppInfo"
+	AppService_ConvertAppType_FullMethodName                     = "/app_service.AppService/ConvertAppType"
+	AppService_AppUrlCreate_FullMethodName                       = "/app_service.AppService/AppUrlCreate"
+	AppService_AppUrlDelete_FullMethodName                       = "/app_service.AppService/AppUrlDelete"
+	AppService_AppUrlUpdate_FullMethodName                       = "/app_service.AppService/AppUrlUpdate"
+	AppService_GetAppUrlList_FullMethodName                      = "/app_service.AppService/GetAppUrlList"
+	AppService_GetAppUrlInfoBySuffix_FullMethodName              = "/app_service.AppService/GetAppUrlInfoBySuffix"
+	AppService_AppUrlStatusSwitch_FullMethodName                 = "/app_service.AppService/AppUrlStatusSwitch"
+	AppService_GetConversationByID_FullMethodName                = "/app_service.AppService/GetConversationByID"
+	AppService_CreateConversation_FullMethodName                 = "/app_service.AppService/CreateConversation"
+	AppService_GetChatflowApplication_FullMethodName             = "/app_service.AppService/GetChatflowApplication"
+	AppService_GetChatflowByApplicationID_FullMethodName         = "/app_service.AppService/GetChatflowByApplicationID"
+	AppService_CreateChatflowApplication_FullMethodName          = "/app_service.AppService/CreateChatflowApplication"
+	AppService_RecordModelStatisticV2_FullMethodName             = "/app_service.AppService/RecordModelStatisticV2"
+	AppService_GetModelStatisticV2Overview_FullMethodName        = "/app_service.AppService/GetModelStatisticV2Overview"
+	AppService_GetModelStatisticV2Chart_FullMethodName           = "/app_service.AppService/GetModelStatisticV2Chart"
+	AppService_GetModelStatisticV2List_FullMethodName            = "/app_service.AppService/GetModelStatisticV2List"
+	AppService_GetModelStatisticV2UserList_FullMethodName        = "/app_service.AppService/GetModelStatisticV2UserList"
+	AppService_GetModelStatisticV2AppList_FullMethodName         = "/app_service.AppService/GetModelStatisticV2AppList"
+	AppService_GetModelStatisticV2Record_FullMethodName          = "/app_service.AppService/GetModelStatisticV2Record"
+	AppService_GetModelStatisticV2Select_FullMethodName          = "/app_service.AppService/GetModelStatisticV2Select"
+	AppService_RecordAppStatisticV2_FullMethodName               = "/app_service.AppService/RecordAppStatisticV2"
+	AppService_GetAppStatisticV2Overview_FullMethodName          = "/app_service.AppService/GetAppStatisticV2Overview"
+	AppService_GetAppStatisticV2Chart_FullMethodName             = "/app_service.AppService/GetAppStatisticV2Chart"
+	AppService_GetAppStatisticV2List_FullMethodName              = "/app_service.AppService/GetAppStatisticV2List"
+	AppService_GetAppStatisticV2UserList_FullMethodName          = "/app_service.AppService/GetAppStatisticV2UserList"
+	AppService_GetAppStatisticV2ModelList_FullMethodName         = "/app_service.AppService/GetAppStatisticV2ModelList"
+	AppService_GetAppStatisticV2Record_FullMethodName            = "/app_service.AppService/GetAppStatisticV2Record"
+	AppService_GetAppStatisticV2Select_FullMethodName            = "/app_service.AppService/GetAppStatisticV2Select"
+	AppService_RecordAPIKeyStatisticV2_FullMethodName            = "/app_service.AppService/RecordAPIKeyStatisticV2"
+	AppService_GetAPIKeyStatisticV2Overview_FullMethodName       = "/app_service.AppService/GetAPIKeyStatisticV2Overview"
+	AppService_GetAPIKeyStatisticV2Chart_FullMethodName          = "/app_service.AppService/GetAPIKeyStatisticV2Chart"
+	AppService_GetAPIKeyStatisticV2List_FullMethodName           = "/app_service.AppService/GetAPIKeyStatisticV2List"
+	AppService_GetAPIKeyStatisticV2AppList_FullMethodName        = "/app_service.AppService/GetAPIKeyStatisticV2AppList"
+	AppService_GetAPIKeyStatisticV2ModelList_FullMethodName      = "/app_service.AppService/GetAPIKeyStatisticV2ModelList"
+	AppService_GetAPIKeyStatisticV2Record_FullMethodName         = "/app_service.AppService/GetAPIKeyStatisticV2Record"
+	AppService_GetConversationLogList_FullMethodName             = "/app_service.AppService/GetConversationLogList"
+	AppService_GetConversationLog_FullMethodName                 = "/app_service.AppService/GetConversationLog"
+	AppService_GetConversationLogByLogIds_FullMethodName         = "/app_service.AppService/GetConversationLogByLogIds"
+	AppService_RecordConversationLog_FullMethodName              = "/app_service.AppService/RecordConversationLog"
+	AppService_GetConversationLogUserSelect_FullMethodName       = "/app_service.AppService/GetConversationLogUserSelect"
+	AppService_DeleteConversationLogByAppId_FullMethodName       = "/app_service.AppService/DeleteConversationLogByAppId"
+	AppService_ExportConversationLog_FullMethodName              = "/app_service.AppService/ExportConversationLog"
+	AppService_GetConversationLogExportRecordList_FullMethodName = "/app_service.AppService/GetConversationLogExportRecordList"
+	AppService_DeleteConversationLogExportRecord_FullMethodName  = "/app_service.AppService/DeleteConversationLogExportRecord"
 )
 
 // AppServiceClient is the client API for AppService service.
@@ -144,6 +154,17 @@ type AppServiceClient interface {
 	GetAPIKeyStatisticV2AppList(ctx context.Context, in *GetAPIKeyStatisticV2AppListReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticV2AppListResp, error)
 	GetAPIKeyStatisticV2ModelList(ctx context.Context, in *GetAPIKeyStatisticV2ModelListReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticV2ModelListResp, error)
 	GetAPIKeyStatisticV2Record(ctx context.Context, in *GetAPIKeyStatisticV2RecordReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticV2RecordResp, error)
+	// --- conversation log ---
+	GetConversationLogList(ctx context.Context, in *GetConversationLogListReq, opts ...grpc.CallOption) (*GetConversationLogListResp, error)
+	GetConversationLog(ctx context.Context, in *GetConversationLogReq, opts ...grpc.CallOption) (*common.ConversationLog, error)
+	GetConversationLogByLogIds(ctx context.Context, in *GetConversationLogByLogIdsReq, opts ...grpc.CallOption) (*GetConversationLogByLogIdsResp, error)
+	RecordConversationLog(ctx context.Context, in *common.ConversationLog, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetConversationLogUserSelect(ctx context.Context, in *GetConversationLogUserSelectReq, opts ...grpc.CallOption) (*GetConversationLogUserSelectResp, error)
+	DeleteConversationLogByAppId(ctx context.Context, in *DeleteConversationLogByAppIdReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// --- conversation log export ---
+	ExportConversationLog(ctx context.Context, in *ExportConversationLogReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetConversationLogExportRecordList(ctx context.Context, in *GetConversationLogExportRecordListReq, opts ...grpc.CallOption) (*GetConversationLogExportRecordListResp, error)
+	DeleteConversationLogExportRecord(ctx context.Context, in *DeleteConversationLogExportRecordReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type appServiceClient struct {
@@ -694,6 +715,96 @@ func (c *appServiceClient) GetAPIKeyStatisticV2Record(ctx context.Context, in *G
 	return out, nil
 }
 
+func (c *appServiceClient) GetConversationLogList(ctx context.Context, in *GetConversationLogListReq, opts ...grpc.CallOption) (*GetConversationLogListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConversationLogListResp)
+	err := c.cc.Invoke(ctx, AppService_GetConversationLogList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetConversationLog(ctx context.Context, in *GetConversationLogReq, opts ...grpc.CallOption) (*common.ConversationLog, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(common.ConversationLog)
+	err := c.cc.Invoke(ctx, AppService_GetConversationLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetConversationLogByLogIds(ctx context.Context, in *GetConversationLogByLogIdsReq, opts ...grpc.CallOption) (*GetConversationLogByLogIdsResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConversationLogByLogIdsResp)
+	err := c.cc.Invoke(ctx, AppService_GetConversationLogByLogIds_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) RecordConversationLog(ctx context.Context, in *common.ConversationLog, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AppService_RecordConversationLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetConversationLogUserSelect(ctx context.Context, in *GetConversationLogUserSelectReq, opts ...grpc.CallOption) (*GetConversationLogUserSelectResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConversationLogUserSelectResp)
+	err := c.cc.Invoke(ctx, AppService_GetConversationLogUserSelect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) DeleteConversationLogByAppId(ctx context.Context, in *DeleteConversationLogByAppIdReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AppService_DeleteConversationLogByAppId_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) ExportConversationLog(ctx context.Context, in *ExportConversationLogReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AppService_ExportConversationLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetConversationLogExportRecordList(ctx context.Context, in *GetConversationLogExportRecordListReq, opts ...grpc.CallOption) (*GetConversationLogExportRecordListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConversationLogExportRecordListResp)
+	err := c.cc.Invoke(ctx, AppService_GetConversationLogExportRecordList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) DeleteConversationLogExportRecord(ctx context.Context, in *DeleteConversationLogExportRecordReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AppService_DeleteConversationLogExportRecord_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppServiceServer is the server API for AppService service.
 // All implementations must embed UnimplementedAppServiceServer
 // for forward compatibility.
@@ -762,6 +873,17 @@ type AppServiceServer interface {
 	GetAPIKeyStatisticV2AppList(context.Context, *GetAPIKeyStatisticV2AppListReq) (*GetAPIKeyStatisticV2AppListResp, error)
 	GetAPIKeyStatisticV2ModelList(context.Context, *GetAPIKeyStatisticV2ModelListReq) (*GetAPIKeyStatisticV2ModelListResp, error)
 	GetAPIKeyStatisticV2Record(context.Context, *GetAPIKeyStatisticV2RecordReq) (*GetAPIKeyStatisticV2RecordResp, error)
+	// --- conversation log ---
+	GetConversationLogList(context.Context, *GetConversationLogListReq) (*GetConversationLogListResp, error)
+	GetConversationLog(context.Context, *GetConversationLogReq) (*common.ConversationLog, error)
+	GetConversationLogByLogIds(context.Context, *GetConversationLogByLogIdsReq) (*GetConversationLogByLogIdsResp, error)
+	RecordConversationLog(context.Context, *common.ConversationLog) (*emptypb.Empty, error)
+	GetConversationLogUserSelect(context.Context, *GetConversationLogUserSelectReq) (*GetConversationLogUserSelectResp, error)
+	DeleteConversationLogByAppId(context.Context, *DeleteConversationLogByAppIdReq) (*emptypb.Empty, error)
+	// --- conversation log export ---
+	ExportConversationLog(context.Context, *ExportConversationLogReq) (*emptypb.Empty, error)
+	GetConversationLogExportRecordList(context.Context, *GetConversationLogExportRecordListReq) (*GetConversationLogExportRecordListResp, error)
+	DeleteConversationLogExportRecord(context.Context, *DeleteConversationLogExportRecordReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAppServiceServer()
 }
 
@@ -933,6 +1055,33 @@ func (UnimplementedAppServiceServer) GetAPIKeyStatisticV2ModelList(context.Conte
 }
 func (UnimplementedAppServiceServer) GetAPIKeyStatisticV2Record(context.Context, *GetAPIKeyStatisticV2RecordReq) (*GetAPIKeyStatisticV2RecordResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAPIKeyStatisticV2Record not implemented")
+}
+func (UnimplementedAppServiceServer) GetConversationLogList(context.Context, *GetConversationLogListReq) (*GetConversationLogListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLogList not implemented")
+}
+func (UnimplementedAppServiceServer) GetConversationLog(context.Context, *GetConversationLogReq) (*common.ConversationLog, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLog not implemented")
+}
+func (UnimplementedAppServiceServer) GetConversationLogByLogIds(context.Context, *GetConversationLogByLogIdsReq) (*GetConversationLogByLogIdsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLogByLogIds not implemented")
+}
+func (UnimplementedAppServiceServer) RecordConversationLog(context.Context, *common.ConversationLog) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecordConversationLog not implemented")
+}
+func (UnimplementedAppServiceServer) GetConversationLogUserSelect(context.Context, *GetConversationLogUserSelectReq) (*GetConversationLogUserSelectResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLogUserSelect not implemented")
+}
+func (UnimplementedAppServiceServer) DeleteConversationLogByAppId(context.Context, *DeleteConversationLogByAppIdReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteConversationLogByAppId not implemented")
+}
+func (UnimplementedAppServiceServer) ExportConversationLog(context.Context, *ExportConversationLogReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExportConversationLog not implemented")
+}
+func (UnimplementedAppServiceServer) GetConversationLogExportRecordList(context.Context, *GetConversationLogExportRecordListReq) (*GetConversationLogExportRecordListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLogExportRecordList not implemented")
+}
+func (UnimplementedAppServiceServer) DeleteConversationLogExportRecord(context.Context, *DeleteConversationLogExportRecordReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteConversationLogExportRecord not implemented")
 }
 func (UnimplementedAppServiceServer) mustEmbedUnimplementedAppServiceServer() {}
 func (UnimplementedAppServiceServer) testEmbeddedByValue()                    {}
@@ -1927,6 +2076,168 @@ func _AppService_GetAPIKeyStatisticV2Record_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AppService_GetConversationLogList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConversationLogListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetConversationLogList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetConversationLogList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetConversationLogList(ctx, req.(*GetConversationLogListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetConversationLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConversationLogReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetConversationLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetConversationLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetConversationLog(ctx, req.(*GetConversationLogReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetConversationLogByLogIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConversationLogByLogIdsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetConversationLogByLogIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetConversationLogByLogIds_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetConversationLogByLogIds(ctx, req.(*GetConversationLogByLogIdsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_RecordConversationLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(common.ConversationLog)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).RecordConversationLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_RecordConversationLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).RecordConversationLog(ctx, req.(*common.ConversationLog))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetConversationLogUserSelect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConversationLogUserSelectReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetConversationLogUserSelect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetConversationLogUserSelect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetConversationLogUserSelect(ctx, req.(*GetConversationLogUserSelectReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_DeleteConversationLogByAppId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteConversationLogByAppIdReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).DeleteConversationLogByAppId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_DeleteConversationLogByAppId_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).DeleteConversationLogByAppId(ctx, req.(*DeleteConversationLogByAppIdReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_ExportConversationLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExportConversationLogReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).ExportConversationLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_ExportConversationLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).ExportConversationLog(ctx, req.(*ExportConversationLogReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetConversationLogExportRecordList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConversationLogExportRecordListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetConversationLogExportRecordList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetConversationLogExportRecordList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetConversationLogExportRecordList(ctx, req.(*GetConversationLogExportRecordListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_DeleteConversationLogExportRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteConversationLogExportRecordReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).DeleteConversationLogExportRecord(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_DeleteConversationLogExportRecord_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).DeleteConversationLogExportRecord(ctx, req.(*DeleteConversationLogExportRecordReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AppService_ServiceDesc is the grpc.ServiceDesc for AppService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2149,6 +2460,42 @@ var AppService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAPIKeyStatisticV2Record",
 			Handler:    _AppService_GetAPIKeyStatisticV2Record_Handler,
+		},
+		{
+			MethodName: "GetConversationLogList",
+			Handler:    _AppService_GetConversationLogList_Handler,
+		},
+		{
+			MethodName: "GetConversationLog",
+			Handler:    _AppService_GetConversationLog_Handler,
+		},
+		{
+			MethodName: "GetConversationLogByLogIds",
+			Handler:    _AppService_GetConversationLogByLogIds_Handler,
+		},
+		{
+			MethodName: "RecordConversationLog",
+			Handler:    _AppService_RecordConversationLog_Handler,
+		},
+		{
+			MethodName: "GetConversationLogUserSelect",
+			Handler:    _AppService_GetConversationLogUserSelect_Handler,
+		},
+		{
+			MethodName: "DeleteConversationLogByAppId",
+			Handler:    _AppService_DeleteConversationLogByAppId_Handler,
+		},
+		{
+			MethodName: "ExportConversationLog",
+			Handler:    _AppService_ExportConversationLog_Handler,
+		},
+		{
+			MethodName: "GetConversationLogExportRecordList",
+			Handler:    _AppService_GetConversationLogExportRecordList_Handler,
+		},
+		{
+			MethodName: "DeleteConversationLogExportRecord",
+			Handler:    _AppService_DeleteConversationLogExportRecord_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -44,6 +44,14 @@ const (
 	// OAuth相关
 	OAUTH_SCOPE     = "SCOPE"
 	OAUTH_CLIENT_ID = "OAuth_Client_ID"
+
+	// 会话ID
+	CONVERSATION_ID = "CONVERSATION_ID"
+
+	// 会话日志查询身份（openurl 等匿名链路：写 ES detail 用的 userId/orgId 与登录态不同，
+	// 由对应 handler 写入这两个 key，供 RecordConversation 中间件落库时按真实身份查询 ES）
+	CONVERSATION_LOG_USER_ID = "CONVERSATION_LOG_USER_ID"
+	CONVERSATION_LOG_ORG_ID  = "CONVERSATION_LOG_ORG_ID"
 )
 
 // http common query key

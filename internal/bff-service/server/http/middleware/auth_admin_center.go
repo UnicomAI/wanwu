@@ -22,8 +22,9 @@ const (
 )
 
 type AdminCenterBiz struct {
-	BizType string
-	BizId   string
+	BizType      string
+	BizId        string
+	BizTypeField string
 }
 
 // AuthAdminCenter 管理员中心权限校验
@@ -100,6 +101,13 @@ func authAdminBizOrgID(ctx *gin.Context, userId, orgId string) error {
 }
 
 func authAdminBiz(ctx *gin.Context, adminCenterBiz *AdminCenterBiz, userId, orgId string) error {
+	if adminCenterBiz.BizType == "" && adminCenterBiz.BizTypeField != "" {
+		value := getFieldValue(ctx, adminCenterBiz.BizTypeField)
+		if len(value) == 0 {
+			return errors.New("biz id params is empty")
+		}
+		adminCenterBiz.BizType = value
+	}
 	value := getFieldValue(ctx, adminCenterBiz.BizId)
 	if len(value) == 0 {
 		return errors.New("biz id params is empty")

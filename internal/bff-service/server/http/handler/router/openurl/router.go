@@ -10,6 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var assistantConvBiz = &middleware.AdminCenterBiz{
+	BizId:   "conversationId",
+	BizType: constant.BizModuleAppAgent,
+}
+
 func Register(openUrl *gin.RouterGroup) {
 	// --- openurl ---
 	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix", http.MethodGet, openurl.GetUrlAgentDetail, "获取智能体Url信息")
@@ -21,11 +26,12 @@ func Register(openUrl *gin.RouterGroup) {
 	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix/conversation/clear", http.MethodDelete, openurl.UrlConversationClear, "清空智能体对话")
 	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix/conversation/list", http.MethodGet, openurl.GetUrlConversationList, "获取智能体对话列表")
 	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix/conversation/detail", http.MethodGet, openurl.GetUrlConversationDetailList, "智能体对话详情历史列表")
-	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix/stream", http.MethodPost, openurl.AssistantUrlConversionStream, "智能体流式问答", middleware.TraceOpenUrl(constant.BizModuleAppAgent))
+	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix/stream", http.MethodPost, openurl.AssistantUrlConversionStream, "智能体流式问答", middleware.TraceOpenUrl(constant.BizModuleAppAgent), middleware.RecordConversation(assistantConvBiz, "webURL"))
 	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix/pending/conversation", http.MethodGet, openurl.GetAssistantPendingConversion, "获取智能体运行中会话", middleware.TraceOpenUrl(constant.BizModuleAppAgent))
 	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix/stream/connect", http.MethodPost, openurl.AssistantConversionStreamConnect, "智能体流式问答断开后重连", middleware.TraceOpenUrl(constant.BizModuleAppAgent))
 	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix/stream/cancel", http.MethodPost, openurl.AssistantConversionStreamCancel, "智能体流式问答手动停止", middleware.TraceOpenUrl(constant.BizModuleAppAgent))
 	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix/recommend", http.MethodPost, openurl.AssistantUrlQuestionRecommend, "智能体推荐问题", middleware.TraceOpenUrl(constant.BizModuleAppAgent))
+	mid.Sub("openurl").Reg(openUrl, "/agent/:suffix/message/feedback", http.MethodPost, openurl.AssistantUrlMessageFeedback, "智能体消息点赞/点踩", middleware.RecordConversation(assistantConvBiz, "webURL"))
 
 	// --- file upload（匿名访问） ---
 	mid.Sub("openurl").Reg(openUrl, "/file/upload", http.MethodPost, openurl.UploadFile, "上传文件")

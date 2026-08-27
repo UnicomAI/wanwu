@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"fmt"
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	"os"
 	"path"
 	"path/filepath"
@@ -58,6 +59,9 @@ func (*SkillBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId s
 	}
 	userId, orgId = publish.Skill.UserId, publish.Skill.OrgId
 	return
+}
+func (*SkillBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
 }
 
 func GetCustomSkill(ctx *gin.Context, userId, orgId, skillId string) (*response.PublishedSkillDetail, error) {

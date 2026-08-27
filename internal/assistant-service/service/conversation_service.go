@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"sort"
@@ -35,6 +36,7 @@ type ConversationParams struct {
 	OrgId              string           `json:"orgId"`
 	Query              string           `json:"query"`
 	FileInfo           []model.FileInfo `json:"fileInfo"`
+	SourceFrom         string           `json:"sourceFrom"`
 }
 
 type AgentChatResp struct {
@@ -148,6 +150,24 @@ func saveConversation(originalCtx context.Context, req *ConversationParams, conv
 	}
 }
 
+// fillStatistic 填充统计信息
+func fillStatistic(ctx context.Context, conversationResp *conversation.ConversationResp, responseList []*model.ConversationResponse, sourceFrom string) {
+	statistic := conversationResp.Statistic
+	//设置总消耗时间
+	statistic.SetTotalCostTime()
+	//设置报错信息
+	statistic.SetErr(conversationResp.Error)
+	if len(responseList) > 0 {
+		for _, response := range responseList {
+			if len(response.ErrMessage) > 0 {
+				statistic.SetErr(errors.New(response.ErrMessage))
+			}
+		}
+	}
+	statistic.SetTraceId(trace_util.GetTraceID(ctx))
+	statistic.SetSourceFrom(sourceFrom)
+}
+
 // saveConversationDetailToES 保存聊天记录到ES
 func saveConversationDetailToES(ctx context.Context, req *ConversationParams, conversationResp *conversation.ConversationResp, detailId string) error {
 	// 根据当前时间生成索引名称，格式为conversation_detail_infos_YYYYMM
@@ -155,7 +175,7 @@ func saveConversationDetailToES(ctx context.Context, req *ConversationParams, co
 	indexName := fmt.Sprintf("conversation_detail_infos_%d%02d", now.Year(), now.Month())
 
 	// 组装ConversationDetails数据，使用传入的detailId
-	conversationDetail := buildConversationDetail(req, conversationResp, now.UnixMilli(), detailId)
+	conversationDetail := buildConversationDetail(ctx, req, conversationResp, now.UnixMilli(), detailId)
 	// 写入ES
 	if err := es.Assistant().IndexDocument(ctx, indexName, conversationDetail); err != nil {
 		return fmt.Errorf("写入ES失败: %v", err)
@@ -166,11 +186,14 @@ func saveConversationDetailToES(ctx context.Context, req *ConversationParams, co
 	return nil
 }
 
-func buildConversationDetail(req *ConversationParams, conversationResp *conversation.ConversationResp, nowMilli int64, detailId string) *model.ConversationDetails {
+func buildConversationDetail(ctx context.Context, req *ConversationParams, conversationResp *conversation.ConversationResp, nowMilli int64, detailId string) *model.ConversationDetails {
 	if len(conversationResp.SensitiveMessage) > 0 {
 		conversationResp.CurrentData = conversationResp.SensitiveMessage
 	}
 	err := conversation.FinishConversationResp(conversationResp)
+	responseList := conversationResp.ResponseList()
+	//填充统计信息
+	fillStatistic(ctx, conversationResp, responseList, req.SourceFrom)
 	if err != nil {
 		log.Errorf("FinishConversationResp error: %v", err)
 	}
@@ -180,7 +203,7 @@ func buildConversationDetail(req *ConversationParams, conversationResp *conversa
 		ConversationId:            req.SaveConversationId,
 		Prompt:                    req.Query,
 		FileInfo:                  restoreFileList(req.FileInfo),
-		ResponseList:              conversationResp.ResponseList(),
+		ResponseList:              responseList,
 		Response:                  conversationResp.Response(),
 		SearchList:                conversationResp.References(),
 		UserId:                    req.UserId,
@@ -189,6 +212,7 @@ func buildConversationDetail(req *ConversationParams, conversationResp *conversa
 		UpdatedAt:                 nowMilli,
 		SubConversationDetailList: buildSubConversationDetailList(conversationResp),
 		ResponseFiles:             conversationResp.ResponseFiles,
+		Statistic:                 conversationResp.Statistic,
 	}
 }
 

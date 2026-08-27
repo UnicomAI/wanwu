@@ -3,12 +3,18 @@ package v1
 import (
 	"net/http"
 
+	"github.com/UnicomAI/wanwu/pkg/constant"
+
 	v1 "github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/v1"
 	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/middleware"
-	"github.com/UnicomAI/wanwu/pkg/constant"
 	mid "github.com/UnicomAI/wanwu/pkg/gin-util/mid-wrap"
 	"github.com/gin-gonic/gin"
 )
+
+var assistantConvBiz = &middleware.AdminCenterBiz{
+	BizId:   "conversationId",
+	BizType: constant.BizModuleAppAgent,
+}
 
 func registerAssistant(apiV1 *gin.RouterGroup) {
 	mid.Sub("app.agent").Reg(apiV1, "/appspace/assistant/list", http.MethodGet, v1.GetAgentAppSpaceAppList, "获取智能体应用列表")
@@ -21,7 +27,7 @@ func registerAssistant(apiV1 *gin.RouterGroup) {
 	mid.Sub("app.agent").Reg(apiV1, "/assistant", http.MethodPut, v1.AssistantUpdate, "修改智能体基本信息")
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/config", http.MethodPut, v1.AssistantConfigUpdate, "修改智能体配置信息", middleware.AuthModelByModelId([]string{"modelConfig.modelId", "rerankConfig.modelId", "recommendConfig.modelConfig.modelId"}))
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/draft", http.MethodGet, v1.GetDraftAssistantInfo, "查看草稿智能体详情")
-	mid.Sub("app.agent").Reg(apiV1, "/assistant", http.MethodGet, v1.GetPublishedAssistantInfo, "查看已发布智能体详情")
+	mid.Sub("app.agent").Reg(apiV1, "/assistant", http.MethodGet, v1.GetPublishedAssistantInfo, "查看已发布智能体详情", middleware.AuthAppPublish("assistantId", constant.AppTypeAgent))
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/copy", http.MethodPost, v1.AssistantCopy, "智能体复制")
 
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/tool/workflow", http.MethodPost, v1.AssistantWorkFlowCreate, "添加工作流")
@@ -46,14 +52,18 @@ func registerAssistant(apiV1 *gin.RouterGroup) {
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/multi-agent/config", http.MethodPut, v1.MultiAgentConfigUpdate, "编辑多智能体配置中子智能体描述")
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/multi-agent/switch", http.MethodPut, v1.MultiAgentEnableSwitch, "启用/停用多智能体配置-子智能体")
 
-	mid.Sub("app.agent").Reg(apiV1, "/assistant/stream/draft", http.MethodPost, v1.DraftAssistantConversionStream, "草稿智能体流式问答", middleware.TraceWeb(constant.BizModuleAppAgent, middleware.WithDraftAppResource(constant.AppTypeAgent, "assistantId")))
+	mid.Sub("app.agent").Reg(apiV1, "/assistant/stream/draft", http.MethodPost, v1.DraftAssistantConversionStream, "草稿智能体流式问答", middleware.TraceWeb(constant.BizModuleAppAgent, middleware.WithDraftAppResource(constant.AppTypeAgent, "assistantId"), middleware.RecordConversation(assistantConvBiz, "draft")))
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/select", http.MethodGet, v1.GetAssistantSelect, "添加多智能体配置-下拉列表接口")
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/question/recommend", http.MethodPost, v1.AssistantQuestionRecommend, "智能体问题推荐接口", middleware.TraceWeb(constant.BizModuleAppAgent, middleware.WithDraftAppResource(constant.AppTypeAgent, "assistantId")))
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/conversation/draft/detail", http.MethodGet, v1.DraftAssistantConversationDetailList, "草稿智能体对话详情历史列表")
 	mid.Sub("app.agent").Reg(apiV1, "/assistant/conversation/draft", http.MethodDelete, v1.DraftAssistantConversationDelete, "草稿智能体对话删除")
-	mid.Sub("app.agent").Reg(apiV1, "/assistant/pending/conversation", http.MethodPost, v1.GetAssistantPendingConversion, "获取智能体运行中会话")
-	mid.Sub("app.agent").Reg(apiV1, "/assistant/stream/connect", http.MethodPost, v1.AssistantConversionStreamConnect, "智能体流式问答断开后重连")
-	mid.Sub("app.agent").Reg(apiV1, "/assistant/stream/cancel", http.MethodPost, v1.AssistantConversionStreamCancel, "智能体流式问答手动停止")
+	mid.Sub("app.agent").Reg(apiV1, "/assistant/draft/pending/conversation", http.MethodPost, v1.GetAssistantPendingConversion, "获取智能体运行中会话")
+	mid.Sub("app.agent").Reg(apiV1, "/assistant/draft/stream/connect", http.MethodPost, v1.AssistantConversionStreamConnect, "智能体流式问答断开后重连")
+	mid.Sub("app.agent").Reg(apiV1, "/assistant/draft/stream/cancel", http.MethodPost, v1.AssistantConversionStreamCancel, "智能体流式问答手动停止")
+	mid.Sub("app.agent").Reg(apiV1, "/assistant/draft/conversation/message/feedback", http.MethodPost, v1.MessageFeedback, "智能体消息点赞/点踩", middleware.RecordConversation(assistantConvBiz, "draft"))
+	mid.Sub("app.agent").Reg(apiV1, "/assistant/draft/conversation/log/list", http.MethodPost, v1.GetAssistantConversationLogList, "获取会话日志列表接口")
+	mid.Sub("app.agent").Reg(apiV1, "/assistant/draft/conversation/log/detail", http.MethodPost, v1.GetAssistantConversationLogDetail, "获取会话日志详情接口")
+	mid.Sub("app.agent").Reg(apiV1, "/assistant/draft/conversation/log/user/select", http.MethodPost, v1.GetAssistantConversationLogUserSelect, "会话日志使用者下拉列表接口")
 
 	// 其他权限接口
 	mid.Sub("app.agent").Reg(apiV1, "/prompt/template/list", http.MethodGet, v1.GetPromptTemplateList, "获取提示词模板列表")
@@ -64,4 +74,10 @@ func registerAssistant(apiV1 *gin.RouterGroup) {
 	mid.Sub("app.agent").Reg(apiV1, "/tool/select", http.MethodGet, v1.GetToolSelect, "智能体工具下拉列表（自定义与内置）")
 	mid.Sub("app.agent").Reg(apiV1, "/workflow/select", http.MethodGet, v1.GetWorkflowSelect, "智能体工作流下拉列表接口")
 
+	mid.Sub("app.agent").Reg(apiV1, "/conversation/draft/log/export", http.MethodPost, v1.ExportConversationLog, "草稿对话日志导出")
+	mid.Sub("app.agent").Reg(apiV1, "/conversation/draft/log/export/record/list", http.MethodGet, v1.GetConversationLogExportRecordList, "获取草稿对话日志导出记录列表")
+	mid.Sub("app.agent").Reg(apiV1, "/conversation/draft/log/export/record", http.MethodDelete, v1.DeleteConversationLogExportRecord, "删除草稿对话日志导出记录")
+	mid.Sub("app.agent").Reg(apiV1, "/conversation/log/export", http.MethodPost, v1.ExportConversationLog, "对话日志导出")
+	mid.Sub("app.agent").Reg(apiV1, "/conversation/log/export/record/list", http.MethodGet, v1.GetConversationLogExportRecordList, "获取对话日志导出记录列表")
+	mid.Sub("app.agent").Reg(apiV1, "/conversation/log/export/record", http.MethodDelete, v1.DeleteConversationLogExportRecord, "删除对话日志导出记录")
 }

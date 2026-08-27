@@ -112,6 +112,7 @@ func ChatAgent(ctx *gin.Context) {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
+	ctx.Set(gin_util.CONVERSATION_ID, req.ConversationID)
 	// 流式
 	if req.Stream {
 		if err := service.AssistantConversionStream(ctx, userID, orgID, clientID, request.ConversionStreamRequest{
@@ -292,6 +293,8 @@ func DraftChatAgent(ctx *gin.Context) {
 			req.ConversationID = convResp.ConversationId
 		}
 	}
+	// 将 conversationId 写入上下文，供 RecordConversation 中间件落库会话日志
+	ctx.Set(gin_util.CONVERSATION_ID, req.ConversationID)
 
 	if err := service.AssistantConversionStream(ctx, userID, orgID, clientID, request.ConversionStreamRequest{
 		AssistantId:    appID,

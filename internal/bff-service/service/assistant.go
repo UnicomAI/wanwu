@@ -16,6 +16,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	bff_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/util"
 	"github.com/UnicomAI/wanwu/pkg/constant"
+	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
@@ -851,6 +852,27 @@ func ConversationDelete(ctx *gin.Context, userId, orgId string, req request.Conv
 	return nil, nil
 }
 
+// MessageFeedback 智能体消息点赞/点踩
+func MessageFeedback(ctx *gin.Context, userId, orgId string, req *request.MessageFeedbackRequest) (*response.MessageFeedbackResp, error) {
+	resp, err := assistant.MessageFeedback(ctx.Request.Context(), &assistant_service.MessageFeedbackReq{
+		AssistantId:     req.AssistantId,
+		ConversationId:  req.ConversationId,
+		DetailId:        req.DetailId,
+		FeedbackType:    req.FeedbackType,
+		FeedbackContent: req.FeedbackContent,
+		Identity: &assistant_service.Identity{
+			UserId: userId,
+			OrgId:  orgId,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &response.MessageFeedbackResp{
+		FeedbackType: resp.FeedbackType,
+	}, nil
+}
+
 func ClearPublishedConversationES(ctx *gin.Context, userId, orgId string, req request.ConversationIdRequest) (interface{}, error) {
 	// 清空已发布智能体的对话ES数据（不删除会话ID）
 	_, err := assistant.ClearConversationES(ctx.Request.Context(), &assistant_service.ClearConversationESReq{
@@ -997,6 +1019,7 @@ func GetConversationDetailList(ctx *gin.Context, userId, orgId string, req reque
 			UserId: userId,
 			OrgId:  orgId,
 		},
+		ExcludeDeleted: true,
 	})
 	if err != nil {
 		return response.PageResult{}, err
@@ -1022,6 +1045,8 @@ func GetConversationDetailList(ctx *gin.Context, userId, orgId string, req reque
 			FileName:            item.FileName,
 			SubConversationList: buildSubConversationList(item.SubConversationList),
 			ResponseFiles:       transResponseFiles(item.ResponseFiles),
+			Feedback:            item.Feedback,
+			FeedbackContent:     item.FeedbackContent,
 		}
 
 		// 将SearchList从string转换为interface{}
@@ -1325,4 +1350,21 @@ func (*AssistantBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, org
 		return resp.Identity.UserId, resp.Identity.OrgId, nil
 	}
 	return "", "", errors.New("assistant not found")
+}
+
+func (*AssistantBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	// openurl 等匿名链路写 detail 用的是 xCid + appUrlInfo.OrgId，与 getUserID/getOrgID 不一致，
+	// 故由对应 handler 通过 CONVERSATION_LOG_USER_ID/CONVERSATION_LOG_ORG_ID 写入真实身份，这里优先采用。
+	orgID, userID := getOrgID(ctx), getUserID(ctx)
+	if logUserID := ctx.GetString(gin_util.CONVERSATION_LOG_USER_ID); logUserID != "" {
+		userID = logUserID
+	}
+	if logOrgID := ctx.GetString(gin_util.CONVERSATION_LOG_ORG_ID); logOrgID != "" {
+		orgID = logOrgID
+	}
+	return assistant.GetConversationLog(ctx, &assistant_service.ConversationLogReq{ConversationId: bizId, SourceFrom: sourceFrom,
+		Identity: &assistant_service.Identity{
+			OrgId:  orgID,
+			UserId: userID,
+		}})
 }

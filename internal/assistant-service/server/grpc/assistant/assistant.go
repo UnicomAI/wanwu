@@ -115,6 +115,16 @@ func (s *Service) AssistantDelete(ctx context.Context, req *assistant_service.As
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 
+	// 应用已删除，清理ES中的对话详情数据（best-effort：失败只记日志，不把已成功的删除报成失败）
+	if _, err := s.DeleteFromES(ctx, &assistant_service.DeleteFromESReq{
+		IndexName: "conversation_detail_infos_*",
+		Conditions: map[string]string{
+			"assistantId": req.AssistantId,
+		},
+	}); err != nil {
+		log.Errorf("删除智能体会话ES数据失败，assistantId: %s, err: %v", req.AssistantId, err)
+	}
+
 	return &emptypb.Empty{}, nil
 }
 

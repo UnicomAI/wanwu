@@ -68,6 +68,7 @@ service AssistantService {
   rpc GetConversationIdByAssistantId(GetConversationIdByAssistantIdReq) returns (ConversationIdResp) {}
   rpc GetConversationList(GetConversationListReq) returns (GetConversationListResp) {}
   rpc GetConversationDetailList(GetConversationDetailListReq) returns (GetConversationDetailListResp) {}
+  rpc InternalGetConversationDetailList(GetConversationDetailListReq) returns (GetConversationDetailListResp) {}
   rpc AssistantConversionStream(AssistantConversionStreamReq) returns (stream AssistantConversionStreamResp) {}
   rpc MultiAssistantConversionStream(MultiAssistantConversionStreamReq) returns (stream AssistantConversionStreamResp) {}
 
@@ -111,6 +112,14 @@ service AssistantService {
   // --- admin center ---
   rpc AdminAssistantPageList(AdminAssistantPageListReq) returns (AdminAssistantPageListResp) {}
   rpc SyncAssistantPublish(SyncAssistantPublishReq) returns (google.protobuf.Empty) {}
+
+  // --- conversation log ---
+  rpc GetConversationLog(ConversationLogReq) returns (common.ConversationLog) {}
+  // 按 conversationId 查询会话归属（assistantId/userId/orgId），用于 bff 层归属校验
+  rpc GetConversationOwner(GetConversationOwnerReq) returns (GetConversationOwnerResp) {}
+
+  // --- message feedback ---
+  rpc MessageFeedback(MessageFeedbackReq) returns (MessageFeedbackResp) {}
 }
 
 message AdminAssistantPageListReq {
@@ -151,6 +160,7 @@ message SearchFromESReq {
   int32 page_size = 4;
   string sort_field = 5;
   string sort_order = 6;
+  bool exclude_deleted = 7; // 是否过滤逻辑删除数据，true 时仅返回未删除数据
 }
 
 message SearchFromESResp {
@@ -649,6 +659,7 @@ message GetConversationDetailListReq {
   int32 pageSize = 2;
   int32 pageNo = 3;
   Identity identity = 4;
+  bool excludeDeleted = 5; //排除逻辑删除数据
 }
 
 message GetConversationDetailListResp {
@@ -685,6 +696,8 @@ message ConversionDetailInfo{
   repeated SubConversation SubConversationList = 17;//子会话相关
   repeated ConversationResponse ConversationResponse = 18;//主会话详情
   repeated AgentFile responseFiles = 19;//响应文件列表
+  int32 feedback = 20; // 当前反馈状态: 0=无 1=点赞 2=点踩
+  string feedbackContent = 21; // 反馈文本内容
 }
 
 message SubConversation {
@@ -730,6 +743,7 @@ message AssistantConversionStreamReq {
   bool draft = 6;
   Identity identity = 7;
   string detailId = 8;
+  string sourceFrom = 9;
 }
 
 message MultiAssistantConversionStreamReq {
@@ -741,6 +755,7 @@ message MultiAssistantConversionStreamReq {
   bool draft = 6;
   Identity identity = 7;
   string detailId = 8;
+  string sourceFrom = 9;
 }
 
 message ConversionStreamFile{
@@ -1149,4 +1164,34 @@ message UpdateDigitalEmployeeConversationConfigReq {
   string threadId = 1;
   common.AppModelConfig modelConfig = 2;      // 模型配置（必填）
   Identity identity = 3;
+}
+
+
+message ConversationLogReq {
+  string conversationId = 1; //会话ID
+  string sourceFrom = 2; // 请求来源
+  Identity identity = 3; //用户信息
+}
+
+message GetConversationOwnerReq {
+  string conversationId = 1; //会话ID
+}
+
+message GetConversationOwnerResp {
+  string assistantId = 1; // 会话所属智能体 id
+  string userId = 2;      // 会话属主用户 id
+  string orgId = 3;       // 会话属主组织 id
+}
+
+message MessageFeedbackReq {
+  string conversationId = 1; //会话ID
+  string detailId = 2;            // 消息详情ID
+  int32 feedbackType = 3;         // 反馈类型: 1=点赞 2=点踩
+  Identity identity = 4;          // 用户信息
+  string feedbackContent = 5;     // 反馈文本内容
+  string assistantId = 6; //智能体id
+}
+
+message MessageFeedbackResp {
+  int32 feedbackType = 1;        // 当前反馈状态: 0=无 1=点赞 2=点踩
 }

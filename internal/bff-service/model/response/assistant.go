@@ -123,6 +123,8 @@ type ConversationDetailInfo struct {
 	FileName            string                  `json:"fileName"`
 	SubConversationList []*SubConversation      `json:"subConversationList"`
 	ResponseFiles       []*AgentResponseFile    `json:"responseFiles"`
+	Feedback            int32                   `json:"feedback"`        // 当前反馈状态: 0=无 1=点赞 2=点踩
+	FeedbackContent     string                  `json:"feedbackContent"` // 反馈文本内容
 }
 
 type SubConversation struct {
@@ -228,4 +230,9 @@ type AssistantTemplateInfo struct {
 	Feature                   string   `json:"feature"`             // 特性说明
 	Scenario                  string   `json:"scenario"`            // 应用场景
 	WorkFlowConfigInstruction string   `json:"workFlowInstruction"` // 工作流配置说明
+}
+
+// MessageFeedbackResp 消息点赞/点踩响应
+type MessageFeedbackResp struct {
+	FeedbackType int32 `json:"feedbackType"` // 当前反馈状态: 0=无 1=点赞 2=点踩
 }

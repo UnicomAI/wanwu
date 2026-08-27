@@ -1,5 +1,9 @@
 package model
 
+import (
+	"time"
+)
+
 type ConversationType string
 type SubEventStatus int
 
@@ -17,6 +21,9 @@ const (
 	EventProcessStatus SubEventStatus = 2 //输出中
 	EventEndStatus     SubEventStatus = 3 //结束事件
 	EventFailStatus    SubEventStatus = 4 //子智能体失败
+
+	FeedBackLike    int32 = 1 //点赞类型
+	FeedBackDislike int32 = 2 //点踩类型
 )
 
 type FileInfo struct {
@@ -37,6 +44,44 @@ type AgentMeta struct {
 	Desc     string `json:"desc"`
 	CreateAt string `json:"createAt"`
 	Name     string `json:"name"`
+}
+
+type AgentStatistic struct {
+	// 统计字段
+	StartTime         int64  `json:"startTime"`         // 请求开始时间戳(毫秒)
+	FirstTokenLatency int64  `json:"firstTokenLatency"` // 首token延时(毫秒)
+	TotalCostTime     int64  `json:"totalCostTime"`     //总消耗时间
+	ErrMessage        string `json:"errMessage"`        //是否有报错
+	SourceFrom        string `json:"sourceFrom"`        //来源类型：web/openapi/webUrl/draft
+	TraceId           string `json:"traceId"`           // 追踪ID
+}
+
+func (a *AgentStatistic) SetFirstTokenLatency() {
+	if a.FirstTokenLatency == 0 {
+		span := time.Now().UnixMilli() - a.StartTime
+		if span <= 0 { //处理兜底情况
+			span = 1
+		}
+		a.FirstTokenLatency = span
+	}
+}
+
+func (a *AgentStatistic) SetTotalCostTime() {
+	a.TotalCostTime = time.Now().UnixMilli() - a.StartTime
+}
+
+func (a *AgentStatistic) SetErr(err error) {
+	if err != nil {
+		a.ErrMessage = err.Error()
+	}
+}
+
+func (a *AgentStatistic) SetTraceId(traceId string) {
+	a.TraceId = traceId
+}
+
+func (a *AgentStatistic) SetSourceFrom(sourceFrom string) {
+	a.SourceFrom = sourceFrom
 }
 
 type SubEventData struct {
@@ -104,4 +149,8 @@ type ConversationDetails struct {
 	CreatedAt                 int64                    `json:"createdAt"`
 	UpdatedAt                 int64                    `json:"updatedAt"`
 	ResponseFiles             []*AgentFile             `json:"responseFiles"`
+	Statistic                 *AgentStatistic          `json:"statistic"`
+	Deleted                   bool                     `json:"deleted"`         // 逻辑删除标记，true 表示已删除
+	Feedback                  int32                    `json:"feedback"`        // 当前反馈状态: 0=无 1=点赞 2=点踩
+	FeedbackContent           string                   `json:"feedbackContent"` // 反馈文本内容
 }

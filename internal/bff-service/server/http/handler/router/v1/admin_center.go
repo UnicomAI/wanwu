@@ -58,6 +58,11 @@ var sensitiveWordBiz = &middleware.AdminCenterBiz{
 	BizType: constant.BizModuleResourceSafety,
 }
 
+var appBiz = &middleware.AdminCenterBiz{
+	BizId:        "appId",
+	BizTypeField: "appType",
+}
+
 func registerAdminCenter(apiV1 *gin.RouterGroup) {
 	// user
 	mid.Sub("admin_center").Reg(apiV1, "/user", http.MethodPost, v1.CreateUser, "创建用户", middleware.CheckOrgAdmin)
@@ -125,6 +130,10 @@ func registerAdminCenter(apiV1 *gin.RouterGroup) {
 	mid.Sub("admin_center").Reg(apiAdminCenter, "/rag/page/list", http.MethodPost, v1.AdminRagPageList, "知识问答全局列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, ragBiz))
 	mid.Sub("admin_center").Reg(apiAdminCenter, "/rag/base", http.MethodPost, v1.AdminRagBase, "知识问答基础信息", middleware.AuthAdminCenter(middleware.AdminBizCheck, ragBiz))
 	mid.Sub("admin_center").Reg(apiAdminCenter, "/rag/detail", http.MethodPost, v1.AdminRagDetail, "知识问答详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, ragBiz))
+	mid.Sub("admin_center").Reg(apiAdminCenter, "/rag/conversation/log/list", http.MethodPost, v1.AdminRagConversationLogList, "获取会话日志列表接口", middleware.AuthAdminCenter(middleware.AdminBizCheck, appBiz))
+	mid.Sub("admin_center").Reg(apiAdminCenter, "/rag/conversation/log/detail", http.MethodPost, v1.AdminRagConversationLogDetail, "获取会话日志详情接口", middleware.AuthAdminCenter(middleware.AdminBizCheck, appBiz))
+	mid.Sub("admin_center").Reg(apiAdminCenter, "/rag/conversation/log/user/select", http.MethodPost, v1.AdminRagConversationLogUserSelect, "获取会话日志使用者接口", middleware.AuthAdminCenter(middleware.AdminBizCheck, appBiz))
+
 	// mcp
 	mid.Sub("admin_center").Reg(apiAdminCenter, "/mcp/page/list", http.MethodPost, v1.AdminMCPPageList, "MCP全局列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, mcpBiz))
 	mid.Sub("admin_center").Reg(apiAdminCenter, "/mcp/base", http.MethodPost, v1.AdminMCPBase, "MCP基础信息", middleware.AuthAdminCenter(middleware.AdminBizCheck, mcpBiz))
@@ -143,6 +152,10 @@ func registerAdminCenter(apiV1 *gin.RouterGroup) {
 	mid.Sub("admin_center").Reg(apiAdminCenter, "/assistant/page/list", http.MethodPost, v1.AdminAssistantPageList, "智能体全局列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, assistantBiz))
 	mid.Sub("admin_center").Reg(apiAdminCenter, "/assistant/base", http.MethodPost, v1.AdminAssistantBase, "智能体基础信息", middleware.AuthAdminCenter(middleware.AdminBizCheck, assistantBiz))
 	mid.Sub("admin_center").Reg(apiAdminCenter, "/assistant/detail", http.MethodPost, v1.AdminAssistantDetail, "智能体业务详情", middleware.AuthAdminCenter(middleware.AdminBizCheck, assistantBiz))
+	mid.Sub("admin_center").Reg(apiAdminCenter, "/assistant/conversation/log/list", http.MethodPost, v1.AdminAssistantConversationLogList, "获取会话日志列表接口", middleware.AuthAdminCenter(middleware.AdminBizCheck, appBiz))
+	mid.Sub("admin_center").Reg(apiAdminCenter, "/assistant/conversation/log/detail", http.MethodPost, v1.AdminAssistantConversationLogDetail, "获取会话日志详情接口", middleware.AuthAdminCenter(middleware.AdminBizCheck, appBiz))
+	mid.Sub("admin_center").Reg(apiAdminCenter, "/assistant/conversation/log/user/select", http.MethodPost, v1.AdminAssistantConversationLogUserSelect, "获取会话日志使用者接口", middleware.AuthAdminCenter(middleware.AdminBizCheck, appBiz))
+
 	// sensitive
 	mid.Sub("admin_center").Reg(apiAdminCenter, "/sensitive/page/list", http.MethodPost, v1.AdminSensitiveWordPageList, "敏感词全局列表", middleware.AuthAdminCenter(middleware.AdminOrgCheck, sensitiveWordBiz))
 	mid.Sub("admin_center").Reg(apiAdminCenter, "/sensitive/base", http.MethodPost, v1.AdminSensitiveWordBase, "敏感词基础信息", middleware.AuthAdminCenter(middleware.AdminBizCheck, sensitiveWordBiz))

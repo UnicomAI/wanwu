@@ -725,3 +725,123 @@ func AdminSensitiveWordDetail(ctx *gin.Context) {
 	resp, err := service.AdminSensitiveWordDetail(ctx, &req)
 	gin_util.Response(ctx, resp, err)
 }
+
+// AdminAssistantConversationLogList
+//
+//	@Tags			admin_center.assistant
+//	@Summary		获取会话日志列表
+//	@Description	获取会话日志列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.GetConversationLogListRequest	true	"获取会话日志列表"
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.ConversationLogInfo}}
+//	@Router			/admin/center/assistant/conversation/log/list [post]
+func AdminAssistantConversationLogList(ctx *gin.Context) {
+	var req request.GetConversationLogListRequest
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminConversationLogList(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminAssistantConversationLogDetail
+//
+//	@Tags			admin_center.assistant
+//	@Summary		获取会话日志详情
+//	@Description	获取会话日志详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.GetConversationLogDetailRequest	true	"获取会话日志详情"
+//	@Success		200		{object}	response.Response{data=response.PageResult{list=[]response.ConversationDetailInfo}}
+//	@Router			/admin/center/assistant/conversation/log/detail [post]
+func AdminAssistantConversationLogDetail(ctx *gin.Context) {
+	var req request.GetConversationLogDetailRequest
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminAssistantConversationLogDetail(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminAssistantConversationLogUserSelect
+//
+//	@Tags			admin_center.assistant
+//	@Summary		获取会话日志使用者列表
+//	@Description	获取会话日志使用者列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.GetConversationLogUserSelectRequest	true	"会话日志使用者列表"
+//	@Success		200		{object}	response.Response{data=response.Users}
+//	@Router			/admin/center/assistant/conversation/log/user/select [post]
+func AdminAssistantConversationLogUserSelect(ctx *gin.Context) {
+	var req request.GetConversationLogUserSelectRequest
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminAssistantConversationLogUserSelect(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminRagConversationLogList
+//
+//	@Tags			admin_center.rag
+//	@Summary		获取会话日志列表
+//	@Description	获取会话日志列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.GetConversationLogListRequest	true	"获取会话日志列表"
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.ConversationLogInfo}}
+//	@Router			/admin/center/rag/conversation/log/list [post]
+func AdminRagConversationLogList(ctx *gin.Context) {
+	var req request.GetConversationLogListRequest
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminConversationLogList(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// AdminRagConversationLogDetail
+//
+//	@Tags			admin_center.rag
+//	@Summary		获取会话日志详情
+//	@Description	获取会话日志详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.GetConversationLogDetailRequest	true	"获取会话日志详情"
+//	@Success		200		{object}	response.Response{data=response.PageResult{list=[]response.RagConversationDetailInfo}}
+//	@Router			/admin/center/rag/conversation/log/detail [post]
+func AdminRagConversationLogDetail(ctx *gin.Context) {
+	//var req request.GetConversationLogDetailRequest
+	//if !gin_util.Bind(ctx, &req) {
+	//	return
+	//}
+	//resp, err := service.AdminAssistantConversationLogDetail(ctx, getUserID(ctx), getOrgID(ctx), req)
+	//gin_util.Response(ctx, resp, err)
+}
+
+// AdminRagConversationLogUserSelect
+//
+//	@Tags			admin_center.rag
+//	@Summary		获取会话日志使用者列表
+//	@Description	获取会话日志使用者列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.GetConversationLogUserSelectRequest	true	"会话日志使用者列表"
+//	@Success		200		{object}	response.Response{data=response.Users}
+//	@Router			/admin/center/rag/conversation/log/user/select [post]
+func AdminRagConversationLogUserSelect(ctx *gin.Context) {
+	var req request.GetConversationLogUserSelectRequest
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AdminAssistantConversationLogUserSelect(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, resp, err)
+}

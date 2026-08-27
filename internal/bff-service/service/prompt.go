@@ -2,6 +2,7 @@ package service
 
 import (
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
@@ -31,6 +32,10 @@ func (*PromptBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId 
 		return "", "", nil
 	}
 	return resp.Identity.UserId, resp.Identity.OrgId, nil
+}
+
+func (*PromptBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
 }
 
 func CreateCustomPrompt(ctx *gin.Context, userId, orgId string, req request.CustomPromptCreate) (*response.CustomPromptIDResp, error) {

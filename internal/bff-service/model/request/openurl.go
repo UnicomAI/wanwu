@@ -59,3 +59,11 @@ type UrlQuestionRecommendRequest struct {
 	Query          string `json:"query" form:"query"  validate:"required"`
 	CommonCheck
 }
+
+type UrlMessageFeedbackRequest struct {
+	ConversationId  string `json:"conversationId" form:"conversionId" validate:"required"`
+	DetailId        string `json:"detailId" form:"detailId" validate:"required"` // 消息详情ID
+	FeedbackType    int32  `json:"feedbackType" form:"feedbackType"`             // 反馈类型: 1=点赞 2=点踩
+	FeedbackContent string `json:"feedbackContent" form:"feedbackContent"`       // 反馈文本内容
+	CommonCheck
+}
