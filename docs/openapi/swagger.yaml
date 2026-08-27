@@ -3059,7 +3059,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: 更新智能体配置OpenAPI
+      description: 更新开场白、提示词、模型、知识库等配置。除 assistantUuid 外均为可选，只传要改的字段，未传的沿用当前草稿配置；模型
+        id 传模型UUID。
       parameters:
       - description: 请求参数
         in: body

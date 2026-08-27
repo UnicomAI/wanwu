@@ -1,9 +1,9 @@
 package service
 
 import (
-	"fmt"
-
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
+	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
+	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,10 +18,10 @@ func CheckOpenAPIAccess(ctx *gin.Context, appId, appType, userId, orgId string) 
 		return err
 	}
 	if appInfo.PublishType == "" {
-		return fmt.Errorf("permission denied: app not published")
+		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_app_publish_no_permission")
 	}
 	if appInfo.UserId != userId || appInfo.OrgId != orgId {
-		return fmt.Errorf("permission denied: openapi can only access app created by yourself")
+		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_openapi_app_not_owner")
 	}
 	return nil
 }

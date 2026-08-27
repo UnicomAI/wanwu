@@ -28,7 +28,10 @@
 {"code":110004,"key":"bff_auth_code_not_define","langs":{"en":"code currently undefined","zh":"code暂无定义"}}
 {"code":0,"key":"------ org ------","langs":{}}
 {"code":110000,"key":"bff_app_publish_no_permission","langs":{"en":"app not published or no access permission","zh":"应用未发布或无访问权限"}}
+{"code":110000,"key":"bff_openapi_app_not_owner","langs":{"en":"openapi can only access app created by yourself","zh":"OpenAPI 只能访问自己创建的应用"}}
 {"code":110000,"key":"bff_rag_conversation_no_permission","langs":{"en":"conversation not found or no access permission","zh":"会话不存在或无访问权限"}}
+{"code":110000,"key":"bff_agent_prologue_required","langs":{"en":"prologue not configured, please set it via the config update api first","zh":"开场白未配置，请先通过配置更新接口设置开场白"}}
+{"code":110000,"key":"bff_agent_model_required","langs":{"en":"llm not configured, please set it via the config update api first","zh":"大模型未配置，请先通过配置更新接口设置大模型"}}
 {"code":110000,"key":"bff_org_disable","langs":{"en":"the organization has been deactivated","zh":"组织已停用"}}
 {"code":110000,"key":"bff_org_cannot_change","langs":{"en":"cannot modify organization","zh":"无法编辑组织"}}
 {"code":110000,"key":"bff_org_cannot_delete","langs":{"en":"cannot delete organization","zh":"无法删除组织"}}
@@ -487,6 +490,7 @@
 {"code":160001,"key":"assistants_get_by_ids","langs":{"zh":"获取智能体错误: %v"}}
 {"code":160001,"key":"assistants_get_list","langs":{"zh":"获取智能体列表错误: %v"}}
 {"code":160001,"key":"assistant_get_by_name","langs":{"zh":"获取智能体错误: %v"}}
+{"code":160001,"key":"assistant_get_by_uuid","langs":{"zh":"获取智能体错误: %v"}}
 {"code":160001,"key":"assistant_same_name","langs":{"zh":"智能体名称重复: %v"}}
 {"code":160001,"key":"assistant_modelConfig_unmarshal","langs":{"zh":"智能体model配置解析失败: %v"}}
 {"code":160001,"key":"assistant_modelConfig_marshal","langs":{"zh":"智能体model配置解析失败: %v"}}
@@ -527,7 +531,7 @@
 {"code":160004,"key":"assistant_conversation_create","langs":{"zh":"创建对话错误"}}
 {"code":160004,"key":"assistant_conversation_update","langs":{"zh":"更新对话错误"}}
 {"code":160004,"key":"assistant_conversation_delete","langs":{"zh":"删除对话错误"}}
-{"code":160004,"key":"assistant_conversation_get","langs":{"zh":"获取对话错误"}}
+{"code":160004,"key":"assistant_conversation_get","langs":{"zh":"获取对话错误: %v"}}
 {"code":160004,"key":"assistant_conversation_get_list","langs":{"zh":"获取对话列表错误"}}
 {"code":160004,"key":"assistant_conversation","langs":{"zh":"智能体对话错误: %v"}}
 {"code":160005,"key":"assistant_mcp_create","langs":{"zh":"创建mcp错误: %v"}}
