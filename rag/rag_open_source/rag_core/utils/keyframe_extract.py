@@ -156,12 +156,17 @@ def diff_exaction(video_path, use_thresh=True, thresh=0.6, use_local_maximal=Tru
     # 局部极值筛选
     if use_local_maximal:
         diff_array = np.array(frame_diffs)
-        sm_diff_array = smooth(diff_array, len_window)
-        frame_indexes = np.asarray(argrelextrema(sm_diff_array, np.greater))[0]
+        # 自适应窗口：短视频帧数 < len_window 时 smooth 会返回空数组（切片两端越过中点），
+        # 导致局部极值筛选整路失效、抽不到任何关键帧。将窗口限制为不超过数据长度，
+        # 并保证 hanning 窗至少为 3。长视频（帧数 >= len_window）行为完全不变。
+        actual_window = max(3, min(len_window, len(diff_array)))
+        if len(diff_array) >= actual_window:
+            sm_diff_array = smooth(diff_array, actual_window)
+            frame_indexes = np.asarray(argrelextrema(sm_diff_array, np.greater))[0]
 
-        for i in frame_indexes:
-            if i < len(frames):
-                keyframe_id_set.add(frames[i].id)
+            for i in frame_indexes:
+                if i < len(frames):
+                    keyframe_id_set.add(frames[i].id)
 
     # 第一次筛选：按 frame_interval 控制最小间隔
     reduced_keyframes = set()
@@ -236,6 +241,7 @@ def exact(video_path, parser_choices, multimodal_model_id):
             save_name = f"{file_name}_{idx}.jpg"
             image_desc_text = ""
             image_minio_url = ""
+            image_text = ""
             # file_path = "./keyframe/" + save_name
             image_filepath = os.path.join(keyframe_dir, save_name)
             # file_path = os.path.join(directory, f"/keyframe/{save_name}")
@@ -262,7 +268,7 @@ def exact(video_path, parser_choices, multimodal_model_id):
             elif image_desc_text and NO_CONTENT not in image_desc_text:
                 image_text = f"画面的描述：{image_desc_text}"
 
-            if image_text and NO_CONTENT not in image_desc_text:
+            if image_text:
                 page_chunk = {}
                 page_chunk["text"] = image_text
                 page_chunk["file_path"] = video_path
@@ -313,6 +319,7 @@ def exact_text(video_path, parser_choices, multimodal_model_id):
             save_name = f"{file_name}_{idx}.jpg"
             image_desc_text = ""
             image_minio_url = ""
+            image_text = ""
             image_filepath = os.path.join(keyframe_dir, save_name)
             cv2.imwrite(image_filepath, frame)
 
@@ -338,7 +345,7 @@ def exact_text(video_path, parser_choices, multimodal_model_id):
             elif image_desc_text and NO_CONTENT not in image_desc_text:
                 image_text = f"画面的描述：{image_desc_text}"
 
-            if image_text and NO_CONTENT not in image_desc_text:
+            if image_text:
                 text += image_text + "\n"
 
             logger.info("========>image:%s, text:%s" % (save_name, image_text))
