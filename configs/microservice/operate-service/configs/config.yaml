@@ -59,6 +59,10 @@ db:
 iam:
   host: iam-service:8888
 
+# 消息中心 actions 清洗：agent 老 id → uuid 依赖 assistant
+assistant:
+  host: assistant-service:8890
+
 # --- 消息中心 ---
 notice:
   max_audience_size: 500  # 特定用户名单 S 上限；超限拒绝生成该事件消息（打点告警），不阻塞业务

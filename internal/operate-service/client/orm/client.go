@@ -6,6 +6,7 @@ import (
 	"log"
 
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
+	"github.com/UnicomAI/wanwu/internal/operate-service/client/assistant"
 	"github.com/UnicomAI/wanwu/internal/operate-service/client/iam"
 	"github.com/UnicomAI/wanwu/internal/operate-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/operate-service/config"
@@ -30,11 +31,13 @@ type Client struct {
 	db *gorm.DB
 	// iam 消息中心的受众校验与 joinedAt 查询数据源
 	iam iam.IClient
+	// assistant 消息中心 actions 清洗（agent 老 id → uuid）数据源
+	assistant assistant.IClient
 	// notice 消息中心配置（名单上限）
 	notice config.NoticeConfig
 }
 
-func NewClient(db *gorm.DB, iamCli iam.IClient, noticeCfg config.NoticeConfig) (*Client, error) {
+func NewClient(db *gorm.DB, iamCli iam.IClient, assistantCli assistant.IClient, noticeCfg config.NoticeConfig) (*Client, error) {
 	// auto migrate
 	if err := db.AutoMigrate(
 		model.SystemCustom{},
@@ -46,13 +49,20 @@ func NewClient(db *gorm.DB, iamCli iam.IClient, noticeCfg config.NoticeConfig) (
 		model.MessageAudience{},
 		model.UserStatus{},
 		model.ReadWatermark{},
+		// 迁移状态标记表（仿 app-service：版本 key 门控一次性迁移）
+		Metadata{},
 	); err != nil {
 		return nil, err
 	}
 	c := &Client{
-		db:     db,
-		iam:    iamCli,
-		notice: noticeCfg.Fill(),
+		db:        db,
+		iam:       iamCli,
+		assistant: assistantCli,
+		notice:    noticeCfg.Fill(),
+	}
+	// 一次性迁移：notice_messages.actions 中 agent 的 appId（老 id）→ uuid
+	if err := migrateAgentAppIDToUUID(db, c.assistant); err != nil {
+		return nil, err
 	}
 	// init corn
 	if err := CronInit(db); err != nil {

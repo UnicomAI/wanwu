@@ -16,15 +16,15 @@ import (
 )
 
 func (s *Service) AssistantSnapshotCreate(ctx context.Context, req *assistant_service.AssistantSnapshotReq) (snapshot *assistant_service.AssistantSnapshotResp, err error) {
-	assistantId, _ := util.U32(req.AssistantId)
-	// 获取assistant详情
-	assistant, status := s.cli.GetAssistant(ctx, assistantId, req.Identity.UserId, req.Identity.OrgId)
+	// 通过 UUID 获取自增 ID（带权限校验）
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, req.Identity.UserId, req.Identity.OrgId)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 	if assistant == nil {
 		return nil, errStatus(errs.Code_AssistantErr, toErrStatus("assistant_snapshot", "assistant info is nil"))
 	}
+	assistantId := assistant.ID
 
 	// 获取工作流配置详情
 	workflows, status := s.cli.GetAssistantWorkflowsByAssistantID(ctx, assistantId)
@@ -99,9 +99,13 @@ func (s *Service) AssistantSnapshotCreate(ctx context.Context, req *assistant_se
 }
 
 func (s *Service) AssistantSnapshotUpdate(ctx context.Context, req *assistant_service.AssistantSnapshotUpdateReq) (*emptypb.Empty, error) {
-	assistantId, _ := util.U32(req.AssistantId)
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, req.Identity.UserId, req.Identity.OrgId)
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	assistantId := assistant.ID
 
-	status := s.cli.UpdateAssistantSnapshot(ctx, assistantId, req.Desc, req.Extra, req.Identity.UserId, req.Identity.OrgId)
+	status = s.cli.UpdateAssistantSnapshot(ctx, assistantId, req.Desc, req.Extra, req.Identity.UserId, req.Identity.OrgId)
 	if status != nil {
 		log.Errorf("UpdateAssistantSnapshot failed: %v", status)
 		return nil, errStatus(errs.Code_AssistantErr, status)
@@ -110,7 +114,11 @@ func (s *Service) AssistantSnapshotUpdate(ctx context.Context, req *assistant_se
 }
 
 func (s *Service) AssistantSnapshotList(ctx context.Context, req *assistant_service.AssistantSnapshotListReq) (*assistant_service.AssistantSnapshotListResp, error) {
-	assistantId, _ := util.U32(req.AssistantId)
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	assistantId := assistant.ID
 
 	assistantSnapshots, status := s.cli.GetAssistantSnapshotList(ctx, assistantId, req.Identity.UserId, req.Identity.OrgId)
 	if status != nil {
@@ -121,7 +129,7 @@ func (s *Service) AssistantSnapshotList(ctx context.Context, req *assistant_serv
 	for _, snapshot := range assistantSnapshots {
 		resp = append(resp, &assistant_service.AssistantSnapshot{
 			SnapshotId:  util.Int2Str(snapshot.ID),
-			AssistantId: util.Int2Str(snapshot.AssistantID),
+			AssistantId: assistant.UUID,
 			Version:     snapshot.Version,
 			Desc:        snapshot.SnapshotDesc,
 			CreateAt:    snapshot.CreatedAt,
@@ -135,7 +143,11 @@ func (s *Service) AssistantSnapshotList(ctx context.Context, req *assistant_serv
 }
 
 func (s *Service) AssistantSnapshotLatest(ctx context.Context, req *assistant_service.AssistantSnapshotInfoReq) (*assistant_service.AssistantSnapshot, error) {
-	assistantId := util.MustU32(req.AssistantId)
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	assistantId := assistant.ID
 	snapshotInfo, status := s.cli.GetAssistantSnapshot(ctx, assistantId, "")
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
@@ -145,7 +157,7 @@ func (s *Service) AssistantSnapshotLatest(ctx context.Context, req *assistant_se
 	}
 	return &assistant_service.AssistantSnapshot{
 		SnapshotId:  util.Int2Str(snapshotInfo.ID),
-		AssistantId: util.Int2Str(snapshotInfo.AssistantID),
+		AssistantId: assistant.UUID,
 		Version:     snapshotInfo.Version,
 		Desc:        snapshotInfo.SnapshotDesc,
 		Extra:       snapshotInfo.SnapshotExtra,
@@ -158,10 +170,17 @@ func (s *Service) AssistantSnapshotLatestBatch(ctx context.Context, req *assista
 	if len(req.AssistantIdList) == 0 {
 		return &assistant_service.AssistantSnapshotLatestBatchResp{List: []*assistant_service.AssistantSnapshot{}}, nil
 	}
-	// 转换 assistantId 列表
-	assistantIds := make([]uint32, 0, len(req.AssistantIdList))
-	for _, idStr := range req.AssistantIdList {
-		assistantIds = append(assistantIds, util.MustU32(idStr))
+	// assistantIdList 为业务唯一 UUID 列表，批量转换为自增 ID
+	assistants, status := s.cli.GetAssistantsByUuids(ctx, req.AssistantIdList)
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	assistantIds := make([]uint32, 0, len(assistants))
+	for _, assistant := range assistants {
+		assistantIds = append(assistantIds, assistant.ID)
+	}
+	if len(assistantIds) == 0 {
+		return &assistant_service.AssistantSnapshotLatestBatchResp{List: []*assistant_service.AssistantSnapshot{}}, nil
 	}
 	// 批量查询 snapshot
 	snapshotList, status := s.cli.GetAssistantSnapshotListByAssistantIds(ctx, assistantIds)
@@ -175,12 +194,16 @@ func (s *Service) AssistantSnapshotLatestBatch(ctx context.Context, req *assista
 			snapshotMap[snapshot.AssistantID] = snapshot
 		}
 	}
+	uuidMap := make(map[uint32]string, len(assistants))
+	for _, a := range assistants {
+		uuidMap[a.ID] = a.UUID
+	}
 	// 构建响应
 	resp := make([]*assistant_service.AssistantSnapshot, 0, len(snapshotMap))
 	for _, snapshot := range snapshotMap {
 		resp = append(resp, &assistant_service.AssistantSnapshot{
 			SnapshotId:  util.Int2Str(snapshot.ID),
-			AssistantId: util.Int2Str(snapshot.AssistantID),
+			AssistantId: uuidMap[snapshot.AssistantID],
 			Version:     snapshot.Version,
 			Desc:        snapshot.SnapshotDesc,
 			CreateAt:    snapshot.CreatedAt,
@@ -191,7 +214,13 @@ func (s *Service) AssistantSnapshotLatestBatch(ctx context.Context, req *assista
 }
 
 func (s *Service) AssistantSnapshotInfo(ctx context.Context, req *assistant_service.AssistantSnapshotInfoReq) (*assistant_service.AssistantInfo, error) {
-	snapshotInfo, status := s.cli.GetAssistantSnapshot(ctx, util.MustU32(req.AssistantId), req.Version)
+	// 通过 UUID 获取自增 ID（带权限校验）
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	assistantId := assistant.ID
+	snapshotInfo, status := s.cli.GetAssistantSnapshot(ctx, assistantId, req.Version)
 
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
@@ -375,7 +404,7 @@ func (s *Service) AssistantSnapshotInfo(ctx context.Context, req *assistant_serv
 	}
 
 	return &assistant_service.AssistantInfo{
-		AssistantId: util.Int2Str(snapshotAssistant.ID),
+		AssistantId: snapshotAssistant.UUID,
 		Identity: &assistant_service.Identity{
 			UserId: snapshotInfo.UserId,
 			OrgId:  snapshotInfo.OrgId,
@@ -410,7 +439,12 @@ func (s *Service) AssistantSnapshotInfo(ctx context.Context, req *assistant_serv
 }
 
 func (s *Service) AssistantSnapshotRollback(ctx context.Context, req *assistant_service.AssistantSnapshotRollbackReq) (*emptypb.Empty, error) {
-	assistantId := util.MustU32(req.AssistantId)
+	// 通过 UUID 获取自增 ID（带权限校验）
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	assistantId := assistant.ID
 	version := req.Version
 	if version == "" {
 		return nil, errStatus(errs.Code_AssistantErr, toErrStatus("assistant_snapshot", "version is empty"))

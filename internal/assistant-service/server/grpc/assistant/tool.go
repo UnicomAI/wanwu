@@ -6,7 +6,6 @@ import (
 
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
-	"github.com/UnicomAI/wanwu/pkg/util"
 	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -19,7 +18,11 @@ func (s *Service) AssistantToolDeleteByToolId(ctx context.Context, req *assistan
 }
 
 func (s *Service) AssistantToolCreate(ctx context.Context, req *assistant_service.AssistantToolCreateReq) (*empty.Empty, error) {
-	assistantId := util.MustU32(req.AssistantId)
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantToolErr, status)
+	}
+	assistantId := assistant.ID
 
 	if status := s.cli.CreateAssistantTool(ctx, assistantId, req.ToolId, req.ToolType, req.ActionName, req.Identity.UserId, req.Identity.OrgId); status != nil {
 		return nil, errStatus(errs.Code_AssistantToolErr, status)
@@ -29,7 +32,12 @@ func (s *Service) AssistantToolCreate(ctx context.Context, req *assistant_servic
 }
 
 func (s *Service) AssistantToolDelete(ctx context.Context, req *assistant_service.AssistantToolDeleteReq) (*empty.Empty, error) {
-	assistantId := util.MustU32(req.AssistantId)
+	// 该请求无 Identity，按 UUID 获取自增 ID（无权限过滤）
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantToolErr, status)
+	}
+	assistantId := assistant.ID
 
 	if status := s.cli.DeleteAssistantTool(ctx, assistantId, req.ToolId, req.ToolType, req.ActionName); status != nil {
 		return nil, errStatus(errs.Code_AssistantToolErr, status)
@@ -38,7 +46,11 @@ func (s *Service) AssistantToolDelete(ctx context.Context, req *assistant_servic
 }
 
 func (s *Service) AssistantToolEnableSwitch(ctx context.Context, req *assistant_service.AssistantToolEnableSwitchReq) (*empty.Empty, error) {
-	assistantId := util.MustU32(req.AssistantId)
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantToolErr, status)
+	}
+	assistantId := assistant.ID
 
 	existingCustom, status := s.cli.GetAssistantTool(ctx, assistantId, req.ToolId, req.ToolType, req.ActionName)
 	if status != nil {
@@ -53,7 +65,11 @@ func (s *Service) AssistantToolEnableSwitch(ctx context.Context, req *assistant_
 }
 
 func (s *Service) AssistantToolConfig(ctx context.Context, req *assistant_service.AssistantToolConfigReq) (*empty.Empty, error) {
-	assistantId := util.MustU32(req.AssistantId)
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantToolErr, status)
+	}
+	assistantId := assistant.ID
 
 	if status := s.cli.UpdateAssistantToolConfig(ctx, assistantId, req.ToolId, req.ToolConfig); status != nil {
 		return nil, errStatus(errs.Code_AssistantToolErr, status)

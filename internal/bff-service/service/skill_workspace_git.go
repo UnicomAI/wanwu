@@ -237,6 +237,9 @@ func GetGitStatus(ctx *gin.Context, userId, orgId string, req request.GitStatusR
 // GitAdd 暂存文件。
 func GitAdd(ctx *gin.Context, userId, orgId string, req request.GitAddReq) error {
 	log.Infof("[Workspace] GitAdd user=%s org=%s skill=%s paths=%v", userId, orgId, req.CustomSkillID, req.Paths)
+	if err := authorizeSkillWorkspaceEdit(ctx, userId, orgId, req.CustomSkillID); err != nil {
+		return err
+	}
 	ws, err := resolveInitializedSkillWorkspace(req.CustomSkillID)
 	if err != nil {
 		return err
@@ -252,6 +255,9 @@ func GitAdd(ctx *gin.Context, userId, orgId string, req request.GitAddReq) error
 // GitReset 取消暂存文件。
 func GitReset(ctx *gin.Context, userId, orgId string, req request.GitResetReq) error {
 	log.Infof("[Workspace] GitReset user=%s org=%s skill=%s paths=%v", userId, orgId, req.CustomSkillID, req.Paths)
+	if err := authorizeSkillWorkspaceEdit(ctx, userId, orgId, req.CustomSkillID); err != nil {
+		return err
+	}
 	ws, err := resolveInitializedSkillWorkspace(req.CustomSkillID)
 	if err != nil {
 		return err
@@ -267,6 +273,9 @@ func GitReset(ctx *gin.Context, userId, orgId string, req request.GitResetReq) e
 // GitRestore 恢复整个 Skill 工作区到指定 commit。
 func GitRestore(ctx *gin.Context, userId, orgId string, req request.GitRestoreReq) error {
 	log.Infof("[Workspace] GitRestore user=%s org=%s skill=%s commit=%s", userId, orgId, req.CustomSkillID, req.Commit)
+	if err := authorizeSkillWorkspaceEdit(ctx, userId, orgId, req.CustomSkillID); err != nil {
+		return err
+	}
 	ws, err := resolveInitializedSkillWorkspace(req.CustomSkillID)
 	if err != nil {
 		return err
@@ -282,6 +291,9 @@ func GitRestore(ctx *gin.Context, userId, orgId string, req request.GitRestoreRe
 // GitDiscardWorkingTree 放弃未暂存的工作区变更。
 func GitDiscardWorkingTree(ctx *gin.Context, userId, orgId string, req request.GitDiscardReq) error {
 	log.Infof("[Workspace] GitDiscard user=%s org=%s skill=%s paths=%v", userId, orgId, req.CustomSkillID, req.Paths)
+	if err := authorizeSkillWorkspaceEdit(ctx, userId, orgId, req.CustomSkillID); err != nil {
+		return err
+	}
 	ws, err := resolveInitializedSkillWorkspace(req.CustomSkillID)
 	if err != nil {
 		return err
@@ -297,6 +309,9 @@ func GitDiscardWorkingTree(ctx *gin.Context, userId, orgId string, req request.G
 // GitCommitAction 提交已暂存的变更。
 func GitCommitAction(ctx *gin.Context, userId, orgId string, req request.GitCommitReq) (string, error) {
 	log.Infof("[Workspace] GitCommit user=%s org=%s skill=%s msgLen=%d", userId, orgId, req.CustomSkillID, len(req.Message))
+	if err := authorizeSkillWorkspaceEdit(ctx, userId, orgId, req.CustomSkillID); err != nil {
+		return "", err
+	}
 	ws, err := resolveInitializedSkillWorkspace(req.CustomSkillID)
 	if err != nil {
 		return "", err

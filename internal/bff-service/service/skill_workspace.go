@@ -107,7 +107,14 @@ func ensureGitInitializedAt(customSkillID, skillDir string) (bool, error) {
 
 // workspaceFilePath 解析工作区内文件路径并返回绝对路径与清理后的相对路径。
 func workspaceFilePath(basePath, relativePath string) (string, string, error) {
-	return path_util.JoinWithinBase(basePath, relativePath, false)
+	fullPath, cleanPath, err := path_util.JoinWithinBase(basePath, relativePath, false)
+	if err != nil {
+		return "", "", err
+	}
+	if isWorkspaceMetadataPath(cleanPath) {
+		return "", "", fmt.Errorf("workspace metadata path is not allowed")
+	}
+	return fullPath, cleanPath, nil
 }
 
 // commitSkillWorkspaceIfFirstCommit 在 skill git 工作区"从未提交(无 HEAD)"时，

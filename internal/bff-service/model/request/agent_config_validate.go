@@ -38,11 +38,11 @@ var (
 // 仅校验请求中实际提供的字段（指针为 nil 或 Config 为空时跳过，交由 handler 填默认值）。
 func validateAgentConfigUpdate(req *OpenAPIAgentConfigUpdateRequest) error {
 	// 开场白长度（按 Unicode 字符数）
-	if utf8.RuneCountInString(req.Prologue) > agentPrologueMaxLen {
+	if req.Prologue != nil && utf8.RuneCountInString(*req.Prologue) > agentPrologueMaxLen {
 		return fmt.Errorf("prologue length exceeds %d", agentPrologueMaxLen)
 	}
 	// 系统提示词长度
-	if utf8.RuneCountInString(req.Instructions) > agentInstructionsMaxLen {
+	if req.Instructions != nil && utf8.RuneCountInString(*req.Instructions) > agentInstructionsMaxLen {
 		return fmt.Errorf("instructions length exceeds %d", agentInstructionsMaxLen)
 	}
 	// 推荐问数量

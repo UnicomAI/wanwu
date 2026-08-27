@@ -65,7 +65,7 @@ type AgentChatBaseParams struct {
 }
 
 type AgentChatReq struct {
-	AssistantId uint32 `json:"assistantId"  validate:"required"`
+	AssistantId string `json:"assistantId"  validate:"required"`
 	AgentChatBaseReq
 }
 

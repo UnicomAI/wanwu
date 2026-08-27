@@ -1151,6 +1151,154 @@ func DeleteTag(dir, tagName string) error {
 	return nil
 }
 
+// TreeEntry 描述 git 树中的一个 blob 条目。
+// Path 为 git 存储的原始字节（存量仓库中可能是 GBK），调用方负责按需解码。
+type TreeEntry struct {
+	Path string // 相对 subDir 的路径
+	Mode string // 100644 普通文件 / 100755 可执行 / 120000 符号链接 / 160000 子模块
+	Size int64
+}
+
+// IsRegularFile 报告条目是否为普通文件（排除符号链接与子模块）。
+func (e TreeEntry) IsRegularFile() bool {
+	return e.Mode == "100644" || e.Mode == "100755"
+}
+
+// BlobInfo 描述一次 blob 读取的结果。
+type BlobInfo struct {
+	Exists  bool
+	IsTree  bool   // 路径指向目录而非文件
+	Size    int64  // 对象字节数
+	Content []byte // Size 超过 maxBytes 时为 nil
+}
+
+// ListTreeFiles 递归列出 treeish 下 subDir 子树中的全部 blob（不含目录条目）。
+//
+// 用 -z 以 NUL 分隔记录，避免文件名含换行时解析错位；-l 附带对象大小。
+// 只读对象库，不触碰工作树，因此调用方的未提交更改不受影响。
+func ListTreeFiles(dir, treeish, subDir string) ([]TreeEntry, error) {
+	if err := validateTreeish(treeish); err != nil {
+		return nil, err
+	}
+	cleanSub, err := cleanSubDir(subDir)
+	if err != nil {
+		return nil, fmt.Errorf("invalid subDir: %w", err)
+	}
+	mu := getMu(dir)
+	mu.Lock()
+	defer mu.Unlock()
+
+	target := treeish
+	if cleanSub != "" {
+		target = treeish + ":" + cleanSub
+	}
+	out, err := runGitStdoutBytes(dir, maxGitTextOutputBytes, "ls-tree", "-r", "-l", "-z", target)
+	if err != nil {
+		return nil, fmt.Errorf("git ls-tree %s failed: %w", target, err)
+	}
+	return parseLsTreeOutput(out), nil
+}
+
+// parseLsTreeOutput 解析 `git ls-tree -r -l -z` 输出。
+// 每条记录形如 "<mode> <type> <oid> <size>\t<path>"，记录之间以 NUL 分隔。
+func parseLsTreeOutput(out []byte) []TreeEntry {
+	records := strings.Split(string(out), "\x00")
+	entries := make([]TreeEntry, 0, len(records))
+	for _, record := range records {
+		if record == "" {
+			continue
+		}
+		metaPart, pathPart, ok := strings.Cut(record, "\t")
+		if !ok || pathPart == "" {
+			continue
+		}
+		fields := strings.Fields(metaPart) // size 字段右对齐补空格，Fields 可一并处理
+		if len(fields) != 4 || fields[1] != "blob" {
+			continue
+		}
+		size, err := strconv.ParseInt(fields[3], 10, 64)
+		if err != nil {
+			log.Printf("[git-util] parse ls-tree size failed: path=%s value=%s err=%v", pathPart, fields[3], err)
+			continue
+		}
+		entries = append(entries, TreeEntry{
+			Path: pathPart,
+			Mode: fields[0],
+			Size: size,
+		})
+	}
+	return entries
+}
+
+// GetTreeishCommitTimeMs 返回 treeish 对应提交的时间（毫秒时间戳）。
+func GetTreeishCommitTimeMs(dir, treeish string) (int64, error) {
+	if err := validateTreeish(treeish); err != nil {
+		return 0, err
+	}
+	mu := getMu(dir)
+	mu.Lock()
+	defer mu.Unlock()
+
+	out, err := runGitStdout(dir, "log", "-1", "--format=%ct", treeish)
+	if err != nil {
+		return 0, fmt.Errorf("git log %s failed: %w", treeish, err)
+	}
+	seconds, err := strconv.ParseInt(strings.TrimSpace(out), 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse commit time of %s failed: %w", treeish, err)
+	}
+	return seconds * 1000, nil
+}
+
+// ReadBlobAtTreeish 读取 treeish 下指定路径的对象。
+//
+// 先判类型再取大小，超过 maxBytes 时只返回 Size 不读内容，避免大文件撑爆输出缓冲。
+// 路径不存在时返回 Exists=false 而非错误，由调用方决定如何呈现。
+func ReadBlobAtTreeish(dir, treeish, filePath string, maxBytes int64) (BlobInfo, error) {
+	if err := validateTreeish(treeish); err != nil {
+		return BlobInfo{}, err
+	}
+	cleanPath, err := ValidateRelPath(filePath, false)
+	if err != nil {
+		return BlobInfo{}, fmt.Errorf("invalid filePath: %w", err)
+	}
+	mu := getMu(dir)
+	mu.Lock()
+	defer mu.Unlock()
+
+	spec := treeish + ":" + cleanPath
+	typeOut, err := runGitStdout(dir, "cat-file", "-t", spec)
+	if err != nil {
+		return BlobInfo{Exists: false}, nil // 对象不存在，git 以非零码退出
+	}
+	switch typeOut {
+	case "tree":
+		return BlobInfo{Exists: true, IsTree: true}, nil
+	case "blob":
+	default:
+		return BlobInfo{}, fmt.Errorf("git object %s is %s, not blob", spec, typeOut)
+	}
+
+	sizeOut, err := runGitStdout(dir, "cat-file", "-s", spec)
+	if err != nil {
+		return BlobInfo{}, fmt.Errorf("git cat-file -s %s failed: %w", spec, err)
+	}
+	size, err := strconv.ParseInt(sizeOut, 10, 64)
+	if err != nil {
+		return BlobInfo{}, fmt.Errorf("parse blob size of %s failed: %w", spec, err)
+	}
+	if maxBytes > 0 && size > maxBytes {
+		return BlobInfo{Exists: true, Size: size}, nil
+	}
+
+	// limit 取 size+1：limitedBuffer 的 limit<=0 表示不限长，size 为 0 时不能直接传 0
+	content, err := runGitStdoutBytes(dir, int(size)+1, "cat-file", "blob", spec)
+	if err != nil {
+		return BlobInfo{}, fmt.Errorf("git cat-file blob %s failed: %w", spec, err)
+	}
+	return BlobInfo{Exists: true, Size: size, Content: content}, nil
+}
+
 // ArchivePath 将指定 treeish 下的路径打包为 zip。
 func ArchivePath(dir, treeish, subDir string) ([]byte, error) {
 	if err := validateTreeish(treeish); err != nil {

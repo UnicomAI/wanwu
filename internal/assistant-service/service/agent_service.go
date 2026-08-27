@@ -4,7 +4,7 @@ type AgentChatReq struct {
 	Input          string   `json:"input"`
 	Stream         bool     `json:"stream"`
 	UploadFile     []string `json:"uploadFile"`
-	AssistantId    uint32   `json:"assistantId"`
+	AssistantId    string   `json:"assistantId"`
 	ConversationId string   `json:"conversationId"`
 	UserId         string   `json:"userId"`
 	OrgId          string   `json:"orgId"`
@@ -16,7 +16,7 @@ type MultiAgentChatReq struct {
 	Input            string   `json:"input"`
 	Stream           bool     `json:"stream"`
 	UploadFile       []string `json:"uploadFile"`
-	MultiAssistantId uint32   `json:"multiAgentId"`
+	MultiAssistantId string   `json:"multiAgentId"`
 	ConversationId   string   `json:"conversationId"`
 	UserId           string   `json:"userId"`
 	OrgId            string   `json:"orgId"`
@@ -35,7 +35,7 @@ type AgentUserInputParams struct {
 	DetailId       string
 }
 
-func BuildAgentChatReq(agentUserInputParams *AgentUserInputParams, assistantId uint32) *AgentChatReq {
+func BuildAgentChatReq(agentUserInputParams *AgentUserInputParams, assistantId string) *AgentChatReq {
 	var req = &AgentChatReq{
 		Input:          agentUserInputParams.Input,
 		Stream:         agentUserInputParams.Stream,
@@ -50,7 +50,7 @@ func BuildAgentChatReq(agentUserInputParams *AgentUserInputParams, assistantId u
 	return req
 }
 
-func BuildMultiAgentChatReq(agentUserInputParams *AgentUserInputParams, assistantId uint32) *MultiAgentChatReq {
+func BuildMultiAgentChatReq(agentUserInputParams *AgentUserInputParams, assistantId string) *MultiAgentChatReq {
 	var req = &MultiAgentChatReq{
 		Input:            agentUserInputParams.Input,
 		Stream:           agentUserInputParams.Stream,

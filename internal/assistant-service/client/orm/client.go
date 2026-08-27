@@ -2,9 +2,11 @@ package orm
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
@@ -18,7 +20,9 @@ import (
 
 const (
 	// builtin_tools 初始化标记，保证历史数据清洗只执行一次
-	initBuiltinToolsFlagKey = "v0.6.10_builtin_tools_initialized"
+	initBuiltinToolsFlagKey = "v0.6.10_builtin_tools_initialized" // 写错了，其实是 v0.5.10 的数据兼容；)
+
+	initWgaConfigAssistantListFlagKey = "v0.6.4_wga_config_assistant_list_to_uuid"
 )
 
 // Metadata 数据清洗幂等标记表
@@ -60,11 +64,19 @@ func NewClient(db *gorm.DB) (*Client, error) {
 		return nil, err
 	}
 
+	if err := initConversationUUID(db); err != nil {
+		return nil, err
+	}
+
 	if err := initConversationType(db); err != nil {
 		return nil, err
 	}
 
 	if err := initBuiltinTools(db); err != nil {
+		return nil, err
+	}
+
+	if err := initWgaConfigAssistantListUUID(db); err != nil {
 		return nil, err
 	}
 
@@ -98,6 +110,43 @@ func initAssistantUUID(dbClient *gorm.DB) error {
 			Where("id IN ?", ids).
 			UpdateColumn("uuid", gorm.Expr(caseWhen, args...)).Error; err != nil {
 			log.Errorf("init assistant uuid batch update error: %v", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+// initConversationUUID 为历史 Conversation 行补 conversation_id（新增字段，老数据为 NULL），
+// 用 snowflake 生成，分批 + CASE WHEN 更新；填完后无 NULL 行，天然幂等。
+func initConversationUUID(dbClient *gorm.DB) error {
+	const batchSize = 100
+
+	for {
+		var ids []uint32
+		if err := dbClient.Model(&model.Conversation{}).Select("id").Where("conversation_id = ? OR conversation_id IS NULL", "").Limit(batchSize).Find(&ids).Error; err != nil {
+			return err
+		}
+
+		if len(ids) == 0 {
+			break
+		}
+
+		caseWhen := "CASE id "
+		var args []interface{}
+		for _, id := range ids {
+			caseWhen += "WHEN ? THEN ? "
+			args = append(args, id, util.NewID())
+		}
+		caseWhen += "END"
+
+		if err := dbClient.Model(&model.Conversation{}).
+			Where("id IN ?", ids).
+			UpdateColumns(map[string]interface{}{
+				"conversation_id":   gorm.Expr(caseWhen, args...),
+				"conversation_mark": model.ConversationMarkOld,
+			}).Error; err != nil {
+			log.Errorf("init conversation uuid batch update error: %v", err)
 			return err
 		}
 	}
@@ -200,6 +249,124 @@ func initBuiltinTools(db *gorm.DB) error {
 		return fmt.Errorf("initBuiltinTools set flag failed: %w", err)
 	}
 	return nil
+}
+
+// initWgaConfigAssistantListUUID 一次性清洗 wga_configs.assistant_list JSON：
+// 把历史存入的 assistant 自增老 id（数字字符串）替换为 uuid。
+// 幂等：Metadata 标记存在则跳过。查不到 uuid 的老 id 保留原值。
+func initWgaConfigAssistantListUUID(db *gorm.DB) error {
+	var meta Metadata
+	if err := db.Where(&Metadata{MetaKey: initWgaConfigAssistantListFlagKey}).First(&meta).Error; err == nil {
+		return nil
+	}
+
+	type wgaAssistant struct {
+		AssistantId   string `json:"assistantId"`
+		AssistantType string `json:"assistantType"`
+	}
+
+	// 分批扫描 wga_configs，解析 assistant_list，收集老 id（去重）
+	const batchSize = 100
+	oldIDSet := make(map[string]struct{})
+	parsed := make(map[uint32][]wgaAssistant)
+	var lastID uint32
+	for {
+		var configs []model.WgaConfig
+		if err := db.Select("id", "assistant_list").Where("id > ?", lastID).Order("id").Limit(batchSize).Find(&configs).Error; err != nil {
+			return fmt.Errorf("initWgaConfigAssistantListUUID query configs failed: %w", err)
+		}
+		if len(configs) == 0 {
+			break
+		}
+		for _, cfg := range configs {
+			lastID = cfg.ID
+			if cfg.AssistantList == "" || cfg.AssistantList == "null" {
+				continue
+			}
+			var list []wgaAssistant
+			if err := json.Unmarshal([]byte(cfg.AssistantList), &list); err != nil {
+				log.Warnf("initWgaConfigAssistantListUUID parse config %d failed: %v", cfg.ID, err)
+				continue
+			}
+			parsed[cfg.ID] = list
+			for _, a := range list {
+				if isOldAssistantID(a.AssistantId) {
+					oldIDSet[a.AssistantId] = struct{}{}
+				}
+			}
+		}
+	}
+
+	if len(oldIDSet) == 0 {
+		if err := db.Create(&Metadata{MetaKey: initWgaConfigAssistantListFlagKey}).Error; err != nil {
+			return fmt.Errorf("initWgaConfigAssistantListUUID set flag failed: %w", err)
+		}
+		return nil
+	}
+
+	// 批量查老 id → uuid（同库，无需 gRPC）
+	oldIDs := make([]uint32, 0, len(oldIDSet))
+	for idStr := range oldIDSet {
+		id := util.MustU32(idStr)
+		if id > 0 {
+			oldIDs = append(oldIDs, id)
+		}
+	}
+	var assistants []model.Assistant
+	if err := db.Select("id", "uuid").Where("id IN ?", oldIDs).Find(&assistants).Error; err != nil {
+		return fmt.Errorf("initWgaConfigAssistantListUUID query assistants failed: %w", err)
+	}
+	idToUUID := make(map[string]string, len(assistants))
+	for _, a := range assistants {
+		idToUUID[strconv.Itoa(int(a.ID))] = a.UUID
+	}
+	for idStr := range oldIDSet {
+		if _, ok := idToUUID[idStr]; !ok {
+			log.Warnf("initWgaConfigAssistantListUUID: assistant old id %q has no uuid, kept as-is", idStr)
+		}
+	}
+
+	// 逐行重写有变更的 assistant_list
+	for cfgID, list := range parsed {
+		changed := false
+		for i := range list {
+			if !isOldAssistantID(list[i].AssistantId) {
+				continue
+			}
+			if uuid, ok := idToUUID[list[i].AssistantId]; ok {
+				list[i].AssistantId = uuid
+				changed = true
+			}
+		}
+		if !changed {
+			continue
+		}
+		newJSON, err := json.Marshal(list)
+		if err != nil {
+			log.Warnf("initWgaConfigAssistantListUUID marshal config %d failed: %v", cfgID, err)
+			continue
+		}
+		if err := db.Model(&model.WgaConfig{}).Where("id = ?", cfgID).Update("assistant_list", string(newJSON)).Error; err != nil {
+			log.Warnf("initWgaConfigAssistantListUUID update config %d failed: %v", cfgID, err)
+		}
+	}
+
+	if err := db.Create(&Metadata{MetaKey: initWgaConfigAssistantListFlagKey}).Error; err != nil {
+		return fmt.Errorf("initWgaConfigAssistantListUUID set flag failed: %w", err)
+	}
+	return nil
+}
+
+// isOldAssistantID 判断是否为 assistant 自增老 id：纯数字且 < 10⁹。UUID 无法解析为 int，自动跳过。
+func isOldAssistantID(id string) bool {
+	if id == "" {
+		return false
+	}
+	n, err := strconv.Atoi(id)
+	if err != nil {
+		return false
+	}
+	return n < 1000000000
 }
 
 func (c *Client) transaction(ctx context.Context, fc func(tx *gorm.DB) *err_code.Status) *err_code.Status {

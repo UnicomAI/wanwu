@@ -622,35 +622,22 @@ func resolveDIPAgentName(ctx *gin.Context, agentID, userID, orgID string) (strin
 
 // resolveAppName 根据 appId（UUID）查询智能体名称
 func resolveAppName(ctx *gin.Context, appID, userID, orgID string) (string, error) {
-	// 先通过 UUID 获取内部 appId
-	internalID, err := assistant.GetAssistantIdByUuid(ctx.Request.Context(), &assistant_service.GetAssistantIdByUuidReq{
-		Uuid: appID,
-	})
-	if err != nil {
-		log.Errorf("failed to resolve app id from uuid %s: %v", appID, err)
-		return "", fmt.Errorf("failed to resolve app id from uuid %s: %w", appID, err)
-	}
-	if internalID == nil || internalID.AssistantId == "" {
-		log.Warnf("assistant not found for uuid %s: empty response", appID)
-		return "", nil
-	}
-
 	// 通过内部 appId 获取智能体信息（必须传 Identity，否则 assistant-service 会 panic）
 	info, err := assistant.GetAssistantInfo(ctx.Request.Context(), &assistant_service.GetAssistantInfoReq{
-		AssistantId: internalID.AssistantId,
+		AssistantId: appID,
 		Identity: &assistant_service.Identity{
 			UserId: userID,
 			OrgId:  orgID,
 		},
 	})
 	if err != nil {
-		log.Errorf("failed to get assistant info for %s (uuid=%s): %v", internalID.AssistantId, appID, err)
-		return "", fmt.Errorf("failed to get assistant info for %s: %w", internalID.AssistantId, err)
+		log.Errorf("failed to get assistant info for %s (uuid=%s): %v", appID, appID, err)
+		return "", fmt.Errorf("failed to get assistant info for %s: %w", appID, err)
 	}
 	if info != nil && info.AssistantBrief != nil {
 		return info.AssistantBrief.Name, nil
 	}
-	log.Warnf("assistant info empty for %s (uuid=%s)", internalID.AssistantId, appID)
+	log.Warnf("assistant info empty for %s (uuid=%s)", appID, appID)
 	return "", nil
 }
 

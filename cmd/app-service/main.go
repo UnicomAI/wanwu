@@ -12,6 +12,7 @@ import (
 
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 
+	"github.com/UnicomAI/wanwu/internal/app-service/client/assistant"
 	"github.com/UnicomAI/wanwu/internal/app-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/app-service/config"
 	"github.com/UnicomAI/wanwu/internal/app-service/server/grpc"
@@ -81,7 +82,13 @@ func main() {
 		log.Fatalf("init db err: %v", err)
 	}
 
-	c, err := orm.NewClient(ctx, db)
+	// 数据清洗依赖 assistant（agent 老 id → uuid）；懒连接、不阻塞启动
+	assistantCli, err := assistant.NewClient(config.Cfg().Assistant.Host)
+	if err != nil {
+		log.Fatalf("init assistant client err: %v", err)
+	}
+
+	c, err := orm.NewClient(ctx, db, assistantCli)
 	if err != nil {
 		log.Fatalf("init client err: %v", err)
 	}

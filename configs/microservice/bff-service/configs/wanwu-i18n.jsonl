@@ -28,7 +28,10 @@
 {"code":110004,"key":"bff_auth_code_not_define","langs":{"en":"code currently undefined","zh":"code暂无定义"}}
 {"code":0,"key":"------ org ------","langs":{}}
 {"code":110000,"key":"bff_app_publish_no_permission","langs":{"en":"app not published or no access permission","zh":"应用未发布或无访问权限"}}
+{"code":110000,"key":"bff_openapi_app_not_owner","langs":{"en":"openapi can only access app created by yourself","zh":"OpenAPI 只能访问自己创建的应用"}}
 {"code":110000,"key":"bff_rag_conversation_no_permission","langs":{"en":"conversation not found or no access permission","zh":"会话不存在或无访问权限"}}
+{"code":110000,"key":"bff_agent_prologue_required","langs":{"en":"prologue not configured, please set it via the config update api first","zh":"开场白未配置，请先通过配置更新接口设置开场白"}}
+{"code":110000,"key":"bff_agent_model_required","langs":{"en":"llm not configured, please set it via the config update api first","zh":"大模型未配置，请先通过配置更新接口设置大模型"}}
 {"code":110000,"key":"bff_org_disable","langs":{"en":"the organization has been deactivated","zh":"组织已停用"}}
 {"code":110000,"key":"bff_org_cannot_change","langs":{"en":"cannot modify organization","zh":"无法编辑组织"}}
 {"code":110000,"key":"bff_org_cannot_delete","langs":{"en":"cannot delete organization","zh":"无法删除组织"}}
@@ -167,6 +170,20 @@
 {"code":110000,"key":"bff_skill_uncommitted_changes","langs":{"en":"workspace has uncommitted changes, please commit before publishing","zh":"工作区有未提交的更改，请先提交后再发布"}}
 {"code":110000,"key":"bff_skill_version_exists","langs":{"en":"version already exists please use another version","zh":"版本已存在请使用其他版本号"}}
 {"code":110000,"key":"bff_skill_workspace_git_restore_failed","langs":{"en":"git restore failed","zh":"git恢复失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_discard_failed","langs":{"en":"git discard changes failed","zh":"git丢弃变更失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_diff_content_failed","langs":{"en":"get diff content failed","zh":"获取差异内容失败"}}
+{"code":110000,"key":"bff_skill_workspace_delete_file_failed","langs":{"en":"delete file failed","zh":"删除文件失败"}}
+{"code":110000,"key":"bff_skill_workspace_no_permission","langs":{"en":"no permission to edit this workspace","zh":"无权编辑此工作区"}}
+{"code":110000,"key":"bff_skill_workspace_path_not_allowed","langs":{"en":"path is not allowed","zh":"路径不被允许"}}
+{"code":110000,"key":"bff_skill_workspace_path_not_found","langs":{"en":"path not found","zh":"路径不存在"}}
+{"code":110000,"key":"bff_skill_workspace_name_invalid","langs":{"en":"invalid name","zh":"名称无效"}}
+{"code":110000,"key":"bff_skill_workspace_name_conflict","langs":{"en":"name already exists","zh":"名称已存在"}}
+{"code":110000,"key":"bff_skill_workspace_operation_conflict","langs":{"en":"operation conflict, please retry","zh":"操作冲突，请重试"}}
+{"code":110000,"key":"bff_skill_workspace_invalid_multipart","langs":{"en":"invalid multipart form","zh":"无效的 multipart 表单"}}
+{"code":110000,"key":"bff_skill_workspace_upload_empty","langs":{"en":"no files to upload","zh":"没有可上传的文件"}}
+{"code":110000,"key":"bff_skill_workspace_upload_too_large","langs":{"en":"upload file too large","zh":"上传文件过大"}}
+{"code":110000,"key":"bff_skill_workspace_upload_failed","langs":{"en":"upload failed","zh":"上传失败"}}
+{"code":110000,"key":"bff_skill_content_read_tree_failed","langs":{"en":"read published skill content failed","zh":"读取技能发布版本内容失败"}}
 {"code":0,"key":"---- ratelimit ----","langs":{}}
 {"code":110013,"key":"bff_rate_limited_failed_with_attempts","langs":{"en":"%v. You have %v attempt(s) remaining.","zh":"%v，您还有%v次尝试的机会"}}
 {"code":110013,"key":"bff_rate_limited_too_many attempts","langs":{"en":"Too many attempts. Please try again in %v minute(s).","zh":"访问太频繁，请%v分钟之后重试"}}
@@ -473,6 +490,7 @@
 {"code":160001,"key":"assistants_get_by_ids","langs":{"zh":"获取智能体错误: %v"}}
 {"code":160001,"key":"assistants_get_list","langs":{"zh":"获取智能体列表错误: %v"}}
 {"code":160001,"key":"assistant_get_by_name","langs":{"zh":"获取智能体错误: %v"}}
+{"code":160001,"key":"assistant_get_by_uuid","langs":{"zh":"获取智能体错误: %v"}}
 {"code":160001,"key":"assistant_same_name","langs":{"zh":"智能体名称重复: %v"}}
 {"code":160001,"key":"assistant_modelConfig_unmarshal","langs":{"zh":"智能体model配置解析失败: %v"}}
 {"code":160001,"key":"assistant_modelConfig_marshal","langs":{"zh":"智能体model配置解析失败: %v"}}
@@ -513,7 +531,7 @@
 {"code":160004,"key":"assistant_conversation_create","langs":{"zh":"创建对话错误"}}
 {"code":160004,"key":"assistant_conversation_update","langs":{"zh":"更新对话错误"}}
 {"code":160004,"key":"assistant_conversation_delete","langs":{"zh":"删除对话错误"}}
-{"code":160004,"key":"assistant_conversation_get","langs":{"zh":"获取对话错误"}}
+{"code":160004,"key":"assistant_conversation_get","langs":{"zh":"获取对话错误: %v"}}
 {"code":160004,"key":"assistant_conversation_get_list","langs":{"zh":"获取对话列表错误"}}
 {"code":160004,"key":"assistant_conversation","langs":{"zh":"智能体对话错误: %v"}}
 {"code":160005,"key":"assistant_mcp_create","langs":{"zh":"创建mcp错误: %v"}}

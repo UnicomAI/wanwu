@@ -45,12 +45,7 @@ func DeleteAgent(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
-	appID, err := service.GetAssistantIdByUuid(ctx, req.UUID)
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
-	err = service.DeleteAppSpaceApp(ctx, userID, orgID, appID, constant.AppTypeAgent)
+	err := service.DeleteAppSpaceApp(ctx, userID, orgID, req.UUID, constant.AppTypeAgent)
 	gin_util.Response(ctx, nil, err)
 }
 
@@ -71,13 +66,8 @@ func UpdateAgent(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
-	assistantID, err := service.GetAssistantIdByUuid(ctx, req.AssistantUUID)
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
-	_, err = service.AssistantUpdate(ctx, userID, orgID, request.AssistantUpdateReq{
-		AssistantId:    assistantID,
+	_, err := service.AssistantUpdate(ctx, userID, orgID, request.AssistantUpdateReq{
+		AssistantId:    req.AssistantUUID,
 		AppBriefConfig: req.AppBriefConfig,
 	})
 	gin_util.Response(ctx, nil, err)
@@ -103,17 +93,17 @@ func ListAgentConversations(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
-	appID, err := service.GetAssistantIdByUuid(ctx, req.UUID)
+	resp, err := service.GetConversationList(ctx, userID, orgID, request.ConversationGetListRequest{
+		AssistantId: req.UUID,
+		PageNo:      req.PageNo,
+		PageSize:    req.PageSize,
+	})
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	resp, err := service.GetConversationList(ctx, userID, orgID, request.ConversationGetListRequest{
-		AssistantId: appID,
-		PageNo:      req.PageNo,
-		PageSize:    req.PageSize,
-	})
-	gin_util.Response(ctx, resp, err)
+	resp.PageNo, resp.PageSize = req.PageNo, req.PageSize
+	gin_util.Response(ctx, resp, nil)
 }
 
 // GetAgentConversationDetail
@@ -139,7 +129,12 @@ func GetAgentConversationDetail(ctx *gin.Context) {
 		PageNo:         req.PageNo,
 		PageSize:       req.PageSize,
 	})
-	gin_util.Response(ctx, resp, err)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp.PageNo, resp.PageSize = req.PageNo, req.PageSize
+	gin_util.Response(ctx, resp, nil)
 }
 
 // DeleteAgentConversation
@@ -208,20 +203,19 @@ func GetAgentDraftConversationDetail(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
-	appID, err := service.GetAssistantIdByUuid(ctx, req.UUID)
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
 	convResp, err := service.GetDraftConversationIdByAssistantID(ctx, userID, orgID, request.ConversationGetListRequest{
-		AssistantId: appID,
+		AssistantId: req.UUID,
 	})
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
 	if convResp == nil {
-		gin_util.Response(ctx, response.PageResult{List: []response.ConversationDetailInfo{}}, nil)
+		gin_util.Response(ctx, response.PageResult{
+			List:     []response.ConversationDetailInfo{},
+			PageNo:   req.PageNo,
+			PageSize: req.PageSize,
+		}, nil)
 		return
 	}
 
@@ -230,7 +224,12 @@ func GetAgentDraftConversationDetail(ctx *gin.Context) {
 		PageNo:         req.PageNo,
 		PageSize:       req.PageSize,
 	})
-	gin_util.Response(ctx, resp, err)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp.PageNo, resp.PageSize = req.PageNo, req.PageSize
+	gin_util.Response(ctx, resp, nil)
 }
 
 // DeleteAgentDraftConversation
@@ -250,13 +249,8 @@ func DeleteAgentDraftConversation(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
-	appID, err := service.GetAssistantIdByUuid(ctx, req.UUID)
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
-	_, err = service.DraftConversationDeleteByAssistantID(ctx, userID, orgID, request.ConversationDeleteRequest{
-		AssistantId: appID,
+	_, err := service.DraftConversationDeleteByAssistantID(ctx, userID, orgID, request.ConversationDeleteRequest{
+		AssistantId: req.UUID,
 		DetailId:    req.DetailID,
 	})
 	gin_util.Response(ctx, nil, err)

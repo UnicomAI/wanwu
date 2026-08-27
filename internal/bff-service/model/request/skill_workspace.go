@@ -32,6 +32,26 @@ func checkWorkspaceEntryPath(p string) error {
 const maxWriteFileSize = 1 * 1024 * 1024
 const maxPathLength = 512
 
+// 变更请求统一使用相对于工作区的路径。
+// 服务层会再次执行归属、符号链接和文件系统校验，
+// 因为这些结构体也会被非 HTTP 调用方使用。
+type CreateSkillWorkspaceFileReq struct {
+	CustomSkillID string `json:"customSkillId" validate:"required"`
+	Path          string `json:"path"`
+	Content       string `json:"content"`
+}
+
+type CreateSkillWorkspaceDirectoryReq struct {
+	CustomSkillID string `json:"customSkillId" validate:"required"`
+	Path          string `json:"path"`
+}
+
+type RenameSkillWorkspaceFileReq struct {
+	CustomSkillID string `json:"customSkillId" validate:"required"`
+	Path          string `json:"path"`
+	NewName       string `json:"newName"`
+}
+
 // --- 文件管理请求结构体 ---
 // GET 接口使用 form tag（query parameter）
 // POST/PUT 接口使用 json tag（request body）
@@ -118,6 +138,54 @@ func (r *UpdateSkillWorkspaceFileReq) Check() error {
 	}
 	if len(r.Content) > maxWriteFileSize {
 		return fmt.Errorf("content too large (max 1MB)")
+	}
+	return nil
+}
+
+func (r *CreateSkillWorkspaceFileReq) Check() error {
+	if r.Path == "" {
+		return fmt.Errorf("path is required")
+	}
+	if err := checkWorkspaceEntryPath(r.Path); err != nil {
+		return err
+	}
+	if len(r.Path) > maxPathLength {
+		return fmt.Errorf("path too long (max %d characters)", maxPathLength)
+	}
+	if len(r.Content) > maxWriteFileSize {
+		return fmt.Errorf("content too large (max 1MB)")
+	}
+	return nil
+}
+
+func (r *CreateSkillWorkspaceDirectoryReq) Check() error {
+	if r.Path == "" {
+		return fmt.Errorf("path is required")
+	}
+	if err := checkWorkspaceEntryPath(r.Path); err != nil {
+		return err
+	}
+	if len(r.Path) > maxPathLength {
+		return fmt.Errorf("path too long (max %d characters)", maxPathLength)
+	}
+	return nil
+}
+
+func (r *RenameSkillWorkspaceFileReq) Check() error {
+	if r.Path == "" {
+		return fmt.Errorf("path is required")
+	}
+	if err := checkWorkspaceEntryPath(r.Path); err != nil {
+		return err
+	}
+	if r.NewName == "" {
+		return fmt.Errorf("newName is required")
+	}
+	if len(r.Path) > maxPathLength || len(r.NewName) > maxPathLength {
+		return fmt.Errorf("path or newName too long (max %d characters)", maxPathLength)
+	}
+	if strings.HasSuffix(r.NewName, ".") || strings.HasSuffix(r.NewName, " ") || strings.ContainsAny(r.NewName, `/\\:`) {
+		return fmt.Errorf("newName must be a safe basename")
 	}
 	return nil
 }

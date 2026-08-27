@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
-	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	knowledgebase_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-service"
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 )
@@ -25,17 +24,6 @@ func LookupAppCreator(ctx context.Context, appID, appType string) (userID, orgID
 // LookupAppUrlBySuffix 查询 app url 信息。
 func LookupAppUrlBySuffix(ctx context.Context, suffix string) (*app_service.AppUrlInfo, error) {
 	return app.GetAppUrlInfoBySuffix(ctx, &app_service.GetAppUrlInfoBySuffixReq{Suffix: suffix})
-}
-
-// ResolveAssistantIDByUUID 将 OpenAPI 对外 uuid 解析为内部 assistantId。
-func ResolveAssistantIDByUUID(ctx context.Context, uuid string) (string, error) {
-	resp, err := assistant.GetAssistantIdByUuid(ctx, &assistant_service.GetAssistantIdByUuidReq{
-		Uuid: uuid,
-	})
-	if err != nil {
-		return "", err
-	}
-	return resp.AssistantId, nil
 }
 
 // LookupKnowledgeCreator 查询知识库创建人（moduleCreator）。

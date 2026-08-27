@@ -27,9 +27,15 @@ import (
 
 // ConversationCreate 创建对话
 func (s *Service) ConversationCreate(ctx context.Context, req *assistant_service.ConversationCreateReq) (*assistant_service.ConversationCreateResp, error) {
+	// 通过 UUID 获取自增 ID（带权限校验）
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantConversationErr, status)
+	}
 	// 组装model参数
 	conversation := &model.Conversation{
-		AssistantId:      util.MustU32(req.AssistantId),
+		AssistantId:      assistant.ID,
+		ConversationId:   util.NewID(),
 		Title:            req.Prompt, // 使用prompt作为初始标题
 		ConversationType: req.ConversationType,
 		UserId:           req.Identity.UserId,
@@ -42,25 +48,27 @@ func (s *Service) ConversationCreate(ctx context.Context, req *assistant_service
 	}
 
 	return &assistant_service.ConversationCreateResp{
-		ConversationId: util.Int2Str(conversation.ID),
+		ConversationId: conversation.ConversationId,
 	}, nil
 }
 
 // ConversationDelete 删除对话
 func (s *Service) ConversationDelete(ctx context.Context, req *assistant_service.ConversationDeleteReq) (*emptypb.Empty, error) {
-	// 转换ID
-	conversationID := util.MustU32(req.ConversationId)
-
+	conversation, status := s.cli.GetConversation(ctx, req.ConversationId, req.Identity.UserId, req.Identity.OrgId)
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantConversationErr, status)
+	}
 	// 调用client方法删除对话
-	if status := s.cli.DeleteConversation(ctx, conversationID, req.Identity.UserId, req.Identity.OrgId); status != nil {
+	if status = s.cli.DeleteConversation(ctx, req.ConversationId, req.Identity.UserId, req.Identity.OrgId); status != nil {
 		return nil, errStatus(errs.Code_AssistantConversationErr, status)
 	}
 
+	conversationId := buildConversationId(conversation)
 	// 删除es中的对话详情
 	if _, err := s.DeleteFromES(ctx, &assistant_service.DeleteFromESReq{
 		IndexName: "conversation_detail_infos_*",
 		Conditions: map[string]string{
-			"conversationId": req.ConversationId,
+			"conversationId": conversationId,
 			"userId.keyword": req.Identity.UserId,
 		},
 	}); err != nil {
@@ -72,8 +80,13 @@ func (s *Service) ConversationDelete(ctx context.Context, req *assistant_service
 
 // ClearConversationES 清空对话ES数据（不删除会话ID），支持按detailId删除单条
 func (s *Service) ClearConversationES(ctx context.Context, req *assistant_service.ClearConversationESReq) (*emptypb.Empty, error) {
+	conversation, status := s.cli.GetConversation(ctx, req.ConversationId, req.Identity.UserId, req.Identity.OrgId)
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantConversationErr, status)
+	}
+	conversationId := buildConversationId(conversation)
 	conditions := map[string]string{
-		"conversationId": req.ConversationId,
+		"conversationId": conversationId,
 		"userId.keyword": req.Identity.UserId,
 	}
 	if req.DetailId != "" {
@@ -97,14 +110,19 @@ func (s *Service) ClearConversationES(ctx context.Context, req *assistant_servic
 
 // GetConversationIdByAssistantId 获取对话记录id
 func (s *Service) GetConversationIdByAssistantId(ctx context.Context, req *assistant_service.GetConversationIdByAssistantIdReq) (*assistant_service.ConversationIdResp, error) {
+	// 通过 UUID 获取自增 ID（带权限校验）
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantConversationErr, status)
+	}
 	// 调用client方法获取对话
-	conversation, status := s.cli.GetConversationByAssistantID(ctx, req.AssistantId, req.ConversationType)
+	conversation, status := s.cli.GetConversationByAssistantID(ctx, assistant.ID, req.ConversationType, req.Identity.GetUserId(), req.Identity.GetOrgId())
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantConversationErr, status)
 	}
 
 	return &assistant_service.ConversationIdResp{
-		ConversationId: util.Int2Str(conversation.ID),
+		ConversationId: conversation.ConversationId,
 	}, nil
 }
 
@@ -113,8 +131,13 @@ func (s *Service) GetConversationList(ctx context.Context, req *assistant_servic
 	// 计算offset
 	offset := (req.PageNo - 1) * req.PageSize
 
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantConversationErr, status)
+	}
+
 	// 调用client方法获取对话列表
-	conversations, total, status := s.cli.GetConversationList(ctx, req.AssistantId, req.ConversationType, req.Identity.UserId, req.Identity.OrgId, req.SearchText, offset, req.PageSize)
+	conversations, total, status := s.cli.GetConversationList(ctx, assistant.ID, req.ConversationType, req.Identity.UserId, req.Identity.OrgId, req.SearchText, offset, req.PageSize)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantConversationErr, status)
 	}
@@ -123,8 +146,8 @@ func (s *Service) GetConversationList(ctx context.Context, req *assistant_servic
 	var conversationInfos []*assistant_service.ConversationInfo
 	for _, conversation := range conversations {
 		conversationInfos = append(conversationInfos, &assistant_service.ConversationInfo{
-			ConversationId: util.Int2Str(conversation.ID),
-			AssistantId:    util.Int2Str(conversation.AssistantId),
+			ConversationId: conversation.ConversationId,
+			AssistantId:    assistant.UUID,
 			Title:          conversation.Title,
 			CreatedAt:      conversation.CreatedAt,
 			UpdatedAt:      conversation.UpdatedAt,
@@ -141,11 +164,20 @@ func (s *Service) GetConversationList(ctx context.Context, req *assistant_servic
 
 // GetConversationDetailList 对话详情历史列表
 func (s *Service) GetConversationDetailList(ctx context.Context, req *assistant_service.GetConversationDetailListReq) (*assistant_service.GetConversationDetailListResp, error) {
+	conversation, status := s.cli.GetConversation(ctx, req.ConversationId, req.Identity.UserId, req.Identity.OrgId)
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantConversationErr, status)
+	}
+	assistant, status := s.cli.GetAssistant(ctx, conversation.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	var conversationId = buildConversationId(conversation)
 	// 复用 SearchFromES 查询ES数据
 	searchResp, err := s.SearchFromES(ctx, &assistant_service.SearchFromESReq{
 		IndexName: "conversation_detail_infos_*",
 		Conditions: map[string]string{
-			"conversationId": req.ConversationId,
+			"conversationId": conversationId,
 			"userId.keyword": req.Identity.UserId,
 			"orgId.keyword":  req.Identity.OrgId,
 		},
@@ -169,7 +201,7 @@ func (s *Service) GetConversationDetailList(ctx context.Context, req *assistant_
 
 		conversationDetails = append(conversationDetails, &assistant_service.ConversionDetailInfo{
 			Id:                   detail.Id,
-			AssistantId:          detail.AssistantId,
+			AssistantId:          assistant.UUID,
 			ConversationId:       detail.ConversationId,
 			Prompt:               detail.Prompt,
 			SysPrompt:            detail.SysPrompt,
@@ -200,16 +232,25 @@ func (s *Service) GetConversationDetailList(ctx context.Context, req *assistant_
 
 func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConversionStreamReq, stream assistant_service.AssistantService_AssistantConversionStreamServer) error {
 	// 刷新会话 updated_at，使会话列表按最近聊天排序
-	if convID := util.MustU32(req.ConversationId); convID > 0 {
-		if status := s.cli.UpdateConversation(stream.Context(), &model.Conversation{ID: convID}); status != nil {
+	var saveConversationId = req.ConversationId
+	if req.ConversationId != "" {
+		// 带归属查会话：查不到即不属于调用者，不能往他人会话里写消息
+		conversation, status := s.cli.GetConversation(stream.Context(), req.ConversationId, req.Identity.GetUserId(), req.Identity.GetOrgId())
+		if status != nil {
+			return errStatus(errs.Code_AssistantConversationErr, status)
+		}
+		if status := s.cli.UpdateConversation(stream.Context(), &model.Conversation{ConversationId: req.ConversationId}); status != nil {
 			log.Errorf("[Conversation] touch conversation updated_at failed, id: %s, err: %v", req.ConversationId, status)
+		}
+		if len(conversation.ConversationId) > 0 {
+			saveConversationId = buildConversationId(conversation)
 		}
 	}
 	//会话处理
 	conversationProcessor := &service.ConversationProcessor{
 		SSEWriter: sse_util.NewGrpcSSEWriter(stream, "AssistantConversionStreamNew", nil),
 	}
-	err := conversationProcessor.Process(stream.Context(), buildConversationParams(req), buildAgentSendRequest(req))
+	err := conversationProcessor.Process(stream.Context(), buildConversationParams(req, saveConversationId), buildAgentSendRequest(req))
 	if err != nil {
 		log.Errorf("Assistant服务处理智能体流式对话失败，assistantId: %s, error: %v", req.AssistantId, err)
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "agent服务异常")
@@ -304,15 +345,16 @@ func transAgentFiles(files []*model.AgentFile) []*assistant_service.AgentFile {
 	return result
 }
 
-func buildConversationParams(req *assistant_service.AssistantConversionStreamReq) *service.ConversationParams {
+func buildConversationParams(req *assistant_service.AssistantConversionStreamReq, saveConversationId string) *service.ConversationParams {
 	return &service.ConversationParams{
-		AssistantId:    req.AssistantId,
-		ConversationId: req.ConversationId,
-		FileInfo:       extractFileInfos(req.FileInfo),
-		OrgId:          req.Identity.OrgId,
-		Query:          req.Prompt,
-		UserId:         req.Identity.UserId,
-		DetailId:       req.DetailId,
+		AssistantId:        req.AssistantId,
+		ConversationId:     req.ConversationId,
+		SaveConversationId: saveConversationId,
+		FileInfo:           extractFileInfos(req.FileInfo),
+		OrgId:              req.Identity.OrgId,
+		Query:              req.Prompt,
+		UserId:             req.Identity.UserId,
+		DetailId:           req.DetailId,
 	}
 }
 
@@ -333,7 +375,7 @@ func buildAgentSendRequest(req *assistant_service.AssistantConversionStreamReq) 
 		OrgId:          req.Identity.OrgId,
 		Draft:          req.Draft,
 		DetailId:       req.DetailId,
-	}, util.MustU32(req.AssistantId))
+	}, req.AssistantId)
 
 	var monitorKey = "agent_chat_service"
 
@@ -434,4 +476,11 @@ func readHttpErr(resp *http.Response) error {
 		return errors.New("http status code: " + strconv.Itoa(resp.StatusCode))
 	}
 	return nil
+}
+
+func buildConversationId(conversation *model.Conversation) string {
+	if conversation.ConversationMark == model.ConversationMarkOld {
+		return util.Int2Str(conversation.ID)
+	}
+	return conversation.ConversationId
 }

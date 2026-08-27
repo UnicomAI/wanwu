@@ -38,6 +38,10 @@ func CreateRagConversation(ctx *gin.Context) {
 		return
 	}
 	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckOpenAPIAccess(ctx, req.UUID, constant.AppTypeRag, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
 	// OpenAPI 创建的会话与 web 已发布会话同类型
 	resp, err := service.RagConversationCreate(ctx, userID, orgID, request.RagConversationCreateReq{
 		RagID:  req.UUID,
@@ -67,6 +71,10 @@ func ListRagConversations(ctx *gin.Context) {
 		return
 	}
 	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckOpenAPIAccess(ctx, req.UUID, constant.AppTypeRag, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
 	resp, err := service.RagConversationList(ctx, userID, orgID, request.RagConversationListReq{
 		RagID:      req.UUID,
 		SearchText: req.SearchText,
