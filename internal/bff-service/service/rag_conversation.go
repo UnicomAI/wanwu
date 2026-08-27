@@ -159,11 +159,28 @@ func RagConversationDetailList(ctx *gin.Context, userId, orgId string, req reque
 			ReasoningTimeCost:    buildRagTimeCost(item.ReasoningTimeCost),
 			SearchListTimeCost:   buildRagTimeCost(item.SearchListTimeCost),
 			QaSearchListTimeCost: buildRagTimeCost(item.QaSearchListTimeCost),
+			Feedback:             item.Feedback,
+			FeedbackContent:      item.FeedbackContent,
 		})
 	}
 	// ES 按时间倒序取分页，页内再翻正，从早到晚渲染
 	sort.Slice(list, func(i, j int) bool { return list[i].CreatedAt < list[j].CreatedAt })
 	return response.PageResult{Total: resp.Total, List: list, PageNo: req.PageNo, PageSize: req.PageSize}, nil
+}
+
+func RagMessageFeedback(ctx *gin.Context, userId, orgId string, req request.RagMessageFeedbackReq) (*response.RagMessageFeedbackResp, error) {
+	resp, err := rag.RagMessageFeedback(ctx.Request.Context(), &rag_service.RagMessageFeedbackReq{
+		RagId:           req.RagID,
+		ConversationId:  req.ConversationID,
+		DetailId:        req.DetailID,
+		FeedbackType:    req.FeedbackType,
+		FeedbackContent: req.FeedbackContent,
+		Identity:        &rag_service.Identity{UserId: userId, OrgId: orgId},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &response.RagMessageFeedbackResp{FeedbackType: resp.FeedbackType}, nil
 }
 
 // buildRagTimeCost proto 里是指针，阶段未发生时下游不返回，取零值

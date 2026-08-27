@@ -112,6 +112,16 @@ type RagConversationDetailListReq struct {
 
 func (r *RagConversationDetailListReq) Check() error { return nil }
 
+type RagMessageFeedbackReq struct {
+	RagID           string `json:"ragId" form:"ragId" validate:"required"`
+	ConversationID  string `json:"conversationId" form:"conversationId" validate:"required"`
+	DetailID        string `json:"detailId" form:"detailId" validate:"required"`
+	FeedbackType    int32  `json:"feedbackType" form:"feedbackType"`       // 反馈类型: 0=取消 1=点赞 2=点踩
+	FeedbackContent string `json:"feedbackContent" form:"feedbackContent"` // 反馈文本内容
+}
+
+func (r *RagMessageFeedbackReq) Check() error { return nil }
+
 type RagUploadParams struct {
 	Markdown bool `json:"markdown"` // 是否返回markdown格式url
 	CommonCheck

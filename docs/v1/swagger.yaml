@@ -164,6 +164,8 @@ definitions:
         $ref: '#/definitions/mp_huoshan.Embedding'
       llm:
         $ref: '#/definitions/mp_huoshan.LLM'
+      multiModalEmbedding:
+        $ref: '#/definitions/mp_huoshan.MultiModalEmbedding'
     type: object
   mp.ProviderModelByInfini:
     properties:
@@ -383,6 +385,25 @@ definitions:
         - noSupport
         - support
         type: string
+    type: object
+  mp_huoshan.MultiModalEmbedding:
+    properties:
+      apiKey:
+        type: string
+      contextSize:
+        type: integer
+      endpointUrl:
+        type: string
+      maxImageSize:
+        type: integer
+      maxTextLength:
+        type: integer
+      maxVideoClipSize:
+        type: integer
+      supportFileTypes:
+        items:
+          type: string
+        type: array
     type: object
   mp_infini.Embedding:
     properties:
@@ -4647,6 +4668,25 @@ definitions:
     required:
     - name
     type: object
+  request.RagMessageFeedbackReq:
+    properties:
+      conversationId:
+        type: string
+      detailId:
+        type: string
+      feedbackContent:
+        description: 反馈文本内容
+        type: string
+      feedbackType:
+        description: '反馈类型: 0=取消 1=点赞 2=点踩'
+        type: integer
+      ragId:
+        type: string
+    required:
+    - conversationId
+    - detailId
+    - ragId
+    type: object
   request.RagPendingConversationReq:
     properties:
       conversationId:
@@ -8031,6 +8071,9 @@ definitions:
       name:
         description: 名称
         type: string
+      placeholder:
+        description: 数字员工发布对话输入框占位文案（config 下发，区别于通用智能体 DIP Agent 的 placeholder）
+        type: string
     type: object
   response.DirectUploadFileInfo:
     properties:
@@ -8740,6 +8783,10 @@ definitions:
         type: string
       message:
         type: string
+      tags:
+        items:
+          type: string
+        type: array
       time:
         type: integer
     type: object
@@ -10282,6 +10329,12 @@ definitions:
         type: string
       errMessage:
         type: string
+      feedback:
+        description: '当前反馈状态: 0=无 1=点赞 2=点踩'
+        type: integer
+      feedbackContent:
+        description: 反馈文本内容
+        type: string
       prompt:
         type: string
       qaErrMessage:
@@ -10398,6 +10451,12 @@ definitions:
     - qaRerankConfig
     - ragId
     - rerankConfig
+    type: object
+  response.RagMessageFeedbackResp:
+    properties:
+      feedbackType:
+        description: '当前反馈状态: 0=无 1=点赞 2=点踩'
+        type: integer
     type: object
   response.RagRequestFile:
     properties:
@@ -10727,6 +10786,38 @@ definitions:
       updatedAt:
         type: string
       userId:
+        type: string
+    type: object
+  response.SkillContentFileResp:
+    properties:
+      content:
+        description: 文件内容
+        type: string
+      modTime:
+        description: 修改时间
+        type: integer
+      size:
+        description: 文件大小
+        type: integer
+      source:
+        description: published | draft
+        type: string
+      version:
+        description: 已发布版本号（draft 时为空）
+        type: string
+    type: object
+  response.SkillContentFilesResp:
+    properties:
+      files:
+        description: 文件树
+        items:
+          $ref: '#/definitions/response.FileNode'
+        type: array
+      source:
+        description: published | draft
+        type: string
+      version:
+        description: 已发布版本号（draft 时为空）
         type: string
     type: object
   response.SkillInfo:
@@ -12925,6 +13016,67 @@ paths:
       security:
       - JWT: []
       summary: 获取内置skill列表
+      tags:
+      - resource.skill
+  /agent/skill/content/file:
+    get:
+      consumes:
+      - application/json
+      description: 已发布skill读取最新发布版本中的文件；从未发布的skill读取草稿工作区文件
+      parameters:
+      - description: Skill ID
+        in: query
+        name: customSkillId
+        required: true
+        type: string
+      - description: 文件路径（相对于skill内容根目录）
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.SkillContentFileResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 读取Skill内容文件
+      tags:
+      - resource.skill
+  /agent/skill/content/files:
+    get:
+      consumes:
+      - application/json
+      description: 已发布skill返回最新发布版本的文件树；从未发布的skill返回草稿工作区文件树
+      parameters:
+      - description: Skill ID
+        in: query
+        name: customSkillId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.SkillContentFilesResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取Skill内容文件列表
       tags:
       - resource.skill
   /agent/skill/custom:
@@ -16619,6 +16771,40 @@ paths:
       security:
       - JWT: []
       summary: 启用/停用通道
+      tags:
+      - channel
+  /channel/chatflow:
+    get:
+      consumes:
+      - application/json
+      description: 获取万悟对话流列表（用于通道绑定下拉），仅返回本人创建且已发布的对话流，appId 为 workflow_id（直通 channel-service）
+      parameters:
+      - description: 应用名(模糊查询)
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.WanwuAgentResponse'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取万悟对话流列表
       tags:
       - channel
   /channel/dip/employees:
@@ -23293,6 +23479,35 @@ paths:
       security:
       - JWT: []
       summary: 知识问答会话列表
+      tags:
+      - rag
+  /rag/conversation/message/feedback:
+    post:
+      consumes:
+      - application/json
+      description: 对单条问答明细点赞/点踩，feedbackType 传 0 表示取消
+      parameters:
+      - description: 知识问答对话反馈参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.RagMessageFeedbackReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.RagMessageFeedbackResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 知识问答对话点赞/点踩
       tags:
       - rag
   /rag/pending/conversation:

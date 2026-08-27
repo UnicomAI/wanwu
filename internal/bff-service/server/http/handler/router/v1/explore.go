@@ -47,6 +47,7 @@ func registerExploration(apiV1 *gin.RouterGroup) {
 	mid.Sub("exploration.app").Reg(apiV1, "/rag/conversation/clear", http.MethodDelete, v1.RagConversationClear, "清空知识问答会话记录", middleware.AuthAppPublish("ragId", constant.AppTypeRag), middleware.AuthRagConversationAccess("ragId", "conversationId"))
 	mid.Sub("exploration.app").Reg(apiV1, "/rag/conversation/list", http.MethodGet, v1.RagConversationList, "知识问答会话列表", middleware.AuthAppPublish("ragId", constant.AppTypeRag))
 	mid.Sub("exploration.app").Reg(apiV1, "/rag/conversation/detail", http.MethodGet, v1.RagConversationDetailList, "知识问答对话详情历史列表", middleware.AuthAppPublish("ragId", constant.AppTypeRag), middleware.AuthRagConversationAccess("ragId", "conversationId"))
+	mid.Sub("exploration.app").Reg(apiV1, "/rag/conversation/message/feedback", http.MethodPost, v1.RagMessageFeedback, "知识问答对话点赞/点踩", middleware.AuthAppPublish("ragId", constant.AppTypeRag), middleware.AuthRagConversationAccess("ragId", "conversationId"))
 	mid.Sub("exploration.app").Reg(apiV1, "/rag/pending/conversation", http.MethodPost, v1.GetRagPendingConversation, "获取知识问答运行中会话")
 	mid.Sub("exploration.app").Reg(apiV1, "/rag/stream/connect", http.MethodPost, v1.ChatRagStreamConnect, "知识问答流式问答断开后重连", middleware.AuthRagConversationAccess("ragId", "conversationId"))
 	mid.Sub("exploration.app").Reg(apiV1, "/rag/stream/cancel", http.MethodPost, v1.ChatRagStreamCancel, "知识问答流式问答手动停止")

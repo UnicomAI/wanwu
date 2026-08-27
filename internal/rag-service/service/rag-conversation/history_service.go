@@ -3,6 +3,7 @@ package rag_conversation
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/UnicomAI/wanwu/internal/rag-service/client/model"
 	minio_service "github.com/UnicomAI/wanwu/internal/rag-service/service/minio-service"
@@ -37,6 +38,31 @@ func SearchDetail(ctx context.Context, conversationId, userId, orgId string, fro
 		details = append(details, &detail)
 	}
 	return details, total, nil
+}
+
+// UpdateDetailFeedback 更新单条问答明细的点赞/点踩状态，条件恒带 conversationId + userId，
+// 传别的会话的 detailId 匹配不到文档
+func UpdateDetailFeedback(ctx context.Context, conversationId, detailId, userId string, feedback int32, feedbackContent string) error {
+	if es.Rag() == nil {
+		return fmt.Errorf("ES未初始化")
+	}
+	conditions := map[string]interface{}{
+		"conversationId": conversationId,
+		"userId":         userId,
+		"id":             detailId,
+	}
+	// UpdateByQuery 匹配不到文档也算成功，先查一次避免把不存在的明细报成反馈成功
+	_, total, err := es.Rag().SearchByFields(ctx, es.RagChatHistoryIndexPattern, conditions, 0, 1, "desc")
+	if err != nil {
+		return err
+	}
+	if total == 0 {
+		return fmt.Errorf("对话明细不存在，detailId: %s", detailId)
+	}
+	return es.Rag().UpdateByFields(ctx, es.RagChatHistoryIndexPattern, conditions, map[string]interface{}{
+		"feedback":        feedback,
+		"feedbackContent": feedbackContent,
+	})
 }
 
 // DeleteDetail 删除会话下的问答明细，detailId 非空则只删单条。

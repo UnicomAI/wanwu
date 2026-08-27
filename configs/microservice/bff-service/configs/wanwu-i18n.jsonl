@@ -482,6 +482,7 @@
 {"code":150012,"key":"rag_conversation_list_err","langs":{"zh":"获取知识问答会话列表错误：%v"}}
 {"code":150012,"key":"rag_conversation_detail_err","langs":{"zh":"获取知识问答对话详情错误：%v"}}
 {"code":150012,"key":"rag_conversation_clear_err","langs":{"zh":"清除知识问答对话记录错误：%v"}}
+{"code":150012,"key":"rag_conversation_feedback_err","langs":{"zh":"知识问答对话反馈错误：%v"}}
 {"code":150013,"key":"rag_conversation_not_exist","langs":{"zh":"知识问答会话不存在"}}
 {"code":160001,"key":"assistant_create","langs":{"zh":"创建智能体错误: %v"}}
 {"code":160001,"key":"assistant_update","langs":{"zh":"更新智能体错误: %v"}}

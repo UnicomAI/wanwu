@@ -100,8 +100,8 @@ func ChatRagStream(ctx *gin.Context, userId, orgId, clientId string, req request
 	// runId 每轮问答唯一，threadId 取 conversationId
 	runID := uuid.NewString()
 	threadID := req.ConversationID
-
-	eventCh := convertRagStream2AGUIEvents(upstreamCtx, chatCh, threadID, runID, streamParams, kbNameMap)
+	// 转为AG-UI事件
+	eventCh := convertRagStream2AGUIEvents(upstreamCtx, chatCh, threadID, runID, streamParams, kbNameMap, req.DetailID)
 	outputCh := ag_ui_util.EventsToJSONChannel(upstreamCtx, eventCh)
 	// 链接保持：先落会话再转发当前连接，统计等这一轮跑完再落
 	clientCh := publishRagChatStream(ctx.Request.Context(), sseSessionMgr, outputCh, recordStat)
@@ -148,6 +148,7 @@ func convertRagStream2AGUIEvents(
 	threadID, runID string,
 	streamParams *ragChatStreamParams,
 	kbNameMap map[string]string,
+	detailID string,
 ) <-chan aguievents.Event {
 	out := make(chan aguievents.Event, 64)
 	// NewBaseState 返回值类型，方法接收者是 *BaseState；取地址避免方法调用时拷贝状态
@@ -159,6 +160,7 @@ func convertRagStream2AGUIEvents(
 		runID:        runID,
 		streamParams: streamParams,
 		kbNameMap:    kbNameMap,
+		detailID:     detailID,
 	}
 
 	go func() {

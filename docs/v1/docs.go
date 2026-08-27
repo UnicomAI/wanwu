@@ -2327,6 +2327,111 @@ const docTemplate = `{
                 }
             }
         },
+        "/agent/skill/content/file": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "已发布skill读取最新发布版本中的文件；从未发布的skill读取草稿工作区文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resource.skill"
+                ],
+                "summary": "读取Skill内容文件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Skill ID",
+                        "name": "customSkillId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "文件路径（相对于skill内容根目录）",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.SkillContentFileResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/agent/skill/content/files": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "已发布skill返回最新发布版本的文件树；从未发布的skill返回草稿工作区文件树",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resource.skill"
+                ],
+                "summary": "获取Skill内容文件列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Skill ID",
+                        "name": "customSkillId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.SkillContentFilesResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/agent/skill/custom": {
             "delete": {
                 "security": [
@@ -8583,6 +8688,69 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.ChannelResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/channel/chatflow": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取万悟对话流列表（用于通道绑定下拉），仅返回本人创建且已发布的对话流，appId 为 workflow_id（直通 channel-service）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "channel"
+                ],
+                "summary": "获取万悟对话流列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "应用名(模糊查询)",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.WanwuAgentResponse"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
                                         }
                                     }
                                 }
@@ -19992,6 +20160,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/rag/conversation/message/feedback": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "对单条问答明细点赞/点踩，feedbackType 传 0 表示取消",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "知识问答对话点赞/点踩",
+                "parameters": [
+                    {
+                        "description": "知识问答对话反馈参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RagMessageFeedbackReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.RagMessageFeedbackResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/rag/pending/conversation": {
             "post": {
                 "security": [
@@ -23970,6 +24189,9 @@ const docTemplate = `{
                 },
                 "llm": {
                     "$ref": "#/definitions/mp_huoshan.LLM"
+                },
+                "multiModalEmbedding": {
+                    "$ref": "#/definitions/mp_huoshan.MultiModalEmbedding"
                 }
             }
         },
@@ -24287,6 +24509,35 @@ const docTemplate = `{
                         "noSupport",
                         "support"
                     ]
+                }
+            }
+        },
+        "mp_huoshan.MultiModalEmbedding": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string"
+                },
+                "contextSize": {
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "type": "string"
+                },
+                "maxImageSize": {
+                    "type": "integer"
+                },
+                "maxTextLength": {
+                    "type": "integer"
+                },
+                "maxVideoClipSize": {
+                    "type": "integer"
+                },
+                "supportFileTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -30515,6 +30766,33 @@ const docTemplate = `{
                 }
             }
         },
+        "request.RagMessageFeedbackReq": {
+            "type": "object",
+            "required": [
+                "conversationId",
+                "detailId",
+                "ragId"
+            ],
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                },
+                "detailId": {
+                    "type": "string"
+                },
+                "feedbackContent": {
+                    "description": "反馈文本内容",
+                    "type": "string"
+                },
+                "feedbackType": {
+                    "description": "反馈类型: 0=取消 1=点赞 2=点踩",
+                    "type": "integer"
+                },
+                "ragId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.RagPendingConversationReq": {
             "type": "object",
             "required": [
@@ -35537,6 +35815,10 @@ const docTemplate = `{
                 "name": {
                     "description": "名称",
                     "type": "string"
+                },
+                "placeholder": {
+                    "description": "数字员工发布对话输入框占位文案（config 下发，区别于通用智能体 DIP Agent 的 placeholder）",
+                    "type": "string"
                 }
             }
         },
@@ -38867,6 +39149,14 @@ const docTemplate = `{
                 "errMessage": {
                     "type": "string"
                 },
+                "feedback": {
+                    "description": "当前反馈状态: 0=无 1=点赞 2=点踩",
+                    "type": "integer"
+                },
+                "feedbackContent": {
+                    "description": "反馈文本内容",
+                    "type": "string"
+                },
                 "prompt": {
                     "type": "string"
                 },
@@ -39057,6 +39347,15 @@ const docTemplate = `{
                             "$ref": "#/definitions/request.VisionConfig"
                         }
                     ]
+                }
+            }
+        },
+        "response.RagMessageFeedbackResp": {
+            "type": "object",
+            "properties": {
+                "feedbackType": {
+                    "description": "当前反馈状态: 0=无 1=点赞 2=点踩",
+                    "type": "integer"
                 }
             }
         },
@@ -39553,6 +39852,51 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.SkillContentFileResp": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "文件内容",
+                    "type": "string"
+                },
+                "modTime": {
+                    "description": "修改时间",
+                    "type": "integer"
+                },
+                "size": {
+                    "description": "文件大小",
+                    "type": "integer"
+                },
+                "source": {
+                    "description": "published | draft",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "已发布版本号（draft 时为空）",
+                    "type": "string"
+                }
+            }
+        },
+        "response.SkillContentFilesResp": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "description": "文件树",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.FileNode"
+                    }
+                },
+                "source": {
+                    "description": "published | draft",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "已发布版本号（draft 时为空）",
                     "type": "string"
                 }
             }

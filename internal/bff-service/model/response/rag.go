@@ -75,6 +75,13 @@ type RagConversationDetailInfo struct {
 	ReasoningTimeCost    RagTimeCost      `json:"reasoningTimeCost"`    // 深度思考起止
 	SearchListTimeCost   RagTimeCost      `json:"searchListTimeCost"`   // 知识库检索起止
 	QaSearchListTimeCost RagTimeCost      `json:"qaSearchListTimeCost"` // 问答库检索起止
+	Feedback             int32            `json:"feedback"`             // 当前反馈状态: 0=无 1=点赞 2=点踩
+	FeedbackContent      string           `json:"feedbackContent"`      // 反馈文本内容
+}
+
+// RagMessageFeedbackResp 知识问答对话点赞/点踩响应
+type RagMessageFeedbackResp struct {
+	FeedbackType int32 `json:"feedbackType"` // 当前反馈状态: 0=无 1=点赞 2=点踩
 }
 
 // RagTimeCost 一个阶段的起止时刻(毫秒)，两个字段均为0表示该阶段未发生

@@ -402,6 +402,27 @@ func RagConversationDetailList(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
+// RagMessageFeedback
+//
+//	@Tags			rag
+//	@Summary		知识问答对话点赞/点踩
+//	@Description	对单条问答明细点赞/点踩，feedbackType 传 0 表示取消
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.RagMessageFeedbackReq	true	"知识问答对话反馈参数"
+//	@Success		200		{object}	response.Response{data=response.RagMessageFeedbackResp}
+//	@Router			/rag/conversation/message/feedback [post]
+func RagMessageFeedback(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.RagMessageFeedbackReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.RagMessageFeedback(ctx, userId, orgId, req)
+	gin_util.Response(ctx, resp, err)
+}
+
 // RagConversationDraftDetailList
 //
 //	@Tags			rag
