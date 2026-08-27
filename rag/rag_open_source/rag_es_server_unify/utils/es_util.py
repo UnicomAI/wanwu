@@ -104,6 +104,8 @@ def bulk_add_index_data(index_name, kb_name, data):
     # ============ 若索引不存在则新建 ============
     # 提前设置doc_meta字段mapping，避免自动mapping
     es_mapping.update_doc_meta_mapping(index_name)
+    # 补齐缺失的向量动态模板（如 vector_2560），使旧索引新写入的向量字段自动按模板建为可 knn 检索
+    es_mapping.update_vector_dynamic_templates(index_name)
     for item in data:  # 往索引里插数据，以index的方式，若_id已存在则先删除再添加
         # 生成一个随机的UUID，相当于不校验重复
         cont_str = kb_name + item["content"] + item["file_name"] + str(item["meta_data"]["chunk_current_num"])

@@ -2,6 +2,7 @@ from utils.config_util import es
 from elasticsearch import helpers
 from utils.es_util import check_index_exists
 from log.logger import logger
+import utils.mapping_util as es_mapping
 
 from settings import DELETE_BACTH_SIZE
 from utils.util import validate_index_name
@@ -82,6 +83,8 @@ def bulk_add_index_data(index_name, qa_base_name, data):
             "_source": item
         }
         actions.append(action)
+    # 补齐缺失的向量动态模板（如 vector_2560），使旧索引新写入的向量字段自动按模板建为可 knn 检索
+    es_mapping.update_vector_dynamic_templates(index_name)
     # 执行批量操作
     try:
         helpers.bulk(es, actions)
@@ -175,6 +178,9 @@ def update_qa_data(index_name, qa_base_name, qa_pair_id, upsert_data):
         "_id": qa_pair_id,
         "doc": upsert_data
     }]
+
+    # 补齐缺失的向量动态模板（如 vector_2560），使旧索引新写入的向量字段自动按模板建为可 knn 检索
+    es_mapping.update_vector_dynamic_templates(index_name)
 
     # 执行批量操作
     try:
