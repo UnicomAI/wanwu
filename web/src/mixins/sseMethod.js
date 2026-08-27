@@ -1178,15 +1178,14 @@ export default {
 
               // ── 正文内容（text output）───────────────────────────
               case 'TEXT_MESSAGE_START':
-                // RAG 的 messageId 即持久化问答 detailId，统一写入 detailId 供单条删除使用。
-                if (data.messageId) {
-                  commonData.detailId = data.messageId;
+                if (data.detailId) {
+                  commonData.detailId = data.detailId;
                 }
                 break;
 
               case 'TEXT_MESSAGE_CONTENT': {
-                if (data.messageId) {
-                  commonData.detailId = data.messageId;
+                if (data.detailId) {
+                  commonData.detailId = data.detailId;
                 }
                 streamHasContent = true;
                 const output = data.delta || '';
@@ -1207,8 +1206,8 @@ export default {
               }
 
               case 'TEXT_MESSAGE_END':
-                if (data.messageId) {
-                  commonData.detailId = data.messageId;
+                if (data.detailId) {
+                  commonData.detailId = data.detailId;
                 }
                 // 发送 finish=1 信号给 Print；Print 动画结束时调用 doRender，
                 // doRender 在 worldObj.isEnd && worldObj.finish===1 时调用 setStoreSessionStatus(-1)
