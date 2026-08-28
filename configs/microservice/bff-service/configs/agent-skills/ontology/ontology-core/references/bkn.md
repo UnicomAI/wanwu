@@ -43,8 +43,23 @@ ontology bkn object-type update <kn_id> <ot_id> [--name <n>] [--display-key <dk>
 ontology bkn object-type update <kn_id> <ot_id> '<full-json-body>'
 ontology bkn object-type delete <kn_id> <ot_ids> [--yes/-y]
 ontology bkn object-type query <kn_id> <ot_id> ['<json>']   # 查询实例（支持 --limit/--search-after）
-ontology bkn object-type properties <kn_id> <ot_id> '<json>' # 查询实例属性
+ontology bkn object-type properties <kn_id> <ot_id> '<json>' # 查询实例属性（含逻辑属性结算）
 ```
+
+### object-type properties（逻辑属性取值）
+
+`bkn object-type properties` 查询指定实例的属性值。当 `properties` 列表中包含 `logic_properties` 里定义的逻辑属性名时，服务端 box 引擎会执行计算并返回结算结果值。
+
+```bash
+ontology --user-id <accountId> bkn object-type properties <kn_id> <ot_id> \
+  '{"_instance_identities":[{"<primary-key>":"<value>"}],"properties":["<property_name>", ...]}' \
+  [-bd bd_public] [--pretty]
+```
+
+- **`_instance_identities`**：目标实例的主键标识数组。主键字段名取自 `bkn object-type get` 返回的 `primary_keys`。
+- **`properties`**：要查询的属性名列表，可以是 `data_properties` 中的普通字段名，也可以是 `logic_properties` 中定义的逻辑属性名。
+- 当查询逻辑属性时，返回的是 **服务端 box 引擎结算后的结果值**，不是入参绑定。
+- body 结构为 `{"_instance_identities":[{...}],"properties":[...]}`，不支持 `condition` 过滤。
 
 ### object-type update 说明（数据属性：增 / 改 / 删）
 

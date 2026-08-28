@@ -65,16 +65,33 @@ ontology --user-id <accountId> bkn object-type query <kn-id> <ot-id> '<filter-js
 - `<filter-json>`：以网关约定为准（`{"_instance_identities":[...]}` 等）。
 - 不支持聚合 / GROUP BY / JOIN；遇此类需求回到 SQL 路径。
 
+### 逻辑属性取值路径（计算字段结算）
+
+当步骤 2 的 `bkn object-type get` 返回的 `logic_properties` 数组非空，且用户要的指标名命中其中某项的 `name` 时，走此路径。此路径 **不生成 SQL**，直接用固定 body 结构的取值命令，由服务端 box 引擎结算后返回计算值。
+
+```bash
+ontology --user-id <accountId> bkn object-type properties <kn-id> <ot-id> \
+  '{"_instance_identities":[{"<primary-key>":"<value>"}],"properties":["<logic_property_name>"]}' \
+  [-bd bd_public] [--pretty]
+```
+
+- **`<kn-id>` / `<ot-id>`**：来自步骤 2 schema 发现。
+- **`_instance_identities`**：目标实例的主键标识数组。主键字段名取自 `bkn object-type get` 返回的 `primary_keys`（如 `inventory_id`）。
+- **`properties`**：要结算的逻辑属性 `name` 列表，取自 `bkn object-type get` 返回的 `logic_properties[].name`。
+- 返回的是 **服务端 box 引擎结算后的结果值**（不是入参绑定）。
+
+> **逻辑属性路径 vs SQL 路径**：用户问题中的指标名出现在 `logic_properties` 中 → 走逻辑属性路径；否则走 SQL 路径。两条路径禁止混用。
+
 ## 结果回执契约
 
-ontology-core 把 `dataview query` 的原始 JSON 返回给 smart-ask-data；本 skill 把如下两块交给最终回复：
+ontology-core 把 `dataview query` 或 `bkn object-type properties` 的原始 JSON 返回给 smart-ask-data；本 skill 把如下两块交给最终回复：
 
-1. **执行的 SQL**（可脱敏，不可省略）。
-2. **关键结果数据**（表格 / 行记录 / 聚合数值；按"注意事项"原样呈现）。
+1. **执行的 SQL 或逻辑属性取值命令**（可脱敏，不可省略）。
+2. **关键结果数据**（表格 / 行记录 / 聚合数值 / 计算值；按"注意事项"原样呈现）。
 
 ## 注意事项
 
-- **结果展示硬约束**：若返回非空结果，最终回复 **必须同时** 给出 SQL + 关键结果数据，不得只给口头结论。
+- **结果展示硬约束**：若返回非空结果，最终回复 **必须同时** 给出执行的 SQL 或逻辑属性取值命令 + 关键结果数据，不得只给口头结论。
 - **结果为空**：直接说"未查询到符合条件的数据"，不得编造；并建议下一步（调整时间范围、口径、或换 KN）。
 - **写操作禁止**：不允许 `INSERT / UPDATE / DELETE / DDL`；不允许 `--raw-sql`。
 - **`--user-id <accountId>` 必传**。
