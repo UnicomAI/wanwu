@@ -158,25 +158,31 @@ KN id 在下表中直接声明，**由本 skill 路由时透传到下游**（sma
 
 - **聚合/统计类**：多少、占比、趋势、TopN、指标、统计、分析结论、查询…信息（需要结果）
 - **关系/关联类**：与…关联 / 与…有关、由…组成 / 包含哪些、经过哪些 / 流向哪里、哪些 X 与 Y…、X 的下游 / 上游是什么
+- **逻辑属性/派生指标类**：用户提到的指标名不在 `data_properties` 里，而是出现在 `bkn object-type get` 返回的 `logic_properties` 中（`type: tool` 的计算属性，由服务端 box 引擎结算）
 - 已识别具体视图/表并需要 **聚合或 SQL 级取数**
 
 关系类问题的最终交付是"相关实体集合"，需要跨对象类 JOIN，**必须走 SQL 问数**，不能用单 ot 的 `bkn object-type query` 拼凑代替（参见下方判别表）。
 
+逻辑属性类问题的最终交付是"经服务端 box 引擎结算的计算值"，**必须走 `bkn object-type properties`** 结算路径，不能用 `bkn object-type query` 代替——后者只返回逻辑属性的入参绑定（`body` 里填好字段值），**不执行计算**（参见下方判别表）。
+
 问数分支通过 ontology-core 委托 ``bkn object-type list/get` 做 Schema 发现，本 skill 在编排层基于 schema 摘要 **生成 SELECT SQL**，再由 [smart-ask-data](../smart-ask-data/SKILL.md) 委托 `dataview query --sql` 执行。绘图与二次代码加工能力不内置；如需绘图，明确告知用户由前端自渲染或独立处理。
 
-**关键区分：SQL 问数 vs 对象类实例检索（bkn object-type query）**
+**关键区分：SQL 问数 vs 对象类实例检索 vs 逻辑属性取值**
 
-两者都能返回数据，但能力差很大。**默认偏好**：涉及"关系"或"聚合" → SQL 问数；单实体精确/范围过滤 → object-type query。
+三者都能返回数据，但能力差很大。**默认偏好**：涉及"关系"或"聚合" → SQL 问数；单实体精确/范围过滤 → object-type query；逻辑属性（计算字段）→ object-type properties。
 
-| 任务形态 | 走 SQL 问数（dataview query --sql） | 走 object-type query |
-|----------|:----:|:----:|
-| 跨对象类 JOIN | ✅ | ❌（只能单 ot，需手工拼接） |
-| 聚合统计（COUNT/SUM/AVG/GROUP BY） | ✅ | ❌ |
-| 单实体 ID 精确查找 | 任选 | ✅（更轻） |
-| 单实体多条件过滤 | 任选 | ✅ |
-| 全文检索 | ❌（SQL 视图不支持 match） | ✅ |
+| 任务形态 | SQL 问数（dataview query --sql） | object-type query | object-type properties |
+|----------|:----:|:----:|:----:|
+| 跨对象类 JOIN | ✅ | ❌（只能单 ot，需手工拼接） | ❌ |
+| 聚合统计（COUNT/SUM/AVG/GROUP BY） | ✅ | ❌ | ❌ |
+| 单实体 ID 精确查找 | 任选 | ✅（更轻） | ❌ |
+| 单实体多条件过滤 | 任选 | ✅ | ❌ |
+| 全文检索 | ❌（SQL 视图不支持 match） | ✅ | ❌ |
+| **逻辑属性取值（`logic_properties` 中的计算字段）** | ❌ | ❌（只给入参，不结算） | ✅（服务端 box 引擎结算，返回结果值） |
 
 凡问题中出现"X 与哪些 Y 关联 / 由哪些 Y 组成"这类需要**跨对象类关系**的措辞，或出现"多少 / 占比 / 趋势 / TopN / 平均"这类**聚合**措辞，**必须**进入 SQL 问数；不要用单 ot 的 `bkn object-type query` 拼接代替。
+
+凡问题中出现的指标名命中 `bkn object-type get` 返回的 `logic_properties` 数组（即该指标是 `type: tool` 的计算属性），**必须**走 `bkn object-type properties` 结算路径；不要用 `bkn object-type query` 代替（那只返回入参绑定，不执行计算）。
 
 **`bkn object-type query` 的 JSON body 必须用 `condition` 外层包裹**（编排层常错点）：
 
@@ -206,18 +212,35 @@ KN id 在下表中直接声明，**由本 skill 路由时透传到下游**（sma
 - [ ] 若表未就绪：先在问数流程内短循环找表/找视图（调用 smart-search-tables 或追问）后再继续
 - [ ] 明确指标口径、时间粒度、维度与过滤条件
 - [ ] 委托 smart-ask-data：触发 schema 发现（`bkn object-type get`）拿候选对象类、字段、dataview-id（取自 `data_source.id`，要求 `data_source.type == "data_view"`）
-- [ ] **本 skill 在编排层基于 schema 摘要 + 用户口径生成 SELECT/WITH SQL**（必带 LIMIT；字段表名必须来自摘要）
-- [ ] 把 `accountId / kn_id / 生成的 SQL` 三件套透传给 smart-ask-data，它再委托 ontology-core 执行 `dataview query --sql`
-- [ ] 输出：SQL（脱敏可，不可省）+ 关键数据 + 口径说明 + 可复核步骤
+- [ ] **路由判定**（二选一，不可混用）：
+  - [ ] **逻辑属性路径**：schema 发现返回的 `logic_properties` 非空且含用户要的计算属性 → 走 `bkn object-type properties` 结算（见下方交接契约），**不走 SQL**
+  - [ ] **SQL 路径**：聚合/JOIN/普通字段取值 → 本 skill 在编排层基于 schema 摘要 + 用户口径生成 SELECT/WITH SQL（必带 LIMIT；字段表名必须来自摘要）
+- [ ] 输出：执行的命令或 SQL（脱敏可，不可省）+ 关键数据 + 口径说明 + 可复核步骤
 ```
 
 **与 smart-ask-data v2 的交接契约**（**本 skill 的硬责任**）：
+
+问数分支按路由判定分为两条路径，交接内容不同：
+
+**SQL 路径**（聚合/JOIN/普通字段取值）：
 
 | 字段 | 含义 | 缺失处理 |
 |------|------|----------|
 | `accountId` | 当前会话用户账户 id | 向用户索取；不得编造或用 config 默认值 |
 | `kn_id` | 问数 KN id | 从「知识网络声明」表"问数"行读取；占位未填 → 告知用户并停止 |
 | 生成的 SELECT SQL | 基于 step-2 schema 摘要的 SQL；只允许 SELECT/WITH；字段表名必须来自摘要；带 LIMIT | smart-ask-data 不内置 LLM，本 skill 必须给出 |
+
+**逻辑属性路径**（计算字段/派生指标取值）：
+
+| 字段 | 含义 | 缺失处理 |
+|------|------|----------|
+| `accountId` | 当前会话用户账户 id | 向用户索取；不得编造或用 config 默认值 |
+| `kn_id` | 问数 KN id | 从「知识网络声明」表"问数"行读取；占位未填 → 告知用户并停止 |
+| `ot_id` | 目标对象类 id | 来自 schema 发现的 `bkn object-type get` 返回 |
+| `logic_property_names` | 要结算的逻辑属性 `name` 列表（取自 schema 发现返回的 `logic_properties[].name`） | 从 `bkn object-type get` 的 `logic_properties` 数组中提取；为空 → 说明该对象类无逻辑属性，回退 SQL 路径或告知用户 |
+| `instance_identities` | 目标实例的主键标识数组 | 由用户提供或从 `bkn object-type query` 查得；缺失则向用户索取 |
+
+> 逻辑属性路径不需要本 skill 生成 SQL——`bkn object-type properties` 是固定 body 结构的取值命令，由 smart-ask-data 委托 ontology-core 直接执行。
 
 ### 歧义与复合请求（按最终意图收敛）
 

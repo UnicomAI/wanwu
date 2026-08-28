@@ -73,10 +73,14 @@ ontology --user-id <accountId> <command> [options]
 ```text
 问数进度：
 - [ ] 1. 解析 kn_id：若已指定或仅 1 个候选 KN 则直用；多候选时由编排层 LLM 用 bkn list/get 选定（见 kn-resolve）
-- [ ] 2. Schema 发现：bkn object-type list/get → 候选对象类、字段、dataview-id
-- [ ] 3. 生成 SQL：编排层 LLM 基于第 2 步信息生成 SELECT SQL（不在 smart-ask-data 内部生成）
-- [ ] 4. 执行 SQL：ontology dataview query <dataview-id> --sql "..." 取数
-- [ ] 5. 总结：结论 + 口径 + 依据（KN/对象类/SQL）
+- [ ] 2. Schema 发现：bkn object-type list/get → 候选对象类、字段、dataview-id、**logic_properties**（逻辑属性定义）
+- [ ] 3. 路由判定（二选一，不可混用）：
+  - [ ] 3a. **逻辑属性路径**：用户要的指标名命中 step-2 返回的 `logic_properties[].name` → 走 `bkn object-type properties` 结算（见 references/sql-execute.md "逻辑属性取值"）
+  - [ ] 3b. **SQL 路径**：聚合/JOIN/普通字段取值 → 编排层 LLM 基于第 2 步信息生成 SELECT SQL
+- [ ] 4. 执行取数：
+  - [ ] 4a. 逻辑属性路径：ontology bkn object-type properties <kn-id> <ot-id> '{"_instance_identities":[{...}],"properties":[...]}' → 服务端 box 引擎结算，返回计算值
+  - [ ] 4b. SQL 路径：ontology dataview query <dataview-id> --sql "..." 取数
+- [ ] 5. 总结：结论 + 口径 + 依据（KN/对象类/执行的命令或 SQL）
 ```
 
 ### 知识网络来源
@@ -89,13 +93,17 @@ ontology --user-id <accountId> <command> [options]
    - 已传入 `kn_id`：直接使用。
    - 仅 1 个候选 KN：直接使用。
    - 候选 > 1：由 **smart-data-analysis** 的 LLM 决策（基于 `bkn list` / `bkn get` 拿到的候选元数据）。
-2. **Schema 发现先于 SQL**：先用 `bkn object-type list/get` 锁定对象类与字段，再让 LLM 生成 SQL；防止 SQL 幻觉。
-3. **SQL 生成在编排层**：本 skill 不内置 LLM；SQL 由 smart-data-analysis 生成后传入。
-4. **只允许 SELECT/WITH**：`dataview query --sql` 默认拒绝写操作；不得使用 `--raw-sql` 绕过。
-5. **结果展示硬约束**：若执行返回非空结果，最终回复中 **必须同时展示**：
-   - 生成并执行的 SQL（可脱敏，不可省略）；
+2. **Schema 发现先于取数**：先用 `bkn object-type list/get` 锁定对象类与字段，再决定走 SQL 还是逻辑属性路径；防止 SQL 幻觉。
+3. **逻辑属性路径 vs SQL 路径**：
+   - 用户问题中的指标名出现在 `bkn object-type get` 返回的 `logic_properties` 数组中 → 走逻辑属性路径。
+   - `logic_properties` 为空或不含目标属性 → 走 SQL 路径。
+   - **禁止混用**：逻辑属性路径不生成 SQL；SQL 路径不调 `bkn object-type properties`。
+4. **SQL 生成在编排层**：本 skill 不内置 LLM；SQL 由 smart-data-analysis 生成后传入。
+5. **只允许 SELECT/WITH**：`dataview query --sql` 默认拒绝写操作；不得使用 `--raw-sql` 绕过。
+6. **结果展示硬约束**：若执行返回非空结果，最终回复中 **必须同时展示**：
+   - 生成并执行的 SQL 或逻辑属性取值命令（可脱敏，不可省略）；
    - 关键结果数据（表格或要点汇总，不可仅给口头结论）。
-6. **总结**：明确时间范围、指标定义；不暴露完整调试 URL。
+7. **总结**：明确时间范围、指标定义；不暴露完整调试 URL。
 
 ## 注意事项（必须遵守）
 
@@ -113,7 +121,9 @@ ontology --user-id <accountId> <command> [options]
 
 - `accountId`（→ `--user-id`，必传）
 - `kn_id`（已选定的业务 KN；缺失时附带候选 `kn_ids` 并已剔除 forbidden 项，由本 skill 触发 LLM 二次决策）
-- 由 LLM 基于 Schema 发现结果生成的 SELECT SQL（步骤 3 起需要）
+- 路由判定结果（二选一）：
+  - **SQL 路径**：由 LLM 基于 Schema 发现结果生成的 SELECT SQL（步骤 3b 起需要）
+  - **逻辑属性路径**：`ot_id` + `logic_property_names`（从 `bkn object-type get` 返回的 `logic_properties[].name` 提取）+ `instance_identities`（目标实例主键标识）
 
 网关（`ONTOLOGY_BASE_URL`）由 ontology-core 侧统一承担；本部署 ontology CLI **无须 token**，本 skill 与 smart-data-analysis 均不持有任何凭证。
 

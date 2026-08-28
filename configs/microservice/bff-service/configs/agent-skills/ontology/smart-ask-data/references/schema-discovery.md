@@ -43,6 +43,7 @@ ontology --user-id <accountId> bkn object-type get <kn-id> <ot-id> [-bd bd_publi
 - `id` / `name` / `display_key` / `primary_key`
 - `data_source`：对象类绑定的后端数据源，含 `type` / `id` / `name`。**关键** — 当 `type == "data_view"` 时 `data_source.id` 即步骤 4 `dataview query --sql` 需要的 dataview-id；其它 `type` 不可用于 `dataview query --sql`
 - `properties`：字段名 + 类型 + 描述
+- `logic_properties`：逻辑属性（计算字段）定义数组，每项含 `name`（逻辑属性名）、`display_name`、`type`（如 `tool`）、`execution_unit`（box 引擎执行单元）、`parameters`（入参绑定：哪个字段映射到哪个参数、常量值等）。**当用户问题中的指标名命中此数组时，走逻辑属性取值路径（`bkn object-type properties`），不走 SQL。**
 - `tags` / `comment` / 关联关系类型 等
 
 ### 2.3 拿三段式表名（生成 SQL 必须）
@@ -76,10 +77,12 @@ KN: <kn_id> (<kn_name>)
       dataview-id: <dv-id-1>            # 取自 data_source.id（type == "data_view"）
       meta_table_name: <catalog>.<schema>.<table>   # 来自 2.4 dataview get；SQL FROM/JOIN 直接抄
       字段: <prop1> (<type>, <desc>), <prop2> (...), ...
+      逻辑属性: <lp1> (<display_name>, type=<tool>, ...), <lp2> (...), ...   # 取自 logic_properties
   - <ot-id-2> (<name>)
       dataview-id: <dv-id-2>
       meta_table_name: ...
       字段: ...
+      逻辑属性: ...
 关系（如有）:
   - <ot-id-1> -[<rel-name>]→ <ot-id-2>
 ```
