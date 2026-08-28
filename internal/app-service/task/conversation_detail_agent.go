@@ -22,6 +22,17 @@ func init() {
 // agentDetailHandler 智能体(agent)对话详情查询实现。
 type agentDetailHandler struct{}
 
+func (h *agentDetailHandler) GetAppName(ctx context.Context, appId string) (string, error) {
+	info, err := assistant.GetAssistantInfo(ctx, &assistant_service.GetAssistantInfoReq{AssistantId: appId, Identity: &assistant_service.Identity{}})
+	if err != nil {
+		return "", err
+	}
+	if info.AssistantBrief == nil {
+		return "", nil
+	}
+	return info.AssistantBrief.Name, nil
+}
+
 // FetchDetails agent 实现：先取 owner 身份，再以该身份分页拉 assistant-service 详情。
 func (h *agentDetailHandler) FetchDetails(ctx context.Context, lg *model.ConversationLog) ([]*assistant_service.ConversionDetailInfo, error) {
 	if lg == nil {

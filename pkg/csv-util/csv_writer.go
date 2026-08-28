@@ -8,6 +8,7 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -19,6 +20,7 @@ const (
 
 type ExportCsvParams struct {
 	ExportLocalDir  string   //导出的本地目录
+	FileNamePre     string   //导出的本地文件名前缀
 	CsvHeader       []string //导出csv的表头
 	MinioBucketDir  string   //对象存储前缀
 	MinioBucketName string   //对象存储前缀
@@ -119,9 +121,9 @@ func uploadMinio(ctx context.Context, exportCsvParams *ExportCsvParams, csvFileP
 }
 
 func createLocalCsv(exportCsvParams *ExportCsvParams) (string, *os.File, error) {
-	curUuid := util.GenUUID()
+	curUuid := strings.Split(util.GenUUID(), "-")[0]
 	// 写本地 CSV 文件
-	exportCsvFilePath := exportCsvParams.ExportLocalDir + curUuid + "_" + time.Now().Format("20060102150405") + csvSuffix
+	exportCsvFilePath := exportCsvParams.ExportLocalDir + exportCsvParams.FileNamePre + "_" + time.Now().Format("20060102150405") + "_" + curUuid + csvSuffix
 	if err := os.MkdirAll(filepath.Dir(exportCsvFilePath), 0755); err != nil {
 		log.Infof("Error create directory: %v", err)
 		return "", nil, err

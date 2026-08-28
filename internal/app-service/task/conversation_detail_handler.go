@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/UnicomAI/wanwu/internal/app-service/client/model"
+	"github.com/UnicomAI/wanwu/pkg/log"
 )
 
 // ConversationDetailHandler 按 appType 获取对话详情（导出 CSV 末列「对话详情」）。
 type ConversationDetailHandler interface {
+	GetAppName(ctx context.Context, appId string) string
 	GetConversationDetail(ctx context.Context, conversationLog *model.ConversationLog) (string, error)
 }
 
@@ -16,6 +18,7 @@ var conversationDetailHandlers = make(map[string]ConversationDetailHandler)
 
 // conversationDetailHooks 各 appType 必须实现的两个钩子；D 为该 appType 的原始详情类型
 type conversationDetailHooks[D any] interface {
+	GetAppName(ctx context.Context, appId string) (string, error)
 	FetchDetails(ctx context.Context, conversationLog *model.ConversationLog) ([]D, error)
 	DetailToQA(D) (conversationDetailQA, bool)
 }
@@ -26,6 +29,15 @@ type conversationDetailAdapter[D any] struct{ hooks conversationDetailHooks[D] }
 // RegisterConDetailHandler 注册某 appType 的详情处理器（在各 handler 文件的 init 中调用）。
 func RegisterConDetailHandler[D any](appType string, handler conversationDetailHooks[D]) {
 	conversationDetailHandlers[appType] = conversationDetailAdapter[D]{hooks: handler}
+}
+
+// GetAppName 拉详情。
+func (a conversationDetailAdapter[D]) GetAppName(ctx context.Context, appId string) string {
+	name, err := a.hooks.GetAppName(ctx, appId)
+	if err != nil {
+		log.Errorf("appId %s get app name %v", appId, err)
+	}
+	return name
 }
 
 // GetConversationDetail 拉详情 → 跳过 toQA 标记 false 的条目 → 逐条转 QA → 序列化。
