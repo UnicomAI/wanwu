@@ -197,6 +197,10 @@ func InitAsistantChatHistoryIndexTemplate(ctx context.Context) error {
 					"responseId": {
 						"type": "keyword",
 						"index": true
+					},
+					"deleted": {
+						"type": "boolean",
+						"index": true
 					}
 				}
 			}

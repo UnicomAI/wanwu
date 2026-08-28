@@ -664,6 +664,9 @@
 {"code":300015,"key":"app_api_key_statistic_v2_list","langs":{"en":"get api key statistic v2 list err: %v","zh":"获取API Key调用统计列表错误: %v"}}
 {"code":300015,"key":"app_api_key_statistic_v2_app_list","langs":{"en":"get api key statistic v2 app list err: %v","zh":"获取API Key应用调用统计列表错误: %v"}}
 {"code":300015,"key":"app_api_key_statistic_v2_record","langs":{"en":"api key statistic v2 record err: %v","zh":"API Key调用明细错误: %v"}}
+{"code":300016,"key":"app_conversation_log_list","langs":{"zh":"获取会话日志列表错误: %v"}}
+{"code":300016,"key":"app_conversation_log_record","langs":{"zh":"记录会话日志错误: %v"}}
+{"code":300016,"key":"app_conversation_log_user_select","langs":{"zh":"获取会话日志使用者列表错误: %v"}}
 {"code":300000,"key":"app_statistic_get","langs":{"en":"get app statistic err: %v","zh":"获取应用统计错误: %v"}}
 {"code":300000,"key":"app_statistic_list_get","langs":{"en":"get app statistic list err: %v","zh":"获取应用统计列表错误: %v"}}
 {"code":300000,"key":"app_statistic_v2_overview","langs":{"en":"get app statistic v2 overview err: %v","zh":"获取应用统计概览错误: %v"}}

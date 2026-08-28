@@ -8,6 +8,7 @@ package assistant_service
 
 import (
 	context "context"
+	common "github.com/UnicomAI/wanwu/api/proto/common"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -65,6 +66,7 @@ const (
 	AssistantService_GetConversationIdByAssistantId_FullMethodName          = "/assistant_service.AssistantService/GetConversationIdByAssistantId"
 	AssistantService_GetConversationList_FullMethodName                     = "/assistant_service.AssistantService/GetConversationList"
 	AssistantService_GetConversationDetailList_FullMethodName               = "/assistant_service.AssistantService/GetConversationDetailList"
+	AssistantService_InternalGetConversationDetailList_FullMethodName       = "/assistant_service.AssistantService/InternalGetConversationDetailList"
 	AssistantService_AssistantConversionStream_FullMethodName               = "/assistant_service.AssistantService/AssistantConversionStream"
 	AssistantService_MultiAssistantConversionStream_FullMethodName          = "/assistant_service.AssistantService/MultiAssistantConversionStream"
 	AssistantService_CustomPromptCreate_FullMethodName                      = "/assistant_service.AssistantService/CustomPromptCreate"
@@ -94,6 +96,9 @@ const (
 	AssistantService_GetAdminCustomPromptPageList_FullMethodName            = "/assistant_service.AssistantService/GetAdminCustomPromptPageList"
 	AssistantService_AdminAssistantPageList_FullMethodName                  = "/assistant_service.AssistantService/AdminAssistantPageList"
 	AssistantService_SyncAssistantPublish_FullMethodName                    = "/assistant_service.AssistantService/SyncAssistantPublish"
+	AssistantService_GetConversationLog_FullMethodName                      = "/assistant_service.AssistantService/GetConversationLog"
+	AssistantService_GetConversationOwner_FullMethodName                    = "/assistant_service.AssistantService/GetConversationOwner"
+	AssistantService_MessageFeedback_FullMethodName                         = "/assistant_service.AssistantService/MessageFeedback"
 )
 
 // AssistantServiceClient is the client API for AssistantService service.
@@ -153,6 +158,7 @@ type AssistantServiceClient interface {
 	GetConversationIdByAssistantId(ctx context.Context, in *GetConversationIdByAssistantIdReq, opts ...grpc.CallOption) (*ConversationIdResp, error)
 	GetConversationList(ctx context.Context, in *GetConversationListReq, opts ...grpc.CallOption) (*GetConversationListResp, error)
 	GetConversationDetailList(ctx context.Context, in *GetConversationDetailListReq, opts ...grpc.CallOption) (*GetConversationDetailListResp, error)
+	InternalGetConversationDetailList(ctx context.Context, in *GetConversationDetailListReq, opts ...grpc.CallOption) (*GetConversationDetailListResp, error)
 	AssistantConversionStream(ctx context.Context, in *AssistantConversionStreamReq, opts ...grpc.CallOption) (grpc.ServerStreamingClient[AssistantConversionStreamResp], error)
 	MultiAssistantConversionStream(ctx context.Context, in *MultiAssistantConversionStreamReq, opts ...grpc.CallOption) (grpc.ServerStreamingClient[AssistantConversionStreamResp], error)
 	// --- custom prompt ---
@@ -189,6 +195,12 @@ type AssistantServiceClient interface {
 	// --- admin center ---
 	AdminAssistantPageList(ctx context.Context, in *AdminAssistantPageListReq, opts ...grpc.CallOption) (*AdminAssistantPageListResp, error)
 	SyncAssistantPublish(ctx context.Context, in *SyncAssistantPublishReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// --- conversation log ---
+	GetConversationLog(ctx context.Context, in *ConversationLogReq, opts ...grpc.CallOption) (*common.ConversationLog, error)
+	// 按 conversationId 查询会话归属（assistantId/userId/orgId），用于 bff 层归属校验
+	GetConversationOwner(ctx context.Context, in *GetConversationOwnerReq, opts ...grpc.CallOption) (*GetConversationOwnerResp, error)
+	// --- message feedback ---
+	MessageFeedback(ctx context.Context, in *MessageFeedbackReq, opts ...grpc.CallOption) (*MessageFeedbackResp, error)
 }
 
 type assistantServiceClient struct {
@@ -649,6 +661,16 @@ func (c *assistantServiceClient) GetConversationDetailList(ctx context.Context, 
 	return out, nil
 }
 
+func (c *assistantServiceClient) InternalGetConversationDetailList(ctx context.Context, in *GetConversationDetailListReq, opts ...grpc.CallOption) (*GetConversationDetailListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConversationDetailListResp)
+	err := c.cc.Invoke(ctx, AssistantService_InternalGetConversationDetailList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *assistantServiceClient) AssistantConversionStream(ctx context.Context, in *AssistantConversionStreamReq, opts ...grpc.CallOption) (grpc.ServerStreamingClient[AssistantConversionStreamResp], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &AssistantService_ServiceDesc.Streams[0], AssistantService_AssistantConversionStream_FullMethodName, cOpts...)
@@ -957,6 +979,36 @@ func (c *assistantServiceClient) SyncAssistantPublish(ctx context.Context, in *S
 	return out, nil
 }
 
+func (c *assistantServiceClient) GetConversationLog(ctx context.Context, in *ConversationLogReq, opts ...grpc.CallOption) (*common.ConversationLog, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(common.ConversationLog)
+	err := c.cc.Invoke(ctx, AssistantService_GetConversationLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assistantServiceClient) GetConversationOwner(ctx context.Context, in *GetConversationOwnerReq, opts ...grpc.CallOption) (*GetConversationOwnerResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConversationOwnerResp)
+	err := c.cc.Invoke(ctx, AssistantService_GetConversationOwner_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *assistantServiceClient) MessageFeedback(ctx context.Context, in *MessageFeedbackReq, opts ...grpc.CallOption) (*MessageFeedbackResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MessageFeedbackResp)
+	err := c.cc.Invoke(ctx, AssistantService_MessageFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AssistantServiceServer is the server API for AssistantService service.
 // All implementations must embed UnimplementedAssistantServiceServer
 // for forward compatibility.
@@ -1014,6 +1066,7 @@ type AssistantServiceServer interface {
 	GetConversationIdByAssistantId(context.Context, *GetConversationIdByAssistantIdReq) (*ConversationIdResp, error)
 	GetConversationList(context.Context, *GetConversationListReq) (*GetConversationListResp, error)
 	GetConversationDetailList(context.Context, *GetConversationDetailListReq) (*GetConversationDetailListResp, error)
+	InternalGetConversationDetailList(context.Context, *GetConversationDetailListReq) (*GetConversationDetailListResp, error)
 	AssistantConversionStream(*AssistantConversionStreamReq, grpc.ServerStreamingServer[AssistantConversionStreamResp]) error
 	MultiAssistantConversionStream(*MultiAssistantConversionStreamReq, grpc.ServerStreamingServer[AssistantConversionStreamResp]) error
 	// --- custom prompt ---
@@ -1050,6 +1103,12 @@ type AssistantServiceServer interface {
 	// --- admin center ---
 	AdminAssistantPageList(context.Context, *AdminAssistantPageListReq) (*AdminAssistantPageListResp, error)
 	SyncAssistantPublish(context.Context, *SyncAssistantPublishReq) (*emptypb.Empty, error)
+	// --- conversation log ---
+	GetConversationLog(context.Context, *ConversationLogReq) (*common.ConversationLog, error)
+	// 按 conversationId 查询会话归属（assistantId/userId/orgId），用于 bff 层归属校验
+	GetConversationOwner(context.Context, *GetConversationOwnerReq) (*GetConversationOwnerResp, error)
+	// --- message feedback ---
+	MessageFeedback(context.Context, *MessageFeedbackReq) (*MessageFeedbackResp, error)
 	mustEmbedUnimplementedAssistantServiceServer()
 }
 
@@ -1195,6 +1254,9 @@ func (UnimplementedAssistantServiceServer) GetConversationList(context.Context, 
 func (UnimplementedAssistantServiceServer) GetConversationDetailList(context.Context, *GetConversationDetailListReq) (*GetConversationDetailListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConversationDetailList not implemented")
 }
+func (UnimplementedAssistantServiceServer) InternalGetConversationDetailList(context.Context, *GetConversationDetailListReq) (*GetConversationDetailListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InternalGetConversationDetailList not implemented")
+}
 func (UnimplementedAssistantServiceServer) AssistantConversionStream(*AssistantConversionStreamReq, grpc.ServerStreamingServer[AssistantConversionStreamResp]) error {
 	return status.Errorf(codes.Unimplemented, "method AssistantConversionStream not implemented")
 }
@@ -1281,6 +1343,15 @@ func (UnimplementedAssistantServiceServer) AdminAssistantPageList(context.Contex
 }
 func (UnimplementedAssistantServiceServer) SyncAssistantPublish(context.Context, *SyncAssistantPublishReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncAssistantPublish not implemented")
+}
+func (UnimplementedAssistantServiceServer) GetConversationLog(context.Context, *ConversationLogReq) (*common.ConversationLog, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLog not implemented")
+}
+func (UnimplementedAssistantServiceServer) GetConversationOwner(context.Context, *GetConversationOwnerReq) (*GetConversationOwnerResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationOwner not implemented")
+}
+func (UnimplementedAssistantServiceServer) MessageFeedback(context.Context, *MessageFeedbackReq) (*MessageFeedbackResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MessageFeedback not implemented")
 }
 func (UnimplementedAssistantServiceServer) mustEmbedUnimplementedAssistantServiceServer() {}
 func (UnimplementedAssistantServiceServer) testEmbeddedByValue()                          {}
@@ -2113,6 +2184,24 @@ func _AssistantService_GetConversationDetailList_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AssistantService_InternalGetConversationDetailList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConversationDetailListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssistantServiceServer).InternalGetConversationDetailList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssistantService_InternalGetConversationDetailList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssistantServiceServer).InternalGetConversationDetailList(ctx, req.(*GetConversationDetailListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AssistantService_AssistantConversionStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(AssistantConversionStreamReq)
 	if err := stream.RecvMsg(m); err != nil {
@@ -2621,6 +2710,60 @@ func _AssistantService_SyncAssistantPublish_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AssistantService_GetConversationLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConversationLogReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssistantServiceServer).GetConversationLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssistantService_GetConversationLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssistantServiceServer).GetConversationLog(ctx, req.(*ConversationLogReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssistantService_GetConversationOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConversationOwnerReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssistantServiceServer).GetConversationOwner(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssistantService_GetConversationOwner_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssistantServiceServer).GetConversationOwner(ctx, req.(*GetConversationOwnerReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AssistantService_MessageFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MessageFeedbackReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AssistantServiceServer).MessageFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AssistantService_MessageFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AssistantServiceServer).MessageFeedback(ctx, req.(*MessageFeedbackReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AssistantService_ServiceDesc is the grpc.ServiceDesc for AssistantService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2809,6 +2952,10 @@ var AssistantService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AssistantService_GetConversationDetailList_Handler,
 		},
 		{
+			MethodName: "InternalGetConversationDetailList",
+			Handler:    _AssistantService_InternalGetConversationDetailList_Handler,
+		},
+		{
 			MethodName: "CustomPromptCreate",
 			Handler:    _AssistantService_CustomPromptCreate_Handler,
 		},
@@ -2915,6 +3062,18 @@ var AssistantService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SyncAssistantPublish",
 			Handler:    _AssistantService_SyncAssistantPublish_Handler,
+		},
+		{
+			MethodName: "GetConversationLog",
+			Handler:    _AssistantService_GetConversationLog_Handler,
+		},
+		{
+			MethodName: "GetConversationOwner",
+			Handler:    _AssistantService_GetConversationOwner_Handler,
+		},
+		{
+			MethodName: "MessageFeedback",
+			Handler:    _AssistantService_MessageFeedback_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

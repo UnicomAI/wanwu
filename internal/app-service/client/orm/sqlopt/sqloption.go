@@ -161,15 +161,6 @@ func InAppIds(appIds []string) SQLOption {
 	})
 }
 
-func LikeName(name string) SQLOption {
-	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
-		if name != "" {
-			return db.Where("name LIKE ?", "%"+name+"%")
-		}
-		return db
-	})
-}
-
 func Private() SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		return db.Where("publish_type = ? ", constant.AppPublishPrivate)
@@ -480,6 +471,51 @@ func WithMethodPath(methodPath string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if methodPath != "" {
 			return db.Where("method_path = ?", methodPath)
+		}
+		return db
+	})
+}
+
+func WithSources(sources []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(sources) > 0 {
+			return db.Where("source IN ?", sources)
+		}
+		return db
+	})
+}
+
+func WithExportIDs(exportIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(exportIDs) > 0 {
+			return db.Where("export_id IN ?", exportIDs)
+		}
+		return db
+	})
+}
+
+func LikeTitle(title string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if title != "" {
+			return db.Where("title LIKE ?", "%"+title+"%")
+		}
+		return db
+	})
+}
+
+func WithExportID(exportID string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if exportID != "" {
+			return db.Where("export_id = ?", exportID)
+		}
+		return db
+	})
+}
+
+func WithLogIDs(logIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(logIDs) > 0 {
+			return db.Where("log_id IN ?", logIDs)
 		}
 		return db
 	})

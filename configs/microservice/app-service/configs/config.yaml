@@ -59,6 +59,8 @@ minio:
   user: root
   password: Wanwu123456
   bucket: safety
+  public_export_bucket: export-public
+  app_log_export_dir: app_log
 
 redis:
   host: localhost

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
 )
@@ -42,10 +43,14 @@ type ConversationResp struct {
 	CurrentData          string
 	SensitiveMessage     string
 	Error                error
+	Statistic            *model.AgentStatistic
 }
 
 func CreateConversationResp() *ConversationResp {
-	return &ConversationResp{FullResponse: &strings.Builder{}, ConversationEventMap: make(map[string]*ConversationResp), Order: -1}
+	return &ConversationResp{FullResponse: &strings.Builder{}, ConversationEventMap: make(map[string]*ConversationResp),
+		Order: -1, Statistic: &model.AgentStatistic{
+			StartTime: time.Now().UnixMilli(),
+		}}
 }
 
 func (cr *ConversationResp) Write(data string, order int) {
@@ -159,6 +164,8 @@ func BuildConversationResp(conversationResp *ConversationResp, strLine string) e
 	if len(lastData) == 0 {
 		return nil
 	}
+	// 记录首token到达时间（首次处理到有效数据时）
+	conversationResp.Statistic.SetFirstTokenLatency()
 	return buildConversationResp(conversationResp, lastData)
 }
 

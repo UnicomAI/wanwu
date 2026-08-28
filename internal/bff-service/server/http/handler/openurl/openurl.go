@@ -273,6 +273,28 @@ func AssistantUrlQuestionRecommend(ctx *gin.Context) {
 	}
 }
 
+// AssistantUrlMessageFeedback
+//
+//	@Tags			openurl
+//	@Summary		智能体消息点赞/点踩
+//	@Description	对智能体单条消息点赞或点踩
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Client-ID	header		string								true	"临时唯一标识"
+//	@Param			suffix		path		string								true	"Url后缀"
+//	@Param			data		body		request.UrlMessageFeedbackRequest	true	"消息反馈参数"
+//	@Success		200			{object}	response.Response{data=response.MessageFeedbackResp}
+//	@Router			/agent/{suffix}/message/feedback [post]
+func AssistantUrlMessageFeedback(ctx *gin.Context) {
+	var req request.UrlMessageFeedbackRequest
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.AppUrlMessageFeedback(ctx, req, ctx.GetHeader("X-Client-ID"), ctx.Param("suffix"))
+	gin_util.Response(ctx, resp, err)
+}
+
 // --- 文件上传（匿名访问） ---
 
 // UploadFile

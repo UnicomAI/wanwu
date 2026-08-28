@@ -12,6 +12,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/UnicomAI/wanwu/api/proto/common"
+	"github.com/UnicomAI/wanwu/internal/assistant-service/service/es-service"
+	"github.com/UnicomAI/wanwu/internal/assistant-service/service/service-model"
+	"github.com/UnicomAI/wanwu/pkg/constant"
+
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
@@ -64,15 +69,15 @@ func (s *Service) ConversationDelete(ctx context.Context, req *assistant_service
 	}
 
 	conversationId := buildConversationId(conversation)
-	// 删除es中的对话详情
-	if _, err := s.DeleteFromES(ctx, &assistant_service.DeleteFromESReq{
+	// 逻辑删除es中的对话详情（标记 deleted=true）
+	if _, err := s.LogicalDeleteFromES(ctx, &assistant_service.DeleteFromESReq{
 		IndexName: "conversation_detail_infos_*",
 		Conditions: map[string]string{
 			"conversationId": conversationId,
 			"userId.keyword": req.Identity.UserId,
 		},
 	}); err != nil {
-		log.Errorf("从ES删除对话详情失败，conversationId: %s, error: %v", req.ConversationId, err)
+		log.Errorf("从ES逻辑删除对话详情失败，conversationId: %s, error: %v", req.ConversationId, err)
 	}
 
 	return &emptypb.Empty{}, nil
@@ -93,14 +98,14 @@ func (s *Service) ClearConversationES(ctx context.Context, req *assistant_servic
 		conditions["id"] = req.DetailId
 	}
 
-	if _, err := s.DeleteFromES(ctx, &assistant_service.DeleteFromESReq{
+	if _, err := s.LogicalDeleteFromES(ctx, &assistant_service.DeleteFromESReq{
 		IndexName:  "conversation_detail_infos_*",
 		Conditions: conditions,
 	}); err != nil {
 		if req.DetailId != "" {
-			log.Errorf("从ES删除单条对话详情失败，detailId: %s, conversationId: %s, error: %v", req.DetailId, req.ConversationId, err)
+			log.Errorf("从ES逻辑删除单条对话详情失败，detailId: %s, conversationId: %s, error: %v", req.DetailId, req.ConversationId, err)
 		} else {
-			log.Errorf("从ES删除对话详情失败，conversationId: %s, error: %v", req.ConversationId, err)
+			log.Errorf("从ES逻辑删除对话详情失败，conversationId: %s, error: %v", req.ConversationId, err)
 		}
 		return nil, err
 	}
@@ -172,33 +177,14 @@ func (s *Service) GetConversationDetailList(ctx context.Context, req *assistant_
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
-	var conversationId = buildConversationId(conversation)
-	// 复用 SearchFromES 查询ES数据
-	searchResp, err := s.SearchFromES(ctx, &assistant_service.SearchFromESReq{
-		IndexName: "conversation_detail_infos_*",
-		Conditions: map[string]string{
-			"conversationId": conversationId,
-			"userId.keyword": req.Identity.UserId,
-			"orgId.keyword":  req.Identity.OrgId,
-		},
-		PageNo:    req.PageNo,
-		PageSize:  req.PageSize,
-		SortOrder: "desc",
-	})
+	req.ConversationId = buildConversationId(conversation)
+	total, details, err := s.GetConversationDetailInfoList(ctx, req)
 	if err != nil {
-		log.Errorf("从ES查询对话详情失败，conversationId: %s, userId: %s, error: %v", req.ConversationId, req.Identity.UserId, err)
-		return nil, fmt.Errorf("查询对话详情失败: %v", err)
+		return nil, err
 	}
-
 	// 转换查询结果为响应格式
 	var conversationDetails []*assistant_service.ConversionDetailInfo
-	for _, docStr := range searchResp.DocJsonList {
-		var detail model.ConversationDetails
-		if err := json.Unmarshal([]byte(docStr), &detail); err != nil {
-			log.Warnf("解析ES文档失败: %v", err)
-			continue
-		}
-
+	for _, detail := range details {
 		conversationDetails = append(conversationDetails, &assistant_service.ConversionDetailInfo{
 			Id:                   detail.Id,
 			AssistantId:          assistant.UUID,
@@ -216,15 +202,58 @@ func (s *Service) GetConversationDetailList(ctx context.Context, req *assistant_
 			SubConversationList:  buildSubConversationList(detail.SubConversationDetailList, len(detail.ResponseList) == 0),
 			ConversationResponse: buildConversationResponse(detail.Response, detail.ResponseList, len(detail.SubConversationDetailList)),
 			ResponseFiles:        transAgentFiles(detail.ResponseFiles),
+			Feedback:             detail.Feedback,
+			FeedbackContent:      detail.FeedbackContent,
 		})
 	}
 
 	log.Infof("成功从ES查询对话详情，conversationId: %s, userId: %s, 总数: %d, 返回: %d",
-		req.ConversationId, req.Identity.UserId, searchResp.Total, len(conversationDetails))
+		req.ConversationId, req.Identity.UserId, total, len(conversationDetails))
 
 	return &assistant_service.GetConversationDetailListResp{
 		Data:     conversationDetails,
-		Total:    searchResp.Total,
+		Total:    total,
+		PageSize: req.PageSize,
+		PageNo:   req.PageNo,
+	}, nil
+}
+
+// InternalGetConversationDetailList 对话详情历史列表， 内部使用不校验权限
+func (s *Service) InternalGetConversationDetailList(ctx context.Context, req *assistant_service.GetConversationDetailListReq) (*assistant_service.GetConversationDetailListResp, error) {
+	total, details, err := s.GetConversationDetailInfoList(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	// 转换查询结果为响应格式
+	var conversationDetails []*assistant_service.ConversionDetailInfo
+	for _, detail := range details {
+		conversationDetails = append(conversationDetails, &assistant_service.ConversionDetailInfo{
+			Id:                   detail.Id,
+			ConversationId:       detail.ConversationId,
+			Prompt:               detail.Prompt,
+			SysPrompt:            detail.SysPrompt,
+			Response:             detail.Response,
+			SearchList:           detail.SearchList,
+			CreatedBy:            detail.UserId, // 使用CreatedBy字段映射UserId
+			CreatedAt:            detail.CreatedAt,
+			UpdatedAt:            detail.UpdatedAt,
+			RequestFiles:         transRequestFiles(detail.FileInfo),
+			FileSize:             detail.FileSize,
+			FileName:             detail.FileName,
+			SubConversationList:  buildSubConversationList(detail.SubConversationDetailList, len(detail.ResponseList) == 0),
+			ConversationResponse: buildConversationResponse(detail.Response, detail.ResponseList, len(detail.SubConversationDetailList)),
+			ResponseFiles:        transAgentFiles(detail.ResponseFiles),
+			Feedback:             detail.Feedback,
+			FeedbackContent:      detail.FeedbackContent,
+		})
+	}
+
+	log.Infof("成功从ES查询对话详情，conversationId: %s, userId: %s, 总数: %d, 返回: %d",
+		req.ConversationId, req.Identity.UserId, total, len(conversationDetails))
+
+	return &assistant_service.GetConversationDetailListResp{
+		Data:     conversationDetails,
+		Total:    total,
 		PageSize: req.PageSize,
 		PageNo:   req.PageNo,
 	}, nil
@@ -256,6 +285,94 @@ func (s *Service) AssistantConversionStream(req *assistant_service.AssistantConv
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "agent服务异常")
 	}
 	return nil
+}
+
+func (s *Service) GetConversationLog(ctx context.Context, req *assistant_service.ConversationLogReq) (*common.ConversationLog, error) {
+	conversation, status := s.cli.GetConversation(ctx, req.ConversationId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantConversationErr, status)
+	}
+	assistant, status := s.cli.GetAssistant(ctx, conversation.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	_, list, err := s.GetConversationDetailInfoList(ctx, &assistant_service.GetConversationDetailListReq{
+		ConversationId: buildConversationId(conversation),
+		PageSize:       1000,
+		PageNo:         1,
+		Identity:       req.Identity,
+		ExcludeDeleted: false,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	convLog := &common.ConversationLog{
+		AppId:          assistant.UUID,
+		AppType:        constant.AppTypeAgent,
+		Title:          conversation.Title,
+		ConversationId: req.ConversationId,
+		Source:         req.SourceFrom,
+		UserId:         req.Identity.UserId,
+		OrgId:          req.Identity.OrgId,
+		MessageCount:   int64(len(list)),
+	}
+
+	// 记录会话新旧标记到 Ext，供后续兼容旧版本 conversationId 查询
+	if extBytes, err := json.Marshal(map[string]any{
+		"conversation_id_mark": conversation.ID,               // 旧版本对话id（自增主键）
+		"conversation_mark":    conversation.ConversationMark, // 0:新会话 1:旧版补充的conversationID
+	}); err == nil {
+		convLog.Ext = string(extBytes)
+	}
+
+	// 填充统计数据：错误数、平均耗时、平均首token时延
+	fillConversationStatistic(convLog, list)
+
+	// 填充已发布版本号（未发布时为空）；查询失败不阻断会话日志记录。
+	if snapshot, verStatus := s.cli.GetAssistantSnapshot(ctx, conversation.AssistantId, ""); verStatus != nil {
+		log.Errorf("get assistant published version failed, assistantId: %d, err: %v", conversation.AssistantId, verStatus)
+	} else if snapshot != nil {
+		convLog.Version = snapshot.Version
+	}
+
+	return convLog, nil
+}
+
+// GetConversationOwner 按 conversationId 查询会话归属（assistantId/userId/orgId），用于 bff 层归属校验
+func (s *Service) GetConversationOwner(ctx context.Context, req *assistant_service.GetConversationOwnerReq) (*assistant_service.GetConversationOwnerResp, error) {
+	conversation, status := s.cli.GetConversation(ctx, req.ConversationId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantConversationErr, status)
+	}
+	assistant, status := s.cli.GetAssistant(ctx, conversation.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	return &assistant_service.GetConversationOwnerResp{
+		AssistantId: assistant.UUID,
+		UserId:      conversation.UserId,
+		OrgId:       conversation.OrgId,
+	}, nil
+}
+
+// GetConversationDetailInfoList 对话详情历史列表
+func (s *Service) GetConversationDetailInfoList(ctx context.Context, req *assistant_service.GetConversationDetailListReq) (int64, []*model.ConversationDetails, error) {
+	offset := int((req.PageNo - 1) * req.PageSize)
+	pageParams := service_model.NewDetailPageParamsBuilder().
+		WithConversationID(req.ConversationId).
+		WithIdentity(req.Identity).
+		WithPageParam(int32(offset), req.PageSize).
+		WithHasDeleted(!req.ExcludeDeleted).
+		WithOpenMinioUrl(true).
+		Build()
+	// 复用 SearchFromES 查询ES数据
+	total, conversationDetails, err := es_service.SearchDetailPageList(ctx, pageParams)
+	if err != nil {
+		log.Errorf("从ES查询对话详情失败，conversationId: %s, userId: %s, error: %v", req.ConversationId, req.Identity.UserId, err)
+		return 0, nil, fmt.Errorf("查询对话详情失败: %v", err)
+	}
+	return total, conversationDetails, nil
 }
 
 // extractFileInfos 从proto FileInfo中提取所有文件信息到model FileInfo
@@ -355,6 +472,7 @@ func buildConversationParams(req *assistant_service.AssistantConversionStreamReq
 		Query:              req.Prompt,
 		UserId:             req.Identity.UserId,
 		DetailId:           req.DetailId,
+		SourceFrom:         req.SourceFrom,
 	}
 }
 
@@ -483,4 +601,40 @@ func buildConversationId(conversation *model.Conversation) string {
 		return util.Int2Str(conversation.ID)
 	}
 	return conversation.ConversationId
+}
+
+// fillConversationStatistic 从对话详情列表聚合统计数据写入 convLog
+func fillConversationStatistic(convLog *common.ConversationLog, list []*model.ConversationDetails) {
+	var totalCost, totalFirstTokenLatency, costCount, tokenCount int64
+	for _, detail := range list {
+		if detail == nil || detail.Statistic == nil {
+			continue
+		}
+		switch detail.Feedback {
+		case model.FeedBackLike:
+			convLog.LikeCount++
+		case model.FeedBackDislike:
+			convLog.DislikeCount++
+		}
+		statistic := detail.Statistic
+		// 统计主会话响应中的错误数量
+		if len(statistic.ErrMessage) > 0 {
+			convLog.ErrorCount++
+		}
+		// 累加耗时与首token时延，用于求平均
+		if statistic.TotalCostTime > 0 {
+			totalCost += statistic.TotalCostTime
+			costCount++
+		}
+		if statistic.FirstTokenLatency > 0 {
+			totalFirstTokenLatency += statistic.FirstTokenLatency
+			tokenCount++
+		}
+	}
+	if costCount > 0 {
+		convLog.Costs = totalCost / costCount
+	}
+	if tokenCount > 0 {
+		convLog.FirstTokenLatency = totalFirstTokenLatency / tokenCount
+	}
 }

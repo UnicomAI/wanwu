@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	"io"
 	net_url "net/url"
 	"sort"
@@ -795,6 +796,10 @@ func (*WorkflowBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgI
 		return "", "", errors.New("workflow creator not found")
 	}
 	return wf.Creator.ID, wf.SpaceID, nil
+}
+
+func (*WorkflowBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
 }
 
 // --- internal ---

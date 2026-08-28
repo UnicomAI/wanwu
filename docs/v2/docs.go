@@ -5578,6 +5578,13 @@ const docTemplate = `{
                         "$ref": "#/definitions/response.StatisticV2RankItem"
                     }
                 },
+                "byDigitalEmployee": {
+                    "description": "数字员工使用量排行",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.StatisticV2RankItem"
+                    }
+                },
                 "byRag": {
                     "description": "知识问答使用排行",
                     "type": "array",

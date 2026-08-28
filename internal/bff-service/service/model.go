@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	"slices"
 	"strings"
 
@@ -40,6 +41,10 @@ func (*ModelBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId s
 		return "", "", err
 	}
 	return resp.UserId, resp.OrgId, nil
+}
+
+func (*ModelBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
 }
 
 type ModelInfoOptions struct {

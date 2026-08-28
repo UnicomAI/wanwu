@@ -310,6 +310,9 @@ func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool)
 // 查询用户信息
 func searchUser(ctx *gin.Context, userIdList []string, userInfoMap map[string]*iam_service.IDNameWithAvatar) func() {
 	return func() {
+		if len(userIdList) == 0 {
+			return
+		}
 		userInfoList, err := iam.GetUserSelectByUserIDs(ctx.Request.Context(), &iam_service.GetUserSelectByUserIDsReq{
 			UserIds: userIdList,
 		})
@@ -325,6 +328,9 @@ func searchUser(ctx *gin.Context, userIdList []string, userInfoMap map[string]*i
 // 查询组织信息
 func searchOrg(ctx *gin.Context, orgIdList []string, orgInfoMap map[string]*iam_service.IDFullName) func() {
 	return func() {
+		if len(orgIdList) == 0 {
+			return
+		}
 		orgInfoList, err := iam.GetOrgByOrgIDs(ctx.Request.Context(), &iam_service.GetOrgByOrgIDsReq{
 			OrgIds: orgIdList,
 		})

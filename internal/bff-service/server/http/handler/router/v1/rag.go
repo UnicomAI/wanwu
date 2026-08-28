@@ -26,4 +26,8 @@ func registerRag(apiV1 *gin.RouterGroup) {
 	mid.Sub("app.rag").Reg(apiV1, "/rag/conversation/draft/detail", http.MethodGet, v1.RagConversationDraftDetailList, "草稿知识问答对话详情历史列表")
 	mid.Sub("app.rag").Reg(apiV1, "/rag/conversation/draft", http.MethodDelete, v1.RagConversationDraftDelete, "草稿知识问答对话删除")
 	mid.Sub("app.rag").Reg(apiV1, "/rag/upload", http.MethodPost, v1.RagUpload, "文档上传直接传到rag")
+	mid.Sub("app.rag").Reg(apiV1, "/rag/draft/conversation/log/list", http.MethodPost, v1.GetRagConversationLogList, "获取会话日志列表接口")
+	mid.Sub("app.rag").Reg(apiV1, "/rag/draft/conversation/log/detail", http.MethodPost, v1.GetRagConversationLogDetail, "获取会话日志详情接口")
+	mid.Sub("app.rag").Reg(apiV1, "/rag/draft/conversation/log/user/select", http.MethodPost, v1.GetRagConversationLogUserSelect, "会话日志使用者下拉列表接口")
+
 }

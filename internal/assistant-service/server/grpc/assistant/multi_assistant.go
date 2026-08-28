@@ -140,6 +140,7 @@ func buildMultiConversationParams(req *assistant_service.MultiAssistantConversio
 		Query:              req.Prompt,
 		UserId:             req.Identity.UserId,
 		DetailId:           req.DetailId,
+		SourceFrom:     req.SourceFrom,
 	}
 }
 

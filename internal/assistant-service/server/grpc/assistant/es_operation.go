@@ -7,6 +7,10 @@ import (
 	"os"
 	"strings"
 
+	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
+	"github.com/UnicomAI/wanwu/internal/assistant-service/service/es-service"
+	"github.com/UnicomAI/wanwu/internal/assistant-service/service/service-model"
+
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
 	minio_service "github.com/UnicomAI/wanwu/internal/assistant-service/service/minio-service"
 	"github.com/UnicomAI/wanwu/pkg/log"
@@ -16,6 +20,12 @@ import (
 	"github.com/UnicomAI/wanwu/internal/assistant-service/config"
 	"github.com/UnicomAI/wanwu/pkg/es"
 	"google.golang.org/protobuf/types/known/emptypb"
+)
+
+const (
+	feedbackNone    int32 = 0 // 无反馈
+	feedbackLike    int32 = 1 // 点赞
+	feedbackDislike int32 = 2 // 点踩
 )
 
 // SaveToES saves a document to ES.
@@ -61,6 +71,26 @@ func (s *Service) DeleteFromES(ctx context.Context, req *assistant_service.Delet
 	return &emptypb.Empty{}, nil
 }
 
+// LogicalDeleteFromES 逻辑删除：将匹配文档标记为 deleted=true，不物理删除。
+// 供对话详情删除入口使用，配合 SearchFromES 的 exclude_deleted 过滤。
+func (s *Service) LogicalDeleteFromES(ctx context.Context, req *assistant_service.DeleteFromESReq) (*emptypb.Empty, error) {
+	if req.IndexName == "" {
+		return nil, fmt.Errorf("index name is empty")
+	}
+
+	conditions := make(map[string]interface{})
+	for k, v := range req.Conditions {
+		conditions[k] = v
+	}
+
+	updates := map[string]interface{}{"deleted": true}
+	if err := es.Assistant().UpdateByFields(ctx, req.IndexName, conditions, updates); err != nil {
+		return nil, err
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
 // SearchFromES searches documents in ES by conditions.
 func (s *Service) SearchFromES(ctx context.Context, req *assistant_service.SearchFromESReq) (*assistant_service.SearchFromESResp, error) {
 	if req.IndexName == "" {
@@ -75,7 +105,14 @@ func (s *Service) SearchFromES(ctx context.Context, req *assistant_service.Searc
 	from := int((req.PageNo - 1) * req.PageSize)
 	size := int(req.PageSize)
 
-	docs, total, err := es.Assistant().SearchByFields(ctx, req.IndexName, conditions, from, size, req.SortOrder)
+	var docs []json.RawMessage
+	var total int64
+	var err error
+	if req.ExcludeDeleted {
+		docs, total, err = es.Assistant().SearchByFields(ctx, req.IndexName, conditions, from, size, req.SortOrder)
+	} else {
+		docs, total, err = es.Assistant().SearchByFieldsWithDelete(ctx, req.IndexName, conditions, from, size, req.SortOrder)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -90,6 +127,64 @@ func (s *Service) SearchFromES(ctx context.Context, req *assistant_service.Searc
 	return &assistant_service.SearchFromESResp{
 		DocJsonList: docJsonList,
 		Total:       total,
+	}, nil
+}
+
+// MessageFeedback 智能体消息点赞/点踩，语义为互斥，重复点击同类型则保留状态仅更新内容：
+//   - 当前无反馈(0) -> 设为目标
+//   - 当前已是目标  -> 保留状态，仅更新 feedbackContent
+//   - 当前为另一项  -> 切换为目标(互斥)
+//
+// 一个 detailId 仅有一个对话者操作，故无需记录用户维度。
+func (s *Service) MessageFeedback(ctx context.Context, req *assistant_service.MessageFeedbackReq) (*assistant_service.MessageFeedbackResp, error) {
+	// 反馈类型处理
+	if req.FeedbackType != feedbackLike && req.FeedbackType != feedbackDislike {
+		req.FeedbackType = feedbackNone
+		req.FeedbackContent = ""
+	}
+	if req.DetailId == "" {
+		return nil, fmt.Errorf("detailId is empty")
+	}
+
+	conversation, status := s.cli.GetConversation(ctx, req.ConversationId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantConversationErr, status)
+	}
+	//校验1.会话属于对应智能体，校验2：对话属于对应组织和人
+	assistantRow, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	if conversation.AssistantId != assistantRow.ID || conversation.OrgId != req.Identity.OrgId || conversation.UserId != req.Identity.UserId {
+		return nil, errCode(errs.Code_AssistantConversationErr)
+	}
+
+	pageParams := service_model.NewDetailPageParamsBuilder().
+		WithDetailID(req.DetailId).
+		WithConversationID(buildConversationId(conversation)).
+		WithIdentity(req.Identity).
+		WithPageParam(0, 1).
+		Build()
+	// 复用 SearchFromES 查询ES数据
+	_, docs, err := es_service.SearchDetailPageList(ctx, pageParams)
+
+	if err != nil {
+		return nil, fmt.Errorf("查询消息反馈状态失败: %v", err)
+	}
+	if len(docs) == 0 {
+		return nil, fmt.Errorf("消息不存在, detailId: %s", req.DetailId)
+	}
+
+	newFeedback := req.FeedbackType
+	newContent := req.FeedbackContent
+
+	//更新数据：同类型时保留状态仅更新 feedbackContent，不同类型则切换(互斥)
+	if err = es_service.UpdateDetailFeedback(ctx, pageParams, newFeedback, newContent); err != nil {
+		return nil, fmt.Errorf("更新消息反馈状态失败: %v", err)
+	}
+
+	return &assistant_service.MessageFeedbackResp{
+		FeedbackType: newFeedback,
 	}, nil
 }
 

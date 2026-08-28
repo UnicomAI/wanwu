@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/UnicomAI/wanwu/api/proto/common"
 
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	safety_service "github.com/UnicomAI/wanwu/api/proto/safety-service"
@@ -211,4 +212,8 @@ func (*SensitiveWordBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId,
 		return "", "", errors.New("sensitive word table not found")
 	}
 	return resp.UserId, resp.OrgId, nil
+}
+
+func (*SensitiveWordBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
 }

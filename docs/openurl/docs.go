@@ -595,6 +595,71 @@ const docTemplate = `{
                 }
             }
         },
+        "/agent/{suffix}/message/feedback": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "对智能体单条消息点赞或点踩",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openurl"
+                ],
+                "summary": "智能体消息点赞/点踩",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "临时唯一标识",
+                        "name": "X-Client-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Url后缀",
+                        "name": "suffix",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "消息反馈参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UrlMessageFeedbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.MessageFeedbackResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/agent/{suffix}/recommend": {
             "post": {
                 "security": [
@@ -2216,9 +2281,13 @@ const docTemplate = `{
         "request.ConversationIdRequest": {
             "type": "object",
             "required": [
+                "assistantId",
                 "conversationId"
             ],
             "properties": {
+                "assistantId": {
+                    "type": "string"
+                },
                 "conversationId": {
                     "type": "string"
                 },
@@ -2401,6 +2470,30 @@ const docTemplate = `{
                 },
                 "prompt": {
                     "type": "string"
+                }
+            }
+        },
+        "request.UrlMessageFeedbackRequest": {
+            "type": "object",
+            "required": [
+                "conversationId",
+                "detailId"
+            ],
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                },
+                "detailId": {
+                    "description": "消息详情ID",
+                    "type": "string"
+                },
+                "feedbackContent": {
+                    "description": "反馈文本内容",
+                    "type": "string"
+                },
+                "feedbackType": {
+                    "description": "反馈类型: 1=点赞 2=点踩",
+                    "type": "integer"
                 }
             }
         },
@@ -2945,6 +3038,14 @@ const docTemplate = `{
                 "createdBy": {
                     "type": "string"
                 },
+                "feedback": {
+                    "description": "当前反馈状态: 0=无 1=点赞 2=点踩",
+                    "type": "integer"
+                },
+                "feedbackContent": {
+                    "description": "反馈文本内容",
+                    "type": "string"
+                },
                 "fileName": {
                     "type": "string"
                 },
@@ -3056,6 +3157,15 @@ const docTemplate = `{
                 "originalFileName": {
                     "description": "原始文件名",
                     "type": "string"
+                }
+            }
+        },
+        "response.MessageFeedbackResp": {
+            "type": "object",
+            "properties": {
+                "feedbackType": {
+                    "description": "当前反馈状态: 0=无 1=点赞 2=点踩",
+                    "type": "integer"
                 }
             }
         },

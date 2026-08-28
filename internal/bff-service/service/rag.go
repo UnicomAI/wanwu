@@ -52,6 +52,10 @@ func (*RagBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId str
 	return resp.Identity.UserId, resp.Identity.OrgId, nil
 }
 
+func (*RagBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
+}
+
 func CreateRag(ctx *gin.Context, userId, orgId string, req request.AppBriefConfig) (*request.RagReq, error) {
 	resp, err := rag.CreateRag(ctx.Request.Context(), &rag_service.CreateRagReq{
 		AppBrief: appBriefConfigModel2Proto(req),

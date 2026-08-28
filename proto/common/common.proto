@@ -121,4 +121,5 @@ message ConversationLog {
   int64 updateAt = 15;                  // 最后对话时间(毫秒)
   string logId = 16;                    // 会话日志id
   string version = 17;                  // 版本
+  string ext = 18;                      // 扩展字段(JSON)
 }

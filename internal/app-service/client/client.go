@@ -95,4 +95,18 @@ type IClient interface {
 	GetAPIKeyStatisticV2AppList(ctx context.Context, orgIds, userIds []string, startDate, endDate string, apiKeyIds, methodPaths []string, apiKeyId, methodPath, sortExpr, sortOrder string, offset, limit int32) ([]orm.APIKeyStatisticV2AppListItem, int32, *err_code.Status)
 	GetAPIKeyStatisticV2ModelList(ctx context.Context, orgIds, userIds []string, startDate, endDate string, apiKeyIds, methodPaths []string, apiKeyId, methodPath, sortExpr, sortOrder string, offset, limit int32) ([]orm.APIKeyStatisticV2ModelListItem, int32, *err_code.Status)
 	GetAPIKeyStatisticV2Record(ctx context.Context, orgIds, userIds []string, startDate, endDate string, apiKeyIds, methodPaths []string, sortExpr, sortOrder string, offset, limit int32) ([]orm.APIKeyStatisticV2RecordItem, int32, *err_code.Status)
+
+	// --- conversation log ---
+	GetConversationLog(ctx context.Context, appId, appType, conversationId string) (*model.ConversationLog, *err_code.Status)
+	GetConversationLogByLogIds(ctx context.Context, logIds []string) ([]*model.ConversationLog, *err_code.Status)
+	GetConversationLogList(ctx context.Context, orgIds, userIds []string, appId, appType, name string, sources []string, startDate, endDate string, orderBy, orderType string, offset, limit int32) ([]*model.ConversationLog, int64, *err_code.Status)
+	RecordConversationLog(ctx context.Context, log *model.ConversationLog) *err_code.Status
+	GetConversationLogUserIds(ctx context.Context, appId, appType string, orgIds, userIds []string) ([]string, *err_code.Status)
+	DeleteConversationLogByAppId(ctx context.Context, appId, appType string) *err_code.Status
+	// --- conversation log export ---
+	CreateConversationLogExportTask(ctx context.Context, exportTask *model.ConversationLogExportTask) *err_code.Status
+	GetConversationLogExportTaskList(ctx context.Context, appId, appType string, startDate, endDate, searchTitle string, userIds, orgIds []string, pageSize, pageNum int32) ([]*model.ConversationLogExportTask, int64, *err_code.Status)
+	DeleteConversationLogExportTaskByIds(ctx context.Context, exportIds []string, userId, orgId string) *err_code.Status
+	SelectConversationLogExportTaskById(ctx context.Context, exportId string) (*model.ConversationLogExportTask, error)
+	TrySetConvLogExpTask(ctx context.Context, exportId string) (int64, error)
 }

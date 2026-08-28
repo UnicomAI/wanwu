@@ -1,12 +1,14 @@
 package service
 
 import (
+	"fmt"
 	"slices"
 
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
+	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
 	knowledgebase_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-service"
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
@@ -1176,6 +1178,130 @@ func AdminAssistantDetail(ctx *gin.Context, req *request.AdminAssistantDetailReq
 	detail.OwnerHolder = response.CreateOwnerHolder(assistantResp.OwnerUserId, assistantResp.OwnerOrgId)
 	fillOwner(ctx, detail)
 	return detail, nil
+}
+
+// AdminFilterOwnerUser 根据子组织过滤userId,orgId
+func AdminFilterOwnerUser(ctx *gin.Context, userId, orgId string, filterUserIds []string) ([]string, []string, error) {
+	var userIds, orgIds []string
+	resp, err := iam.GetOrgAndSubOrgSelectByUser(ctx, &iam_service.GetOrgAndSubOrgSelectByUserReq{
+		UserId: userId,
+		OrgId:  orgId,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, org := range resp.Orgs {
+		orgIds = append(orgIds, org.Id)
+	}
+	if len(filterUserIds) > 0 {
+		userIds = append(userIds, filterUserIds...)
+	}
+	return userIds, orgIds, nil
+}
+
+// AdminConversationLogList 获取会话日志列表
+func AdminConversationLogList(ctx *gin.Context, userId, orgId string, req request.GetConversationLogListRequest) (response.PageResult, error) {
+	userIds, orgIds, err := AdminFilterOwnerUser(ctx, userId, orgId, req.UserIds)
+	if err != nil {
+		return response.PageResult{}, err
+	}
+	resp, err := app.GetConversationLogList(ctx.Request.Context(), &app_service.GetConversationLogListReq{
+		AppId:     req.AppId,
+		AppType:   req.AppType,
+		Name:      req.Name,
+		Source:    req.Source,
+		StartDate: req.StartDate,
+		EndDate:   req.EndDate,
+		OrgIds:    orgIds,
+		UserIds:   userIds,
+		PageNo:    int32(req.PageNo),
+		PageSize:  int32(req.PageSize),
+		OrderBy:   req.OrderBy,
+		OrderType: req.OrderType,
+	})
+	if err != nil {
+		return response.PageResult{}, err
+	}
+	userNameMap := buildConversationLogUserNameMap(ctx, resp.Items)
+	list := make([]response.ConversationLogInfo, 0, len(resp.Items))
+	for _, item := range resp.Items {
+		list = append(list, response.ConversationLogInfo{
+			LogId:                item.LogId,
+			Source:               item.Source,
+			UserId:               item.UserId,
+			UserName:             userNameMap[item.UserId],
+			Title:                item.Title,
+			ConversationId:       item.ConversationId,
+			MessageCount:         item.MessageCount,
+			CreateAt:             util.Time2Str(item.CreateAt),
+			UpdateAt:             util.Time2Str(item.UpdateAt),
+			AvgCosts:             float64(item.Costs),
+			AvgFirstTokenLatency: float64(item.FirstTokenLatency),
+			LikeCount:            item.LikeCount,
+			DislikeCount:         item.DislikeCount,
+			ErrorCount:           item.ErrorCount,
+			Version:              item.Version,
+		})
+	}
+	return response.PageResult{
+		List:     list,
+		Total:    resp.Total,
+		PageNo:   req.PageNo,
+		PageSize: req.PageSize,
+	}, nil
+}
+
+// AdminAssistantConversationLogDetail 获取会话日志详情
+func AdminAssistantConversationLogDetail(ctx *gin.Context, userId, orgId string, req request.GetConversationLogDetailRequest) (response.PageResult, error) {
+	_, orgIds, err := AdminFilterOwnerUser(ctx, userId, orgId, nil)
+	if err != nil {
+		return response.PageResult{}, err
+	}
+	conversationLog, err := app.GetConversationLog(ctx, &app_service.GetConversationLogReq{AppId: req.AppId, AppType: req.AppType, ConversationId: req.ConversationId})
+	if err != nil {
+		return response.PageResult{}, err
+	}
+	if !slices.Contains(orgIds, conversationLog.OrgId) {
+		return response.PageResult{}, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Errorf("user org permit valid fail").Error())
+	}
+	req.ConversationId = resolveLegacyConversationId(conversationLog)
+	return fetchConversationDetailList(ctx, conversationLog.UserId, conversationLog.OrgId, req)
+}
+
+// AdminAssistantConversationLogUserSelect 获取会话日志使用者列表
+func AdminAssistantConversationLogUserSelect(ctx *gin.Context, userId, orgId string, req request.GetConversationLogUserSelectRequest) (*response.Users, error) {
+	_, orgIds, err := AdminFilterOwnerUser(ctx, userId, orgId, nil)
+	if err != nil {
+		return nil, err
+	}
+	userResp, err := app.GetConversationLogUserSelect(ctx, &app_service.GetConversationLogUserSelectReq{
+		AppId:   req.AppId,
+		AppType: req.AppType,
+		OrgIds:  orgIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(userResp.UserIds) == 0 {
+		return &response.Users{Users: []response.IDNameWithAvatar{}}, nil
+	}
+	userInfoResp, err := iam.GetUserSelectByUserIDs(ctx.Request.Context(), &iam_service.GetUserSelectByUserIDsReq{
+		UserIds: userResp.UserIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var users []response.IDNameWithAvatar
+	for _, u := range userInfoResp.Selects {
+		users = append(users, response.IDNameWithAvatar{
+			ID:     u.Id,
+			Name:   u.Name,
+			Avatar: cacheUserAvatar(u.AvatarPath),
+		})
+	}
+	return &response.Users{
+		Users: users,
+	}, nil
 }
 
 func AdminSensitiveWordPageList(ctx *gin.Context, req *request.AdminSensitiveWordPageListReq) (*response.PageResult, error) {

@@ -102,6 +102,11 @@ func getUserID(ctx *gin.Context) string {
 }
 
 // 获取当前组织ID
+// 优先取 gin 上下文（openapi/openurl 等鉴权中间件只写入 context，不带 X-Org-Id header），
+// 回退到 HTTP header（web 端由浏览器每次请求携带），保证写入 detail 与聚合查询使用同一 orgId。
 func getOrgID(ctx *gin.Context) string {
+	if orgID := ctx.GetString(gin_util.X_ORG_ID); orgID != "" {
+		return orgID
+	}
 	return ctx.GetHeader(gin_util.X_ORG_ID)
 }

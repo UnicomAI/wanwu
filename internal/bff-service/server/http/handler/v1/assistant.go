@@ -451,6 +451,27 @@ func ConversationDelete(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
+// MessageFeedback
+//
+//	@Tags			agent
+//	@Summary		智能体消息点赞/点踩
+//	@Description	对智能体单条消息点赞或点踩
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.MessageFeedbackRequest	true	"消息反馈参数"
+//	@Success		200		{object}	response.Response{data=response.MessageFeedbackResp}
+//	@Router			/assistant/conversation/message/feedback [post]
+func MessageFeedback(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.MessageFeedbackRequest
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.MessageFeedback(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
 // ClearPublishedAssistantConversation
 //
 //	@Tags			agent
@@ -555,6 +576,7 @@ func DraftAssistantConversionStream(ctx *gin.Context) {
 			req.ConversationId = conversationIdResp.ConversationId
 		}
 	}
+	ctx.Set(gin_util.CONVERSATION_ID, req.ConversationId)
 
 	//启用链接保持
 	req.SseHold = true
@@ -574,7 +596,7 @@ func DraftAssistantConversionStream(ctx *gin.Context) {
 //	@Produce		json
 //	@Param			data	body		request.PendingConversionRequest	true	"获取智能体运行中会话请求参数"
 //	@Success		200		{object}	response.Response{data=response.PendingConversationResp}
-//	@Router			/assistant/pending/conversation [post]
+//	@Router			/assistant/draft/pending/conversation [post]
 func GetAssistantPendingConversion(ctx *gin.Context) {
 	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
 	var req request.PendingConversionRequest
@@ -598,7 +620,7 @@ func GetAssistantPendingConversion(ctx *gin.Context) {
 //	@Produce		json
 //	@Param			data	body		request.ConversionStreamConnectRequest	true	"智能体流式问答参数"
 //	@Success		200		{object}	response.Response
-//	@Router			/assistant/stream/connect [post]
+//	@Router			/assistant/draft/stream/connect [post]
 func AssistantConversionStreamConnect(ctx *gin.Context) {
 	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
 	var req request.ConversionStreamConnectRequest
@@ -621,7 +643,7 @@ func AssistantConversionStreamConnect(ctx *gin.Context) {
 //	@Produce		json
 //	@Param			data	body		request.ConversionStreamCancelRequest	true	"智能体流式问答手动停止参数"
 //	@Success		200		{object}	response.Response
-//	@Router			/assistant/stream/cancel [post]
+//	@Router			/assistant/draft/stream/cancel [post]
 func AssistantConversionStreamCancel(ctx *gin.Context) {
 	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
 	var req request.ConversionStreamCancelRequest

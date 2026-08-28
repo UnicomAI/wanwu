@@ -142,11 +142,26 @@ func (c *client) IndexDocument(ctx context.Context, index string, document inter
 
 // 根据指定字段条件查询所有数据
 func (c *client) SearchByFields(ctx context.Context, index string, fieldConditions map[string]interface{}, from, size int, sortOrder string) ([]json.RawMessage, int64, error) {
+	// 过滤逻辑删除数据：排除 deleted=true，兼容无 deleted 字段的老数据
+	mustNotConditions := map[string]interface{}{"deleted": true}
+	return c.searchByFields(ctx, index, fieldConditions, mustNotConditions, from, size, sortOrder)
+}
+
+// SearchByFieldsWithDelete 在 SearchByFields 基础上支持 must_not 条件（用于过滤逻辑删除等）
+func (c *client) SearchByFieldsWithDelete(ctx context.Context, index string, fieldConditions map[string]interface{}, from, size int, sortOrder string) ([]json.RawMessage, int64, error) {
+	return c.searchByFields(ctx, index, fieldConditions, nil, from, size, sortOrder)
+}
+
+func (c *client) searchByFields(ctx context.Context, index string, fieldConditions, mustNotConditions map[string]interface{}, from, size int, sortOrder string) ([]json.RawMessage, int64, error) {
+	boolQuery := map[string]interface{}{
+		"must": buildMustQuery(fieldConditions),
+	}
+	if len(mustNotConditions) > 0 {
+		boolQuery["must_not"] = buildMustQuery(mustNotConditions)
+	}
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": buildMustQuery(fieldConditions),
-			},
+			"bool": boolQuery,
 		},
 		"from": from,
 		"size": size,

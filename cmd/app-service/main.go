@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/UnicomAI/wanwu/internal/app-service/task"
 	"os"
 	"os/signal"
 	"runtime"
@@ -15,6 +16,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/app-service/client/assistant"
 	"github.com/UnicomAI/wanwu/internal/app-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/app-service/config"
+	async_task "github.com/UnicomAI/wanwu/internal/app-service/pkg/async-task"
 	"github.com/UnicomAI/wanwu/internal/app-service/server/grpc"
 	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
@@ -73,6 +75,15 @@ func main() {
 		log.Fatalf("init minio safety client err: %v", err)
 	}
 
+	// 初始化文件上传客户端
+	if err := minio.InitApp(ctx, minio.Config{
+		Endpoint: config.Cfg().Minio.Endpoint,
+		User:     config.Cfg().Minio.User,
+		Password: config.Cfg().Minio.Password,
+	}, config.Cfg().Minio.PublicExportBucket); err != nil {
+		log.Fatalf("init minio file upload client err: %v", err)
+	}
+
 	if err := redis.InitApp(ctx, config.Cfg().Redis); err != nil {
 		log.Fatalf("init redis err: %v", err)
 	}
@@ -93,6 +104,13 @@ func main() {
 		log.Fatalf("init client err: %v", err)
 	}
 
+	// 初始化下游微服务 gRPC client
+	if err := task.Init(c); err != nil {
+		log.Fatalf("init grpc client err: %v", err)
+	}
+	if err := async_task.InitAsync(ctx, db); err != nil {
+		log.Fatalf("init async task err: %v", err)
+	}
 	if err := orm.CronInit(ctx, db); err != nil {
 		log.Fatalf("init cron failed, err: %v", err)
 	}
@@ -114,6 +132,7 @@ func main() {
 	trace_util.ShutdownTracer(shutdownCtx)
 
 	s.Stop(ctx)
+	async_task.StopAsync()
 	orm.CronStop()
 	redis.StopApp()
 }

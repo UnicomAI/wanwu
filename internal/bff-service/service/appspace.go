@@ -91,6 +91,16 @@ func DeleteAppSpaceApp(ctx *gin.Context, userId, orgId, appId, appType string) e
 		// 复用工作流的删除接口
 		err = DeleteWorkflow(ctx, orgId, appId)
 	}
+	if err != nil {
+		return err
+	}
+	// 应用已删除，清理其会话日志（best-effort：失败只记日志，不把已成功的删除报成失败）
+	if _, logErr := app.DeleteConversationLogByAppId(ctx.Request.Context(), &app_service.DeleteConversationLogByAppIdReq{
+		AppId:   appId,
+		AppType: appType,
+	}); logErr != nil {
+		log.Errorf("delete conversation log by app failed, appId: %s, appType: %s, err: %v", appId, appType, logErr)
+	}
 	return err
 }
 

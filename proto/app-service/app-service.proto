@@ -78,6 +78,19 @@ service AppService {
   rpc GetAPIKeyStatisticV2AppList(GetAPIKeyStatisticV2AppListReq) returns (GetAPIKeyStatisticV2AppListResp) {}
   rpc GetAPIKeyStatisticV2ModelList(GetAPIKeyStatisticV2ModelListReq) returns (GetAPIKeyStatisticV2ModelListResp) {}
   rpc GetAPIKeyStatisticV2Record(GetAPIKeyStatisticV2RecordReq) returns (GetAPIKeyStatisticV2RecordResp) {}
+
+  // --- conversation log ---
+  rpc GetConversationLogList(GetConversationLogListReq) returns (GetConversationLogListResp) {}
+  rpc GetConversationLog(GetConversationLogReq) returns (common.ConversationLog) {}
+  rpc GetConversationLogByLogIds(GetConversationLogByLogIdsReq) returns (GetConversationLogByLogIdsResp) {}
+  rpc RecordConversationLog(common.ConversationLog) returns (google.protobuf.Empty) {}
+  rpc GetConversationLogUserSelect(GetConversationLogUserSelectReq) returns (GetConversationLogUserSelectResp) {}
+  rpc DeleteConversationLogByAppId(DeleteConversationLogByAppIdReq) returns (google.protobuf.Empty) {}
+
+  // --- conversation log export ---
+  rpc ExportConversationLog(ExportConversationLogReq) returns (google.protobuf.Empty) {}
+  rpc GetConversationLogExportRecordList(GetConversationLogExportRecordListReq) returns (GetConversationLogExportRecordListResp) {}
+  rpc DeleteConversationLogExportRecord(DeleteConversationLogExportRecordReq) returns (google.protobuf.Empty) {}
 }
 
 
@@ -667,7 +680,7 @@ message GetModelStatisticV2SelectReq {
   repeated string orgIds = 1;
   repeated string userIds = 2;
   string modelType = 3;
-  string viewScope = 4; 
+  string viewScope = 4;
 }
 
 message ModelStatisticV2SelectItem {
@@ -1188,4 +1201,102 @@ message APIKeyStatisticV2RecordItem {
 message GetAPIKeyStatisticV2RecordResp {
   repeated APIKeyStatisticV2RecordItem items = 1;
   int32 total = 2;
+}
+
+// --- conversation log ---
+
+message GetConversationLogReq {
+  string appId = 1;          // 业务id 智能体id、知识问答id
+  string appType = 2;        // 业务类型 智能体、知识问答
+  string conversationId = 3; // 会话id
+}
+
+message GetConversationLogByLogIdsReq {
+  repeated string logIds = 1; // 会话日志id列表
+}
+
+message GetConversationLogByLogIdsResp {
+  repeated common.ConversationLog items = 1;
+}
+
+message GetConversationLogListReq {
+  string appId = 1;          // 业务id 智能体id、知识问答id
+  string appType = 2;        // 业务类型 智能体、知识问答
+  string name = 3;                // 会话标题
+  repeated string source = 4;     // 来源 web、openapi、webURL、draft
+  string startDate = 5;           // 起始日期 yyyy-mm-dd
+  string endDate = 6;             // 截止日期 yyyy-mm-dd
+  repeated string userIds = 7;    // 用户id列表
+  repeated string orgIds = 8;     // 组织id列表
+  int32 pageNo = 9;               // 页码 从1开始
+  int32 pageSize = 10;            // 每页大小
+  string orderBy = 11;            // 排序字段 avgCosts avgFirstTokenLatency createAt updateAt
+  string orderType = 12;          // 排序类型 asc des
+}
+
+message GetConversationLogListResp {
+  repeated common.ConversationLog items = 1;
+  int64 total = 2;
+}
+
+message GetConversationLogUserSelectReq {
+  string appId = 1;          // 业务id 智能体id、知识问答id
+  string appType = 2;        // 业务类型 智能体、知识问答
+  repeated string orgIds = 3;   // 组织id列表
+  repeated string userIds = 4;  // 用户id列表
+}
+
+message GetConversationLogUserSelectResp {
+  repeated string userIds = 1;  // 去重后的用户id列表
+}
+
+// 删除应用下全部会话日志请求（应用删除时清场）
+message DeleteConversationLogByAppIdReq {
+  string appId = 1;          // 业务id 智能体id、知识问答id
+  string appType = 2;        // 业务类型 智能体、知识问答
+}
+
+// --- conversation log export ---
+
+message ExportConversationLogReq {
+  string appId = 1;
+  string appType = 2;
+  repeated string logIds = 3;
+  string userId = 4;
+  string orgId = 5;
+  // 导出可见组织范围：空表示不限（应用 owner 全量导出场景），非空则仅导这些组织内的日志
+  repeated string orgIds = 6;
+  // 导出可见用户范围：空表示不限，非空则仅导这些用户的日志
+  repeated string userIds = 7;
+}
+message GetConversationLogExportRecordListReq {
+  string appId = 1;
+  string appType = 2;
+  string title = 3;
+  repeated string userIds = 4;
+  repeated string orgIds = 5;
+  int32 pageSize = 6;
+  int32 pageNum = 7;
+  string startDate = 8;
+  string endDate = 9;
+}
+message ConversationLogExportRecordInfo {
+  string exportRecordId = 1;
+  int32 status = 2;
+  string filePath = 3;
+  string fileName = 4;
+  string errorMsg = 5;
+  string exportTime = 6;
+  string userId = 7;
+}
+message GetConversationLogExportRecordListResp {
+  int64 total = 1;
+  int32 pageNum = 2;
+  int32 pageSize = 3;
+  repeated ConversationLogExportRecordInfo exportRecordInfos = 4;
+}
+message DeleteConversationLogExportRecordReq {
+  repeated string exportRecordIds = 1;
+  string userId = 2;
+  string orgId = 3;
 }

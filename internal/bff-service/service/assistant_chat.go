@@ -249,6 +249,7 @@ func buildPublishRecommendParams(ctx *gin.Context, userId string, orgId string, 
 			UserId: userId,
 			OrgId:  orgId,
 		},
+		ExcludeDeleted: true,
 	})
 	if err != nil {
 		return mp_common.LLMReq{}, err

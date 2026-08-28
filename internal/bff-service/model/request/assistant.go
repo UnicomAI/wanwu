@@ -159,11 +159,21 @@ type ConversationDeleteRequest struct {
 func (c *ConversationDeleteRequest) Check() error { return nil }
 
 type ConversationIdRequest struct {
+	AssistantId    string `json:"assistantId" form:"assistantId" validate:"required"`
 	ConversationId string `json:"conversationId" form:"conversationId"  validate:"required"`
 	DetailId       string `json:"detailId" form:"detailId"` // 可选，传值则删除单条对话，不传则删除全部对话
 }
 
 func (c *ConversationIdRequest) Check() error { return nil }
+
+type MessageFeedbackRequest struct {
+	AssistantId     string `json:"assistantId" form:"assistantId"   validate:"required"`
+	ConversationId  string `json:"conversationId" form:"conversationId"  validate:"required"`
+	DetailId        string `json:"detailId" form:"detailId" validate:"required"` // 消息详情ID
+	FeedbackType    int32  `json:"feedbackType" form:"feedbackType"`             // 反馈类型: 1=点赞 2=点踩
+	FeedbackContent string `json:"feedbackContent" form:"feedbackContent"`       // 反馈文本内容
+	CommonCheck
+}
 
 type ConversationGetListRequest struct {
 	AssistantId string `json:"assistantId" form:"assistantId"  validate:"required"`
@@ -175,6 +185,7 @@ type ConversationGetListRequest struct {
 func (c *ConversationGetListRequest) Check() error { return nil }
 
 type ConversationGetDetailListRequest struct {
+	AssistantId    string `json:"assistantId" form:"assistantId"  validate:"required"`
 	ConversationId string `json:"conversationId" form:"conversationId"  validate:"required"`
 	PageSize       int    `json:"pageSize" form:"pageSize"  validate:"required"`
 	PageNo         int    `json:"pageNo" form:"pageNo"  validate:"required"`

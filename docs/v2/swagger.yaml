@@ -2628,6 +2628,11 @@ definitions:
         items:
           $ref: '#/definitions/response.StatisticV2RankItem'
         type: array
+      byDigitalEmployee:
+        description: 数字员工使用量排行
+        items:
+          $ref: '#/definitions/response.StatisticV2RankItem'
+        type: array
       byRag:
         description: 知识问答使用排行
         items:

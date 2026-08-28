@@ -45,6 +45,10 @@ func (*MCPBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId str
 	return mcpServerResp.Owner.UserId, mcpServerResp.Owner.OrgId, nil
 }
 
+func (*MCPBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
+}
+
 func GetMCPSquareDetail(ctx *gin.Context, userID, orgID, mcpSquareID string) (*response.MCPSquareDetail, error) {
 	mcpSquare, err := mcp.GetSquareMCP(ctx.Request.Context(), &mcp_service.GetSquareMCPReq{
 		OrgId:       orgID,

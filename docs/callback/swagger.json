@@ -128,6 +128,49 @@
                 }
             }
         },
+        "/api/key/user": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "callback"
+                ],
+                "summary": "通过apikey获取用户信息（内部接口）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "api key",
+                        "name": "apikey",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.UserInfoByApiKey"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/knowledge/status": {
             "post": {
                 "description": "更新知识库状态",
@@ -548,7 +591,7 @@
         },
         "/digital-employee/publish/sync": {
             "post": {
-                "description": "外部系统（ontology/vega）发布数字员工时回调本接口，登记 app 表 appType=digitalemployee 行（upsert，幂等）。字段对齐《数字员工与万悟交互接口契约》2.1：dh_id/name/version_id/version_no/publish_scope；身份走 Header 透传（X-User-Id/X-Org-Id，缺省回退 x-account-id）。",
+                "description": "外部系统（ontology/vega）发布数字员工时回调本接口，登记 app 表 appType=digitalemployee 行（upsert，幂等）。万悟自拟格式：employeeId/publishType/userId/orgId。",
                 "consumes": [
                     "application/json"
                 ],
@@ -580,7 +623,7 @@
                 }
             },
             "delete": {
-                "description": "外部系统（ontology/vega）删除数字员工时回调本接口，删除 app 表 appType=digitalemployee 行（以 dh_id 为准，幂等，目标不存在也返回成功）。字段对齐《数字员工与万悟交互接口契约》2.2：dh_id/version_no；身份走 Header 透传。",
+                "description": "外部系统（ontology/vega）删除数字员工时回调本接口，删除 app 表 appType=digitalemployee 行（以 employeeId 为准，幂等，目标不存在也返回成功）。万悟自拟格式：employeeId/userId。",
                 "consumes": [
                     "application/json"
                 ],
@@ -4335,15 +4378,16 @@
         "request.DeleteDigitalEmployeePublishSyncReq": {
             "type": "object",
             "required": [
-                "dh_id"
+                "employeeId",
+                "userId"
             ],
             "properties": {
-                "dh_id": {
+                "employeeId": {
                     "description": "数字员工ID（即 app 表 appId）",
                     "type": "string"
                 },
-                "version_no": {
-                    "description": "删除时当前发布版本号（仅辅助校验/审计，当前不落库）",
+                "userId": {
+                    "description": "操作人用户ID（外部系统提供）",
                     "type": "string"
                 }
             }
@@ -4351,28 +4395,26 @@
         "request.DigitalEmployeePublishSyncReq": {
             "type": "object",
             "required": [
-                "dh_id",
-                "publish_scope"
+                "employeeId",
+                "orgId",
+                "publishType",
+                "userId"
             ],
             "properties": {
-                "dh_id": {
+                "employeeId": {
                     "description": "数字员工ID（即 app 表 appId）",
                     "type": "string"
                 },
-                "name": {
-                    "description": "数字员工名称（契约字段，当前 app 表不落库）",
+                "orgId": {
+                    "description": "发布者组织ID（外部系统提供）",
                     "type": "string"
                 },
-                "publish_scope": {
-                    "description": "发布范围(public/organization/private)",
+                "publishType": {
+                    "description": "发布类型(public/organization/private)",
                     "type": "string"
                 },
-                "version_id": {
-                    "description": "版本记录ID（契约字段，当前不落库）",
-                    "type": "string"
-                },
-                "version_no": {
-                    "description": "发布版本号（契约字段，当前不落库）",
+                "userId": {
+                    "description": "发布者用户ID（外部系统提供）",
                     "type": "string"
                 }
             }
@@ -5835,6 +5877,20 @@
                     "type": "string"
                 },
                 "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.UserInfoByApiKey": {
+            "type": "object",
+            "properties": {
+                "orgId": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

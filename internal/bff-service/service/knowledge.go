@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	"io"
 	"net/http"
 	"strings"
@@ -70,6 +71,10 @@ func (*KnowledgeBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, org
 	}
 	userId, orgId = knowledgeInfo.OwnerUserId, knowledgeInfo.OwnerOrgId
 	return
+}
+
+func (*KnowledgeBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
 }
 
 // SelectKnowledgeList 查询知识库列表，主要根据userId 查询用户所有知识库

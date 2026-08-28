@@ -44,6 +44,9 @@ func (*ToolBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId st
 	return getUserID(ctx), getOrgID(ctx), nil
 }
 
+func (*ToolBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
+}
 func CreateCustomTool(ctx *gin.Context, userID, orgID string, req request.CustomToolCreate) error {
 	if err := openapi3_util.ValidateSchema(ctx.Request.Context(), []byte(req.Schema)); err != nil {
 		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, err.Error())
