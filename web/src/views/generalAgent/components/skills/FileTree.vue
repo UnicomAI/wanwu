@@ -331,7 +331,7 @@ export default {
       });
     },
     refreshFiles() {
-      this.fetchFiles(true);
+      return this.fetchFiles(true);
     },
     startPolling() {
       if (!this.customSkillId) {

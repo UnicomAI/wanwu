@@ -638,8 +638,9 @@ export default {
     },
     refreshFiles() {
       if (this.$refs.fileTree) {
-        this.$refs.fileTree.refreshFiles();
+        return this.$refs.fileTree.refreshFiles();
       }
+      return Promise.resolve();
     },
     refreshGit() {
       return Promise.all([this.fetchGitLog(), this.fetchGitStatus()]);
@@ -1021,15 +1022,16 @@ export default {
                 'generalAgent.skill.skillWorkBench.fileTree.createFailed',
               ),
           );
-          this.refreshFiles();
+          await this.refreshFiles();
           return;
         }
         this.$message.success(
           this.$t('generalAgent.skill.skillWorkBench.fileTree.createSuccess'),
         );
-        this.refreshFiles();
+        await this.refreshFiles();
         await this.fetchGitStatus();
       } catch (error) {
+        await this.refreshFiles();
         this.$message.error(
           this.$t('generalAgent.skill.skillWorkBench.fileTree.createFailed'),
         );
@@ -1049,15 +1051,16 @@ export default {
                 'generalAgent.skill.skillWorkBench.fileTree.createFailed',
               ),
           );
-          this.refreshFiles();
+          await this.refreshFiles();
           return;
         }
         this.$message.success(
           this.$t('generalAgent.skill.skillWorkBench.fileTree.createSuccess'),
         );
-        this.refreshFiles();
+        await this.refreshFiles();
         await this.fetchGitStatus();
       } catch (error) {
+        await this.refreshFiles();
         this.$message.error(
           this.$t('generalAgent.skill.skillWorkBench.fileTree.createFailed'),
         );

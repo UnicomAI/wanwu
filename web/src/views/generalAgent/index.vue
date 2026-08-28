@@ -1891,7 +1891,7 @@ export default {
       this.$nextTick(() => this.refreshSkillWorkspace());
     },
 
-    refreshSkillWorkspace() {
+    async refreshSkillWorkspace() {
       if (!this.isSkillType) return;
       if (!this.customSkillId || !this.previewId) {
         this.pendingSkillWorkspaceRefresh = true;
@@ -1900,7 +1900,7 @@ export default {
 
       const skillTabs = this.$refs.skillTabs;
       if (skillTabs && skillTabs.refreshWorkspace) {
-        skillTabs.refreshWorkspace();
+        await skillTabs.refreshWorkspace();
         this.pendingSkillWorkspaceRefresh = false;
         return;
       }
