@@ -35,7 +35,7 @@
         :data="orgTreeData"
         :props="treeProps"
         node-key="orgId"
-        :default-expanded-keys="expandedKeys"
+        :expanded-keys="expandedKeys"
         highlight-current
         :expand-on-click-node="false"
         :current-node-key="activeOrgId"
@@ -295,13 +295,61 @@ export default {
       this.$emit('input', data.orgId);
       this.$emit('change', data);
     },
-    handleNodeExpand(data) {
-      if (!this.expandedKeys.includes(data.orgId)) {
-        this.expandedKeys.push(data.orgId);
+    handleNodeExpand(data, node) {
+      // 展开节点时，只设置当前节点和其直接子节点的 key
+      const otherRootKeys = this.expandedKeys.filter(key => {
+        const allDescendantKeys = this.getAllDescendantKeys(data);
+        return !allDescendantKeys.includes(key) && key !== data.orgId;
+      });
+
+      const newKeys = [...otherRootKeys, data.orgId];
+      if (data.children && data.children.length > 0) {
+        data.children.forEach(child => {
+          newKeys.push(child.orgId);
+        });
+      }
+
+      this.expandedKeys = newKeys;
+
+      // 关键：在下一个 tick 主动折叠所有孙节点，确保只显示直接子节点
+      this.$nextTick(() => {
+        this.collapseAllGrandchildren(data);
+      });
+    },
+    handleNodeCollapse(data, node) {
+      // 折叠节点时，清除其所有子孙节点的展开状态
+      // 这样下次再展开时，就不会有残留的深层展开状态
+      const allDescendantKeys = this.getAllDescendantKeys(data);
+      this.expandedKeys = this.expandedKeys.filter(
+        key => !allDescendantKeys.includes(key),
+      );
+    },
+    collapseAllGrandchildren(node) {
+      // 递归折叠当前节点的所有孙节点及更深层级
+      if (node.children && node.children.length > 0) {
+        node.children.forEach(child => {
+          if (child.children && child.children.length > 0) {
+            // 获取树节点实例并折叠
+            const treeNode = this.$refs.orgTree.getNode(child.orgId);
+            if (treeNode && treeNode.expanded) {
+              treeNode.collapse();
+            }
+            // 继续递归处理
+            this.collapseAllGrandchildren(child);
+          }
+        });
       }
     },
-    handleNodeCollapse(data) {
-      this.expandedKeys = this.expandedKeys.filter(key => key !== data.orgId);
+    getAllDescendantKeys(node) {
+      const keys = [];
+      if (node.children && node.children.length > 0) {
+        node.children.forEach(child => {
+          keys.push(child.orgId);
+          // 递归获取孙节点的 key
+          keys.push(...this.getAllDescendantKeys(child));
+        });
+      }
+      return keys;
     },
     handleOrgCommand(org, command) {
       if (command === 'rename') {

@@ -15,14 +15,9 @@
     <DetailCard
       :title="$t('adminCenter.pageModules.resourcePool.skill.detail.overview')"
     >
-      <SkillDetail
-        v-if="skillDetail?.skillMarkdown"
-        :detail="skillDetail"
-        :recommendList="[]"
-        :visibleDownload="false"
-        :visibleHistory="false"
-        :visibleVariableConfig="false"
-        readonly
+      <SkillContentWorkspace
+        v-if="skillDetail?.skillId"
+        :customSkillId="skillDetail.skillId"
       />
       <EmptyState
         v-else
@@ -35,7 +30,7 @@
 <script>
 import { getAdminSkillBase, getAdminSkillDetail } from '@/api/adminCenter';
 import { avatarSrc } from '@/utils/util';
-import SkillDetail from '@/components/skills/skillDetail.vue';
+import SkillContentWorkspace from '../components/SkillContentWorkspace.vue';
 import DetailLayout from '../components/DetailLayout.vue';
 import DetailHeader from '../components/DetailHeader.vue';
 import DetailCard from '../components/DetailCard.vue';
@@ -52,7 +47,7 @@ export default {
     InfoGrid,
     VisibleUsers,
     EmptyState,
-    SkillDetail,
+    SkillContentWorkspace,
   },
   mixins: [detailMixin],
   data() {
@@ -99,9 +94,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss" scoped>
-::v-deep .tempSquare-detail {
-  padding: 0 !important;
-}
-</style>

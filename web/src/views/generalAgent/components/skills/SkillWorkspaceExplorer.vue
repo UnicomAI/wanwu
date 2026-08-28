@@ -5,36 +5,53 @@
       v-show="sidebarView === 'files'"
       :customSkillId="customSkillId"
       :activeView="sidebarView"
+      :gitStatusFiles="gitStatusFiles"
+      :gitChangeCount="gitChangeCount"
       @file-click="$emit('open-file', $event)"
       @download-file="downloadFile"
       @delete-file="handleDeleteFile"
+      @create-file="handleCreateFile"
+      @create-folder="handleCreateFolder"
+      @rename-entry="handleRenameEntry"
+      @upload-files="handleUploadFiles"
       @switch-view="sidebarView = $event"
     />
 
     <div v-show="sidebarView === 'search'" class="search-panel">
       <div class="panel-header">
         <div class="header-icons">
-          <i
-            :class="['header-icon', { active: sidebarView === 'files' }]"
-            class="el-icon-folder"
-            :title="$t('generalAgent.skill.skillWorkBench.common.files')"
-            @click="sidebarView = 'files'"
-          ></i>
-          <i
-            :class="['header-icon', { active: sidebarView === 'search' }]"
-            class="el-icon-search"
-            :title="$t('generalAgent.skill.skillWorkBench.common.search')"
-            @click="sidebarView = 'search'"
-          ></i>
           <svg-icon
             :class="[
               'header-icon svg-icon-btn',
-              { active: sidebarView === 'git' },
+              { active: sidebarView === 'files' },
             ]"
-            icon-class="gitBranch"
-            :title="$t('generalAgent.skill.skillWorkBench.common.git')"
-            @click.native="sidebarView = 'git'"
+            icon-class="skillWorkspaceFolder"
+            :title="$t('generalAgent.skill.skillWorkBench.common.files')"
+            @click.native="sidebarView = 'files'"
           />
+          <svg-icon
+            :class="[
+              'header-icon svg-icon-btn',
+              { active: sidebarView === 'search' },
+            ]"
+            icon-class="skillWorkspaceSearch"
+            :title="$t('generalAgent.skill.skillWorkBench.common.search')"
+            @click.native="sidebarView = 'search'"
+          />
+          <span class="git-icon-wrap">
+            <svg-icon
+              :class="[
+                'header-icon svg-icon-btn',
+                { active: sidebarView === 'git' },
+              ]"
+              icon-class="gitBranch"
+              :title="$t('generalAgent.skill.skillWorkBench.common.git')"
+              @click.native="sidebarView = 'git'"
+            />
+            <span v-if="gitChangeCount > 0" class="git-change-count">
+              {{ gitChangeCount > 99 ? '99+' : gitChangeCount }}
+            </span>
+          </span>
         </div>
       </div>
       <div class="search-input-wrap">
@@ -200,18 +217,24 @@
     <div v-show="sidebarView === 'git'" class="git-panel">
       <div class="panel-header">
         <div class="header-icons">
-          <i
-            :class="['header-icon', { active: sidebarView === 'files' }]"
-            class="el-icon-folder"
+          <svg-icon
+            :class="[
+              'header-icon svg-icon-btn',
+              { active: sidebarView === 'files' },
+            ]"
+            icon-class="skillWorkspaceFolder"
             :title="$t('generalAgent.skill.skillWorkBench.common.files')"
-            @click="sidebarView = 'files'"
-          ></i>
-          <i
-            :class="['header-icon', { active: sidebarView === 'search' }]"
-            class="el-icon-search"
+            @click.native="sidebarView = 'files'"
+          />
+          <svg-icon
+            :class="[
+              'header-icon svg-icon-btn',
+              { active: sidebarView === 'search' },
+            ]"
+            icon-class="skillWorkspaceSearch"
             :title="$t('generalAgent.skill.skillWorkBench.common.search')"
-            @click="sidebarView = 'search'"
-          ></i>
+            @click.native="sidebarView = 'search'"
+          />
           <svg-icon
             :class="[
               'header-icon svg-icon-btn',
@@ -385,6 +408,20 @@
           <div class="commit-message">{{ commit.message }}</div>
           <div class="commit-meta">
             <span class="commit-hash">{{ commit.hash.substring(0, 7) }}</span>
+            <span class="commit-tags" v-if="commit.tags && commit.tags.length">
+              <span class="commit-tag" :title="commit.tags.join(', ')">
+                {{ latestTag(commit.tags) }}
+              </span>
+              <el-tooltip
+                v-if="commit.tags.length > 1"
+                :content="commit.tags.join(', ')"
+                placement="top"
+              >
+                <span class="commit-tag commit-tag-more">
+                  +{{ commit.tags.length - 1 }}
+                </span>
+              </el-tooltip>
+            </span>
             <span class="commit-time">{{ formatGitTime(commit.time) }}</span>
           </div>
         </div>
@@ -406,6 +443,10 @@ import {
   getSkillWorkspaceGitDiffWorking,
   getSkillWorkspaceGitDiffStaged,
   getSkillWorkspaceGitStatus,
+  createSkillWorkspaceFile,
+  createSkillWorkspaceDirectory,
+  renameSkillWorkspaceFile,
+  uploadSkillWorkspaceFiles,
   postSkillWorkspaceGitAdd,
   postSkillWorkspaceGitReset,
   postSkillWorkspaceGitCommit,
@@ -435,6 +476,10 @@ export default {
     activeGitDiffId: {
       type: String,
       default: '',
+    },
+    checkRenameAllowed: {
+      type: Function,
+      default: () => true,
     },
   },
   data() {
@@ -472,13 +517,23 @@ export default {
     stagedFiles() {
       return this.gitStatusFiles.filter(f => f.staged);
     },
+    gitChangeCount() {
+      const paths = new Set();
+      (this.gitStatusFiles || []).forEach(file => {
+        const path = String((file && file.path) || '')
+          .replace(/\\/g, '/')
+          .replace(/^\/+|\/+$/g, '');
+        if (path) paths.add(path);
+      });
+      return paths.size;
+    },
     searchResultTree() {
       if (this.searchResults.length === 0) return [];
 
       const expandedPaths = this.searchTreeExpandedPaths;
       const expandedVersion = this.searchTreeRenderKey;
-      // Vue 2 cannot reliably react to properties added to temporary computed
-      // nodes, so this counter makes expand/collapse changes an explicit dep.
+      // Vue 2 无法可靠地响应临时计算节点上新增的属性，因此用此计数器将
+      // 展开/折叠变化显式声明为依赖。
       const isExpanded = path =>
         expandedVersion >= 0 && Boolean(expandedPaths[path]);
       const root = { name: '', children: [], isDir: true };
@@ -577,10 +632,15 @@ export default {
     }
   },
   methods: {
+    showGitView() {
+      this.sidebarView = 'git';
+      return this.refreshGit();
+    },
     refreshFiles() {
       if (this.$refs.fileTree) {
-        this.$refs.fileTree.refreshFiles();
+        return this.$refs.fileTree.refreshFiles();
       }
+      return Promise.resolve();
     },
     refreshGit() {
       return Promise.all([this.fetchGitLog(), this.fetchGitStatus()]);
@@ -947,6 +1007,148 @@ export default {
         })
         .catch(() => {});
     },
+    async handleCreateFile(payload) {
+      if (!payload || !payload.path || !this.customSkillId) return;
+      try {
+        const res = await createSkillWorkspaceFile(
+          this.customSkillId,
+          payload.path,
+          '',
+        );
+        if (!res || res.code !== 0) {
+          this.$message.error(
+            (res && res.msg) ||
+              this.$t(
+                'generalAgent.skill.skillWorkBench.fileTree.createFailed',
+              ),
+          );
+          await this.refreshFiles();
+          return;
+        }
+        this.$message.success(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.createSuccess'),
+        );
+        await this.refreshFiles();
+        await this.fetchGitStatus();
+      } catch (error) {
+        await this.refreshFiles();
+        this.$message.error(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.createFailed'),
+        );
+      }
+    },
+    async handleCreateFolder(payload) {
+      if (!payload || !payload.path || !this.customSkillId) return;
+      try {
+        const res = await createSkillWorkspaceDirectory(
+          this.customSkillId,
+          payload.path,
+        );
+        if (!res || res.code !== 0) {
+          this.$message.error(
+            (res && res.msg) ||
+              this.$t(
+                'generalAgent.skill.skillWorkBench.fileTree.createFailed',
+              ),
+          );
+          await this.refreshFiles();
+          return;
+        }
+        this.$message.success(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.createSuccess'),
+        );
+        await this.refreshFiles();
+        await this.fetchGitStatus();
+      } catch (error) {
+        await this.refreshFiles();
+        this.$message.error(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.createFailed'),
+        );
+      }
+    },
+    async handleRenameEntry(payload) {
+      if (
+        !payload ||
+        !payload.entry ||
+        !payload.entry.path ||
+        !payload.newName
+      ) {
+        return;
+      }
+      if (!this.checkRenameAllowed(payload.entry.path)) {
+        this.$message.warning(
+          this.$t(
+            'generalAgent.skill.skillWorkBench.fileTree.unsavedRenameWarning',
+          ),
+        );
+        return;
+      }
+      try {
+        const res = await renameSkillWorkspaceFile(
+          this.customSkillId,
+          payload.entry.path,
+          payload.newName,
+        );
+        if (!res || res.code !== 0) {
+          this.$message.error(
+            (res && res.msg) ||
+              this.$t(
+                'generalAgent.skill.skillWorkBench.fileTree.renameFailed',
+              ),
+          );
+          this.refreshFiles();
+          return;
+        }
+        this.$message.success(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.renameSuccess'),
+        );
+        this.refreshFiles();
+        await this.fetchGitStatus();
+        this.$emit('close-tabs-by-path', payload.entry.path);
+      } catch (error) {
+        this.$message.error(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.renameFailed'),
+        );
+      }
+    },
+    async handleUploadFiles(payload) {
+      const files = (payload && payload.files) || [];
+      if (!this.customSkillId || files.length === 0) return;
+      if (files.some(file => file.webkitRelativePath)) {
+        this.$message.warning(
+          this.$t(
+            'generalAgent.skill.skillWorkBench.fileTree.directoryUploadNotSupported',
+          ),
+        );
+        return;
+      }
+      try {
+        const res = await uploadSkillWorkspaceFiles(
+          this.customSkillId,
+          (payload && payload.path) || '',
+          files,
+        );
+        if (!res || res.code !== 0) {
+          this.$message.error(
+            (res && res.msg) ||
+              this.$t(
+                'generalAgent.skill.skillWorkBench.fileTree.uploadFailed',
+              ),
+          );
+          this.refreshFiles();
+          return;
+        }
+        this.$message.success(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.uploadSuccess'),
+        );
+        this.refreshFiles();
+        await this.fetchGitStatus();
+      } catch (error) {
+        this.$message.error(
+          this.$t('generalAgent.skill.skillWorkBench.fileTree.uploadFailed'),
+        );
+      }
+    },
     resolveDownloadFileName(file, customSkillId) {
       if (!file.isDir) return file.name || file.path.split('/').pop();
       const dirName = file.name || file.path.split('/').pop();
@@ -960,6 +1162,34 @@ export default {
     },
     commitDiffId(commit) {
       return `git-commit:${commit.hash}`;
+    },
+    latestTag(tags) {
+      if (!tags || !tags.length) return '';
+      const parseVer = t => {
+        const m = t.match(/v?(\d+(?:\.\d+)*)/i);
+        if (!m) return null;
+        return m[1].split('.').map(n => parseInt(n, 10) || 0);
+      };
+      const cmp = (a, b) => {
+        const la = a.length;
+        const lb = b.length;
+        const max = Math.max(la, lb);
+        for (let i = 0; i < max; i++) {
+          const da = a[i] || 0;
+          const db = b[i] || 0;
+          if (da !== db) return db - da;
+        }
+        return 0;
+      };
+      const parsed = tags
+        .map(t => ({ t, v: parseVer(t) }))
+        .sort((a, b) => {
+          if (a.v && b.v) return cmp(a.v, b.v);
+          if (a.v) return -1;
+          if (b.v) return 1;
+          return b.t.localeCompare(a.t);
+        });
+      return parsed[0].t;
     },
     formatGitTime(timestamp) {
       if (!timestamp) return '';
@@ -1015,6 +1245,28 @@ export default {
     .header-icons {
       display: flex;
       gap: 4px;
+    }
+
+    .git-icon-wrap {
+      position: relative;
+      display: inline-flex;
+    }
+
+    .git-change-count {
+      position: absolute;
+      right: 1px;
+      bottom: -1px;
+      min-width: 11px;
+      height: 11px;
+      padding: 0 2px;
+      border-radius: 8px;
+      background: #f56c6c;
+      color: #fff;
+      font-size: 8px;
+      line-height: 11px;
+      text-align: center;
+      pointer-events: none;
+      z-index: 2;
     }
 
     .header-icon {
@@ -1411,13 +1663,48 @@ export default {
 
     .commit-meta {
       display: flex;
+      align-items: center;
       justify-content: space-between;
+      gap: 4px;
       margin-top: 4px;
       font-size: 11px;
       color: #999;
 
       .commit-hash {
         font-family: monospace;
+        flex-shrink: 0;
+      }
+
+      .commit-tags {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        overflow: hidden;
+        min-width: 0;
+      }
+
+      .commit-tag {
+        font-size: 10px;
+        line-height: 1.4;
+        padding: 0 5px;
+        border-radius: 3px;
+        background: rgba(89, 131, 255, 0.1);
+        color: #4a6fdb;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 80px;
+
+        &.commit-tag-more {
+          max-width: none;
+          padding: 0 4px;
+          background: rgba(0, 0, 0, 0.05);
+          color: #999;
+        }
+      }
+
+      .commit-time {
+        flex-shrink: 0;
       }
     }
   }

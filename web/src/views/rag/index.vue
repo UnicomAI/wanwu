@@ -255,6 +255,12 @@ export default {
         // 用户快速切换会话时，忽略已过期请求的详情响应。
         if (this.activeConversationId !== item.conversationId) return;
         this.$refs.ragChat?.loadConversationHistory(res.data?.list || []);
+        this.$nextTick(() => {
+          if (this.activeConversationId !== item.conversationId) return;
+          this.$refs.ragChat?.connectPendingRagStream({
+            conversationId: item.conversationId,
+          });
+        });
       } catch (error) {
         console.warn('[rag chat] get conversation detail failed', error);
       }

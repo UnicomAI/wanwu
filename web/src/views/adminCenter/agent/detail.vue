@@ -12,338 +12,376 @@
       <VisibleUsers :users="visibleUsers" />
     </DetailCard>
 
-    <!-- 系统提示词 -->
-    <DetailCard
-      :title="
-        $t('adminCenter.pageModules.appDevelopment.agent.detail.systemPrompt')
-      "
-    >
-      <div v-if="detail.instructions" class="prompt-text input-box">
-        {{ detail.instructions }}
-      </div>
-      <EmptyState
-        v-else
-        :tip="
-          $t(
-            'adminCenter.pageModules.appDevelopment.agent.detail.noSystemPrompt',
-          )
-        "
-      />
-    </DetailCard>
-
-    <!-- 模型配置 -->
-    <DetailCard
-      :title="
-        $t('adminCenter.pageModules.appDevelopment.agent.detail.modelConfig')
-      "
-    >
-      <InfoGrid v-if="modelConfig.modelId" :items="modelItems" />
-      <EmptyState
-        v-else
-        :tip="$t('adminCenter.pageModules.appDevelopment.agent.detail.noModel')"
-      />
-    </DetailCard>
-
-    <!-- 对话配置 -->
-    <DetailCard
-      :title="
-        $t('adminCenter.pageModules.appDevelopment.agent.detail.dialogConfig')
-      "
-    >
-      <div class="dialog-grid">
-        <div class="dialog-row">
-          <span class="dialog-label">
-            {{
-              $t(
-                'adminCenter.pageModules.appDevelopment.agent.detail.maxHistoryLength',
-              )
-            }}
-          </span>
-          <span class="dialog-value">
-            {{ numText(detail.memoryConfig?.maxHistoryLength) }}
-          </span>
-        </div>
-        <div class="dialog-row">
-          <span class="dialog-label">
-            {{
-              $t('adminCenter.pageModules.appDevelopment.agent.detail.prologue')
-            }}
-          </span>
-          <div v-if="detail.prologue" class="dialog-value input-box">
-            {{ detail.prologue }}
-          </div>
-          <div v-else class="dialog-value empty-text">
-            {{ $t('common.noData') }}
-          </div>
-        </div>
-        <div class="dialog-row is-stack">
-          <span class="dialog-label">
-            {{
-              $t(
-                'adminCenter.pageModules.appDevelopment.agent.detail.recommendQuestion',
-              )
-            }}
-          </span>
-          <div class="dialog-value">
-            <template v-if="recommendQuestions.length">
-              <div
-                v-for="(q, i) in recommendQuestions"
-                :key="`rq-${i}`"
-                class="recommend-item"
-              >
-                <span class="recommend-index">Q{{ i + 1 }}</span>
-                <span class="recommend-text">{{ q }}</span>
-              </div>
-            </template>
-            <div v-else class="empty-text">
-              {{ $t('common.noData') }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </DetailCard>
-
-    <!-- 关联知识库 -->
-    <DetailCard
-      v-if="!isMultipleAgent"
-      :title="
-        $t('adminCenter.pageModules.appDevelopment.agent.detail.linkKnowledge')
-      "
-    >
-      <template v-if="hasKnowledge">
-        <div class="recall-config">
-          <InfoGrid :items="recallItems" />
-        </div>
-        <div class="card-list">
-          <div
-            v-for="(kb, i) in knowledgeList"
-            :key="`kb-${i}`"
-            class="resource-card is-clickable"
-            @click="goKnowledge(kb)"
-          >
-            <img
-              :src="avatarSrc(kb.avatar?.path, knowledgeDefaultIcon)"
-              class="resource-avatar"
-            />
-            <div class="resource-info">
-              <div class="resource-name">{{ kb.name }}</div>
-              <div v-if="kb.description" class="resource-desc">
-                {{ kb.description }}
-              </div>
-              <div class="resource-meta">
-                <span class="meta-tag">
-                  {{
-                    kb.share
-                      ? $t('knowledgeManage.public')
-                      : $t('knowledgeManage.private')
-                  }}
-                </span>
-                <span v-if="kb.orgName" class="meta-tag">{{ kb.orgName }}</span>
-                <span v-if="kb.external === 1" class="meta-tag">
-                  {{ $t('knowledgeManage.ribbon.external') }}
-                </span>
-              </div>
-            </div>
-            <el-tooltip
-              v-if="kb.external !== 1"
-              :content="$t('agent.form.metaDataFilter')"
-              class="item"
-              effect="dark"
-              placement="top-start"
-            >
-              <span
-                class="el-icon-setting resource-meta-btn"
-                @click.stop="openMetaDataFilter(kb)"
-              ></span>
-            </el-tooltip>
-          </div>
-        </div>
-        <div v-if="canExpandKnowledge" class="view-more">
-          <span
-            class="view-more-btn"
-            @click="knowledgeExpanded = !knowledgeExpanded"
-          >
-            {{
-              knowledgeExpanded
-                ? $t(
-                    'adminCenter.pageModules.appDevelopment.agent.detail.collapse',
-                  )
-                : $t(
-                    'adminCenter.pageModules.appDevelopment.agent.detail.viewMore',
-                  )
-            }}
-            <i
-              :class="
-                knowledgeExpanded ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
-              "
-            ></i>
-          </span>
-        </div>
-      </template>
-      <EmptyState
-        v-else
-        :tip="
-          $t('adminCenter.pageModules.appDevelopment.agent.detail.noKnowledge')
-        "
-      />
-    </DetailCard>
-
-    <!-- 关联工具 -->
-    <DetailCard
-      v-if="!isMultipleAgent"
-      :title="
-        $t('adminCenter.pageModules.appDevelopment.agent.detail.linkTool')
-      "
-    >
-      <template v-if="hasTools">
-        <div class="card-list">
-          <div
-            v-for="(tool, i) in toolList"
-            :key="`tool-${i}`"
-            class="resource-card is-clickable"
-            @click="goTool(tool)"
-          >
-            <img
-              :src="avatarSrc(tool.avatar?.path, toolDefaultIcon)"
-              class="resource-avatar"
-            />
-            <div class="resource-info">
-              <div class="resource-name">{{ toolDisplayName(tool) }}</div>
-              <div v-if="toolDescription(tool)" class="resource-desc">
-                {{ toolDescription(tool) }}
-              </div>
-              <div class="resource-meta">
-                <span class="meta-tag">{{ toolTypeName(tool) }}</span>
-                <span class="meta-tag">{{ boolText(tool.enable) }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-if="canExpandTools" class="view-more">
-          <span class="view-more-btn" @click="toolExpanded = !toolExpanded">
-            {{
-              toolExpanded
-                ? $t(
-                    'adminCenter.pageModules.appDevelopment.agent.detail.collapse',
-                  )
-                : $t(
-                    'adminCenter.pageModules.appDevelopment.agent.detail.viewMore',
-                  )
-            }}
-            <i
-              :class="toolExpanded ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"
-            ></i>
-          </span>
-        </div>
-      </template>
-      <EmptyState
-        v-else
-        :tip="$t('adminCenter.pageModules.appDevelopment.agent.detail.noTool')"
-      />
-    </DetailCard>
-
-    <!-- 关联智能体 -->
-    <DetailCard
-      v-if="isMultipleAgent"
-      :title="
-        $t('adminCenter.pageModules.appDevelopment.agent.detail.linkAgent')
-      "
-    >
-      <template v-if="hasMultiAgents">
-        <div class="card-list">
-          <div
-            v-for="(agent, i) in multiAgentList"
-            :key="`ma-${i}`"
-            class="resource-card is-clickable"
-            @click="goSingleAgent(agent)"
-          >
-            <img
-              :src="avatarSrc(agent.avatar?.path, agentDefaultIcon)"
-              class="resource-avatar"
-            />
-            <div class="resource-info">
-              <div class="resource-name">{{ agent.name }}</div>
-              <div v-if="agent.desc" class="resource-desc">
-                {{ agent.desc }}
-              </div>
-              <div class="resource-meta">
-                <span class="meta-tag">
-                  {{ boolText(agent.enable) }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-if="canExpandMultiAgents" class="view-more">
-          <span
-            class="view-more-btn"
-            @click="multiAgentExpanded = !multiAgentExpanded"
-          >
-            {{
-              multiAgentExpanded
-                ? $t(
-                    'adminCenter.pageModules.appDevelopment.agent.detail.collapse',
-                  )
-                : $t(
-                    'adminCenter.pageModules.appDevelopment.agent.detail.viewMore',
-                  )
-            }}
-            <i
-              :class="
-                multiAgentExpanded ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
-              "
-            ></i>
-          </span>
-        </div>
-      </template>
-      <EmptyState
-        v-else
-        :tip="$t('adminCenter.pageModules.appDevelopment.agent.detail.noAgent')"
-      />
-    </DetailCard>
-
-    <!-- 安全护栏 -->
-    <DetailCard
-      :title="
-        $t(
-          'adminCenter.pageModules.appDevelopment.agent.detail.safetyGuardrail',
-        )
-      "
-    >
-      <InfoGrid :items="safetyItems" />
-    </DetailCard>
-
-    <!-- 追问配置 -->
-    <DetailCard
-      v-if="!isMultipleAgent"
-      :title="
-        $t(
-          'adminCenter.pageModules.appDevelopment.agent.detail.recommendConfig',
-        )
-      "
-    >
-      <InfoGrid :items="recommendItems" />
-      <div v-if="recommendConfig.promptEnable" class="recommend-prompt">
-        <div class="sub-label">
-          {{
+    <el-tabs v-model="activeTab" class="agent-detail-tabs">
+      <el-tab-pane :label="$t('adminCenter.common.config')" name="config">
+        <!-- 系统提示词 -->
+        <DetailCard
+          :title="
             $t(
-              'adminCenter.pageModules.appDevelopment.agent.detail.recommendPrompt',
+              'adminCenter.pageModules.appDevelopment.agent.detail.systemPrompt',
             )
-          }}
-        </div>
-        <div class="prompt-text input-box">
-          {{ recommendConfig.prompt || '-' }}
-        </div>
-      </div>
-    </DetailCard>
+          "
+        >
+          <div v-if="detail.instructions" class="prompt-text input-box">
+            {{ detail.instructions }}
+          </div>
+          <EmptyState
+            v-else
+            :tip="
+              $t(
+                'adminCenter.pageModules.appDevelopment.agent.detail.noSystemPrompt',
+              )
+            "
+          />
+        </DetailCard>
 
-    <metaDataFilterField
-      ref="metaDataFilterField"
-      :category="currentKnowledgeCategory"
-      :knowledgeId="currentKnowledgeId"
-      :metaData="currentMetaData"
-      :readonly="true"
-    />
+        <!-- 模型配置 -->
+        <DetailCard
+          :title="
+            $t(
+              'adminCenter.pageModules.appDevelopment.agent.detail.modelConfig',
+            )
+          "
+        >
+          <InfoGrid v-if="modelConfig.modelId" :items="modelItems" />
+          <EmptyState
+            v-else
+            :tip="
+              $t('adminCenter.pageModules.appDevelopment.agent.detail.noModel')
+            "
+          />
+        </DetailCard>
+
+        <!-- 对话配置 -->
+        <DetailCard
+          :title="
+            $t(
+              'adminCenter.pageModules.appDevelopment.agent.detail.dialogConfig',
+            )
+          "
+        >
+          <div class="dialog-grid">
+            <div class="dialog-row">
+              <span class="dialog-label">
+                {{
+                  $t(
+                    'adminCenter.pageModules.appDevelopment.agent.detail.maxHistoryLength',
+                  )
+                }}
+              </span>
+              <span class="dialog-value">
+                {{ numText(detail.memoryConfig?.maxHistoryLength) }}
+              </span>
+            </div>
+            <div class="dialog-row">
+              <span class="dialog-label">
+                {{
+                  $t(
+                    'adminCenter.pageModules.appDevelopment.agent.detail.prologue',
+                  )
+                }}
+              </span>
+              <div v-if="detail.prologue" class="dialog-value input-box">
+                {{ detail.prologue }}
+              </div>
+              <div v-else class="dialog-value empty-text">
+                {{ $t('common.noData') }}
+              </div>
+            </div>
+            <div class="dialog-row is-stack">
+              <span class="dialog-label">
+                {{
+                  $t(
+                    'adminCenter.pageModules.appDevelopment.agent.detail.recommendQuestion',
+                  )
+                }}
+              </span>
+              <div class="dialog-value">
+                <template v-if="recommendQuestions.length">
+                  <div
+                    v-for="(q, i) in recommendQuestions"
+                    :key="`rq-${i}`"
+                    class="recommend-item"
+                  >
+                    <span class="recommend-index">Q{{ i + 1 }}</span>
+                    <span class="recommend-text">{{ q }}</span>
+                  </div>
+                </template>
+                <div v-else class="empty-text">
+                  {{ $t('common.noData') }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </DetailCard>
+
+        <!-- 关联知识库 -->
+        <DetailCard
+          v-if="!isMultipleAgent"
+          :title="
+            $t(
+              'adminCenter.pageModules.appDevelopment.agent.detail.linkKnowledge',
+            )
+          "
+        >
+          <template v-if="hasKnowledge">
+            <div class="recall-config">
+              <InfoGrid :items="recallItems" />
+            </div>
+            <div class="card-list">
+              <div
+                v-for="(kb, i) in knowledgeList"
+                :key="`kb-${i}`"
+                class="resource-card is-clickable"
+                @click="goKnowledge(kb)"
+              >
+                <img
+                  :src="avatarSrc(kb.avatar?.path, knowledgeDefaultIcon)"
+                  class="resource-avatar"
+                />
+                <div class="resource-info">
+                  <div class="resource-name">{{ kb.name }}</div>
+                  <div v-if="kb.description" class="resource-desc">
+                    {{ kb.description }}
+                  </div>
+                  <div class="resource-meta">
+                    <span class="meta-tag">
+                      {{
+                        kb.share
+                          ? $t('knowledgeManage.public')
+                          : $t('knowledgeManage.private')
+                      }}
+                    </span>
+                    <span v-if="kb.orgName" class="meta-tag">
+                      {{ kb.orgName }}
+                    </span>
+                    <span v-if="kb.external === 1" class="meta-tag">
+                      {{ $t('knowledgeManage.ribbon.external') }}
+                    </span>
+                  </div>
+                </div>
+                <el-tooltip
+                  v-if="kb.external !== 1"
+                  :content="$t('agent.form.metaDataFilter')"
+                  class="item"
+                  effect="dark"
+                  placement="top-start"
+                >
+                  <span
+                    class="el-icon-setting resource-meta-btn"
+                    @click.stop="openMetaDataFilter(kb)"
+                  ></span>
+                </el-tooltip>
+              </div>
+            </div>
+            <div v-if="canExpandKnowledge" class="view-more">
+              <span
+                class="view-more-btn"
+                @click="knowledgeExpanded = !knowledgeExpanded"
+              >
+                {{
+                  knowledgeExpanded
+                    ? $t(
+                        'adminCenter.pageModules.appDevelopment.agent.detail.collapse',
+                      )
+                    : $t(
+                        'adminCenter.pageModules.appDevelopment.agent.detail.viewMore',
+                      )
+                }}
+                <i
+                  :class="
+                    knowledgeExpanded
+                      ? 'el-icon-arrow-up'
+                      : 'el-icon-arrow-down'
+                  "
+                ></i>
+              </span>
+            </div>
+          </template>
+          <EmptyState
+            v-else
+            :tip="
+              $t(
+                'adminCenter.pageModules.appDevelopment.agent.detail.noKnowledge',
+              )
+            "
+          />
+        </DetailCard>
+
+        <!-- 关联工具 -->
+        <DetailCard
+          v-if="!isMultipleAgent"
+          :title="
+            $t('adminCenter.pageModules.appDevelopment.agent.detail.linkTool')
+          "
+        >
+          <template v-if="hasTools">
+            <div class="card-list">
+              <div
+                v-for="(tool, i) in toolList"
+                :key="`tool-${i}`"
+                class="resource-card is-clickable"
+                @click="goTool(tool)"
+              >
+                <img
+                  :src="avatarSrc(tool.avatar?.path, toolDefaultIcon)"
+                  class="resource-avatar"
+                />
+                <div class="resource-info">
+                  <div class="resource-name">{{ toolDisplayName(tool) }}</div>
+                  <div v-if="toolDescription(tool)" class="resource-desc">
+                    {{ toolDescription(tool) }}
+                  </div>
+                  <div class="resource-meta">
+                    <span class="meta-tag">{{ toolTypeName(tool) }}</span>
+                    <span class="meta-tag">{{ boolText(tool.enable) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="canExpandTools" class="view-more">
+              <span class="view-more-btn" @click="toolExpanded = !toolExpanded">
+                {{
+                  toolExpanded
+                    ? $t(
+                        'adminCenter.pageModules.appDevelopment.agent.detail.collapse',
+                      )
+                    : $t(
+                        'adminCenter.pageModules.appDevelopment.agent.detail.viewMore',
+                      )
+                }}
+                <i
+                  :class="
+                    toolExpanded ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
+                  "
+                ></i>
+              </span>
+            </div>
+          </template>
+          <EmptyState
+            v-else
+            :tip="
+              $t('adminCenter.pageModules.appDevelopment.agent.detail.noTool')
+            "
+          />
+        </DetailCard>
+
+        <!-- 关联智能体 -->
+        <DetailCard
+          v-if="isMultipleAgent"
+          :title="
+            $t('adminCenter.pageModules.appDevelopment.agent.detail.linkAgent')
+          "
+        >
+          <template v-if="hasMultiAgents">
+            <div class="card-list">
+              <div
+                v-for="(agent, i) in multiAgentList"
+                :key="`ma-${i}`"
+                class="resource-card is-clickable"
+                @click="goSingleAgent(agent)"
+              >
+                <img
+                  :src="avatarSrc(agent.avatar?.path, agentDefaultIcon)"
+                  class="resource-avatar"
+                />
+                <div class="resource-info">
+                  <div class="resource-name">{{ agent.name }}</div>
+                  <div v-if="agent.desc" class="resource-desc">
+                    {{ agent.desc }}
+                  </div>
+                  <div class="resource-meta">
+                    <span class="meta-tag">
+                      {{ boolText(agent.enable) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="canExpandMultiAgents" class="view-more">
+              <span
+                class="view-more-btn"
+                @click="multiAgentExpanded = !multiAgentExpanded"
+              >
+                {{
+                  multiAgentExpanded
+                    ? $t(
+                        'adminCenter.pageModules.appDevelopment.agent.detail.collapse',
+                      )
+                    : $t(
+                        'adminCenter.pageModules.appDevelopment.agent.detail.viewMore',
+                      )
+                }}
+                <i
+                  :class="
+                    multiAgentExpanded
+                      ? 'el-icon-arrow-up'
+                      : 'el-icon-arrow-down'
+                  "
+                ></i>
+              </span>
+            </div>
+          </template>
+          <EmptyState
+            v-else
+            :tip="
+              $t('adminCenter.pageModules.appDevelopment.agent.detail.noAgent')
+            "
+          />
+        </DetailCard>
+
+        <!-- 安全护栏 -->
+        <DetailCard
+          :title="
+            $t(
+              'adminCenter.pageModules.appDevelopment.agent.detail.safetyGuardrail',
+            )
+          "
+        >
+          <InfoGrid :items="safetyItems" />
+        </DetailCard>
+
+        <!-- 追问配置 -->
+        <DetailCard
+          v-if="!isMultipleAgent"
+          :title="
+            $t(
+              'adminCenter.pageModules.appDevelopment.agent.detail.recommendConfig',
+            )
+          "
+        >
+          <InfoGrid :items="recommendItems" />
+          <div v-if="recommendConfig.promptEnable" class="recommend-prompt">
+            <div class="sub-label">
+              {{
+                $t(
+                  'adminCenter.pageModules.appDevelopment.agent.detail.recommendPrompt',
+                )
+              }}
+            </div>
+            <div class="prompt-text input-box">
+              {{ recommendConfig.prompt || '-' }}
+            </div>
+          </div>
+        </DetailCard>
+
+        <metaDataFilterField
+          ref="metaDataFilterField"
+          :category="currentKnowledgeCategory"
+          :knowledgeId="currentKnowledgeId"
+          :metaData="currentMetaData"
+          :readonly="true"
+        />
+      </el-tab-pane>
+      <el-tab-pane :label="$t('appSpace.conversationLog')" name="log" lazy>
+        <ConversationLogPanel
+          :app-id="assistantId"
+          app-type="agent"
+          :avatar-path="base.avatar?.path || ''"
+          :request-service="adminConversationLogService"
+        />
+      </el-tab-pane>
+    </el-tabs>
   </DetailLayout>
 </template>
 
@@ -353,6 +391,8 @@ import {
   getAdminAssistantDetail,
 } from '@/api/adminCenter';
 import { avatarSrc } from '@/utils/util';
+import ConversationLogPanel from '@/views/agent/conversationLog/ConversationLogPanel.vue';
+import { adminConversationLogService } from '@/views/agent/conversationLog/services';
 import DetailLayout from '../components/DetailLayout.vue';
 import DetailHeader from '../components/DetailHeader.vue';
 import DetailCard from '../components/DetailCard.vue';
@@ -374,6 +414,7 @@ export default {
     VisibleUsers,
     EmptyState,
     metaDataFilterField,
+    ConversationLogPanel,
   },
   mixins: [detailMixin],
   data() {
@@ -390,6 +431,8 @@ export default {
       currentKnowledgeCategory: 0,
       currentMetaData: {},
       moduleTitleKey: 'adminCenter.pageModules.appDevelopment.agent.title',
+      activeTab: 'config',
+      adminConversationLogService,
     };
   },
   computed: {
@@ -806,6 +849,12 @@ export default {
 
 <style lang="scss" scoped>
 @import '@/views/adminCenter/styles/common.scss';
+
+.agent-detail-tabs {
+  ::v-deep .el-tabs__header {
+    padding: 20px 24px;
+  }
+}
 
 .sub-label {
   color: #909399;
