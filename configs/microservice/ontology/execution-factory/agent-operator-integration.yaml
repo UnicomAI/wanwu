@@ -1,0 +1,57 @@
+project:
+  language: zh-CN
+  host: 0.0.0.0
+  port: 9000
+  logger_level: 0
+  name: agent-operator-integration
+  pod_id: POD_ID
+  machine_id: ""
+  debug: false
+operator:
+  import_file_size_limit: 2097152
+  import_operator_max_count: 10
+  operator_description_length_limit: 255
+mcp:
+  conn_timeout: 10
+  max_instances: 200
+  instance_ttl: 1800
+  cleanup_interval: 60
+category:
+  init_switch: false
+proxy_module:
+  default_timeout: 30
+  max_timeout: 300
+  max_clients: 50
+  client_lifetime: 300
+db:
+  conn_timeout: 10
+  read_timeout: 10
+  write_timeout: 10
+  max_open_conns: 30
+  system_id: ""
+redis:
+  connectType: standalone
+  enableSSL: false
+  secretName: ""
+  caName: ""
+  certName: ""
+  keyName: ""
+  poolSize: 10
+sandbox-control-plane:
+  private_protocol: http
+  private_host: wga-sandbox-adapter
+  private_port: 8000
+  template_id: python-basic
+  session_resources:
+    cpu: "1"
+    memory: 1Gi
+    disk: 1Gi
+    timeout: 3600
+  max_sessions: 1
+  active_sessions: 1
+  max_concurrent_tasks: 1
+skill_index_build:
+  enable_periodic_full_scan: false
+  periodic_full_scan_interval: 168h
+  enable_task_cleanup: false
+  task_retention: 720h
