@@ -177,6 +177,7 @@ func (s *Service) GetConversationDetailList(ctx context.Context, req *assistant_
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
+	var conversationIdParams = req.ConversationId
 	req.ConversationId = buildConversationId(conversation)
 	total, details, err := s.GetConversationDetailInfoList(ctx, req)
 	if err != nil {
@@ -188,7 +189,7 @@ func (s *Service) GetConversationDetailList(ctx context.Context, req *assistant_
 		conversationDetails = append(conversationDetails, &assistant_service.ConversionDetailInfo{
 			Id:                   detail.Id,
 			AssistantId:          assistant.UUID,
-			ConversationId:       detail.ConversationId,
+			ConversationId:       conversationIdParams, //此id 为uuid
 			Prompt:               detail.Prompt,
 			SysPrompt:            detail.SysPrompt,
 			Response:             detail.Response,
