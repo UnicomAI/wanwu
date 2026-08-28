@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"net/url"
+	"strings"
 
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
+	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	mcp_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/mcp-util"
@@ -18,6 +21,10 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
+)
+
+var (
+	exampleTemplate = "{\n  \"mcpServers\": {\n    \"server-name\": {\n      \"url\": \"{{url}}\"\n    }\n  }\n}"
 )
 
 func StartMCPServer(ctx context.Context) error {
@@ -397,16 +404,34 @@ func toMCPServerDetail(ctx *gin.Context, mcpServerInfo *mcp_service.MCPServerInf
 			Desc:            mcpServerToolInfo.Desc,
 		})
 	}
+	sseUrl, sseExample := toExternalMCPExample(mcpServerInfo.SseUrl, "/openapi/v1/mcp/server/sse")
+	streamableUrl, streamableExample := toExternalMCPExample(mcpServerInfo.StreamableUrl, "/openapi/v1/mcp/server/streamable")
 	return &response.MCPServerDetail{
 		MCPServerID:       mcpServerInfo.McpServerId,
 		Avatar:            cacheMCPServerAvatar(ctx, mcpServerInfo.AvatarPath),
 		Name:              mcpServerInfo.Name,
 		Desc:              mcpServerInfo.Desc,
-		SSEURL:            mcpServerInfo.SseUrl,
-		SSEExample:        mcpServerInfo.SseExample,
-		StreamableURL:     mcpServerInfo.StreamableUrl,
-		StreamableExample: mcpServerInfo.StreamableExample,
+		SSEURL:            sseUrl,
+		SSEExample:        sseExample,
+		StreamableURL:     streamableUrl,
+		StreamableExample: streamableExample,
 		Tools:             mcpServerTools,
 		Transport:         mcpServerInfo.Transport,
 	}
+}
+
+func toExternalMCPExample(internalURL, path string) (string, string) {
+	parsed, err := url.Parse(internalURL)
+	if err != nil || parsed == nil {
+		return "", ""
+	}
+	externalURL, err := url.JoinPath(config.Cfg().Server.ApiBaseUrl, path)
+	if err != nil {
+		return "", ""
+	}
+	if parsed.RawQuery != "" {
+		externalURL = externalURL + "?" + parsed.RawQuery
+	}
+	example := strings.ReplaceAll(exampleTemplate, "{{url}}", externalURL)
+	return externalURL, example
 }
