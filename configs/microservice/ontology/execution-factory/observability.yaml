@@ -1,0 +1,9 @@
+service_name: agent-operator-integration
+service_version: 0.1.4
+environment: compose
+trace:
+  enabled: false
+  sampling_rate: 1.0
+log:
+  enabled: false
+  level: info

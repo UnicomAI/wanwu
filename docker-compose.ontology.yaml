@@ -425,11 +425,8 @@ services:
   agent-operator-integration:
     image: ${WANWU_ONTOLOGY_EXECUTION_FACTORY_IMAGE}
     container_name: agent-operator-integration
+    entrypoint: ["/bin/sh", "/opt/render-configs-and-run.sh"]
     restart: always
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
     environment:
       - TZ=${TZ:-Asia/Shanghai}
       - DB_TYPE=MariaDB
@@ -442,11 +439,27 @@ services:
       - BKN_BACKEND_INTERNAL_TOKEN=${BKN_BACKEND_INTERNAL_TOKEN:-changeme}
       - SANDBOX_INTERNAL_TOKEN=${OPENBKN_SANDBOX_INTERNAL_TOKEN:-changeme}
       - AOI_SERVER_URL=http://agent-operator-integration:9000
+      - DB_HOST=${WANWU_MYSQL_HOST:-mysql-wanwu}
+      - DB_PORT=${WANWU_MYSQL_PORT:-3306}
+      - DB_NAME=${ONTOLOGY_DB_NAME:-kweaver}
+      - DB_USER=${WANWU_MYSQL_USER}
+      - DB_PASSWORD=${WANWU_MYSQL_PASSWORD}
+      - REDIS_HOST=${WANWU_REDIS_HOST:-redis-wanwu}
+      - REDIS_PORT=${WANWU_REDIS_PORT:-6379}
+      - REDIS_USER=${ONTOLOGY_REDIS_USER:-default}
+      - REDIS_PASSWORD=${WANWU_REDIS_PASSWORD}
+      - KAFKA_HOST=${WANWU_KAFKA_HOST:-kafka-wanwu}
+      - KAFKA_PORT=${WANWU_KAFKA_PORT:-9092}
+      - KAFKA_USER=${WANWU_KAFKA_USER}
+      - KAFKA_PASSWORD=${WANWU_KAFKA_PASSWORD}
+      - KAFKA_MECHANISM=PLAIN
+      - KAFKA_TENANT=default
+      # 令执行工厂从 /sysvol/config 读取 secret（默认为 /sysvol/secret，见 config.go）
+      - CONFIG_PROFILE=/sysvol/config
     volumes:
-      - ${ONTOLOGY_OPENBKN_ROOT:-./openbkn}/execution-factory/deploy/configs/agent-operator-integration.yaml:/sysvol/config/agent-operator-integration.yaml:ro
-      - ${ONTOLOGY_OPENBKN_ROOT:-./openbkn}/execution-factory/deploy/configs/observability.yaml:/sysvol/config/observability.yaml:ro
-      - ${OPENBKN_EXECUTION_FACTORY_SECRET_FILE:-./openbkn/execution-factory/deploy/configs/agent-operator-integration-secret.example.yaml}:/sysvol/secret/agent-operator-integration-secret.yaml:ro
-      - ${OPENBKN_MQ_CONFIG_FILE:-./openbkn/execution-factory/deploy/configs/mq_config.example.yaml}:/sysvol/config/mq_config.yaml:ro
+      - ./configs/microservice/ontology/execution-factory/render-configs-and-run.sh:/opt/render-configs-and-run.sh:ro
+      - ./configs/microservice/ontology/execution-factory/agent-operator-integration.yaml:/sysvol/config/agent-operator-integration.yaml:ro
+      - ./configs/microservice/ontology/execution-factory/observability.yaml:/sysvol/config/observability.yaml:ro
     depends_on:
       wga-sandbox-adapter:
         condition: service_started
