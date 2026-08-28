@@ -325,6 +325,11 @@ services:
       - VEGA_BACKEND_PORT=13014
       - ONTOLOGY_QUERY_HOST=ontology-query
       - ONTOLOGY_QUERY_PORT=13018
+      - AGENT_OPERATOR_HOST=agent-operator-integration
+      - AGENT_OPERATOR_PORT=9000
+      - AGENT_OPERATOR_PROTOCOL=http
+      - EXECUTION_FACTORY_INTERNAL_TOKEN=${OPENBKN_INTERNAL_API_TOKEN:-changeme}
+      - BKN_INTERNAL_API_TOKEN=${BKN_BACKEND_INTERNAL_TOKEN:-changeme}
     # ports:
     #   - "13015:13014"
     depends_on:
@@ -342,6 +347,8 @@ services:
         condition: service_started
       vega-backend:
         condition: service_started
+      agent-operator-integration:
+        condition: service_healthy
     networks:
       - ${WANWU_DOCKER_NETWORK}
     restart: always
@@ -364,9 +371,16 @@ services:
       - UNIQUERY_PORT=13011
       - VEGA_BACKEND_HOST=vega-backend
       - VEGA_BACKEND_PORT=13014
-      - AGENT_OPERATOR_HOST=agent
-      - AGENT_OPERATOR_PORT=5000
+      - AGENT_OPERATOR_HOST=agent-operator-integration
+      - AGENT_OPERATOR_PORT=9000
       - AGENT_OPERATOR_PROTOCOL=http
+      - EXECUTION_FACTORY_INTERNAL_TOKEN=${OPENBKN_INTERNAL_API_TOKEN:-changeme}
+      - FUNCTION_TOOL_MAX_CONCURRENCY=${FUNCTION_TOOL_MAX_CONCURRENCY:-1}
+      - FUNCTION_TOOL_BATCH_ENABLED=${FUNCTION_TOOL_BATCH_ENABLED:-true}
+      - FUNCTION_TOOL_BATCH_SIZE=${FUNCTION_TOOL_BATCH_SIZE:-20}
+      - FUNCTION_TOOL_BATCH_TIMEOUT_SECONDS=${FUNCTION_TOOL_BATCH_TIMEOUT_SECONDS:-60}
+      - FUNCTION_TOOL_TIMEOUT_SECONDS=${FUNCTION_TOOL_TIMEOUT_SECONDS:-30}
+      - FUNCTION_TOOL_QUEUE_TIMEOUT_SECONDS=${FUNCTION_TOOL_QUEUE_TIMEOUT_SECONDS:-2}
     # ports:
     #   - "13018:13018"
     depends_on:
@@ -380,9 +394,97 @@ services:
         condition: service_started
       bkn-backend:
         condition: service_started
+      agent-operator-integration:
+        condition: service_healthy
     networks:
       - ${WANWU_DOCKER_NETWORK}
     restart: always
+
+  # BKN MCP Server - 知识网络 MCP 对接出口
+  bkn-mcp:
+    image: ${WANWU_ONTOLOGY_BKN_MCP_IMAGE}
+    container_name: vega-bkn-mcp
+    ports:
+      - "13019:13019"
+    environment:
+      - TZ=${TZ:-Asia/Shanghai}
+      - BKN_MCP_AUTH_ENABLED=true
+      - BKN_MCP_BFF_CALLBACK_URL=${WANWU_BFF_CALLBACK_SERVICE_URL:-http://bff-service:6668}
+    depends_on:
+      bkn-backend:
+        condition: service_started
+      ontology-query:
+        condition: service_started
+    networks:
+      - ${WANWU_DOCKER_NETWORK}
+    restart: always
+
+  # ==================== Execution Factory ====================
+
+  # Agent Operator Integration - 执行工厂（行动执行引擎）
+  agent-operator-integration:
+    image: ${WANWU_ONTOLOGY_EXECUTION_FACTORY_IMAGE}
+    container_name: agent-operator-integration
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      - TZ=${TZ:-Asia/Shanghai}
+      - DB_TYPE=MariaDB
+      - AUTH_ENABLED=${ONTOLOGY_AUTH_ENABLED:-false}
+      - BUSINESS_DOMAIN_ENABLED=${ONTOLOGY_BUSINESS_DOMAIN_ENABLED:-false}
+      - SKILL_ENABLED=${OPENBKN_SKILL_ENABLED:-false}
+      - INTERNAL_API_AUTH_ENABLED=${OPENBKN_INTERNAL_API_AUTH_ENABLED:-true}
+      - INTERNAL_API_TOKEN=${OPENBKN_INTERNAL_API_TOKEN:-changeme}
+      - BKN_BACKEND_INTERNAL_URL=${BKN_BACKEND_INTERNAL_URL:-http://bkn-backend:13014}
+      - BKN_BACKEND_INTERNAL_TOKEN=${BKN_BACKEND_INTERNAL_TOKEN:-changeme}
+      - SANDBOX_INTERNAL_TOKEN=${OPENBKN_SANDBOX_INTERNAL_TOKEN:-changeme}
+      - AOI_SERVER_URL=http://agent-operator-integration:9000
+    volumes:
+      - ${ONTOLOGY_OPENBKN_ROOT:-./openbkn}/execution-factory/deploy/configs/agent-operator-integration.yaml:/sysvol/config/agent-operator-integration.yaml:ro
+      - ${ONTOLOGY_OPENBKN_ROOT:-./openbkn}/execution-factory/deploy/configs/observability.yaml:/sysvol/config/observability.yaml:ro
+      - ${OPENBKN_EXECUTION_FACTORY_SECRET_FILE:-./openbkn/execution-factory/deploy/configs/agent-operator-integration-secret.example.yaml}:/sysvol/secret/agent-operator-integration-secret.yaml:ro
+      - ${OPENBKN_MQ_CONFIG_FILE:-./openbkn/execution-factory/deploy/configs/mq_config.example.yaml}:/sysvol/config/mq_config.yaml:ro
+    depends_on:
+      wga-sandbox-adapter:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 3 bash -c '</dev/tcp/127.0.0.1/9000'"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - ${WANWU_DOCKER_NETWORK}
+
+  # WGA Sandbox Adapter - 沙箱适配器（连接 WGA 沙箱执行环境）
+  wga-sandbox-adapter:
+    image: ${WANWU_ONTOLOGY_WGA_SANDBOX_ADAPTER_IMAGE}
+    container_name: wga-sandbox-adapter
+    restart: always
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      - TZ=${TZ:-Asia/Shanghai}
+      - WGA_ENDPOINT=${OPENBKN_WGA_ENDPOINT:-http://wga-sandbox-ontology:8080}
+      - WGA_ADAPTER_INTERNAL_TOKEN=${OPENBKN_SANDBOX_INTERNAL_TOKEN:-changeme}
+      - WGA_ADAPTER_MAX_CONCURRENCY=1
+      - WGA_ADAPTER_MAX_QUEUE=16
+      - WGA_ADAPTER_QUEUE_WAIT_SECONDS=2
+      - WGA_ADAPTER_PYPI_HOSTS=pypi.org
+      - WGA_RUNTIME_IMAGE_DIGEST=${OPENBKN_WGA_RUNTIME_IMAGE_DIGEST:-changeme}
+      - WGA_RUNTIME_CPU_ARCH=${OPENBKN_WGA_RUNTIME_CPU_ARCH:-amd64}
+      - WGA_RUNTIME_PYTHON_ABI=${OPENBKN_WGA_RUNTIME_PYTHON_ABI:-cp311}
+    depends_on:
+      wga-sandbox-ontology:
+        condition: service_healthy
+    networks:
+      - ${WANWU_DOCKER_NETWORK}
 
   # ==================== Web Frontend ====================
 
@@ -488,6 +590,7 @@ services:
       - ./configs/middleware/wga-sandbox/nginx-server-without-auth.conf:/opt/gem/nginx-server-without-auth.conf
       - ./configs/middleware/wga-sandbox/nginx-server-with-auth.conf:/opt/gem/nginx-server-with-auth.conf
       - ./configs/middleware/wga-sandbox/nginx-server-port-proxy.conf.template:/opt/gem/nginx-server-port-proxy.conf.template
+      - openbkn_function_runtime:/home/oai/share/openbkn-function
     environment:
       USER: root
       OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: 600000
@@ -507,6 +610,7 @@ services:
 volumes:
   wanwu_shared_ontology_calculate_catalog:
   wanwu_shared_ontology_calculate_data:
+  openbkn_function_runtime:
 
 networks:
   wanwu-net:
