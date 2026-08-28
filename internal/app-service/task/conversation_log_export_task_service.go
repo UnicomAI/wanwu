@@ -20,7 +20,6 @@ import (
 
 const (
 	exportLocalDir = "static/export/"
-	csvSuffix      = ".csv"
 )
 
 var conversationLogExportCsvHeader = []string{
@@ -192,6 +191,7 @@ func exportConversationLogCsvFile(ctx context.Context, exportTask *model.Convers
 	dir := config.Cfg().Minio.AppLogExportDir + "/" + strings.Split(util.GenUUID(), "-")[0]
 	exportParams := &csv_util.ExportCsvParams{
 		ExportLocalDir:  exportLocalDir,
+		FileNamePre:     getAppName(ctx, exportTask.AppId, exportTask.AppType),
 		CsvHeader:       conversationLogExportCsvHeader,
 		MinioBucketDir:  dir,
 		MinioBucketName: config.Cfg().Minio.PublicExportBucket,
@@ -236,6 +236,19 @@ func getConversationByLogItem(ctx context.Context, lg *model.ConversationLog) (s
 		return "", nil
 	}
 	return handler.GetConversationDetail(ctx, lg)
+}
+
+// getAppName 按 appType 分发到对应处理器。
+func getAppName(ctx context.Context, appId, appType string) string {
+	if appId == "" || appType == "" {
+		return ""
+	}
+	handler, ok := conversationDetailHandlers[appType]
+	if !ok {
+		log.Errorf("no conversationDetailHandler registered for appType %s, appId %s", appType, appId)
+		return ""
+	}
+	return handler.GetAppName(ctx, appId)
 }
 
 func conversationLogToRecord(item *model.ConversationLog, conversationDetail string) []string {

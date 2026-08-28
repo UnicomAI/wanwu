@@ -1,6 +1,8 @@
 package async_task
 
-import "context"
+import (
+	"context"
+)
 
 // 任务类型常量。app-service 仅对话日志导出一种异步任务，从 1 开始。
 const (
