@@ -151,8 +151,9 @@ export default {
     },
     refreshFiles() {
       if (this.$refs.explorer) {
-        this.$refs.explorer.refreshFiles();
+        return this.$refs.explorer.refreshFiles();
       }
+      return Promise.resolve();
     },
     closeTabsByPath(path) {
       if (this.$refs.workbench) {
@@ -168,18 +169,19 @@ export default {
       await this.refreshWorkspace();
     },
     async refreshWorkspace() {
-      this.refreshFiles();
-      if (this.$refs.workbench) {
-        await this.$refs.workbench.refreshOpenedFiles({ force: true });
-      }
-      if (this.$refs.explorer) {
-        this.refreshGit();
-      }
+      await Promise.all([
+        this.refreshFiles(),
+        this.$refs.workbench
+          ? this.$refs.workbench.refreshOpenedFiles({ force: true })
+          : Promise.resolve(),
+        this.refreshGit(),
+      ]);
     },
     refreshGit() {
       if (this.$refs.explorer) {
-        this.$refs.explorer.refreshGit();
+        return this.$refs.explorer.refreshGit();
       }
+      return Promise.resolve();
     },
     hasUnsavedFiles() {
       return this.$refs.workbench
@@ -195,11 +197,11 @@ export default {
       if (!this.$refs.workbench) return [];
       return this.$refs.workbench.discardUnsavedFiles();
     },
-    reloadData() {
+    async reloadData() {
       this.disableClick = false;
       this.getAppDetail();
       this.$emit('refresh-workspace');
-      this.refreshWorkspace();
+      await this.refreshWorkspace();
     },
     previewVersion(item) {
       this.disableClick = !item.isCurrent;
@@ -207,7 +209,7 @@ export default {
       this.getAppDetail();
     },
     handleFileSaved() {
-      this.refreshGit();
+      return this.refreshGit();
     },
     async beforeSkillPublish(data) {
       if (this.publishDisabled) return false;
@@ -254,7 +256,7 @@ export default {
       }
     },
     handleQuickPublishGitChanged() {
-      this.refreshGit();
+      return this.refreshGit();
     },
     handleSecurityReview() {
       if (this.securityReviewDisabled) return;
