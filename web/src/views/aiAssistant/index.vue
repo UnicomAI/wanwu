@@ -337,7 +337,11 @@ export default {
     },
 
     jumpDocUrl() {
+<<<<<<< HEAD
       const path = `/aibase/docCenter/pages/8.%E9%80%9A%E7%94%A8%E6%99%BA%E8%83%BD%E4%BD%93%2FOPENCLAW%2F%E5%A6%82%E4%BD%95%E5%9C%A8%E4%B8%87%E6%82%9F%E4%B8%AD%E6%8E%A5%E5%85%A5OpenClaw%E6%9C%BA%E5%99%A8%E4%BA%BA.md`;
+=======
+      const path = `/aibase/docCenter/pages/7.%E9%80%9A%E7%94%A8%E6%99%BA%E8%83%BD%E4%BD%93%2FOPENCLAW%2F%E5%A6%82%E4%BD%95%E5%9C%A8%E4%B8%87%E6%82%9F%E4%B8%AD%E6%8E%A5%E5%85%A5OpenClaw%E6%9C%BA%E5%99%A8%E4%BA%BA.md`;
+>>>>>>> dev_web
       window.open(path);
     },
   },

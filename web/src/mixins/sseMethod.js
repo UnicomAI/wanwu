@@ -19,11 +19,14 @@ import { OPENURL_API, USER_API } from '@/utils/requestConstants';
 import { AGENT_MESSAGE_CONFIG } from '@/components/stream/constants';
 import { processToolResultBlocks } from '@/utils/toolResultProcessor.js';
 import { cancelAgentStream, cancelOpenurlAgentStream } from '@/api/agent';
+import { cancelRagStream } from '@/api/rag';
 import { cancelModelExperienceStream } from '@/api/modelExprience';
 
 const AGENT_API_URL = `${USER_API}/assistant/stream`;
 const AGENT_CONNECT_API_URL = `${USER_API}/assistant/stream/connect`;
+const AGENT_DRAFT_CONNECT_API_URL = `${USER_API}/assistant/draft/stream/connect`;
 const RAG_API_URL = `${USER_API}/rag/chat`;
+const RAG_CONNECT_API_URL = `${USER_API}/rag/stream/connect`;
 const EXPRIENCE_API_URL = `${USER_API}/model/experience/llm`;
 const EXPRIENCE_CONNECT_API_URL = `${USER_API}/model/experience/llm/connect`;
 
@@ -425,6 +428,40 @@ export default {
       let _history = this.$refs['session-com'].getList();
       this.sendRagEventSource(this.inputVal, '', _history.length);
     },
+    getRagStreamHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + this.token,
+        'x-user-id': this.userInfo.uid,
+        'x-org-id': this.userInfo.orgId,
+        'X-Client-ID': getXClientId(),
+      };
+    },
+    /**
+     * 连接 RAG 保持会话的全量重放流。
+     * 调用方须已将进行中问答占位写入 lastIndex，避免重放内容重复追加。
+     */
+    connectRagEventSource({
+      ragId,
+      conversationId,
+      prompt = '',
+      fileList = [],
+      lastIndex,
+    } = {}) {
+      if (!ragId || !conversationId || typeof lastIndex !== 'number') return;
+      this.stopBtShow = true;
+      this.isStoped = false;
+      this.echo = false;
+      this.fileList = fileList || [];
+      this.setSseParams({ ragId, conversationId });
+      this.sendRagEventSource(prompt, '', lastIndex, {
+        streamApi: RAG_CONNECT_API_URL,
+        streamData: { ragId, conversationId },
+        clearInput: false,
+        skipPushHistory: true,
+        reconnect: true,
+      });
+    },
     sendEventStream(prompt, msgStr, lastIndex) {
       let sessionCom = this.sessionComRef || this.$refs['session-com'];
       if (!sessionCom) {
@@ -619,7 +656,7 @@ export default {
      * RUN_ERROR 事件的 data.code 与后端 internal/bff-service/service/rag_chat.go 的
      * Rag 错误码常量一一对应，下表新增码时双端须同步修改。
      */
-    sendRagEventSource(prompt, msgStr, lastIndex) {
+    sendRagEventSource(prompt, msgStr, lastIndex, options = {}) {
       // 与 internal/bff-service/service/rag_chat.go 的 EventNameRagSearchList 对应
       const CUSTOM_EVENT_SEARCH_LIST = 'rag_search_list';
       // 与 EventNameRagKnowledgeStart 对应：后端通知即将进入知识库检索，前端据此来创建"知识库检索"卡片
@@ -650,18 +687,22 @@ export default {
 
       this.sseResponse = {};
       this.setStoreSessionStatus(0);
-      this.clearInput();
+      if (options.clearInput !== false) {
+        this.clearInput();
+      }
       this._isInReasoning = false;
 
-      // 推送占位历史条目（loading 状态）
-      sessionCom.pushHistory({
-        query: prompt,
-        pending: true,
-        responseLoading: true,
-        requestFileUrls: [],
-        fileList: this.fileList,
-        pendingResponse: '',
-      });
+      // 正常提问创建占位；断线重连复用调用方预先补出的占位。
+      if (!options.skipPushHistory) {
+        sessionCom.pushHistory({
+          query: prompt,
+          pending: true,
+          responseLoading: true,
+          requestFileUrls: [],
+          fileList: this.fileList,
+          pendingResponse: '',
+        });
+      }
 
       // 初始化流处理器（主文本 + 推理）
       const processor = new StreamProcessor({
@@ -806,9 +847,10 @@ export default {
       };
 
       this.eventSource = this.fetchEventSource(
-        this.rag_sseApi,
-        this.sseParams,
+        options.streamApi || this.rag_sseApi,
+        options.streamData || this.sseParams,
         {
+          headers: this.getRagStreamHeaders(),
           onopen: async e => {
             if (e.status !== 200) {
               // 克隆一份响应：e.json() 会消费 body，catch 里再对 e.text() 会抛
@@ -817,10 +859,18 @@ export default {
               const errClone = e.clone();
               try {
                 const errorData = await e.json();
-                sessionCom.replaceLastData(lastIndex, {
-                  ...commonData,
-                  response: errorData.msg,
-                });
+                if (options.reconnect) {
+                  const history = sessionCom.getSessionData().history || [];
+                  if (history.length - 1 === lastIndex) {
+                    sessionCom.removeLastHistory();
+                    this.echo = history.length === 0;
+                  }
+                } else {
+                  sessionCom.replaceLastData(lastIndex, {
+                    ...commonData,
+                    response: errorData.msg,
+                  });
+                }
               } catch (_e) {
                 let text = '';
                 try {
@@ -828,7 +878,9 @@ export default {
                 } catch (_e2) {
                   // 兜底：body 读不出来就用 i18n 通用错误
                 }
-                this.$message.error(text || i18n.t('sse.error'));
+                if (!options.reconnect) {
+                  this.$message.error(text || i18n.t('sse.error'));
+                }
               }
               this.stopEventSource();
               this.setStoreSessionStatus(-1);
@@ -1126,15 +1178,14 @@ export default {
 
               // ── 正文内容（text output）───────────────────────────
               case 'TEXT_MESSAGE_START':
-                // RAG 的 messageId 即持久化问答 detailId，统一写入 detailId 供单条删除使用。
-                if (data.messageId) {
-                  commonData.detailId = data.messageId;
+                if (data.detailId) {
+                  commonData.detailId = data.detailId;
                 }
                 break;
 
               case 'TEXT_MESSAGE_CONTENT': {
-                if (data.messageId) {
-                  commonData.detailId = data.messageId;
+                if (data.detailId) {
+                  commonData.detailId = data.detailId;
                 }
                 streamHasContent = true;
                 const output = data.delta || '';
@@ -1155,8 +1206,8 @@ export default {
               }
 
               case 'TEXT_MESSAGE_END':
-                if (data.messageId) {
-                  commonData.detailId = data.messageId;
+                if (data.detailId) {
+                  commonData.detailId = data.detailId;
                 }
                 // 发送 finish=1 信号给 Print；Print 动画结束时调用 doRender，
                 // doRender 在 worldObj.isEnd && worldObj.finish===1 时调用 setStoreSessionStatus(-1)
@@ -1253,6 +1304,23 @@ export default {
           : await cancelAgentStream(params, config);
       } catch (error) {
         console.error(error);
+      }
+    },
+    async cancelCurrentRagStream() {
+      const ragId = this.sseParams?.ragId;
+      if (!ragId || !['chat', 'test'].includes(this.chatType)) return;
+
+      const data = {
+        ragId,
+        draft: this.chatType === 'test',
+      };
+      if (this.chatType === 'chat' && this.sseParams?.conversationId) {
+        data.conversationId = this.sseParams.conversationId;
+      }
+      try {
+        await cancelRagStream(data);
+      } catch (error) {
+        console.warn('[rag chat] cancel stream failed', error);
       }
     },
     async cancelCurrentModelExperienceStream() {
@@ -1881,10 +1949,13 @@ export default {
       const targetIndex =
         typeof lastIndex === 'number' ? lastIndex : history.length;
       const shouldPushHistory = typeof lastIndex !== 'number';
+
       const connectApi =
         this.type === 'webChat'
           ? `${OPENURL_API}/agent/${assistantId}/stream/connect`
-          : AGENT_CONNECT_API_URL;
+          : this.chatType === 'test'
+            ? AGENT_DRAFT_CONNECT_API_URL
+            : AGENT_CONNECT_API_URL;
 
       this.sendEventSource(query, '', targetIndex, {
         streamApi: connectApi,
@@ -2258,6 +2329,7 @@ export default {
     preStop() {
       // 立即置 -1：隐藏停止按钮，避免重复点击触发多次 abort
       this.setStoreSessionStatus(-1);
+      this.cancelCurrentRagStream();
       this.cancelCurrentAgentStream();
       this.cancelCurrentModelExperienceStream();
       // 立刻同步断流 + 停掉两个打字机，不等 sseOnCloseCallBack 的异步链路。

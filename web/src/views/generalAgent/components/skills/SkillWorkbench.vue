@@ -196,6 +196,13 @@ export default {
     hasUnsavedFiles() {
       return this.openedFiles.some(file => !!this.fileModified[file.path]);
     },
+    hasUnsavedFilesByPath(path) {
+      return this.openedFiles.some(
+        file =>
+          this.isSameOrChildPath(file.path, path) &&
+          !!this.fileModified[file.path],
+      );
+    },
     async discardUnsavedFiles() {
       return this.refreshOpenedFiles({ force: true });
     },

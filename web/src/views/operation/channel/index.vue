@@ -382,6 +382,7 @@ import {
   DING_TALK,
   GENERAL_AGENT,
   DIGITAL_EMPLOYEE,
+  CHATFLOW,
   APP_TYPE_OPTIONS,
 } from './constants';
 
@@ -393,6 +394,7 @@ export default {
       WECHAT,
       GENERAL_AGENT,
       DIGITAL_EMPLOYEE,
+      CHATFLOW,
       AppType,
       listApi: fetchChannelList,
       loading: false,
@@ -493,7 +495,7 @@ export default {
   },
   computed: {
     isBindAppType() {
-      return this.form.appType === AGENT;
+      return this.form.appType === AGENT || this.form.appType === CHATFLOW;
     },
     isModelType() {
       return (
@@ -531,7 +533,12 @@ export default {
       this.form.appId = '';
       this.form.modelUuid = '';
       this.form.agentId = '';
-      if (newVal === AGENT) {
+      // 切换应用类型时，先清空所有下拉列表，避免展示旧类型的数据
+      this.appList = [];
+      this.modelList = [];
+      this.sceneList = [];
+      this.employeeList = [];
+      if (newVal === AGENT || newVal === CHATFLOW) {
         this.fetchAppList();
       } else if (newVal === GENERAL_AGENT || newVal === DIGITAL_EMPLOYEE) {
         this.fetchModelList();
@@ -575,7 +582,7 @@ export default {
     },
     formatValue() {
       const value = { ...this.form };
-      if (value.appType === AGENT) {
+      if (value.appType === AGENT || value.appType === CHATFLOW) {
         delete value.modelUuid;
         delete value.agentId;
       } else if ([GENERAL_AGENT, DIGITAL_EMPLOYEE].includes(value.appType)) {

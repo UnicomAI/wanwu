@@ -5,9 +5,11 @@ export const WECHAT = 'wechat';
 export const DING_TALK = 'dingtalk';
 export const GENERAL_AGENT = 'wga';
 export const DIGITAL_EMPLOYEE = 'dip';
+export const CHATFLOW = 'chatflow';
 
 export const APP_TYPE_OPTIONS = [
   { value: AGENT, label: i18n.t('channel.agent') },
+  { value: CHATFLOW, label: i18n.t('channel.chatflow') },
   { value: GENERAL_AGENT, label: i18n.t('channel.generalAgent') },
   { value: DIGITAL_EMPLOYEE, label: i18n.t('channel.digitalEmployee') },
 ];

@@ -19,9 +19,11 @@
             :chatType="'rag'"
             :sessionStatus="sessionStatus"
             :supportClear="false"
+            :supportAnswerFeedback="chatType === 'chat'"
             @clearHistory="clearHistory"
             @refresh="refresh"
             @queryCopy="queryCopy"
+            @answer-feedback="submitAnswerFeedback"
             @delConversationQA="handleDelConversationQA"
             @handleRecommendedQuestion="handleRecommendedQuestion"
             :defaultUrl="editForm.avatar.path"
@@ -74,6 +76,8 @@ import {
   deleteRagConversation,
   deleteRagDraftConversation,
   getRagDraftConversationDetail,
+  submitRagConversationFeedback,
+  getRagPendingConversation,
 } from '@/api/rag';
 import { mapGetters } from 'vuex';
 
@@ -134,6 +138,8 @@ export default {
       },
       fileTypeArr: ['image/*'],
       draftHistoryRequestId: 0,
+      draftReconnectRequested: false,
+      pendingRagRequestId: 0,
     };
   },
   created() {},
@@ -278,6 +284,8 @@ export default {
           detailId: item.detailId || '',
           isHistory: true,
           conversationId: item.conversationId || this.conversationId,
+          feedback: Number(item.feedback) || 0,
+          feedbackContent: item.feedbackContent || '',
           query: item.prompt || '',
           response: this.renderHistoryContent(item.response, index),
           oriResponse: item.response || '',
@@ -322,9 +330,86 @@ export default {
       this.echo = history.length === 0;
       this.$refs['session-com']?.replaceHistory(history);
     },
+    formatUnderwayRagHistory(data = {}) {
+      const fileList = (data.requestFiles || []).map(file => ({
+        ...file,
+        name: file.name || file.fileName || '',
+        size: file.size ?? file.fileSize ?? 0,
+        fileUrl: file.fileUrl || file.imgUrl || '',
+        imgUrl: file.imgUrl || file.fileUrl || '',
+      }));
+      return {
+        conversationId: data.conversationId || '',
+        query: data.prompt || '',
+        fileList,
+        requestFiles: fileList,
+        response: '',
+        oriResponse: '',
+        pendingResponse: '',
+        responseLoading: true,
+        pending: true,
+        finish: 0,
+        searchList: [],
+        qaSearchList: [],
+        ragSteps: [],
+        stableReasoningChunks: [],
+        activeReasoning: '',
+        isOpen: true,
+      };
+    },
+    async connectPendingRagStream({ conversationId = '', draft = false } = {}) {
+      const ragId = this.editForm?.appId;
+      if (!ragId || (!draft && !conversationId)) return;
+      if (draft && this.draftReconnectRequested) return;
+      const requestId = ++this.pendingRagRequestId;
+      if (draft) this.draftReconnectRequested = true;
+
+      try {
+        const requestData = { ragId, draft };
+        if (!draft) requestData.conversationId = conversationId;
+        const res = await getRagPendingConversation(requestData);
+        if (
+          res.code !== 0 ||
+          !res.data ||
+          res.data.hasPendingConversation !== true
+        ) {
+          return;
+        }
+        if (
+          requestId !== this.pendingRagRequestId ||
+          ragId !== this.editForm?.appId ||
+          (!draft && conversationId !== this.conversationId)
+        ) {
+          return;
+        }
+
+        const underwayHistory = this.formatUnderwayRagHistory({
+          ...res.data,
+          conversationId: res.data.conversationId || conversationId,
+        });
+        if (!underwayHistory.conversationId || !underwayHistory.query) return;
+
+        const sessionCom = this.$refs['session-com'];
+        if (!sessionCom) return;
+        const lastIndex = (sessionCom.getSessionData().history || []).length;
+        sessionCom.pushHistory(underwayHistory);
+        this.conversationId = underwayHistory.conversationId;
+        this.echo = false;
+        this.connectRagEventSource({
+          ragId,
+          conversationId: underwayHistory.conversationId,
+          prompt: underwayHistory.query,
+          fileList: underwayHistory.fileList,
+          lastIndex,
+        });
+      } catch (error) {
+        console.warn('[rag chat] get pending conversation failed', error);
+      }
+    },
     async loadDraftConversationHistory() {
       const ragId = this.editForm?.appId;
       const requestId = ++this.draftHistoryRequestId;
+      this.draftReconnectRequested = false;
       if (!ragId) {
         this.loadConversationHistory([]);
         return;
@@ -346,6 +431,7 @@ export default {
           return;
         }
         this.loadConversationHistory(res.data?.list || []);
+        this.$nextTick(() => this.connectPendingRagStream({ draft: true }));
       } catch (error) {
         if (requestId !== this.draftHistoryRequestId) return;
         console.warn('[rag chat] get draft conversation detail failed', error);
@@ -476,6 +562,45 @@ export default {
       } catch (error) {
         console.warn('[rag chat] delete conversation detail failed', error);
         this.$message.error(this.$t('sse.error'));
+      }
+    },
+    // 提交已发布知识问答的答案反馈
+    async submitAnswerFeedback(
+      { feedbackType, feedbackContent = '', conversationId, detailId },
+      onSuccess,
+    ) {
+      if (this.chatType !== 'chat') return;
+
+      const feedbackTypeMap = { up: 1, down: 2 };
+      const type = feedbackType === 0 ? 0 : feedbackTypeMap[feedbackType];
+      const currentConversationId = conversationId || this.conversationId;
+      const ragId = this.editForm?.appId;
+      if (
+        ![0, 1, 2].includes(type) ||
+        !ragId ||
+        !currentConversationId ||
+        !detailId
+      )
+        return;
+
+      try {
+        const res = await submitRagConversationFeedback({
+          ragId,
+          conversationId: currentConversationId,
+          detailId,
+          feedbackType: type,
+          feedbackContent: type === 0 ? '' : feedbackContent,
+        });
+        if (!res || res.code !== 0) {
+          this.$message.error(res?.msg || this.$t('sse.error'));
+          return;
+        }
+        if (typeof onSuccess === 'function') {
+          onSuccess();
+        }
+      } catch (error) {
+        console.warn('[rag chat] submit answer feedback failed', error);
+        this.$message.error(error?.message || this.$t('sse.error'));
       }
     },
     verifiyFormParams() {

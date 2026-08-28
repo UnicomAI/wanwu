@@ -28,21 +28,36 @@
         </div>
 
         <AppPublishActions
+          ref="publishActions"
           :appId="skillPreviewParams.customSkillId"
           :appType="SKILL"
           :appName="assistantInfo.name"
           :publishType="publishType"
+          :beforePublish="beforeSkillPublish"
+          :disabled="publishDisabled"
           @reload-data="reloadData"
           @preview-version="previewVersion"
         />
       </div>
     </div>
 
+    <SkillQuickPublishDialog
+      v-model="quickPublishVisible"
+      :customSkillId="skillPreviewParams.customSkillId"
+      :files="quickPublishFiles"
+      :publishData="quickPublishData"
+      :publishHandler="executeQuickPublish"
+      :disabled="publishDisabled"
+      @view-git-details="viewGitDetails"
+      @git-changed="handleQuickPublishGitChanged"
+    />
+
     <div class="workspace-body" :class="{ 'disable-clicks': disableClick }">
       <SkillWorkspaceExplorer
         ref="explorer"
         :customSkillId="skillPreviewParams.customSkillId"
         :activeGitDiffId="activeGitDiffId"
+        :checkRenameAllowed="checkRenameAllowed"
         @open-file="openFile"
         @open-search-result="openSearchResult"
         @open-git-diff="openGitDiff"
@@ -65,8 +80,10 @@
 <script>
 import SkillWorkspaceExplorer from './SkillWorkspaceExplorer.vue';
 import SkillWorkbench from './SkillWorkbench.vue';
+import SkillQuickPublishDialog from './SkillQuickPublishDialog.vue';
 import AppPublishActions from '@/components/appPublishActions.vue';
 import { getCustomSkillInfo } from '@/api/templateSquare';
+import { getSkillWorkspaceGitStatus } from '@/api/skillResource/skillWorkSpace';
 import { SKILL } from '@/utils/commonSet';
 import skillManager from '../../mixins/skillManager';
 
@@ -76,6 +93,7 @@ export default {
   components: {
     SkillWorkspaceExplorer,
     SkillWorkbench,
+    SkillQuickPublishDialog,
     AppPublishActions,
   },
   props: {
@@ -92,11 +110,17 @@ export default {
       version: '',
       assistantInfo: {},
       activeGitDiffId: '',
+      quickPublishVisible: false,
+      quickPublishFiles: [],
+      quickPublishData: {},
     };
   },
   computed: {
     securityReviewDisabled() {
       return this.mainIsStreaming || this.previewIsStreaming;
+    },
+    publishDisabled() {
+      return this.mainIsStreaming;
     },
   },
   watch: {
@@ -127,8 +151,9 @@ export default {
     },
     refreshFiles() {
       if (this.$refs.explorer) {
-        this.$refs.explorer.refreshFiles();
+        return this.$refs.explorer.refreshFiles();
       }
+      return Promise.resolve();
     },
     closeTabsByPath(path) {
       if (this.$refs.workbench) {
@@ -144,33 +169,39 @@ export default {
       await this.refreshWorkspace();
     },
     async refreshWorkspace() {
-      this.refreshFiles();
-      if (this.$refs.workbench) {
-        await this.$refs.workbench.refreshOpenedFiles({ force: true });
-      }
-      if (this.$refs.explorer) {
-        this.refreshGit();
-      }
+      await Promise.all([
+        this.refreshFiles(),
+        this.$refs.workbench
+          ? this.$refs.workbench.refreshOpenedFiles({ force: true })
+          : Promise.resolve(),
+        this.refreshGit(),
+      ]);
     },
     refreshGit() {
       if (this.$refs.explorer) {
-        this.$refs.explorer.refreshGit();
+        return this.$refs.explorer.refreshGit();
       }
+      return Promise.resolve();
     },
     hasUnsavedFiles() {
       return this.$refs.workbench
         ? this.$refs.workbench.hasUnsavedFiles()
         : false;
     },
+    checkRenameAllowed(path) {
+      return this.$refs.workbench
+        ? !this.$refs.workbench.hasUnsavedFilesByPath(path)
+        : true;
+    },
     async discardUnsavedFiles() {
       if (!this.$refs.workbench) return [];
       return this.$refs.workbench.discardUnsavedFiles();
     },
-    reloadData() {
+    async reloadData() {
       this.disableClick = false;
       this.getAppDetail();
       this.$emit('refresh-workspace');
-      this.refreshWorkspace();
+      await this.refreshWorkspace();
     },
     previewVersion(item) {
       this.disableClick = !item.isCurrent;
@@ -178,7 +209,54 @@ export default {
       this.getAppDetail();
     },
     handleFileSaved() {
-      this.refreshGit();
+      return this.refreshGit();
+    },
+    async beforeSkillPublish(data) {
+      if (this.publishDisabled) return false;
+
+      if (this.hasUnsavedFiles()) {
+        this.$message.warning(
+          this.$t(
+            'generalAgent.skill.skillWorkBench.quickPublish.unsavedFiles',
+          ),
+        );
+        return false;
+      }
+
+      try {
+        const res = await getSkillWorkspaceGitStatus(
+          this.skillPreviewParams.customSkillId,
+        );
+        if (res.code !== 0) return false;
+
+        const files = (res.data && res.data.files) || [];
+        if (files.length === 0) return true;
+
+        this.quickPublishData = { ...data };
+        this.quickPublishFiles = files;
+        this.quickPublishVisible = true;
+        return false;
+      } catch (error) {
+        console.error('skill publish precheck error', error);
+        return false;
+      }
+    },
+    executeQuickPublish(data) {
+      if (this.publishDisabled) {
+        return Promise.resolve(null);
+      }
+      if (!this.$refs.publishActions) {
+        return Promise.resolve(null);
+      }
+      return this.$refs.publishActions.executePublish(data);
+    },
+    viewGitDetails() {
+      if (this.$refs.explorer) {
+        this.$refs.explorer.showGitView();
+      }
+    },
+    handleQuickPublishGitChanged() {
+      return this.refreshGit();
     },
     handleSecurityReview() {
       if (this.securityReviewDisabled) return;

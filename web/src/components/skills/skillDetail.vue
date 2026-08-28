@@ -121,15 +121,20 @@
                 <div class="item-desc" v-html="parseTxt(detail.note)"></div>
               </div>
             </div>
-            <div class="overview" v-if="detail.skillMarkdown">
-              <div class="overview-item">
-                <div class="item-desc">
-                  <div class="tempSquare-markdown">
-                    <MdRender :content="detail.skillMarkdown" disable-link />
+            <template v-if="useCustomOverview">
+              <slot :detail="detail" name="overview" />
+            </template>
+            <template v-else>
+              <div v-if="detail.skillMarkdown" class="overview">
+                <div class="overview-item">
+                  <div class="item-desc">
+                    <div class="tempSquare-markdown">
+                      <MdRender :content="detail.skillMarkdown" disable-link />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </template>
           </template>
           <template v-if="tabActive === 1 && visibleHistory">
             <div class="overview bg-border">
@@ -237,6 +242,11 @@ export default {
     },
     // 只读嵌入模式：隐藏顶部返回按钮、title 横幅与「介绍概览/历史版本」tab 行（嵌入其它详情页时使用）
     readonly: {
+      type: Boolean,
+      default: false,
+    },
+    // 用 overview 插槽替代默认的 markdown 概览（如展示 skill 工作区）
+    useCustomOverview: {
       type: Boolean,
       default: false,
     },

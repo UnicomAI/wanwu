@@ -740,7 +740,9 @@
             <div class="opera-left">
               <span
                 v-if="
-                  i === session_data.history.length - 1 && sessionStatus !== 0
+                  answerOperationConfig.showRefresh &&
+                  i === session_data.history.length - 1 &&
+                  sessionStatus !== 0
                 "
                 class="restart"
                 @click="refresh"
@@ -751,6 +753,7 @@
                 class="preStop"
                 @click="preStop"
                 v-if="
+                  answerOperationConfig.showStop &&
                   supportStop &&
                   i === session_data.history.length - 1 &&
                   sessionStatus === 0
@@ -760,14 +763,51 @@
               </span>
             </div>
             <div
+              v-if="answerOperationConfig.showCopy"
               class="opera-right"
               style="flex: 0"
               @click="handleCopyMessage(n)"
             >
               <img :src="require('@/assets/imgs/copy-icon.png')" />
             </div>
+            <template
+              v-if="
+                answerOperationConfig.showFeedback &&
+                (n.finish === 1 || sessionStatus !== 0)
+              "
+            >
+              <svg-icon
+                v-if="
+                  answerOperationConfig.feedbackDisplayMode !==
+                    'selectedOnly' || n.feedback === 1
+                "
+                icon-class="thumb-up"
+                :class="[
+                  'answer-feedback-icon',
+                  { 'is-active': n.feedback === 1 },
+                  { 'is-readonly': answerOperationConfig.feedbackReadonly },
+                ]"
+                :aria-disabled="answerOperationConfig.feedbackReadonly"
+                @click="handleAnswerFeedback('up', i, n)"
+              />
+              <svg-icon
+                v-if="
+                  answerOperationConfig.feedbackDisplayMode !==
+                    'selectedOnly' || n.feedback === 2
+                "
+                icon-class="thumb-down"
+                :class="[
+                  'answer-feedback-icon',
+                  { 'is-active': n.feedback === 2 },
+                  { 'is-readonly': answerOperationConfig.feedbackReadonly },
+                ]"
+                :aria-disabled="answerOperationConfig.feedbackReadonly"
+                @click="handleAnswerFeedback('down', i, n)"
+              />
+            </template>
             <svg-icon
               v-if="
+                answerOperationConfig.showDelete &&
                 ['agent', 'rag'].includes(chatType) &&
                 (n.finish === 1 || sessionStatus !== 0)
               "
@@ -776,8 +816,26 @@
               @click="handleDelConversation(n)"
             />
             <!--提示话术-->
-            <div class="answer-operation-tip">
+            <div
+              v-if="answerOperationConfig.showTip"
+              class="answer-operation-tip"
+            >
               {{ $t('agent.answerOperationTip') }}
+            </div>
+          </div>
+          <div
+            v-if="
+              answerOperationConfig.showFeedbackContent &&
+              n.feedback === 2 &&
+              n.feedbackContent
+            "
+            class="answer-feedback-content-wrapper"
+          >
+            <div class="answer-feedback-content-title">
+              {{ $t('agent.log.detailDrawer.answerFeedbackContentTitle') }}
+            </div>
+            <div class="answer-feedback-content">
+              {{ n.feedbackContent }}
             </div>
           </div>
           <!-- 推荐问题 -仅最后一条回答显示 -->
@@ -839,7 +897,10 @@
             </div>
           </div>
           <!--仅图片时只有 重新生成-->
-          <div class="answer-operation">
+          <div
+            v-if="answerOperationConfig.showRefresh"
+            class="answer-operation"
+          >
             <div class="opera-left">
               <span
                 v-if="i === session_data.history.length - 1"
@@ -893,6 +954,30 @@
     </transition>
     <!-- 图片预览组件 -->
     <ImagePreview ref="imagePreview" />
+    <el-dialog
+      :title="$t('agent.feedbackDialogTitle')"
+      :visible.sync="feedbackDialogVisible"
+      width="420px"
+      :close-on-click-modal="false"
+      @closed="resetFeedbackDialog"
+    >
+      <el-input
+        v-model="feedbackContent"
+        type="textarea"
+        :rows="4"
+        :placeholder="$t('agent.feedbackPlaceholder')"
+        maxlength="500"
+        show-word-limit
+      />
+      <span slot="footer">
+        <el-button @click="feedbackDialogVisible = false">
+          {{ $t('common.button.cancel') }}
+        </el-button>
+        <el-button type="primary" @click="submitFeedbackContent">
+          {{ $t('common.button.confirm') }}
+        </el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -941,6 +1026,14 @@ export default {
     supportClear: {
       type: Boolean,
       default: true,
+    },
+    supportAnswerFeedback: {
+      type: Boolean,
+      default: false,
+    },
+    answerOperationOptions: {
+      type: Object,
+      default: () => ({}),
     },
   },
   components: {
@@ -1000,6 +1093,9 @@ export default {
       ragSnippetExpanded: {},
       ragSnippetOverflow: {},
       _ragCitationTipHideTimer: null,
+      feedbackDialogVisible: false,
+      feedbackContent: '',
+      feedbackTarget: null,
     };
   },
   computed: {
@@ -1014,6 +1110,26 @@ export default {
       return this.userAvatar
         ? avatarSrc(this.userAvatar)
         : require('@/assets/imgs/robot-icon.png');
+    },
+    answerOperationConfig() {
+      const options = this.answerOperationOptions || {};
+      return {
+        showCopy: options.showCopy !== false,
+        showFeedback:
+          typeof options.showFeedback === 'boolean'
+            ? options.showFeedback
+            : this.supportAnswerFeedback,
+        feedbackReadonly: options.feedbackReadonly === true,
+        feedbackDisplayMode:
+          options.feedbackDisplayMode === 'selectedOnly'
+            ? 'selectedOnly'
+            : 'all',
+        showFeedbackContent: options.showFeedbackContent === true,
+        showRefresh: options.showRefresh !== false,
+        showStop: options.showStop !== false,
+        showDelete: options.showDelete !== false,
+        showTip: options.showTip !== false,
+      };
     },
     isStreaming() {
       const history = this.session_data.history;
@@ -1588,6 +1704,68 @@ export default {
       if (this.sessionStatus === 0) {
         this.$emit('preStop');
       }
+    },
+    buildAnswerFeedbackPayload(item, feedbackType, feedbackContent = '') {
+      return {
+        feedbackType,
+        feedbackContent,
+        conversationId: item.conversationId,
+        detailId: item.detailId || item.id,
+      };
+    },
+    handleAnswerFeedback(feedbackType, index, item) {
+      if (
+        this.sessionStatus === 0 ||
+        this.answerOperationConfig.feedbackReadonly
+      )
+        return;
+
+      const feedbackValue = feedbackType === 'up' ? 1 : 2;
+      const isCancel = item.feedback === feedbackValue;
+      const updatedItem = {
+        ...item,
+        feedback: isCancel ? 0 : feedbackValue,
+        feedbackContent:
+          isCancel || feedbackType === 'up' ? '' : item.feedbackContent || '',
+      };
+      const payload = this.buildAnswerFeedbackPayload(
+        item,
+        isCancel ? 0 : feedbackType,
+      );
+
+      this.$emit('answer-feedback', payload, () => {
+        this.$set(this.session_data.history, index, updatedItem);
+
+        if (feedbackType === 'down' && !isCancel) {
+          this.feedbackTarget = { index, item: updatedItem };
+          this.feedbackContent = updatedItem.feedbackContent;
+          this.feedbackDialogVisible = true;
+        }
+      });
+    },
+    submitFeedbackContent() {
+      if (!this.feedbackTarget) return;
+
+      const { index, item } = this.feedbackTarget;
+      const updatedItem = {
+        ...item,
+        feedback: 2,
+        feedbackContent: this.feedbackContent,
+      };
+      const payload = this.buildAnswerFeedbackPayload(
+        item,
+        'down',
+        this.feedbackContent,
+      );
+
+      this.$emit('answer-feedback', payload, () => {
+        this.$set(this.session_data.history, index, updatedItem);
+        this.feedbackDialogVisible = false;
+      });
+    },
+    resetFeedbackDialog() {
+      this.feedbackContent = '';
+      this.feedbackTarget = null;
     },
     preZan(index, item) {
       if (this.sessionStatus === 0) {
@@ -2698,6 +2876,27 @@ export default {
         color: #999;
       }
     }
+    .answer-feedback-content-wrapper {
+      margin: -6px 20px 16px 63px;
+      padding: 10px 12px;
+      border-left: 4px solid #e6a23c;
+      border-radius: 4px;
+      background: #fdf6ec;
+    }
+    .answer-feedback-content-title {
+      margin-bottom: 6px;
+      color: #909399;
+      font-size: 12px;
+      line-height: 18px;
+      font-weight: 500;
+    }
+    .answer-feedback-content {
+      color: #606266;
+      font-size: 14px;
+      line-height: 22px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
   }
 
   /*图片*/
@@ -3425,6 +3624,21 @@ img.failed::after {
   cursor: pointer;
   color: rgb(155, 155, 155);
   font-size: 16px;
+}
+.answer-feedback-icon {
+  cursor: pointer;
+  color: rgb(155, 155, 155);
+  font-size: 18px;
+
+  &:hover,
+  &.is-active {
+    color: var(--color);
+  }
+
+  &.is-readonly {
+    cursor: default;
+    pointer-events: none;
+  }
 }
 
 .gap-10px {

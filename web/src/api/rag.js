@@ -147,3 +147,52 @@ export const deleteRagDraftConversation = data => {
     data,
   });
 };
+
+/**
+ * 查询知识问答是否存在可恢复的进行中会话。
+ * @param {Object} data 请求参数。
+ * @param {string} data.ragId 知识问答应用 ID。
+ * @param {boolean} [data.draft=false] 是否为草稿态。
+ * @param {string} [data.conversationId] 发布态会话 ID，草稿态无需传入。
+ * @returns {Promise} data.hasPendingConversation 为 true 时需连接 /rag/stream/connect。
+ */
+export const getRagPendingConversation = data => {
+  return service({
+    url: `${USER_API}/rag/pending/conversation`,
+    method: 'post',
+    data,
+  });
+};
+
+/**
+ * 取消知识问答正在运行的流式会话。
+ * @param {Object} data 请求参数。
+ * @param {string} data.ragId 知识问答应用 ID。
+ * @param {boolean} [data.draft=false] 是否为草稿态。
+ * @param {string} [data.conversationId] 发布态会话 ID，草稿态无需传入。
+ * @returns {Promise} 接口幂等，目标会话不存在时也视为成功。
+ */
+export const cancelRagStream = data => {
+  return service({
+    url: `${USER_API}/rag/stream/cancel`,
+    method: 'post',
+    data,
+  });
+};
+
+/**
+ * 提交已发布知识问答回答的点赞、点踩或取消反馈。
+ * @param {Object} data 请求参数。
+ * @param {string} data.ragId 知识问答应用 ID。
+ * @param {string} data.conversationId 会话 ID。
+ * @param {string} data.detailId 回答详情 ID。
+ * @param {number} data.feedbackType 反馈类型：0=取消，1=点赞，2=点踩。
+ * @param {string} [data.feedbackContent] 反馈内容。
+ */
+export const submitRagConversationFeedback = data => {
+  return service({
+    url: `${USER_API}/rag/conversation/message/feedback`,
+    method: 'post',
+    data,
+  });
+};
