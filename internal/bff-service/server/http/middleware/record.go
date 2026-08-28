@@ -8,6 +8,7 @@ import (
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
@@ -15,9 +16,10 @@ import (
 func Record(ctx *gin.Context) {
 	var req string
 	var err error
+	traceID := trace_util.GetTraceID(ctx)
 	if ctx.ContentType() == gin.MIMEJSON {
 		if req, err = requestBody(ctx); err != nil {
-			log.Errorf("[%v] | %v | %v", ctx.Request.Method, requestFullPath(ctx), err)
+			log.Errorf("[%v] | %s | %v | %v", ctx.Request.Method, traceID, requestFullPath(ctx), err)
 			gin_util.ResponseErrCodeKey(ctx, err_code.Code_BFFInvalidArg, "", err.Error())
 			ctx.Abort()
 			return
@@ -26,7 +28,7 @@ func Record(ctx *gin.Context) {
 	ctx.Next()
 
 	resp := ctx.GetString(gin_util.RESULT)
-	log.Debugf("[%v] %v | %v | %v", ctx.Request.Method, requestFullPath(ctx), req, resp)
+	log.Debugf("[%v] | %s | %v | %v | %v", ctx.Request.Method, traceID, requestFullPath(ctx), req, resp)
 }
 
 func requestFullPath(ctx *gin.Context) string {
@@ -39,6 +41,11 @@ func requestFullPath(ctx *gin.Context) string {
 func getFieldValue(ctx *gin.Context, fieldName string) string {
 	//尝试从query中获取field
 	value := ctx.Query(fieldName)
+	if len(value) > 0 {
+		return value
+	}
+	// 再从 form（multipart/url-encoded）提取
+	value = ctx.PostForm(fieldName)
 	if len(value) > 0 {
 		return value
 	}

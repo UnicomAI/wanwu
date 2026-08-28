@@ -1,0 +1,216 @@
+package minio
+
+import (
+	"bytes"
+	"context"
+	"errors"
+	"io"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/UnicomAI/wanwu/internal/app-service/config"
+	"github.com/UnicomAI/wanwu/pkg/log"
+	minio_client "github.com/UnicomAI/wanwu/pkg/minio"
+	"github.com/UnicomAI/wanwu/pkg/util"
+	"github.com/minio/minio-go/v7"
+)
+
+func DownloadFile(ctx context.Context, minioFilePath string) ([]byte, error) {
+	bucketName, objectName, _ := SplitFilePath(minioFilePath)
+	object, err := minio_client.App().GetObject(ctx, bucketName, objectName)
+	if err != nil {
+		log.Errorf("DownloadFile error %s", err)
+		return nil, err
+	}
+	return object, nil
+}
+
+func DownloadFileObject(ctx context.Context, minioFilePath string) (*minio.Object, error) {
+	bucketName, objectName, _ := SplitFilePath(minioFilePath)
+	object, err := minio_client.App().Cli().GetObject(ctx, bucketName, objectName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Errorf("DownloadFile error %s", err)
+		return nil, err
+	}
+	return object, nil
+}
+
+func DeleteFile(ctx context.Context, minioFilePath string) error {
+	bucketName, objectName, _ := SplitFilePath(minioFilePath)
+	err := minio_client.App().DeleteObject(ctx, bucketName, objectName)
+	if err != nil {
+		log.Errorf("DeleteFile error %s filePath %s", err, minioFilePath)
+		return err
+	}
+	return nil
+}
+
+// UploadLocalFile 根据文件路径上传文件
+func UploadLocalFile(ctx context.Context, minioDir string, minioBucketName string, minioFileName string, srcFilePath string) (string, string, int64, error) {
+	srcFile, err := os.Open(srcFilePath)
+	if err != nil {
+		log.Errorf("UploadLocalFile open file error :%s", err)
+		return "", "", 0, err
+	}
+	defer func() {
+		err2 := srcFile.Close()
+		if err2 != nil {
+			log.Errorf("UploadFilePath close file error :%s", err2)
+		}
+	}()
+	fileInfo, err := os.Stat(srcFilePath)
+	var fileUploadSize int64 = -1
+	if err == nil {
+		fileUploadSize = fileInfo.Size()
+	}
+	filePath, fileSize, err := UploadFile(ctx, minioDir, minioBucketName, minioFileName, srcFile, fileUploadSize)
+	return minioFileName, filePath, fileSize, err
+}
+
+func CopyFile(ctx context.Context, srcFilePath string, destObjectNamePre string, newFile bool) (string, string, int64, error) {
+	bucketName, objectName, fileName := SplitFilePath(srcFilePath)
+	if len(bucketName) == 0 || len(objectName) == 0 {
+		return "", "", 0, errors.New("invalid file path")
+	}
+	destObjectName := buildObjectName(destObjectNamePre, fileName, newFile)
+	minioConfig := config.Cfg().Minio
+
+	destOptions := minio.CopyDestOptions{
+		Bucket: minioConfig.Bucket,
+		Object: destObjectName,
+	}
+	contentType := getContentType(destObjectName)
+	if len(contentType) > 0 {
+		destOptions.ReplaceMetadata = true
+		destOptions.UserMetadata = map[string]string{
+			"Content-Type": contentType,
+		}
+	}
+	srcOptions := minio.CopySrcOptions{
+		Bucket: bucketName,
+		Object: objectName,
+	}
+	uploadInfo, err := minio_client.App().Cli().CopyObject(ctx, destOptions, srcOptions)
+	if err != nil {
+		log.Errorf("minio copy object error %s", err)
+		return "", "", 0, err
+	}
+	if len(uploadInfo.Location) == 0 {
+		return "http://" + minioConfig.Endpoint + "/" + minioConfig.Bucket + "/" + destObjectName, fileName, uploadInfo.Size, nil
+	}
+	return uploadInfo.Location, fileName, uploadInfo.Size, nil
+}
+
+func getContentType(uri string) (contentType string) {
+	//_ = mime.AddExtensionType(".svg", "image/svg+xml")
+	//_ = mime.AddExtensionType(".svgz", "image/svg+xml")
+	//_ = mime.AddExtensionType(".webp", "image/webp")
+	//_ = mime.AddExtensionType(".ico", "image/x-icon")
+	//fileExtension := path.Base(uri)
+	//ext := path.Ext(fileExtension)
+	//contentType = mime.TypeByExtension(ext)
+	return ""
+}
+
+func UploadFile(ctx context.Context, dir string, bucketName string, fileName string, reader io.Reader, objectSize int64) (string, int64, error) {
+	// 上传文件。
+	//milli := time.Now().UnixMilli()
+	var uploadInfo minio.UploadInfo
+	objectName := buildObjectName(dir, fileName, false)
+	contentType := getContentType(objectName)
+	putObjectOptions := minio.PutObjectOptions{}
+	if len(contentType) > 0 {
+		putObjectOptions.ContentType = contentType
+	}
+	uploadInfo, err := minio_client.App().Cli().PutObject(ctx, bucketName, objectName, reader, objectSize, putObjectOptions)
+
+	//log_config.LogRpcJsonNoParams("minio", "PutObject", err, milli)
+	if err != nil {
+		//log-config.Fatalln(err)
+		return "", 0, err
+	}
+	if len(uploadInfo.Location) == 0 {
+		configInfo := config.Cfg()
+		return "http://" + configInfo.Minio.Endpoint + "/" + bucketName + "/" + objectName, uploadInfo.Size, nil
+	}
+	return uploadInfo.Location, uploadInfo.Size, nil
+}
+
+func DownloadFileToLocal(ctx context.Context, minioFilePath string, localPath string) error {
+	sourceBucketName, objectName, _ := SplitFilePath(minioFilePath)
+	object, err := minio_client.App().Cli().GetObject(ctx, sourceBucketName, objectName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Errorf("DownloadFileToLocal error %s", err)
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(localPath), 0755); err != nil {
+		return err
+	}
+
+	outFile, err := os.Create(localPath)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err2 := outFile.Close()
+		if err2 != nil {
+			log.Errorf("DownloadFile %s close outFile error: %s", minioFilePath, err2)
+		}
+	}()
+	defer func() {
+		err2 := object.Close()
+		if err2 != nil {
+			log.Errorf("DownloadFile %s close error: %s", minioFilePath, err2)
+		}
+	}()
+	_, err = io.Copy(outFile, object)
+
+	if util.FileEOF(err) {
+		return nil
+	}
+	return err
+}
+
+func SplitFilePath(filePath string) (bucketName string, objectName string, fileName string) {
+	if len(filePath) == 0 {
+		return "", "", ""
+	}
+	u, err := url.Parse(filePath)
+	if err != nil {
+		return "", "", ""
+	}
+	//此处拿到的path是以"/"开头的，因此split的时候split[0]="",数据从split[1]开始
+	split := strings.Split(u.Path, "/")
+	totalLen := len(split)
+	if totalLen > 2 {
+		var buffer bytes.Buffer
+		for i := 2; i < totalLen; i++ {
+			buffer.WriteString(split[i])
+			if i < totalLen-1 {
+				buffer.WriteString("/")
+			}
+		}
+		return split[1], buffer.String(), split[totalLen-1]
+	}
+	return "", "", filePath
+}
+
+func buildObjectName(dir, fileName string, newFile bool) string {
+	if len(dir) == 0 {
+		return newFileName(fileName, newFile)
+	}
+	return dir + "/" + newFileName(fileName, newFile)
+}
+
+func newFileName(fileName string, newFile bool) string {
+	if newFile {
+		fileName = buildFilePath("", filepath.Ext(fileName))
+	}
+	return fileName
+}
+
+func buildFilePath(fileDir, fileExt string) string {
+	return fileDir + util.GenUUID() + fileExt
+}

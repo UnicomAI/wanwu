@@ -5,6 +5,8 @@
 **/*.swp
 **/.DS_Store
 
+CLAUDE.md
+.claude/
 
 logs/*
 log/logs/*

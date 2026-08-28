@@ -1,0 +1,20 @@
+id: Skill Import Agent
+type: sandbox
+name: Skill导入智能体
+description: |
+  用于处理skill导入。
+
+configure:
+  enable_thinking: true
+  sandbox:
+    type: reuse
+    host: wga-sandbox-wanwu
+
+prompt_relative_path: ./prompt.md
+
+tool_categories:
+
+skills:
+  - dir: configs/microservice/bff-service/configs/agent-skills/security/skill-vetter
+
+sub_agents:

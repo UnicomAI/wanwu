@@ -5,6 +5,7 @@ import (
 
 	v1 "github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/v1"
 	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/middleware"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	mid "github.com/UnicomAI/wanwu/pkg/gin-util/mid-wrap"
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +35,7 @@ func registerTool(apiV1 *gin.RouterGroup) {
 	mid.Sub("resource.mcp").Reg(apiV1, "/mcp", http.MethodGet, v1.GetMCP, "获取自定义MCP详情")
 	mid.Sub("resource.mcp").Reg(apiV1, "/mcp", http.MethodDelete, v1.DeleteMCP, "删除自定义MCP")
 	mid.Sub("resource.mcp").Reg(apiV1, "/mcp/list", http.MethodGet, v1.GetMCPList, "获取MCP自定义列表")
-	mid.Sub("resource.mcp").Reg(apiV1, "/mcp/tool/list", http.MethodGet, v1.GetMCPTools, "获取MCP Tool列表")
+	mid.Sub("resource.mcp").Reg(apiV1, "/mcp/tool/list", http.MethodPost, v1.GetMCPTools, "获取MCP Tool列表")
 
 	// MCP Server
 	mid.Sub("resource.mcp").Reg(apiV1, "/mcp/server", http.MethodPost, v1.CreateMCPServer, "创建MCP服务")
@@ -59,8 +60,8 @@ func registerTool(apiV1 *gin.RouterGroup) {
 	mid.Sub("resource.prompt").Reg(apiV1, "/prompt/custom/list", http.MethodGet, v1.GetCustomPromptList, "获取自定义Prompt列表")
 	mid.Sub("resource.prompt").Reg(apiV1, "/prompt/custom/copy", http.MethodPost, v1.CopyCustomPrompt, "复制自定义Prompt")
 	mid.Sub("resource.prompt").Reg(apiV1, "/prompt/template", http.MethodPost, v1.CreatePromptByTemplate, "复制提示词模板")
-	mid.Sub("resource.prompt").Reg(apiV1, "/prompt/optimize", http.MethodPost, v1.GetPromptOptimize, "提示词优化", middleware.AuthModelByModelId([]string{"modelId"}))
-	mid.Sub("resource.prompt").Reg(apiV1, "/prompt/reason", http.MethodPost, v1.GetPromptReason, "提示词推理", middleware.AuthModelByModelId([]string{"modelId"}))
-	mid.Sub("resource.prompt").Reg(apiV1, "/prompt/evaluate", http.MethodPost, v1.GetPromptEvaluate, "提示词评估", middleware.AuthModelByModelId([]string{"modelId"}))
+	mid.Sub("resource.prompt").Reg(apiV1, "/prompt/optimize", http.MethodPost, v1.GetPromptOptimize, "提示词优化", append([]gin.HandlerFunc{middleware.TraceWeb(constant.BizModuleResourcePrompt, middleware.WithModuleCreatorFromContext())}, middleware.AuthModelByModelId([]string{"modelId"}))...)
+	mid.Sub("resource.prompt").Reg(apiV1, "/prompt/reason", http.MethodPost, v1.GetPromptReason, "提示词推理", append([]gin.HandlerFunc{middleware.TraceWeb(constant.BizModuleResourcePrompt, middleware.WithModuleCreatorFromContext())}, middleware.AuthModelByModelId([]string{"modelId"}))...)
+	mid.Sub("resource.prompt").Reg(apiV1, "/prompt/evaluate", http.MethodPost, v1.GetPromptEvaluate, "提示词评估", append([]gin.HandlerFunc{middleware.TraceWeb(constant.BizModuleResourcePrompt, middleware.WithModuleCreatorFromContext())}, middleware.AuthModelByModelId([]string{"modelId"}))...)
 
 }

@@ -6,7 +6,7 @@ from pathlib import Path
 from langchain_core.documents import Document
 from langchain_community.document_loaders import TextLoader
 from utils.prompts import IMAGE_TEXT_EXTRACT_PROMPT
-from utils import ocr_utils
+from utils import model_parser_utils
 from utils import minio_utils
 from utils import multimodal_utils
 
@@ -41,8 +41,9 @@ class ImageLoader(TextLoader):
             if minio_result['code'] == 0:
                 image_minio_url = minio_result['download_link']
                 text = f"![{file_name}]({image_minio_url})"
-            if self.ocr_model_id and "ocr" in self.parser_choices:
-                image_desc = ocr_utils.ocr_parser_text(self.file_path, self.ocr_model_id)
+            if self.ocr_model_id and "model" in self.parser_choices:
+                # 图片发给文档解析模型（/pdf-parser 端点，复用 model_parser_utils）
+                image_desc = model_parser_utils.model_parser_image(self.file_path, self.ocr_model_id)
             elif self.multimodal_model_id and "multimodal" in self.parser_choices:
                 image_desc = multimodal_utils.req_unicom_VL_plus(self.file_path, self.multimodal_model_id, IMAGE_TEXT_EXTRACT_PROMPT)
             if image_desc:

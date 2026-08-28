@@ -43,7 +43,7 @@ func AppUrlDelete(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.AppUrlDelete(ctx, req)
+	err := service.AppUrlDelete(ctx, req, getUserID(ctx), getOrgID(ctx))
 	gin_util.Response(ctx, nil, err)
 }
 

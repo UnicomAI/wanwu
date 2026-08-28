@@ -35,7 +35,6 @@ func CronInit(ctx context.Context, db *gorm.DB) error {
 	if err := syncAllStatistics(); err != nil {
 		return fmt.Errorf("sync statistics err: %v", err)
 	}
-
 	entryID, err := statisticCronManager.cron.AddFunc("0 * * * *", cronSyncAllStatistics) // 每小时整点执行
 	if err != nil {
 		log.Errorf("register cron task (%v) error: %v", cronTaskStatisticSync, err)
@@ -72,21 +71,30 @@ func syncAllStatistics() error {
 
 	for i := len(dates) - 1; i >= 0; i-- {
 		date := dates[i]
-		// 检查MySQL中是否已有该日期的统计数据
-		// 如果存在，说明历史数据已同步，无需继续向前回填
-		hasModel, _ := checkModelStatsRecordExists(ctx, db, date)
-		hasApp, _ := checkAppStatsRecordExists(ctx, db, date)
-		hasApi, _ := checkAPIKeyStatsRecordExists(ctx, db, date)
-		if err := updateModelStats(ctx, date, db); err != nil {
-			log.Errorf("update model stats date %v err: %v", date, err)
+		// 检查 V2 聚合表是否已有该日期的统计数据；若存在则历史已同步，无需继续向前回填。
+		// 检查失败时不参与 early-stop，避免 DB 抖动被当成「无数据」或误停回填。
+		hasModel, errModel := checkModelStatsRecordExists(ctx, db, date)
+		hasApp, errApp := checkAppStatisticV2RecordExists(ctx, db, date)
+		hasApi, errApi := checkAPIKeyStatisticV2RecordExists(ctx, db, date)
+		if errModel != nil {
+			log.Errorf("check model stats exists date %v err: %v", date, errModel)
 		}
-		if err := updateAppStats(ctx, date, db); err != nil {
-			log.Errorf("update app stats date %v err: %v", date, err)
+		if errApp != nil {
+			log.Errorf("check app stats exists date %v err: %v", date, errApp)
 		}
-		if err := updateAPIKeyStats(ctx, date, db); err != nil {
-			log.Errorf("update api key stats date %v err: %v", date, err)
+		if errApi != nil {
+			log.Errorf("check api key stats exists date %v err: %v", date, errApi)
 		}
-		if hasModel && hasApp && hasApi {
+		if err := syncStatisticModelStats(ctx, date, db); err != nil {
+			log.Errorf("update statistic model stats date %v err: %v", date, err)
+		}
+		if err := syncAPIKeyStatisticV2Stats(ctx, date, db); err != nil {
+			log.Errorf("update api key statistic v2 date %v err: %v", date, err)
+		}
+		if err := syncAppStatisticV2Stats(ctx, date, db); err != nil {
+			log.Errorf("update app statistic v2 date %v err: %v", date, err)
+		}
+		if errModel == nil && errApp == nil && errApi == nil && hasModel && hasApp && hasApi {
 			log.Infof("found existing record for date %v, stop backward sync", date)
 			break
 		}
@@ -98,29 +106,28 @@ func checkModelStatsRecordExists(ctx context.Context, db *gorm.DB, date string) 
 	var count int64
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithDate(date),
-	).Apply(db.WithContext(ctx)).Model(&model.ModelStatistic{}).Count(&count).Error; err != nil {
+	).Apply(db.WithContext(ctx)).Model(&model.StatisticModel{}).Count(&count).Error; err != nil {
 		return false, fmt.Errorf("check model stats record exists for date %v err: %v", date, err)
 	}
 	return count > 0, nil
 }
 
-func checkAppStatsRecordExists(ctx context.Context, db *gorm.DB, date string) (bool, error) {
+func checkAppStatisticV2RecordExists(ctx context.Context, db *gorm.DB, date string) (bool, error) {
 	var count int64
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithDate(date),
-	).Apply(db.WithContext(ctx)).Model(&model.AppStatistic{}).Count(&count).Error; err != nil {
-		return false, fmt.Errorf("check app stats record exists for date %v err: %v", date, err)
+	).Apply(db.WithContext(ctx)).Model(&model.StatisticApp{}).Count(&count).Error; err != nil {
+		return false, fmt.Errorf("check app statistic v2 record exists for date %v err: %v", date, err)
 	}
 	return count > 0, nil
 }
 
-// checkAPIKeyStatsRecordExists 检查指定日期的 API Key 统计记录是否已存在
-func checkAPIKeyStatsRecordExists(ctx context.Context, db *gorm.DB, date string) (bool, error) {
+func checkAPIKeyStatisticV2RecordExists(ctx context.Context, db *gorm.DB, date string) (bool, error) {
 	var count int64
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithDate(date),
-	).Apply(db.WithContext(ctx)).Model(&model.APIKeyStatistic{}).Count(&count).Error; err != nil {
-		return false, fmt.Errorf("check api key stats record exists for date %v err: %v", date, err)
+	).Apply(db.WithContext(ctx)).Model(&model.StatisticApiKey{}).Count(&count).Error; err != nil {
+		return false, fmt.Errorf("check api key statistic v2 record exists for date %v err: %v", date, err)
 	}
 	return count > 0, nil
 }

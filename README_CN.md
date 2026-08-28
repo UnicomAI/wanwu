@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/6ceb4269-a861-4545-84db-bad322592156" style="width:45%; height:auto;" />
+  <img src="https://github.com/user-attachments/assets/4788ed8f-eefc-4c19-aa77-7ec776743f3d" style="width:45%; height:auto;" />
 <p>
   <a href="#🚩 核心功能模块">核心功能模块</a> •
   <a href="#x1F3AF; 典型应用场景">典型应用场景</a> •
@@ -24,9 +24,9 @@
 </div>
 
 
+&emsp;&emsp;&emsp;**元景万悟智能体平台**是一款面向**企业级**场景的**一站式**、**商用license友好**的智能体开发平台。我们以“技术开放、生态共建”为核心理念，致力于为企业提供安全、高效、合规的AI解决方案。
 
-
-&emsp;&emsp;&emsp;**元景万悟智能体平台**是一款面向**企业级**场景的**一站式**、**商用license友好**的**智能体开发平台**，致力于为企业提供安全、高效、合规的一站式AI解决方案。我们以"技术开放、生态共建"为核心理念，通过整合大语言模型、业务流程自动化等前沿技术，构建了覆盖模型全生命周期管理、MCP、联网检索、**通用智能体与Skills编排**、企业知识库建设、复杂工作流编排等完整功能体系的AI工程化平台。平台现已全面跃升为**“通用智能体+垂直场景Skills”的双引擎开发平台**，在确保企业数据安全和隐私保护的同时，大幅降低了AI技术的应用门槛，助力企业加速数字化转型进程，实现降本增效和业务创新。 
+&emsp;&emsp;&emsp;万悟致力于提供**FDE（前沿部署工程师）所需要的所有工具能力，形成全站FDE工具链**！我们不仅能力覆盖企业核心资产，更以客户为中心，把能力真正嵌入客户系统，**大幅降低AI项目交付门槛**，打通从“构建”到“现场”的最后一公里，让每一次业务决策更简单，让每一位FDE更强大！
 
 ------
 
@@ -39,26 +39,77 @@
 
 ------
 
-### 📢 生态开放
+### 🌟 全站FDE工具链：5大能力对症下药
 
-- [外部知识库兼容](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93/%E8%BF%9E%E6%8E%A5%E5%A4%96%E6%8E%A5%E7%9F%A5%E8%AF%86%E5%BA%93.md)：支持API导入Dify内创建的知识库，并在智能体、文本问答、工作流中进行检索召回
-- [MCP广场](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/2.%E8%B5%84%E6%BA%90%E5%BA%93%2FMCP%E6%9C%8D%E5%8A%A1.md)：支持导入并使用不同服务商的MCP协议
-- [Skills](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/2.%E8%B5%84%E6%BA%90%E5%BA%93%2FSkills.md)：支持一句话创建Skills并下载，可无缝对接OpenClaw
-- [OpenClaw沙箱](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/8.%E9%80%9A%E7%94%A8%E6%99%BA%E8%83%BD%E4%BD%93%2F%E6%9C%BA%E5%99%A8%E4%BA%BA%E5%8A%A9%E6%89%8B-OPENCLAW%2F%E5%A6%82%E4%BD%95%E5%9C%A8%E4%B8%87%E6%82%9F%E4%B8%AD%E6%8E%A5%E5%85%A5OpenClaw%E6%9C%BA%E5%99%A8%E4%BA%BA.md)：我们为每一个“龙虾机器人”都提供了独立Docker容器部署的选项。可在元景万悟中直接访问您本地部署的OpenClaw机器人。
+面对企业复杂的业务场景，万悟提供5大核心智能体能力，对症下药解决各类交付痛点，让AI不仅“想得到”，更“做得到”：
+
+#### 1️⃣ RAG/知识库智能体：搞定分散文档，让AI有靠谱记忆
+
+<p align="center">
+  <img width="900" alt="rag" src="https://github.com/user-attachments/assets/7bbc16b2-e7d0-49cb-89e3-5c395416c028" />
+</p>
+
+针对企业海量分散的文档与制度，提供全流程知识管理能力，构建高精准度、带记忆的知识大脑，让AI不再胡说八道。
+- **高精度解析与检索**：支持12种文件格式及URL抓取；支持OCR与MinerU模型私有化解析；集成多模态检索、级联/自适应切分与智能精排，支持图文并茂生成与出处引用。
+- **知识图谱增强（GraphRAG）**：内置UniAI-GraphRAG，结合领域本体建模，显著提升跨多文档总结与多跳关系推理的完整性与逻辑性，F1值业界领先。
+- **[外部知识库兼容](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93/%E8%BF%9E%E6%8E%A5%E5%A4%96%E6%8E%A5%E7%9F%A5%E8%AF%86%E5%BA%93.md)**: 支持API导入Dify内创建的知识库，并在智能体、文本问答、工作流中进行检索召回
+#### 2️⃣ 本体智能体：搞定结构化数据，实现多步推理与决策
+
+<p align="center">
+  <img width="900" alt="ontology" src="https://github.com/user-attachments/assets/7a582447-9edc-4cce-ace4-29291b5ad2ac" />
+</p>
+
+打破大模型仅懂文本的局限，应对复杂的结构化业务数据。
+- **深度推理与决策**：基于企业数据与文档自动构建业务知识网络，赋予AI深度推理与闭环行动能力，让大模型真正懂业务、会决策，从“知识问答”跃升为“业务分析大脑”。
+#### 3️⃣ 工作流智能体：搞定复杂流程，让AI按规矩办事
+
+<p align="center">
+  <img width="900" alt="workflow" src="https://github.com/user-attachments/assets/8064a56a-63b2-493c-9dea-e0987c3cc64d" />
+</p>
+
+针对合同审核、报销审批等复杂业务，通过低代码方式规范AI的执行路径，确保交付稳定可靠。
+- **可视化编排**：低代码拖拽画布，内置条件分支、API、大模型、知识库、代码、MCP等丰富节点，支持端到端流程调试与性能分析，让AI严格按照业务规矩办事。
+- **零代码编排闭环**：行业内首个支持在智能体开发中零代码调用Skill，从“意图识别”到“技能执行”完美闭环；灵活调用内置工具、MCP、工作流等，秒读百页文档，统一工作区展示成果。
+#### 4️⃣ GUI智能体：搞定各类应用系统，无API也能直接操作 ([客户端下载地址](https://pan.baidu.com/s/1xqQcjwAbrd1YVS2XHG81rw?pwd=ae86))
+
+<p align="center">
+  <img width="900" alt="gui" src="https://github.com/user-attachments/assets/0576488a-9f55-49fa-8b21-b7810ac3faac" />
+</p>
+
+面对老旧系统或无API场景，赋予AI“看”与“点”的能力，彻底消除系统集成壁垒。
+- **界面级交互**：无需对接底层API，AI直接操作应用界面完成任务。
+- **[沙箱支持](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/8.%E9%80%9A%E7%94%A8%E6%99%BA%E8%83%BD%E4%BD%93%2F%E6%9C%BA%E5%99%A8%E4%BA%BA%E5%8A%A9%E6%89%8B-OPENCLAW%2F%E5%A6%82%E4%BD%95%E5%9C%A8%E4%B8%87%E6%82%9F%E4%B8%AD%E6%8E%A5%E5%85%A5OpenClaw%E6%9C%BA%E5%99%A8%E4%BA%BA.md)**：为每一个“机器人”提供独立Docker容器部署选项，安全执行界面操作。
+
+#### 5️⃣ 通用智能体+Skill开发：搞定交互系统，一句话串起所有能力
+
+<p align="center">
+  <img width="900" alt="wga" src="https://github.com/user-attachments/assets/340c131c-11ed-4547-a395-250f40770160" />
+</p>
+
+行业首创“通用智能体+垂直场景Skills”双引擎，打造既“博学”又“专业”的超级智能体，一站式满足复杂交互需求。
+- **[全能大脑与极简构建](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/2.%E8%B5%84%E6%BA%90%E5%BA%93%2FSkills.md)**：具备专业分析师级别的多步推理能力；支持“一句话创建Skill”，用自然语言即可将业务经验沉淀为专属“工具箱”。也支持将平台内的应用一键转换为Skill。
+------
+### 🚀 3大落地方式：直达业务现场，降低交付门槛
+能力建成之后，万悟更以客户为中心提供3大落地方式，确保从平台直达业务现场，极大降低FDE的交付难度：
+#### 📦 方式一：万悟平台开箱即用
+直接提供万悟平台，业务人员无需任何代码开发，即可通过可视化界面创建和使用智能体、工作流与知识问答，零门槛将AI转化为生产力，快速完成现场验证与交付。
+#### 🔗 方式二：API无缝嵌入现有系统
+提供RESTful API（BaaS后端即服务），支持将万悟的智能能力无缝嵌入客户现有的OA、CRM、ERP等系统，配合细粒度权限控制，在不改变用户习惯的前提下，实现AI能力的深度集成与平稳交付。
+#### 🖥️ 方式三：Skill + UniClaw专有客户端执行
+对于需要高权限操作的场景（如控制本地电脑、发送钉钉消息等），FDE可通过万悟开发Skill，结合UniClaw专有客户端执行，轻松搞定跨系统的高权限现场操作，真正实现“想得到，做得到”，攻克交付最后一道壁垒。
+
+UniClaw下载地址：https://maas.ai-yuanjing.com/app/uniclaw/uniclaw-official.html
 
 ------
 
-### &#x1F525; 采用宽松友好的 Apache 2.0 License，支持开发者自由扩展与二次开发
-
-✔ **企业级工程化**：提供从模型纳管到应用落地的完整工具链，解决LLM技术落地"最后一公里"问题  
-
-✔ **开放开源生态**：采用宽松友好的 **Apache 2.0 License**，支持开发者自由扩展与二次开发  
-
-✔ **全栈技术支持**：配备专业团队为生态伙伴提供 **架构咨询、性能优化** 全周期赋能  
-
-✔ **多租户架构**：提供多租户账号体系，满足用户成本控制、数据安全隔离、业务弹性扩展、行业定制化、快速上线及生态协同等核心需求
-
-✔ **信创适配**：已获得《信创人工智能软硬件系统检验证书》，硬件层面支持华为鲲鹏CPU，软件层面兼容欧拉、CULinux、麒麟等国产操作系统，以及TiDB平凯数据库、OceanBase等国产数据库
+### 🛠️ 基座与生态：强悍底层，开放开源
+万悟的全站工具链离不开强大的底层基座支撑：
+- 🔥 **宽松友好的 Apache 2.0 License**：支持开发者自由扩展与二次开发，商用无忧。
+- ✔ **模型纳管**：支持数百种专有/开源大模型统一接入，深度适配OpenAI API标准及联通元景生态，提供多推理后端支持。
+- ✔ **Skill广场**：支持内置100+行业Skill即选即用，连接外部能力无需单独开发适配器。
+- ✔ **联网检索**：具备实时信息获取、多源数据整合与智能检索策略，提升回答时效性。
+- ✔ **多租户架构**：提供多租户账号体系，满足成本控制、数据安全隔离与业务弹性扩展。
+- ✔ **信创适配**：已获得《信创人工智能软硬件系统检验证书》，硬件层面支持华为鲲鹏CPU，软件层面兼容欧拉、CULinux、麒麟等国产操作系统，以及TiDB平凯数据库、OceanBase等国产数据库。
 
 ------
 
@@ -108,6 +159,8 @@
 
 ▸ **极简Skill构建**：支持**“一句话创建Skill”**，无需代码，用自然语言描述需求即可自动生成垂直场景技能，将业务经验沉淀为专属“工具箱”
 
+▸ **极简Skill构建**：支持选择“本体智能体”进行交互问答，帮助用户进行快速分析决策。并支持自动创建“本体智能体”。
+
 ▸ **零代码编排闭环**：行业内**首个支持在智能体开发过程中零代码调用Skill**。在可视化界面直接关联Skill，实现从“意图识别”到“技能执行”的完美闭环
 
 ▸ **按需取用工具箱**：灵活配置并调用内置工具、Skills、MCP、工作流及其他智能体，让AI不仅会“想”，更会“做”
@@ -118,7 +171,11 @@
 
 ▸ **基础开发范式**：依然支持基于 **函数调用** 的传统Agent构建，支持私域知识库关联与多轮在线调试
 
-#### **7. 后端即服务（BaaS）**
+#### 7.本体智能体
+
+▸ 基于企业数据与文档自动构建业务知识网络，赋予AI深度推理与闭环行动能力，让大模型真正懂业务、会决策。
+
+#### **8. 后端即服务（BaaS）**
 
 ▸ 提供 **RESTful API** ，支持与企业现有系统（OA/CRM/ERP等）深度集成
 
@@ -134,6 +191,7 @@
 |      直接导入OCR       |         ✅          |          ❌          |         ❌          |         ❌          |         ❌          |
 |        RAG引擎         |         ✅          |          ✅          |         ✅          |         ✅          |         ✅          |
 |    知识图谱GraphRAG    |         ✅          |          ❌          |         ❌          |         ✅          |         ❌          |
+|        本体智能体        |         ✅          |          ❌          |         ❌          |         ❌          |         ❌          |
 |    多智能体编排开发    |          ✅         |          ❌          |         ✅          |         ✅          |         ❌          |
 | 通用智能体+Skills编排  |         ✅          |          ❌          |         ❌          |         ❌          |         ❌          |
 |         Agent          |         ✅          |          ✅          |         ✅          |         ✅          |         ✅          |
@@ -144,7 +202,7 @@
 |         多租户         |         ✅          |   ❌（商用有限制）   |   ❌（商用有限制）   |         ✅          | ✅（但用户间不互通） |
 |      license友好       |         ✅          |   ❌（商用有限制）   |   ❌（商用有限制）   |     未完全开源      |         ✅          |
 
-> 截止2026年4月22日对比。
+> 截止2026年5月15日对比。
 
 ------
 
@@ -166,8 +224,16 @@
   - v0.2.0开始：[wanwu-workflow](https://github.com/UnicomAI/wanwu-workflow/tree/dev/wanwu-backend) 项目
 
 - **推荐配置：**
-  - CPU：8核或16核 ；内存：32G ；硬盘200G以上；GPU不需要
-  
+  - CPU：8核或16核；内存：32G；硬盘200G以上；GPU不需要
+
+- **模型要求提示：**
+  - 使用 WanwuBot（通用智能体）或一句话创建 Skills 功能时，所选模型在导入时的上下文长度必须 >= 32000
+
+- **安全声明：**
+  - 平台所涉及的各类中间件（MySQL、Redis、MinIO、Kafka、Elasticsearch 等）均支持在 `.env` 文件中自定义密码。
+  - 前后端用户密码传输场景下，采用 RSA 非对称加密对密码进行加密传输，密钥对在服务首次启动时自动生成；同时也支持通过 `.env` 中的 `WANWU_BFF_LOGIN_RSA_PATH` 配置自定义密钥对。
+  - 强烈建议在生产环境部署前修改所有默认密码并妥善保管，避免因使用默认凭据带来的安全风险。
+
 - **Docker安装（推荐）**
 
 1. 首次运行前
@@ -175,7 +241,7 @@
     1.1 拷贝环境变量文件
 
     ```bash
-    cp .env.bak .env
+    cp .env.example .env
     ```
 
     1.2 根据系统修改.env文件中的`WANWU_ARCH`、`WANWU_EXTERNAL_IP`变量
@@ -195,7 +261,25 @@
     WANWU_BFF_JWT_SIGNING_KEY=
     ```
 
-    1.4 创建docker运行网络
+    1.4 拷贝【本体智能体】环境变量文件
+    ```bash
+    cp .env.ontology.example .env.ontology
+    ```
+
+    1.5（可选）生成【本体智能体】自定义 RSA 密钥
+    > 不执行本步则使用镜像内置的默认密钥；如需在生产环境使用独立密钥，按以下步骤生成
+
+    - 1.5.1 生成 RSA 密钥对
+      ```bash
+      ./configs/microservice/ontology/vega-server/generate-keys.sh configs/microservice/ontology/vega-server
+      ```
+
+    - 1.5.2 生成前端公钥配置（跨平台，需要 Node 环境）
+      ```bash
+      node configs/microservice/ontology/vega-server/generate-public-key-js.js
+      ```
+    
+    1.6 创建docker运行网络
     ```
     docker network create wanwu-net
     ```
@@ -203,9 +287,9 @@
 2. 启动服务（首次运行会自动从Docker Hub拉取镜像）
     ```bash
     # amd64系统执行:
-    docker compose --env-file .env --env-file .env.image.amd64 up -d
+    docker compose --env-file .env --env-file .env.ontology --env-file .env.image.amd64 up -d
     # arm64系统执行:
-    docker compose --env-file .env --env-file .env.image.arm64 up -d
+    docker compose --env-file .env --env-file .env.ontology --env-file .env.image.arm64 up -d
     ```
 
 3. 登录系统：http://localhost:8081
@@ -217,9 +301,9 @@
 4. 关闭服务
     ```bash
     # amd64系统执行:
-    docker compose --env-file .env --env-file .env.image.amd64 down
+    docker compose --env-file .env --env-file .env.ontology --env-file .env.image.amd64 down
     # arm64系统执行:
-    docker compose --env-file .env --env-file .env.image.arm64 down
+    docker compose --env-file .env --env-file .env.ontology --env-file .env.image.arm64 down
     ```
 
 5. 拉取中间件等镜像遇到困难？我们在网盘准备了一份镜像备份，请按照其中README操作：[万悟镜像备份](https://pan.baidu.com/e/1cupIcEP2RBwi_hOr4xQnFQ?pwd=ae86)
@@ -250,18 +334,6 @@
 
 ------
 
-### 📦 沙箱启动
-
-万悟沙箱可用于WanwuBot(通用智能体)、一句话创建Skills等功能，需要单独启动；注意，WanwuBot、创建Skills时选用的模型，在导入时必须指定模型上下文长度 >= 32000
-
-1. 基于上述Docker安装步骤，完成首次运行前的配置
-
-2. 启动沙箱（以amd64为例）
-
-  ```
-  docker compose --env-file .env --env-file .env.image.amd64 -f docker-compose.wga-sandbox.yaml up -d
-  ```
-
 ### ⬆️ 版本升级
 
 1. 基于上述Docker安装步骤，将系统服务完整停止
@@ -281,7 +353,15 @@
     # 备份当前.env文件
     cp .env .env.old
     # 拷贝.env文件
-    cp .env.bak .env
+    cp .env.example .env
+    ```
+
+    2.3 重新拷贝【本体智能体】环境变量文件（如果有环境变量修改，请自行重新修改）
+    ```bash
+    # 备份当前.env.ontology文件
+    cp .env.ontology .env.ontology.old
+    # 拷贝.env.ontology文件
+    cp .env.ontology.example .env.ontology
     ```
 
 3. 基于上述Docker安装步骤，将系统服务完整启动
@@ -319,6 +399,7 @@
 |                             功能                             |                           详细描述                           |
 | :----------------------------------------------------------: | :----------------------------------------------------------: |
 | [通用智能体](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/8.%e9%80%9a%e7%94%a8%e6%99%ba%e8%83%bd%e4%bd%93) | 平台深度整合了深度研究与数据分析等高级能力，实现从简单问答到复杂业务处理的全面跨越，打造你的全能AI数字助理。 |
+| [本体智能体](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/10.%E6%9C%AC%E4%BD%93%E6%99%BA%E8%83%BD%E4%BD%93/%E6%95%B0%E6%8D%AE%E8%BF%9E%E6%8E%A5/%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86.md) | 基于企业数据与文档自动构建业务知识网络，赋予AI深度推理与闭环行动能力，让大模型真正懂业务、会决策。 |
 | [模型管理](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/1.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86.md) | 支持用户导入包括联通元景、OpenAI-API-compatible、Ollama、通义千问、火山引擎等模型供应商的LLM、Embedding、Rerank模型。[ 模型导入方式-详细版](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/%E6%A8%A1%E5%9E%8B%E5%AF%BC%E5%85%A5%E6%96%B9%E5%BC%8F-%E8%AF%A6%E7%BB%86%E7%89%88.md) |
 | [知识库](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93) | 在文档解析能力方面:支持12种文件类型的上传，支持url解析;文档解析方式支持OCR和[ MinerU模型解析(标题/表格/公式等场景)](https://github.com/UnicomAI/DocParserServer/tree/main)的私有化部署及接入，文档分段设置支持通用分段和父子分段。在调优能力方面:支持知识图谱、元数据管理及元数据过滤查询，支持分段内容增删改，支持对分段设置关键词标签提升召回效果，支持分段启停操作，支持命中测试等功能。在检索能力方面:支持向量检索、全文检索、混合检索多种检索模式;在问答能力方面:支持自动引用出处，支持图文并茂的生成答案。 |
 | [资源库](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/3.%E5%B7%A5%E5%85%B7%E5%B9%BF%E5%9C%BA.md) | 同时支持导入自己的MCP服务或自定义工具或提示词，并在工作流和智能体中使用；支持用户创建MCP Server |
@@ -356,11 +437,11 @@
 
 - [x] 通用智能体
 - [x] Skills
+- [x] Trace追踪
 - [ ] 支持数据库导入知识库
-- [ ] A2A协议
 - [ ] 智能体和模型测评
-- [ ] Trace追踪
 - [ ] 长期记忆
+- [ ] A2A协议
 
 ------
 
@@ -413,6 +494,7 @@
 - [LangChain](https://github.com/langchain-ai/langchain)
 - [AIO Sandbox](https://github.com/agent-infra/sandbox)
 - [OpenCode](https://github.com/anomalyco/opencode)
+- [KWeaver Core](https://github.com/kweaver-ai/kweaver-core)
 
 ------
 
@@ -421,7 +503,56 @@
 
 ------
 
+### ⚠️ 免责声明与隐私协议
+
+使用元景万悟智能体平台（以下简称“本平台”）即表示您已阅读并同意以下条款。
+
+#### 1. 生成内容免责
+
+本平台提供的所有内容均由人工智能模型生成，仅供技术参考与学习交流。
+
+* **不构成建议：** 生成内容不代表本平台观点，不构成任何形式的专业建议（包括但不限于法律、医疗、金融投资等）。
+* **风险自担：** AI 可能存在信息滞后、逻辑偏差或幻觉风险。用户需对生成内容进行独立核实，因依赖生成内容做出的任何决策，后果由用户自行承担。
+
+#### 2. 隐私与数据安全
+
+**请勿在对话过程中输入任何个人隐私、商业机密或国家秘密信息。**
+
+##### 🔴 交互记录可见性规则
+
+本平台智能体由第三方开发者创建：
+
+* **第三方可见：** 为了优化智能体效果，**智能体创建者有权在其管理后台查看用户与其智能体的完整对话记录。**
+* **敏感信息警示：** 鉴于上述机制，您的对话内容对创建者可见。请务必确保对话中不包含手机号、身份证、密码、公司内部文档等敏感信息。
+* **平台责任：** 本平台已通过协议约束创建者合规使用数据，但无法完全控制第三方行为，因用户自行输入敏感信息导致的泄露风险由用户自行承担。
+
+#### 3. 用户行为规范
+
+用户承诺合法使用本平台，严禁利用本服务从事以下行为：
+
+* 生成违反法律法规、破坏公序良俗的内容；
+* 侵犯他人知识产权、肖像权、名誉权等合法权益；
+* 干扰平台正常运行或攻击平台系统。
+
+#### 4. 知识产权
+
+* **用户创作资产：** 用户利用本平台工具创作、开发的智能体、工作流、相关配置内容等的知识产权归用户所有。
+* **平台资产：** 本平台的基础架构、源代码及官方文档的知识产权归平台所有。
+
+#### 5. 安全声明
+
+- 平台所涉及的各类中间件（MySQL、Redis、MinIO、Kafka、Elasticsearch 等）均支持在 `.env` 文件中自定义密码。
+- 前后端用户密码传输场景下，采用 RSA 非对称加密对密码进行加密传输，密钥对在服务首次启动时自动生成；同时也支持通过 `.env` 中的 `WANWU_BFF_LOGIN_RSA_PATH` 配置自定义密钥对。
+- 强烈建议在生产环境部署前修改所有默认密码并妥善保管，避免因使用默认凭据带来的安全风险。因未修改默认凭据（包括但不限于默认账号、密码、密钥等）而导致的安全风险、数据泄露或系统受损，均由部署方自行承担，与本平台及开发团队无关。
+
+#### 6. 服务变更
+
+本平台保留随时修改、暂停或终止服务的权利，无需对用户承担违约责任。
+
+------
+
 ### &#x1F4E9; 联系我们
-| QQ 群1(已满):490071123                                       | QQ 群2(已满):1026898615                                            | QQ 群3:1019579243                                            |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/010f1d68-78e9-446d-baf1-0a7339efb48e" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/10796f69-5c18-4f21-adbb-b22b6ef88df2" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/9badde43-b421-48ce-a998-1fc2e33bdc55" /> |
+
+| QQ 群1(已满):490071123                                       | QQ 群2(已满):1026898615                                            | QQ 群3(已满):1019579243                                            | QQ 群4:967463724                                            |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/f20bcff4-63e7-4e07-9909-bbeee4bc50f6" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/11755b2f-80f9-454e-aa4e-01706d40d729" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/c1be21bb-2a85-43cc-b856-270501a04a94" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/f5aef62d-61ca-4bc1-9217-ba4a358a7d08" /> |

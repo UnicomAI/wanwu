@@ -64,7 +64,7 @@ func DeleteSensitiveWordTable(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.DeleteSensitiveWordTable(ctx, &req)
+	err := service.DeleteSensitiveWordTable(ctx, &req, getUserID(ctx), getOrgID(ctx))
 	gin_util.Response(ctx, nil, err)
 }
 
@@ -142,7 +142,7 @@ func DeleteSensitiveVocabulary(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.DeleteSensitiveVocabulary(ctx, &req)
+	err := service.DeleteSensitiveVocabulary(ctx, &req, getUserID(ctx), getOrgID(ctx))
 	gin_util.Response(ctx, nil, err)
 }
 

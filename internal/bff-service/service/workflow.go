@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	"io"
 	net_url "net/url"
 	"sort"
 	"time"
+
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
@@ -24,7 +27,6 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
-	"github.com/go-resty/resty/v2"
 )
 
 func ListLlmModelsByWorkflow(ctx *gin.Context, userId, orgId, modelT string) (*response.ListResult, error) {
@@ -56,7 +58,7 @@ func ListWorkflow(ctx *gin.Context, orgID, name, appType string) (*response.Coze
 	}
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ListUri)
 	ret := &response.CozeWorkflowListResp{}
-	if resp, err := resty.New().
+	if resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -85,7 +87,7 @@ func ListWorkflow(ctx *gin.Context, orgID, name, appType string) (*response.Coze
 func ListWorkflowByIDs(ctx *gin.Context, name string, workflowIDs []string) (*response.CozeWorkflowListData, error) {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ListUri)
 	ret := &response.CozeWorkflowListResp{}
-	request := resty.New().
+	request := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -111,10 +113,70 @@ func ListWorkflowByIDs(ctx *gin.Context, name string, workflowIDs []string) (*re
 	return ret.Data, nil
 }
 
+// ListWorkflowAdmin 管理员获取工作流列表（按名称/appType 前置过滤，可选按 userId/orgId 过滤，返回 map）
+func ListWorkflowAdmin(ctx *gin.Context, name string, appTypes, userIds, orgIds []string) (map[string]*response.CozeWorkflowListDataWorkflow, error) {
+	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ListUri)
+	var listResp response.CozeWorkflowListResp
+	qp := map[string]string{
+		"name": name,
+		"page": "1",
+		"size": "99999",
+	}
+	if len(appTypes) == 1 {
+		switch appTypes[0] {
+		case constant.AppTypeWorkflow:
+			qp["flow_mode"] = "0"
+		case constant.AppTypeChatflow:
+			qp["flow_mode"] = "3"
+		}
+	}
+
+	// body：透传 space_ids / creator_ids 给 wanwu-workflow 做 SQL IN 过滤
+	body := make(map[string]interface{})
+	if len(orgIds) > 0 {
+		body["space_ids"] = orgIds
+	}
+	if len(userIds) > 0 {
+		body["creator_ids"] = userIds
+	}
+
+	request := trace_util.NewResty(ctx).
+		R().
+		SetContext(ctx.Request.Context()).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Accept", "application/json").
+		SetHeaders(workflowHttpReqHeader(ctx)).
+		SetQueryParams(qp).
+		SetResult(&listResp)
+	if len(body) > 0 {
+		request = request.SetBody(body)
+	}
+	if resp, err := request.Post(url); err != nil {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_admin_list", err.Error())
+	} else if resp.StatusCode() >= 300 {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_admin_list", fmt.Sprintf("[%v] code %v msg %v", resp.StatusCode(), listResp.Code, listResp.Msg))
+	} else if listResp.Code != 0 {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_admin_list", fmt.Sprintf("code %v msg %v", listResp.Code, listResp.Msg))
+	}
+	m := make(map[string]*response.CozeWorkflowListDataWorkflow, len(listResp.Data.Workflows))
+	for _, wf := range listResp.Data.Workflows {
+		m[wf.WorkflowId] = wf
+	}
+	return m, nil
+}
+
+// CreateWorkflowOrChatflow 统一创建工作流或对话流，包含名称唯一性校验
+func CreateWorkflowOrChatflow(ctx *gin.Context, orgID, appType, name, desc, iconUri string) (*response.CozeWorkflowIDData, error) {
+	if appType == constant.AppTypeChatflow {
+		return CreateChatflow(ctx, orgID, name, desc, iconUri)
+	}
+	return CreateWorkflow(ctx, orgID, name, desc, iconUri)
+}
+
 func CreateWorkflow(ctx *gin.Context, orgID, name, desc, iconUri string) (*response.CozeWorkflowIDData, error) {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.CreateUri)
 	ret := &response.CozeWorkflowIDResp{}
-	if resp, err := resty.New().
+	if resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -140,7 +202,7 @@ func CreateWorkflow(ctx *gin.Context, orgID, name, desc, iconUri string) (*respo
 func CopyWorkflow(ctx *gin.Context, orgID, workflowID string, needPublished bool) (*response.CozeWorkflowIDData, error) {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.CopyUri)
 	ret := &response.CozeWorkflowIDResp{}
-	if resp, err := resty.New().
+	if resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -165,7 +227,7 @@ func CopyWorkflow(ctx *gin.Context, orgID, workflowID string, needPublished bool
 func DeleteWorkflow(ctx *gin.Context, orgID, workflowID string) error {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.DeleteUri)
 	ret := &response.CozeWorkflowDeleteResp{}
-	if resp, err := resty.New().
+	if resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -189,7 +251,7 @@ func DeleteWorkflow(ctx *gin.Context, orgID, workflowID string) error {
 func ExportWorkFlow(ctx *gin.Context, orgID, workflowID, version string, needPublished bool) ([]byte, error) {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ExportUri)
 	ret := &response.CozeWorkflowExportResp{}
-	if resp, err := resty.New().
+	if resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -252,7 +314,7 @@ func ImportWorkflow(ctx *gin.Context, orgID, appType string) (*response.CozeWork
 	}
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ImportUri)
 	ret := &response.CozeWorkflowIDResp{}
-	if resp, err := resty.New().
+	if resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -286,7 +348,7 @@ func WorkflowConvert(ctx *gin.Context, orgId, workflowId, flowMode string) error
 		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_convert", "invalid flow mode")
 	}
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ConvertUri)
-	resp, err := resty.New().
+	resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -315,22 +377,34 @@ func WorkflowConvert(ctx *gin.Context, orgId, workflowId, flowMode string) error
 		oldAppType = constant.AppTypeChatflow
 		newAppType = constant.AppTypeWorkflow
 	}
-	_, err = app.ConvertAppType(ctx, &app_service.ConvertAppTypeReq{AppId: workflowId, OldAppType: oldAppType, NewAppType: newAppType})
+	_, err = app.ConvertAppType(ctx.Request.Context(), &app_service.ConvertAppTypeReq{AppId: workflowId, OldAppType: oldAppType, NewAppType: newAppType})
 	return err
 }
 
 func PublishedWorkflowRun(ctx *gin.Context, userId, orgId string, req request.WorkflowRunReq) (result *response.CozeNodeResult, err error) {
 	// Step 1: 触发异步执行（使用web的test_run接口），获取executeId
 	startTime := time.Now()
-	isSuccess := false
+	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	defer func() {
 		costs := time.Since(startTime).Milliseconds()
-		RecordAppStatistic(ctx.Request.Context(), userId, orgId, req.WorkflowID, constant.AppTypeWorkflow, isSuccess, false, 0, int64(costs), constant.AppStatisticSourceWeb)
+		statusCode, failureReason := GrpcErrorToHTTPStatus(err)
+		respBody := ""
+		if result != nil {
+			if b, e := json.Marshal(result); e == nil {
+				respBody = string(b)
+			}
+		}
+		go func() {
+			defer util.PrintPanicStack()
+			question := MarshalStatisticBody(req.Input)
+			RecordAppStatistic(detachedCtx, userId, orgId, req.WorkflowID, constant.AppTypeWorkflow, "",
+				statusCode, failureReason, false, 0, int64(costs), constant.BizSourceWeb, MarshalStatisticBody(req), respBody, question, respBody)
+		}()
 	}()
 
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.WorkflowRunLatestVersionUri)
 	testRunRet := &response.CozeWorkflowTestRunResponse{}
-	resp, err := resty.New().
+	resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -381,7 +455,7 @@ func PublishedWorkflowRun(ctx *gin.Context, userId, orgId string, req request.Wo
 
 		case <-ticker.C:
 			// 执行一次状态查询
-			statusResp, err := resty.New().
+			statusResp, err := trace_util.NewResty(ctx).
 				R().
 				SetContext(pollCtx). // 使用带超时的 context
 				SetHeader("Content-Type", "application/json").
@@ -417,7 +491,6 @@ func PublishedWorkflowRun(ctx *gin.Context, userId, orgId string, req request.Wo
 			case 2: // Success
 				for _, nodeResult := range data.NodeResults {
 					if nodeResult.NodeType == "End" && nodeResult.NodeId == "900001" {
-						isSuccess = true
 						return nodeResult, nil
 					}
 				}
@@ -458,7 +531,7 @@ func PublishWorkflow(ctx *gin.Context, orgID, workflowID, version, versionDesc s
 	}
 	url := config.Cfg().Workflow.Endpoint + config.Cfg().Workflow.PublishUri
 	ret := &response.CozeCommonResp{}
-	resp, err := resty.New().R().
+	resp, err := trace_util.NewResty(ctx).R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
@@ -481,7 +554,7 @@ func PublishWorkflow(ctx *gin.Context, orgID, workflowID, version, versionDesc s
 func GetWorkflowVersionList(ctx *gin.Context, workflowID string) (*response.CozeWorkflowVersionListData, error) {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.VersionListUri)
 	ret := &response.CozeWorkflowVersionListResp{}
-	resp, err := resty.New().
+	resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -510,7 +583,7 @@ func GetWorkflowVersionList(ctx *gin.Context, workflowID string) (*response.Coze
 func MultiGetWorkflowVersionList(ctx *gin.Context, workflowIDs []string) ([]*response.CozeWorkflowVersionInfo, error) {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.MultiVersionListUri)
 	ret := &response.CozeMGetWorkflowLatestVersionResponse{}
-	resp, err := resty.New().
+	resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -538,7 +611,7 @@ func MultiGetWorkflowVersionList(ctx *gin.Context, workflowIDs []string) ([]*res
 func GetWorkflowVersion(ctx *gin.Context, appID string) (string, string, error) {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.VersionListUri)
 	ret := &response.CozeWorkflowVersionListResp{}
-	resp, err := resty.New().
+	resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -574,7 +647,7 @@ func GetWorkflowVersion(ctx *gin.Context, appID string) (string, string, error) 
 func UpdateWorkflowVersionDesc(ctx *gin.Context, workflowID, description string) error {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.UpdateVersionDescUri)
 	ret := &response.CozeCommonResp{}
-	resp, err := resty.New().
+	resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -604,7 +677,7 @@ func UpdateWorkflowVersionDesc(ctx *gin.Context, workflowID, description string)
 func RollbackWorkflowVersion(ctx *gin.Context, workflowID, version string) error {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.RollbackUri)
 	ret := &response.CozeCommonResp{}
-	resp, err := resty.New().
+	resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -633,7 +706,7 @@ func RollbackWorkflowVersion(ctx *gin.Context, workflowID, version string) error
 
 func GetWorkflowSchemas(ctx *gin.Context, workflowIDs []string) ([]*openapi3.T, error) {
 	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ListSchemaUri)
-	resp, err := resty.New().
+	resp, err := trace_util.NewResty(ctx).
 		R().
 		SetContext(ctx.Request.Context()).
 		SetHeader("Content-Type", "application/json").
@@ -666,9 +739,67 @@ func GetWorkflowSchemas(ctx *gin.Context, workflowIDs []string) ([]*openapi3.T, 
 		if err != nil {
 			return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_list_schema", fmt.Sprintf("failed to load schema: %v", err))
 		}
+		// 注入 x-wanwu-type 扩展字段，用于 skill 子目录分类
+		if doc.Info != nil {
+			if doc.Info.Extensions == nil {
+				doc.Info.Extensions = make(map[string]interface{})
+			}
+			if _, exists := doc.Info.Extensions["x-wanwu-type"]; !exists {
+				doc.Info.Extensions["x-wanwu-type"] = "workflow"
+			}
+		}
 		ret = append(ret, doc)
 	}
 	return ret, nil
+}
+
+// --- BizService 注册（AdminCenterBiz 权限校验用） ---
+
+var workflowBizImpl = &WorkflowBiz{}
+
+type WorkflowBiz struct{}
+
+func init() {
+	InitBizService(workflowBizImpl)
+}
+
+func (*WorkflowBiz) BizType() string {
+	return constant.BizModuleAppWorkflow
+}
+
+func (*WorkflowBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	url, _ := net_url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.ListUri)
+	var listResp response.CozeWorkflowListResp
+	r, e := trace_util.NewResty(ctx).
+		R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Accept", "application/json").
+		SetBody(map[string]any{"workflow_ids": []string{bizId}}).
+		SetQueryParams(map[string]string{"page": "1", "size": "1"}).
+		SetResult(&listResp).
+		Post(url)
+	if e != nil {
+		return "", "", e
+	}
+	if r.StatusCode() >= 300 {
+		return "", "", fmt.Errorf("workflow engine status %d", r.StatusCode())
+	}
+	if listResp.Code != 0 {
+		return "", "", fmt.Errorf("workflow engine code %d msg %s", listResp.Code, listResp.Msg)
+	}
+	if listResp.Data == nil || len(listResp.Data.Workflows) == 0 {
+		return "", "", errors.New("workflow not found")
+	}
+	wf := listResp.Data.Workflows[0]
+	if wf.Creator == nil {
+		return "", "", errors.New("workflow creator not found")
+	}
+	return wf.Creator.ID, wf.SpaceID, nil
+}
+
+func (*WorkflowBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
 }
 
 // --- internal ---
@@ -680,9 +811,14 @@ type workflowImportData struct {
 }
 
 func workflowHttpReqHeader(ctx *gin.Context) map[string]string {
+	// X-Org-Id 优先从 gin.Context 读取（中间件已设置），如果没有则从 header 读取
+	orgID := ctx.GetString(gin_util.X_ORG_ID)
+	if orgID == "" {
+		orgID = ctx.GetHeader(gin_util.X_ORG_ID)
+	}
 	return map[string]string{
 		"Authorization": ctx.GetHeader("Authorization"),
-		"X-Org-Id":      ctx.GetHeader(gin_util.X_ORG_ID),
+		"X-Org-Id":      orgID,
 		"X-User-Id":     ctx.GetString(gin_util.USER_ID),
 		"Content-Type":  "application/json",
 	}
@@ -706,6 +842,9 @@ func toModelInfo4Workflow(modelInfo *response.ModelInfo) (*response.CozeWorkflow
 
 	ret := &response.CozeWorkflowModelInfo{
 		ModelInfo: *modelInfo,
+		ModelAbility: response.CozeWorkflowModelInfoAbility{
+			CotDisplay: true, // 固定给llm节点增加 reasoning_content 字段
+		},
 	}
 	if modelInfo.Config != nil {
 		cfg := make(map[string]interface{})

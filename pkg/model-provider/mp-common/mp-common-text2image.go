@@ -8,8 +8,8 @@ import (
 	"io"
 
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
-	"github.com/go-resty/resty/v2"
 )
 
 // --- openapi request ---
@@ -132,7 +132,7 @@ func Text2Image(ctx context.Context, provider, apiKey, url string, req map[strin
 	}
 	formdata := util.ConvertMapToString(req)
 
-	request := resty.New().
+	request := trace_util.NewResty(ctx).
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验
 		SetTimeout(0).                                             // 关闭请求超时
 		R().

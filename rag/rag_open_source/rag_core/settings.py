@@ -33,8 +33,6 @@ GRAPH_SERVER_URL = config.getstr('KAFKA', 'GRAPH_SERVER_URL')
 MQ_REL_URL = os.getenv("KAFKA_MQ_REL_URL")
 if MQ_REL_URL is None:
     MQ_REL_URL = config.getstr('KAFKA', 'MQ_REL_URL')
-MQ_URL_URL = config.getstr('KAFKA', 'MQ_URL_URL')
-MQ_URLINSERT_URL = config.getstr('KAFKA', 'MQ_URLINSERT_URL')
 MQ_KB_STATUS_URL = os.getenv("KAFKA_MQ_KB_STATUS_URL")
 if MQ_KB_STATUS_URL is None:
     MQ_KB_STATUS_URL = config.getstr('KAFKA', 'MQ_KB_STATUS_URL')
@@ -62,8 +60,8 @@ if MINIO_ADDRESS is None or MINIO_ACCESS_KEY is None or MINIO_SECRET_KEY is None
 MINIO_UPLOAD_BUCKET_NAME = config.getstr('MINIO', 'MINIO_UPLOAD_BUCKET_NAME')
 SECURE = config.getboolean('MINIO', 'SECURE')
 REPLACE_MINIO_DOWNLOAD_URL = os.getenv("REPLACE_MINIO_DOWNLOAD_URL")
-if REPLACE_MINIO_DOWNLOAD_URL is None:
-    REPLACE_MINIO_DOWNLOAD_URL = config.getstr('MINIO', 'REPLACE_MINIO_DOWNLOAD_URL')
+if not REPLACE_MINIO_DOWNLOAD_URL:
+    raise ValueError("REPLACE_MINIO_DOWNLOAD_URL 环境变量未设置或为空，请检查部署配置")
 
 
 # redis
@@ -90,6 +88,14 @@ TEMPERATURE = config.getfloat('LLM', 'TEMPERATURE')
 # rerank
 TRUNCATE_PROMPT = config.getboolean('LLM', 'TRUNCATE_PROMPT')
 CONTEXT_LENGTH = config.getint('LLM', 'CONTEXT_LENGTH')
+# 为模型输出预留的固定 token 空间（不再使用配置的 max_tokens 做预算，
+# 避免 maxTokens 配置接近 contextSize 时参考信息被全部截断导致问答无输出）
+# 环境变量 RESERVED_FOR_OUTPUT 优先，未设则读 config.ini [LLM] RESERVED_FOR_OUTPUT
+_reserved_for_output_env = os.getenv("RESERVED_FOR_OUTPUT")
+if _reserved_for_output_env is not None:
+    RESERVED_FOR_OUTPUT = int(_reserved_for_output_env)
+else:
+    RESERVED_FOR_OUTPUT = config.getint('LLM', 'RESERVED_FOR_OUTPUT')
 
 
 # Milvus wrap server

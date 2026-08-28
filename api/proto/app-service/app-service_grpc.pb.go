@@ -8,6 +8,7 @@ package app_service
 
 import (
 	context "context"
+	common "github.com/UnicomAI/wanwu/api/proto/common"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -20,47 +21,69 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AppService_CreateApiKey_FullMethodName                 = "/app_service.AppService/CreateApiKey"
-	AppService_DeleteApiKey_FullMethodName                 = "/app_service.AppService/DeleteApiKey"
-	AppService_ListApiKeys_FullMethodName                  = "/app_service.AppService/ListApiKeys"
-	AppService_UpdateApiKey_FullMethodName                 = "/app_service.AppService/UpdateApiKey"
-	AppService_UpdateApiKeyStatus_FullMethodName           = "/app_service.AppService/UpdateApiKeyStatus"
-	AppService_GetApiKeyByKey_FullMethodName               = "/app_service.AppService/GetApiKeyByKey"
-	AppService_GenAppKey_FullMethodName                    = "/app_service.AppService/GenAppKey"
-	AppService_GetAppKeyList_FullMethodName                = "/app_service.AppService/GetAppKeyList"
-	AppService_DelAppKey_FullMethodName                    = "/app_service.AppService/DelAppKey"
-	AppService_GetAppKeyByKey_FullMethodName               = "/app_service.AppService/GetAppKeyByKey"
-	AppService_GetExplorationAppList_FullMethodName        = "/app_service.AppService/GetExplorationAppList"
-	AppService_ChangeExplorationAppFavorite_FullMethodName = "/app_service.AppService/ChangeExplorationAppFavorite"
-	AppService_RecordAppHistory_FullMethodName             = "/app_service.AppService/RecordAppHistory"
-	AppService_PublishApp_FullMethodName                   = "/app_service.AppService/PublishApp"
-	AppService_UnPublishApp_FullMethodName                 = "/app_service.AppService/UnPublishApp"
-	AppService_GetAppList_FullMethodName                   = "/app_service.AppService/GetAppList"
-	AppService_GetAppListByIds_FullMethodName              = "/app_service.AppService/GetAppListByIds"
-	AppService_DeleteApp_FullMethodName                    = "/app_service.AppService/DeleteApp"
-	AppService_GetAppInfo_FullMethodName                   = "/app_service.AppService/GetAppInfo"
-	AppService_ConvertAppType_FullMethodName               = "/app_service.AppService/ConvertAppType"
-	AppService_AppUrlCreate_FullMethodName                 = "/app_service.AppService/AppUrlCreate"
-	AppService_AppUrlDelete_FullMethodName                 = "/app_service.AppService/AppUrlDelete"
-	AppService_AppUrlUpdate_FullMethodName                 = "/app_service.AppService/AppUrlUpdate"
-	AppService_GetAppUrlList_FullMethodName                = "/app_service.AppService/GetAppUrlList"
-	AppService_GetAppUrlInfoBySuffix_FullMethodName        = "/app_service.AppService/GetAppUrlInfoBySuffix"
-	AppService_AppUrlStatusSwitch_FullMethodName           = "/app_service.AppService/AppUrlStatusSwitch"
-	AppService_GetConversationByID_FullMethodName          = "/app_service.AppService/GetConversationByID"
-	AppService_CreateConversation_FullMethodName           = "/app_service.AppService/CreateConversation"
-	AppService_GetChatflowApplication_FullMethodName       = "/app_service.AppService/GetChatflowApplication"
-	AppService_GetChatflowByApplicationID_FullMethodName   = "/app_service.AppService/GetChatflowByApplicationID"
-	AppService_CreateChatflowApplication_FullMethodName    = "/app_service.AppService/CreateChatflowApplication"
-	AppService_GetModelStatistic_FullMethodName            = "/app_service.AppService/GetModelStatistic"
-	AppService_RecordModelStatistic_FullMethodName         = "/app_service.AppService/RecordModelStatistic"
-	AppService_GetModelStatisticList_FullMethodName        = "/app_service.AppService/GetModelStatisticList"
-	AppService_GetAppStatistic_FullMethodName              = "/app_service.AppService/GetAppStatistic"
-	AppService_RecordAppStatistic_FullMethodName           = "/app_service.AppService/RecordAppStatistic"
-	AppService_GetAppStatisticList_FullMethodName          = "/app_service.AppService/GetAppStatisticList"
-	AppService_GetAPIKeyStatistic_FullMethodName           = "/app_service.AppService/GetAPIKeyStatistic"
-	AppService_GetAPIKeyStatisticList_FullMethodName       = "/app_service.AppService/GetAPIKeyStatisticList"
-	AppService_GetAPIKeyStatisticRecord_FullMethodName     = "/app_service.AppService/GetAPIKeyStatisticRecord"
-	AppService_RecordAPIKeyStatistic_FullMethodName        = "/app_service.AppService/RecordAPIKeyStatistic"
+	AppService_CreateApiKey_FullMethodName                       = "/app_service.AppService/CreateApiKey"
+	AppService_DeleteApiKey_FullMethodName                       = "/app_service.AppService/DeleteApiKey"
+	AppService_ListApiKeys_FullMethodName                        = "/app_service.AppService/ListApiKeys"
+	AppService_UpdateApiKey_FullMethodName                       = "/app_service.AppService/UpdateApiKey"
+	AppService_UpdateApiKeyStatus_FullMethodName                 = "/app_service.AppService/UpdateApiKeyStatus"
+	AppService_GetApiKeyByKey_FullMethodName                     = "/app_service.AppService/GetApiKeyByKey"
+	AppService_GenAppKey_FullMethodName                          = "/app_service.AppService/GenAppKey"
+	AppService_GetAppKeyList_FullMethodName                      = "/app_service.AppService/GetAppKeyList"
+	AppService_DelAppKey_FullMethodName                          = "/app_service.AppService/DelAppKey"
+	AppService_GetAppKeyByKey_FullMethodName                     = "/app_service.AppService/GetAppKeyByKey"
+	AppService_GetExplorationAppList_FullMethodName              = "/app_service.AppService/GetExplorationAppList"
+	AppService_ChangeExplorationAppFavorite_FullMethodName       = "/app_service.AppService/ChangeExplorationAppFavorite"
+	AppService_RecordAppHistory_FullMethodName                   = "/app_service.AppService/RecordAppHistory"
+	AppService_PublishApp_FullMethodName                         = "/app_service.AppService/PublishApp"
+	AppService_UnPublishApp_FullMethodName                       = "/app_service.AppService/UnPublishApp"
+	AppService_GetAppList_FullMethodName                         = "/app_service.AppService/GetAppList"
+	AppService_GetAppListByIds_FullMethodName                    = "/app_service.AppService/GetAppListByIds"
+	AppService_DeleteApp_FullMethodName                          = "/app_service.AppService/DeleteApp"
+	AppService_GetAppInfo_FullMethodName                         = "/app_service.AppService/GetAppInfo"
+	AppService_ConvertAppType_FullMethodName                     = "/app_service.AppService/ConvertAppType"
+	AppService_AppUrlCreate_FullMethodName                       = "/app_service.AppService/AppUrlCreate"
+	AppService_AppUrlDelete_FullMethodName                       = "/app_service.AppService/AppUrlDelete"
+	AppService_AppUrlUpdate_FullMethodName                       = "/app_service.AppService/AppUrlUpdate"
+	AppService_GetAppUrlList_FullMethodName                      = "/app_service.AppService/GetAppUrlList"
+	AppService_GetAppUrlInfoBySuffix_FullMethodName              = "/app_service.AppService/GetAppUrlInfoBySuffix"
+	AppService_AppUrlStatusSwitch_FullMethodName                 = "/app_service.AppService/AppUrlStatusSwitch"
+	AppService_GetConversationByID_FullMethodName                = "/app_service.AppService/GetConversationByID"
+	AppService_CreateConversation_FullMethodName                 = "/app_service.AppService/CreateConversation"
+	AppService_GetChatflowApplication_FullMethodName             = "/app_service.AppService/GetChatflowApplication"
+	AppService_GetChatflowByApplicationID_FullMethodName         = "/app_service.AppService/GetChatflowByApplicationID"
+	AppService_CreateChatflowApplication_FullMethodName          = "/app_service.AppService/CreateChatflowApplication"
+	AppService_RecordModelStatisticV2_FullMethodName             = "/app_service.AppService/RecordModelStatisticV2"
+	AppService_GetModelStatisticV2Overview_FullMethodName        = "/app_service.AppService/GetModelStatisticV2Overview"
+	AppService_GetModelStatisticV2Chart_FullMethodName           = "/app_service.AppService/GetModelStatisticV2Chart"
+	AppService_GetModelStatisticV2List_FullMethodName            = "/app_service.AppService/GetModelStatisticV2List"
+	AppService_GetModelStatisticV2UserList_FullMethodName        = "/app_service.AppService/GetModelStatisticV2UserList"
+	AppService_GetModelStatisticV2AppList_FullMethodName         = "/app_service.AppService/GetModelStatisticV2AppList"
+	AppService_GetModelStatisticV2Record_FullMethodName          = "/app_service.AppService/GetModelStatisticV2Record"
+	AppService_GetModelStatisticV2Select_FullMethodName          = "/app_service.AppService/GetModelStatisticV2Select"
+	AppService_RecordAppStatisticV2_FullMethodName               = "/app_service.AppService/RecordAppStatisticV2"
+	AppService_GetAppStatisticV2Overview_FullMethodName          = "/app_service.AppService/GetAppStatisticV2Overview"
+	AppService_GetAppStatisticV2Chart_FullMethodName             = "/app_service.AppService/GetAppStatisticV2Chart"
+	AppService_GetAppStatisticV2List_FullMethodName              = "/app_service.AppService/GetAppStatisticV2List"
+	AppService_GetAppStatisticV2UserList_FullMethodName          = "/app_service.AppService/GetAppStatisticV2UserList"
+	AppService_GetAppStatisticV2ModelList_FullMethodName         = "/app_service.AppService/GetAppStatisticV2ModelList"
+	AppService_GetAppStatisticV2Record_FullMethodName            = "/app_service.AppService/GetAppStatisticV2Record"
+	AppService_GetAppStatisticV2Select_FullMethodName            = "/app_service.AppService/GetAppStatisticV2Select"
+	AppService_RecordAPIKeyStatisticV2_FullMethodName            = "/app_service.AppService/RecordAPIKeyStatisticV2"
+	AppService_GetAPIKeyStatisticV2Overview_FullMethodName       = "/app_service.AppService/GetAPIKeyStatisticV2Overview"
+	AppService_GetAPIKeyStatisticV2Chart_FullMethodName          = "/app_service.AppService/GetAPIKeyStatisticV2Chart"
+	AppService_GetAPIKeyStatisticV2List_FullMethodName           = "/app_service.AppService/GetAPIKeyStatisticV2List"
+	AppService_GetAPIKeyStatisticV2AppList_FullMethodName        = "/app_service.AppService/GetAPIKeyStatisticV2AppList"
+	AppService_GetAPIKeyStatisticV2ModelList_FullMethodName      = "/app_service.AppService/GetAPIKeyStatisticV2ModelList"
+	AppService_GetAPIKeyStatisticV2Record_FullMethodName         = "/app_service.AppService/GetAPIKeyStatisticV2Record"
+	AppService_GetConversationLogList_FullMethodName             = "/app_service.AppService/GetConversationLogList"
+	AppService_GetConversationLog_FullMethodName                 = "/app_service.AppService/GetConversationLog"
+	AppService_GetConversationLogByLogIds_FullMethodName         = "/app_service.AppService/GetConversationLogByLogIds"
+	AppService_RecordConversationLog_FullMethodName              = "/app_service.AppService/RecordConversationLog"
+	AppService_GetConversationLogUserSelect_FullMethodName       = "/app_service.AppService/GetConversationLogUserSelect"
+	AppService_DeleteConversationLogByAppId_FullMethodName       = "/app_service.AppService/DeleteConversationLogByAppId"
+	AppService_ExportConversationLog_FullMethodName              = "/app_service.AppService/ExportConversationLog"
+	AppService_GetConversationLogExportRecordList_FullMethodName = "/app_service.AppService/GetConversationLogExportRecordList"
+	AppService_DeleteConversationLogExportRecord_FullMethodName  = "/app_service.AppService/DeleteConversationLogExportRecord"
 )
 
 // AppServiceClient is the client API for AppService service.
@@ -105,18 +128,43 @@ type AppServiceClient interface {
 	GetChatflowApplication(ctx context.Context, in *GetChatflowApplicationReq, opts ...grpc.CallOption) (*ChatflowApplicationInfo, error)
 	GetChatflowByApplicationID(ctx context.Context, in *GetChatflowByApplicationIDReq, opts ...grpc.CallOption) (*ChatflowApplicationInfo, error)
 	CreateChatflowApplication(ctx context.Context, in *CreateChatflowApplicationReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// --- statistic ---
-	GetModelStatistic(ctx context.Context, in *GetModelStatisticReq, opts ...grpc.CallOption) (*ModelStatistic, error)
-	RecordModelStatistic(ctx context.Context, in *RecordModelStatisticReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	GetModelStatisticList(ctx context.Context, in *GetModelStatisticListReq, opts ...grpc.CallOption) (*GetModelStatisticListResp, error)
-	GetAppStatistic(ctx context.Context, in *GetAppStatisticReq, opts ...grpc.CallOption) (*AppStatistic, error)
-	RecordAppStatistic(ctx context.Context, in *RecordAppStatisticReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	GetAppStatisticList(ctx context.Context, in *GetAppStatisticListReq, opts ...grpc.CallOption) (*GetAppStatisticListResp, error)
-	// --- api key statistic ---
-	GetAPIKeyStatistic(ctx context.Context, in *GetAPIKeyStatisticReq, opts ...grpc.CallOption) (*APIKeyStatistic, error)
-	GetAPIKeyStatisticList(ctx context.Context, in *GetAPIKeyStatisticListReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticListResp, error)
-	GetAPIKeyStatisticRecord(ctx context.Context, in *GetAPIKeyStatisticRecordReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticRecordResp, error)
-	RecordAPIKeyStatistic(ctx context.Context, in *RecordAPIKeyStatisticReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// --- model statistic v2 ---
+	RecordModelStatisticV2(ctx context.Context, in *RecordModelStatisticV2Req, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetModelStatisticV2Overview(ctx context.Context, in *GetModelStatisticV2ReadReq, opts ...grpc.CallOption) (*ModelStatisticV2Overview, error)
+	GetModelStatisticV2Chart(ctx context.Context, in *GetModelStatisticV2ChartReq, opts ...grpc.CallOption) (*ModelStatisticV2Chart, error)
+	GetModelStatisticV2List(ctx context.Context, in *GetModelStatisticV2ListReq, opts ...grpc.CallOption) (*GetModelStatisticV2ListResp, error)
+	GetModelStatisticV2UserList(ctx context.Context, in *GetModelStatisticV2UserListReq, opts ...grpc.CallOption) (*GetModelStatisticV2UserListResp, error)
+	GetModelStatisticV2AppList(ctx context.Context, in *GetModelStatisticV2AppListReq, opts ...grpc.CallOption) (*GetModelStatisticV2AppListResp, error)
+	GetModelStatisticV2Record(ctx context.Context, in *GetModelStatisticV2RecordReq, opts ...grpc.CallOption) (*GetModelStatisticV2RecordResp, error)
+	GetModelStatisticV2Select(ctx context.Context, in *GetModelStatisticV2SelectReq, opts ...grpc.CallOption) (*GetModelStatisticV2SelectResp, error)
+	// --- app statistic v2 ---
+	RecordAppStatisticV2(ctx context.Context, in *RecordAppStatisticV2Req, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetAppStatisticV2Overview(ctx context.Context, in *GetAppStatisticV2ReadReq, opts ...grpc.CallOption) (*AppStatisticV2Overview, error)
+	GetAppStatisticV2Chart(ctx context.Context, in *GetAppStatisticV2ChartReq, opts ...grpc.CallOption) (*AppStatisticV2Chart, error)
+	GetAppStatisticV2List(ctx context.Context, in *GetAppStatisticV2ListReq, opts ...grpc.CallOption) (*GetAppStatisticV2ListResp, error)
+	GetAppStatisticV2UserList(ctx context.Context, in *GetAppStatisticV2UserListReq, opts ...grpc.CallOption) (*GetAppStatisticV2UserListResp, error)
+	GetAppStatisticV2ModelList(ctx context.Context, in *GetAppStatisticV2ModelListReq, opts ...grpc.CallOption) (*GetAppStatisticV2ModelListResp, error)
+	GetAppStatisticV2Record(ctx context.Context, in *GetAppStatisticV2RecordReq, opts ...grpc.CallOption) (*GetAppStatisticV2RecordResp, error)
+	GetAppStatisticV2Select(ctx context.Context, in *GetAppStatisticV2SelectReq, opts ...grpc.CallOption) (*GetAppStatisticV2SelectResp, error)
+	// --- api key statistic v2 ---
+	RecordAPIKeyStatisticV2(ctx context.Context, in *RecordAPIKeyStatisticV2Req, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetAPIKeyStatisticV2Overview(ctx context.Context, in *GetAPIKeyStatisticV2ReadReq, opts ...grpc.CallOption) (*APIKeyStatisticV2Overview, error)
+	GetAPIKeyStatisticV2Chart(ctx context.Context, in *GetAPIKeyStatisticV2ChartReq, opts ...grpc.CallOption) (*APIKeyStatisticV2Chart, error)
+	GetAPIKeyStatisticV2List(ctx context.Context, in *GetAPIKeyStatisticV2ListReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticV2ListResp, error)
+	GetAPIKeyStatisticV2AppList(ctx context.Context, in *GetAPIKeyStatisticV2AppListReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticV2AppListResp, error)
+	GetAPIKeyStatisticV2ModelList(ctx context.Context, in *GetAPIKeyStatisticV2ModelListReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticV2ModelListResp, error)
+	GetAPIKeyStatisticV2Record(ctx context.Context, in *GetAPIKeyStatisticV2RecordReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticV2RecordResp, error)
+	// --- conversation log ---
+	GetConversationLogList(ctx context.Context, in *GetConversationLogListReq, opts ...grpc.CallOption) (*GetConversationLogListResp, error)
+	GetConversationLog(ctx context.Context, in *GetConversationLogReq, opts ...grpc.CallOption) (*common.ConversationLog, error)
+	GetConversationLogByLogIds(ctx context.Context, in *GetConversationLogByLogIdsReq, opts ...grpc.CallOption) (*GetConversationLogByLogIdsResp, error)
+	RecordConversationLog(ctx context.Context, in *common.ConversationLog, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetConversationLogUserSelect(ctx context.Context, in *GetConversationLogUserSelectReq, opts ...grpc.CallOption) (*GetConversationLogUserSelectResp, error)
+	DeleteConversationLogByAppId(ctx context.Context, in *DeleteConversationLogByAppIdReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// --- conversation log export ---
+	ExportConversationLog(ctx context.Context, in *ExportConversationLogReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetConversationLogExportRecordList(ctx context.Context, in *GetConversationLogExportRecordListReq, opts ...grpc.CallOption) (*GetConversationLogExportRecordListResp, error)
+	DeleteConversationLogExportRecord(ctx context.Context, in *DeleteConversationLogExportRecordReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type appServiceClient struct {
@@ -437,100 +485,320 @@ func (c *appServiceClient) CreateChatflowApplication(ctx context.Context, in *Cr
 	return out, nil
 }
 
-func (c *appServiceClient) GetModelStatistic(ctx context.Context, in *GetModelStatisticReq, opts ...grpc.CallOption) (*ModelStatistic, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ModelStatistic)
-	err := c.cc.Invoke(ctx, AppService_GetModelStatistic_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *appServiceClient) RecordModelStatistic(ctx context.Context, in *RecordModelStatisticReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *appServiceClient) RecordModelStatisticV2(ctx context.Context, in *RecordModelStatisticV2Req, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, AppService_RecordModelStatistic_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, AppService_RecordModelStatisticV2_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *appServiceClient) GetModelStatisticList(ctx context.Context, in *GetModelStatisticListReq, opts ...grpc.CallOption) (*GetModelStatisticListResp, error) {
+func (c *appServiceClient) GetModelStatisticV2Overview(ctx context.Context, in *GetModelStatisticV2ReadReq, opts ...grpc.CallOption) (*ModelStatisticV2Overview, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetModelStatisticListResp)
-	err := c.cc.Invoke(ctx, AppService_GetModelStatisticList_FullMethodName, in, out, cOpts...)
+	out := new(ModelStatisticV2Overview)
+	err := c.cc.Invoke(ctx, AppService_GetModelStatisticV2Overview_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *appServiceClient) GetAppStatistic(ctx context.Context, in *GetAppStatisticReq, opts ...grpc.CallOption) (*AppStatistic, error) {
+func (c *appServiceClient) GetModelStatisticV2Chart(ctx context.Context, in *GetModelStatisticV2ChartReq, opts ...grpc.CallOption) (*ModelStatisticV2Chart, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AppStatistic)
-	err := c.cc.Invoke(ctx, AppService_GetAppStatistic_FullMethodName, in, out, cOpts...)
+	out := new(ModelStatisticV2Chart)
+	err := c.cc.Invoke(ctx, AppService_GetModelStatisticV2Chart_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *appServiceClient) RecordAppStatistic(ctx context.Context, in *RecordAppStatisticReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *appServiceClient) GetModelStatisticV2List(ctx context.Context, in *GetModelStatisticV2ListReq, opts ...grpc.CallOption) (*GetModelStatisticV2ListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetModelStatisticV2ListResp)
+	err := c.cc.Invoke(ctx, AppService_GetModelStatisticV2List_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetModelStatisticV2UserList(ctx context.Context, in *GetModelStatisticV2UserListReq, opts ...grpc.CallOption) (*GetModelStatisticV2UserListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetModelStatisticV2UserListResp)
+	err := c.cc.Invoke(ctx, AppService_GetModelStatisticV2UserList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetModelStatisticV2AppList(ctx context.Context, in *GetModelStatisticV2AppListReq, opts ...grpc.CallOption) (*GetModelStatisticV2AppListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetModelStatisticV2AppListResp)
+	err := c.cc.Invoke(ctx, AppService_GetModelStatisticV2AppList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetModelStatisticV2Record(ctx context.Context, in *GetModelStatisticV2RecordReq, opts ...grpc.CallOption) (*GetModelStatisticV2RecordResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetModelStatisticV2RecordResp)
+	err := c.cc.Invoke(ctx, AppService_GetModelStatisticV2Record_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetModelStatisticV2Select(ctx context.Context, in *GetModelStatisticV2SelectReq, opts ...grpc.CallOption) (*GetModelStatisticV2SelectResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetModelStatisticV2SelectResp)
+	err := c.cc.Invoke(ctx, AppService_GetModelStatisticV2Select_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) RecordAppStatisticV2(ctx context.Context, in *RecordAppStatisticV2Req, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, AppService_RecordAppStatistic_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, AppService_RecordAppStatisticV2_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *appServiceClient) GetAppStatisticList(ctx context.Context, in *GetAppStatisticListReq, opts ...grpc.CallOption) (*GetAppStatisticListResp, error) {
+func (c *appServiceClient) GetAppStatisticV2Overview(ctx context.Context, in *GetAppStatisticV2ReadReq, opts ...grpc.CallOption) (*AppStatisticV2Overview, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAppStatisticListResp)
-	err := c.cc.Invoke(ctx, AppService_GetAppStatisticList_FullMethodName, in, out, cOpts...)
+	out := new(AppStatisticV2Overview)
+	err := c.cc.Invoke(ctx, AppService_GetAppStatisticV2Overview_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *appServiceClient) GetAPIKeyStatistic(ctx context.Context, in *GetAPIKeyStatisticReq, opts ...grpc.CallOption) (*APIKeyStatistic, error) {
+func (c *appServiceClient) GetAppStatisticV2Chart(ctx context.Context, in *GetAppStatisticV2ChartReq, opts ...grpc.CallOption) (*AppStatisticV2Chart, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(APIKeyStatistic)
-	err := c.cc.Invoke(ctx, AppService_GetAPIKeyStatistic_FullMethodName, in, out, cOpts...)
+	out := new(AppStatisticV2Chart)
+	err := c.cc.Invoke(ctx, AppService_GetAppStatisticV2Chart_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *appServiceClient) GetAPIKeyStatisticList(ctx context.Context, in *GetAPIKeyStatisticListReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticListResp, error) {
+func (c *appServiceClient) GetAppStatisticV2List(ctx context.Context, in *GetAppStatisticV2ListReq, opts ...grpc.CallOption) (*GetAppStatisticV2ListResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAPIKeyStatisticListResp)
-	err := c.cc.Invoke(ctx, AppService_GetAPIKeyStatisticList_FullMethodName, in, out, cOpts...)
+	out := new(GetAppStatisticV2ListResp)
+	err := c.cc.Invoke(ctx, AppService_GetAppStatisticV2List_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *appServiceClient) GetAPIKeyStatisticRecord(ctx context.Context, in *GetAPIKeyStatisticRecordReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticRecordResp, error) {
+func (c *appServiceClient) GetAppStatisticV2UserList(ctx context.Context, in *GetAppStatisticV2UserListReq, opts ...grpc.CallOption) (*GetAppStatisticV2UserListResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAPIKeyStatisticRecordResp)
-	err := c.cc.Invoke(ctx, AppService_GetAPIKeyStatisticRecord_FullMethodName, in, out, cOpts...)
+	out := new(GetAppStatisticV2UserListResp)
+	err := c.cc.Invoke(ctx, AppService_GetAppStatisticV2UserList_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *appServiceClient) RecordAPIKeyStatistic(ctx context.Context, in *RecordAPIKeyStatisticReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *appServiceClient) GetAppStatisticV2ModelList(ctx context.Context, in *GetAppStatisticV2ModelListReq, opts ...grpc.CallOption) (*GetAppStatisticV2ModelListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAppStatisticV2ModelListResp)
+	err := c.cc.Invoke(ctx, AppService_GetAppStatisticV2ModelList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetAppStatisticV2Record(ctx context.Context, in *GetAppStatisticV2RecordReq, opts ...grpc.CallOption) (*GetAppStatisticV2RecordResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAppStatisticV2RecordResp)
+	err := c.cc.Invoke(ctx, AppService_GetAppStatisticV2Record_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetAppStatisticV2Select(ctx context.Context, in *GetAppStatisticV2SelectReq, opts ...grpc.CallOption) (*GetAppStatisticV2SelectResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAppStatisticV2SelectResp)
+	err := c.cc.Invoke(ctx, AppService_GetAppStatisticV2Select_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) RecordAPIKeyStatisticV2(ctx context.Context, in *RecordAPIKeyStatisticV2Req, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, AppService_RecordAPIKeyStatistic_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, AppService_RecordAPIKeyStatisticV2_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetAPIKeyStatisticV2Overview(ctx context.Context, in *GetAPIKeyStatisticV2ReadReq, opts ...grpc.CallOption) (*APIKeyStatisticV2Overview, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(APIKeyStatisticV2Overview)
+	err := c.cc.Invoke(ctx, AppService_GetAPIKeyStatisticV2Overview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetAPIKeyStatisticV2Chart(ctx context.Context, in *GetAPIKeyStatisticV2ChartReq, opts ...grpc.CallOption) (*APIKeyStatisticV2Chart, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(APIKeyStatisticV2Chart)
+	err := c.cc.Invoke(ctx, AppService_GetAPIKeyStatisticV2Chart_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetAPIKeyStatisticV2List(ctx context.Context, in *GetAPIKeyStatisticV2ListReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticV2ListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAPIKeyStatisticV2ListResp)
+	err := c.cc.Invoke(ctx, AppService_GetAPIKeyStatisticV2List_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetAPIKeyStatisticV2AppList(ctx context.Context, in *GetAPIKeyStatisticV2AppListReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticV2AppListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAPIKeyStatisticV2AppListResp)
+	err := c.cc.Invoke(ctx, AppService_GetAPIKeyStatisticV2AppList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetAPIKeyStatisticV2ModelList(ctx context.Context, in *GetAPIKeyStatisticV2ModelListReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticV2ModelListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAPIKeyStatisticV2ModelListResp)
+	err := c.cc.Invoke(ctx, AppService_GetAPIKeyStatisticV2ModelList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetAPIKeyStatisticV2Record(ctx context.Context, in *GetAPIKeyStatisticV2RecordReq, opts ...grpc.CallOption) (*GetAPIKeyStatisticV2RecordResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAPIKeyStatisticV2RecordResp)
+	err := c.cc.Invoke(ctx, AppService_GetAPIKeyStatisticV2Record_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetConversationLogList(ctx context.Context, in *GetConversationLogListReq, opts ...grpc.CallOption) (*GetConversationLogListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConversationLogListResp)
+	err := c.cc.Invoke(ctx, AppService_GetConversationLogList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetConversationLog(ctx context.Context, in *GetConversationLogReq, opts ...grpc.CallOption) (*common.ConversationLog, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(common.ConversationLog)
+	err := c.cc.Invoke(ctx, AppService_GetConversationLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetConversationLogByLogIds(ctx context.Context, in *GetConversationLogByLogIdsReq, opts ...grpc.CallOption) (*GetConversationLogByLogIdsResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConversationLogByLogIdsResp)
+	err := c.cc.Invoke(ctx, AppService_GetConversationLogByLogIds_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) RecordConversationLog(ctx context.Context, in *common.ConversationLog, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AppService_RecordConversationLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetConversationLogUserSelect(ctx context.Context, in *GetConversationLogUserSelectReq, opts ...grpc.CallOption) (*GetConversationLogUserSelectResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConversationLogUserSelectResp)
+	err := c.cc.Invoke(ctx, AppService_GetConversationLogUserSelect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) DeleteConversationLogByAppId(ctx context.Context, in *DeleteConversationLogByAppIdReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AppService_DeleteConversationLogByAppId_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) ExportConversationLog(ctx context.Context, in *ExportConversationLogReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AppService_ExportConversationLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) GetConversationLogExportRecordList(ctx context.Context, in *GetConversationLogExportRecordListReq, opts ...grpc.CallOption) (*GetConversationLogExportRecordListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConversationLogExportRecordListResp)
+	err := c.cc.Invoke(ctx, AppService_GetConversationLogExportRecordList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appServiceClient) DeleteConversationLogExportRecord(ctx context.Context, in *DeleteConversationLogExportRecordReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AppService_DeleteConversationLogExportRecord_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -579,18 +847,43 @@ type AppServiceServer interface {
 	GetChatflowApplication(context.Context, *GetChatflowApplicationReq) (*ChatflowApplicationInfo, error)
 	GetChatflowByApplicationID(context.Context, *GetChatflowByApplicationIDReq) (*ChatflowApplicationInfo, error)
 	CreateChatflowApplication(context.Context, *CreateChatflowApplicationReq) (*emptypb.Empty, error)
-	// --- statistic ---
-	GetModelStatistic(context.Context, *GetModelStatisticReq) (*ModelStatistic, error)
-	RecordModelStatistic(context.Context, *RecordModelStatisticReq) (*emptypb.Empty, error)
-	GetModelStatisticList(context.Context, *GetModelStatisticListReq) (*GetModelStatisticListResp, error)
-	GetAppStatistic(context.Context, *GetAppStatisticReq) (*AppStatistic, error)
-	RecordAppStatistic(context.Context, *RecordAppStatisticReq) (*emptypb.Empty, error)
-	GetAppStatisticList(context.Context, *GetAppStatisticListReq) (*GetAppStatisticListResp, error)
-	// --- api key statistic ---
-	GetAPIKeyStatistic(context.Context, *GetAPIKeyStatisticReq) (*APIKeyStatistic, error)
-	GetAPIKeyStatisticList(context.Context, *GetAPIKeyStatisticListReq) (*GetAPIKeyStatisticListResp, error)
-	GetAPIKeyStatisticRecord(context.Context, *GetAPIKeyStatisticRecordReq) (*GetAPIKeyStatisticRecordResp, error)
-	RecordAPIKeyStatistic(context.Context, *RecordAPIKeyStatisticReq) (*emptypb.Empty, error)
+	// --- model statistic v2 ---
+	RecordModelStatisticV2(context.Context, *RecordModelStatisticV2Req) (*emptypb.Empty, error)
+	GetModelStatisticV2Overview(context.Context, *GetModelStatisticV2ReadReq) (*ModelStatisticV2Overview, error)
+	GetModelStatisticV2Chart(context.Context, *GetModelStatisticV2ChartReq) (*ModelStatisticV2Chart, error)
+	GetModelStatisticV2List(context.Context, *GetModelStatisticV2ListReq) (*GetModelStatisticV2ListResp, error)
+	GetModelStatisticV2UserList(context.Context, *GetModelStatisticV2UserListReq) (*GetModelStatisticV2UserListResp, error)
+	GetModelStatisticV2AppList(context.Context, *GetModelStatisticV2AppListReq) (*GetModelStatisticV2AppListResp, error)
+	GetModelStatisticV2Record(context.Context, *GetModelStatisticV2RecordReq) (*GetModelStatisticV2RecordResp, error)
+	GetModelStatisticV2Select(context.Context, *GetModelStatisticV2SelectReq) (*GetModelStatisticV2SelectResp, error)
+	// --- app statistic v2 ---
+	RecordAppStatisticV2(context.Context, *RecordAppStatisticV2Req) (*emptypb.Empty, error)
+	GetAppStatisticV2Overview(context.Context, *GetAppStatisticV2ReadReq) (*AppStatisticV2Overview, error)
+	GetAppStatisticV2Chart(context.Context, *GetAppStatisticV2ChartReq) (*AppStatisticV2Chart, error)
+	GetAppStatisticV2List(context.Context, *GetAppStatisticV2ListReq) (*GetAppStatisticV2ListResp, error)
+	GetAppStatisticV2UserList(context.Context, *GetAppStatisticV2UserListReq) (*GetAppStatisticV2UserListResp, error)
+	GetAppStatisticV2ModelList(context.Context, *GetAppStatisticV2ModelListReq) (*GetAppStatisticV2ModelListResp, error)
+	GetAppStatisticV2Record(context.Context, *GetAppStatisticV2RecordReq) (*GetAppStatisticV2RecordResp, error)
+	GetAppStatisticV2Select(context.Context, *GetAppStatisticV2SelectReq) (*GetAppStatisticV2SelectResp, error)
+	// --- api key statistic v2 ---
+	RecordAPIKeyStatisticV2(context.Context, *RecordAPIKeyStatisticV2Req) (*emptypb.Empty, error)
+	GetAPIKeyStatisticV2Overview(context.Context, *GetAPIKeyStatisticV2ReadReq) (*APIKeyStatisticV2Overview, error)
+	GetAPIKeyStatisticV2Chart(context.Context, *GetAPIKeyStatisticV2ChartReq) (*APIKeyStatisticV2Chart, error)
+	GetAPIKeyStatisticV2List(context.Context, *GetAPIKeyStatisticV2ListReq) (*GetAPIKeyStatisticV2ListResp, error)
+	GetAPIKeyStatisticV2AppList(context.Context, *GetAPIKeyStatisticV2AppListReq) (*GetAPIKeyStatisticV2AppListResp, error)
+	GetAPIKeyStatisticV2ModelList(context.Context, *GetAPIKeyStatisticV2ModelListReq) (*GetAPIKeyStatisticV2ModelListResp, error)
+	GetAPIKeyStatisticV2Record(context.Context, *GetAPIKeyStatisticV2RecordReq) (*GetAPIKeyStatisticV2RecordResp, error)
+	// --- conversation log ---
+	GetConversationLogList(context.Context, *GetConversationLogListReq) (*GetConversationLogListResp, error)
+	GetConversationLog(context.Context, *GetConversationLogReq) (*common.ConversationLog, error)
+	GetConversationLogByLogIds(context.Context, *GetConversationLogByLogIdsReq) (*GetConversationLogByLogIdsResp, error)
+	RecordConversationLog(context.Context, *common.ConversationLog) (*emptypb.Empty, error)
+	GetConversationLogUserSelect(context.Context, *GetConversationLogUserSelectReq) (*GetConversationLogUserSelectResp, error)
+	DeleteConversationLogByAppId(context.Context, *DeleteConversationLogByAppIdReq) (*emptypb.Empty, error)
+	// --- conversation log export ---
+	ExportConversationLog(context.Context, *ExportConversationLogReq) (*emptypb.Empty, error)
+	GetConversationLogExportRecordList(context.Context, *GetConversationLogExportRecordListReq) (*GetConversationLogExportRecordListResp, error)
+	DeleteConversationLogExportRecord(context.Context, *DeleteConversationLogExportRecordReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAppServiceServer()
 }
 
@@ -694,35 +987,101 @@ func (UnimplementedAppServiceServer) GetChatflowByApplicationID(context.Context,
 func (UnimplementedAppServiceServer) CreateChatflowApplication(context.Context, *CreateChatflowApplicationReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateChatflowApplication not implemented")
 }
-func (UnimplementedAppServiceServer) GetModelStatistic(context.Context, *GetModelStatisticReq) (*ModelStatistic, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetModelStatistic not implemented")
+func (UnimplementedAppServiceServer) RecordModelStatisticV2(context.Context, *RecordModelStatisticV2Req) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecordModelStatisticV2 not implemented")
 }
-func (UnimplementedAppServiceServer) RecordModelStatistic(context.Context, *RecordModelStatisticReq) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RecordModelStatistic not implemented")
+func (UnimplementedAppServiceServer) GetModelStatisticV2Overview(context.Context, *GetModelStatisticV2ReadReq) (*ModelStatisticV2Overview, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetModelStatisticV2Overview not implemented")
 }
-func (UnimplementedAppServiceServer) GetModelStatisticList(context.Context, *GetModelStatisticListReq) (*GetModelStatisticListResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetModelStatisticList not implemented")
+func (UnimplementedAppServiceServer) GetModelStatisticV2Chart(context.Context, *GetModelStatisticV2ChartReq) (*ModelStatisticV2Chart, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetModelStatisticV2Chart not implemented")
 }
-func (UnimplementedAppServiceServer) GetAppStatistic(context.Context, *GetAppStatisticReq) (*AppStatistic, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAppStatistic not implemented")
+func (UnimplementedAppServiceServer) GetModelStatisticV2List(context.Context, *GetModelStatisticV2ListReq) (*GetModelStatisticV2ListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetModelStatisticV2List not implemented")
 }
-func (UnimplementedAppServiceServer) RecordAppStatistic(context.Context, *RecordAppStatisticReq) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RecordAppStatistic not implemented")
+func (UnimplementedAppServiceServer) GetModelStatisticV2UserList(context.Context, *GetModelStatisticV2UserListReq) (*GetModelStatisticV2UserListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetModelStatisticV2UserList not implemented")
 }
-func (UnimplementedAppServiceServer) GetAppStatisticList(context.Context, *GetAppStatisticListReq) (*GetAppStatisticListResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAppStatisticList not implemented")
+func (UnimplementedAppServiceServer) GetModelStatisticV2AppList(context.Context, *GetModelStatisticV2AppListReq) (*GetModelStatisticV2AppListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetModelStatisticV2AppList not implemented")
 }
-func (UnimplementedAppServiceServer) GetAPIKeyStatistic(context.Context, *GetAPIKeyStatisticReq) (*APIKeyStatistic, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAPIKeyStatistic not implemented")
+func (UnimplementedAppServiceServer) GetModelStatisticV2Record(context.Context, *GetModelStatisticV2RecordReq) (*GetModelStatisticV2RecordResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetModelStatisticV2Record not implemented")
 }
-func (UnimplementedAppServiceServer) GetAPIKeyStatisticList(context.Context, *GetAPIKeyStatisticListReq) (*GetAPIKeyStatisticListResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAPIKeyStatisticList not implemented")
+func (UnimplementedAppServiceServer) GetModelStatisticV2Select(context.Context, *GetModelStatisticV2SelectReq) (*GetModelStatisticV2SelectResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetModelStatisticV2Select not implemented")
 }
-func (UnimplementedAppServiceServer) GetAPIKeyStatisticRecord(context.Context, *GetAPIKeyStatisticRecordReq) (*GetAPIKeyStatisticRecordResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAPIKeyStatisticRecord not implemented")
+func (UnimplementedAppServiceServer) RecordAppStatisticV2(context.Context, *RecordAppStatisticV2Req) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecordAppStatisticV2 not implemented")
 }
-func (UnimplementedAppServiceServer) RecordAPIKeyStatistic(context.Context, *RecordAPIKeyStatisticReq) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RecordAPIKeyStatistic not implemented")
+func (UnimplementedAppServiceServer) GetAppStatisticV2Overview(context.Context, *GetAppStatisticV2ReadReq) (*AppStatisticV2Overview, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAppStatisticV2Overview not implemented")
+}
+func (UnimplementedAppServiceServer) GetAppStatisticV2Chart(context.Context, *GetAppStatisticV2ChartReq) (*AppStatisticV2Chart, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAppStatisticV2Chart not implemented")
+}
+func (UnimplementedAppServiceServer) GetAppStatisticV2List(context.Context, *GetAppStatisticV2ListReq) (*GetAppStatisticV2ListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAppStatisticV2List not implemented")
+}
+func (UnimplementedAppServiceServer) GetAppStatisticV2UserList(context.Context, *GetAppStatisticV2UserListReq) (*GetAppStatisticV2UserListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAppStatisticV2UserList not implemented")
+}
+func (UnimplementedAppServiceServer) GetAppStatisticV2ModelList(context.Context, *GetAppStatisticV2ModelListReq) (*GetAppStatisticV2ModelListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAppStatisticV2ModelList not implemented")
+}
+func (UnimplementedAppServiceServer) GetAppStatisticV2Record(context.Context, *GetAppStatisticV2RecordReq) (*GetAppStatisticV2RecordResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAppStatisticV2Record not implemented")
+}
+func (UnimplementedAppServiceServer) GetAppStatisticV2Select(context.Context, *GetAppStatisticV2SelectReq) (*GetAppStatisticV2SelectResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAppStatisticV2Select not implemented")
+}
+func (UnimplementedAppServiceServer) RecordAPIKeyStatisticV2(context.Context, *RecordAPIKeyStatisticV2Req) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecordAPIKeyStatisticV2 not implemented")
+}
+func (UnimplementedAppServiceServer) GetAPIKeyStatisticV2Overview(context.Context, *GetAPIKeyStatisticV2ReadReq) (*APIKeyStatisticV2Overview, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAPIKeyStatisticV2Overview not implemented")
+}
+func (UnimplementedAppServiceServer) GetAPIKeyStatisticV2Chart(context.Context, *GetAPIKeyStatisticV2ChartReq) (*APIKeyStatisticV2Chart, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAPIKeyStatisticV2Chart not implemented")
+}
+func (UnimplementedAppServiceServer) GetAPIKeyStatisticV2List(context.Context, *GetAPIKeyStatisticV2ListReq) (*GetAPIKeyStatisticV2ListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAPIKeyStatisticV2List not implemented")
+}
+func (UnimplementedAppServiceServer) GetAPIKeyStatisticV2AppList(context.Context, *GetAPIKeyStatisticV2AppListReq) (*GetAPIKeyStatisticV2AppListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAPIKeyStatisticV2AppList not implemented")
+}
+func (UnimplementedAppServiceServer) GetAPIKeyStatisticV2ModelList(context.Context, *GetAPIKeyStatisticV2ModelListReq) (*GetAPIKeyStatisticV2ModelListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAPIKeyStatisticV2ModelList not implemented")
+}
+func (UnimplementedAppServiceServer) GetAPIKeyStatisticV2Record(context.Context, *GetAPIKeyStatisticV2RecordReq) (*GetAPIKeyStatisticV2RecordResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAPIKeyStatisticV2Record not implemented")
+}
+func (UnimplementedAppServiceServer) GetConversationLogList(context.Context, *GetConversationLogListReq) (*GetConversationLogListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLogList not implemented")
+}
+func (UnimplementedAppServiceServer) GetConversationLog(context.Context, *GetConversationLogReq) (*common.ConversationLog, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLog not implemented")
+}
+func (UnimplementedAppServiceServer) GetConversationLogByLogIds(context.Context, *GetConversationLogByLogIdsReq) (*GetConversationLogByLogIdsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLogByLogIds not implemented")
+}
+func (UnimplementedAppServiceServer) RecordConversationLog(context.Context, *common.ConversationLog) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecordConversationLog not implemented")
+}
+func (UnimplementedAppServiceServer) GetConversationLogUserSelect(context.Context, *GetConversationLogUserSelectReq) (*GetConversationLogUserSelectResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLogUserSelect not implemented")
+}
+func (UnimplementedAppServiceServer) DeleteConversationLogByAppId(context.Context, *DeleteConversationLogByAppIdReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteConversationLogByAppId not implemented")
+}
+func (UnimplementedAppServiceServer) ExportConversationLog(context.Context, *ExportConversationLogReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExportConversationLog not implemented")
+}
+func (UnimplementedAppServiceServer) GetConversationLogExportRecordList(context.Context, *GetConversationLogExportRecordListReq) (*GetConversationLogExportRecordListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLogExportRecordList not implemented")
+}
+func (UnimplementedAppServiceServer) DeleteConversationLogExportRecord(context.Context, *DeleteConversationLogExportRecordReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteConversationLogExportRecord not implemented")
 }
 func (UnimplementedAppServiceServer) mustEmbedUnimplementedAppServiceServer() {}
 func (UnimplementedAppServiceServer) testEmbeddedByValue()                    {}
@@ -1303,182 +1662,578 @@ func _AppService_CreateChatflowApplication_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AppService_GetModelStatistic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetModelStatisticReq)
+func _AppService_RecordModelStatisticV2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordModelStatisticV2Req)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AppServiceServer).GetModelStatistic(ctx, in)
+		return srv.(AppServiceServer).RecordModelStatisticV2(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AppService_GetModelStatistic_FullMethodName,
+		FullMethod: AppService_RecordModelStatisticV2_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServiceServer).GetModelStatistic(ctx, req.(*GetModelStatisticReq))
+		return srv.(AppServiceServer).RecordModelStatisticV2(ctx, req.(*RecordModelStatisticV2Req))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AppService_RecordModelStatistic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RecordModelStatisticReq)
+func _AppService_GetModelStatisticV2Overview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetModelStatisticV2ReadReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AppServiceServer).RecordModelStatistic(ctx, in)
+		return srv.(AppServiceServer).GetModelStatisticV2Overview(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AppService_RecordModelStatistic_FullMethodName,
+		FullMethod: AppService_GetModelStatisticV2Overview_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServiceServer).RecordModelStatistic(ctx, req.(*RecordModelStatisticReq))
+		return srv.(AppServiceServer).GetModelStatisticV2Overview(ctx, req.(*GetModelStatisticV2ReadReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AppService_GetModelStatisticList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetModelStatisticListReq)
+func _AppService_GetModelStatisticV2Chart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetModelStatisticV2ChartReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AppServiceServer).GetModelStatisticList(ctx, in)
+		return srv.(AppServiceServer).GetModelStatisticV2Chart(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AppService_GetModelStatisticList_FullMethodName,
+		FullMethod: AppService_GetModelStatisticV2Chart_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServiceServer).GetModelStatisticList(ctx, req.(*GetModelStatisticListReq))
+		return srv.(AppServiceServer).GetModelStatisticV2Chart(ctx, req.(*GetModelStatisticV2ChartReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AppService_GetAppStatistic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAppStatisticReq)
+func _AppService_GetModelStatisticV2List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetModelStatisticV2ListReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AppServiceServer).GetAppStatistic(ctx, in)
+		return srv.(AppServiceServer).GetModelStatisticV2List(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AppService_GetAppStatistic_FullMethodName,
+		FullMethod: AppService_GetModelStatisticV2List_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServiceServer).GetAppStatistic(ctx, req.(*GetAppStatisticReq))
+		return srv.(AppServiceServer).GetModelStatisticV2List(ctx, req.(*GetModelStatisticV2ListReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AppService_RecordAppStatistic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RecordAppStatisticReq)
+func _AppService_GetModelStatisticV2UserList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetModelStatisticV2UserListReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AppServiceServer).RecordAppStatistic(ctx, in)
+		return srv.(AppServiceServer).GetModelStatisticV2UserList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AppService_RecordAppStatistic_FullMethodName,
+		FullMethod: AppService_GetModelStatisticV2UserList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServiceServer).RecordAppStatistic(ctx, req.(*RecordAppStatisticReq))
+		return srv.(AppServiceServer).GetModelStatisticV2UserList(ctx, req.(*GetModelStatisticV2UserListReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AppService_GetAppStatisticList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAppStatisticListReq)
+func _AppService_GetModelStatisticV2AppList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetModelStatisticV2AppListReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AppServiceServer).GetAppStatisticList(ctx, in)
+		return srv.(AppServiceServer).GetModelStatisticV2AppList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AppService_GetAppStatisticList_FullMethodName,
+		FullMethod: AppService_GetModelStatisticV2AppList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServiceServer).GetAppStatisticList(ctx, req.(*GetAppStatisticListReq))
+		return srv.(AppServiceServer).GetModelStatisticV2AppList(ctx, req.(*GetModelStatisticV2AppListReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AppService_GetAPIKeyStatistic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAPIKeyStatisticReq)
+func _AppService_GetModelStatisticV2Record_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetModelStatisticV2RecordReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AppServiceServer).GetAPIKeyStatistic(ctx, in)
+		return srv.(AppServiceServer).GetModelStatisticV2Record(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AppService_GetAPIKeyStatistic_FullMethodName,
+		FullMethod: AppService_GetModelStatisticV2Record_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServiceServer).GetAPIKeyStatistic(ctx, req.(*GetAPIKeyStatisticReq))
+		return srv.(AppServiceServer).GetModelStatisticV2Record(ctx, req.(*GetModelStatisticV2RecordReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AppService_GetAPIKeyStatisticList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAPIKeyStatisticListReq)
+func _AppService_GetModelStatisticV2Select_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetModelStatisticV2SelectReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AppServiceServer).GetAPIKeyStatisticList(ctx, in)
+		return srv.(AppServiceServer).GetModelStatisticV2Select(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AppService_GetAPIKeyStatisticList_FullMethodName,
+		FullMethod: AppService_GetModelStatisticV2Select_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServiceServer).GetAPIKeyStatisticList(ctx, req.(*GetAPIKeyStatisticListReq))
+		return srv.(AppServiceServer).GetModelStatisticV2Select(ctx, req.(*GetModelStatisticV2SelectReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AppService_GetAPIKeyStatisticRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAPIKeyStatisticRecordReq)
+func _AppService_RecordAppStatisticV2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordAppStatisticV2Req)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AppServiceServer).GetAPIKeyStatisticRecord(ctx, in)
+		return srv.(AppServiceServer).RecordAppStatisticV2(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AppService_GetAPIKeyStatisticRecord_FullMethodName,
+		FullMethod: AppService_RecordAppStatisticV2_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServiceServer).GetAPIKeyStatisticRecord(ctx, req.(*GetAPIKeyStatisticRecordReq))
+		return srv.(AppServiceServer).RecordAppStatisticV2(ctx, req.(*RecordAppStatisticV2Req))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AppService_RecordAPIKeyStatistic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RecordAPIKeyStatisticReq)
+func _AppService_GetAppStatisticV2Overview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAppStatisticV2ReadReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AppServiceServer).RecordAPIKeyStatistic(ctx, in)
+		return srv.(AppServiceServer).GetAppStatisticV2Overview(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AppService_RecordAPIKeyStatistic_FullMethodName,
+		FullMethod: AppService_GetAppStatisticV2Overview_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppServiceServer).RecordAPIKeyStatistic(ctx, req.(*RecordAPIKeyStatisticReq))
+		return srv.(AppServiceServer).GetAppStatisticV2Overview(ctx, req.(*GetAppStatisticV2ReadReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetAppStatisticV2Chart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAppStatisticV2ChartReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetAppStatisticV2Chart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetAppStatisticV2Chart_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetAppStatisticV2Chart(ctx, req.(*GetAppStatisticV2ChartReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetAppStatisticV2List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAppStatisticV2ListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetAppStatisticV2List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetAppStatisticV2List_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetAppStatisticV2List(ctx, req.(*GetAppStatisticV2ListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetAppStatisticV2UserList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAppStatisticV2UserListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetAppStatisticV2UserList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetAppStatisticV2UserList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetAppStatisticV2UserList(ctx, req.(*GetAppStatisticV2UserListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetAppStatisticV2ModelList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAppStatisticV2ModelListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetAppStatisticV2ModelList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetAppStatisticV2ModelList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetAppStatisticV2ModelList(ctx, req.(*GetAppStatisticV2ModelListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetAppStatisticV2Record_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAppStatisticV2RecordReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetAppStatisticV2Record(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetAppStatisticV2Record_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetAppStatisticV2Record(ctx, req.(*GetAppStatisticV2RecordReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetAppStatisticV2Select_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAppStatisticV2SelectReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetAppStatisticV2Select(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetAppStatisticV2Select_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetAppStatisticV2Select(ctx, req.(*GetAppStatisticV2SelectReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_RecordAPIKeyStatisticV2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecordAPIKeyStatisticV2Req)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).RecordAPIKeyStatisticV2(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_RecordAPIKeyStatisticV2_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).RecordAPIKeyStatisticV2(ctx, req.(*RecordAPIKeyStatisticV2Req))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetAPIKeyStatisticV2Overview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAPIKeyStatisticV2ReadReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetAPIKeyStatisticV2Overview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetAPIKeyStatisticV2Overview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetAPIKeyStatisticV2Overview(ctx, req.(*GetAPIKeyStatisticV2ReadReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetAPIKeyStatisticV2Chart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAPIKeyStatisticV2ChartReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetAPIKeyStatisticV2Chart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetAPIKeyStatisticV2Chart_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetAPIKeyStatisticV2Chart(ctx, req.(*GetAPIKeyStatisticV2ChartReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetAPIKeyStatisticV2List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAPIKeyStatisticV2ListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetAPIKeyStatisticV2List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetAPIKeyStatisticV2List_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetAPIKeyStatisticV2List(ctx, req.(*GetAPIKeyStatisticV2ListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetAPIKeyStatisticV2AppList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAPIKeyStatisticV2AppListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetAPIKeyStatisticV2AppList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetAPIKeyStatisticV2AppList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetAPIKeyStatisticV2AppList(ctx, req.(*GetAPIKeyStatisticV2AppListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetAPIKeyStatisticV2ModelList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAPIKeyStatisticV2ModelListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetAPIKeyStatisticV2ModelList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetAPIKeyStatisticV2ModelList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetAPIKeyStatisticV2ModelList(ctx, req.(*GetAPIKeyStatisticV2ModelListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetAPIKeyStatisticV2Record_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAPIKeyStatisticV2RecordReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetAPIKeyStatisticV2Record(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetAPIKeyStatisticV2Record_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetAPIKeyStatisticV2Record(ctx, req.(*GetAPIKeyStatisticV2RecordReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetConversationLogList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConversationLogListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetConversationLogList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetConversationLogList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetConversationLogList(ctx, req.(*GetConversationLogListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetConversationLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConversationLogReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetConversationLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetConversationLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetConversationLog(ctx, req.(*GetConversationLogReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetConversationLogByLogIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConversationLogByLogIdsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetConversationLogByLogIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetConversationLogByLogIds_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetConversationLogByLogIds(ctx, req.(*GetConversationLogByLogIdsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_RecordConversationLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(common.ConversationLog)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).RecordConversationLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_RecordConversationLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).RecordConversationLog(ctx, req.(*common.ConversationLog))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetConversationLogUserSelect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConversationLogUserSelectReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetConversationLogUserSelect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetConversationLogUserSelect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetConversationLogUserSelect(ctx, req.(*GetConversationLogUserSelectReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_DeleteConversationLogByAppId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteConversationLogByAppIdReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).DeleteConversationLogByAppId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_DeleteConversationLogByAppId_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).DeleteConversationLogByAppId(ctx, req.(*DeleteConversationLogByAppIdReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_ExportConversationLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExportConversationLogReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).ExportConversationLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_ExportConversationLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).ExportConversationLog(ctx, req.(*ExportConversationLogReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_GetConversationLogExportRecordList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConversationLogExportRecordListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).GetConversationLogExportRecordList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_GetConversationLogExportRecordList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).GetConversationLogExportRecordList(ctx, req.(*GetConversationLogExportRecordListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AppService_DeleteConversationLogExportRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteConversationLogExportRecordReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppServiceServer).DeleteConversationLogExportRecord(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AppService_DeleteConversationLogExportRecord_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppServiceServer).DeleteConversationLogExportRecord(ctx, req.(*DeleteConversationLogExportRecordReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1615,44 +2370,132 @@ var AppService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AppService_CreateChatflowApplication_Handler,
 		},
 		{
-			MethodName: "GetModelStatistic",
-			Handler:    _AppService_GetModelStatistic_Handler,
+			MethodName: "RecordModelStatisticV2",
+			Handler:    _AppService_RecordModelStatisticV2_Handler,
 		},
 		{
-			MethodName: "RecordModelStatistic",
-			Handler:    _AppService_RecordModelStatistic_Handler,
+			MethodName: "GetModelStatisticV2Overview",
+			Handler:    _AppService_GetModelStatisticV2Overview_Handler,
 		},
 		{
-			MethodName: "GetModelStatisticList",
-			Handler:    _AppService_GetModelStatisticList_Handler,
+			MethodName: "GetModelStatisticV2Chart",
+			Handler:    _AppService_GetModelStatisticV2Chart_Handler,
 		},
 		{
-			MethodName: "GetAppStatistic",
-			Handler:    _AppService_GetAppStatistic_Handler,
+			MethodName: "GetModelStatisticV2List",
+			Handler:    _AppService_GetModelStatisticV2List_Handler,
 		},
 		{
-			MethodName: "RecordAppStatistic",
-			Handler:    _AppService_RecordAppStatistic_Handler,
+			MethodName: "GetModelStatisticV2UserList",
+			Handler:    _AppService_GetModelStatisticV2UserList_Handler,
 		},
 		{
-			MethodName: "GetAppStatisticList",
-			Handler:    _AppService_GetAppStatisticList_Handler,
+			MethodName: "GetModelStatisticV2AppList",
+			Handler:    _AppService_GetModelStatisticV2AppList_Handler,
 		},
 		{
-			MethodName: "GetAPIKeyStatistic",
-			Handler:    _AppService_GetAPIKeyStatistic_Handler,
+			MethodName: "GetModelStatisticV2Record",
+			Handler:    _AppService_GetModelStatisticV2Record_Handler,
 		},
 		{
-			MethodName: "GetAPIKeyStatisticList",
-			Handler:    _AppService_GetAPIKeyStatisticList_Handler,
+			MethodName: "GetModelStatisticV2Select",
+			Handler:    _AppService_GetModelStatisticV2Select_Handler,
 		},
 		{
-			MethodName: "GetAPIKeyStatisticRecord",
-			Handler:    _AppService_GetAPIKeyStatisticRecord_Handler,
+			MethodName: "RecordAppStatisticV2",
+			Handler:    _AppService_RecordAppStatisticV2_Handler,
 		},
 		{
-			MethodName: "RecordAPIKeyStatistic",
-			Handler:    _AppService_RecordAPIKeyStatistic_Handler,
+			MethodName: "GetAppStatisticV2Overview",
+			Handler:    _AppService_GetAppStatisticV2Overview_Handler,
+		},
+		{
+			MethodName: "GetAppStatisticV2Chart",
+			Handler:    _AppService_GetAppStatisticV2Chart_Handler,
+		},
+		{
+			MethodName: "GetAppStatisticV2List",
+			Handler:    _AppService_GetAppStatisticV2List_Handler,
+		},
+		{
+			MethodName: "GetAppStatisticV2UserList",
+			Handler:    _AppService_GetAppStatisticV2UserList_Handler,
+		},
+		{
+			MethodName: "GetAppStatisticV2ModelList",
+			Handler:    _AppService_GetAppStatisticV2ModelList_Handler,
+		},
+		{
+			MethodName: "GetAppStatisticV2Record",
+			Handler:    _AppService_GetAppStatisticV2Record_Handler,
+		},
+		{
+			MethodName: "GetAppStatisticV2Select",
+			Handler:    _AppService_GetAppStatisticV2Select_Handler,
+		},
+		{
+			MethodName: "RecordAPIKeyStatisticV2",
+			Handler:    _AppService_RecordAPIKeyStatisticV2_Handler,
+		},
+		{
+			MethodName: "GetAPIKeyStatisticV2Overview",
+			Handler:    _AppService_GetAPIKeyStatisticV2Overview_Handler,
+		},
+		{
+			MethodName: "GetAPIKeyStatisticV2Chart",
+			Handler:    _AppService_GetAPIKeyStatisticV2Chart_Handler,
+		},
+		{
+			MethodName: "GetAPIKeyStatisticV2List",
+			Handler:    _AppService_GetAPIKeyStatisticV2List_Handler,
+		},
+		{
+			MethodName: "GetAPIKeyStatisticV2AppList",
+			Handler:    _AppService_GetAPIKeyStatisticV2AppList_Handler,
+		},
+		{
+			MethodName: "GetAPIKeyStatisticV2ModelList",
+			Handler:    _AppService_GetAPIKeyStatisticV2ModelList_Handler,
+		},
+		{
+			MethodName: "GetAPIKeyStatisticV2Record",
+			Handler:    _AppService_GetAPIKeyStatisticV2Record_Handler,
+		},
+		{
+			MethodName: "GetConversationLogList",
+			Handler:    _AppService_GetConversationLogList_Handler,
+		},
+		{
+			MethodName: "GetConversationLog",
+			Handler:    _AppService_GetConversationLog_Handler,
+		},
+		{
+			MethodName: "GetConversationLogByLogIds",
+			Handler:    _AppService_GetConversationLogByLogIds_Handler,
+		},
+		{
+			MethodName: "RecordConversationLog",
+			Handler:    _AppService_RecordConversationLog_Handler,
+		},
+		{
+			MethodName: "GetConversationLogUserSelect",
+			Handler:    _AppService_GetConversationLogUserSelect_Handler,
+		},
+		{
+			MethodName: "DeleteConversationLogByAppId",
+			Handler:    _AppService_DeleteConversationLogByAppId_Handler,
+		},
+		{
+			MethodName: "ExportConversationLog",
+			Handler:    _AppService_ExportConversationLog_Handler,
+		},
+		{
+			MethodName: "GetConversationLogExportRecordList",
+			Handler:    _AppService_GetConversationLogExportRecordList_Handler,
+		},
+		{
+			MethodName: "DeleteConversationLogExportRecord",
+			Handler:    _AppService_DeleteConversationLogExportRecord_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

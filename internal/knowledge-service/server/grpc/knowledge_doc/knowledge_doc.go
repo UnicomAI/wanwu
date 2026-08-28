@@ -10,7 +10,6 @@ import (
 
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	knowledgebase_doc_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-doc-service"
-	knowledgebase_keywords_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-keywords-service"
 	knowledgebase_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-service"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/orm"
@@ -50,36 +49,32 @@ func (s *Service) GetDocList(ctx context.Context, req *knowledgebase_doc_service
 		log.Errorf("没有操作该知识库的权限 错误(%v) 参数(%v)", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeBaseSelectFailed)
 	}
+
 	docIdList := make([]string, 0)
 	// 2.若docIdList不为空，直接返回文档列表，忽略其他筛选条件
 	if len(req.DocIdList) > 0 {
 		docIdList = buildInitDocCondition(req)
 	}
-	// 3.查询关键词信息
-	keywords, err := orm.GetKeywordsListByKnowledgeId(ctx, req.KnowledgeId, req.UserId, req.OrgId)
-	if err != nil {
-		log.Errorf("获取知识库关键词 错误(%v) 参数(%v)", err, req)
-	}
-	// 4.查找元数据值所对应的文档列表
-	if req.MetaValue != "" {
-		docIdList, err = orm.SelectDocIdListByMetaValue(ctx, "", "", req.KnowledgeId, req.MetaValue)
+	// 3.查找元数据值所对应的文档列表
+	if needMetaFilter(req) {
+		docIdList, err = orm.SelectDocIdListByMetaValue(ctx, "", "", req.KnowledgeId, req.MetaType, req.MetaValue, req.MetaStartTime, req.MetaEndTime)
 		if err != nil {
 			log.Errorf("获取知识库元数据失败(%v)  参数(%v)", err, req)
 			return nil, util.ErrCode(errs.Code_KnowledgeMetaFetchFailed)
 		}
 		//无结果直接返回
 		if len(docIdList) == 0 {
-			return buildDocListResp(nil, nil, knowledge, 0, req.PageSize, req.PageNum, keywords), nil
+			return buildDocListResp(nil, nil, knowledge, 0, req.PageSize, req.PageNum), nil
 		}
 	}
-	// 5.按文档名字查询列表
+	// 4.按文档名字查询列表
 	list, total, err := orm.GetDocList(ctx, "", "", req.KnowledgeId,
 		req.DocName, req.DocTag, util.BuildDocReqStatusList(req.Status), util.BuildDocReqGraphStatusList(req.GraphStatus), docIdList, req.PageSize, req.PageNum)
 	if err != nil {
 		log.Errorf("获取知识库列表失败(%v)  参数(%v)", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeBaseSelectFailed)
 	}
-	// 6.查询配置信息
+	// 5.查询配置信息
 	var importTaskList []*model.KnowledgeImportTask
 	if len(list) > 0 {
 		importTaskList, err = orm.SelectKnowledgeImportTaskByIdList(ctx, buildImportTaskIdList(list))
@@ -87,7 +82,25 @@ func (s *Service) GetDocList(ctx context.Context, req *knowledgebase_doc_service
 			log.Errorf("获取知识库列表失败(%v)  参数(%v)", err, req)
 		}
 	}
-	return buildDocListResp(list, importTaskList, knowledge, total, req.PageSize, req.PageNum, keywords), nil
+	return buildDocListResp(list, importTaskList, knowledge, total, req.PageSize, req.PageNum), nil
+}
+
+func (s *Service) GetDocListByDocIdList(ctx context.Context, req *knowledgebase_doc_service.GetDocListByDocIdListReq) (*knowledgebase_doc_service.GetDocListResp, error) {
+	docList, err := orm.SelectDocByDocIdList(ctx, req.DocIdList, "", "")
+	if err != nil {
+		log.Errorf("没有操作该知识库文档的权限 参数(%v)", req)
+		return nil, err
+	}
+	var retList = make([]*knowledgebase_doc_service.DocInfo, 0)
+	if len(docList) > 0 {
+		for _, item := range docList {
+			retList = append(retList, buildDocInfo(item, make(map[string]*model.SegmentConfig), nil))
+		}
+	}
+	return &knowledgebase_doc_service.GetDocListResp{
+		Docs:  retList,
+		Total: int64(len(retList)),
+	}, nil
 }
 
 func (s *Service) GetDocDetail(ctx context.Context, req *knowledgebase_doc_service.GetDocDetailReq) (*knowledgebase_doc_service.DocInfo, error) {
@@ -127,6 +140,14 @@ func (s *Service) UpdateDocImportConfig(ctx context.Context, req *knowledgebase_
 	if err := checkDocFinishStatus(ctx, req); err != nil {
 		return nil, err
 	}
+	docInfos, err := orm.SelectDocByDocIdList(ctx, req.DocIdList, "", "")
+	if err != nil {
+		log.Errorf("get doc info %v", err)
+		return nil, util.ErrCode(errs.Code_KnowledgeDocSearchFail)
+	}
+	if err := checkDocNotUrlImport(docInfos); err != nil {
+		return nil, err
+	}
 	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
 	if err != nil {
 		return nil, err
@@ -150,18 +171,22 @@ func (s *Service) ReImportDoc(ctx context.Context, req *knowledgebase_doc_servic
 		log.Errorf("get doc info %v", err)
 		return nil, util.ErrCode(errs.Code_KnowledgeDocSearchFail)
 	}
-	//2.文档校验
-	docIdList, err := checkDocFile(ctx, req, docInfos)
+	if err := checkDocNotUrlImport(docInfos); err != nil {
+		return nil, err
+	}
+	// 2.知识库详情查询
+	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
+	if err != nil {
+		return nil, err
+	}
+	//3.文档校验
+	docIdList, err := checkDocFile(ctx, req, docInfos, knowledge)
 	if err != nil {
 		return nil, util.ErrCode(errs.Code_KnowledgeDocSearchFail)
 	}
 	req.DocIdList = docIdList
 	docInfoMap := buildDocInfoMap(docInfos)
-	// 3.导入任务详情查询
-	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
-	if err != nil {
-		return nil, err
-	}
+	//4.任务详情查询
 	tasks, err := orm.SelectKnowledgeImportTaskByIdList(ctx, buildImportTaskIdList(docInfos))
 	if err != nil {
 		return nil, err
@@ -502,23 +527,29 @@ func (s *Service) InitDocStatus(ctx context.Context, req *knowledgebase_doc_serv
 }
 
 func (s *Service) DeleteDoc(ctx context.Context, req *knowledgebase_doc_service.DeleteDocReq) (*emptypb.Empty, error) {
-	//1.查询文档详情
+	//1.查询知识库详情
+	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
+	if err != nil {
+		log.Errorf("没有操作该知识库的权限 参数(%v)", req)
+		return nil, err
+	}
+	//2.查询文档详情
 	docList, err := orm.SelectDocByDocIdList(ctx, req.Ids, "", "")
 	if err != nil {
 		log.Errorf("没有操作该知识库的权限 参数(%v)", req)
 		return nil, err
 	}
-	//2.校验导入状态
-	docIdList, resultDocList, err := checkDocStatus(docList)
+	//3.校验导入状态
+	resultDocList, err := checkDocStatus(docList)
 	if err != nil {
 		log.Errorf("删除知识库文件失败 error %v params %v", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeDocDeleteDuringParse)
 	}
-	if len(docIdList) == 0 {
+	if len(resultDocList) == 0 {
 		return &emptypb.Empty{}, nil
 	}
-	//3.删除文档
-	err = orm.DeleteDocByIdList(ctx, docIdList, resultDocList)
+	//4.删除文档
+	err = orm.DeleteDocByIdList(ctx, knowledge, resultDocList)
 	if err != nil {
 		log.Errorf("删除知识库文件失败 error %v params %v", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeDocDeleteFailed)
@@ -597,15 +628,20 @@ func (s *Service) GetDocSegmentList(ctx context.Context, req *knowledgebase_doc_
 		log.Errorf("查询知识库导入详情失败 参数(%v)", req)
 	}
 	//4.查询分片信息
-	segmentListResp, err := service.RagGetDocSegmentList(ctx, &service.RagGetDocSegmentParams{
-		UserId:            knowledge.UserId,
-		KnowledgeBaseName: knowledge.RagName,
-		FileName:          service.RebuildFileName(docInfo.DocId, docInfo.FileType, docInfo.Name),
-		PageSize:          req.PageSize,
-		SearchAfter:       req.PageSize * (req.PageNo - 1),
-	})
-	if err != nil {
-		return nil, util.ErrCode(errs.Code_KnowledgeDocSplitFailed)
+	segmentListResp := &service.ContentListResp{}
+	if !util.IsPreImportCheckFailErr(docInfo.ErrorMsg) {
+		segmentListResp, err = service.RagGetDocSegmentList(ctx, &service.RagGetDocSegmentParams{
+			UserId:            knowledge.UserId,
+			KnowledgeBaseName: knowledge.RagName,
+			KnowledgeBaseId:   knowledge.KnowledgeId,
+			FileName:          service.RebuildFileName(docInfo.DocId, docInfo.FileType, docInfo.Name),
+			PageSize:          req.PageSize,
+			SearchAfter:       req.PageSize * (req.PageNo - 1),
+			QueryText:         strings.TrimSpace(req.Keyword),
+		})
+		if err != nil {
+			return nil, util.ErrCode(errs.Code_KnowledgeDocSplitFailed)
+		}
 	}
 	//5.查询文档元数据,忽略错误
 	metaDataList, _ := orm.SelectDocMetaList(ctx, "", "", req.DocId)
@@ -679,29 +715,24 @@ func buildFileTypeLimit(fileType, extStr string) *knowledgebase_doc_service.File
 	}
 }
 
-func checkDocStatus(docList []*model.KnowledgeDoc) ([]uint32, []*model.KnowledgeDoc, error) {
-	var docIdList []uint32
+func checkDocStatus(docList []*model.KnowledgeDoc) ([]*model.KnowledgeDoc, error) {
+	analyzingStatusList := util.BuildAnalyzingStatus()
 	var docResultList []*model.KnowledgeDoc
 	for _, doc := range docList {
-		if doc.Status == model.DocProcessing {
-			return nil, nil, errors.New("解析中的文档无法删除")
+		if lo.Contains(analyzingStatusList, doc.Status) {
+			return nil, errors.New("解析中的文档无法删除")
 		}
-		docIdList = append(docIdList, doc.Id)
 		docResultList = append(docResultList, doc)
 	}
-	return docIdList, docResultList, nil
+	return docResultList, nil
 }
 
 // buildDocListResp 构造知识库文档列表
-func buildDocListResp(list []*model.KnowledgeDoc, importTaskList []*model.KnowledgeImportTask, knowledge *model.KnowledgeBase, total int64, pageSize int32, pageNum int32, keywords []*knowledgebase_keywords_service.KeywordsInfo) *knowledgebase_doc_service.GetDocListResp {
+func buildDocListResp(list []*model.KnowledgeDoc, importTaskList []*model.KnowledgeImportTask, knowledge *model.KnowledgeBase, total int64, pageSize int32, pageNum int32) *knowledgebase_doc_service.GetDocListResp {
 	segmentConfigMap := buildSegmentConfigMap(importTaskList)
 	var retList = make([]*knowledgebase_doc_service.DocInfo, 0)
-	showGraphReport := false
 	if len(list) > 0 {
 		for _, item := range list {
-			if item.GraphStatus == model.GraphSuccess {
-				showGraphReport = true
-			}
 			retList = append(retList, buildDocInfo(item, segmentConfigMap, nil))
 		}
 	}
@@ -716,23 +747,12 @@ func buildDocListResp(list []*model.KnowledgeDoc, importTaskList []*model.Knowle
 		Docs:     retList,
 		PageSize: pageSize,
 		PageNum:  pageNum,
-		KnowledgeInfo: &knowledgebase_doc_service.KnowledgeInfo{
-			KnowledgeId:      knowledge.KnowledgeId,
-			KnowledgeName:    knowledge.Name,
-			GraphSwitch:      int32(knowledge.KnowledgeGraphSwitch),
-			ShowGraphReport:  showGraphReport,
-			Description:      knowledge.Description,
-			EmbeddingModelId: embeddingModelInfo.ModelId,
-			Keywords:         buildKeywords(keywords),
-			LlmModelId:       knowledgeGraph.LlmModelId,
-			Category:         int32(knowledge.Category),
-			AvatarPath:       knowledge.AvatarPath,
-		},
 	}
 }
 
 func buildDocInfo(item *model.KnowledgeDoc, segmentConfigMap map[string]*model.SegmentConfig, importTask *model.KnowledgeImportTask) *knowledgebase_doc_service.DocInfo {
-	status, message := model.BuildGraphShowStatus(item.GraphStatus, util.BuildDocRespStatus(item.Status))
+	docStatus := util.BuildDocRespStatus(item.Status)
+	graphStatus, message := model.BuildGraphShowStatus(item.GraphStatus, docStatus)
 	return &knowledgebase_doc_service.DocInfo{
 		DocId:         item.DocId,
 		DocName:       item.Name,
@@ -740,33 +760,18 @@ func buildDocInfo(item *model.KnowledgeDoc, segmentConfigMap map[string]*model.S
 		DocType:       item.FileType,
 		KnowledgeId:   item.KnowledgeId,
 		UploadTime:    pkgUtil.Time2Str(item.CreatedAt),
-		Status:        int32(util.BuildDocRespStatus(item.Status)),
+		Status:        int32(docStatus),
 		ErrorMsg:      item.ErrorMsg,
 		SegmentMethod: buildSegmentMethod(item, segmentConfigMap),
 		UserId:        item.UserId,
-		GraphStatus:   int32(status),
+		GraphStatus:   int32(graphStatus),
 		GraphErrMsg:   message,
 		DocConfigInfo: buildDocConfigInfo(importTask),
 		IsMultimodal:  buildIsMultimodal(item.FileType),
+		DocProgress:   int32(util.BuildDocProgress(item.Status)),
+		GraphProgress: int32(model.BuildGraphProgress(item.GraphStatus)),
 	}
 }
-
-func buildKeywords(keywords []*knowledgebase_keywords_service.KeywordsInfo) []*knowledgebase_doc_service.KeywordsInfo {
-	if keywords == nil {
-		return nil
-	}
-	var retKeywords = make([]*knowledgebase_doc_service.KeywordsInfo, 0)
-	for _, item := range keywords {
-		retKeywords = append(retKeywords, &knowledgebase_doc_service.KeywordsInfo{
-			Id:               item.Id,
-			Name:             item.Name,
-			Alias:            item.Alias,
-			KnowledgeBaseIds: item.KnowledgeBaseIds,
-		})
-	}
-	return retKeywords
-}
-
 func buildDocConfigInfo(importTask *model.KnowledgeImportTask) *knowledgebase_doc_service.DocConfigInfo {
 	if importTask == nil {
 		return nil
@@ -1076,6 +1081,10 @@ func buildSegmentListResp(importTask *model.KnowledgeImportTask, doc *model.Know
 		return nil, err
 	}
 	segmentConfigMap := buildSegmentConfigMap([]*model.KnowledgeImportTask{importTask})
+
+	// 判断文档是否可预览
+	canPreview, previewFailReason := checkDocPreview(doc)
+
 	var resp = &knowledgebase_doc_service.DocSegmentListResp{
 		FileName:            doc.Name,
 		MaxSegmentSize:      int32(config.MaxSplitter),
@@ -1084,7 +1093,7 @@ func buildSegmentListResp(importTask *model.KnowledgeImportTask, doc *model.Know
 		Splitter:            buildSplitter(config.Splitter),
 		PageTotal:           buildPageTotal(int32(segmentListResp.ChunkTotalNum), req.PageSize),
 		SegmentTotalNum:     int32(segmentListResp.ChunkTotalNum),
-		ContentList:         buildContentList(segmentListResp.List, req.Keyword),
+		ContentList:         buildContentList(segmentListResp.List),
 		MetaDataList:        buildMetaList(metaDataList),
 		SegmentImportStatus: buildSegmentImportStatus(segmentImportTask),
 		SegmentMethod:       buildSegmentMethod(doc, segmentConfigMap),
@@ -1092,8 +1101,46 @@ func buildSegmentListResp(importTask *model.KnowledgeImportTask, doc *model.Know
 		AsrModelId:          analyzer.AsrModelId,
 		MultimodalModelId:   analyzer.MultimodalModelId,
 		ParserModelId:       importTask.OcrModelId,
+		DownloadUrl:         buildDownloadUrl(segmentListResp.List),
+		CanPreview:          canPreview,
+		PreviewFailReason:   previewFailReason,
+		DocSize:             doc.FileSize,
 	}
 	return resp, nil
+}
+
+// checkDocPreview 检查文档是否可预览
+func checkDocPreview(doc *model.KnowledgeDoc) (bool, string) {
+	cfg := config.GetConfig().KnowledgeDocConfig
+
+	// 校验文件类型是否支持预览
+	allowedTypes := cfg.DocPreviewFileTypeMap
+	if len(allowedTypes) > 0 {
+		if !allowedTypes[doc.FileType] {
+			return false, fmt.Sprintf("%s类型文件暂不支持预览", doc.FileType)
+		}
+	}
+
+	if cfg.DocPreviewSizeMax <= 0 {
+		// 未配置限制，默认可预览
+		return true, ""
+	}
+	if doc.FileSize > cfg.DocPreviewSizeMax {
+		// 超过限制，不可预览
+		maxSizeMB := float64(cfg.DocPreviewSizeMax) / 1024 / 1024
+		return false, fmt.Sprintf("文档大于%.2f MB不可预览", maxSizeMB)
+	}
+	return true, ""
+}
+
+// buildDownloadUrl 取分段元数据里的文档下载地址（整篇文档同一个文件，取首个非空即可）
+func buildDownloadUrl(contentList []service.FileSplitContent) string {
+	for _, c := range contentList {
+		if c.MetaData.DownloadLink != "" {
+			return c.MetaData.DownloadLink
+		}
+	}
+	return ""
 }
 
 // replaceAnalyzerByFileType 根据不同文件类型，替换文件解析方式
@@ -1289,16 +1336,10 @@ func buildPageTotal(totalNum int32, pageSize int32) int32 {
 	return totalNum/pageSize + leftPage
 }
 
-func buildContentList(contentList []service.FileSplitContent, keyword string) []*knowledgebase_doc_service.SegmentContent {
+func buildContentList(contentList []service.FileSplitContent) []*knowledgebase_doc_service.SegmentContent {
 	var retList = make([]*knowledgebase_doc_service.SegmentContent, 0)
 	for i := 0; i < len(contentList); i++ {
 		content := contentList[i]
-		// 筛选分段搜索框
-		if strings.TrimSpace(keyword) != "" {
-			if !strings.Contains(content.Content, keyword) {
-				continue
-			}
-		}
 		retList = append(retList, &knowledgebase_doc_service.SegmentContent{
 			Content:    content.Content,
 			Available:  content.Status,
@@ -1533,9 +1574,19 @@ func checkDocFinishStatus(ctx context.Context, req *knowledgebase_doc_service.Up
 	return nil
 }
 
-func checkDocFile(ctx context.Context, req *knowledgebase_doc_service.ReImportDocReq, docInfos []*model.KnowledgeDoc) ([]string, error) {
+// checkDocNotUrlImport url导入方式已下架，存量url文档不支持重新解析（重新解析会先在 minio copy 文件，url 文档存的是外链会直接失败并写坏状态）
+func checkDocNotUrlImport(docInfos []*model.KnowledgeDoc) error {
+	for _, doc := range docInfos {
+		if doc.FileType == import_service.UrlFileType {
+			return util.ErrCode(errs.Code_KnowledgeDocUrlReimportNotSupport)
+		}
+	}
+	return nil
+}
+
+func checkDocFile(ctx context.Context, req *knowledgebase_doc_service.ReImportDocReq, docInfos []*model.KnowledgeDoc, knowledge *model.KnowledgeBase) ([]string, error) {
 	var docIdList []string
-	fileTypeMap := import_service.BuildFileTypeMap()
+	fileTypeMap := import_service.BuildFileTypeMap(knowledge.Category == model.CategoryMultimodal)
 	for _, doc := range docInfos {
 		//1.文件状态校验
 		if int32(util.BuildDocRespStatus(doc.Status)) != model.DocFail {
@@ -1558,7 +1609,17 @@ func checkDocFile(ctx context.Context, req *knowledgebase_doc_service.ReImportDo
 			log.Errorf("文件 '%s' 大小超过限制(%v)", doc.Name, err)
 			continue
 		}
-		//4.文档重名校验
+		//4.文件名合法性校验
+		if !import_service.IsSafeFileName(doc.Name) {
+			log.Errorf("文件 '%s' 文件名非法，不支持重导入", doc.Name)
+			continue
+		}
+		//4.1 文件名长度校验：过长会导致 RAG 落盘失败
+		if !pkgUtil.ValidateFileNameLength(doc.Name) {
+			log.Errorf("文件 '%s' 文件名过长，不支持重导入", doc.Name)
+			continue
+		}
+		//5.文档重名校验
 		err = orm.CheckKnowledgeDocSameName(ctx, req.UserId, req.KnowledgeId, doc.Name, "", doc.DocId)
 		if err != nil {
 			log.Errorf("文件 '%s' 判断文档重名失败(%v)", doc.Name, err)
@@ -1590,8 +1651,21 @@ func buildInitDocCondition(req *knowledgebase_doc_service.GetDocListReq) []strin
 	req.DocName = ""
 	req.Status = []int32{-1}
 	req.MetaValue = ""
+	req.MetaType = ""
+	req.MetaStartTime = ""
+	req.MetaEndTime = ""
 	req.PageNum = 1
 	req.PageSize = 10000
 	req.GraphStatus = []int32{-1}
 	return docIdList
+}
+
+// needMetaFilter 是否需要按元数据过滤文档列表
+//   - metaType=time：起止时间戳任一有值即触发
+//   - 其他类型/旧逻辑：metaValue 非空即触发
+func needMetaFilter(req *knowledgebase_doc_service.GetDocListReq) bool {
+	if req.MetaType == model.MetaTypeTime {
+		return req.MetaStartTime != "" || req.MetaEndTime != ""
+	}
+	return req.MetaValue != ""
 }

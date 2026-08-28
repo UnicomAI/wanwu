@@ -1,0 +1,5 @@
+# RSA Keys & derived files - Do NOT commit to version control
+private_key.pem
+public_key.pem
+public-key.js
+state.json

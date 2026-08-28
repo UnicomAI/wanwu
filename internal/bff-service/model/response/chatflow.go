@@ -104,3 +104,26 @@ type CozeDeleteProjectConversationDefResponse struct {
 	Code    int64  `json:"code"`
 	Msg     string `json:"msg"`
 }
+
+type CozeListProjectConversationResponse struct {
+	Data   []*CozeProjectConversationItem `json:"data"`
+	Cursor string                         `json:"cursor"`
+	Code   int64                          `json:"code"`
+	Msg    string                         `json:"msg"`
+}
+
+type CozeProjectConversationItem struct {
+	UniqueID                string `json:"unique_id"`
+	ConversationName        string `json:"conversation_name"`
+	ConversationID          string `json:"conversation_id"`
+	ReleaseConversationName string `json:"release_conversation_name"`
+}
+
+type OpenAPIChatflowConversationListResponse struct {
+	Conversations []*OpenAPIChatflowConversationItem `json:"conversations"`
+}
+
+type OpenAPIChatflowConversationItem struct {
+	ConversationID   string `json:"conversation_id"`
+	ConversationName string `json:"conversation_name"`
+}

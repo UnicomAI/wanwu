@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/util"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/server/grpc/knowledge"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/service"
+	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	pkgUtil "github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/samber/lo"
@@ -97,22 +97,22 @@ func (s *Service) ExportQAPair(ctx context.Context, req *knowledgebase_qa_servic
 }
 
 func (s *Service) GetQAPairList(ctx context.Context, req *knowledgebase_qa_service.GetQAPairListReq) (*knowledgebase_qa_service.GetQAPairListResp, error) {
-	//查询知识库信息
-	knowledge, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
-	if err != nil {
-		log.Errorf("select QA knowledge failed err: (%v) req:(%v)", err, req)
-		return nil, util.ErrCode(errs.Code_KnowledgeQABaseSelectFailed)
+	// 查询当前用户对该问答库的权限类型，无记录时默认查看权限(0)
+	permissionType := int32(model.PermissionTypeView)
+	if permission, perErr := orm.SelectUserKnowledgePermission(ctx, req.UserId, req.OrgId, req.KnowledgeId); perErr == nil {
+		permissionType = int32(permission.PermissionType)
 	}
 	qaPairIdList := make([]string, 0)
+	var err error
 	//查找元数据值所对应的文档列表
 	if req.MetaValue != "" {
-		qaPairIdList, err = orm.SelectDocIdListByMetaValue(ctx, "", "", req.KnowledgeId, req.MetaValue)
+		qaPairIdList, err = orm.SelectDocIdListByMetaValue(ctx, "", "", req.KnowledgeId, "", req.MetaValue, "", "")
 		if err != nil {
 			log.Errorf("获取知识库元数据失败(%v)  参数(%v)", err, req)
 			return nil, util.ErrCode(errs.Code_KnowledgeMetaFetchFailed)
 		}
 		if len(qaPairIdList) == 0 {
-			return buildQAPairListResp(nil, knowledge, nil, 0, req.PageSize, req.PageNum), nil
+			return buildQAPairListResp(nil, nil, 0, req.PageSize, req.PageNum, permissionType), nil
 		}
 	}
 	list, total, err := orm.GetQAPairList(ctx, "", "", req.KnowledgeId,
@@ -130,7 +130,7 @@ func (s *Service) GetQAPairList(ctx context.Context, req *knowledgebase_qa_servi
 	if err != nil {
 		return nil, util.ErrCode(errs.Code_KnowledgeMetaFetchFailed)
 	}
-	return buildQAPairListResp(list, knowledge, docMetaList, total, req.PageSize, req.PageNum), nil
+	return buildQAPairListResp(list, docMetaList, total, req.PageSize, req.PageNum, permissionType), nil
 }
 
 func (s *Service) GetQAPairInfo(ctx context.Context, req *knowledgebase_qa_service.GetQAPairInfoReq) (*knowledgebase_qa_service.QAPairInfo, error) {
@@ -251,9 +251,14 @@ func (s *Service) KnowledgeQAHit(ctx context.Context, req *knowledgebase_qa_serv
 	for _, k := range req.KnowledgeList {
 		knowledgeIdList = append(knowledgeIdList, k.KnowledgeId)
 	}
-	list, _, err := orm.SelectKnowledgeByIdList(ctx, knowledgeIdList, "", "")
+	list, _, err := orm.SelectKnowledgeByIdList(ctx, knowledgeIdList, req.UserId, req.OrgId)
 	if err != nil {
 		return nil, err
+	}
+	if len(list) == 0 {
+		marshal, _ := json.Marshal(knowledgeIdList)
+		log.Errorf("knowledge hit error no permission userId %s orgId %s knowledgeID %s", req.UserId, req.OrgId, string(marshal))
+		return nil, util.ErrCode(errs.Code_KnowledgeBaseHitFailed)
 	}
 	knowledgeIDToName := make(map[string]string)
 	for _, k := range list {
@@ -264,12 +269,12 @@ func (s *Service) KnowledgeQAHit(ctx context.Context, req *knowledgebase_qa_serv
 	// 2.RAG请求
 	ragHitParams, err := buildRagQAHitParams(req, list, knowledgeIDToName)
 	if err != nil {
-		return nil, util.ErrCode(errs.Code_KnowledgeBaseHitFailed)
+		return nil, grpc_util.ErrorStatus(errs.Code_KnowledgeBaseHitFailed, err.Error())
 	}
 	hitResp, err := service.RagKnowledgeQAHit(ctx, ragHitParams)
 	if err != nil {
 		log.Errorf("RagKnowledgeQAHit error %s", err)
-		return nil, util.ErrCode(errs.Code_KnowledgeBaseHitFailed)
+		return nil, grpc_util.ErrorStatus(errs.Code_KnowledgeBaseHitFailed, err.Error())
 	}
 	return buildKnowledgeBaseHitResp(hitResp), nil
 }
@@ -389,7 +394,7 @@ func buildRagQAHitMetaItems(knowledgeID string, params []*knowledgebase_qa_servi
 			return nil, err
 		}
 		// 转换参数值
-		ragValue, err := buildValueData(param.Type, param.Value)
+		ragValue, err := knowledge.BuildValueData(param.Type, param.Value)
 		if err != nil {
 			log.Errorf("kbId: %s, convert value failed: %v", knowledgeID, err)
 			return nil, fmt.Errorf("convert value for key %s: %s", param.Key, err.Error())
@@ -403,16 +408,6 @@ func buildRagQAHitMetaItems(knowledgeID string, params []*knowledgebase_qa_servi
 	}
 	return metaItems, nil
 }
-
-func buildValueData(valueType string, value string) (interface{}, error) {
-	switch valueType {
-	case model.MetaTypeNumber:
-	case model.MetaTypeTime:
-		return strconv.ParseInt(value, 10, 64)
-	}
-	return value, nil
-}
-
 func validateMetaFilterParam(knowledgeID string, param *knowledgebase_qa_service.MetaFilterParams) error {
 	// 检查关键参数是否为空
 	if param.Key == "" || param.Type == "" || param.Condition == "" {
@@ -523,7 +518,7 @@ func buildQAPairExportTask(req *knowledgebase_qa_service.ExportQAPairReq) (*mode
 }
 
 // buildQAPairListResp 构造问答库问答对列表
-func buildQAPairListResp(list []*model.KnowledgeQAPair, knowledge *model.KnowledgeBase, docMetaList []*model.KnowledgeDocMeta, total int64, pageSize int32, pageNum int32) *knowledgebase_qa_service.GetQAPairListResp {
+func buildQAPairListResp(list []*model.KnowledgeQAPair, docMetaList []*model.KnowledgeDocMeta, total int64, pageSize int32, pageNum int32, permissionType int32) *knowledgebase_qa_service.GetQAPairListResp {
 	var retList = make([]*knowledgebase_qa_service.QAPairInfo, 0)
 	metaMap := buildQAPairMetaMap(docMetaList)
 	if len(list) > 0 {
@@ -547,10 +542,6 @@ func buildQAPairListResp(list []*model.KnowledgeQAPair, knowledge *model.Knowled
 		QaPairInfos: retList,
 		PageSize:    pageSize,
 		PageNum:     pageNum,
-		KnowledgeInfo: &knowledgebase_qa_service.KnowledgeInfo{
-			KnowledgeId:   knowledge.KnowledgeId,
-			KnowledgeName: knowledge.Name,
-		},
 	}
 }
 

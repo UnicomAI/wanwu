@@ -49,7 +49,7 @@ func (s *Service) UnPublishApp(ctx context.Context, req *app_service.UnPublishAp
 }
 
 func (s *Service) GetAppList(ctx context.Context, req *app_service.GetAppListReq) (*app_service.AppList, error) {
-	publishAppList, err := s.cli.GetAppList(ctx, req.UserId, req.OrgId, req.AppType)
+	publishAppList, err := s.cli.GetAppList(ctx, req.OrgIds, req.UserIds, req.AppType)
 	if err != nil {
 		return nil, errStatus(errs.Code_AppExploration, err)
 	}
@@ -63,7 +63,7 @@ func (s *Service) GetAppList(ctx context.Context, req *app_service.GetAppListReq
 }
 
 func (s *Service) DeleteApp(ctx context.Context, req *app_service.DeleteAppReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteApp(ctx, req.AppId, req.AppType)
+	err := s.cli.DeleteApp(ctx, req.AppId, req.AppType, req.UserId, req.OrgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_AppGeneral, err)
 	}
@@ -71,7 +71,7 @@ func (s *Service) DeleteApp(ctx context.Context, req *app_service.DeleteAppReq) 
 }
 
 func (s *Service) GetAppListByIds(ctx context.Context, req *app_service.GetAppListByIdsReq) (*app_service.AppList, error) {
-	publishAppList, err := s.cli.GetAppListByIds(ctx, req.AppIdsList)
+	publishAppList, err := s.cli.GetAppListByIds(ctx, req.AppIdsList, req.AppType)
 	if err != nil {
 		return nil, errStatus(errs.Code_AppExploration, err)
 	}
@@ -112,6 +112,7 @@ func (s *Service) ConvertAppType(ctx context.Context, req *app_service.ConvertAp
 func toProtoExpApp(record *orm.ExplorationAppInfo) *app_service.ExplorationAppInfo {
 	return &app_service.ExplorationAppInfo{
 		UserId:      record.UserID,
+		OrgId:       record.OrgID,
 		AppId:       record.AppId,
 		AppType:     record.AppType,
 		CreatedAt:   record.CreatedAt,
@@ -123,6 +124,8 @@ func toProtoExpApp(record *orm.ExplorationAppInfo) *app_service.ExplorationAppIn
 
 func toProtoApp(record *model.App) *app_service.AppInfo {
 	return &app_service.AppInfo{
+		UserId:      record.UserID,
+		OrgId:       record.OrgID,
 		AppId:       record.AppID,
 		AppType:     record.AppType,
 		CreatedAt:   record.CreatedAt,

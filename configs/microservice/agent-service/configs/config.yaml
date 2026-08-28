@@ -76,6 +76,12 @@ wga-sandbox:
 
 # tool-template 配置
 tool-template:
+  special-tool-model: # 需要特殊处理的模型工具，比如不能使用英文的
+    - model-name: [ "deepseek-v4-flash", "deepseek-v4-pro" ]
+      provider: "deepseek"
+  deep-seek-reasoning: # deepseek系列要求，使用reasoning同时使用tool时，要回传reasoning-content
+    - model-name: [ "deepseek-v4-flash", "deepseek-v4-pro" ]
+      provider: "deepseek"
   tools:
     - id: doc_parser
       file-path: configs/microservice/agent-service/tool-template/doc_parser.json

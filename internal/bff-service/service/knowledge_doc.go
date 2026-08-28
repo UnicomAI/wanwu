@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	knowledgebase_keywords_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-keywords-service"
+
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
 	knowledgebase_doc_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-doc-service"
@@ -33,46 +35,65 @@ var docAnalyzerMap = map[string]string{
 	"multimodal": "图文问答模型",
 }
 
-// GetDocList 查询知识库所属文档列表
-func GetDocList(ctx *gin.Context, userId, orgId string, r *request.DocListReq) (*response.DocPageResult, error) {
-	resp, err := knowledgeBaseDoc.GetDocList(ctx.Request.Context(), &knowledgebase_doc_service.GetDocListReq{
-		KnowledgeId: r.KnowledgeId,
-		DocName:     strings.TrimSpace(r.DocName),
-		Status:      r.Status,
-		PageSize:    int32(r.PageSize),
-		PageNum:     int32(r.PageNo),
-		UserId:      userId,
-		OrgId:       orgId,
-		MetaValue:   strings.TrimSpace(r.MetaValue),
-		GraphStatus: r.GraphStatus,
-		DocIdList:   r.DocIdList,
+type DocKnowledgeParams struct {
+	NeedOwner      bool `json:"needOwner" form:"needOwner"`
+	NeedGraph      bool `json:"needGraph" form:"needGraph"`
+	NeedPermission bool `json:"needPermission" form:"needPermission"`
+}
+
+// GetDocKnowledgeDetail 查询文档的知识库详情
+func GetDocKnowledgeDetail(ctx *gin.Context, userId, orgId string, req *request.DocKnowledgeDetailReq, params *DocKnowledgeParams) (*response.DocKnowledgeInfo, error) {
+	knowledgeInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx, &knowledgebase_service.KnowledgeDetailSelectReq{
+		KnowledgeId:    req.KnowledgeId,
+		NeedOwner:      params.NeedOwner,
+		NeedGraph:      params.NeedGraph,
+		NeedPermission: params.NeedPermission,
+		UserId:         userId,
+		OrgId:          orgId,
 	})
 	if err != nil {
 		return nil, err
 	}
-	knowledgeInfo := resp.KnowledgeInfo
-	embModelInfo, _ := GetModel(ctx, userId, orgId, &request.GetModelRequest{
-		BaseModelRequest: request.BaseModelRequest{
-			ModelId: knowledgeInfo.EmbeddingModelId,
-		},
+	//忽略报错
+	knowledgeKeywords, _ := knowledgeBaseKeywords.GetKnowledgeKeywordsListByKnowledgeId(ctx, &knowledgebase_keywords_service.GetKnowledgeKeywordsListByKnowledgeIdReq{
+		KnowledgeId: req.KnowledgeId,
+		UserId:      knowledgeInfo.CreateUserId,
+		OrgId:       knowledgeInfo.CreateOrgId,
 	})
-	return &response.DocPageResult{
+	var keyWords []*knowledgebase_keywords_service.KeywordsInfo
+	if knowledgeKeywords != nil {
+		keyWords = knowledgeKeywords.Keywords
+	}
+	//构建知识库详情
+	return buildDocKnowledgeInfo(ctx, keyWords, knowledgeInfo), nil
+}
+
+// GetDocList 查询知识库所属文档列表
+func GetDocList(ctx *gin.Context, userId, orgId string, r *request.DocListReq) (*response.PageResult, error) {
+	resp, err := knowledgeBaseDoc.GetDocList(ctx.Request.Context(), &knowledgebase_doc_service.GetDocListReq{
+		KnowledgeId:   r.KnowledgeId,
+		DocName:       strings.TrimSpace(r.DocName),
+		Status:        r.Status,
+		PageSize:      int32(r.PageSize),
+		PageNum:       int32(r.PageNo),
+		UserId:        userId,
+		OrgId:         orgId,
+		MetaValue:     strings.TrimSpace(r.MetaValue),
+		MetaType:      strings.TrimSpace(r.MetaType),
+		MetaStartTime: strings.TrimSpace(r.MetaStartTime),
+		MetaEndTime:   strings.TrimSpace(r.MetaEndTime),
+		GraphStatus:   r.GraphStatus,
+		DocIdList:     r.DocIdList,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &response.PageResult{
 		List:     buildDocRespList(ctx, resp.Docs, r.KnowledgeId),
 		Total:    resp.Total,
 		PageNo:   int(resp.PageNum),
 		PageSize: int(resp.PageSize),
-		DocKnowledgeInfo: &response.DocKnowledgeInfo{
-			KnowledgeId:     knowledgeInfo.KnowledgeId,
-			KnowledgeName:   knowledgeInfo.KnowledgeName,
-			GraphSwitch:     knowledgeInfo.GraphSwitch,
-			ShowGraphReport: knowledgeInfo.ShowGraphReport,
-			Description:     knowledgeInfo.Description,
-			Keywords:        buildKeywordsInfo(knowledgeInfo.Keywords),
-			EmbeddingModel:  embModelInfo,
-			LlmModelId:      knowledgeInfo.LlmModelId,
-			Category:        knowledgeInfo.Category,
-			Avatar:          cacheKnowledgeAvatar(ctx, knowledgeInfo.AvatarPath, knowledgeInfo.Category),
-		},
 	}, nil
 }
 
@@ -81,8 +102,6 @@ func GetDocConfig(ctx *gin.Context, userId, orgId string, r *request.DocConfigRe
 	data, err := knowledgeBaseDoc.GetDocDetail(ctx.Request.Context(), &knowledgebase_doc_service.GetDocDetailReq{
 		DocId:      r.DocId,
 		NeedConfig: true,
-		UserId:     userId,
-		OrgId:      orgId,
 	})
 	if err != nil {
 		return nil, err
@@ -119,8 +138,14 @@ func GetDocDetail(ctx *gin.Context, userId, orgId, docId string) (*response.List
 		Status:        int(data.Status),
 		ErrorMsg:      gin_util.I18nKey(ctx, data.ErrorMsg),
 		FileSize:      data.DocSize,
+		FileSizeStr:   response.FormatFileSize(data.DocSize),
 		KnowledgeId:   data.KnowledgeId,
 		SegmentMethod: data.SegmentMethod,
+		GraphStatus:   data.GraphStatus,
+		GraphErrMsg:   data.GraphErrMsg,
+		IsMultimodal:  data.IsMultimodal,
+		DocProgress:   data.DocProgress,
+		GraphProgress: data.GraphProgress,
 	}, nil
 }
 
@@ -163,14 +188,25 @@ func ImportDoc(ctx *gin.Context, userId, orgId string, req *request.DocImportReq
 
 // ImportDocOpenapi 导入文档
 func ImportDocOpenapi(ctx *gin.Context, userId, orgId string, req *request.DocImportReq) error {
-	var err error
-	if req.ParserModelId != "" {
-		req.ParserModelId, err = GetModelIdByUuid(ctx, req.ParserModelId)
+	if err := convertDocConfigModelUuid(ctx, &req.DocImportFileConfig); err != nil {
+		return err
+	}
+	return ImportDoc(ctx, userId, orgId, req)
+}
+
+// convertDocConfigModelUuid openapi 传入的模型 id 均为对外 uuid，统一转换为内部 modelId
+func convertDocConfigModelUuid(ctx *gin.Context, cfg *request.DocImportFileConfig) error {
+	for _, modelId := range []*string{&cfg.ParserModelId, &cfg.AsrModelId, &cfg.MultimodalModelId} {
+		if *modelId == "" {
+			continue
+		}
+		id, err := GetModelIdByUuid(ctx, *modelId)
 		if err != nil {
 			return err
 		}
+		*modelId = id
 	}
-	return ImportDoc(ctx, userId, orgId, req)
+	return nil
 }
 
 // UpdateDocConfig 更新文档配置
@@ -209,12 +245,12 @@ func UpdateDocConfig(ctx *gin.Context, userId, orgId string, req *request.DocCon
 
 // UpdateDocConfigOpenapi 更新文档配置
 func UpdateDocConfigOpenapi(ctx *gin.Context, userId, orgId string, req *request.DocConfigUpdateReq) error {
-	var err error
-	if req.ParserModelId != "" {
-		req.ParserModelId, err = GetModelIdByUuid(ctx, req.ParserModelId)
-		if err != nil {
-			return err
-		}
+	// openapi 仅支持文件上传类型
+	if req.DocImportType != request.FileUpload {
+		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, "docImportType only supports 0 (file upload)")
+	}
+	if err := convertDocConfigModelUuid(ctx, &req.DocImportFileConfig); err != nil {
+		return err
 	}
 	return UpdateDocConfig(ctx, userId, orgId, req)
 }
@@ -246,17 +282,6 @@ func UpdateDocMetaData(ctx *gin.Context, userId, orgId string, r *request.DocMet
 	return err
 }
 
-// BatchUpdateDocMetaData 批量文档元数据
-func BatchUpdateDocMetaData(ctx *gin.Context, userId, orgId string, r *request.BatchDocMetaDataReq) error {
-	_, err := knowledgeBaseDoc.BatchUpdateDocMetaData(ctx.Request.Context(), &knowledgebase_doc_service.BatchUpdateDocMetaDataReq{
-		UserId:       userId,
-		OrgId:        orgId,
-		MetaDataList: buildMetaDataList(r.MetaDataList),
-		KnowledgeId:  r.KnowledgeId,
-	})
-	return err
-}
-
 func UpdateDocStatus(ctx *gin.Context, r *request.CallbackUpdateDocStatusReq) error {
 	_, err := knowledgeBaseDoc.UpdateDocStatus(ctx.Request.Context(), &knowledgebase_doc_service.UpdateDocStatusReq{
 		DocId:        r.DocId,
@@ -267,7 +292,7 @@ func UpdateDocStatus(ctx *gin.Context, r *request.CallbackUpdateDocStatusReq) er
 }
 
 func DocStatusInit(ctx *gin.Context, userId, orgId string) (interface{}, error) {
-	_, err := knowledgeBaseDoc.InitDocStatus(ctx, &knowledgebase_doc_service.InitDocStatusReq{
+	_, err := knowledgeBaseDoc.InitDocStatus(ctx.Request.Context(), &knowledgebase_doc_service.InitDocStatusReq{
 		UserId: userId,
 		OrgId:  orgId,
 	})
@@ -297,11 +322,15 @@ func GetDocImportTip(ctx *gin.Context, userId, orgId string, r *request.QueryKno
 
 func DeleteDoc(ctx *gin.Context, userId, orgId string, r *request.DeleteDocReq) error {
 	_, err := knowledgeBaseDoc.DeleteDoc(ctx.Request.Context(), &knowledgebase_doc_service.DeleteDocReq{
-		Ids:    r.DocIdList,
-		UserId: userId,
-		OrgId:  orgId,
+		Ids:         r.DocIdList,
+		UserId:      userId,
+		OrgId:       orgId,
+		KnowledgeId: r.KnowledgeId,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetDocSegmentList(ctx *gin.Context, userId, orgId string, req *request.DocSegmentListReq) (*response.DocSegmentResp, error) {
@@ -333,27 +362,54 @@ func UpdateDocSegmentStatus(ctx *gin.Context, userId, orgId string, r *request.U
 	return err
 }
 
-func AnalysisDocUrl(ctx *gin.Context, userId, orgId string, r *request.AnalysisUrlDocReq) (*response.AnalysisDocUrlResp, error) {
-	resp, err := knowledgeBaseDoc.AnalysisDocUrl(ctx.Request.Context(), &knowledgebase_doc_service.AnalysisUrlDocReq{
-		UserId:      userId,
-		OrgId:       orgId,
-		KnowledgeId: r.KnowledgeId,
-		UrlList:     r.UrlList,
+// AnalysisDocUrl 解析url，已下架，handler 和路由注册同步注释
+// func AnalysisDocUrl(ctx *gin.Context, userId, orgId string, r *request.AnalysisUrlDocReq) (*response.AnalysisDocUrlResp, error) {
+// 	resp, err := knowledgeBaseDoc.AnalysisDocUrl(ctx.Request.Context(), &knowledgebase_doc_service.AnalysisUrlDocReq{
+// 		UserId:      userId,
+// 		OrgId:       orgId,
+// 		KnowledgeId: r.KnowledgeId,
+// 		UrlList:     r.UrlList,
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	var urlList []*response.DocUrl
+// 	if len(resp.UrlList) > 0 {
+// 		for _, url := range resp.UrlList {
+// 			urlList = append(urlList, &response.DocUrl{
+// 				Url:      url.Url,
+// 				FileName: url.FileName,
+// 				FileSize: int(url.FileSize),
+// 			})
+// 		}
+// 	}
+// 	return &response.AnalysisDocUrlResp{UrlList: urlList}, nil
+// }
+
+func buildDocKnowledgeInfo(ctx *gin.Context, keyWords []*knowledgebase_keywords_service.KeywordsInfo, knowledgeInfo *knowledgebase_service.KnowledgeInfo) *response.DocKnowledgeInfo {
+	embModelInfo, _ := GetModel(ctx, knowledgeInfo.CreateUserId, knowledgeInfo.CreateOrgId, &request.GetModelRequest{
+		BaseModelRequest: request.BaseModelRequest{
+			ModelId: knowledgeInfo.EmbeddingModelInfo.ModelId,
+		},
 	})
-	if err != nil {
-		return nil, err
+
+	return &response.DocKnowledgeInfo{
+		KnowledgeId:     knowledgeInfo.KnowledgeId,
+		KnowledgeName:   knowledgeInfo.Name,
+		GraphSwitch:     knowledgeInfo.GraphSwitch,
+		ShowGraphReport: knowledgeInfo.ShowGraphReport,
+		Description:     knowledgeInfo.Description,
+		Keywords:        buildKeywordsInfo(keyWords),
+		EmbeddingModel:  embModelInfo,
+		LlmModelId:      knowledgeInfo.LlmModelId,
+		Category:        knowledgeInfo.Category,
+		Avatar:          cacheKnowledgeAvatar(ctx, knowledgeInfo.AvatarPath, knowledgeInfo.Category),
+		PermissionType:  knowledgeInfo.PermissionType,
+		OwnerUserId:     knowledgeInfo.OwnerUserId,
+		OwnerOrgId:      knowledgeInfo.OwnerOrgId,
+		CreatedAt:       knowledgeInfo.CreatedAt,
+		UpdatedAt:       knowledgeInfo.UpdatedAt,
 	}
-	var urlList []*response.DocUrl
-	if len(resp.UrlList) > 0 {
-		for _, url := range resp.UrlList {
-			urlList = append(urlList, &response.DocUrl{
-				Url:      url.Url,
-				FileName: url.FileName,
-				FileSize: int(url.FileSize),
-			})
-		}
-	}
-	return &response.AnalysisDocUrlResp{UrlList: urlList}, nil
 }
 
 // buildDocRespList 构造文档返回列表
@@ -369,12 +425,15 @@ func buildDocRespList(ctx *gin.Context, dataList []*knowledgebase_doc_service.Do
 			Status:        int(data.Status),
 			ErrorMsg:      gin_util.I18nKey(ctx, data.ErrorMsg),
 			FileSize:      data.DocSize,
+			FileSizeStr:   response.FormatFileSize(data.DocSize),
 			KnowledgeId:   knowledgeId,
 			SegmentMethod: data.SegmentMethod,
 			Author:        authorMap[data.UserId],
 			GraphStatus:   data.GraphStatus,
 			GraphErrMsg:   data.GraphErrMsg,
 			IsMultimodal:  data.IsMultimodal,
+			DocProgress:   data.DocProgress,
+			GraphProgress: data.GraphProgress,
 		})
 	}
 	return retList
@@ -396,7 +455,7 @@ func buildAuthorMap(ctx *gin.Context, dataList []*knowledgebase_doc_service.DocI
 	for userId := range userIdSet {
 		userIdList = append(userIdList, userId)
 	}
-	userInfoList, err := iam.GetUserSelectByUserIDs(ctx, &iam_service.GetUserSelectByUserIDsReq{
+	userInfoList, err := iam.GetUserSelectByUserIDs(ctx.Request.Context(), &iam_service.GetUserSelectByUserIDsReq{
 		UserIds: userIdList,
 	})
 	if err != nil {
@@ -433,6 +492,8 @@ func buildDocSegmentResp(docSegmentListResp *knowledgebase_doc_service.DocSegmen
 	}
 	return &response.DocSegmentResp{
 		FileName:            docSegmentListResp.FileName,
+		FileSize:            docSegmentListResp.DocSize,
+		FileSizeStr:         response.FormatFileSize(docSegmentListResp.DocSize),
 		PageTotal:           int(docSegmentListResp.PageTotal),
 		SegmentTotalNum:     int(docSegmentListResp.SegmentTotalNum),
 		MaxSegmentSize:      int(docSegmentListResp.MaxSegmentSize),
@@ -444,6 +505,9 @@ func buildDocSegmentResp(docSegmentListResp *knowledgebase_doc_service.DocSegmen
 		SegmentImportStatus: docSegmentListResp.SegmentImportStatus,
 		SegmentMethod:       docSegmentListResp.SegmentMethod,
 		DocAnalyzerText:     buildDocAnalyzerText(docSegmentListResp.DocAnalyzer, analyzerModelMap),
+		DownloadUrl:         docSegmentListResp.DownloadUrl,
+		CanPreview:          docSegmentListResp.CanPreview,
+		PreviewFailReason:   docSegmentListResp.PreviewFailReason,
 	}
 }
 
@@ -614,15 +678,18 @@ func DeleteDocSegment(ctx *gin.Context, userId, orgId string, r *request.DeleteD
 	return err
 }
 
-func UpdateDocSegment(ctx *gin.Context, userId, orgId string, r *request.UpdateDocSegmentReq) error {
-	_, err := knowledgeBaseDoc.UpdateDocSegment(ctx.Request.Context(), &knowledgebase_doc_service.UpdateDocSegmentReq{
+func UpdateDocSegment(ctx *gin.Context, userId, orgId string, r *request.UpdateDocSegmentReq) (*response.UpdateDocSegmentResp, error) {
+	resp, err := knowledgeBaseDoc.UpdateDocSegment(ctx.Request.Context(), &knowledgebase_doc_service.UpdateDocSegmentReq{
 		UserId:    userId,
 		OrgId:     orgId,
 		DocId:     r.DocId,
 		ContentId: r.ContentId,
 		Content:   r.Content,
 	})
-	return err
+	if err != nil {
+		return nil, err
+	}
+	return &response.UpdateDocSegmentResp{ContentId: resp.ContentId}, nil
 }
 
 func CreateDocChildSegment(ctx *gin.Context, userId, orgId string, r *request.CreateDocChildSegmentReq) error {
@@ -843,7 +910,7 @@ func buildDocSegment(docSegment *knowledgebase_doc_service.DocSegment) *response
 	}
 }
 
-func buildKeywordsInfo(keywords []*knowledgebase_doc_service.KeywordsInfo) []*response.KeywordsInfo {
+func buildKeywordsInfo(keywords []*knowledgebase_keywords_service.KeywordsInfo) []*response.KeywordsInfo {
 	retList := make([]*response.KeywordsInfo, 0)
 	if len(keywords) > 0 {
 		for _, v := range keywords {

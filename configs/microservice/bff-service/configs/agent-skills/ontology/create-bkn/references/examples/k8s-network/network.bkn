@@ -1,0 +1,18 @@
+---
+type: knowledge_network
+id: k8s-network
+name: Kubernetes网络
+tags: [Kubernetes, 拓扑架构, 运维]
+business_domain: kubernetes
+---
+
+# Kubernetes网络
+
+采用每定义一文件的模块化组织方式，适合大规模知识网络
+
+## Network Overview
+
+- **ObjectTypes** (object_types/): pod, node, service
+- **RelationTypes** (relation_types/): pod_belongs_node, service_routes_pod
+- **ActionTypes** (action_types/): restart_pod, cordon_node
+- **ConceptGroups** (concept_groups/): k8s

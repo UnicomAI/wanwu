@@ -1,33 +1,62 @@
 // Package opencode 提供 opencode 智能体的运行器实现（基于 HTTP API）。
 //
-// 基于 opencode >= v1.4.11 的 SSE 事件格式实现。
+// 基于 opencode >= v1.4.11 的 SSE 事件格式实现，兼容 v1.14.51、v1.15.13、v1.16.2。
+//
+// 版本基线说明：
+//
+//	v1.1.65 仅支持 BusEvent 单格式 SSE（src/server/routes/global.ts 仅使用
+//	BusEvent.payloads()）。v1.4.11 引入 BusEvent/SyncEvent 双格式（参见 e8f0faee），
+//	SSE schema 变为 z.union([BusEvent.payloads(), SyncEvent.payloads()])，奠定了
+//	当前 SSE 事件解析的架构基础。后续版本增量添加事件和字段，线上格式始终向后兼容：
+//	- v1.14.51：BusEvent payload 新增 id 字段（上升标识符），GlobalBus 新增 project 字段，
+//	  引入 session.next.* 细粒度事件（实验性标志，默认关闭）
+//	- v1.15.13：引入 EventV2 核心系统（packages/core/src/event.ts），EventV2Bridge
+//	  通过 legacy Bus/SyncEvent 间接输出，线上格式不变
+//	- v1.16.2：EventV2Bridge 直接输出至 GlobalBus，session.next.* 事件默认开启，
+//	  线上 BusEvent/SyncEvent 格式仍不变
+//
 // 通过 SSE 连接接收 opencode 事件流，转换为统一的 JSON 格式输出。
+//
+// v1.16.2 兼容性说明：
+//   - v1.16.2 将内部事件系统从 BusEvent 迁移至 EventV2，但 EventV2Bridge 保持了
+//     向后兼容的 SSE 输出格式：BusEvent 格式 {id, type, properties} 和 SyncEvent
+//     格式 {type:"sync", syncEvent:{id, type, seq, aggregateID, data}} 均未变。
+//   - HTTP API 端点（/session, /session/{id}/prompt_async, /question/{id}/reply 等）
+//     路径和请求/响应格式未变。
+//   - Part 类型（text, reasoning, tool, step-start, step-finish 等）字段结构未变。
+//   - session.idle 事件仍向后兼容发送（同时发送 session.status）。
+//   - 新增 SSE 字段（如 payload.project, payload.workspace）被 Go json.Unmarshal
+//     自动忽略，无需代码修改。
+//   - 新增 session.next.* 系列细粒度事件（SyncEvent），当前未处理，不影响现有逻辑。
+//   - 注意：未来版本可能移除 BusEvent 兼容层，届时需适配 EventV2 直出格式。
 package opencode
 
 import (
-	"bufio"
 	"context"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"text/template"
 	"time"
 
 	"github.com/UnicomAI/wanwu/pkg/log"
+	"github.com/UnicomAI/wanwu/pkg/openapi2skill"
 	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/UnicomAI/wanwu/pkg/wga-sandbox/internal/runner"
 	"github.com/UnicomAI/wanwu/pkg/wga-sandbox/internal/sandbox"
 	wga_sandbox_option "github.com/UnicomAI/wanwu/pkg/wga-sandbox/wga-sandbox-option"
 	"github.com/cloudwego/eino/adk"
 	"github.com/cloudwego/eino/schema"
-	"github.com/go-resty/resty/v2"
 	"github.com/google/uuid"
+	"golang.org/x/sync/errgroup"
 )
 
 // ============================================================================
@@ -39,8 +68,12 @@ const (
 	configTemplate = `{
   "$schema": "https://opencode.ai/config.json",
   "permission": {
-    "*": "allow",
-	"question": "deny"
+    "*": "allow"{{if .EnableHumanInTheLoop}},
+    "question": "ask"{{else}},
+    "question": "deny"{{end}}
+  },
+  "agent": {
+    "title": { "disable": true }
   },
   "provider": {
     "{{.Provider}}": {
@@ -61,7 +94,11 @@ const (
 {{range $i, $mcp := .MCPs}}    "{{$mcp.Name}}": {
       "type": "remote",
       "url": "{{$mcp.URL}}",
-      "enabled": true
+      "description": "{{$mcp.Description}}",
+      "enabled": true{{if $mcp.HeaderPairs}},
+      "headers": {
+{{range $j, $hp := $mcp.HeaderPairs}}        "{{$hp.Key}}": "{{$hp.Value}}"{{if ne $j (sub (len $mcp.HeaderPairs) 1)}},{{end}}
+{{end}}      }{{end}}
     }{{if ne $i (sub (len $.MCPs) 1)}},{{end}}
 {{end}}  }{{end}}
 }`
@@ -169,15 +206,16 @@ func NewRunner(sb sandbox.Sandbox, opt wga_sandbox_option.RunOption) runner.Runn
 // 4. 创建 opencode session
 // 注意：沙箱环境已在 Manager.Create 时通过 Prepare 初始化，此处不再调用
 func (r *Runner) BeforeRun(ctx context.Context) error {
+	// 恢复 trace 上下文
+	if r.opt.TraceContext != nil {
+		ctx = trace_util.InjectTraceHeaders(ctx, r.opt.TraceContext)
+	}
+
 	if err := r.setupConfig(ctx); err != nil {
 		return err
 	}
 
-	if err := r.setupSkills(ctx); err != nil {
-		return err
-	}
-
-	if err := r.setupTools(ctx); err != nil {
+	if err := r.setupSkillsAndTools(ctx); err != nil {
 		return err
 	}
 
@@ -197,6 +235,11 @@ func (r *Runner) BeforeRun(ctx context.Context) error {
 // Run 执行智能体任务，返回 JSON 格式事件流。
 // 通过 SSE 连接接收 opencode 事件，过滤并转换为 JSON 格式输出。
 func (r *Runner) Run(ctx context.Context) (<-chan string, error) {
+	// 恢复 trace 上下文，确保 HTTP 请求传播 traceparent 头
+	if r.opt.TraceContext != nil {
+		ctx = trace_util.InjectTraceHeaders(ctx, r.opt.TraceContext)
+	}
+
 	sseCh, err := r.connectSSE(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect SSE: %w", err)
@@ -240,10 +283,27 @@ func (r *Runner) setupConfig(ctx context.Context) error {
 		return fmt.Errorf("failed to create .opencode directory: %w", err)
 	}
 
-	content, err := renderConfig(r.opt.ModelConfig, r.opt.MCPs)
+	// 如果存在 trace 上下文，将 traceId/spanId 编码到 baseURL 中
+	// 这样 opencode 进程调用模型 API 时，URL 会变成
+	// {baseURL}/trace/{traceId}/span/{spanId}/chat/completions
+	// BFF 侧新增带 /trace/:traceId/span/:spanId/ 参数的路由来接收这种请求
+	modelConfig := r.opt.ModelConfig
+	if r.opt.TraceContext != nil {
+		if tp, ok := r.opt.TraceContext["traceparent"]; ok {
+			parts := strings.Split(tp, "-")
+			if len(parts) == 4 {
+				traceID := parts[1]
+				spanID := parts[2]
+				modelConfig.BaseURL = modelConfig.BaseURL + "/trace/" + traceID + "/span/" + spanID
+			}
+		}
+	}
+
+	content, err := renderConfig(modelConfig, r.opt.MCPs, r.opt.EnableHumanInTheLoop)
 	if err != nil {
 		return fmt.Errorf("failed to render config: %w", err)
 	}
+	// log.Infof("%s rendered opencode config: %s", r.logPrefix, content)
 	if err := r.sb.WriteFile(ctx, ".opencode/opencode.json", []byte(content)); err != nil {
 		return fmt.Errorf("failed to create opencode.json: %w", err)
 	}
@@ -251,78 +311,166 @@ func (r *Runner) setupConfig(ctx context.Context) error {
 	return nil
 }
 
-// setupSkills 复制 skills 到工作目录。
-func (r *Runner) setupSkills(ctx context.Context) error {
-	if len(r.opt.Skills) == 0 {
+// setupSkillsAndTools 并行准备 skills 和 tools 到本地临时目录，然后打包为单个压缩包传输到沙箱解压。
+// 优化点：
+// 1. skills 和 tools 准备并行执行
+// 2. openapi2skill 在主机进程执行，不在沙箱中执行
+// 3. 所有文件打包成一个 tar.gz 上传，沙箱仅需一次解压命令
+// 4. 最小化沙箱命令执行次数
+func (r *Runner) setupSkillsAndTools(ctx context.Context) error {
+	if len(r.opt.Skills) == 0 && len(r.opt.Tools) == 0 {
 		return nil
 	}
 
-	if _, err := r.sb.ExecuteSync(ctx, "mkdir", "-p", ".opencode/skills"); err != nil {
-		return fmt.Errorf("failed to create skills directory: %w", err)
+	// 创建本地临时目录
+	tmpDir, err := os.MkdirTemp("", "wga-setup-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temp dir: %w", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(tmpDir)
+	}()
+
+	skillsDir := filepath.Join(tmpDir, "skills")
+	toolsDir := filepath.Join(tmpDir, "tools")
+	if err := os.MkdirAll(skillsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create skills temp dir: %w", err)
+	}
+	if err := os.MkdirAll(toolsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create tools temp dir: %w", err)
 	}
 
+	// 并行准备 skills 和 tools
+	var g errgroup.Group
+
+	if len(r.opt.Skills) > 0 {
+		g.Go(func() error {
+			return r.prepareSkillsLocally(skillsDir)
+		})
+	}
+
+	if len(r.opt.Tools) > 0 {
+		g.Go(func() error {
+			return r.prepareToolsLocally(ctx, toolsDir, skillsDir)
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return err
+	}
+
+	// 批量传输：打包 → 上传 → 沙箱解压
+	tarData, err := util.TarDir(tmpDir+"/.", true) // gzip 压缩
+	if err != nil {
+		return fmt.Errorf("failed to tar skills/tools: %w", err)
+	}
+
+	tarPath := ".opencode/_skills_tools.tar.gz"
+	if err := r.sb.WriteFile(ctx, tarPath, tarData); err != nil {
+		return fmt.Errorf("failed to upload skills/tools archive: %w", err)
+	}
+
+	// 单条命令完成解压+清理
+	if _, err := r.sb.ExecuteSync(ctx, fmt.Sprintf("tar -xzf %s -C .opencode && rm -f %s", tarPath, tarPath)); err != nil {
+		return fmt.Errorf("failed to extract skills/tools archive: %w", err)
+	}
+
+	return nil
+}
+
+// prepareSkillsLocally 将所有 skill 目录复制到本地临时目录，并本地追加变量到 SKILL.md。
+func (r *Runner) prepareSkillsLocally(skillsDir string) error {
+	var g errgroup.Group
 	for _, skill := range r.opt.Skills {
-		dirName := path.Base(skill.Dir)
-		if err := r.sb.CopyToSandbox(ctx, skill.Dir, ".opencode/skills"); err != nil {
-			return fmt.Errorf("failed to copy skill %s to workspace: %w", dirName, err)
-		}
-	}
+		skill := skill // capture
+		g.Go(func() error {
+			dirName := path.Base(skill.Dir)
+			dstDir := filepath.Join(skillsDir, dirName)
+			if err := copyDir(skill.Dir, dstDir); err != nil {
+				return fmt.Errorf("failed to copy skill %s: %w", dirName, err)
+			}
 
-	return nil
+			// 本地追加变量到 SKILL.md
+			if len(skill.Variables) > 0 {
+				varsContent := formatVariablesContent(skill.Variables)
+				skillMdPath := filepath.Join(dstDir, "SKILL.md")
+				if err := appendToFile(skillMdPath, varsContent); err != nil {
+					return fmt.Errorf("failed to append variables to SKILL.md for skill %s: %w", dirName, err)
+				}
+			}
+			return nil
+		})
+	}
+	return g.Wait()
 }
 
-// setupTools 转换 tools 为 skills 并复制到工作目录。
-func (r *Runner) setupTools(ctx context.Context) error {
-	if len(r.opt.Tools) == 0 {
-		return nil
-	}
-
-	if _, err := r.sb.ExecuteSync(ctx, "mkdir", "-p", ".opencode/tools"); err != nil {
-		return fmt.Errorf("failed to create tools directory: %w", err)
-	}
-
-	if _, err := r.sb.ExecuteSync(ctx, "mkdir", "-p", ".opencode/skills"); err != nil {
-		return fmt.Errorf("failed to create skills directory: %w", err)
-	}
-
+// prepareToolsLocally 在主机进程中将所有 tools 转换为 skills 并写入本地临时目录。
+// openapi2skill.ConvertDoc 直接在主机执行，无需沙箱命令。
+func (r *Runner) prepareToolsLocally(ctx context.Context, toolsDir, skillsDir string) error {
+	var g errgroup.Group
 	for _, tool := range r.opt.Tools {
-		if err := r.setupTool(ctx, tool); err != nil {
-			return err
-		}
+		tool := tool // capture
+		g.Go(func() error {
+			return r.prepareToolLocally(ctx, tool, toolsDir, skillsDir)
+		})
 	}
-
-	return nil
+	return g.Wait()
 }
 
-// setupTool 处理单个 tool。
-func (r *Runner) setupTool(ctx context.Context, tool wga_sandbox_option.Tool) error {
-	// 写入 OpenAPI schema 文件
+// prepareToolLocally 处理单个 tool：写入 schema JSON、本地调用 openapi2skill 转换、追加 auth/trace 内容。
+// 如果 OpenAPI schema 的 info.x-wanwu-type 扩展字段存在，skill 会放在 skills/<type>/<skillName>/ 子目录中。
+func (r *Runner) prepareToolLocally(ctx context.Context, tool wga_sandbox_option.Tool, toolsDir, skillsDir string) error {
+	// 1. 写入 OpenAPI schema JSON 到本地 tools 目录
 	schemaData, err := json.Marshal(tool.OpenAPI3Schema)
 	if err != nil {
 		return fmt.Errorf("failed to marshal tool schema %s: %w", tool.Name, err)
 	}
-
 	dstFileName := fmt.Sprintf("%s.%s.json", toSkillName(tool.Name), uuid.New().String()[:8])
-	dstPath := ".opencode/tools/" + dstFileName
-	if err := r.sb.WriteFile(ctx, dstPath, schemaData); err != nil {
+	schemaPath := filepath.Join(toolsDir, dstFileName)
+	if err := os.WriteFile(schemaPath, schemaData, 0644); err != nil {
 		return fmt.Errorf("failed to write tool schema %s: %w", tool.Name, err)
 	}
 
-	// 使用 openapi-to-skills 转换为 skill
+	// 2. 从 OpenAPI info.x-wanwu-type 扩展字段读取工具类型，用于 skill 子目录分类
+	// 有类型时，skill 输出到 skills/<type>/ 子目录；无类型时直接输出到 skills/
+	convertOutputDir := skillsDir
+	if tool.OpenAPI3Schema != nil && tool.OpenAPI3Schema.Info != nil {
+		if ext, ok := tool.OpenAPI3Schema.Info.Extensions["x-wanwu-type"]; ok {
+			if toolType, ok := ext.(string); ok && toolType != "" {
+				convertOutputDir = filepath.Join(skillsDir, toSkillName(toolType))
+			}
+		}
+	}
+
+	// 3. 在主机进程调用 openapi2skill 转换（不在沙箱执行）
 	skillName := toSkillName(tool.Name)
-	if _, err := r.sb.ExecuteSync(ctx, "openapi-to-skills", dstPath, "-o", ".opencode/skills", "-n", skillName, "-f"); err != nil {
+	convertOpts := openapi2skill.ConvertOptions{
+		OutputDir: convertOutputDir,
+		Parser: openapi2skill.ParserOptions{
+			SkillName: skillName,
+			GroupBy:   openapi2skill.GroupByAuto,
+		},
+	}
+	if err := openapi2skill.ConvertDoc(tool.OpenAPI3Schema, convertOpts); err != nil {
 		return fmt.Errorf("failed to convert tool %s to skill: %w", tool.Name, err)
 	}
 
-	// 追加 API 认证信息到 SKILL.md
+	// 4. 本地追加 API 认证信息到 SKILL.md
+	skillMdPath := filepath.Join(convertOutputDir, skillName, "SKILL.md")
 	if tool.APIAuth != nil && tool.APIAuth.Type != "none" && tool.APIAuth.Value != "" {
-		skillDir := ".opencode/skills/" + skillName
-		skillPath := fmt.Sprintf("%s/SKILL.md", skillDir)
 		authContent := formatAuthContent(tool.APIAuth)
-		encoded := base64.StdEncoding.EncodeToString([]byte(authContent))
-		cmd := fmt.Sprintf("echo '%s' | base64 -d >> \"%s\"", encoded, skillPath)
-		if _, err := r.sb.ExecuteSync(ctx, cmd); err != nil {
-			return fmt.Errorf("failed to update SKILL.md for tool %s: %w", tool.Name, err)
+		if err := appendToFile(skillMdPath, authContent); err != nil {
+			return fmt.Errorf("failed to append auth to SKILL.md for tool %s: %w", tool.Name, err)
+		}
+	}
+
+	// 5. 本地追加 trace 上下文提示到 SKILL.md
+	if r.opt.TraceContext != nil {
+		if _, ok := r.opt.TraceContext["traceparent"]; ok {
+			traceContent := formatTraceContextContent(r.opt.TraceContext)
+			if err := appendToFile(skillMdPath, traceContent); err != nil {
+				return fmt.Errorf("failed to append trace context to SKILL.md for tool %s: %w", tool.Name, err)
+			}
 		}
 	}
 
@@ -330,23 +478,51 @@ func (r *Runner) setupTool(ctx context.Context, tool wga_sandbox_option.Tool) er
 }
 
 // copyOutput 复制输出文件到本地，并移除隐藏文件。
+//
+// 替换策略：先复制到临时目录并清理隐藏文件，再用 backup+swap 原子替换 OutputDir。
+// 这样可以确保沙箱中已删除/重命名的文件不会在 OutputDir 中残留，
+// 同时保证任何失败都不会破坏 OutputDir 的现有内容（workspace 链不断）。
 func (r *Runner) copyOutput(ctx context.Context) error {
-	if err := r.sb.CopyFromSandbox(ctx, r.opt.OutputDir); err != nil {
+	outputDir := r.opt.OutputDir
+	tmpDir := filepath.Join(filepath.Dir(outputDir), ".swaptmp-"+filepath.Base(outputDir))
+	bakDir := filepath.Join(filepath.Dir(outputDir), ".swapbak-"+filepath.Base(outputDir))
+
+	// 清理上次失败留下的临时/备份目录
+	_ = os.RemoveAll(tmpDir)
+	_ = os.RemoveAll(bakDir)
+
+	// 1. 复制沙箱内容到临时目录（失败 → OutputDir 不变，链安全）
+	if err := r.sb.CopyFromSandbox(ctx, tmpDir); err != nil {
+		_ = os.RemoveAll(tmpDir)
 		return fmt.Errorf("failed to copy output from workspace: %w", err)
 	}
-
-	entries, err := os.ReadDir(r.opt.OutputDir)
-	if err != nil {
-		return fmt.Errorf("failed to read output directory: %w", err)
+	// 确保 tmpDir 存在（CopyFromSandbox 在沙箱只有隐藏文件时会跳过）
+	if err := os.MkdirAll(tmpDir, 0755); err != nil {
+		_ = os.RemoveAll(tmpDir)
+		return fmt.Errorf("failed to create temp dir: %w", err)
 	}
 
+	// 2. 清理临时目录中的隐藏文件
+	entries, err := os.ReadDir(tmpDir)
+	if err != nil {
+		_ = os.RemoveAll(tmpDir)
+		return fmt.Errorf("failed to read temp directory: %w", err)
+	}
 	for _, entry := range entries {
 		if strings.HasPrefix(entry.Name(), ".") {
-			removePath := r.opt.OutputDir + "/" + entry.Name()
+			removePath := filepath.Join(tmpDir, entry.Name())
 			if err := os.RemoveAll(removePath); err != nil {
+				_ = os.RemoveAll(tmpDir)
 				return fmt.Errorf("failed to remove hidden file %s: %w", entry.Name(), err)
 			}
 		}
+	}
+
+	// 3. 原子替换：备份 OutputDir → 安装 tmpDir → 清理备份
+	//    （失败 → 从备份恢复，链安全）
+	if err := swapDirWithBackup(tmpDir, outputDir, bakDir); err != nil {
+		_ = os.RemoveAll(tmpDir)
+		return fmt.Errorf("failed to swap output directory: %w", err)
 	}
 
 	return nil
@@ -361,7 +537,7 @@ func (r *Runner) createSession(ctx context.Context) error {
 	var result struct {
 		ID string `json:"id"`
 	}
-	resp, err := resty.New().R().
+	resp, err := trace_util.NewResty(ctx).R().
 		SetContext(ctx).
 		SetQueryParam("directory", r.sb.WorkDir()).
 		SetBody(map[string]any{}).
@@ -382,7 +558,7 @@ func (r *Runner) deleteSession(ctx context.Context) {
 	if r.sessionID == "" {
 		return
 	}
-	resp, err := resty.New().R().
+	resp, err := trace_util.NewResty(ctx).R().
 		SetContext(ctx).
 		SetQueryParam("directory", r.sb.WorkDir()).
 		Delete(fmt.Sprintf("%s/session/%s", r.opt.Sandbox.OpencodeEndpoint(), r.sessionID))
@@ -410,7 +586,7 @@ func (r *Runner) connectSSE(ctx context.Context) (<-chan string, error) {
 		defer close(sseCh)
 		defer close(errCh)
 
-		resp, err := resty.New().
+		resp, err := trace_util.NewResty(ctx).
 			SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}).
 			SetTimeout(0).
 			R().
@@ -458,8 +634,7 @@ func (r *Runner) connectSSE(ctx context.Context) (<-chan string, error) {
 
 // readSSEStream 读取 SSE 流，提取 data 字段并发送到通道。
 func (r *Runner) readSSEStream(body io.ReadCloser, sseCh chan<- string, ctx context.Context) {
-	scanner := bufio.NewScanner(body)
-	scanner.Buffer(make([]byte, 1024*1024), 10*1024*1024) // 10MB buffer
+	scanner := util.NewScanner(body)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "data: ") {
@@ -521,7 +696,7 @@ func (r *Runner) sendPromptAsync(ctx context.Context) error {
 		reqBody["system"] = system
 	}
 
-	resp, err := resty.New().R().
+	resp, err := trace_util.NewResty(ctx).R().
 		SetContext(ctx).
 		SetQueryParam("directory", r.sb.WorkDir()).
 		SetBody(reqBody).
@@ -536,13 +711,42 @@ func (r *Runner) sendPromptAsync(ctx context.Context) error {
 }
 
 // buildSystemAndPrompt 构建系统提示词和用户提示词。
+// 当 SystemMessageStrategy 为 merge 时，提取 messages 中的 system 消息并合并到 instruction 中。
 // historyMessages: 倒序找到第一条 role=user 之前的所有消息
 // prompt: 倒序找到第一条 role=user 消息，将这条及之后的所有消息拼接成 prompt
 func (r *Runner) buildSystemAndPrompt() (system string, prompt string, err error) {
+	messages := r.opt.Messages
+
+	// 提取 system 消息到 instruction（仅 merge 策略）
+	var extraSystemContent string
+	var otherMessages []adk.Message
+	if r.opt.SystemMessageStrategy == wga_sandbox_option.SystemMessageStrategyMerge {
+		for _, msg := range messages {
+			if msg.Role == schema.System && msg.Content != "" {
+				if extraSystemContent != "" {
+					extraSystemContent += "\n\n"
+				}
+				extraSystemContent += msg.Content
+			} else {
+				otherMessages = append(otherMessages, msg)
+			}
+		}
+	} else {
+		otherMessages = messages
+	}
+
+	instruction := r.opt.Instruction
+	if extraSystemContent != "" {
+		if instruction != "" {
+			instruction += "\n\n"
+		}
+		instruction += extraSystemContent
+	}
+
 	// 从后往前找到第一条 role=user 的消息
 	firstUserIndex := -1
-	for i := len(r.opt.Messages) - 1; i >= 0; i-- {
-		if r.opt.Messages[i].Role == schema.User {
+	for i := len(otherMessages) - 1; i >= 0; i-- {
+		if otherMessages[i].Role == schema.User {
 			firstUserIndex = i
 			break
 		}
@@ -554,16 +758,16 @@ func (r *Runner) buildSystemAndPrompt() (system string, prompt string, err error
 	if firstUserIndex >= 0 {
 		// historyMessages: 第一条 user 之前的消息
 		if firstUserIndex > 0 {
-			historyMessages = r.opt.Messages[:firstUserIndex]
+			historyMessages = otherMessages[:firstUserIndex]
 		}
 		// promptMessages: 第一条 user 及之后的消息
-		promptMessages = r.opt.Messages[firstUserIndex:]
+		promptMessages = otherMessages[firstUserIndex:]
 	} else {
 		// 没有 user 消息，全部作为 prompt
-		promptMessages = r.opt.Messages
+		promptMessages = otherMessages
 	}
 
-	system, err = renderSystem(r.opt.Instruction, r.opt.OverallTask, historyMessages)
+	system, err = renderSystem(instruction, r.opt.OverallTask, historyMessages)
 	if err != nil {
 		return "", "", err
 	}
@@ -623,6 +827,9 @@ func (r *Runner) handleBusEvent(event *sseEvent) (string, bool) {
 		return r.convertDeltaEvent(event), false
 	case "session.idle":
 		// 会话空闲事件（对应 SessionStatus.Event.Idle）
+		// session.idle 已标记 deprecated（仍向后兼容发送），同时发送 session.status。
+		// 若后续版本停止发送 session.idle，需切换至 session.status：
+		//   收到 session.status 且 status.type == "idle" 时视作会话结束
 		if event.Payload.Properties.SessionID != r.sessionID {
 			return "", false
 		}
@@ -633,6 +840,15 @@ func (r *Runner) handleBusEvent(event *sseEvent) (string, bool) {
 			return "", false
 		}
 		return r.convertErrorEvent(event), false
+	case string(OpencodeEventTypeQuestionAsked):
+		// 问题提出事件（Human-in-the-Loop）
+		return r.convertQuestionEvent(event, OpencodeEventTypeQuestionAsked, "pending"), false
+	case string(OpencodeEventTypeQuestionReplied):
+		// 问题已回答事件（Human-in-the-Loop）
+		return r.convertQuestionEvent(event, OpencodeEventTypeQuestionReplied, "answered"), false
+	case string(OpencodeEventTypeQuestionRejected):
+		// 问题被拒绝事件（Human-in-the-Loop）
+		return r.convertQuestionEvent(event, OpencodeEventTypeQuestionRejected, "rejected"), false
 	default:
 		return "", false
 	}
@@ -865,17 +1081,139 @@ func (r *Runner) convertErrorEvent(event *sseEvent) string {
 	return string(data)
 }
 
+// convertQuestionEvent 转换问题事件（Human-in-the-Loop）。
+func (r *Runner) convertQuestionEvent(event *sseEvent, eventType OpencodeEventType, status string) string {
+	evt := OpencodeEvent{
+		Type:      eventType,
+		Timestamp: time.Now().UnixMilli(),
+		SessionID: r.sessionID,
+	}
+
+	props := event.Payload.Properties
+	questionID := props.ID
+	if questionID == "" {
+		questionID = props.RequestID
+	}
+
+	questionP := questionPart{
+		Type:       "question",
+		QuestionID: questionID,
+		SessionID:  props.SessionID,
+		Status:     status,
+		Questions:  make([]questionItem, 0, len(props.Questions)),
+	}
+
+	for _, q := range props.Questions {
+		custom := r.opt.EnableHumanInTheLoopCustom
+		if q.Custom != nil {
+			custom = *q.Custom
+		}
+		item := questionItem{
+			Question: q.Question,
+			Header:   q.Header,
+			Multiple: q.Multiple,
+			Custom:   custom,
+			Options:  make([]questionOption, 0, len(q.Options)),
+		}
+		for _, opt := range q.Options {
+			item.Options = append(item.Options, questionOption(opt))
+		}
+		questionP.Questions = append(questionP.Questions, item)
+	}
+
+	if len(props.Answers) > 0 {
+		questionP.Answers = props.Answers
+	}
+
+	evt.Part, _ = json.Marshal(questionP)
+	data, _ := json.Marshal(evt)
+
+	return string(data)
+}
+
 // ============================================================================
 // 模板渲染
 // ============================================================================
 
+// processedMCP 渲染用的 MCP 中间结构体，在渲染前统一完成鉴权处理。
+type processedMCP struct {
+	Name        string
+	URL         string
+	Description string
+	HeaderPairs []mcpHeaderPair // 最终注入到 opencode.json 的请求头（有序，保证稳定渲染）
+}
+
+// mcpHeaderPair 表示 MCP 请求头的一个键值对，用于保证模板按顺序渲染逗号分隔符。
+type mcpHeaderPair struct {
+	Key   string
+	Value string
+}
+
 // renderConfig 渲染 opencode 配置文件。
-func renderConfig(config wga_sandbox_option.ModelConfig, mcps []wga_sandbox_option.MCP) (string, error) {
+func renderConfig(config wga_sandbox_option.ModelConfig, mcps []wga_sandbox_option.MCP, enableHITL bool) (string, error) {
+	// 在渲染前统一处理鉴权：query 鉴权拼入 URL，header 鉴权收集为有序键值对
+	processedMcps := make([]processedMCP, 0, len(mcps))
+	for _, mcp := range mcps {
+		pm := processedMCP{
+			Name:        mcp.Name,
+			Description: strings.Join(strings.Fields(mcp.Description), " "),
+		}
+		headerSet := make(map[string]struct{}, len(mcp.Headers)+1)
+		// 自定义请求头优先注入（基于转换前的 map 保证先入先出）
+		for k, v := range mcp.Headers {
+			pm.HeaderPairs = append(pm.HeaderPairs, mcpHeaderPair{Key: k, Value: v})
+			headerSet[k] = struct{}{}
+		}
+		// 处理 API 鉴权
+		if mcp.ApiAuth != nil && mcp.ApiAuth.AuthType != "" && mcp.ApiAuth.AuthType != util.AuthTypeNone {
+			switch mcp.ApiAuth.AuthType {
+			case util.AuthTypeAPIKeyQuery:
+				// query 鉴权拼入 URL
+				rawUrl, err := url.Parse(mcp.URL)
+				if err != nil {
+					return "", fmt.Errorf("mcp [%s] parse url err: %w", mcp.Name, err)
+				}
+				q := rawUrl.Query()
+				q.Set(mcp.ApiAuth.ApiKeyQueryParam, mcp.ApiAuth.ApiKeyValue)
+				rawUrl.RawQuery = q.Encode()
+				pm.URL = rawUrl.String()
+			case util.AuthTypeAPIKeyHeader:
+				// header 鉴权转为请求头
+				value := mcp.ApiAuth.ApiKeyValue
+				switch mcp.ApiAuth.ApiKeyHeaderPrefix {
+				case util.ApiKeyHeaderPrefixBasic:
+					value = "Basic " + mcp.ApiAuth.ApiKeyValue
+				case util.ApiKeyHeaderPrefixBearer:
+					value = "Bearer " + mcp.ApiAuth.ApiKeyValue
+				}
+				headerName := mcp.ApiAuth.ApiKeyHeader
+				if headerName == "" {
+					headerName = util.ApiKeyHeaderDefault
+				}
+				// 避免与自定义请求头重复
+				if _, exists := headerSet[headerName]; !exists {
+					pm.HeaderPairs = append(pm.HeaderPairs, mcpHeaderPair{Key: headerName, Value: value})
+				}
+			}
+		}
+		// 未设置 URL 的情况（无 query 鉴权）
+		if pm.URL == "" {
+			pm.URL = mcp.URL
+		}
+		// 没有 headers 则设为 nil，避免模板渲染空的 headers 块
+		if len(pm.HeaderPairs) == 0 {
+			pm.HeaderPairs = nil
+		}
+		processedMcps = append(processedMcps, pm)
+	}
+
 	tmpl, err := template.New("config").Funcs(template.FuncMap{
 		"sub": func(a, b int) int { return a - b },
 		"len": func(v interface{}) int {
 			switch s := v.(type) {
-			case []wga_sandbox_option.MCP:
+			case []processedMCP:
+				return len(s)
+			case []mcpHeaderPair:
 				return len(s)
 			}
 			return 0
@@ -886,10 +1224,12 @@ func renderConfig(config wga_sandbox_option.ModelConfig, mcps []wga_sandbox_opti
 	}
 	data := struct {
 		wga_sandbox_option.ModelConfig
-		MCPs []wga_sandbox_option.MCP
+		MCPs                 []processedMCP
+		EnableHumanInTheLoop bool
 	}{
-		ModelConfig: config,
-		MCPs:        mcps,
+		ModelConfig:          config,
+		MCPs:                 processedMcps,
+		EnableHumanInTheLoop: enableHITL,
 	}
 	var buf strings.Builder
 	if err := tmpl.Execute(&buf, data); err != nil {
@@ -970,12 +1310,56 @@ func formatMessageInputPart(part schema.MessageInputPart) string {
 // 工具函数
 // ============================================================================
 
-// toSkillName 将工具名称转换为 skill 名称，替换空格为连字符，移除括号。
+// copyDir 递归复制本地目录。
+func copyDir(src, dst string) error {
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		relPath, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+		dstPath := filepath.Join(dst, relPath)
+		if info.IsDir() {
+			return os.MkdirAll(dstPath, info.Mode())
+		}
+		// 符号链接：直接复制目标
+		if info.Mode()&os.ModeSymlink != 0 {
+			linkTarget, err := os.Readlink(path)
+			if err != nil {
+				return err
+			}
+			return os.Symlink(linkTarget, dstPath)
+		}
+		// 常规文件
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(dstPath, data, info.Mode())
+	})
+}
+
+// appendToFile 将内容追加到文件末尾。
+func appendToFile(path string, content string) error {
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = f.Close()
+	}()
+	_, err = f.WriteString(content)
+	return err
+}
+
+// toSkillName 将工具名称转换为 skill 名称，替换空格为连字符，移除括号，并转为小写以与 openapi2skill 保持一致。
 func toSkillName(name string) string {
 	result := strings.ReplaceAll(name, " ", "-")
 	result = strings.ReplaceAll(result, "(", "")
 	result = strings.ReplaceAll(result, ")", "")
-	return result
+	return strings.ToLower(result)
 }
 
 // formatAuthContent 格式化认证信息为 Markdown 格式。
@@ -993,4 +1377,89 @@ func formatAuthContent(auth *openapi3_util.Auth) string {
 		authDesc = fmt.Sprintf("Auth Value: `%s`", auth.Value)
 	}
 	return fmt.Sprintf("\n## API Key\n\n%s\n", authDesc)
+}
+
+// formatVariablesContent 格式化变量信息为 Markdown 格式。
+func formatVariablesContent(variables []wga_sandbox_option.SkillVariable) string {
+	var buf strings.Builder
+	buf.WriteString("\n## Variables\n\n")
+	buf.WriteString("The following variables are configured for this skill:\n\n")
+	for _, v := range variables {
+		// 转义反引号
+		escapedKey := strings.ReplaceAll(v.VariableKey, "`", "\\`")
+		escapedValue := strings.ReplaceAll(v.VariableValue, "`", "\\`")
+
+		if v.Description != "" {
+			escapedDesc := strings.ReplaceAll(v.Description, "`", "\\`")
+			fmt.Fprintf(&buf, "- **%s** (%s): `%s` = `%s`\n",
+				v.Name, escapedDesc, escapedKey, escapedValue)
+		} else {
+			fmt.Fprintf(&buf, "- **%s**: `%s` = `%s`\n",
+				v.Name, escapedKey, escapedValue)
+		}
+	}
+	buf.WriteString("\n")
+	return buf.String()
+}
+
+// formatTraceContextContent 格式化 trace 上下文信息为 Markdown 格式。
+// 追加到 SKILL.md 末尾，引导 LLM 在构造 curl 命令时注入 trace 头。
+func formatTraceContextContent(traceCtx map[string]string) string {
+	var buf strings.Builder
+	buf.WriteString("\n## Trace Context\n\n")
+	buf.WriteString("**You MUST include the following headers in every HTTP request to any external API to maintain distributed tracing. Do NOT omit them:**\n")
+	if tp, ok := traceCtx["traceparent"]; ok {
+		fmt.Fprintf(&buf, "- `traceparent: %s`\n", tp)
+	}
+	if ts, ok := traceCtx["tracestate"]; ok && ts != "" {
+		fmt.Fprintf(&buf, "- `tracestate: %s`\n", ts)
+	}
+	if bg, ok := traceCtx["baggage"]; ok && bg != "" {
+		fmt.Fprintf(&buf, "- `baggage: %s`\n", bg)
+	}
+	buf.WriteString("\n")
+	buf.WriteString("Example curl command with trace headers:\n")
+	buf.WriteString("```bash\n")
+	// 直接使用具体的 trace 值（不再依赖环境变量）
+	curlArgs := []string{`curl`}
+	if tp, ok := traceCtx["traceparent"]; ok {
+		curlArgs = append(curlArgs, fmt.Sprintf(`-H "traceparent: %s"`, tp))
+	}
+	if ts, ok := traceCtx["tracestate"]; ok && ts != "" {
+		curlArgs = append(curlArgs, fmt.Sprintf(`-H "tracestate: %s"`, ts))
+	}
+	if bg, ok := traceCtx["baggage"]; ok && bg != "" {
+		curlArgs = append(curlArgs, fmt.Sprintf(`-H "baggage: %s"`, bg))
+	}
+	curlArgs = append(curlArgs, "...")
+	buf.WriteString(strings.Join(curlArgs, " "))
+	buf.WriteString("\n```\n")
+	return buf.String()
+}
+
+// swapDirWithBackup 用备份目录实现原子替换 targetDir 为 tmpDir。
+//
+// 流程：
+//  1. Rename targetDir → bakDir（备份当前内容）
+//  2. Rename tmpDir → targetDir（安装新内容）
+//  3. 如果步骤 2 失败，恢复 bakDir → targetDir（尽力恢复）
+//  4. 删除 bakDir（清理）
+//
+// 三个目录必须在同一文件系统上，os.Rename 才能工作。
+// 如果 targetDir 不存在，函数返回错误，不修改 tmpDir。
+//
+// 安全保证：任意步骤失败时，targetDir 要么包含原始内容（从备份恢复），
+// 要么从未被修改。tmpDir 在失败时不会丢失。
+func swapDirWithBackup(tmpDir, targetDir, bakDir string) error {
+	if err := os.Rename(targetDir, bakDir); err != nil {
+		return fmt.Errorf("failed to backup %s to %s: %w", targetDir, bakDir, err)
+	}
+
+	if err := os.Rename(tmpDir, targetDir); err != nil {
+		_ = os.Rename(bakDir, targetDir)
+		return fmt.Errorf("failed to install %s to %s: %w", tmpDir, targetDir, err)
+	}
+
+	_ = os.RemoveAll(bakDir)
+	return nil
 }

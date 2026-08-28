@@ -9,3 +9,8 @@ requests
 pytz
 langchain-community
 openai
+opentelemetry-api==1.33.1
+opentelemetry-sdk==1.33.1
+opentelemetry-instrumentation-flask==0.54b1
+opentelemetry-instrumentation-requests==0.54b1
+opentelemetry-exporter-otlp-proto-http==1.33.1

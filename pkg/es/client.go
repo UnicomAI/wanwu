@@ -1,6 +1,7 @@
 package es
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -122,7 +123,7 @@ func (c *client) IndexDocument(ctx context.Context, index string, document inter
 
 	res, err := c.cli.Index(
 		index,
-		strings.NewReader(string(docJSON)),
+		bytes.NewReader(docJSON),
 		c.cli.Index.WithContext(ctx),
 		c.cli.Index.WithRefresh("true"),
 	)
@@ -141,11 +142,26 @@ func (c *client) IndexDocument(ctx context.Context, index string, document inter
 
 // 根据指定字段条件查询所有数据
 func (c *client) SearchByFields(ctx context.Context, index string, fieldConditions map[string]interface{}, from, size int, sortOrder string) ([]json.RawMessage, int64, error) {
+	// 过滤逻辑删除数据：排除 deleted=true，兼容无 deleted 字段的老数据
+	mustNotConditions := map[string]interface{}{"deleted": true}
+	return c.searchByFields(ctx, index, fieldConditions, mustNotConditions, from, size, sortOrder)
+}
+
+// SearchByFieldsWithDelete 在 SearchByFields 基础上支持 must_not 条件（用于过滤逻辑删除等）
+func (c *client) SearchByFieldsWithDelete(ctx context.Context, index string, fieldConditions map[string]interface{}, from, size int, sortOrder string) ([]json.RawMessage, int64, error) {
+	return c.searchByFields(ctx, index, fieldConditions, nil, from, size, sortOrder)
+}
+
+func (c *client) searchByFields(ctx context.Context, index string, fieldConditions, mustNotConditions map[string]interface{}, from, size int, sortOrder string) ([]json.RawMessage, int64, error) {
+	boolQuery := map[string]interface{}{
+		"must": buildMustQuery(fieldConditions),
+	}
+	if len(mustNotConditions) > 0 {
+		boolQuery["must_not"] = buildMustQuery(mustNotConditions)
+	}
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": buildMustQuery(fieldConditions),
-			},
+			"bool": boolQuery,
 		},
 		"from": from,
 		"size": size,
@@ -254,6 +270,59 @@ func (c *client) DeleteByFields(ctx context.Context, index string, fieldConditio
 	}
 
 	log.Infof("成功删除ES数据，索引: %s", index)
+	return nil
+}
+
+// 根据指定字段条件更新数据（逻辑删除等场景）
+func (c *client) UpdateByFields(ctx context.Context, index string, fieldConditions map[string]interface{}, updates map[string]interface{}) error {
+	if len(updates) == 0 {
+		return fmt.Errorf("更新字段为空")
+	}
+
+	// 构建 Painless script，将 updates 中每个字段赋值
+	params := map[string]interface{}{}
+	for field, value := range updates {
+		params[field] = value
+	}
+	source := ""
+	for field := range updates {
+		source += fmt.Sprintf("ctx._source.%s = params.%s; ", field, field)
+	}
+
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": buildMustQuery(fieldConditions),
+			},
+		},
+		"script": map[string]interface{}{
+			"source": source,
+			"lang":   "painless",
+			"params": params,
+		},
+	}
+
+	queryJSON, err := json.Marshal(query)
+	if err != nil {
+		return fmt.Errorf("序列化更新查询失败: %v", err)
+	}
+
+	res, err := c.cli.UpdateByQuery(
+		[]string{index},
+		c.cli.UpdateByQuery.WithBody(strings.NewReader(string(queryJSON))),
+		c.cli.UpdateByQuery.WithContext(ctx),
+		c.cli.UpdateByQuery.WithRefresh(true),
+	)
+	if err != nil {
+		return fmt.Errorf("ES更新失败: %v", err)
+	}
+	defer func() { _ = res.Body.Close() }()
+
+	if res.IsError() {
+		return fmt.Errorf("ES更新响应错误: %s", res.String())
+	}
+
+	log.Infof("成功更新ES数据，索引: %s", index)
 	return nil
 }
 

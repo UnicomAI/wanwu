@@ -18,11 +18,6 @@ import (
 
 var manager = sandbox.NewManager()
 
-type jsonErrorEvent struct {
-	Type    string `json:"type"`
-	Message string `json:"message"`
-}
-
 // Run 在沙箱容器中执行智能体任务。
 func Run(ctx context.Context, opts ...wga_sandbox_option.Option) (wga_sandbox_option.RunSession, <-chan string, error) {
 	var opt wga_sandbox_option.RunOption
@@ -119,10 +114,19 @@ func Cleanup(ctx context.Context, runID string) error {
 }
 
 func sendErrorEvent(ch chan<- string, message string) {
-	evt := jsonErrorEvent{Type: "error", Message: message}
+	// 必须使用 OpencodeEvent 格式（含 part 字段），否则 opencodeConverter 解析时
+	// event.Part 为 nil，json.Unmarshal(nil, ...) 会产生 "unexpected end of JSON input"
+	evt := opencode.OpencodeEvent{
+		Type:      opencode.OpencodeEventTypeError,
+		Timestamp: time.Now().UnixMilli(),
+	}
+	errorP := opencode.ErrorPart{}
+	errorP.Error.Name = "sandbox_error"
+	errorP.Error.Data.Message = message
+	evt.Part, _ = json.Marshal(errorP)
 	data, err := json.Marshal(evt)
 	if err != nil {
-		data = []byte(fmt.Sprintf(`{"type":"error","message":"%s"}`, message))
+		data = []byte(fmt.Sprintf(`{"type":"error","timestamp":%d,"sessionID":"","part":{"error":{"name":"sandbox_error","data":{"message":"%s"}}}}`, time.Now().UnixMilli(), message))
 	}
 	select {
 	case ch <- string(data):

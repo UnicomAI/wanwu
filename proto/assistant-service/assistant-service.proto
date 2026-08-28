@@ -21,7 +21,8 @@ service AssistantService {
   rpc AssistantDelete(AssistantDeleteReq) returns (google.protobuf.Empty) {}
   rpc GetAssistantListMyAll(GetAssistantListMyAllReq) returns (AppBriefList) {}
   rpc GetAssistantInfo(GetAssistantInfoReq) returns (AssistantInfo) {}
-  rpc GetAssistantIdByUuid(GetAssistantIdByUuidReq) returns (GetAssistantIdByUuidResp) {}
+  rpc GetAssistantBriefByPrimaryIds(GetAssistantBriefByPrimaryIdsReq) returns (GetAssistantBriefByPrimaryIdsResp) {}  // 根据assistant自增主键id（老自增id）批量查brief，Info.AppId为uuid
+  rpc GetAssistantPrimaryIdsByUuids(GetAssistantPrimaryIdsByUuidsReq) returns (GetAssistantPrimaryIdsByUuidsResp) {}  // 根据uuid批量查assistant自增主键id（老自增id）
   rpc AssistantCopy(AssistantCopyReq) returns (AssistantCreateResp) {}
   rpc GetAssistantDetailById(GetAssistantDetailByIdReq) returns (AssistantDetailResp) {}
   rpc GetMultiAssistantById(GetMultiAssistantByIdReq) returns (MultiAssistantDetailResp) {}
@@ -67,6 +68,7 @@ service AssistantService {
   rpc GetConversationIdByAssistantId(GetConversationIdByAssistantIdReq) returns (ConversationIdResp) {}
   rpc GetConversationList(GetConversationListReq) returns (GetConversationListResp) {}
   rpc GetConversationDetailList(GetConversationDetailListReq) returns (GetConversationDetailListResp) {}
+  rpc InternalGetConversationDetailList(GetConversationDetailListReq) returns (GetConversationDetailListResp) {}
   rpc AssistantConversionStream(AssistantConversionStreamReq) returns (stream AssistantConversionStreamResp) {}
   rpc MultiAssistantConversionStream(MultiAssistantConversionStreamReq) returns (stream AssistantConversionStreamResp) {}
 
@@ -84,11 +86,6 @@ service AssistantService {
   rpc MultiAgentEnableSwitch(MultiAgentEnableSwitchReq) returns (google.protobuf.Empty) {}
   rpc MultiAgentConfigUpdate(MultiAgentConfigUpdateReq) returns (google.protobuf.Empty) {}
 
-  // --- skill conversation ---
-  rpc CreateSkillConversation(CreateSkillConversationReq) returns (CreateSkillConversationResp) {}
-  rpc DeleteSkillConversation(DeleteSkillConversationReq) returns (google.protobuf.Empty) {}
-  rpc GetSkillConversationList(GetSkillConversationListReq) returns (GetSkillConversationListResp) {}
-
   // --- wga config ---
   rpc GetWgaConversationConfig(GetWgaConversationConfigReq) returns (GetWgaConversationConfigResp) {}
   rpc UpdateWgaConversationConfig(UpdateWgaConversationConfigReq) returns (google.protobuf.Empty) {}
@@ -100,6 +97,50 @@ service AssistantService {
   rpc WgaConversationDelete(WgaConversationDeleteReq) returns (google.protobuf.Empty) {}
   rpc WgaConversationList(WgaConversationListReq) returns (WgaConversationListResp) {}
   rpc WgaConversationExists(WgaConversationExistsReq) returns (WgaConversationExistsResp) {}
+
+  // --- digital-employee conversation（数字员工发布会话，独立表，与 wga conversation 物理隔离）---
+  rpc DigitalEmployeeConversationCreate(DigitalEmployeeConversationCreateReq) returns (DigitalEmployeeConversationCreateResp) {}
+  rpc DigitalEmployeeConversationDelete(DigitalEmployeeConversationDeleteReq) returns (google.protobuf.Empty) {}
+  rpc DigitalEmployeeConversationList(DigitalEmployeeConversationListReq) returns (DigitalEmployeeConversationListResp) {}
+  rpc GetDigitalEmployeeConversationConfig(GetDigitalEmployeeConversationConfigReq) returns (GetDigitalEmployeeConversationConfigResp) {}
+  rpc TouchDigitalEmployeeConversationConfig(GetDigitalEmployeeConversationConfigReq) returns (google.protobuf.Empty) {}
+  rpc UpdateDigitalEmployeeConversationConfig(UpdateDigitalEmployeeConversationConfigReq) returns (google.protobuf.Empty) {}
+
+  // --- admin center ---
+  rpc GetAdminCustomPromptPageList(GetAdminCustomPromptPageListReq) returns (CustomPromptList) {}
+
+  // --- admin center ---
+  rpc AdminAssistantPageList(AdminAssistantPageListReq) returns (AdminAssistantPageListResp) {}
+  rpc SyncAssistantPublish(SyncAssistantPublishReq) returns (google.protobuf.Empty) {}
+
+  // --- conversation log ---
+  rpc GetConversationLog(ConversationLogReq) returns (common.ConversationLog) {}
+  // 按 conversationId 查询会话归属（assistantId/userId/orgId），用于 bff 层归属校验
+  rpc GetConversationOwner(GetConversationOwnerReq) returns (GetConversationOwnerResp) {}
+
+  // --- message feedback ---
+  rpc MessageFeedback(MessageFeedbackReq) returns (MessageFeedbackResp) {}
+}
+
+message AdminAssistantPageListReq {
+  string name = 1;
+  repeated string userId = 2;
+  repeated string orgId = 3;
+  int32 pageNum = 4;
+  int32 pageSize = 5;
+  repeated int32 category = 6; // 1:单智能体，2:多智能体
+  repeated string publishStatus = 7; // draft:草稿，publish:发布
+  repeated string publishScope = 8;  // private：私密，organization：组织，public：公开
+}
+
+message SyncAssistantPublishReq {
+  string assistantId = 1;
+  string publishType = 2; // 非空=发布记录，空=删除发布记录(取消发布)
+}
+
+message AdminAssistantPageListResp {
+  int64 total = 1;
+  repeated AssistantBrief list = 2;
 }
 
 message SaveToESReq {
@@ -119,6 +160,7 @@ message SearchFromESReq {
   int32 page_size = 4;
   string sort_field = 5;
   string sort_order = 6;
+  bool exclude_deleted = 7; // 是否过滤逻辑删除数据，true 时仅返回未删除数据
 }
 
 message SearchFromESResp {
@@ -141,7 +183,7 @@ message GetAssistantByIdsReq{
 }
 
 message GetMultiAssistantByIdReq{
-  uint32 assistantId = 1;
+  string assistantId = 1;
   Identity identity = 2;
   string conversationId = 3; // 如果需要历史会话，则需要传入此数据
   bool draft = 4;//是否是草稿
@@ -150,7 +192,7 @@ message GetMultiAssistantByIdReq{
 }
 
 message GetAssistantDetailByIdReq{
-  uint32 assistantId = 1;
+  string assistantId = 1;
   Identity identity = 2;
   string conversationId = 3; // 如果需要历史会话，则需要传入此数据
   bool draft = 4;//是否是草稿
@@ -176,6 +218,7 @@ message AssistantSnapshotReq {
   string version = 2;
   string desc = 3;
   Identity identity = 4;
+  string extra = 5;
 }
 
 message AssistantSnapshotResp {
@@ -184,6 +227,7 @@ message AssistantSnapshotResp {
 
 message AssistantSnapshotUpdateReq {
   string assistantId = 1;
+  string extra = 2;
   string desc = 3;
   Identity identity = 4;
 }
@@ -200,6 +244,7 @@ message AssistantSnapshot {
   string desc = 4;
   int64 createAt = 5;
   int32 category = 6;
+  string extra = 7;
 }
 
 message AssistantSnapshotListResp {
@@ -294,6 +339,7 @@ message AppKnowledgeBase {
   int32 graphSwitch = 3; // 知识图谱开关
   MetaDataFilterParams metaDataFilterParams = 4;
   int32 category = 5; // 知识库分类 0-知识库，1-问答库，2-多模态知识库
+  string description = 6; // 知识库描述
 }
 
 message MetaDataFilterParams {
@@ -321,12 +367,18 @@ message GetAssistantListMyAllReq {
   Identity identity = 2;
 }
 
-message GetAssistantIdByUuidReq {
-  string uuid = 1;
+message GetAssistantBriefByPrimaryIdsReq {
+  repeated string assistantPrimaryIds = 1;   // assistant自增主键id（老自增id，字符串形式）
+}
+message GetAssistantBriefByPrimaryIdsResp {
+  map<string, AssistantBrief> briefMap = 1;  // key=入参主键id，value=brief（Info.AppId为uuid）
 }
 
-message GetAssistantIdByUuidResp {
-  string assistantId = 1;
+message GetAssistantPrimaryIdsByUuidsReq {
+  repeated string uuids = 1;
+}
+message GetAssistantPrimaryIdsByUuidsResp {
+  map<string, string> assistantPrimaryIdMap = 1;  // key=入参uuid，value=自增主键id（老自增id，字符串）
 }
 
 message AssistantInfo {
@@ -353,6 +405,7 @@ message AssistantInfo {
   int32 category = 22;
   AssistantMemoryConfig memoryConfig = 23;
   AssistantRecommendConfig recommendConfig = 24; //智能体问题推荐配置信息
+  string extra = 25; // 快照扩展信息（JSON），如 {"hideKnowledge":1}
 }
 
 message AssistantRecommendConfig {
@@ -384,6 +437,7 @@ message AssistantMCPInfos{
   string mcpType = 3;
   string actionName = 4;
   bool enable = 5;
+  string description = 6; // MCP描述
 }
 
 message AssistantToolInfos{
@@ -393,6 +447,7 @@ message AssistantToolInfos{
   string actionName = 4;
   bool enable = 5;
   string toolConfig = 6;
+  string description = 7; // 工具描述
 }
 
 message AssistantSkillInfo {
@@ -400,6 +455,7 @@ message AssistantSkillInfo {
   string skillId = 2;
   string skillType = 3;
   bool enable = 4;
+  string description = 5; // 技能描述
 }
 
 message GetAssistantInfoReq {
@@ -470,7 +526,7 @@ message AssistantMCPGetListReq {
 
 message AssistantMCPInfo {
   uint32 id = 1;
-  uint32 assistantMcpId = 2;
+  string mcpAssistantId = 2;  // assistant UUID
   string mcpId = 3;
   bool enable = 4;
   string userId = 5;
@@ -580,6 +636,7 @@ message GetConversationListReq {
   int32 pageSize = 3;
   int32 pageNo = 4;
   Identity identity = 5;
+  string searchText = 6; // 标题关键词，模糊匹配，空则不过滤
 }
 
 message GetConversationListResp {
@@ -594,6 +651,7 @@ message ConversationInfo{
   string assistantId = 2;
   string title = 3;
   int64 createdAt = 4;
+  int64 updatedAt = 5;
 }
 
 message GetConversationDetailListReq {
@@ -601,6 +659,7 @@ message GetConversationDetailListReq {
   int32 pageSize = 2;
   int32 pageNo = 3;
   Identity identity = 4;
+  bool excludeDeleted = 5; //排除逻辑删除数据
 }
 
 message GetConversationDetailListResp {
@@ -613,6 +672,8 @@ message GetConversationDetailListResp {
 message ConversationResponse {
   string response = 1;
   int32 order = 2;
+  string errResponse = 3;// 错误响应,用户可读
+  string errMessage = 4;// 错误信息，异常栈信息
 }
 
 message ConversionDetailInfo{
@@ -635,6 +696,8 @@ message ConversionDetailInfo{
   repeated SubConversation SubConversationList = 17;//子会话相关
   repeated ConversationResponse ConversationResponse = 18;//主会话详情
   repeated AgentFile responseFiles = 19;//响应文件列表
+  int32 feedback = 20; // 当前反馈状态: 0=无 1=点赞 2=点踩
+  string feedbackContent = 21; // 反馈文本内容
 }
 
 message SubConversation {
@@ -648,6 +711,7 @@ message SubConversation {
   string conversationType = 8;//subAgent：子智能体；agentTool：主智能体工具；subAgentTool：子智能体工具
   string parentId = 9;//需要挂载的id，为子智能体工具扩展
   int32 order = 10;//顺序
+  string errMessage = 11;//错误消息
 }
 
 message RequestFile {
@@ -679,6 +743,7 @@ message AssistantConversionStreamReq {
   bool draft = 6;
   Identity identity = 7;
   string detailId = 8;
+  string sourceFrom = 9;
 }
 
 message MultiAssistantConversionStreamReq {
@@ -690,6 +755,7 @@ message MultiAssistantConversionStreamReq {
   bool draft = 6;
   Identity identity = 7;
   string detailId = 8;
+  string sourceFrom = 9;
 }
 
 message ConversionStreamFile{
@@ -740,8 +806,9 @@ message CustomPromptInfo {
   string name = 3;
   string desc = 4;
   string prompt = 5;
-  int64 updatedAt = 6;
-  Identity identity = 7;
+  int64 createdAt = 6;
+  int64 updatedAt = 7;
+  Identity identity = 8;
 }
 
 message CustomPromptGetListReq {
@@ -752,6 +819,16 @@ message CustomPromptGetListReq {
 message CustomPromptList {
   repeated CustomPromptInfo customPromptInfos = 1;
   int64 total = 2;
+}
+
+// --- admin center ---
+
+message GetAdminCustomPromptPageListReq {
+  string name = 1;                     // 名称（模糊查询）
+  repeated string orgIdList = 2;       // 组织id列表（空=全部组织）
+  repeated string userIdList = 3;      // 用户id列表（空=全部用户）
+  int32 pageNo = 4;                    // 页码（从1开始）
+  int32 pageSize = 5;                  // 每页条数
 }
 
 message CustomPromptCopyReq {
@@ -832,6 +909,8 @@ message MCPToolInfo {
   // 如果此列为空，则表示不进行过滤
   repeated string toolNameList = 3;
   string avatar = 4;//头像
+  common.ApiAuthWebRequest apiAuth = 5; // api身份认证
+  map<string, string> headers = 6; // 请求头
 }
 
 message SkillParams {
@@ -845,6 +924,17 @@ message SkillInfo {
   string desc = 4;
   string avatar = 5;
   string objectPath = 6;
+  repeated SkillVariable variables = 7; // 技能自定义变量，将注入到 sandbox bash 子进程 env
+}
+
+// SkillVariable 注意：variableValue 字段仅允许沿 "assistant-svc → agent-svc → sandbox" 流动，
+// 不得进入回流 LLM 的上下文（system prompt / SKILL.md / 日志 / 错误信息 / SSE 帧）。
+// gRPC 拦截器若 dump request body 需要做 redaction。
+message SkillVariable {
+  string name          = 1; // 变量人类可读名（仅供 SKILL.md key/name/desc 展示用）
+  string desc          = 2; // 变量描述（仅供 SKILL.md key/name/desc 展示用）
+  string variableKey   = 3; // 环境变量名（受白名单正则 + 黑名单约束）
+  string variableValue = 4; // 变量值（敏感）
 }
 
 
@@ -865,41 +955,10 @@ message MultiAgentConfigUpdateReq{
 message AssistantBrief{
   common.AppBrief info = 1;
   int32 category = 2;
+  string uuid = 3; // 智能体唯一标识，供 OpenAPI 使用
+  string publishType = 4; // 发布类型(private/organization/public)，空=草稿
 }
 
-
-// --- skill conversation messages ---
-
-message CreateSkillConversationReq {
-  string title = 1;
-  Identity identity = 2;
-}
-
-message CreateSkillConversationResp {
-  string conversationId = 1;
-}
-
-message DeleteSkillConversationReq {
-  string conversationId = 1;
-  Identity identity = 2;
-}
-
-message GetSkillConversationListReq {
-  int32 pageNo = 1;
-  int32 pageSize = 2;
-  Identity identity = 3;
-}
-
-message GetSkillConversationListResp {
-  repeated SkillConversationItem list = 1;
-  int64 total = 2;
-}
-
-message SkillConversationItem {
-  string conversationId = 1;
-  string title = 2;
-  int64 createdAt = 3;
-}
 
 // --- wga conversation messages ---
 
@@ -922,6 +981,7 @@ message WgaConversationListReq {
   int32 pageSize = 1;
   int32 pageNo = 2;
   Identity identity = 3;
+  string searchText = 4; // 标题关键词，模糊匹配，空则不过滤
 }
 
 message WgaConversationListResp {
@@ -935,6 +995,7 @@ message WgaConversationInfo {
   string threadId = 1;
   string title = 2;
   int64 createdAt = 3;
+  int64 updatedAt = 4;
 }
 
 message WgaConversationExistsReq {
@@ -972,6 +1033,14 @@ message WgaConfigSkill {
   string skillType = 2;
 }
 
+message WgaConfigKnowledge {
+  string knowledgeId = 1;
+}
+
+message WgaConfigOntologyKnowledge {
+  string ontologyKnowledgeId = 1;
+}
+
 message WgaConversationConfig {
   string threadId = 1;
   string title = 2;
@@ -992,6 +1061,8 @@ message WgaConfig{
   repeated WgaConfigMcp mcpList = 7;
   repeated WgaConfigWorkflow workflowList = 8;
   repeated WgaConfigSkill skillList = 9;
+  repeated WgaConfigKnowledge knowledgeList = 10;
+  repeated WgaConfigOntologyKnowledge ontologyKnowledgeList = 11;
 }
 
 message GetWgaConversationConfigReq {
@@ -1024,4 +1095,103 @@ message UpdateWgaConfigReq {
   repeated WgaConfigMcp mcpList = 4;
   repeated WgaConfigWorkflow workflowList = 5;
   repeated WgaConfigSkill skillList = 6;
+  repeated WgaConfigKnowledge knowledgeList = 7;
+  repeated WgaConfigOntologyKnowledge ontologyKnowledgeList = 8;
+}
+
+// --- digital-employee conversation messages ---
+
+message DigitalEmployeeConversationCreateReq {
+  string prompt = 1;                          // 会话标题
+  common.AppModelConfig modelConfig = 2;      // 模型配置（可选）
+  string employeeId = 3;                       // 数字员工ID（外部）
+  Identity identity = 4;
+}
+
+message DigitalEmployeeConversationCreateResp {
+  string threadId = 1;                         // 会话ID（即 wga threadId）
+}
+
+message DigitalEmployeeConversationDeleteReq {
+  string threadId = 1;
+  Identity identity = 2;
+}
+
+message DigitalEmployeeConversationListReq {
+  int32 pageSize = 1;
+  int32 pageNo = 2;
+  Identity identity = 3;
+  string searchText = 4;                       // 标题关键词，模糊匹配，空则不过滤
+  string employeeId = 5;                       // 数字员工ID（按员工维度过滤，必填）
+}
+
+message DigitalEmployeeConversationListResp {
+  repeated DigitalEmployeeConversationInfo data = 1;
+  int64 total = 2;
+  int32 pageSize = 3;
+  int32 pageNo = 4;
+}
+
+message DigitalEmployeeConversationInfo {
+  string threadId = 1;
+  string employeeId = 2;
+  string title = 3;
+  int64 createdAt = 4;
+  int64 updatedAt = 5;
+}
+
+message DigitalEmployeeConversationConfig {
+  string threadId = 1;
+  string employeeId = 2;
+  string title = 3;
+  common.AppModelConfig modelConfig = 4;
+  string userId = 5;
+  string orgId = 6;
+  int64 createdAt = 7;
+  int64 updatedAt = 8;
+}
+
+message GetDigitalEmployeeConversationConfigReq {
+  string threadId = 1;
+  Identity identity = 2;
+}
+
+message GetDigitalEmployeeConversationConfigResp {
+  DigitalEmployeeConversationConfig config = 1;
+}
+
+message UpdateDigitalEmployeeConversationConfigReq {
+  string threadId = 1;
+  common.AppModelConfig modelConfig = 2;      // 模型配置（必填）
+  Identity identity = 3;
+}
+
+
+message ConversationLogReq {
+  string conversationId = 1; //会话ID
+  string sourceFrom = 2; // 请求来源
+  Identity identity = 3; //用户信息
+}
+
+message GetConversationOwnerReq {
+  string conversationId = 1; //会话ID
+}
+
+message GetConversationOwnerResp {
+  string assistantId = 1; // 会话所属智能体 id
+  string userId = 2;      // 会话属主用户 id
+  string orgId = 3;       // 会话属主组织 id
+}
+
+message MessageFeedbackReq {
+  string conversationId = 1; //会话ID
+  string detailId = 2;            // 消息详情ID
+  int32 feedbackType = 3;         // 反馈类型: 1=点赞 2=点踩
+  Identity identity = 4;          // 用户信息
+  string feedbackContent = 5;     // 反馈文本内容
+  string assistantId = 6; //智能体id
+}
+
+message MessageFeedbackResp {
+  int32 feedbackType = 1;        // 当前反馈状态: 0=无 1=点赞 2=点踩
 }

@@ -7,6 +7,7 @@ import (
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/client/orm/sqlopt"
+	pkg_db "github.com/UnicomAI/wanwu/pkg/db"
 	"gorm.io/gorm"
 )
 
@@ -54,6 +55,31 @@ func (c *Client) ListCustomTools(ctx context.Context, orgID, userID, name string
 	return customToolInfos, nil
 }
 
+// ListCustomToolsAdmin 管理员中心跨组织查询自定义工具列表（SQL分页）。
+// orgIDs / userIDs 为空表示不按该维度过滤。pageNo 从1开始，pageSize<=0 不分页。
+// 返回当前页数据与总条数。
+func (c *Client) ListCustomToolsAdmin(ctx context.Context, orgIDs, userIDs []string, name string, pageNo, pageSize int) ([]*model.CustomTool, int64, *err_code.Status) {
+	db := sqlopt.SQLOptions(
+		sqlopt.WithOrgIDList(orgIDs),
+		sqlopt.WithUserIDList(userIDs),
+		sqlopt.LikeName(pkg_db.EscapeLike(name)),
+	).Apply(c.db).WithContext(ctx).Model(&model.CustomTool{})
+	// 总条数
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, toErrStatus("mcp_get_custom_tool_list_err", err.Error())
+	}
+	// 分页查询
+	var customToolInfos []*model.CustomTool
+	if err := db.Limit(pageSize).
+		Offset((pageNo - 1) * pageSize).
+		Order("updated_at desc").
+		Find(&customToolInfos).Error; err != nil {
+		return nil, 0, toErrStatus("mcp_get_custom_tool_list_err", err.Error())
+	}
+	return customToolInfos, total, nil
+}
+
 func (c *Client) ListCustomToolsByCustomToolIDs(ctx context.Context, ids []uint32) ([]*model.CustomTool, *err_code.Status) {
 	var customToolInfos []*model.CustomTool
 	if err := sqlopt.WithIDs(ids).Apply(c.db).WithContext(ctx).Find(&customToolInfos).Error; err != nil {
@@ -96,8 +122,12 @@ func (c *Client) UpdateCustomTool(ctx context.Context, customTool *model.CustomT
 	})
 }
 
-func (c *Client) DeleteCustomTool(ctx context.Context, ID uint32) *err_code.Status {
-	if err := sqlopt.WithID(ID).Apply(c.db).WithContext(ctx).Delete(&model.CustomTool{}).Error; err != nil {
+func (c *Client) DeleteCustomTool(ctx context.Context, ID uint32, userID, orgID string) *err_code.Status {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithID(ID),
+		sqlopt.WithUserID(userID),
+		sqlopt.WithOrgID(orgID),
+	).Apply(c.db).WithContext(ctx).Delete(&model.CustomTool{}).Error; err != nil {
 		return toErrStatus("mcp_delete_custom_tool_err", err.Error())
 	}
 	return nil

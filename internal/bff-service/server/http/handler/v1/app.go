@@ -28,24 +28,24 @@ func DeleteAppSapceApp(ctx *gin.Context) {
 	gin_util.Response(ctx, nil, err)
 }
 
-// GetAppSpaceAppList
+// GetWorkflowAndChatflowList
 //
-//	@Tags			app
-//	@Summary		获取应用列表
-//	@Description	获取智能体、工作流、文本问答等应用
+//	@Tags			workflow
+//	@Summary		获取工作流和对话流列表
+//	@Description	获取工作流和对话流列表，不传appType返回全部，传workflow只返回工作流，传chatflow只返回对话流
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			name	query		string	false	"应用名(模糊查询)"
-//	@Param			appType	query		string	false	"应用类型 Enums(agent,workflow,rag,chatflow)"
+//	@Param			name	query		string	false	"名称(模糊查询)"
+//	@Param			appType	query		string	false	"类型: workflow/chatflow, 不传返回全部"
 //	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.AppBriefInfo}}
-//	@Router			/appspace/app/list [get]
-func GetAppSpaceAppList(ctx *gin.Context) {
-	var req request.GetAppSpaceAppListRequest
+//	@Router			/appspace/workflow/list [get]
+func GetWorkflowAndChatflowList(ctx *gin.Context) {
+	var req request.GetAppSpaceAppListByTypeRequest
 	if !gin_util.BindQuery(ctx, &req) {
 		return
 	}
-	resp, err := service.GetAppSpaceAppList(ctx, getUserID(ctx), getOrgID(ctx), req.Name, req.AppType)
+	resp, err := service.GetWorkflowAndChatflowList(ctx, getUserID(ctx), getOrgID(ctx), req.Name, req.AppType)
 	gin_util.Response(ctx, resp, err)
 }
 

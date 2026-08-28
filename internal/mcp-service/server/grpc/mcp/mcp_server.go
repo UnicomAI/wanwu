@@ -21,6 +21,9 @@ var (
 )
 
 func (s *Service) CreateMCPServer(ctx context.Context, req *mcp_service.CreateMCPServerReq) (*mcp_service.CreateMCPServerResp, error) {
+	if req.GetIdentity() == nil {
+		return nil, errStatus(errs.Code_MCPCreateMCPServerErr, toErrStatus("mcp_create_mcp_server_err", "identity is empty"))
+	}
 	var mcpServer *model.MCPServer
 	mcpServerId := util.GenUUID()
 	mcpServer = &model.MCPServer{
@@ -67,11 +70,23 @@ func (s *Service) GetMCPServer(ctx context.Context, req *mcp_service.GetMCPServe
 		SseExample:        sseExample,
 		StreamableUrl:     streamableUrl,
 		StreamableExample: streamableExample,
+		Transport:         constant.MCPTransportSSE,
+		Owner: &mcp_service.Identity{
+			UserId: info.UserID,
+			OrgId:  info.OrgID,
+		},
+		UpdatedAt: info.UpdatedAt,
+		CreatedAt: info.CreatedAt,
 	}, nil
 }
 
 func (s *Service) DeleteMCPServer(ctx context.Context, req *mcp_service.DeleteMCPServerReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteMCPServer(ctx, req.McpServerId)
+	if req.GetIdentity() == nil {
+		return nil, errStatus(errs.Code_MCPDeleteMCPServerErr, toErrStatus("mcp_delete_mcp_server_err", "identity is empty"))
+	}
+	userId := req.Identity.UserId
+	orgId := req.Identity.OrgId
+	err := s.cli.DeleteMCPServer(ctx, req.McpServerId, userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_MCPDeleteMCPServerErr, err)
 	}
@@ -79,7 +94,11 @@ func (s *Service) DeleteMCPServer(ctx context.Context, req *mcp_service.DeleteMC
 }
 
 func (s *Service) GetMCPServerList(ctx context.Context, req *mcp_service.GetMCPServerListReq) (*mcp_service.GetMCPServerListResp, error) {
-	infos, err := s.cli.ListMCPServers(ctx, req.Identity.OrgId, req.Identity.UserId, req.Name)
+	if req.GetIdentity() == nil {
+		return nil, errStatus(errs.Code_MCPGetMCPServerListErr, toErrStatus("mcp_get_mcp_server_list_err", "identity is empty"))
+	}
+	id := req.GetIdentity()
+	infos, err := s.cli.ListMCPServers(ctx, id.GetOrgId(), id.GetUserId(), req.Name)
 	if err != nil {
 		return nil, errStatus(errs.Code_MCPGetMCPServerListErr, err)
 	}
@@ -100,10 +119,37 @@ func (s *Service) GetMCPServerList(ctx context.Context, req *mcp_service.GetMCPS
 			SseExample:        sseExample,
 			StreamableUrl:     streamableUrl,
 			StreamableExample: streamableExample,
+			Transport:         constant.MCPTransportSSE,
 		})
 	}
 	return &mcp_service.GetMCPServerListResp{
 		List: list,
+	}, nil
+}
+
+// GetAdminMCPServerPageList 管理员中心跨组织查询MCP服务列表（SQL分页）
+func (s *Service) GetAdminMCPServerPageList(ctx context.Context, req *mcp_service.GetAdminMCPServerPageListReq) (*mcp_service.GetAdminMCPServerPageListResp, error) {
+	infos, total, err := s.cli.ListMCPServersAdmin(ctx, req.OrgIdList, req.UserIdList, req.Name, int(req.PageNo), int(req.PageSize))
+	if err != nil {
+		return nil, errStatus(errs.Code_MCPGetMCPServerListErr, err)
+	}
+	list := make([]*mcp_service.AdminMCPServerItem, 0, len(infos))
+	for _, info := range infos {
+		list = append(list, &mcp_service.AdminMCPServerItem{
+			McpServerId: info.MCPServerID,
+			Name:        info.Name,
+			Desc:        info.Description,
+			AvatarPath:  info.AvatarPath,
+			Owner: &mcp_service.Identity{
+				UserId: info.UserID,
+				OrgId:  info.OrgID,
+			},
+			UpdatedAt: info.UpdatedAt,
+		})
+	}
+	return &mcp_service.GetAdminMCPServerPageListResp{
+		List:  list,
+		Total: total,
 	}, nil
 }
 
@@ -131,6 +177,11 @@ func (s *Service) GetMCPServerTool(ctx context.Context, req *mcp_service.GetMCPS
 }
 
 func (s *Service) CreateMCPServerTool(ctx context.Context, req *mcp_service.CreateMCPServerToolReq) (*emptypb.Empty, error) {
+	if req.GetIdentity() == nil {
+		return nil, errStatus(errs.Code_MCPCreateMCPServerToolErr, toErrStatus("mcp_create_mcp_server_tool_err", "identity is empty"))
+	}
+	userId := req.Identity.UserId
+	orgId := req.Identity.OrgId
 	var mcpServerTools []*model.MCPServerTool
 	for _, info := range req.McpServiceToolInfos {
 		mcpServerTools = append(mcpServerTools, &model.MCPServerTool{
@@ -146,6 +197,8 @@ func (s *Service) CreateMCPServerTool(ctx context.Context, req *mcp_service.Crea
 			AuthIn:          info.ApiAuth.AuthIn,
 			AuthName:        info.ApiAuth.AuthName,
 			AuthValue:       info.ApiAuth.AuthValue,
+			UserID:          userId,
+			OrgID:           orgId,
 		})
 	}
 	err := s.cli.CreateMCPServerTool(ctx, mcpServerTools)
@@ -170,7 +223,12 @@ func (s *Service) UpdateMCPServerTool(ctx context.Context, req *mcp_service.Upda
 }
 
 func (s *Service) DeleteMCPServerTool(ctx context.Context, req *mcp_service.DeleteMCPServerToolReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteMCPServerTool(ctx, req.McpServerToolId)
+	if req.GetIdentity() == nil {
+		return nil, errStatus(errs.Code_MCPDeleteMCPServerToolErr, toErrStatus("mcp_delete_mcp_server_tool_err", "identity is empty"))
+	}
+	userId := req.Identity.UserId
+	orgId := req.Identity.OrgId
+	err := s.cli.DeleteMCPServerTool(ctx, req.McpServerToolId, userId, orgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_MCPDeleteMCPServerToolErr, err)
 	}

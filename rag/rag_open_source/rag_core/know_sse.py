@@ -3,10 +3,12 @@ import json
 import ssl
 import re
 import time
-from itertools import product
 import shutil
 import requests
 import numpy as np
+import uuid
+import hashlib
+import tiktoken
 import urllib.parse
 from utils.knowledge_base_utils import *
 from fastapi import FastAPI, Request
@@ -21,21 +23,42 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from datetime import datetime, timedelta
 from utils.prompts import PROMPT_TEMPLATE, CITATION_INSTRUCTION
 from settings import (SSE_USE_MONGO, TEMPERATURE, MONGO_URL, REPLACE_MINIO_DOWNLOAD_URL, MINIO_ADDRESS,
-                      TRUNCATE_PROMPT, CONTEXT_LENGTH)
+                      TRUNCATE_PROMPT, CONTEXT_LENGTH, RESERVED_FOR_OUTPUT)
 
 from logging_config import init_logging
 
 from pymongo import MongoClient
 from utils import redis_utils
 from utils.constant import CHUNK_SIZE
-import uuid
-import hashlib
-import tiktoken
-from openai import OpenAI
+from utils.otel import init_tracer
+from utils.trace_asgi import TraceLoggingMiddleware, FirstChunkSpanMiddleware
+from utils.tools import get_query_dict_cache, query_rewrite
+
+# 初始化 OpenTelemetry（必须在 FastAPI app 创建之前）
+init_tracer("rag-wanwu-sse-service")
+
+# 自动 instrument requests 库（出站 HTTP 传播 traceparent）
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
+RequestsInstrumentor().instrument()
+
 user_data_path = r'./user_data'
 app = FastAPI()
 init_logging()
 logger = logging.getLogger(__name__)
+
+# 自动 instrument FastAPI（入站 HTTP 提取 traceparent，创建 Span）
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+# exclude_spans 关闭按 ASGI send/receive 事件建子 span：流式响应每个分片都会触发一次
+# send，否则一条 trace 会产生成百上千个 "http send" span。首分片的 span 由
+# FirstChunkSpanMiddleware 单独补回。
+FastAPIInstrumentor.instrument_app(app, exclude_spans=["send", "receive"])
+
+# 添加日志记录（含 trace_id/span_id 关联）
+app.add_middleware(TraceLoggingMiddleware)
+# 流式响应只为首个分片建一个 span（首 token 耗时），其余分片不建 span
+app.add_middleware(FirstChunkSpanMiddleware)
 # 解决跨域问题
 app.add_middleware(
     CORSMiddleware,
@@ -53,71 +76,6 @@ redis_client = redis_utils.get_redis_connection()
 tiktoken_cache_dir = "/opt/tiktoken_cache"
 os.environ["TIKTOKEN_CACHE_DIR"] = tiktoken_cache_dir
 encoding = tiktoken.encoding_for_model("gpt-4")
-
-def get_query_dict_cache(redis_client, user_id, knowledgebases):
-    """
-    根据 user_id,查询的知识库knowledgebase列表 查询 Redis 中的缓存，将哈希表字段的值解析为 query_dict。
-    :param user_id: 用户ID
-    :return: 完整的 query_dict 数据（列表形式），如果缓存不存在则返回 None。
-    """
-    all_query_dicts = []
-
-    redis_key_list = []
-    for knowledgebase in knowledgebases:
-        redis_key = f"query_dict:{user_id}:{knowledgebase}"
-        redis_key_list.append(redis_key)
-    for redis_key in redis_key_list:
-        # 获取整个哈希表，返回一个字典，字段是 id，值是对应的条目 JSON 字符串
-        term_dict_hash = redis_client.hgetall(redis_key)
-        if term_dict_hash:
-            # 将每个字段的 JSON 字符串转换为 Python 对象（字典）
-            term_dict = [json.loads(value) for value in term_dict_hash.values()]
-            all_query_dicts.extend(term_dict)
-    # 此处请将all_query_dicts相同元素去重
-    # 去重：将所有字典转换为 JSON 字符串，存入集合中，集合自动去重
-    unique_query_dicts = {json.dumps(query_dict, sort_keys=True): query_dict for query_dict in all_query_dicts}
-    # 返回去重后的字典列表
-    return list(unique_query_dicts.values())
-
-def query_rewrite(question, term_dict):
-    """
-    根据专名同义词表改写用户问题，支持生成多个改写结果（针对多个别名）。
-
-    参数:
-    - question (str): 用户输入问题。
-    - term_dict (list): 专名同义词表，每项为字典，包含 'name' 和 'alias'。
-
-    返回:
-    - list: 改写后的用户问题列表，每个改写对应一种组合方式。
-    """
-    # 保存所有的替换项
-    replacements = []
-
-    for term in term_dict:
-        name = term["name"]  # 标准词
-        aliases = term["alias"]  # 别名列表
-
-        # 如果问题中包含标准词，则保存替换方案
-        if re.search(re.escape(name), question):
-            replacements.append([(name, alias) for alias in aliases])
-
-    # 如果没有匹配到标准词，直接返回原问题
-    if not replacements:
-        return [question]
-
-    # 使用笛卡尔积计算所有可能的替换组合
-    combinations = product(*replacements)
-
-    rewritten_questions = []
-    for combo in combinations:
-        # 逐个应用替换规则
-        new_question = question
-        for name, alias in combo:
-            new_question = re.sub(re.escape(name), alias, new_question)
-        rewritten_questions.append(new_question)
-
-    return rewritten_questions
-
 
 def get_prompt(question: str,
                search_list: list,
@@ -146,7 +104,7 @@ def get_prompt(question: str,
     )
 
     base_tokens = len(encoding.encode(base_filled))
-    available_tokens_for_context = context_size - base_tokens - max_tokens - 50  # 预留50个token缓冲
+    available_tokens_for_context = context_size - base_tokens - RESERVED_FOR_OUTPUT - 50  # 预留50个token缓冲
 
     # 处理并截取 context
     valid_search_list = []
@@ -329,7 +287,7 @@ async def search(request: Request):
             raise ValueError(f"{model_name} is not llm model")
 
         messages = []
-        available_tokens_for_context = context_size - max_tokens - 50 # 50 for buffer
+        available_tokens_for_context = context_size - RESERVED_FOR_OUTPUT - 50  # 50 for buffer
         prompt, valid_search_list = get_prompt(question, search_list, default_answer, auto_citation, prompt_template,
                                                context_size, max_tokens)
         num_tokens = len(encoding.encode(prompt))
@@ -416,7 +374,7 @@ async def search(request: Request):
         # ============== 开始组装 messages ==============
         num_tokens = 0
         prompt_content = []
-        available_tokens_for_context = context_size - max_tokens - 50  # 50 for buffer
+        available_tokens_for_context = context_size - RESERVED_FOR_OUTPUT - 50  # 50 for buffer
         # === 多模态问答提示词构建
         citation = CITATION_INSTRUCTION if auto_citation else ""
         content_item = {"type": "text", "text": f"你是一个问答助手，主要任务是汇总参考信息回答用户问题, 请只根据参考信息中提供的上下文信息回答用户问题，**禁止**直接通过视觉形状猜测功能（必须严格执行）。**严禁**绕过编号仅凭视觉形状相似性进行主观推断（必须严格执行）。 {citation}"}
@@ -680,7 +638,7 @@ async def search(request: Request):
         history = []
     for user_id, kb_info_list in knowledge_base_info.items():
         kb_names = [kb_info['kb_name'] for kb_info in kb_info_list]
-        kb_ids = [kb_info['kb_id'] if kb_info.get('kb_id') else get_kb_name_id(user_id, kb_info['kb_name']) for kb_info in kb_info_list]
+        kb_ids = [kb_info['kb_id'] for kb_info in kb_info_list]
         if rewrite_query:
             query_dict_list = get_query_dict_cache(redis_client,user_id, kb_ids)
             if query_dict_list:

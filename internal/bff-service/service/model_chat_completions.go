@@ -12,10 +12,13 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/log"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
 func ModelChatCompletions(ctx *gin.Context, modelID string, req *mp_common.LLMReq, lineProcessor func(*mp_common.LLMResp) string) {
+	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	// modelInfo by modelID
 	modelInfo, err := model.GetModel(ctx.Request.Context(), &model_service.GetModelReq{ModelId: modelID})
 	if err != nil {
@@ -48,15 +51,24 @@ func ModelChatCompletions(ctx *gin.Context, modelID string, req *mp_common.LLMRe
 		return
 	}
 	startTime := time.Now()
+	requestBody := MarshalStatisticBody(req)
 	// chat completions
 	llmReq, err := iLLM.NewReq(req)
 	if err != nil {
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v chat completions NewReq err: %v", modelInfo.ModelId, err)))
+		go func() {
+			defer util.PrintPanicStack()
+			recordModelStatisticV2Failure(detachedCtx, modelInfo, false, requestBody, err)
+		}()
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error()))
 		return
 	}
 	resp, sseCh, err := iLLM.ChatCompletions(ctx.Request.Context(), llmReq)
 	if err != nil {
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v chat completions err: %v", modelInfo.ModelId, err)))
+		go func() {
+			defer util.PrintPanicStack()
+			recordModelStatisticV2Failure(detachedCtx, modelInfo, llmReq.Stream(), requestBody, err)
+		}()
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error()))
 		return
 	}
 	// unary
@@ -72,13 +84,25 @@ func ModelChatCompletions(ctx *gin.Context, modelID string, req *mp_common.LLMRe
 			ctx.JSON(status, data)
 
 			costs := int(time.Since(startTime).Milliseconds())
-			recordModelStatistic(ctx, modelInfo, true,
-				data.Usage.PromptTokens, data.Usage.CompletionTokens, data.Usage.TotalTokens, costs, 0, false)
+			finishReason := ""
+			if len(data.Choices) > 0 {
+				finishReason = data.Choices[0].FinishReason
+			}
+			go func() {
+				defer util.PrintPanicStack()
+				recordModelStatisticV2(detachedCtx, modelInfo,
+					data.Usage.PromptTokens, data.Usage.CompletionTokens, data.Usage.TotalTokens, costs, 0, false,
+					int64(status), requestBody, retStr, finishReason, "")
+			}()
 			return
 		}
 		// 非流式调用失败
-		recordModelStatistic(ctx, modelInfo, false, 0, 0, 0, 0, 0, false)
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v chat completions err: invalid resp", modelInfo.ModelId)))
+		errMsg := fmt.Sprintf("model %v chat completions err: invalid resp", modelInfo.ModelId)
+		go func() {
+			defer util.PrintPanicStack()
+			recordModelStatisticV2Failure(detachedCtx, modelInfo, false, requestBody, fmt.Errorf("%s", errMsg))
+		}()
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, errMsg))
 		return
 	}
 	// stream
@@ -86,6 +110,7 @@ func ModelChatCompletions(ctx *gin.Context, modelID string, req *mp_common.LLMRe
 	ctx.Header("Connection", "keep-alive")
 	ctx.Header("Content-Type", "text/event-stream; charset=utf-8")
 	var answer string
+	var finishReason string
 	var (
 		firstTokenTime    time.Time
 		firstTokenLatency int
@@ -98,6 +123,9 @@ func ModelChatCompletions(ctx *gin.Context, modelID string, req *mp_common.LLMRe
 		data, ok = sseResp.ConvertResp()
 		dataStr := ""
 		if ok && data != nil {
+			if len(data.Choices) > 0 && data.Choices[0].FinishReason != "" {
+				finishReason = data.Choices[0].FinishReason
+			}
 			if len(data.Choices) > 0 && data.Choices[0].Delta != nil {
 				delta := data.Choices[0].Delta
 				answer = answer + delta.Content
@@ -111,6 +139,7 @@ func ModelChatCompletions(ctx *gin.Context, modelID string, req *mp_common.LLMRe
 			if firstTokenTime.IsZero() {
 				firstTokenTime = time.Now()
 				firstTokenLatency = int(time.Since(startTime).Milliseconds())
+				ctx.Set(gin_util.FIRST_RESP_LATENCY, int64(firstTokenLatency))
 			}
 			promptTokens = data.Usage.PromptTokens
 			completionTokens = data.Usage.CompletionTokens
@@ -126,6 +155,10 @@ func ModelChatCompletions(ctx *gin.Context, modelID string, req *mp_common.LLMRe
 	}
 	ctx.Set(gin_util.STATUS, http.StatusOK)
 	ctx.Set(gin_util.RESULT, answer)
-	recordModelStatistic(ctx, modelInfo, true,
-		promptTokens, completionTokens, totalTokens, 0, firstTokenLatency, true)
+	go func() {
+		defer util.PrintPanicStack()
+		recordModelStatisticV2(detachedCtx, modelInfo,
+			promptTokens, completionTokens, totalTokens, 0, firstTokenLatency, true,
+			http.StatusOK, requestBody, answer, finishReason, "")
+	}()
 }

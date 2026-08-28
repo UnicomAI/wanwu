@@ -68,10 +68,11 @@ func GetLogoCustomInfo(ctx *gin.Context, mode string) (response.LogoCustomInfo, 
 				Version:   config.Cfg().CustomInfo.Version,
 				Copyright: gin_util.I18nKey(ctx, mode.About.Copyright),
 			},
-			LinkList:      config.Cfg().DocCenter.GetDocs(),
-			Register:      response.CustomRegister{Email: response.CustomEmail{Status: config.Cfg().CustomInfo.RegisterByEmail != 0}},
-			ResetPassword: response.CustomResetPassword{Email: response.CustomEmail{Status: config.Cfg().CustomInfo.ResetPasswordByEmail != 0}},
-			LoginEmail:    response.CustomLoginEmail{Email: response.CustomEmail{Status: config.Cfg().CustomInfo.LoginByEmail != 0}},
+			LinkList:           config.Cfg().DocCenter.GetDocs(),
+			Register:           response.CustomRegister{Email: response.CustomEmail{Status: config.Cfg().CustomInfo.RegisterByEmail != 0}},
+			ResetPassword:      response.CustomResetPassword{Email: response.CustomEmail{Status: config.Cfg().CustomInfo.ResetPasswordByEmail != 0}},
+			LoginEmail:         response.CustomLoginEmail{Email: response.CustomEmail{Status: config.Cfg().CustomInfo.LoginByEmail != 0}},
+			PasswordRSAEncrypt: config.Cfg().CustomInfo.PasswordRSAEncrypt != 0,
 			DefaultIcon: response.CustomDefaultIcon{
 				RagIcon:      config.Cfg().DefaultIcon.RagIcon,
 				AgentIcon:    config.Cfg().DefaultIcon.AgentIcon,
@@ -79,6 +80,11 @@ func GetLogoCustomInfo(ctx *gin.Context, mode string) (response.LogoCustomInfo, 
 				PromptIcon:   config.Cfg().DefaultIcon.PromptIcon,
 				ChatflowIcon: config.Cfg().DefaultIcon.ChatflowIcon,
 				ModelIcon:    config.Cfg().DefaultIcon.ModelIcon,
+			},
+			UserPhoneRequired: config.Cfg().CustomInfo.UserPhoneRequired != 0,
+			GeneralAgent: response.CustomGeneralAgent{
+				Logo:        request.Avatar{Path: mode.GeneralAgent.LogoPath},
+				WelcomeText: gin_util.I18nKey(ctx, mode.GeneralAgent.WelcomeText),
 			},
 		}
 		break
@@ -113,6 +119,15 @@ func GetLogoCustomInfo(ctx *gin.Context, mode string) (response.LogoCustomInfo, 
 	}
 	if custom.Home.HomeBgColor != "" {
 		ret.Home.BackgroundColor = custom.Home.HomeBgColor
+	}
+	if custom.GeneralAgent != nil && custom.GeneralAgent.GeneralAgentIcon != "" {
+		ret.GeneralAgent.Logo = cacheCustomAvatar(custom.GeneralAgent.GeneralAgentIcon)
+	}
+	if custom.GeneralAgent != nil && custom.GeneralAgent.GeneralAgentWelcome != "" {
+		ret.GeneralAgent.WelcomeText = custom.GeneralAgent.GeneralAgentWelcome
+	}
+	if custom.GeneralAgent != nil && custom.GeneralAgent.GeneralAgentMenuName != "" {
+		ret.GeneralAgent.MenuName = custom.GeneralAgent.GeneralAgentMenuName
 	}
 	return ret, nil
 }
@@ -168,7 +183,7 @@ func ResetPasswordByEmail(ctx *gin.Context, reset *request.ResetPasswordByEmail)
 	if config.Cfg().CustomInfo.ResetPasswordByEmail == 0 {
 		return grpc_util.ErrorStatus(errs.Code_BFFResetPasswordDisable)
 	}
-	password, err := decryptPD(reset.Password)
+	password, err := decryptCipherRSA(ctx.Request.Context(), reset.Cipher, reset.KeyID, challengeConsume)
 	if err != nil {
 		return fmt.Errorf("decrypt password err: %v", err)
 	}
@@ -180,7 +195,31 @@ func ResetPasswordByEmail(ctx *gin.Context, reset *request.ResetPasswordByEmail)
 	return err
 }
 
+func GetReleaseNotes() *response.ReleaseNotesResp {
+	return &response.ReleaseNotesResp{
+		Version:      config.Cfg().CustomInfo.Version,
+		ReleaseNotes: config.Cfg().CustomInfo.ReleaseNotes,
+	}
+}
+
 // --- internal ---
+func isAdminInAnyOrg(ctx *gin.Context, userID string) bool {
+	isAdmin, err := iam.IsUserOrgAdmin(ctx.Request.Context(), &iam_service.IsUserOrgAdminReq{UserId: userID})
+	if err != nil {
+		return false
+	}
+	return isAdmin.IsOrgAdmin
+}
+
+// IsAdminInOrgs 校验用户对指定组织列表是否都拥有管理员权限（含祖先组织继承）。
+// 用于 admin_center 跨组织操作：校验目标组织列表的管理权，避免越权。
+func IsAdminInOrgs(ctx *gin.Context, userID string, orgIDs ...string) bool {
+	resp, err := iam.IsAdminInOrgs(ctx.Request.Context(), &iam_service.IsAdminInOrgsReq{UserId: userID, OrgIds: orgIDs})
+	if err != nil {
+		return false
+	}
+	return resp.IsAdmin
+}
 
 func getLanguageByCode(languageCode string) response.Language {
 	langs := config.Cfg().I18n.Langs
@@ -197,31 +236,39 @@ func toOrgPermission(ctx *gin.Context, orgPerm *iam_service.UserPermission) resp
 	return response.UserOrgPermission{
 		IsAdmin:     orgPerm.IsAdmin,
 		IsSystem:    orgPerm.IsSystem,
-		Org:         toOrgIDName(ctx, orgPerm.Org),
+		Org:         toOrgIDNameWithAvatar(ctx, orgPerm.Org),
 		Roles:       toRoleIDNames(ctx, orgPerm.Roles),
-		Permissions: toPermissions(orgPerm.IsAdmin, orgPerm.IsSystem, orgPerm.Perms),
+		Permissions: toPermissions(orgPerm.IsAdmin, orgPerm.IsSystem, isAdminInAnyOrg(ctx, orgPerm.UserId), orgPerm.Perms),
 	}
 }
 
-func toPermissions(isAdmin, isSystem bool, perms []*iam_service.Perm) []response.Permission {
+func toPermissions(isAdmin, isSystem, isOrgAdmin bool, perms []*iam_service.Perm) []response.Permission {
 	routes := mid.CollectPerms()
 	var ret []response.Permission
 	if isAdmin {
 		for _, r := range routes {
-			if isSystem && r.Tag == "permission.role" {
+			if !isSystem && r.Tag == "admin_center.setting" {
 				continue
 			}
-			if !isSystem && r.Tag == "setting" {
+			if !isSystem && r.Tag == "admin_center.oauth" {
 				continue
 			}
 			if !isSystem && r.Tag == "statistic_client" || config.Cfg().WorkflowTemplate.ServerMode == "remote" {
 				continue
 			}
-			if !isSystem && r.Tag == "operation" {
-				continue
-			}
-			if !isSystem && r.Tag == "operation.oauth" {
-				continue
+			if config.Cfg().Ontology.Enable == 0 {
+				if r.Tag == "ontology" {
+					continue
+				}
+				if r.Tag == "ontology.digital_employee" {
+					continue
+				}
+				if r.Tag == "ontology.knowledge_network" {
+					continue
+				}
+				if r.Tag == "ontology.data_source" {
+					continue
+				}
 			}
 			ret = append(ret, response.Permission{
 				Perm: r.Tag,
@@ -231,14 +278,37 @@ func toPermissions(isAdmin, isSystem bool, perms []*iam_service.Perm) []response
 		return ret
 	}
 	for _, r := range routes {
-		if r.Tag == "setting" {
+		if r.Tag == "admin_center" {
+			if isOrgAdmin {
+				ret = append(ret, response.Permission{
+					Perm: r.Tag,
+					Name: r.Name,
+				})
+			}
+			continue
+		}
+		if r.Tag == "admin_center.setting" {
 			continue
 		}
 		if r.Tag == "statistic_client" {
 			continue
 		}
-		if r.Tag == "oauth" {
+		if r.Tag == "admin_center.oauth" {
 			continue
+		}
+		if config.Cfg().Ontology.Enable == 0 {
+			if r.Tag == "ontology" {
+				continue
+			}
+			if r.Tag == "ontology.digital_employee" {
+				continue
+			}
+			if r.Tag == "ontology.knowledge_network" {
+				continue
+			}
+			if r.Tag == "ontology.data_source" {
+				continue
+			}
 		}
 		for _, perm := range perms {
 			if perm.Perm == r.Tag {

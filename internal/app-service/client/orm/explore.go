@@ -36,6 +36,7 @@ func (c *Client) GetExplorationAppList(ctx context.Context, userId, orgId, name,
 		for _, app := range apps {
 			appInfo := &ExplorationAppInfo{
 				UserID:      app.UserID,
+				OrgID:       app.OrgID,
 				AppId:       app.AppID,
 				AppType:     app.AppType,
 				CreatedAt:   app.CreatedAt,

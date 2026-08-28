@@ -8,6 +8,7 @@ package rag_service
 
 import (
 	context "context"
+	common "github.com/UnicomAI/wanwu/api/proto/common"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -20,21 +21,31 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	RagService_ChatRag_FullMethodName                = "/rag_service.RagService/ChatRag"
-	RagService_CreateRag_FullMethodName              = "/rag_service.RagService/CreateRag"
-	RagService_UpdateRag_FullMethodName              = "/rag_service.RagService/UpdateRag"
-	RagService_UpdateRagConfig_FullMethodName        = "/rag_service.RagService/UpdateRagConfig"
-	RagService_DeleteRag_FullMethodName              = "/rag_service.RagService/DeleteRag"
-	RagService_GetRagDetail_FullMethodName           = "/rag_service.RagService/GetRagDetail"
-	RagService_ListRag_FullMethodName                = "/rag_service.RagService/ListRag"
-	RagService_GetRagByIds_FullMethodName            = "/rag_service.RagService/GetRagByIds"
-	RagService_CopyRag_FullMethodName                = "/rag_service.RagService/CopyRag"
-	RagService_PublishRag_FullMethodName             = "/rag_service.RagService/PublishRag"
-	RagService_UpdatePublishRag_FullMethodName       = "/rag_service.RagService/UpdatePublishRag"
-	RagService_ListPublishRagHistory_FullMethodName  = "/rag_service.RagService/ListPublishRagHistory"
-	RagService_OverwriteRagDraft_FullMethodName      = "/rag_service.RagService/OverwriteRagDraft"
-	RagService_GetPublishRagDesc_FullMethodName      = "/rag_service.RagService/GetPublishRagDesc"
-	RagService_GetPublishRagDescBatch_FullMethodName = "/rag_service.RagService/GetPublishRagDescBatch"
+	RagService_ChatRag_FullMethodName                    = "/rag_service.RagService/ChatRag"
+	RagService_CreateRag_FullMethodName                  = "/rag_service.RagService/CreateRag"
+	RagService_UpdateRag_FullMethodName                  = "/rag_service.RagService/UpdateRag"
+	RagService_UpdateRagConfig_FullMethodName            = "/rag_service.RagService/UpdateRagConfig"
+	RagService_DeleteRag_FullMethodName                  = "/rag_service.RagService/DeleteRag"
+	RagService_GetRagDetail_FullMethodName               = "/rag_service.RagService/GetRagDetail"
+	RagService_ListRag_FullMethodName                    = "/rag_service.RagService/ListRag"
+	RagService_AdminRagPageList_FullMethodName           = "/rag_service.RagService/AdminRagPageList"
+	RagService_GetRagByIds_FullMethodName                = "/rag_service.RagService/GetRagByIds"
+	RagService_CopyRag_FullMethodName                    = "/rag_service.RagService/CopyRag"
+	RagService_PublishRag_FullMethodName                 = "/rag_service.RagService/PublishRag"
+	RagService_UpdatePublishRag_FullMethodName           = "/rag_service.RagService/UpdatePublishRag"
+	RagService_ListPublishRagHistory_FullMethodName      = "/rag_service.RagService/ListPublishRagHistory"
+	RagService_OverwriteRagDraft_FullMethodName          = "/rag_service.RagService/OverwriteRagDraft"
+	RagService_GetPublishRagDesc_FullMethodName          = "/rag_service.RagService/GetPublishRagDesc"
+	RagService_GetPublishRagDescBatch_FullMethodName     = "/rag_service.RagService/GetPublishRagDescBatch"
+	RagService_CreateRagConversation_FullMethodName      = "/rag_service.RagService/CreateRagConversation"
+	RagService_DeleteRagConversation_FullMethodName      = "/rag_service.RagService/DeleteRagConversation"
+	RagService_ListRagConversation_FullMethodName        = "/rag_service.RagService/ListRagConversation"
+	RagService_ListRagConversationDetail_FullMethodName  = "/rag_service.RagService/ListRagConversationDetail"
+	RagService_ClearRagConversationDetail_FullMethodName = "/rag_service.RagService/ClearRagConversationDetail"
+	RagService_GetRagDraftConversation_FullMethodName    = "/rag_service.RagService/GetRagDraftConversation"
+	RagService_GetRagConversationOwner_FullMethodName    = "/rag_service.RagService/GetRagConversationOwner"
+	RagService_RagMessageFeedback_FullMethodName         = "/rag_service.RagService/RagMessageFeedback"
+	RagService_GetConversationLog_FullMethodName         = "/rag_service.RagService/GetConversationLog"
 )
 
 // RagServiceClient is the client API for RagService service.
@@ -55,6 +66,8 @@ type RagServiceClient interface {
 	GetRagDetail(ctx context.Context, in *RagDetailReq, opts ...grpc.CallOption) (*RagInfo, error)
 	// 获取 rag 列表
 	ListRag(ctx context.Context, in *RagListReq, opts ...grpc.CallOption) (*RagListResp, error)
+	// 管理员中心知识问答全局分页列表（跨用户/组织）
+	AdminRagPageList(ctx context.Context, in *AdminRagPageListReq, opts ...grpc.CallOption) (*AdminRagPageListResp, error)
 	// 根据 ragIds 获取 rag 列表
 	GetRagByIds(ctx context.Context, in *GetRagByIdsReq, opts ...grpc.CallOption) (*AppBriefList, error)
 	// 复制 rag
@@ -71,6 +84,25 @@ type RagServiceClient interface {
 	GetPublishRagDesc(ctx context.Context, in *GetPublishRagDescReq, opts ...grpc.CallOption) (*GetPublishRagDescResp, error)
 	// 批量返回最新版本描述
 	GetPublishRagDescBatch(ctx context.Context, in *GetPublishRagDescBatchReq, opts ...grpc.CallOption) (*GetPublishRagDescBatchResp, error)
+	// --- 会话 ---
+	// 创建会话
+	CreateRagConversation(ctx context.Context, in *CreateRagConversationReq, opts ...grpc.CallOption) (*CreateRagConversationResp, error)
+	// 删除会话，连带清除该会话下的问答明细
+	DeleteRagConversation(ctx context.Context, in *DeleteRagConversationReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 会话列表
+	ListRagConversation(ctx context.Context, in *ListRagConversationReq, opts ...grpc.CallOption) (*ListRagConversationResp, error)
+	// 会话下的问答明细列表
+	ListRagConversationDetail(ctx context.Context, in *ListRagConversationDetailReq, opts ...grpc.CallOption) (*ListRagConversationDetailResp, error)
+	// 清除问答明细但保留会话，detailId 传值则只删单条
+	ClearRagConversationDetail(ctx context.Context, in *ClearRagConversationDetailReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 取草稿会话id，草稿态每个知识问答仅维护一条会话
+	GetRagDraftConversation(ctx context.Context, in *GetRagDraftConversationReq, opts ...grpc.CallOption) (*GetRagDraftConversationResp, error)
+	// 取会话归属信息，供 bff 中间件校验（明细在 ES，bff 查不到，一并在这里判）
+	GetRagConversationOwner(ctx context.Context, in *GetRagConversationOwnerReq, opts ...grpc.CallOption) (*GetRagConversationOwnerResp, error)
+	// 问答明细点赞/点踩
+	RagMessageFeedback(ctx context.Context, in *RagMessageFeedbackReq, opts ...grpc.CallOption) (*RagMessageFeedbackResp, error)
+	// --- 会话日志 ---
+	GetConversationLog(ctx context.Context, in *ConversationLogReq, opts ...grpc.CallOption) (*common.ConversationLog, error)
 }
 
 type ragServiceClient struct {
@@ -160,6 +192,16 @@ func (c *ragServiceClient) ListRag(ctx context.Context, in *RagListReq, opts ...
 	return out, nil
 }
 
+func (c *ragServiceClient) AdminRagPageList(ctx context.Context, in *AdminRagPageListReq, opts ...grpc.CallOption) (*AdminRagPageListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminRagPageListResp)
+	err := c.cc.Invoke(ctx, RagService_AdminRagPageList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *ragServiceClient) GetRagByIds(ctx context.Context, in *GetRagByIdsReq, opts ...grpc.CallOption) (*AppBriefList, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AppBriefList)
@@ -240,6 +282,96 @@ func (c *ragServiceClient) GetPublishRagDescBatch(ctx context.Context, in *GetPu
 	return out, nil
 }
 
+func (c *ragServiceClient) CreateRagConversation(ctx context.Context, in *CreateRagConversationReq, opts ...grpc.CallOption) (*CreateRagConversationResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateRagConversationResp)
+	err := c.cc.Invoke(ctx, RagService_CreateRagConversation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ragServiceClient) DeleteRagConversation(ctx context.Context, in *DeleteRagConversationReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, RagService_DeleteRagConversation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ragServiceClient) ListRagConversation(ctx context.Context, in *ListRagConversationReq, opts ...grpc.CallOption) (*ListRagConversationResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListRagConversationResp)
+	err := c.cc.Invoke(ctx, RagService_ListRagConversation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ragServiceClient) ListRagConversationDetail(ctx context.Context, in *ListRagConversationDetailReq, opts ...grpc.CallOption) (*ListRagConversationDetailResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListRagConversationDetailResp)
+	err := c.cc.Invoke(ctx, RagService_ListRagConversationDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ragServiceClient) ClearRagConversationDetail(ctx context.Context, in *ClearRagConversationDetailReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, RagService_ClearRagConversationDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ragServiceClient) GetRagDraftConversation(ctx context.Context, in *GetRagDraftConversationReq, opts ...grpc.CallOption) (*GetRagDraftConversationResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRagDraftConversationResp)
+	err := c.cc.Invoke(ctx, RagService_GetRagDraftConversation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ragServiceClient) GetRagConversationOwner(ctx context.Context, in *GetRagConversationOwnerReq, opts ...grpc.CallOption) (*GetRagConversationOwnerResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRagConversationOwnerResp)
+	err := c.cc.Invoke(ctx, RagService_GetRagConversationOwner_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ragServiceClient) RagMessageFeedback(ctx context.Context, in *RagMessageFeedbackReq, opts ...grpc.CallOption) (*RagMessageFeedbackResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RagMessageFeedbackResp)
+	err := c.cc.Invoke(ctx, RagService_RagMessageFeedback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ragServiceClient) GetConversationLog(ctx context.Context, in *ConversationLogReq, opts ...grpc.CallOption) (*common.ConversationLog, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(common.ConversationLog)
+	err := c.cc.Invoke(ctx, RagService_GetConversationLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RagServiceServer is the server API for RagService service.
 // All implementations must embed UnimplementedRagServiceServer
 // for forward compatibility.
@@ -258,6 +390,8 @@ type RagServiceServer interface {
 	GetRagDetail(context.Context, *RagDetailReq) (*RagInfo, error)
 	// 获取 rag 列表
 	ListRag(context.Context, *RagListReq) (*RagListResp, error)
+	// 管理员中心知识问答全局分页列表（跨用户/组织）
+	AdminRagPageList(context.Context, *AdminRagPageListReq) (*AdminRagPageListResp, error)
 	// 根据 ragIds 获取 rag 列表
 	GetRagByIds(context.Context, *GetRagByIdsReq) (*AppBriefList, error)
 	// 复制 rag
@@ -274,6 +408,25 @@ type RagServiceServer interface {
 	GetPublishRagDesc(context.Context, *GetPublishRagDescReq) (*GetPublishRagDescResp, error)
 	// 批量返回最新版本描述
 	GetPublishRagDescBatch(context.Context, *GetPublishRagDescBatchReq) (*GetPublishRagDescBatchResp, error)
+	// --- 会话 ---
+	// 创建会话
+	CreateRagConversation(context.Context, *CreateRagConversationReq) (*CreateRagConversationResp, error)
+	// 删除会话，连带清除该会话下的问答明细
+	DeleteRagConversation(context.Context, *DeleteRagConversationReq) (*emptypb.Empty, error)
+	// 会话列表
+	ListRagConversation(context.Context, *ListRagConversationReq) (*ListRagConversationResp, error)
+	// 会话下的问答明细列表
+	ListRagConversationDetail(context.Context, *ListRagConversationDetailReq) (*ListRagConversationDetailResp, error)
+	// 清除问答明细但保留会话，detailId 传值则只删单条
+	ClearRagConversationDetail(context.Context, *ClearRagConversationDetailReq) (*emptypb.Empty, error)
+	// 取草稿会话id，草稿态每个知识问答仅维护一条会话
+	GetRagDraftConversation(context.Context, *GetRagDraftConversationReq) (*GetRagDraftConversationResp, error)
+	// 取会话归属信息，供 bff 中间件校验（明细在 ES，bff 查不到，一并在这里判）
+	GetRagConversationOwner(context.Context, *GetRagConversationOwnerReq) (*GetRagConversationOwnerResp, error)
+	// 问答明细点赞/点踩
+	RagMessageFeedback(context.Context, *RagMessageFeedbackReq) (*RagMessageFeedbackResp, error)
+	// --- 会话日志 ---
+	GetConversationLog(context.Context, *ConversationLogReq) (*common.ConversationLog, error)
 	mustEmbedUnimplementedRagServiceServer()
 }
 
@@ -305,6 +458,9 @@ func (UnimplementedRagServiceServer) GetRagDetail(context.Context, *RagDetailReq
 func (UnimplementedRagServiceServer) ListRag(context.Context, *RagListReq) (*RagListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRag not implemented")
 }
+func (UnimplementedRagServiceServer) AdminRagPageList(context.Context, *AdminRagPageListReq) (*AdminRagPageListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminRagPageList not implemented")
+}
 func (UnimplementedRagServiceServer) GetRagByIds(context.Context, *GetRagByIdsReq) (*AppBriefList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRagByIds not implemented")
 }
@@ -328,6 +484,33 @@ func (UnimplementedRagServiceServer) GetPublishRagDesc(context.Context, *GetPubl
 }
 func (UnimplementedRagServiceServer) GetPublishRagDescBatch(context.Context, *GetPublishRagDescBatchReq) (*GetPublishRagDescBatchResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPublishRagDescBatch not implemented")
+}
+func (UnimplementedRagServiceServer) CreateRagConversation(context.Context, *CreateRagConversationReq) (*CreateRagConversationResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRagConversation not implemented")
+}
+func (UnimplementedRagServiceServer) DeleteRagConversation(context.Context, *DeleteRagConversationReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRagConversation not implemented")
+}
+func (UnimplementedRagServiceServer) ListRagConversation(context.Context, *ListRagConversationReq) (*ListRagConversationResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRagConversation not implemented")
+}
+func (UnimplementedRagServiceServer) ListRagConversationDetail(context.Context, *ListRagConversationDetailReq) (*ListRagConversationDetailResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRagConversationDetail not implemented")
+}
+func (UnimplementedRagServiceServer) ClearRagConversationDetail(context.Context, *ClearRagConversationDetailReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClearRagConversationDetail not implemented")
+}
+func (UnimplementedRagServiceServer) GetRagDraftConversation(context.Context, *GetRagDraftConversationReq) (*GetRagDraftConversationResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRagDraftConversation not implemented")
+}
+func (UnimplementedRagServiceServer) GetRagConversationOwner(context.Context, *GetRagConversationOwnerReq) (*GetRagConversationOwnerResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRagConversationOwner not implemented")
+}
+func (UnimplementedRagServiceServer) RagMessageFeedback(context.Context, *RagMessageFeedbackReq) (*RagMessageFeedbackResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RagMessageFeedback not implemented")
+}
+func (UnimplementedRagServiceServer) GetConversationLog(context.Context, *ConversationLogReq) (*common.ConversationLog, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConversationLog not implemented")
 }
 func (UnimplementedRagServiceServer) mustEmbedUnimplementedRagServiceServer() {}
 func (UnimplementedRagServiceServer) testEmbeddedByValue()                    {}
@@ -465,6 +648,24 @@ func _RagService_ListRag_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RagServiceServer).ListRag(ctx, req.(*RagListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RagService_AdminRagPageList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminRagPageListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RagServiceServer).AdminRagPageList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RagService_AdminRagPageList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RagServiceServer).AdminRagPageList(ctx, req.(*AdminRagPageListReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -613,6 +814,168 @@ func _RagService_GetPublishRagDescBatch_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RagService_CreateRagConversation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRagConversationReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RagServiceServer).CreateRagConversation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RagService_CreateRagConversation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RagServiceServer).CreateRagConversation(ctx, req.(*CreateRagConversationReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RagService_DeleteRagConversation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRagConversationReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RagServiceServer).DeleteRagConversation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RagService_DeleteRagConversation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RagServiceServer).DeleteRagConversation(ctx, req.(*DeleteRagConversationReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RagService_ListRagConversation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRagConversationReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RagServiceServer).ListRagConversation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RagService_ListRagConversation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RagServiceServer).ListRagConversation(ctx, req.(*ListRagConversationReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RagService_ListRagConversationDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRagConversationDetailReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RagServiceServer).ListRagConversationDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RagService_ListRagConversationDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RagServiceServer).ListRagConversationDetail(ctx, req.(*ListRagConversationDetailReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RagService_ClearRagConversationDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClearRagConversationDetailReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RagServiceServer).ClearRagConversationDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RagService_ClearRagConversationDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RagServiceServer).ClearRagConversationDetail(ctx, req.(*ClearRagConversationDetailReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RagService_GetRagDraftConversation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRagDraftConversationReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RagServiceServer).GetRagDraftConversation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RagService_GetRagDraftConversation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RagServiceServer).GetRagDraftConversation(ctx, req.(*GetRagDraftConversationReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RagService_GetRagConversationOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRagConversationOwnerReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RagServiceServer).GetRagConversationOwner(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RagService_GetRagConversationOwner_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RagServiceServer).GetRagConversationOwner(ctx, req.(*GetRagConversationOwnerReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RagService_RagMessageFeedback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RagMessageFeedbackReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RagServiceServer).RagMessageFeedback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RagService_RagMessageFeedback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RagServiceServer).RagMessageFeedback(ctx, req.(*RagMessageFeedbackReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RagService_GetConversationLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConversationLogReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RagServiceServer).GetConversationLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RagService_GetConversationLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RagServiceServer).GetConversationLog(ctx, req.(*ConversationLogReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RagService_ServiceDesc is the grpc.ServiceDesc for RagService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -645,6 +1008,10 @@ var RagService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _RagService_ListRag_Handler,
 		},
 		{
+			MethodName: "AdminRagPageList",
+			Handler:    _RagService_AdminRagPageList_Handler,
+		},
+		{
 			MethodName: "GetRagByIds",
 			Handler:    _RagService_GetRagByIds_Handler,
 		},
@@ -675,6 +1042,42 @@ var RagService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPublishRagDescBatch",
 			Handler:    _RagService_GetPublishRagDescBatch_Handler,
+		},
+		{
+			MethodName: "CreateRagConversation",
+			Handler:    _RagService_CreateRagConversation_Handler,
+		},
+		{
+			MethodName: "DeleteRagConversation",
+			Handler:    _RagService_DeleteRagConversation_Handler,
+		},
+		{
+			MethodName: "ListRagConversation",
+			Handler:    _RagService_ListRagConversation_Handler,
+		},
+		{
+			MethodName: "ListRagConversationDetail",
+			Handler:    _RagService_ListRagConversationDetail_Handler,
+		},
+		{
+			MethodName: "ClearRagConversationDetail",
+			Handler:    _RagService_ClearRagConversationDetail_Handler,
+		},
+		{
+			MethodName: "GetRagDraftConversation",
+			Handler:    _RagService_GetRagDraftConversation_Handler,
+		},
+		{
+			MethodName: "GetRagConversationOwner",
+			Handler:    _RagService_GetRagConversationOwner_Handler,
+		},
+		{
+			MethodName: "RagMessageFeedback",
+			Handler:    _RagService_RagMessageFeedback_Handler,
+		},
+		{
+			MethodName: "GetConversationLog",
+			Handler:    _RagService_GetConversationLog_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

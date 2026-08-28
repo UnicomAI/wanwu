@@ -169,7 +169,7 @@ func (m *MultiAgentStep) TransferFinish() bool {
 func (m *MultiAgentStep) SubAgentFinish() bool {
 	chatMessage := m.ChatMessage
 	//子智能体结束
-	return chatMessage.ResponseMeta != nil && chatMessage.ResponseMeta.FinishReason == "stop" && m.RespContext.MultiAgentContext.PeekAgent() != nil
+	return util.StopMessage(chatMessage) && m.RespContext.MultiAgentContext.PeekAgent() != nil
 }
 
 // ExitStart 多智能体结束会输出exitToolStart，是在创建时传进去的ExitTool

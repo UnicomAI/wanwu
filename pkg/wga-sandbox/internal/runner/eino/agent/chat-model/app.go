@@ -10,7 +10,6 @@ import (
 
 	"github.com/UnicomAI/wanwu/pkg/wga-sandbox/internal/runner/eino/agent/shared"
 	"github.com/cloudwego/eino/adk"
-	"github.com/cloudwego/eino/schema"
 )
 
 type App struct {
@@ -18,7 +17,7 @@ type App struct {
 	workspace string
 }
 
-func NewApp(ctx context.Context, cfg shared.AppConfig) (*App, error) {
+func NewApp(ctx context.Context, cfg shared.AppConfig) (shared.AgentApp, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
@@ -29,56 +28,27 @@ func NewApp(ctx context.Context, cfg shared.AppConfig) (*App, error) {
 		return nil, err
 	}
 
-	skillMiddleware, err := shared.NewSkillMiddleware(ctx, cfg.Workspace)
+	skillMW, err := shared.NewSkillMiddleware(ctx, cfg.Workspace)
 	if err != nil {
 		return nil, err
 	}
 
-	fileBackend := shared.NewShellOnlyBackend(cfg.Workspace)
-	bashTool, err := shared.NewBashTool(ctx, fileBackend)
+	bashMW, err := shared.NewBashMiddleware(cfg.Workspace, cfg.Halt)
 	if err != nil {
 		return nil, err
 	}
 
-	skillMiddleware.AdditionalTools = append(skillMiddleware.AdditionalTools, bashTool)
-
-	tmplData := struct {
-		Workspace   string
-		CurrentTime string
-	}{
-		Workspace:   cfg.Workspace,
-		CurrentTime: time.Now().Format("2006/01/02 Mon"),
-	}
-
-	tmpl, err := template.New("instruction").Parse(instructionTemplate)
+	instruction, err := renderInstruction(cfg.Workspace)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse instruction template: %w", err)
-	}
-	var instrBuf bytes.Buffer
-	if err := tmpl.Execute(&instrBuf, tmplData); err != nil {
-		return nil, fmt.Errorf("failed to render instruction template: %w", err)
-	}
-
-	// 自定义 GenModelInput，使用传入的完整 messages（包含历史）
-	genModelInput := func(ctx context.Context, instruction string, input *adk.AgentInput) ([]adk.Message, error) {
-		msgs := make([]adk.Message, 0, len(input.Messages)+1)
-
-		if instruction != "" {
-			msgs = append(msgs, schema.SystemMessage(instruction))
-		}
-
-		msgs = append(msgs, input.Messages...)
-
-		return msgs, nil
+		return nil, err
 	}
 
 	agent, err := adk.NewChatModelAgent(ctx, &adk.ChatModelAgentConfig{
 		Model:         chatModel,
 		Name:          "ChatModelAgent",
 		Description:   "一个带有skills的智能体助手",
-		Instruction:   instrBuf.String(),
-		GenModelInput: genModelInput,
-		Middlewares:   []adk.AgentMiddleware{skillMiddleware},
+		Instruction:   instruction,
+		Middlewares:   []adk.AgentMiddleware{skillMW, bashMW},
 		MaxIterations: 100,
 	})
 	if err != nil {
@@ -100,4 +70,22 @@ func (a *App) Query(ctx context.Context, messages []adk.Message) *adk.AsyncItera
 
 func (a *App) Close() error {
 	return nil
+}
+
+func renderInstruction(workspace string) (string, error) {
+	tmpl, err := template.New("instruction").Parse(instructionTemplate)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse instruction template: %w", err)
+	}
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, struct {
+		Workspace   string
+		CurrentTime string
+	}{
+		Workspace:   workspace,
+		CurrentTime: time.Now().Format("2006/01/02 Mon"),
+	}); err != nil {
+		return "", fmt.Errorf("failed to render instruction template: %w", err)
+	}
+	return buf.String(), nil
 }

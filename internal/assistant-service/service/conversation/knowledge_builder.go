@@ -32,6 +32,12 @@ func (*Knowledge) Build(conversationResp *ConversationResp, conversation, search
 		hasResult = true
 	}
 	//终态存储
+	if len(conversation) > 0 {
+		hasResult = true
+		//保存对话
+		resp.Write(conversation, eventData.Order)
+	}
+	//终态存储
 	if eventData.Status == model.EventEndStatus {
 		if !hasResult {
 			eventData.Status = model.EventFailStatus

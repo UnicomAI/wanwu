@@ -9,11 +9,13 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
+	"time"
 
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/pkg/ahocorasick"
 	mcp_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/mcp-util"
 	oauth2_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/oauth2-util"
+	bff_rsautil "github.com/UnicomAI/wanwu/internal/bff-service/pkg/rsa-util"
 	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler"
 	"github.com/UnicomAI/wanwu/pkg/i18n"
 	jwt_util "github.com/UnicomAI/wanwu/pkg/jwt-util"
@@ -21,6 +23,7 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/minio"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	"github.com/UnicomAI/wanwu/pkg/redis"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/UnicomAI/wanwu/pkg/wga"
 )
@@ -64,6 +67,11 @@ func main() {
 		log.Fatalf("init log err: %v", err)
 	}
 
+	// init tracer
+	if err := trace_util.InitTracer("bff-service"); err != nil {
+		log.Fatalf("init tracer err: %v", err)
+	}
+
 	// init time local
 	if err := util.InitTimeLocal(); err != nil {
 		log.Fatalf("init time local UTC8 err: %v", err)
@@ -98,6 +106,18 @@ func main() {
 	if err := redis.InitOP(ctx, config.Cfg().Redis); err != nil {
 		log.Fatalf("init redis err: %v", err)
 	}
+	if err := redis.InitSys(ctx, config.Cfg().Redis); err != nil {
+		log.Fatalf("init redis err: %v", err)
+	}
+	if err := redis.InitAssistant(ctx, config.Cfg().Redis); err != nil {
+		log.Fatalf("init assistant redis err: %v", err)
+	}
+	if err := redis.InitRag(ctx, config.Cfg().Redis); err != nil {
+		log.Fatalf("init rag redis err: %v", err)
+	}
+
+	// init rsa challenge manager (depends on redis)
+	bff_rsautil.InitChallengeManager()
 
 	// init oauth2
 	if config.Cfg().OAuth.Switch != 0 {
@@ -130,6 +150,11 @@ func main() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM)
 	<-sc
+
+	// flush trace spans
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+	trace_util.ShutdownTracer(shutdownCtx)
 
 	// stop http handler
 	handler.Stop(ctx)

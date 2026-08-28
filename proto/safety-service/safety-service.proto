@@ -35,6 +35,22 @@ service SafetyService {
   rpc GetSensitiveVocabularyList(GetSensitiveVocabularyListReq) returns (SensitiveWordVocabularyResp) {}
   // 获取多个敏感词表详细数据(带敏感词)
   rpc GetSensitiveWordTableListWithWordsByIDs(GetSensitiveWordTableListByIDsReq) returns (SensitiveWordTableListWithWords) {}
+
+  // --- admin center ---
+  rpc AdminSensitiveWordPageList(AdminSensitiveWordPageListReq) returns (AdminSensitiveWordPageListResp) {}
+}
+
+message AdminSensitiveWordPageListReq {
+  string name = 1;
+  repeated string userId = 2;
+  repeated string orgId = 3;
+  int32 pageNum = 4;
+  int32 pageSize = 5;
+}
+
+message AdminSensitiveWordPageListResp {
+  int64 total = 1;
+  repeated SensitiveWordTable list = 2;
 }
 
 message CreateSensitiveWordTableReq {
@@ -62,6 +78,8 @@ message UpdateSensitiveWordTableReplyReq {
 
 message DeleteSensitiveWordTableReq {
   string tableId = 1; // 敏感词表id
+  string userId = 2;
+  string orgId = 3;
 }
 
 message GetSensitiveWordTableListReq {
@@ -83,6 +101,8 @@ message UploadSensitiveVocabularyReq {
 message DeleteSensitiveVocabularyReq {
   string tableId = 1; // 敏感词表id
   string wordId = 2; // 敏感词id
+  string userId = 3;
+  string orgId = 4;
 }
 
 message GetSensitiveVocabularyListReq {
@@ -111,13 +131,16 @@ message SensitiveWordTables {
 }
 
 message SensitiveWordTable {
-  string tableId = 1;
+  string tableId   = 1;
   string tableName = 2;
-  string remark = 3;
-  string reply = 4;
-  string version = 5;
+  string remark    = 3;
+  string reply     = 4;
+  string version   = 5;
   int64  createdAt = 6;
   string tableType = 7; // 敏感词表类型
+  string userId    = 8;
+  string orgId     = 9;
+  int64  updatedAt = 10; // 更新时间
 }
 
 message SensitiveWordVocabularyResp {

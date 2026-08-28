@@ -20,24 +20,31 @@ type ListResult struct {
 	Total int64       `json:"total"`
 }
 
-type IDName struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+type IDNameWithAvatar struct {
+	ID     string         `json:"id"`
+	Name   string         `json:"name"`
+	Avatar request.Avatar `json:"avatar,omitempty"`
+}
+
+type RoleIDName struct {
+	ID       string         `json:"id"`
+	Name     string         `json:"name"`
+	Avatar   request.Avatar `json:"avatar,omitempty"`
+	IsGlobal bool           `json:"isGlobal,omitempty"` // 是否全局角色
 }
 
 type UserPermission struct {
+	UserInfo
 	OrgPermission    UserOrgPermission `json:"orgPermission"`    // 用户所在组织权限
-	Language         Language          `json:"language"`         // 语言
 	IsUpdatePassword bool              `json:"isUpdatePassword"` // 是否已更新密码
-	Avatar           request.Avatar    `json:"avatar"`           // 用户头像信息
 }
 
 type UserOrgPermission struct {
-	IsAdmin     bool         `json:"isAdmin"`     // 是否系统内置管理员
-	IsSystem    bool         `json:"isSystem"`    // 是否系统视角（此时org.id为空，org.name为"系统"）
-	Org         IDName       `json:"org"`         // 组织
-	Roles       []IDName     `json:"roles"`       // 角色列表
-	Permissions []Permission `json:"permissions"` // 权限列表
+	IsAdmin     bool             `json:"isAdmin"`     // 是否系统内置管理员
+	IsSystem    bool             `json:"isSystem"`    // 是否系统视角（此时org.id为空，org.name为"系统"）
+	Org         IDNameWithAvatar `json:"org"`         // 组织
+	Roles       []RoleIDName     `json:"roles"`       // 角色列表
+	Permissions []Permission     `json:"permissions"` // 权限列表
 }
 
 type Permission struct {
@@ -46,5 +53,13 @@ type Permission struct {
 }
 
 type Select struct {
-	Select []IDName `json:"select"`
+	Select []IDNameWithAvatar `json:"select"`
+}
+
+type UserSelect struct {
+	Select []IDNameWithAvatar `json:"select"`
+}
+
+type RoleSelect struct {
+	Select []RoleIDName `json:"select"`
 }

@@ -17,6 +17,10 @@ func (req DeleteAppSpaceAppRequest) Check() error {
 }
 
 type GetAppSpaceAppListRequest struct {
+	Name string `form:"name" json:"name"`
+}
+
+type GetAppSpaceAppListByTypeRequest struct {
 	Name    string `form:"name" json:"name"`
 	AppType string `form:"appType" json:"appType"`
 }
@@ -26,6 +30,7 @@ type PublishAppRequest struct {
 	AppType     string `json:"appType" validate:"required"` // 应用类型
 	Version     string `json:"version" validate:"required"`
 	Desc        string `json:"desc"`                            // 描述
+	Extra       string `json:"extra"`                           // 扩展信息，具体字段格式各个业务自己定义
 	PublishType string `json:"publishType" validate:"required"` // 发布类型(public:系统公开发布,organization:组织公开发布,private:私密发布)
 }
 
@@ -55,5 +60,9 @@ func (req GetAppBaseUrlRequest) Check() error {
 }
 
 func (o *GetAppSpaceAppListRequest) Check() error {
+	return nil
+}
+
+func (o *GetAppSpaceAppListByTypeRequest) Check() error {
 	return nil
 }

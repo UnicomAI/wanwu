@@ -7,7 +7,7 @@ type SensitiveWordTable struct {
 	UserID    string `gorm:"index:idx_swt_user_id"`
 	OrgID     string `gorm:"index:idx_swt_org_id"`
 	Name      string `gorm:"index:idx_swt_name"`
-	Remark    string `gorm:"index:idx_swt_remark"`
+	Remark    string `gorm:"index:idx_swt_remark;type:varchar(255)"`
 	Reply     string `gorm:"index:idx_swt_reply"`
 	Version   string `gorm:"index:idx_swt_version"`
 	TableType string `gorm:"default:personal;index:idx_swt_table_type"`

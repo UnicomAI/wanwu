@@ -11,6 +11,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/app-service/client/orm/sqlopt"
 	"github.com/UnicomAI/wanwu/internal/app-service/pkg"
 	"github.com/UnicomAI/wanwu/pkg/constant"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/minio"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"gorm.io/gorm"
@@ -26,6 +27,7 @@ func (c *Client) CreateSensitiveWordTable(ctx context.Context, userId, orgId, ta
 	err := sqlopt.SQLOptions(
 		sqlopt.WithOrgID(orgId),
 		sqlopt.WithUserID(userId),
+		sqlopt.WithTableType(tableType),
 		sqlopt.WithName(tableName),
 	).Apply(c.db.WithContext(ctx)).First(&model.SensitiveWordTable{}).Error
 	if err == nil {
@@ -49,8 +51,19 @@ func (c *Client) CreateSensitiveWordTable(ctx context.Context, userId, orgId, ta
 }
 
 func (c *Client) UpdateSensitiveWordTable(ctx context.Context, tableId uint32, tableName, remark string) *errs.Status {
+	var currentTable model.SensitiveWordTable
+	if err := sqlopt.WithID(tableId).Apply(c.db.WithContext(ctx)).First(&currentTable).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return toErrStatus("app_safety_sensitive_table_not_found", util.Int2Str(tableId))
+		}
+		return toErrStatus("app_safety_sensitive_table_get", util.Int2Str(tableId), err.Error())
+	}
+
 	var existingTable model.SensitiveWordTable
 	err := sqlopt.SQLOptions(
+		sqlopt.WithOrgID(currentTable.OrgID),
+		sqlopt.WithUserID(currentTable.UserID),
+		sqlopt.WithTableType(currentTable.TableType),
 		sqlopt.WithName(tableName),
 	).Apply(c.db.WithContext(ctx)).First(&existingTable).Error
 	if err == nil && existingTable.ID != tableId {
@@ -86,15 +99,19 @@ func (c *Client) UpdateSensitiveWordTableReply(ctx context.Context, tableId uint
 	return nil
 }
 
-func (c *Client) DeleteSensitiveWordTable(ctx context.Context, tableId uint32) *errs.Status {
+func (c *Client) DeleteSensitiveWordTable(ctx context.Context, tableId uint32, userId, orgId string) *errs.Status {
 	err := c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithTableID(tableId),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
 		).Apply(tx).Delete(&model.SensitiveWordVocabulary{}).Error; err != nil {
 			return fmt.Errorf("failed to delete sensitiveWordVocabulary: %v", err)
 		}
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithID(tableId),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
 		).Apply(tx).Delete(&model.SensitiveWordTable{}).Error; err != nil {
 			return fmt.Errorf("failed to delete sensitiveWordTable: %v", err)
 		}
@@ -117,6 +134,27 @@ func (c *Client) GetSensitiveWordTableList(ctx context.Context, userId, orgId, t
 		return nil, toErrStatus("app_safety_sensitive_table_list_get", err.Error())
 	}
 	return tables, nil
+}
+
+func (c *Client) AdminGetSensitiveWordTableList(ctx context.Context, userIds, orgIds []string, name string, pageNum, pageSize int) ([]*model.SensitiveWordTable, int64, *errs.Status) {
+	var tables []*model.SensitiveWordTable
+	var total int64
+	query := sqlopt.SQLOptions(
+		sqlopt.WithOrgIDs(orgIds),
+		sqlopt.WithUserIDs(userIds),
+	).Apply(c.db.WithContext(ctx).Model(&model.SensitiveWordTable{}))
+	if name != "" {
+		query = query.Where("name LIKE ?", "%"+db.EscapeLike(name)+"%")
+	}
+	if err := query.
+		Count(&total).
+		Order("updated_at DESC").
+		Offset((pageNum - 1) * pageSize).
+		Limit(pageSize).
+		Find(&tables).Error; err != nil {
+		return nil, 0, toErrStatus("app_safety_sensitive_table_admin_list", err.Error())
+	}
+	return tables, total, nil
 }
 
 func (c *Client) GetGlobalSensitiveWordTableList(ctx context.Context) ([]*model.SensitiveWordTable, *errs.Status) {
@@ -240,10 +278,12 @@ func (c *Client) UploadSensitiveVocabulary(ctx context.Context, userId, orgId, i
 	return nil
 }
 
-func (c *Client) DeleteSensitiveVocabulary(ctx context.Context, tableId, wordId uint32) *errs.Status {
+func (c *Client) DeleteSensitiveVocabulary(ctx context.Context, tableId, wordId uint32, userId, orgId string) *errs.Status {
 	err := c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithID(tableId),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
 		).Apply(tx).Model(&model.SensitiveWordTable{}).
 			Update("version", getSensitiveTableVersion()).Error; err != nil {
 			return fmt.Errorf("update table version failed: %w", err)
@@ -251,6 +291,8 @@ func (c *Client) DeleteSensitiveVocabulary(ctx context.Context, tableId, wordId 
 		if err := sqlopt.SQLOptions(
 			sqlopt.WithTableID(tableId),
 			sqlopt.WithID(wordId),
+			sqlopt.WithUserID(userId),
+			sqlopt.WithOrgID(orgId),
 		).Apply(tx).Delete(&model.SensitiveWordVocabulary{}).Error; err != nil {
 			return fmt.Errorf("failed to delete sensitiveWordVocabulary: %v", err)
 		}

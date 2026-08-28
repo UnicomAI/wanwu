@@ -141,6 +141,7 @@ func buildMultiSubAgent(ctx *gin.Context, multiAgentChatReq *request.MultiAgentC
 			Stream:              multiAgentChatReq.Stream,
 			UploadFile:          multiAgentChatReq.UploadFile,
 			DetailId:            multiAgentChatReq.DetailId,
+			MultiSubAgent:       true,
 		}, agentInfo)
 		if err != nil {
 			return nil, nil, err

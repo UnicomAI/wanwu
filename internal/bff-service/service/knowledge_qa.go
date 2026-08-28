@@ -1,8 +1,10 @@
 package service
 
 import (
+	"encoding/json"
 	"net/url"
 	"strings"
+	"time"
 
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
@@ -11,10 +13,13 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/minio"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/lo"
 )
@@ -100,7 +105,7 @@ func GetQAPairDetail(ctx *gin.Context, userId, orgId, qaPairId string) (*respons
 }
 
 // GetKnowledgeQAPairList 查询问答库问答对列表
-func GetKnowledgeQAPairList(ctx *gin.Context, userId, orgId string, r *request.KnowledgeQAPairListReq) (*response.KnowledgeQAPairPageResult, error) {
+func GetKnowledgeQAPairList(ctx *gin.Context, userId, orgId string, r *request.KnowledgeQAPairListReq) (*response.PageResult, error) {
 	resp, err := knowledgeBaseQA.GetQAPairList(ctx.Request.Context(), &knowledgebase_qa_service.GetQAPairListReq{
 		KnowledgeId: r.KnowledgeId,
 		Name:        strings.TrimSpace(r.Name),
@@ -114,16 +119,11 @@ func GetKnowledgeQAPairList(ctx *gin.Context, userId, orgId string, r *request.K
 	if err != nil {
 		return nil, err
 	}
-	knowledgeInfo := resp.KnowledgeInfo
-	return &response.KnowledgeQAPairPageResult{
+	return &response.PageResult{
 		List:     buildQAPairRespList(ctx, resp.QaPairInfos),
 		Total:    resp.Total,
 		PageNo:   int(resp.PageNum),
 		PageSize: int(resp.PageSize),
-		QAKnowledgeInfo: &response.QAKnowledgeInfo{
-			KnowledgeId:   knowledgeInfo.KnowledgeId,
-			KnowledgeName: knowledgeInfo.KnowledgeName,
-		},
 	}, nil
 }
 
@@ -281,6 +281,7 @@ func buildKnowledgeExportRecordRespList(ctx *gin.Context, dataList []*knowledgeb
 	authorMap := buildKnowledgeExportAuthorMap(ctx, dataList)
 	for _, data := range dataList {
 		filePath, _ := url.JoinPath(config.Cfg().Minio.DownloadURL, data.FilePath)
+		filePath = urlDecode(filePath)
 		retList = append(retList, &response.ListKnowledgeExportRecordResp{
 			ExportRecordId: data.ExportRecordId,
 			ExportTime:     data.ExportTime,
@@ -292,6 +293,19 @@ func buildKnowledgeExportRecordRespList(ctx *gin.Context, dataList []*knowledgeb
 		})
 	}
 	return retList
+}
+
+// URLDecode 对输入的字符串进行 URL 解码。
+// 参数 encodeStr 为需要解码的字符串（例如 "%E7%9F%A5%E8%AF%86%E5%BA%931.zip"）。
+// 返回解码后的字符串和可能的错误。
+func urlDecode(encodeStr string) string {
+	// 使用 QueryUnescape 可以处理 %xx 形式的编码，并且会将 '+' 还原为空格
+	decoded, err := url.QueryUnescape(encodeStr)
+	if err != nil {
+		log.Errorf("URL decode error: %v", err)
+		return encodeStr
+	}
+	return decoded
 }
 
 func buildQAPairAuthorMap(ctx *gin.Context, dataList []*knowledgebase_qa_service.QAPairInfo) map[string]string {
@@ -310,7 +324,7 @@ func buildQAPairAuthorMap(ctx *gin.Context, dataList []*knowledgebase_qa_service
 	for userId := range userIdSet {
 		userIdList = append(userIdList, userId)
 	}
-	userInfoList, err := iam.GetUserSelectByUserIDs(ctx, &iam_service.GetUserSelectByUserIDsReq{
+	userInfoList, err := iam.GetUserSelectByUserIDs(ctx.Request.Context(), &iam_service.GetUserSelectByUserIDsReq{
 		UserIds: userIdList,
 	})
 	if err != nil {
@@ -341,7 +355,7 @@ func buildKnowledgeExportAuthorMap(ctx *gin.Context, dataList []*knowledgebase_s
 	for userId := range userIdSet {
 		userIdList = append(userIdList, userId)
 	}
-	userInfoList, err := iam.GetUserSelectByUserIDs(ctx, &iam_service.GetUserSelectByUserIDsReq{
+	userInfoList, err := iam.GetUserSelectByUserIDs(ctx.Request.Context(), &iam_service.GetUserSelectByUserIDsReq{
 		UserIds: userIdList,
 	})
 	if err != nil {
@@ -357,7 +371,35 @@ func buildKnowledgeExportAuthorMap(ctx *gin.Context, dataList []*knowledgebase_s
 }
 
 // KnowledgeQAHit 知识库命中
-func KnowledgeQAHit(ctx *gin.Context, userId, orgId string, r *request.KnowledgeQAHitReq) (*response.KnowledgeQAHitResp, error) {
+func KnowledgeQAHit(ctx *gin.Context, userId, orgId string, r *request.KnowledgeQAHitReq) (ret *response.KnowledgeQAHitResp, err error) {
+	startTime := time.Now()
+	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
+	defer func() {
+		var appID string
+		// 与 WithKnowledgeHitResource 一致：按有效 knowledgeId 数量判定；openapi 可传多项但 len=1 仍记。
+		switch len(r.KnowledgeList) {
+		case 1:
+			appID = r.KnowledgeList[0].ID
+		default:
+			return // 多知识库命中暂不记应用统计
+		}
+		statusCode, failureReason := GrpcErrorToHTTPStatus(err)
+		source := resolveAppStatisticSource(detachedCtx, constant.BizSourceWeb)
+		// appType 由 RecordAppStatistic 从 Trace.moduleResourceType 回填（knowledge）
+		costs := time.Since(startTime).Milliseconds()
+		respBody := ""
+		if ret != nil {
+			if b, e := json.Marshal(ret); e == nil {
+				respBody = string(b)
+			}
+		}
+		go func() {
+			defer util.PrintPanicStack()
+			RecordAppStatistic(detachedCtx, userId, orgId, appID, "", constant.BizModuleResourceKnowledge,
+				statusCode, failureReason, false, 0, costs, source, MarshalStatisticBody(r), respBody, r.Question, "")
+		}()
+	}()
+
 	matchParams := r.KnowledgeMatchParams
 	resp, err := knowledgeBaseQA.KnowledgeQAHit(ctx.Request.Context(), &knowledgebase_qa_service.KnowledgeQAHitReq{
 		Question:      r.Question,
@@ -386,14 +428,16 @@ func KnowledgeQAHit(ctx *gin.Context, userId, orgId string, r *request.Knowledge
 func buildKnowledgeQAListReq(r *request.KnowledgeQAHitReq) []*knowledgebase_qa_service.KnowledgeParams {
 	var knowledgeList []*knowledgebase_qa_service.KnowledgeParams
 	for _, k := range r.KnowledgeList {
-		knowledgeList = append(knowledgeList, &knowledgebase_qa_service.KnowledgeParams{
-			KnowledgeId: k.ID,
-			MetaDataFilterParams: &knowledgebase_qa_service.MetaDataFilterParams{
+		kp := &knowledgebase_qa_service.KnowledgeParams{KnowledgeId: k.ID}
+		// metaDataFilterParams 可选，不传时为 nil，需判空避免解引用 panic
+		if k.MetaDataFilterParams != nil {
+			kp.MetaDataFilterParams = &knowledgebase_qa_service.MetaDataFilterParams{
 				FilterEnable:     k.MetaDataFilterParams.FilterEnable,
 				FilterLogicType:  k.MetaDataFilterParams.FilterLogicType,
 				MetaFilterParams: buildQAMetaFilterParams(k.MetaDataFilterParams.MetaFilterParams),
-			},
-		})
+			}
+		}
+		knowledgeList = append(knowledgeList, kp)
 	}
 	return knowledgeList
 }

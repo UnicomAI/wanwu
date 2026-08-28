@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BKN 构建报告 - {{network_name}}</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --ok: #16a34a;
+      --warn: #d97706;
+      --bad: #dc2626;
+      --line: #e5e7eb;
+      --shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Noto Sans CJK SC", "Microsoft Yahei", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .wrap { max-width: 1200px; margin: 28px auto; padding: 0 20px 40px; }
+    .header {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+    }
+    .title { margin: 0; font-size: 24px; font-weight: 700; }
+    .sub { margin-top: 8px; color: var(--muted); font-size: 13px; display: flex; gap: 14px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 10px;
+      color: #fff;
+      background: {{availability_color}};
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    .label { color: var(--muted); font-size: 12px; }
+    .value { font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .hint { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    h2 { margin: 0 0 10px; font-size: 16px; }
+    .bar-wrap { margin-bottom: 12px; }
+    .bar-name { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .bar {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: #edf2f7;
+      overflow: hidden;
+    }
+    .bar > span {
+      display: block;
+      height: 100%;
+      width: {{coverage}}%;
+      background: linear-gradient(90deg, #3b82f6, #2563eb);
+    }
+    .bar.binding > span { width: {{binding_rate}}%; background: linear-gradient(90deg, #14b8a6, #0ea5a4); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 600; background: #fafafa; }
+    .status { font-weight: 700; }
+    .status.mapped { color: var(--ok); }
+    .status.waived { color: var(--warn); }
+    .status.blocked { color: var(--bad); }
+    .risk-hi { color: var(--bad); }
+    .risk-mid { color: var(--warn); }
+    .risk-low { color: var(--ok); }
+    .judge-box {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .judge-title {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .judge-reason {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .judge-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .judge-list li.ok { color: var(--ok); }
+    .judge-list li.warn { color: var(--warn); }
+    .judge-list li.bad { color: var(--bad); }
+    .accordion {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .accordion > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      background: #fafafa;
+      border-bottom: 1px solid var(--line);
+    }
+    .accordion > summary::-webkit-details-marker { display: none; }
+    .summary-sub {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .accordion-body { padding: 10px 12px 12px; }
+    .accordion-hint {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 8px;
+    }
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="header">
+      <h1 class="title">业务知识网络构建报告</h1>
+      <div class="sub">
+        <span>网络：{{network_name}}</span>
+        <span>ID：{{network_id}}</span>
+        <span>分支：{{branch}}</span>
+        <span>生成时间：{{generated_at}}</span>
+      </div>
+      <div class="badge">{{availability}}</div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <div class="label">对象类</div>
+        <div class="value">{{object_count}}</div>
+        <div class="hint">关系类 {{relation_count}} / 动作类 {{action_count}}</div>
+      </div>
+      <div class="card">
+        <div class="label">属性总数</div>
+        <div class="value">{{property_total}}</div>
+        <div class="hint">核心属性 + 视图衍生属性</div>
+      </div>
+      <div class="card">
+        <div class="label">映射覆盖率</div>
+        <div class="value">{{coverage}}%</div>
+        <div class="hint">mapped {{mapped_count}} / waived {{waived_count}} / blocked {{blocked_count}}</div>
+      </div>
+      <div class="card">
+        <div class="label">对象绑定率</div>
+        <div class="value">{{binding_rate}}%</div>
+        <div class="hint">bound {{bound_objects}} / total {{total_objects}}</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>可用性判定说明</h2>
+      <div class="judge-box">
+        <p class="judge-title">当前结论：{{availability}}</p>
+        <p class="judge-reason">{{availability_reason}}</p>
+        <ul class="judge-list">
+          {{availability_judgement_rows}}
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>关键进度</h2>
+      <div class="bar-wrap">
+        <div class="bar-name">属性映射覆盖率（{{coverage}}%）</div>
+        <div class="bar"><span></span></div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-name">对象绑定率（{{binding_rate}}%）</div>
+        <div class="bar binding"><span></span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>对象类/关系类统计</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>对象类</th>
+            <th>属性数</th>
+            <th>已映射</th>
+            <th>豁免</th>
+            <th>阻断</th>
+            <th>绑定视图</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{object_relation_stats_rows}}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>属性映射明细</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>对象类</th>
+            <th>属性</th>
+            <th>状态</th>
+            <th>视图字段</th>
+            <th>置信度</th>
+            <th>原因/备注</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{property_mapping_rows}}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>对象类绑定详情（点击展开）</h2>
+      <p class="accordion-hint">点击对象类可展开查看该对象的属性映射统计与明细。</p>
+      {{object_binding_accordion_items}}
+    </section>
+
+    <section class="panel">
+      <h2>待核实属性明细（点击展开）</h2>
+      <p class="accordion-hint">仅展示当前标记为“待核实”的属性，便于逐项核对映射是否准确。</p>
+      {{pending_verification_accordion_items}}
+    </section>
+
+    <section class="panel">
+      <h2>风险与建议</h2>
+      <p class="risk-hi">高优先级：{{risk_high}}</p>
+      <p class="risk-mid">中优先级：{{risk_medium}}</p>
+      <p class="risk-low">低优先级：{{risk_low}}</p>
+      <details class="accordion">
+        <summary>
+          <span>风险明细（点击展开）</span>
+          <span class="summary-sub">按对象查看待核实属性与核实建议</span>
+        </summary>
+        <div class="accordion-body">
+          {{risk_detail_accordion_items}}
+        </div>
+      </details>
+    </section>
+  </div>
+</body>
+</html>

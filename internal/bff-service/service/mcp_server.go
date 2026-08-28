@@ -4,19 +4,27 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"net/url"
+	"strings"
 
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
+	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	mcp_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/mcp-util"
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
+	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
+)
+
+var (
+	exampleTemplate = "{\n  \"mcpServers\": {\n    \"server-name\": {\n      \"url\": \"{{url}}\"\n    }\n  }\n}"
 )
 
 func StartMCPServer(ctx context.Context) error {
@@ -34,15 +42,22 @@ func StartMCPServer(ctx context.Context) error {
 			return err
 		}
 		var mcpTools []*mcp_util.McpTool
+		var hasErr bool
 		for _, tool := range mcpServerToolList.List {
 			tools, err := mcp_util.CreateMcpTools(ctx, tool.Schema, util.ConvertApiAuthProto(tool.ApiAuth), []string{tool.Name})
 			if err != nil {
-				return err
+				hasErr = true
+				log.Errorf("start mcp server(%v) create mcp tool(%v) err: %v", mcpServerInfo.McpServerId, tool.Name, err)
+				break
 			}
 			mcpTools = append(mcpTools, tools...)
 		}
+		if hasErr {
+			continue
+		}
 		if err = mcp_util.StartMCPServer(ctx, mcpServerInfo.McpServerId); err != nil {
-			return err
+			log.Errorf("start mcp server err: %v", err)
+			continue
 		}
 		if err = mcp_util.RegisterMCPServerTools(mcpServerInfo.McpServerId, mcpTools); err != nil {
 			return err
@@ -83,7 +98,14 @@ func CreateMCPServer(ctx *gin.Context, userID, orgID string, req request.MCPServ
 }
 
 func UpdateMCPServer(ctx *gin.Context, req request.MCPServerUpdateReq) error {
-	_, err := mcp.UpdateMCPServer(ctx.Request.Context(), &mcp_service.UpdateMCPServerReq{
+	existingMCPServer, err := mcp.GetMCPServer(ctx.Request.Context(), &mcp_service.GetMCPServerReq{McpServerId: req.MCPServerID})
+	if err != nil {
+		return err
+	}
+	if err := util.ValidateBriefUpdate(&req.Name, existingMCPServer.Name, &req.Desc, existingMCPServer.Desc, util.SubjectMCPServer); err != nil {
+		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
+	}
+	_, err = mcp.UpdateMCPServer(ctx.Request.Context(), &mcp_service.UpdateMCPServerReq{
 		McpServerId: req.MCPServerID,
 		Name:        req.Name,
 		Desc:        req.Desc,
@@ -111,11 +133,15 @@ func GetMCPServerDetail(ctx *gin.Context, mcpServerId string) (*response.MCPServ
 	return toMCPServerDetail(ctx, mcpServerInfo, mcpServerTools.List), nil
 }
 
-func DeleteMCPServer(ctx *gin.Context, mcpServerId string) error {
+func DeleteMCPServer(ctx *gin.Context, userID, orgID, mcpServerId string) error {
 	// 删除智能体表AssistantMCPServer相关记录
 	_, err := assistant.AssistantMCPDeleteByMCPId(ctx.Request.Context(), &assistant_service.AssistantMCPDeleteByMCPIdReq{
 		McpId:   mcpServerId,
 		McpType: constant.MCPTypeMCPServer,
+		Identity: &assistant_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	})
 	if err != nil {
 		return err
@@ -125,12 +151,18 @@ func DeleteMCPServer(ctx *gin.Context, mcpServerId string) error {
 	_, err = app.DeleteApp(ctx.Request.Context(), &app_service.DeleteAppReq{
 		AppId:   mcpServerId,
 		AppType: constant.AppTypeMCPServer,
+		UserId:  userID,
+		OrgId:   orgID,
 	})
 	if err != nil {
 		return err
 	}
 	_, err = mcp.DeleteMCPServer(ctx.Request.Context(), &mcp_service.DeleteMCPServerReq{
 		McpServerId: mcpServerId,
+		Identity: &mcp_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	})
 	if err != nil {
 		return err
@@ -163,7 +195,7 @@ func GetMCPServerList(ctx *gin.Context, userID, orgID, name string) (*response.L
 	}, nil
 }
 
-func CreateMCPServerTool(ctx *gin.Context, req request.MCPServerToolCreateReq) error {
+func CreateMCPServerTool(ctx *gin.Context, userID, orgID string, req request.MCPServerToolCreateReq) error {
 	var builder mcpServerToolBuilder
 	switch req.Type {
 	case constant.MCPServerToolTypeCustomTool:
@@ -178,7 +210,7 @@ func CreateMCPServerTool(ctx *gin.Context, req request.MCPServerToolCreateReq) e
 		// TODO
 	}
 
-	return createMCPServerTool(ctx, req.MCPServerID, builder, []string{req.MethodName})
+	return createMCPServerTool(ctx, userID, orgID, req.MCPServerID, builder, []string{req.MethodName})
 }
 
 func UpdateMCPServerTool(ctx *gin.Context, req request.MCPServerToolUpdateReq) error {
@@ -221,7 +253,7 @@ func UpdateMCPServerTool(ctx *gin.Context, req request.MCPServerToolUpdateReq) e
 	return err
 }
 
-func DeleteMCPServerTool(ctx *gin.Context, mcpServerToolId string) error {
+func DeleteMCPServerTool(ctx *gin.Context, userID, orgID, mcpServerToolId string) error {
 	toolInfo, err := mcp.GetMCPServerTool(ctx.Request.Context(), &mcp_service.GetMCPServerToolReq{
 		McpServerToolId: mcpServerToolId,
 	})
@@ -230,6 +262,10 @@ func DeleteMCPServerTool(ctx *gin.Context, mcpServerToolId string) error {
 	}
 	_, err = mcp.DeleteMCPServerTool(ctx.Request.Context(), &mcp_service.DeleteMCPServerToolReq{
 		McpServerToolId: mcpServerToolId,
+		Identity: &mcp_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	})
 	if err != nil {
 		return err
@@ -242,7 +278,7 @@ func DeleteMCPServerTool(ctx *gin.Context, mcpServerToolId string) error {
 }
 
 func CreateMCPServerOpenAPITool(ctx *gin.Context, userID, orgID string, req request.MCPServerOpenAPIToolCreate) error {
-	return createMCPServerTool(ctx, req.MCPServerID, &mcpServerOpenapiSchemaBuilder{
+	return createMCPServerTool(ctx, userID, orgID, req.MCPServerID, &mcpServerOpenapiSchemaBuilder{
 		name:   req.Name,
 		schema: req.Schema,
 		auth:   req.ApiAuth,
@@ -296,7 +332,7 @@ func GetMCPServerStreamable(ctx *gin.Context, mcpServerId string) error {
 
 // --- internal ---
 
-func createMCPServerTool(ctx *gin.Context, mcpServerID string, builder mcpServerToolBuilder, operationIDs []string) error {
+func createMCPServerTool(ctx *gin.Context, userID, orgID, mcpServerID string, builder mcpServerToolBuilder, operationIDs []string) error {
 	if !mcp_util.CheckMCPServerExist(mcpServerID) {
 		return grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_mcp_server_not_exist")
 	}
@@ -332,6 +368,10 @@ func createMCPServerTool(ctx *gin.Context, mcpServerID string, builder mcpServer
 	if _, err = mcp.CreateMCPServerTool(ctx.Request.Context(), &mcp_service.CreateMCPServerToolReq{
 		McpServerId:         mcpServerID,
 		McpServiceToolInfos: toolInfos,
+		Identity: &mcp_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	}); err != nil {
 		return err
 	}
@@ -364,15 +404,34 @@ func toMCPServerDetail(ctx *gin.Context, mcpServerInfo *mcp_service.MCPServerInf
 			Desc:            mcpServerToolInfo.Desc,
 		})
 	}
+	sseUrl, sseExample := toExternalMCPExample(mcpServerInfo.SseUrl, "/openapi/v1/mcp/server/sse")
+	streamableUrl, streamableExample := toExternalMCPExample(mcpServerInfo.StreamableUrl, "/openapi/v1/mcp/server/streamable")
 	return &response.MCPServerDetail{
 		MCPServerID:       mcpServerInfo.McpServerId,
 		Avatar:            cacheMCPServerAvatar(ctx, mcpServerInfo.AvatarPath),
 		Name:              mcpServerInfo.Name,
 		Desc:              mcpServerInfo.Desc,
-		SSEURL:            mcpServerInfo.SseUrl,
-		SSEExample:        mcpServerInfo.SseExample,
-		StreamableURL:     mcpServerInfo.StreamableUrl,
-		StreamableExample: mcpServerInfo.StreamableExample,
+		SSEURL:            sseUrl,
+		SSEExample:        sseExample,
+		StreamableURL:     streamableUrl,
+		StreamableExample: streamableExample,
 		Tools:             mcpServerTools,
+		Transport:         mcpServerInfo.Transport,
 	}
+}
+
+func toExternalMCPExample(internalURL, path string) (string, string) {
+	parsed, err := url.Parse(internalURL)
+	if err != nil || parsed == nil {
+		return "", ""
+	}
+	externalURL, err := url.JoinPath(config.Cfg().Server.ApiBaseUrl, path)
+	if err != nil {
+		return "", ""
+	}
+	if parsed.RawQuery != "" {
+		externalURL = externalURL + "?" + parsed.RawQuery
+	}
+	example := strings.ReplaceAll(exampleTemplate, "{{url}}", externalURL)
+	return externalURL, example
 }

@@ -3,8 +3,6 @@ package agent_chat_builder
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
-	"path/filepath"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -12,7 +10,11 @@ import (
 	"github.com/UnicomAI/wanwu/internal/agent-service/model"
 	"github.com/UnicomAI/wanwu/internal/agent-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/agent-service/model/response"
+	"github.com/UnicomAI/wanwu/internal/agent-service/pkg/util"
+	"github.com/UnicomAI/wanwu/pkg/log"
+	utils "github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/cloudwego/eino/schema"
+	"github.com/mark3labs/mcp-go/mcp"
 )
 
 const (
@@ -22,6 +24,10 @@ const (
 	toolEndJsonFormat     = "\n\n```工具%s调用结果：\n %s \n```\n\n"
 
 	unknownFileSize = -1 // 未知文件大小
+
+	contentLimitSize = 20 * 1024
+	contentLimitText = "\n... (因篇幅过长，后续内容已省略)"
+	noCitationText   = "已搜索知识库"
 )
 
 type ToolMessageContent struct {
@@ -45,10 +51,29 @@ func (*SingleAgentMessageBuilder) MessageType() MessageType {
 }
 
 func (*SingleAgentMessageBuilder) FilterMessage(respContext *response.AgentChatRespContext, chatMessage *schema.Message) bool {
-	return filterMessage(respContext, chatMessage)
+	filter := filterMessage(respContext, chatMessage)
+	if filter {
+		return true
+	}
+	if !respContext.ContentOutput {
+		messageTool := response.CreateMessageTool(chatMessage, respContext)
+		//过滤一些只包含/n的内容
+		if len(chatMessage.ReasoningContent) == 0 && !messageTool.ToolMessage() && !util.StopMessage(chatMessage) {
+			//本身大于0 trim之后=0
+			if len(chatMessage.Content) > 0 && len(strings.TrimSpace(strings.Trim(chatMessage.Content, "\n"))) == 0 {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (*SingleAgentMessageBuilder) BuildContent(req *request.AgentChatContext, respContext *response.AgentChatRespContext, chatMessage *schema.Message) ([]*response.AgentMessageContent, error) {
+	////适配不返回任何工具，但是工具参数结束的消息
+	//messageTool := response.CreateMessageTool(chatMessage, respContext)
+	//if messageTool.ToolParamsEnd() && !respContext.AgentToolContext.HasTool() && !respContext.MultiAgentContext.AgentChangeStart {
+	//	chatMessage.ResponseMeta.FinishReason = "stop"
+	//}
 	return buildSingleAgentContent(req, respContext, chatMessage)
 }
 
@@ -102,6 +127,10 @@ func buildCommonSingleAgentContent(req *request.AgentChatContext, respContext *r
 			respContext.ContentOutput = true
 			respContext.IncreaseOrder()
 			respContext.ReplaceContent.Reset()
+		}
+		// 正文内容：缓存到队列，用于提取 markdown 下载文件
+		if len(chatMessage.Content) > 0 {
+			respContext.DownloadContext.AddContent(chatMessage.Content)
 		}
 		return buildNoToolContent(chatMessage, respContext)
 	}
@@ -200,16 +229,12 @@ func buildNoToolContent(chatMessage *schema.Message, respContext *response.Agent
 func buildContent(chatMessage *schema.Message) []*response.AgentMessageContent {
 	var retContentList []*response.AgentMessageContent
 	//构造正常内容
-	if len(chatMessage.Content) > 0 || stopMessage(chatMessage) {
+	if len(chatMessage.Content) > 0 || util.StopMessage(chatMessage) {
 		retContentList = append(retContentList, &response.AgentMessageContent{
 			ContentList: []string{chatMessage.Content},
 		})
 	}
 	return retContentList
-}
-
-func stopMessage(chatMessage *schema.Message) bool {
-	return chatMessage.ResponseMeta != nil && chatMessage.ResponseMeta.FinishReason == "stop"
 }
 
 // buildToolContentNewStyle 构造有工具的内容输出-新样式
@@ -269,7 +294,7 @@ func buildNewContentByStep(respContext *response.AgentChatRespContext, req *requ
 		}
 		respContext.ContentOutput = false
 		respContext.IncreaseOrder()
-		agentTool.ToolName = tool.Function.Name
+		agentTool.ToolName = buildToolName(tool.Function.Name, req.ToolMap)
 		agentTool.ToolType = response.BuildEventTypeByTool(agentTool)
 		agentTool.Avatar = buildToolAvatar(tool.Function.Name, req.ToolMap, agentTool.ToolType)
 		subEventData = response.BuildStartTool(agentTool)
@@ -292,20 +317,9 @@ func buildNewContentByStep(respContext *response.AgentChatRespContext, req *requ
 	case response.ToolResultFinishStep:
 		subEventData = response.BuildEndTool(agentTool)
 		if len(chatMessage.Content) > 0 {
-			var toolResult string
-			if json.Valid([]byte(chatMessage.Content)) {
-				// 尝试从JSON中提取文件URL和文件名
-				fileList := extractFilesFromJSON(chatMessage.Content)
-				if len(fileList) > 0 {
-					respContext.DownloadContext.AddDownloadFile(toolId, fileList)
-				}
-				toolResult = fmt.Sprintf(toolEndJsonFormat, "", chatMessage.Content)
-			} else {
-				toolResult = fmt.Sprintf(toolEndFormat, "", chatMessage.Content)
-			}
+			toolResult := processToolResult(respContext, subEventData, chatMessage.Content, toolId)
 			contentList = append(contentList, toolResult)
 		}
-
 	}
 	return &response.AgentMessageContent{
 		ContentList:  contentList,
@@ -320,7 +334,11 @@ func buildKnowledgeContentByStep(req *request.AgentChatContext, agentTool *respo
 	case response.ToolNameStep, response.ToolParamStartStep, response.ToolParamStep, response.ToolParamFinishStep:
 		break
 	case response.ToolResultFinishStep:
-		req.KnowledgeHitData = buildKnowledgeContent(chatMessage.Content)
+		knowledgeContent := buildKnowledgeContent(chatMessage.Content)
+		req.KnowledgeHitData = knowledgeContent
+		if knowledgeContent != nil && !knowledgeContent.AutoCitation {
+			contentList = append(contentList, noCitationText)
+		}
 		subEventData = response.BuildEndTool(agentTool)
 		subEventData.ParentId = req.AgentId()
 	}
@@ -360,6 +378,18 @@ func buildMessageTool(chatMessage *schema.Message, toolId string) *schema.ToolCa
 	return nil
 }
 
+// buildToolName 构建工具名称, 从md5转换成正常的工具名称
+func buildToolName(toolName string, toolMap map[string]*request.ToolConfig) string {
+	if len(toolMap) == 0 {
+		return toolName
+	}
+	tool := toolMap[toolName]
+	if tool == nil {
+		return toolName
+	}
+	return tool.ToolName
+}
+
 // buildToolAvatar 构建工具头像
 func buildToolAvatar(toolName string, toolMap map[string]*request.ToolConfig, toolEventType int) string {
 	if len(toolMap) == 0 {
@@ -370,6 +400,65 @@ func buildToolAvatar(toolName string, toolMap map[string]*request.ToolConfig, to
 		return response.BuildDefaultAvatarByType(toolEventType)
 	}
 	return toolConfig.Avatar
+}
+
+// processToolResult 处理工具调用结果消息
+func processToolResult(respContext *response.AgentChatRespContext, subEventData *response.SubEventData, content string, toolId string) string {
+	var toolResult string
+	if json.Valid([]byte(content)) {
+		// 尝试从JSON中提取文件URL和文件名
+		fileList := extractFilesFromJSON(content)
+		if len(fileList) > 0 {
+			respContext.DownloadContext.AddDownloadFile(toolId, fileList)
+		}
+		toolResult = fmt.Sprintf(toolEndJsonFormat, "", limitContent(content))
+		// 尝试判断是否是错误信息
+		errResp := extraErrMessage(content)
+		if len(errResp) > 0 {
+			subEventData.ErrMessage = errResp
+			subEventData.Status = response.EventFailStatus
+		}
+	} else {
+		toolResult = fmt.Sprintf(toolEndFormat, "", limitContent(content))
+	}
+	return toolResult
+}
+
+// limitContent 限制content输出大小
+func limitContent(content string) string {
+	if len(content) <= contentLimitSize {
+		return content
+	}
+	return content[:contentLimitSize] + contentLimitText
+}
+
+// extraErrMessage 获取错误信息
+func extraErrMessage(content string) (result string) {
+	defer utils.PrintPanicStackWithCall(func(panicOccur bool, recoverError error) {
+		if panicOccur {
+			result = ""
+			return
+		}
+	})
+	if len(content) == 0 {
+		return ""
+	}
+	var mcpResult = &mcp.CallToolResult{}
+	err := json.Unmarshal([]byte(content), mcpResult)
+	if err == nil {
+		if len(mcpResult.Content) > 0 {
+			textContent, ok := mcpResult.Content[0].(mcp.TextContent)
+			if ok && textContent.Text != "" && textContent.Type == "text" {
+				content = textContent.Text
+			}
+		}
+	}
+	var errResult = response.AgentToolErrResp{}
+	err = json.Unmarshal([]byte(content), &errResult)
+	if err != nil {
+		return ""
+	}
+	return errResult.ErrorMsg
 }
 
 // extractFilesFromJSON 从JSON内容中提取文件URL和文件名
@@ -386,14 +475,17 @@ func extractFilesFromJSON(content string) []*response.DownloadFileInfo {
 		return fileList
 	}
 
-	// 递归提取文件
-	extractFilesFromValue(data, &fileList)
+	// 递归提取文件,最多2层
+	extractFilesFromValue(data, 2, &fileList)
 
 	return fileList
 }
 
 // extractFilesFromValue 递归从值中提取文件信息
-func extractFilesFromValue(data interface{}, fileList *[]*response.DownloadFileInfo) {
+func extractFilesFromValue(data interface{}, depth int, fileList *[]*response.DownloadFileInfo) {
+	if depth <= 0 {
+		return
+	}
 	switch v := data.(type) {
 	case map[string]interface{}:
 		// 尝试从当前对象提取文件
@@ -402,11 +494,13 @@ func extractFilesFromValue(data interface{}, fileList *[]*response.DownloadFileI
 		}
 		// 递归处理所有值
 		for _, val := range v {
-			extractFilesFromValue(val, fileList)
+			depth = depth - 1
+			extractFilesFromValue(val, depth, fileList)
 		}
 	case []interface{}:
+		depth = depth - 1
 		for _, item := range v {
-			extractFilesFromValue(item, fileList)
+			extractFilesFromValue(item, depth, fileList)
 		}
 	}
 }
@@ -423,7 +517,7 @@ func extractFileInfoFromMap(m map[string]interface{}) *response.DownloadFileInfo
 	// 提取URL
 	for _, key := range urlKeys {
 		if val, ok := m[key]; ok {
-			if str, ok := val.(string); ok && isValidFileURL(str) {
+			if str, ok := val.(string); ok && util.IsValidFileURL(str) {
 				fileURL = str
 				break
 			}
@@ -433,7 +527,7 @@ func extractFileInfoFromMap(m map[string]interface{}) *response.DownloadFileInfo
 	// 如果没找到URL，尝试查找看起来像URL的字符串值
 	if fileURL == "" {
 		for _, val := range m {
-			if str, ok := val.(string); ok && isValidFileURL(str) && !isLikelyNameField(str) {
+			if str, ok := val.(string); ok && util.IsValidFileURL(str) && !isLikelyNameField(str) {
 				fileURL = str
 				break
 			}
@@ -444,6 +538,7 @@ func extractFileInfoFromMap(m map[string]interface{}) *response.DownloadFileInfo
 	for _, key := range nameKeys {
 		if val, ok := m[key]; ok {
 			if str, ok := val.(string); ok && str != "" {
+				log.Infof("nameKeys key %s, val %s", key, str)
 				fileName = str
 				break
 			}
@@ -454,7 +549,7 @@ func extractFileInfoFromMap(m map[string]interface{}) *response.DownloadFileInfo
 	if fileURL != "" {
 		// 如果没有文件名，从URL中提取
 		if fileName == "" {
-			fileName = extractFileNameFromURL(fileURL)
+			fileName = util.ExtractFileNameFromURL(fileURL)
 		}
 		return &response.DownloadFileInfo{
 			FileName: fileName,
@@ -467,58 +562,8 @@ func extractFileInfoFromMap(m map[string]interface{}) *response.DownloadFileInfo
 	return nil
 }
 
-// isValidFileURL 检查字符串是否是有效的文件URL
-func isValidFileURL(s string) bool {
-	if len(s) < 5 {
-		return false
-	}
-	// 检查是否是HTTP/HTTPS URL
-	if strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://") {
-		// 尝试解析URL
-		parsedURL, err := url.Parse(s)
-		if err != nil {
-			return false
-		}
-		// 检查是否有路径部分（包含文件名）
-		path := parsedURL.Path
-		if path != "" && path != "/" {
-			// 检查路径是否包含文件扩展名
-			ext := filepath.Ext(path)
-			return ext != ""
-		}
-	}
-	return false
-}
-
 // isLikelyNameField 检查字符串是否可能是名称字段值（而非URL）
 func isLikelyNameField(s string) bool {
 	// 简单判断：如果字符串很短且不包含常见URL特征
 	return len(s) < 10 && !strings.Contains(s, "/") && !strings.Contains(s, ".")
-}
-
-// extractFileNameFromURL 从URL中提取文件名
-func extractFileNameFromURL(fileURL string) string {
-	parsedURL, err := url.Parse(fileURL)
-	if err != nil {
-		return ""
-	}
-
-	path := parsedURL.Path
-	if path == "" || path == "/" {
-		return ""
-	}
-
-	// 获取路径的最后一部分
-	fileName := filepath.Base(path)
-
-	// 如果有查询参数中的文件名，优先使用
-	if queryName := parsedURL.Query().Get("filename"); queryName != "" {
-		fileName = queryName
-	} else if queryName := parsedURL.Query().Get("name"); queryName != "" {
-		fileName = queryName
-	} else if queryName := parsedURL.Query().Get("file"); queryName != "" {
-		fileName = queryName
-	}
-
-	return fileName
 }

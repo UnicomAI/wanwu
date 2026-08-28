@@ -1,0 +1,41 @@
+{
+  "schema": {
+    "structure": "doc",
+    "children": [
+      {
+        "structure": "Title",
+        "description": "合同标题，通常出现在文档开头或者靠前位置",
+        "examples": [
+          "房屋租赁合同",
+          "买卖合同"
+        ],
+        "required": true,
+        "multiple": false
+      },
+      {
+        "structure": "EmphasizedTitle",
+        "description": "强调标题，用于强调展示最高层级的条款",
+        "examples": [
+          "第一条 工作内容",
+          "第二条 租赁期限",
+          "一、合同标的",
+          "1. 条款说明"
+        ],
+        "required": true,
+        "multiple": true
+      },
+      {
+        "structure": "Text",
+        "description": "合同的正文内容，合同描述、甲乙方签名、日期等都属于正文内容",
+        "examples": [
+          "本合同自双方签字之日起生效",
+          "甲方",
+          "乙方",
+          "日期"
+        ],
+        "required": true,
+        "multiple": true
+      }
+    ]
+  }
+}

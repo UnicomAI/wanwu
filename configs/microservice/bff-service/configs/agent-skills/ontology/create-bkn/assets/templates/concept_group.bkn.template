@@ -1,0 +1,16 @@
+---
+type: concept_group
+id: {group_id}
+name: {分组名称}
+tags: [{标签1}]
+---
+
+## ConceptGroup: {分组名称}
+
+{分组描述}
+
+### Object Types
+
+| ID | Name | Description |
+|----|------|-------------|
+| {object_id} | {对象名称} | {说明} |

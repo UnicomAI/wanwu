@@ -1,0 +1,87 @@
+# 纯文本转XML结构化任务
+
+## 输入格式
+{
+    "text": '纯文本内容...',
+}
+
+## 规则
+| 规则 | 说明 |
+|-----|-----|
+| 语义识别 | 按语义将文本片段映射到模板标签（标题、正文、签发机关等） |
+| 内容保留 | 原始文本内容填充到XML元素中，保持完整性 |
+| 层级包裹 | 叶子节点需包裹在父节点内 |
+| 智能补充 | 检测缺失的必需元素并补充，填充合理内容 |
+| 顺序不变 | 文本片段相对顺序保持不变 |
+| 额外效果 | 如配置了effects，根据matchRules识别符合条件的文本，添加`effect="效果名"`属性 |
+| 禁止空标签 | 不得生成空标签，无内容的标签应省略，或智能补充 |
+
+## 示例说明
+
+### 示例1：标签映射
+```text
+// 输入纯文本
+办公室
+2023年12月08日
+
+// 输出XML（基于模板）
+<root>
+    <SignOff>办公室</SignOff>
+    <SignOff>2023年12月08日</SignOff>
+</root>
+```
+
+### 示例2：结构补充
+```text
+// 输入纯文本
+特此通知
+
+// 输出XML（检测到缺少必需的Title和SignOff，智能补充，以实际规定为准）
+<root>
+    <Title>通知</Title>
+    <Text>特此通知</Text>
+    <SignOff>相关签发单位</SignOff>
+</root>
+```
+
+### 示例3：嵌套结构处理
+```text
+// 输入纯文本
+甲方：某公司
+第一条 合同内容
+本合同约定...
+甲方签名：
+
+// 输出XML（识别出PartyInfo、Clause、PartySignature三个结构性容器，以实际规定为准）
+<root>
+    <PartyInfo>
+        <Text>甲方：某公司</Text>
+    </PartyInfo>
+    <Clause>
+        <Heading1>第一条 合同内容</Heading1>
+        <Text>本合同约定...</Text>
+    </Clause>
+    <PartySignature>
+        <Text>甲方签名：</Text>
+    </PartySignature>
+</root>
+```
+
+## 模板结构说明
+
+**字段说明**: 
+schema: 模板结构，其中：`structure`=标签名, `required`=必需, `multiple`=可多次匹配, `pattern`=正则匹配, `description`=语义
+examples: 对应模板的输入/输出示例，可以参考
+effects: 额外效果配置，其中：`name`=效果名, `description`=效果描述, `matchRules`=识别规则, `applicableTags`=可应用的标签列表
+
+**模板结构**：
+{{.template_content}}
+
+## 输出格式
+返回纯 JSON，不要其他文字或解释，不要使用代码块标记（如```json）:
+{
+    "xml": '<root>...</root>',
+}
+
+## 任务
+{{.query}}

@@ -11,12 +11,17 @@ type ModelConfig = option.ModelConfig
 type ToolConfig = option.ToolConfig
 type ExtraTool = option.ExtraTool
 type Skill = option.Skill
+type SkillVariable = config.SkillVariable
 type MCP = option.MCP
 type RunSession = option.RunSession
 
 type CheckResult = option.CheckResult
 
 type ToolCategoryInfo = config.ToolCategory
+
+type SystemMessageStrategy = option.SystemMessageStrategy
+
+const SystemMessageStrategyMerge = option.SystemMessageStrategyMerge
 
 // WithModelConfig 设置模型配置。
 func WithModelConfig(model ModelConfig) Option {
@@ -66,4 +71,24 @@ func WithRunSession(session RunSession) Option {
 // WithMessages 设置历史消息。
 func WithMessages(messages []adk.Message) Option {
 	return option.WithMessages(messages)
+}
+
+// WithInstruction 设置运行时动态指令，覆盖配置文件中的 prompt.md。
+func WithInstruction(instruction string) Option {
+	return option.WithInstruction(instruction)
+}
+
+// WithOverallTask 设置运行时动态整体任务。
+func WithOverallTask(overallTask string) Option {
+	return option.WithOverallTask(overallTask)
+}
+
+// WithEnableHumanInTheLoop 设置是否启用人机交互。
+// enableCustom 为可选参数，设置是否允许用户自定义回答。
+func WithEnableHumanInTheLoop(enable bool, enableCustom ...bool) Option {
+	return option.WithEnableHumanInTheLoop(enable, enableCustom...)
+}
+
+func WithSystemMessageStrategy(strategy SystemMessageStrategy) Option {
+	return option.WithSystemMessageStrategy(strategy)
 }

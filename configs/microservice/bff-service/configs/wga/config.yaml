@@ -1,6 +1,8 @@
 agentId: Supervisor Agent
+humanInTheLoop: true
 configPath: configs/microservice/bff-service/configs/wga/config.yaml
 
+# 可加载的全部智能体配置
 agents:
   - relative_path: ./agents/Supervisor/config.yaml
   - relative_path: ./agents/DeepResearch/config.yaml
@@ -10,8 +12,17 @@ agents:
   - relative_path: ./agents/HTML/config.yaml
   - relative_path: ./agents/DataAnalysis/config.yaml
   - relative_path: ./agents/Excel/config.yaml
+  - relative_path: ./agents/SkillChat/config.yaml
+  - relative_path: ./agents/SkillImport/config.yaml
+  - relative_path: ./agents/SkillPreview/config.yaml
+  - relative_path: ./agents/Ontology/config.yaml
 
+# 给前端展示的子智能体（与可加载的智能体配置不完全对应，前端展示的智能体可以是可加载智能体的组合）
 sub_agents:
+  - agent_id: "Skill Chat Agent"
+    agent_name: "创建Skill"
+    avatar_path: /v1/static/agent/skill.png
+    placeholder: "选择一款模型，告诉我需要创建的skill或直接导入外部skill，也可@相关应用快速创建skill"
   - agent_id: "Deep Research Agent"
     agent_name: "深度研究"
     avatar_path: /v1/static/agent/research.png
@@ -32,26 +43,15 @@ sub_agents:
     agent_name: "创建网页"
     avatar_path: /v1/static/agent/web.png
     placeholder: "选择一款模型，告诉我想要生成的网页主题或内容"
-
-server:
-  host: "0.0.0.0"
-  port: 18080
-
-model:
-  provider: yuanjing
-  provider_name: YuanJing
-  base_url: https://maas-api.ai-yuanjing.com/openapi/compatible-mode/v1
-  api_key: sk-xxx
-  model: glm-5
-  model_name: glm-5
-  # model: kimi-k2.5
-  # model_name: kimi-k2.5
-  # model: minimax-m2.5
-  # model_name: minimax-m2.5
+  - agent_id: "DIP Agent"
+    agent_name: "数字员工"
+    avatar_path: /v1/static/agent/ontology.svg
+    placeholder: "@你需要的数字员工，发送任务指令给它，让数字员工开始为你工作吧"
 
 persistent:
   enabled: true
   base_dir: /shared/data/wga/bff/versioned
+  skill_base_dir: /shared/data/wga/bff/overwrite
   mode: versioned
 
 upload_limit:
@@ -66,35 +66,3 @@ upload_limit:
   # max_video_size: 0
   # max_audio_size: 0
   # maxCodeSize: 1
-
-tools:
-  # - title: 博查AI搜索
-  #   apiAuth:
-  #     authType: api_key_header
-  #     apiKeyHeaderPrefix: bearer
-  #     apiKeyHeader: Authorization
-  #     apiKeyValue: sk-xxx
-  - title: 博查搜索
-    apiAuth:
-      authType: api_key_header
-      apiKeyHeaderPrefix: bearer
-      apiKeyHeader: Authorization
-      apiKeyValue: sk-xxx
-  - title: Tavily AI搜索
-    apiAuth:
-      authType: api_key_header
-      apiKeyHeaderPrefix: bearer
-      apiKeyHeader: Authorization
-      apiKeyValue: tvly-dev-xxx
-  - title: 通义千问多模态工具
-    apiAuth:
-      authType: api_key_header
-      apiKeyHeaderPrefix: bearer
-      apiKeyHeader: Authorization
-      apiKeyValue: sk-xxx
-  - title: 通义万相多模态工具
-    apiAuth:
-      authType: api_key_header
-      apiKeyHeaderPrefix: bearer
-      apiKeyHeader: Authorization
-      apiKeyValue: sk-xxx

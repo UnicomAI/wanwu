@@ -50,19 +50,47 @@ service AppService {
   rpc GetChatflowByApplicationID(GetChatflowByApplicationIDReq) returns (ChatflowApplicationInfo) {}
   rpc CreateChatflowApplication(CreateChatflowApplicationReq) returns (google.protobuf.Empty) {}
 
-  // --- statistic ---
-  rpc GetModelStatistic(GetModelStatisticReq) returns (ModelStatistic) {}
-  rpc RecordModelStatistic(RecordModelStatisticReq) returns (google.protobuf.Empty) {}
-  rpc GetModelStatisticList(GetModelStatisticListReq) returns (GetModelStatisticListResp) {}
-  rpc GetAppStatistic(GetAppStatisticReq) returns (AppStatistic) {}
-  rpc RecordAppStatistic(RecordAppStatisticReq) returns (google.protobuf.Empty) {}
-  rpc GetAppStatisticList(GetAppStatisticListReq) returns (GetAppStatisticListResp) {}
+  // --- model statistic v2 ---
+  rpc RecordModelStatisticV2(RecordModelStatisticV2Req) returns (google.protobuf.Empty) {}
+  rpc GetModelStatisticV2Overview(GetModelStatisticV2ReadReq) returns (ModelStatisticV2Overview) {}
+  rpc GetModelStatisticV2Chart(GetModelStatisticV2ChartReq) returns (ModelStatisticV2Chart) {}
+  rpc GetModelStatisticV2List(GetModelStatisticV2ListReq) returns (GetModelStatisticV2ListResp) {}
+  rpc GetModelStatisticV2UserList(GetModelStatisticV2UserListReq) returns (GetModelStatisticV2UserListResp) {}
+  rpc GetModelStatisticV2AppList(GetModelStatisticV2AppListReq) returns (GetModelStatisticV2AppListResp) {}
+  rpc GetModelStatisticV2Record(GetModelStatisticV2RecordReq) returns (GetModelStatisticV2RecordResp) {}
+  rpc GetModelStatisticV2Select(GetModelStatisticV2SelectReq) returns (GetModelStatisticV2SelectResp) {}
 
-   // --- api key statistic ---
-  rpc GetAPIKeyStatistic(GetAPIKeyStatisticReq) returns (APIKeyStatistic) {}
-  rpc GetAPIKeyStatisticList(GetAPIKeyStatisticListReq) returns (GetAPIKeyStatisticListResp) {}
-  rpc GetAPIKeyStatisticRecord(GetAPIKeyStatisticRecordReq) returns (GetAPIKeyStatisticRecordResp) {}
-  rpc RecordAPIKeyStatistic(RecordAPIKeyStatisticReq) returns (google.protobuf.Empty) {}
+  // --- app statistic v2 ---
+  rpc RecordAppStatisticV2(RecordAppStatisticV2Req) returns (google.protobuf.Empty) {}
+  rpc GetAppStatisticV2Overview(GetAppStatisticV2ReadReq) returns (AppStatisticV2Overview) {}
+  rpc GetAppStatisticV2Chart(GetAppStatisticV2ChartReq) returns (AppStatisticV2Chart) {}
+  rpc GetAppStatisticV2List(GetAppStatisticV2ListReq) returns (GetAppStatisticV2ListResp) {}
+  rpc GetAppStatisticV2UserList(GetAppStatisticV2UserListReq) returns (GetAppStatisticV2UserListResp) {}
+  rpc GetAppStatisticV2ModelList(GetAppStatisticV2ModelListReq) returns (GetAppStatisticV2ModelListResp) {}
+  rpc GetAppStatisticV2Record(GetAppStatisticV2RecordReq) returns (GetAppStatisticV2RecordResp) {}
+  rpc GetAppStatisticV2Select(GetAppStatisticV2SelectReq) returns (GetAppStatisticV2SelectResp) {}
+
+  // --- api key statistic v2 ---
+  rpc RecordAPIKeyStatisticV2(RecordAPIKeyStatisticV2Req) returns (google.protobuf.Empty) {}
+  rpc GetAPIKeyStatisticV2Overview(GetAPIKeyStatisticV2ReadReq) returns (APIKeyStatisticV2Overview) {}
+  rpc GetAPIKeyStatisticV2Chart(GetAPIKeyStatisticV2ChartReq) returns (APIKeyStatisticV2Chart) {}
+  rpc GetAPIKeyStatisticV2List(GetAPIKeyStatisticV2ListReq) returns (GetAPIKeyStatisticV2ListResp) {}
+  rpc GetAPIKeyStatisticV2AppList(GetAPIKeyStatisticV2AppListReq) returns (GetAPIKeyStatisticV2AppListResp) {}
+  rpc GetAPIKeyStatisticV2ModelList(GetAPIKeyStatisticV2ModelListReq) returns (GetAPIKeyStatisticV2ModelListResp) {}
+  rpc GetAPIKeyStatisticV2Record(GetAPIKeyStatisticV2RecordReq) returns (GetAPIKeyStatisticV2RecordResp) {}
+
+  // --- conversation log ---
+  rpc GetConversationLogList(GetConversationLogListReq) returns (GetConversationLogListResp) {}
+  rpc GetConversationLog(GetConversationLogReq) returns (common.ConversationLog) {}
+  rpc GetConversationLogByLogIds(GetConversationLogByLogIdsReq) returns (GetConversationLogByLogIdsResp) {}
+  rpc RecordConversationLog(common.ConversationLog) returns (google.protobuf.Empty) {}
+  rpc GetConversationLogUserSelect(GetConversationLogUserSelectReq) returns (GetConversationLogUserSelectResp) {}
+  rpc DeleteConversationLogByAppId(DeleteConversationLogByAppIdReq) returns (google.protobuf.Empty) {}
+
+  // --- conversation log export ---
+  rpc ExportConversationLog(ExportConversationLogReq) returns (google.protobuf.Empty) {}
+  rpc GetConversationLogExportRecordList(GetConversationLogExportRecordListReq) returns (GetConversationLogExportRecordListResp) {}
+  rpc DeleteConversationLogExportRecord(DeleteConversationLogExportRecordReq) returns (google.protobuf.Empty) {}
 }
 
 
@@ -78,6 +106,8 @@ message CreateApiKeyReq {
 // 删除API Key请求
 message DeleteApiKeyReq {
   string keyId = 1;
+  string userId = 2;
+  string orgId = 3;
 }
 
 // 更新API Key请求
@@ -103,8 +133,8 @@ message GetApiKeyByKeyReq {
 message ListApiKeysReq {
   int32 pageNo = 1;
   int32 pageSize = 2;
-  string userId = 3;
-  string orgId = 4;
+  repeated string orgIds = 3;
+  repeated string userIds = 4;
 }
 
 // API Key信息响应
@@ -152,6 +182,8 @@ message AppKeyInfo {
 
 message DelAppKeyReq {
   string appKeyId = 1;
+  string userId = 2;
+  string orgId = 3;
 }
 
 message GetAppKeyByKeyReq {
@@ -187,6 +219,7 @@ message ExplorationAppInfo{
   bool isFavorite = 5;
   string publishType = 6;
   string userId = 7;
+  string orgId = 8;
 }
 
 message AppInfo{
@@ -194,6 +227,8 @@ message AppInfo{
   string appType = 2;
   int64 createdAt = 3;
   string publishType = 4;
+  string userId = 5;
+  string orgId = 6;
 }
 
 message ChangeExplorationAppFavoriteReq{
@@ -226,12 +261,13 @@ message UnPublishAppReq {
 
 message GetAppListReq {
   string appType = 1;
-  string userId = 2;
-  string orgId = 3;
+  repeated string orgIds = 2;
+  repeated string userIds = 3;
 }
 
 message GetAppListByIdsReq {
   repeated string appIdsList = 1;
+  string appType = 2;
 }
 
 message AppList {
@@ -242,6 +278,8 @@ message AppList {
 message DeleteAppReq {
   string appId = 1 ;
   string appType = 2;
+  string userId = 3;
+  string orgId = 4;
 }
 
 message GetAppInfoReq {
@@ -285,6 +323,8 @@ message AppUrlUpdateReq {
 
 message AppUrlDeleteReq {
   string urlId = 1;
+  string userId = 2;
+  string orgId = 3;
 }
 
 message GetAppUrlListReq {
@@ -357,259 +397,906 @@ message ChatflowApplicationInfo {
   string workflowId =6;
 }
 
-// --- statistic ---
+// ====================================================
+// --- model statistic v2 ---
+// 数据源：Statistic 聚合表 + ModelRecord 明细表
+// viewScope: published=我发布的(按 model_creator_*); used=我使用的(按 user_id/org_id)
+// ====================================================
 
-message GetModelStatisticReq {
-  string userId = 1;
-  string orgId = 2;
+message RecordModelStatisticV2Req {
+  string traceId = 1;
+  string userId = 2;
+  string orgId = 3;
+  string source = 4;
+  string module = 5;
+  string appId = 6;
+  string appType = 7;
+  string apiKey = 8;
+  string methodPath = 9;
+  string moduleCreatorUserId = 10;
+  string moduleCreatorOrgId = 11;
+  string modelId = 12;
+  string model = 13;
+  string provider = 14;
+  string modelType = 15;
+  string modelCreatorUserId = 16;
+  string modelCreatorOrgId = 17;
+  int64 promptTokens = 18;
+  int64 completionTokens = 19;
+  int64 totalTokens = 20;
+  int64 firstTokenLatency = 21;
+  int64 costs = 22;
+  bool isSuccess = 23;
+  bool isStream = 24;
+  int64 statusCode = 25;
+  string requestBody = 26;
+  string responseBody = 27;
+  string finishReason = 28;
+  string failureReason = 29;
+  string apiKeyId = 30;
+}
+
+message GetModelStatisticV2ReadReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
   string startDate = 3;
   string endDate = 4;
   repeated string modelIds = 5;
   string modelType = 6;
+  string viewScope = 7; // published | used
 }
 
-message ModelStatistic {
-  ModelStatisticOverview overview = 1;
-  ModelStatisticTrend trend = 2;
-}
-
-message ModelStatisticOverview {
-  ModelStatisticOverviewItem callCount = 1; // 模型调用总数
-  ModelStatisticOverviewItem callFailure = 2; // 模型调用失败数
-  ModelStatisticOverviewItem totalTokens = 3; // tokens请求总数
-  ModelStatisticOverviewItem promptTokens = 4; // tokens输入
-  ModelStatisticOverviewItem completionTokens = 5; // tokens输出
-  ModelStatisticOverviewItem avgCosts = 6; // 平均耗时
-  ModelStatisticOverviewItem avgFirstTokenLatency = 7; // 平均首token时延
-}
-
-message ModelStatisticOverviewItem {
+message ModelStatisticV2OverviewItem {
   float value = 1;
   float periodOverPeriod = 2;
 }
 
-message ModelStatisticTrend {
-  common.StatisticChart modelCalls = 1; // 模型调用趋势
-  common.StatisticChart tokensUsage = 2; // tokens使用趋势
+message ModelStatisticV2Overview {
+  ModelStatisticV2OverviewItem totalTokens = 1;
+  ModelStatisticV2OverviewItem promptTokens = 2;
+  ModelStatisticV2OverviewItem completionTokens = 3;
+  ModelStatisticV2OverviewItem dailyAvgTotalTokens = 4;
+  ModelStatisticV2OverviewItem dailyAvgPromptTokens = 5;
+  ModelStatisticV2OverviewItem dailyAvgCompletionTokens = 6;
+  ModelStatisticV2OverviewItem callCount = 7;
+  ModelStatisticV2OverviewItem callFailure = 8;
+  ModelStatisticV2OverviewItem avgCosts = 9;
+  ModelStatisticV2OverviewItem avgFirstTokenLatency = 10;
 }
 
-message RecordModelStatisticReq {
+message ModelStatisticV2Trend {
+  common.StatisticChart tokensUsage = 1;
+  common.StatisticChart modelCalls = 2;
+}
+
+message GetModelStatisticV2ChartReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  repeated string modelIds = 5;
+  string modelType = 6;
+  string viewScope = 7;
+  int32 limit = 8; // 排行 TopN，默认 5
+}
+
+message ModelStatisticV2RankByModelItem {
+  string modelId = 1;
+  string model = 2;
+  string modelType = 3;
+  string modelCreatorUserId = 4;
+  string modelCreatorOrgId = 5;
+  int64 totalTokens = 6;
+  string provider = 7;
+}
+
+message ModelStatisticV2RankByUserItem {
   string userId = 1;
-  string orgId = 2;
+  string userName = 2;
+  string avatar = 3;
+  string orgName = 4;
+  int64 totalTokens = 5;
+  string orgId = 6;
+}
+
+message ModelStatisticV2RankByOrgItem {
+  string orgId = 1;
+  string orgName = 2;
+  int64 totalTokens = 3;
+}
+
+message ModelStatisticV2Rank {
+  repeated ModelStatisticV2RankByModelItem byModel = 1;
+  repeated ModelStatisticV2RankByUserItem byUser = 2;
+  repeated ModelStatisticV2RankByOrgItem byOrg = 3;
+}
+
+message ModelStatisticV2Chart {
+  ModelStatisticV2Trend trend = 1;
+  ModelStatisticV2Rank rank = 2;
+}
+
+// 列表通用度量（列表行复用）
+message ModelStatisticV2Metrics {
+  int64 totalTokens = 1;
+  int64 promptTokens = 2;
+  int64 completionTokens = 3;
+  int32 callCount = 4;
+  int32 callFailure = 5;
+  float failureRate = 6;
+  float avgCosts = 7;             // 非流式 ms
+  float avgFirstTokenLatency = 8; // 流式 ms
+}
+
+message GetModelStatisticV2ListReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  repeated string modelIds = 5;
+  string modelType = 6;
+  string viewScope = 7;
+  int32 pageNo = 8;
+  int32 pageSize = 9;
+  string sortField = 10;
+  string sortOrder = 11; // asc | desc
+}
+
+message ModelStatisticV2ListItem {
+  string modelId = 1;
+  string model = 2;
+  string provider = 3;
+  string modelType = 4;
+  string modelCreatorUserId = 5;
+  string modelCreatorOrgId = 6;
+  ModelStatisticV2Metrics metrics = 7;
+}
+
+message GetModelStatisticV2ListResp {
+  repeated ModelStatisticV2ListItem items = 1;
+  int32 total = 2;
+}
+
+message GetModelStatisticV2UserListReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  repeated string modelIds = 5;
+  string modelType = 6;
+  string viewScope = 7;
+  string modelId = 8; // 固定模型
+  int32 pageNo = 9;
+  int32 pageSize = 10;
+  string sortField = 11;
+  string sortOrder = 12;
+}
+
+message ModelStatisticV2UserListItem {
+  string modelId = 1;
+  string model = 2;
+  string provider = 3;
+  string modelType = 4;
+  string userId = 5;
+  string orgId = 6;
+  ModelStatisticV2Metrics metrics = 7;
+  string modelCreatorUserId = 8;
+  string modelCreatorOrgId = 9;
+}
+
+message GetModelStatisticV2UserListResp {
+  repeated ModelStatisticV2UserListItem items = 1;
+  int32 total = 2;
+}
+
+message GetModelStatisticV2AppListReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  repeated string modelIds = 5;
+  string modelType = 6;
+  string viewScope = 7;
+  string modelId = 8; // 固定模型
+  int32 pageNo = 9;
+  int32 pageSize = 10;
+  string sortField = 11;
+  string sortOrder = 12;
+}
+
+message ModelStatisticV2AppListItem {
+  string modelId = 1;
+  string model = 2;
+  string provider = 3;
+  string modelType = 4;
+  string source = 5;
+  string module = 6;
+  string appId = 7;
+  string appType = 8;
+  string moduleCreatorUserId = 9;
+  string moduleCreatorOrgId = 10;
+  ModelStatisticV2Metrics metrics = 11;
+  string modelCreatorUserId = 12;
+  string modelCreatorOrgId = 13;
+}
+
+message GetModelStatisticV2AppListResp {
+  repeated ModelStatisticV2AppListItem items = 1;
+  int32 total = 2;
+}
+
+message GetModelStatisticV2RecordReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  repeated string modelIds = 5;
+  string modelType = 6;
+  string viewScope = 7;
+  string modelId = 8; // 可选，筛单模型
+  int32 pageNo = 9;
+  int32 pageSize = 10;
+  string sortField = 11;
+  string sortOrder = 12;
+}
+
+message ModelStatisticV2RecordItem {
+  uint32 id = 1;
+  string traceId = 2;
   string modelId = 3;
   string model = 4;
   string provider = 5;
   string modelType = 6;
-  int64 promptTokens = 7;
-  int64 completionTokens = 8;
-  int64 totalTokens = 9;
+  string appId = 7;       // BFF 富化为 appName
+  string orgId = 8;       // BFF 富化为 userOrgName / projectName
+  string userId = 9;
+  int64 totalTokens = 10;
+  string calledAt = 11;
+  bool isSuccess = 12;
+  int64 statusCode = 13;
+  string appType = 14;    // 用于 BFF 查 appName
+  int64 promptTokens = 15;
+  int64 completionTokens = 16;
+  string failureReason = 17;
+  string requestBody = 18;
+  string responseBody = 19;
+  string finishReason = 20;
+  int64 firstTokenLatency = 21; // 本次流式耗时 ms（非平均）
+  int64 costs = 22;             // 本次非流式耗时 ms（非平均）
+  string modelCreatorUserId = 23; // 模型发布者，BFF 富化为 userName
+  string modelCreatorOrgId = 24;  // 模型所属组织，BFF 富化为 orgName
+  string source = 25;
+  string module = 26;
+  string moduleCreatorUserId = 27; // 应用作者，BFF 富化为 userName
+  string moduleCreatorOrgId = 28;  // 应用所属组织，BFF 富化为 orgName
+}
+
+message GetModelStatisticV2RecordResp {
+  repeated ModelStatisticV2RecordItem items = 1;
+  int32 total = 2;
+}
+
+message GetModelStatisticV2SelectReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string modelType = 3;
+  string viewScope = 4;
+}
+
+message ModelStatisticV2SelectItem {
+  string modelId = 1;
+  string model = 2;
+  string provider = 3;
+  string modelType = 4;
+  string modelCreatorUserId = 5;
+  string modelCreatorOrgId = 6;
+}
+
+message GetModelStatisticV2SelectResp {
+  repeated ModelStatisticV2SelectItem items = 1;
+}
+
+// ====================================================
+// --- app statistic v2 ---
+// viewScope: published=我发布的(按 module_creator_*); used=我使用的(按 user_id/org_id)
+// ====================================================
+
+message RecordAppStatisticV2Req {
+  string traceId = 1;
+  string userId = 2;
+  string orgId = 3;
+  string source = 4;
+  string module = 5;
+  string appId = 6;
+  string appType = 7;
+  string moduleCreatorUserId = 8;
+  string moduleCreatorOrgId = 9;
   int64 firstTokenLatency = 10;
   int64 costs = 11;
   bool isSuccess = 12;
   bool isStream = 13;
+  int64 statusCode = 14;
+  string requestBody = 15;
+  string responseBody = 16;
+  string finishReason = 17;
+  string failureReason = 18;
+  string question = 19;
+  string answer = 20;
 }
 
-// --- model statistic list ---
-
-message GetModelStatisticListReq {
-  string userId = 1;
-  string orgId = 2;
+message GetAppStatisticV2ReadReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
   string startDate = 3;
   string endDate = 4;
-  repeated string modelIds = 5;
-  string modelType = 6;
-  int32 pageNo = 7;
-  int32 pageSize = 8;
+  string module = 5;
+  repeated string apps = 6;
+  string viewScope = 7;
+  string source = 8; // 调用来源筛选 web|openapi|webURL，空=全部
 }
 
-message GetModelStatisticListResp {
-  repeated ModelStatisticItem items = 1;
-  int32 total = 2;
-}
-
-message ModelStatisticItem {
-  string orgId = 1; 
-  string modelId = 2;
-  string model = 3;
-  string provider = 4;
-  int32 callCount = 5;
-  int32 callFailure = 6;
-  float failureRate = 7;
-  int64 promptTokens = 8;
-  int64 completionTokens = 9;
-  int64 totalTokens = 10;
-  float avgCosts = 11;
-  float avgFirstTokenLatency = 12;
-}
-
-// --- app statistic ---
-
-message GetAppStatisticReq {
-  string userId = 1;
-  string orgId = 2;
-  string startDate = 3;
-  string endDate = 4;
-  repeated string appIds = 5;
-  string appType = 6;
-}
-
-message AppStatistic {
-  AppStatisticOverview overview = 1;
-  AppStatisticTrend trend = 2;
-}
-
-message AppStatisticOverview {
-  ModelStatisticOverviewItem callCount = 1;
-  ModelStatisticOverviewItem callFailure = 2;
-  ModelStatisticOverviewItem streamCount = 3;
-  ModelStatisticOverviewItem nonStreamCount = 4;
-  ModelStatisticOverviewItem avgStreamCosts = 5;
-  ModelStatisticOverviewItem avgNonStreamCosts = 6;
-}
-
-message AppStatisticTrend {
-  common.StatisticChart callTrend = 1;
-}
-
-message RecordAppStatisticReq {
-  string userId = 1;
-  string orgId = 2;
-  string appId = 3;
-  string appType = 4;
-  bool isSuccess = 5;
-  bool isStream = 6;
-  int64 streamCosts = 7;
-  int64 nonStreamCosts = 8;
-  string source = 9;
-}
-
-message GetAppStatisticListReq {
-  string userId = 1;
-  string orgId = 2;
-  string startDate = 3;
-  string endDate = 4;
-  repeated string appIds = 5;
-  string appType = 6;
-  int32 pageNo = 7;
-  int32 pageSize = 8;
-}
-
-message GetAppStatisticListResp {
-  repeated AppStatisticItem items = 1;
-  int32 total = 2;
-}
-
-message AppStatisticItem {
-  string appId = 1;
-  string appType = 2;
-  string orgId = 3;
-  int32 callCount = 4;
-  int32 callFailure = 5;
-  float failureRate = 6;
-  float avgStreamCosts = 7;
-  float avgNonStreamCosts = 8;
-  int32 streamCount = 9; // 流式调用次数
-  int32 nonStreamCount = 10; // 非流式调用次数
-}
-
-// --- api key statistic ---
-
-message GetAPIKeyStatisticReq {
-  string userId = 1;
-  string orgId = 2;
-  string startDate = 3;
-  string endDate = 4;
-  repeated string apiKeyIds = 5;
-  repeated string methodPaths = 6;
-}
-
-message APIKeyStatistic {
-  APIKeyStatisticOverview overview = 1;
-  APIKeyStatisticTrend trend = 2;
-}
-
-message APIKeyStatisticOverview {
-  APIKeyStatisticOverviewItem callCount = 1;
-  APIKeyStatisticOverviewItem callFailure = 2;
-  APIKeyStatisticOverviewItem avgStreamCosts = 3;
-  APIKeyStatisticOverviewItem avgNonStreamCosts = 4;
-  APIKeyStatisticOverviewItem streamCount = 5;
-  APIKeyStatisticOverviewItem nonStreamCount = 6;
-}
-
-message APIKeyStatisticOverviewItem {
+message AppStatisticV2OverviewItem {
   float value = 1;
   float periodOverPeriod = 2;
 }
 
-message APIKeyStatisticTrend {
-  common.StatisticChart apiCalls = 1;
+message AppStatisticV2Overview {
+  AppStatisticV2OverviewItem callCount = 1;
+  AppStatisticV2OverviewItem callFailure = 2;
+  AppStatisticV2OverviewItem dailyAvgCallCount = 3;
+  AppStatisticV2OverviewItem dailyAvgCallFailure = 4;
+  AppStatisticV2OverviewItem dailyAvgStreamCount = 5;
+  AppStatisticV2OverviewItem dailyAvgNonStreamCount = 6;
+  AppStatisticV2OverviewItem avgFirstTokenLatency = 7;
+  AppStatisticV2OverviewItem avgCosts = 8;
+  AppStatisticV2OverviewItem streamCount = 9;
+  AppStatisticV2OverviewItem nonStreamCount = 10;
 }
 
-message GetAPIKeyStatisticListReq {
-  string userId = 1;
-  string orgId = 2;
+message GetAppStatisticV2ChartReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
   string startDate = 3;
   string endDate = 4;
-  repeated string apiKeyIds = 5;
-  repeated string methodPaths = 6;
-  int32 pageNo = 7;
-  int32 pageSize = 8;
+  string module = 5;
+  repeated string apps = 6;
+  string viewScope = 7;
+  int32 limit = 8;
+  string source = 9; // 调用来源筛选 web|openapi|webURL，空=全部
 }
 
-message GetAPIKeyStatisticListResp {
-  repeated APIKeyStatisticItem items = 1;
+message AppStatisticV2Trend {
+  common.StatisticChart callResult = 1;
+  common.StatisticChart callTrend = 2;
+}
+
+message AppStatisticV2RankItem {
+  string appId = 1;
+  string appType = 2;
+  string moduleCreatorUserId = 3;
+  string moduleCreatorOrgId = 4;
+  int32 callCount = 5;
+}
+
+message AppStatisticV2Rank {
+  repeated AppStatisticV2RankItem byAgent = 1;
+  repeated AppStatisticV2RankItem byWorkflow = 2;
+  repeated AppStatisticV2RankItem byChatflow = 3;
+  repeated AppStatisticV2RankItem byRag = 4;
+  repeated AppStatisticV2RankItem byDigitalEmployee = 5;
+}
+
+message AppStatisticV2Chart {
+  AppStatisticV2Trend trend = 1;
+  AppStatisticV2Rank rank = 2;
+}
+
+// AppStatisticV2Metrics 聚合调用统计指标（list 接口）；avgCosts / avgFirstTokenLatency 为平均值。
+message AppStatisticV2Metrics {
+  int64 totalTokens = 1;
+  int64 promptTokens = 2;
+  int64 completionTokens = 3;
+  int32 callCount = 4;
+  int32 callFailure = 5;
+  float failureRate = 6;
+  float avgCosts = 7;
+  float avgFirstTokenLatency = 8;
+  int32 streamCount = 9;
+  int32 nonStreamCount = 10;
+}
+
+message GetAppStatisticV2ListReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  string module = 5;
+  repeated string apps = 6;
+  string viewScope = 7;
+  string sortField = 8;
+  string sortOrder = 9;
+  int32 pageNo = 10;
+  int32 pageSize = 11;
+  string source = 12; // 调用来源筛选 web|openapi|webURL，空=全部
+}
+
+message AppStatisticV2ListItem {
+  string source = 1;
+  string module = 2;
+  string appId = 3;
+  string appType = 4;
+  string moduleCreatorUserId = 5;
+  string moduleCreatorOrgId = 6;
+  AppStatisticV2Metrics metrics = 7;
+}
+
+message GetAppStatisticV2ListResp {
+  repeated AppStatisticV2ListItem items = 1;
   int32 total = 2;
 }
 
-message APIKeyStatisticItem {
-  string apiKeyId = 1;
-  string methodPath = 2;
-  int32 callCount = 3;
-  int32 callFailure = 4;
-  float avgStreamCosts = 5;
-  float avgNonStreamCosts = 6;
-  int32 streamCount = 7;
-  int32 nonStreamCount = 8;
-}
-
-message GetAPIKeyStatisticRecordReq {
-  string userId = 1;
-  string orgId = 2;
+message GetAppStatisticV2UserListReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
   string startDate = 3;
   string endDate = 4;
-  repeated string apiKeyIds = 5;
-  repeated string methodPaths = 6;
-  int32 pageNo = 7;
-  int32 pageSize = 8;
+  string module = 5;
+  repeated string apps = 6;
+  string viewScope = 7;
+  string source = 8;
+  string appId = 9;
+  string sortField = 10;
+  string sortOrder = 11;
+  int32 pageNo = 12;
+  int32 pageSize = 13;
+  string moduleCreatorUserId = 14; // 主表行应用作者，钻取定位用
+  string moduleCreatorOrgId = 15;  // 主表行应用作者组织，钻取定位用
 }
 
-message GetAPIKeyStatisticRecordResp {
-  repeated APIKeyStatisticRecordItem items = 1;
+message AppStatisticV2UserListItem {
+  string source = 1;
+  string module = 2;
+  string appId = 3;
+  string appType = 4;
+  string moduleCreatorUserId = 5;
+  string moduleCreatorOrgId = 6;
+  string userId = 7;
+  string orgId = 8;
+  AppStatisticV2Metrics metrics = 9;
+}
+
+message GetAppStatisticV2UserListResp {
+  repeated AppStatisticV2UserListItem items = 1;
   int32 total = 2;
 }
 
-message APIKeyStatisticRecordItem {
-  string apiKeyId = 1;
-  string methodPath = 2;
-  int64 callTime = 3;
-  string responseStatus = 4;
-  int64 streamCosts = 5;
-  int64 nonStreamCosts = 6;
-  string requestBody = 7;
-  string responseBody = 8;
+message GetAppStatisticV2ModelListReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  string module = 5;
+  repeated string apps = 6;
+  string viewScope = 7;
+  string source = 8;
+  string appId = 9;
+  string sortField = 10;
+  string sortOrder = 11;
+  int32 pageNo = 12;
+  int32 pageSize = 13;
+  string moduleCreatorUserId = 14; // 主表行应用作者，钻取定位用
+  string moduleCreatorOrgId = 15;  // 主表行应用作者组织，钻取定位用
 }
 
-message RecordAPIKeyStatisticReq {
+message AppStatisticV2ModelListItem {
+  string source = 1;
+  string module = 2;
+  string appId = 3;
+  string appType = 4;
+  string moduleCreatorUserId = 5;
+  string moduleCreatorOrgId = 6;
+  string modelId = 7;
+  string model = 8;
+  string provider = 9;
+  string modelType = 10;
+  string modelCreatorUserId = 11;
+  string modelCreatorOrgId = 12;
+  AppStatisticV2Metrics metrics = 13;
+}
+
+message GetAppStatisticV2ModelListResp {
+  repeated AppStatisticV2ModelListItem items = 1;
+  int32 total = 2;
+}
+
+message GetAppStatisticV2RecordReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  string module = 5;
+  repeated string apps = 6;
+  string viewScope = 7;
+  string appId = 8;
+  string sortField = 9;
+  string sortOrder = 10;
+  int32 pageNo = 11;
+  int32 pageSize = 12;
+  string source = 13; // 调用来源筛选 web|openapi|webURL，空=全部
+}
+
+message GetAppStatisticV2RecordResp {
+  repeated AppStatisticV2RecordItem items = 1;
+  int32 total = 2;
+}
+
+message GetAppStatisticV2SelectReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string module = 3;
+  string viewScope = 4; // published | used
+}
+
+message AppStatisticV2SelectItem {
+  string appId = 1;
+  string appType = 2;
+  string source = 3;
+  string module = 4;
+  string moduleCreatorUserId = 5;
+  string moduleCreatorOrgId = 6;
+}
+
+message GetAppStatisticV2SelectResp {
+  repeated AppStatisticV2SelectItem items = 1;
+}
+
+// AppStatisticV2RecordItem 单次调用明细列表行；costs / firstTokenLatency 为该次调用实际耗时，非平均。
+message AppStatisticV2RecordItem {
+  uint32 id = 1;
+  string traceId = 2;
+  string appId = 3;
+  string appType = 4;
+  string userId = 5;
+  string orgId = 6;
+  string calledAt = 7;
+  bool isSuccess = 8;
+  int64 statusCode = 9;
+  string source = 10;
+  string module = 11;
+  int64 costs = 12;             // 本次非流式耗时 ms（非平均）
+  int64 firstTokenLatency = 13; // 本次流式耗时 ms（非平均）
+  string failureReason = 14;
+  string requestBody = 15;
+  string responseBody = 16;
+  string moduleCreatorUserId = 17; // 应用作者，BFF 富化为 userName
+  string moduleCreatorOrgId = 18;  // 应用所属组织，BFF 富化为 orgName
+  string question = 19;
+  string answer = 20;
+}
+
+// ====================================================
+// --- api key statistic v2 ---
+// ====================================================
+
+message RecordAPIKeyStatisticV2Req {
   string userId = 1;
   string orgId = 2;
   string apiKeyId = 3;
   string methodPath = 4;
-  int64 callTime = 5;
-  string httpStatus = 6;
-  bool isStream = 7;
-  int64 streamCosts = 8;
-  int64 nonStreamCosts = 9;
-  string requestBody = 10;
-  string responseBody = 11;
+  int64 calledAt = 5; // Unix ms
+  string source = 6;
+  string module = 7;
+  string moduleCreatorUserId = 8;
+  string moduleCreatorOrgId = 9;
+  string appId = 10;
+  string appType = 11;
+  bool isStream = 12;
+  int64 costs = 13;
+  int64 firstTokenLatency = 14;
+  bool isSuccess = 15;
+  string failureReason = 16;
+  string requestBody = 17;
+  string responseBody = 18;
+  string traceId = 19; // 与 model/app 明细关联
+  int64 statusCode = 20;
+}
+
+message GetAPIKeyStatisticV2ReadReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  repeated string apiKeyIds = 5;
+  repeated string methodPaths = 6;
+}
+
+message APIKeyStatisticV2OverviewItem {
+  float value = 1;
+  float periodOverPeriod = 2;
+}
+
+message APIKeyStatisticV2Overview {
+  APIKeyStatisticV2OverviewItem callCount = 1;
+  APIKeyStatisticV2OverviewItem callFailure = 2;
+  APIKeyStatisticV2OverviewItem dailyAvgCallCount = 3;
+  APIKeyStatisticV2OverviewItem dailyAvgCallFailure = 4;
+  APIKeyStatisticV2OverviewItem dailyAvgStreamCount = 5;
+  APIKeyStatisticV2OverviewItem dailyAvgNonStreamCount = 6;
+  APIKeyStatisticV2OverviewItem avgFirstTokenLatency = 7;
+  APIKeyStatisticV2OverviewItem avgCosts = 8;
+  APIKeyStatisticV2OverviewItem streamCount = 9;
+  APIKeyStatisticV2OverviewItem nonStreamCount = 10;
+}
+
+message GetAPIKeyStatisticV2ChartReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  repeated string apiKeyIds = 5;
+  repeated string methodPaths = 6;
+  int32 limit = 7;
+}
+
+message APIKeyStatisticV2Trend {
+  common.StatisticChart apiKeyCalls = 1;
+  common.StatisticChart callResult = 2;
+}
+
+message APIKeyStatisticV2RankItem {
+  string apiKeyId = 1;
+  string orgId = 2;
+  string userId = 3;
+  int32 callCount = 4;
+}
+
+message APIKeyStatisticV2Rank {
+  repeated APIKeyStatisticV2RankItem byApi = 1;
+}
+
+message APIKeyStatisticV2Chart {
+  APIKeyStatisticV2Trend trend = 1;
+  APIKeyStatisticV2Rank rank = 2;
+}
+
+message APIKeyStatisticV2Metrics {
+  int32 callCount = 1;
+  int32 callFailure = 2;
+  float failureRate = 3;
+  float avgFirstTokenLatency = 4;
+  float avgCosts = 5;
+  int32 streamCount = 6;
+  int32 nonStreamCount = 7;
+}
+
+message GetAPIKeyStatisticV2ListReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  repeated string apiKeyIds = 5;
+  repeated string methodPaths = 6;
+  string sortField = 7;
+  string sortOrder = 8;
+  int32 pageNo = 9;
+  int32 pageSize = 10;
+}
+
+message APIKeyStatisticV2ListItem {
+  string apiKeyId = 1;
+  string methodPath = 2;
+  string orgId = 3;
+  string userId = 4;
+  APIKeyStatisticV2Metrics metrics = 5;
+}
+
+message GetAPIKeyStatisticV2ListResp {
+  repeated APIKeyStatisticV2ListItem items = 1;
+  int32 total = 2;
+}
+
+message GetAPIKeyStatisticV2AppListReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  repeated string apiKeyIds = 5;
+  repeated string methodPaths = 6;
+  string apiKeyId = 7;
+  string methodPath = 8;
+  string sortField = 9;
+  string sortOrder = 10;
+  int32 pageNo = 11;
+  int32 pageSize = 12;
+}
+
+message APIKeyStatisticV2AppListItem {
+  string apiKeyId = 1;
+  string methodPath = 2;
+  string orgId = 3;
+  string userId = 4;
+  string source = 5;
+  string module = 6;
+  string appId = 7;
+  string appType = 8;
+  string moduleCreatorUserId = 9;
+  string moduleCreatorOrgId = 10;
+  APIKeyStatisticV2Metrics metrics = 11;
+}
+
+message GetAPIKeyStatisticV2AppListResp {
+  repeated APIKeyStatisticV2AppListItem items = 1;
+  int32 total = 2;
+}
+
+message GetAPIKeyStatisticV2ModelListReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  repeated string apiKeyIds = 5;
+  repeated string methodPaths = 6;
+  string apiKeyId = 7;
+  string methodPath = 8;
+  string sortField = 9;
+  string sortOrder = 10;
+  int32 pageNo = 11;
+  int32 pageSize = 12;
+}
+
+message APIKeyStatisticV2ModelListItem {
+  string apiKeyId = 1;
+  string methodPath = 2;
+  string orgId = 3;
+  string userId = 4;
+  string modelId = 5;
+  string model = 6;
+  string provider = 7;
+  string modelType = 8;
+  string modelCreatorUserId = 9;
+  string modelCreatorOrgId = 10;
+  AppStatisticV2Metrics metrics = 11;
+}
+
+message GetAPIKeyStatisticV2ModelListResp {
+  repeated APIKeyStatisticV2ModelListItem items = 1;
+  int32 total = 2;
+}
+
+message GetAPIKeyStatisticV2RecordReq {
+  repeated string orgIds = 1;
+  repeated string userIds = 2;
+  string startDate = 3;
+  string endDate = 4;
+  repeated string apiKeyIds = 5;
+  repeated string methodPaths = 6;
+  string sortField = 7;
+  string sortOrder = 8;
+  int32 pageNo = 9;
+  int32 pageSize = 10;
+}
+
+message APIKeyStatisticV2RecordItem {
+  uint32 id = 1;
+  string apiKeyId = 2;
+  string methodPath = 3;
+  string orgId = 4;
+  string userId = 5;
+  string calledAt = 6;
+  bool isSuccess = 7;
+  bool isStream = 8;
+  int64 firstTokenLatency = 9;
+  int64 costs = 10;
+  string failureReason = 11;
+  string requestBody = 12;
+  string responseBody = 13;
+  string source = 14;
+  string module = 15;
+  string appId = 16;
+  string appType = 17;
+  string moduleCreatorUserId = 18;
+  string moduleCreatorOrgId = 19;
+}
+
+message GetAPIKeyStatisticV2RecordResp {
+  repeated APIKeyStatisticV2RecordItem items = 1;
+  int32 total = 2;
+}
+
+// --- conversation log ---
+
+message GetConversationLogReq {
+  string appId = 1;          // 业务id 智能体id、知识问答id
+  string appType = 2;        // 业务类型 智能体、知识问答
+  string conversationId = 3; // 会话id
+}
+
+message GetConversationLogByLogIdsReq {
+  repeated string logIds = 1; // 会话日志id列表
+}
+
+message GetConversationLogByLogIdsResp {
+  repeated common.ConversationLog items = 1;
+}
+
+message GetConversationLogListReq {
+  string appId = 1;          // 业务id 智能体id、知识问答id
+  string appType = 2;        // 业务类型 智能体、知识问答
+  string name = 3;                // 会话标题
+  repeated string source = 4;     // 来源 web、openapi、webURL、draft
+  string startDate = 5;           // 起始日期 yyyy-mm-dd
+  string endDate = 6;             // 截止日期 yyyy-mm-dd
+  repeated string userIds = 7;    // 用户id列表
+  repeated string orgIds = 8;     // 组织id列表
+  int32 pageNo = 9;               // 页码 从1开始
+  int32 pageSize = 10;            // 每页大小
+  string orderBy = 11;            // 排序字段 avgCosts avgFirstTokenLatency createAt updateAt
+  string orderType = 12;          // 排序类型 asc des
+}
+
+message GetConversationLogListResp {
+  repeated common.ConversationLog items = 1;
+  int64 total = 2;
+}
+
+message GetConversationLogUserSelectReq {
+  string appId = 1;          // 业务id 智能体id、知识问答id
+  string appType = 2;        // 业务类型 智能体、知识问答
+  repeated string orgIds = 3;   // 组织id列表
+  repeated string userIds = 4;  // 用户id列表
+}
+
+message GetConversationLogUserSelectResp {
+  repeated string userIds = 1;  // 去重后的用户id列表
+}
+
+// 删除应用下全部会话日志请求（应用删除时清场）
+message DeleteConversationLogByAppIdReq {
+  string appId = 1;          // 业务id 智能体id、知识问答id
+  string appType = 2;        // 业务类型 智能体、知识问答
+}
+
+// --- conversation log export ---
+
+message ExportConversationLogReq {
+  string appId = 1;
+  string appType = 2;
+  repeated string logIds = 3;
+  string userId = 4;
+  string orgId = 5;
+  // 导出可见组织范围：空表示不限（应用 owner 全量导出场景），非空则仅导这些组织内的日志
+  repeated string orgIds = 6;
+  // 导出可见用户范围：空表示不限，非空则仅导这些用户的日志
+  repeated string userIds = 7;
+}
+message GetConversationLogExportRecordListReq {
+  string appId = 1;
+  string appType = 2;
+  string title = 3;
+  repeated string userIds = 4;
+  repeated string orgIds = 5;
+  int32 pageSize = 6;
+  int32 pageNum = 7;
+  string startDate = 8;
+  string endDate = 9;
+}
+message ConversationLogExportRecordInfo {
+  string exportRecordId = 1;
+  int32 status = 2;
+  string filePath = 3;
+  string fileName = 4;
+  string errorMsg = 5;
+  string exportTime = 6;
+  string userId = 7;
+}
+message GetConversationLogExportRecordListResp {
+  int64 total = 1;
+  int32 pageNum = 2;
+  int32 pageSize = 3;
+  repeated ConversationLogExportRecordInfo exportRecordInfos = 4;
+}
+message DeleteConversationLogExportRecordReq {
+  repeated string exportRecordIds = 1;
+  string userId = 2;
+  string orgId = 3;
 }

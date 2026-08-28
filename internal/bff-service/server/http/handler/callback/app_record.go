@@ -4,6 +4,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,5 +23,7 @@ func AppRecord(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	service.RecordAppStatistic(ctx, req.UserID, req.OrgID, req.AppID, req.AppType, req.IsSuccess, req.IsStream, req.StreamCosts, 0, req.Source)
+	service.RecordAppStatistic(trace_util.DetachContext(ctx.Request.Context()), req.UserID, req.OrgID, req.AppID, req.AppType, req.Module,
+		req.StatusCode, req.FailureReason, req.IsStream, req.StreamCosts, req.NonStreamCosts, req.Source, req.RequestBody, req.ResponseBody, req.Question, req.Answer)
+	gin_util.Response(ctx, nil, nil)
 }

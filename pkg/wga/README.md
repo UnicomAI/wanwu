@@ -40,7 +40,6 @@
 │  │   ├─ AgentTypeSequential → newSequentialAgent() → 组合智能体                  │ │
 │  │   ├─ AgentTypeLoop       → newLoopAgent()       → 组合智能体                  │ │
 │  │   ├─ AgentTypeParallel   → newParallelAgent()   → 组合智能体                  │ │
-│  │   ├─ AgentTypeDeep       → newDeepAgent()       → 深度思考智能体              │ │
 │  │   └─ AgentTypeSupervisor → newSupervisorAgent() → 监督者智能体                │ │
 │  └───────────────────────────────────────────────────────────────────────────────┘ │
 │                                       │                                             │
@@ -52,7 +51,8 @@
 │  │   │                                                                           │ │
 │  │   │  1. buildSandboxOpts()     构建沙箱选项                                    │ │
 │  │   │     ├─ ModelConfig (来自 WithModelConfig)                                 │ │
-│  │   │     ├─ Instruction (来自配置文件)                                          │ │
+│  │   │     ├─ Instruction (来自配置文件 或 WithInstruction)                      │ │
+│  │   │     ├─ OverallTask (来自 WithOverallTask)                                │ │
 │  │   │     ├─ Tools (来自配置 + WithToolConfig + WithExtraTool)                  │ │
 │  │   │     └─ MCPs (来自 WithMCP)                                                │ │
 │  │   │                                                                           │ │
@@ -431,6 +431,9 @@ wga.WithMessages(         ─────▶  options.Messages      ────
   {Role: "user", Content: "..."}                                .Role
 )                                                               .Content
 
+wga.WithInstruction("...") ─────▶  options.Instruction  ─────▶  Instruction (覆盖 prompt.md)
+wga.WithOverallTask("...")  ─────▶  options.OverallTask   ─────▶  OverallTask
+
 配置文件 (YAML)                     internal/config              runner 内部
 ─────────────                       ─────────────              ────────────
 
@@ -439,7 +442,7 @@ agent.yaml  ──────────────────▶   config.A
   type: sandbox                       .Type
   name: 代码助手                       .Name
   description: 代码生成和修改          .Description
-  prompt_relative_path: ./prompt.md  ─────────▶  .Prompt        ───────▶   Instruction
+  prompt_relative_path: ./prompt.md  ─────────▶  .Prompt        ───────▶   Instruction (可被 WithInstruction 覆盖)
 
   configure:
     max_iterations: 10               .Configure.MaxIterations
@@ -482,7 +485,6 @@ agent.yaml  ──────────────────▶   config.A
 | sequential | 顺序执行多个子智能体 |
 | loop | 循环执行子智能体 |
 | parallel | 并行执行多个子智能体 |
-| deep | 深度思考智能体，递归分解任务 |
 | supervisor | 监督者模式，由主智能体协调子智能体 |
 
 ## 使用
@@ -547,6 +549,8 @@ for {
 | `CheckToolOptions(ctx, id, opts...)` | 检查工具配置（工具条件、额外工具冲突） |
 | `Run(ctx, id, opts...)` | 执行智能体 |
 | `Cleanup(ctx, runID)` | 清理资源 |
+| `ReplyQuestion(ctx, sandboxCfg, runID, questionID, answers)` | 回答问题（Human-in-the-Loop） |
+| `RejectQuestion(ctx, sandboxCfg, runID, questionID)` | 拒绝问题（Human-in-the-Loop） |
 
 ## 选项
 
@@ -561,6 +565,9 @@ for {
 | `WithOutputDir` | 输出目录 |
 | `WithRunSession` | 会话标识 |
 | `WithMessages` | 消息列表（历史消息 + 当前问题，最后一条必须是 User 消息） |
+| `WithInstruction` | 运行时动态指令，覆盖配置文件中的 prompt.md |
+| `WithOverallTask` | 运行时动态整体任务（用于子智能体） |
+| `WithEnableHumanInTheLoop` | 启用人机交互（可选参数：enableCustom 设置是否允许用户自定义回答） |
 
 ## MCP 服务器
 
@@ -615,6 +622,121 @@ MCP 配置会被传递到 opencode runner，生成 opencode.json 中的 mcp 配�
 | `none` | 无需检查，该类别下的工具都是可选项 |
 | `optional` | 该类别下至少有一个工具完成配置 |
 | `required` | 该类别下所有工具完成配置 |
+
+## Human-in-the-Loop
+
+WGA 支持人机交互（Human-in-the-Loop），允许 AI 在执行过程中向用户提问并等待回复。
+
+### 功能说明
+
+当启用 HITL 后，AI 可以通过 `question.ask()` 向用户提问，系统会：
+1. 发布 `question.asked` SSE 事件，前端显示问题 UI
+2. AI 阻塞等待用户回复
+3. 用户通过 HTTP API 提交回答或取消
+4. AI 收到回复后继续执行
+
+### 适用模式
+
+| 模式 | HITL 支持 | 说明 |
+|------|----------|------|
+| **Reuse** | ✅ 支持 | 单实例 Sandbox，questionID 在 pending Map 中唯一 |
+| **Oneshot** | ❌ 不支持 | 需要额外映射 questionID → runID → SandboxHost |
+
+### 启用方式
+
+```go
+// 方式 1：通过 Run 选项启用
+runSession, iter, _ := wga.Run(ctx, "agent-id",
+    wga.WithEnableHumanInTheLoop(true),
+    wga.WithModelConfig(modelConfig),
+    wga.WithMessages(messages),
+)
+
+// 方式 2：通过配置文件启用
+// configs/microservice/bff-service/configs/wga/config.yaml
+// humanInTheLoop: true
+```
+
+### 回答/取消问题
+
+当用户在前端回答问题后，调用以下 API 解除 AI 阻塞：
+
+```go
+// 回答问题
+err := wga.ReplyQuestion(ctx, sandboxCfg, questionID, answers)
+
+// 取消问题
+err := wga.RejectQuestion(ctx, sandboxCfg, questionID)
+```
+
+**参数说明**：
+- `sandboxCfg`: Sandbox 配置，通过 `wga_sandbox_option.SandboxReuse(host)` 获取
+- `questionID`: 问题 ID，从 SSE 事件 `question.asked` 中获取
+- `answers`: 答案数组，格式为 `[][]string`，每个问题一个答案数组
+
+### SSE 事件格式
+
+当 AI 提问时，会发送 `ACTIVITY_SNAPSHOT` 事件：
+
+```json
+{
+  "type": "ACTIVITY_SNAPSHOT",
+  "messageId": "step-xxx",
+  "activityType": "question",
+  "content": {
+    "questionId": "question_01JXYZ...",
+    "runId": "run-xxx",
+    "threadId": "thread-xxx",
+    "status": "pending",
+    "questions": [{
+      "question": "请选择部署环境",
+      "header": "环境选择",
+      "options": [
+        {"label": "开发环境", "description": "用于开发和测试"},
+        {"label": "生产环境", "description": "正式生产部署"}
+      ],
+      "multiple": false,
+      "custom": false
+    }],
+    "timestamp": 1234567890123
+  }
+}
+```
+
+用户回答后，会发送 `answered` 状态的事件：
+
+```json
+{
+  "type": "ACTIVITY_SNAPSHOT",
+  "messageId": "step-xxx",
+  "activityType": "question",
+  "content": {
+    "questionId": "question_01JXYZ...",
+    "runId": "run-xxx",
+    "threadId": "thread-xxx",
+    "status": "answered",
+    "questions": [],
+    "answers": [["开发环境"]],
+    "timestamp": 1234567890123
+  }
+}
+```
+
+**状态流转**：
+- `pending`: 问题待回答，前端显示问题 UI
+- `answered`: 用户已回答，AI 继续执行，`answers` 字段包含用户选择
+- `rejected`: 用户取消，AI 收到 `RejectedError`
+
+### 设计原则
+
+| 原则 | 说明 |
+|------|------|
+| **层级下沉** | BFF → wga → wga-sandbox → OpenCode，逐层封装 |
+| **状态下沉** | 所有状态由 Sandbox 容器内的 OpenCode 管理 |
+| **复用原生** | 直接使用 OpenCode 的 Question 系统和 HTTP API |
+| **配置控制** | 通过 `EnableHumanInTheLoop` 选项控制是否启用 |
+
+详细设计文档请参考 [DESIGN.Human-In-The-Loop.md](./DESIGN.Human-In-The-Loop.md)。
 
 ## 类型
 

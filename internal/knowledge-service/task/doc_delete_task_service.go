@@ -10,7 +10,6 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/orm"
 	async_task_pkg "github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/async-task"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/db"
-	know_util "github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/util"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/service"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
@@ -163,32 +162,12 @@ func BatchDeleteAllDoc(ctx context.Context, tx *gorm.DB, knowledge *model.Knowle
 		//只打印，不阻塞
 		log.Errorf("DeleteMetaDataByDocIdList error %v", err)
 	}
-	//4.删除底层数据
-	err = batchRagDelete(ctx, knowledge, docList)
-	if err != nil {
-		//只打印，不阻塞
-		log.Errorf("batchRagDelete error %v", err)
-	}
-	return nil
-}
-
-// batchRagDelete 批量rag删除
-func batchRagDelete(ctx context.Context, knowledge *model.KnowledgeBase, docList []*model.KnowledgeDoc) error {
-	for _, doc := range docList {
-		if doc.ErrorMsg == know_util.KnowledgeImportSameNameErr {
-			log.Infof("同名错误文件删除不删除rag，id: %s， name: %s", doc.DocId, doc.Name)
-			continue
-		}
-		var fileName = service.RebuildFileName(doc.DocId, doc.FileType, doc.Name)
-		err := service.RagDeleteDoc(ctx, &service.RagDeleteDocParams{
-			UserId:        knowledge.UserId,
-			KnowledgeBase: knowledge.RagName,
-			FileName:      fileName,
-		})
-		if err != nil {
-			return err
-		}
-	}
+	////4.删除底层数据
+	//err = batchRagDelete(ctx, knowledge, docList)
+	//if err != nil {
+	//	//只打印，不阻塞
+	//	log.Errorf("batchRagDelete error %v", err)
+	//}
 	return nil
 }
 

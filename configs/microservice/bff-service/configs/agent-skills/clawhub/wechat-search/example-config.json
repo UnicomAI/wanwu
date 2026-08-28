@@ -1,0 +1,13 @@
+{
+  "search": {
+    "strategy": "web_search_first",
+    "max_results": 5,
+    "cache_duration_hours": 1,
+    "request_delay_ms": 5000
+  },
+  "web_fetch": {
+    "user_agent": "OpenClaw-WeChat-Search-Bot/1.0 (+https://github.com/jixsonwang/wechat-search-skill)",
+    "timeout_seconds": 30,
+    "respect_robots_txt": true
+  }
+}

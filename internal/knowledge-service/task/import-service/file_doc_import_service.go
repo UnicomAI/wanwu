@@ -51,7 +51,15 @@ func (f FileDocImportService) AnalyzeDoc(ctx context.Context, importTask *model.
 
 func (f FileDocImportService) CheckDoc(ctx context.Context, importTask *model.KnowledgeImportTask, docList []*model.DocInfo) ([]*CheckFileResult, error) {
 	var resultList []*CheckFileResult
-	fileTypeMap := BuildFileTypeMap()
+	knowledge, err := orm.SelectKnowledgeById(ctx, importTask.KnowledgeId, "", "")
+	var multimodal = false
+	if err != nil {
+		//查询失败不影响主流程
+		log.Errorf("check doc select knowledge error %v", err)
+	} else {
+		multimodal = knowledge.Category == model.CategoryMultimodal
+	}
+	fileTypeMap := BuildFileTypeMap(multimodal)
 	for _, docInfo := range docList {
 		checkResult, checkMessage := checkOneFile(ctx, importTask, docInfo, fileTypeMap)
 		var status = model.DocInit
@@ -99,13 +107,35 @@ func checkOneFile(ctx context.Context, importTask *model.KnowledgeImportTask, do
 		log.Errorf("文件 '%s' 大小超过限制(%v)", doc.DocName, err)
 		return false, util.KnowledgeImportFileSizeErr
 	}
-	//3.文档重名校验
+	//3.文件名合法性校验
+	if !IsSafeFileName(doc.DocName) {
+		log.Errorf("文件 '%s' 文件名非法", doc.DocName)
+		return false, util.KnowledgeImportInvalidNameErr
+	}
+	//3.1 文件名长度校验：RAG 落盘时以文档名为本地文件名，过长会触发系统"文件名过长"报错
+	if !wanwu_util.ValidateFileNameLength(doc.DocName) {
+		log.Errorf("文件 '%s' 文件名过长", doc.DocName)
+		return false, util.KnowledgeImportNameTooLongErr
+	}
+	//4.文档重名校验
 	err = orm.CheckKnowledgeDocSameName(ctx, importTask.UserId, importTask.KnowledgeId, doc.DocName, "", "")
 	if err != nil {
 		log.Errorf("文件 '%s' 判断文档重名失败(%v)", doc.DocName, err)
 		return false, util.KnowledgeImportSameNameErr
 	}
 	return true, ""
+}
+
+// IsSafeFileName 校验文件名是否合法
+// 文件名中不能包含斜杠 /、反斜杠 \、或连续两个点 ..
+func IsSafeFileName(name string) bool {
+	if strings.Contains(name, "/") || strings.Contains(name, "\\") {
+		return false
+	}
+	if strings.Contains(name, "..") {
+		return false
+	}
+	return true
 }
 
 // 校验单个文件大小限制
@@ -205,10 +235,29 @@ func buildKnowledgeDoc(importTask *model.KnowledgeImportTask, checkFileResult *C
 	}
 }
 
-func BuildFileTypeMap() map[string]bool {
-	fileTypes := strings.Split(config.GetConfig().UsageLimit.FileTypes, ";")
+func BuildFileTypeMap(multiModal bool) map[string]bool {
 	var fileTypeMap = make(map[string]bool)
+	var filterTypeMap = make(map[string]bool)
+	//非多模态过滤对应类型
+	if !multiModal {
+		fileTypes := strings.Split(config.GetConfig().UsageLimit.AudioTypes, ";")
+		for _, fileType := range fileTypes {
+			filterTypeMap["."+fileType] = true
+		}
+		fileTypes = strings.Split(config.GetConfig().UsageLimit.VideoTypes, ";")
+		for _, fileType := range fileTypes {
+			filterTypeMap["."+fileType] = true
+		}
+		fileTypes = strings.Split(config.GetConfig().UsageLimit.ImageTypes, ";")
+		for _, fileType := range fileTypes {
+			filterTypeMap["."+fileType] = true
+		}
+	}
+	fileTypes := strings.Split(config.GetConfig().UsageLimit.FileTypes, ";")
 	for _, fileType := range fileTypes {
+		if filterTypeMap[fileType] {
+			continue
+		}
 		fileTypeMap[fileType] = true
 	}
 	compressedFileTypeList := strings.Split(config.GetConfig().UsageLimit.CompressedFileType, ";")

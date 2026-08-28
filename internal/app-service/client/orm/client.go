@@ -1,10 +1,12 @@
 package orm
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
+	"github.com/UnicomAI/wanwu/internal/app-service/client/assistant"
 	"github.com/UnicomAI/wanwu/internal/app-service/client/model"
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	"gorm.io/gorm"
@@ -24,6 +26,8 @@ type Metadata struct {
 
 type Client struct {
 	db *gorm.DB
+	// assistant 数据清洗（agent 老 id → uuid）数据源
+	assistant assistant.IClient
 }
 
 type ApiKey struct {
@@ -40,6 +44,7 @@ type ExplorationAppInfo struct {
 	IsFavorite  bool
 	PublishType string
 	UserID      string
+	OrgID       string
 }
 
 type SensitiveWordTableWithWord struct {
@@ -47,98 +52,7 @@ type SensitiveWordTableWithWord struct {
 	SensitiveWords []string
 }
 
-type ModelStatistic struct {
-	Overview ModelStatisticOverview `json:"overview"`
-	Trend    ModelStatisticTrend    `json:"trend"`
-}
-
-type ModelStatisticList struct {
-	Items []ModelStatisticItem
-	Total int32
-}
-
-type ModelStatisticItem struct {
-	ModelId              string
-	Model                string
-	Provider             string
-	OrgId                string
-	CallCount            int32
-	CallFailure          int32
-	FailureRate          float32
-	PromptTokens         int64
-	CompletionTokens     int64
-	TotalTokens          int64
-	AvgCosts             float32
-	AvgFirstTokenLatency float32
-}
-
-type ModelStatisticOverview struct {
-	CallCount            StatisticOverviewItem `json:"callCount"`
-	CallFailure          StatisticOverviewItem `json:"callFailure"`
-	TotalTokens          StatisticOverviewItem `json:"totalTokens"`
-	CompletionTokens     StatisticOverviewItem `json:"completionTokens"`
-	PromptTokens         StatisticOverviewItem `json:"promptTokens"`
-	AvgCosts             StatisticOverviewItem `json:"avgCosts"`
-	AvgFirstTokenLatency StatisticOverviewItem `json:"avgFirstTokenLatency"`
-}
-
-type ModelStatisticTrend struct {
-	ModelCalls  StatisticChart `json:"modelCalls"`
-	TokensUsage StatisticChart `json:"tokensUsage"`
-}
-
-type AppStatistic struct {
-	Overview AppStatisticOverview `json:"overview"`
-	Trend    AppStatisticTrend    `json:"trend"`
-}
-
-type AppStatisticList struct {
-	Items []AppStatisticItem
-	Total int32
-}
-
-type AppStatisticItem struct {
-	AppId             string
-	AppType           string
-	OrgId             string
-	CallCount         int32
-	CallFailure       int32
-	FailureRate       float32
-	StreamCount       int32
-	NonStreamCount    int32
-	AvgStreamCosts    float32
-	AvgNonStreamCosts float32
-}
-
-type AppStatisticOverview struct {
-	CallCount         StatisticOverviewItem `json:"callCount"`
-	CallFailure       StatisticOverviewItem `json:"callFailure"`
-	StreamCount       StatisticOverviewItem `json:"streamCount"`
-	NonStreamCount    StatisticOverviewItem `json:"nonStreamCount"`
-	AvgStreamCosts    StatisticOverviewItem `json:"avgStreamCosts"`
-	AvgNonStreamCosts StatisticOverviewItem `json:"avgNonStreamCosts"`
-}
-
-type AppStatisticTrend struct {
-	CallTrend StatisticChart `json:"callTrend"`
-}
-
-type StatisticChart struct {
-	Name  string               `json:"name"`
-	Lines []StatisticChartLine `json:"lines"`
-}
-
-type StatisticChartLine struct {
-	Name  string                   `json:"name"`
-	Items []StatisticChartLineItem `json:"items"`
-}
-
-type StatisticChartLineItem struct {
-	Key   string  `json:"key"`
-	Value float32 `json:"value"`
-}
-
-func NewClient(db *gorm.DB) (*Client, error) {
+func NewClient(ctx context.Context, db *gorm.DB, assistantCli assistant.IClient) (*Client, error) {
 	// 先迁移 Metadata 表（用于记录状态）
 	if err := db.AutoMigrate(&Metadata{}); err != nil {
 		return nil, err
@@ -156,10 +70,14 @@ func NewClient(db *gorm.DB) (*Client, error) {
 		model.SensitiveWordTable{},
 		model.SensitiveWordVocabulary{},
 		model.ChatflowApplcation{},
-		model.ModelStatistic{},
-		model.AppStatistic{},
-		model.APIKeyRecord{},
-		model.APIKeyStatistic{},
+		model.StatisticModel{},
+		model.ModelRecordV2{},
+		model.AppRecordV2{},
+		model.StatisticApp{},
+		model.APIKeyRecordV2{},
+		model.StatisticApiKey{},
+		model.ConversationLog{},
+		model.ConversationLogExportTask{},
 	); err != nil {
 		return nil, err
 	}
@@ -182,8 +100,20 @@ func NewClient(db *gorm.DB) (*Client, error) {
 			return nil, fmt.Errorf("query metadata failed: %w", err)
 		}
 	}
+
+	// 旧统计表 → V2 迁移（见 migrateStatisticV2FromLegacy）。
+	if err := migrateStatisticV2FromLegacy(ctx, db); err != nil {
+		return nil, fmt.Errorf("failed to migrate statistic v2 from legacy: %w", err)
+	}
+
+	// 一次性迁移：app-service 各表 agent 的 app_id（assistant 老 id）→ uuid
+	if err := migrateAgentAppIDToUUID(ctx, db, assistantCli); err != nil {
+		return nil, fmt.Errorf("failed to migrate agent app id to uuid: %w", err)
+	}
+
 	return &Client{
-		db: db,
+		db:        db,
+		assistant: assistantCli,
 	}, nil
 }
 
@@ -201,7 +131,7 @@ func canAccessApp(info *model.App, userId, orgId string) bool {
 	case constant.AppPublishOrganization:
 		return info.OrgID == orgId
 	case constant.AppPublishPrivate:
-		return info.UserID == userId
+		return info.UserID == userId && info.OrgID == orgId
 	default:
 		return false
 	}

@@ -7,6 +7,7 @@ import (
 
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
 	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/cloudwego/eino/adk"
 	"github.com/cloudwego/eino/schema"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -56,15 +57,27 @@ type Tool struct {
 	Name           string // 工具名称，从 schema 的 info.title 自动读取
 }
 
+// SkillVariable 技能变量配置。
+type SkillVariable struct {
+	Name          string `json:"name"`          // 变量名称
+	Description   string `json:"description"`   // 变量描述
+	VariableKey   string `json:"variableKey"`   // 变量键（用于环境变量/模板替换）
+	VariableValue string `json:"variableValue"` // 变量值
+}
+
 // Skill 技能配置。
 type Skill struct {
-	Dir string // skill 目录路径
+	Dir       string          `json:"dir"`       // skill 目录路径
+	Variables []SkillVariable `json:"variables"` // 用户自定义变量
 }
 
 // MCP MCP 服务器配置。
 type MCP struct {
-	Name string // MCP 名称
-	URL  string // MCP SSE/STREAMABLE 服务器地址
+	Name        string                  // MCP 名称
+	URL         string                  // MCP SSE/STREAMABLE 服务器地址
+	Description string                  // MCP 描述
+	ApiAuth     *util.ApiAuthWebRequest // API 认证配置（可选）
+	Headers     map[string]string       // 自定义请求头（可选）
 }
 
 // RunSession 执行会话标识。
@@ -78,6 +91,14 @@ type SandboxType string
 
 // RunnerType 运行器类型。
 type RunnerType string
+
+// SystemMessageStrategy system 消息处理策略。
+type SystemMessageStrategy string
+
+const (
+	SystemMessageStrategyNone  SystemMessageStrategy = ""      // 不处理（默认）
+	SystemMessageStrategyMerge SystemMessageStrategy = "merge" // 合并所有 system 消息到第一位
+)
 
 // ============================================================================
 // 类型 - SandboxConfig
@@ -132,21 +153,25 @@ func (f OptionFunc) apply(opts *RunOption) error {
 
 // RunOption 运行选项。
 type RunOption struct {
-	RunSession     RunSession
-	ModelConfig    ModelConfig
-	Sandbox        SandboxConfig
-	RunnerType     RunnerType
-	Instruction    string
-	OverallTask    string
-	InputDir       string
-	OutputDir      string
-	Skills         []Skill
-	Tools          []Tool
-	MCPs           []MCP         // MCP 服务器列表
-	Messages       []adk.Message // 历史消息 + 当前问题（最后一条 User 消息）
-	EnableThinking bool
-	SkipCleanup    bool
-	AgentName      string
+	RunSession                 RunSession
+	ModelConfig                ModelConfig
+	Sandbox                    SandboxConfig
+	RunnerType                 RunnerType
+	Instruction                string
+	OverallTask                string
+	InputDir                   string
+	OutputDir                  string
+	Skills                     []Skill
+	Tools                      []Tool
+	MCPs                       []MCP                 // MCP 服务器列表
+	Messages                   []adk.Message         // 历史消息 + 当前问题（最后一条 User 消息）
+	SystemMessageStrategy      SystemMessageStrategy // system 消息处理策略，默认不处理
+	EnableThinking             bool
+	EnableHumanInTheLoop       bool // 是否启用人机交互
+	EnableHumanInTheLoopCustom bool // 是否允许用户自定义回答
+	SkipCleanup                bool
+	AgentName                  string
+	TraceContext               map[string]string // W3C trace 传播头（traceparent, tracestate, baggage），用于跨进程 trace 传播
 }
 
 func (o *RunOption) Apply(opts ...Option) error {
@@ -274,8 +299,33 @@ func WithMessages(messages []adk.Message) Option {
 	})
 }
 
+func WithSystemMessageStrategy(strategy SystemMessageStrategy) Option {
+	return OptionFunc(func(opts *RunOption) error {
+		opts.SystemMessageStrategy = strategy
+		return nil
+	})
+}
+
 func WithSkills(skills []Skill) Option {
 	return OptionFunc(func(opts *RunOption) error {
+		for _, skill := range skills {
+			seen := make(map[string]bool)
+			for _, v := range skill.Variables {
+				if v.Name == "" {
+					return fmt.Errorf("skill [%s] variable name is required", skill.Dir)
+				}
+				if seen[v.Name] {
+					return fmt.Errorf("skill [%s] variable name [%s] duplicate", skill.Dir, v.Name)
+				}
+				if v.VariableKey == "" {
+					return fmt.Errorf("skill [%s] variable [%s] key is required", skill.Dir, v.Name)
+				}
+				if v.VariableValue == "" {
+					return fmt.Errorf("skill [%s] variable [%s] value is required", skill.Dir, v.Name)
+				}
+				seen[v.Name] = true
+			}
+		}
 		opts.Skills = skills
 		return nil
 	})
@@ -338,6 +388,24 @@ func WithSkipCleanup(skip bool) Option {
 func WithAgentName(name string) Option {
 	return OptionFunc(func(opts *RunOption) error {
 		opts.AgentName = name
+		return nil
+	})
+}
+
+func WithEnableHumanInTheLoop(enable bool, enableCustom ...bool) Option {
+	return OptionFunc(func(opts *RunOption) error {
+		opts.EnableHumanInTheLoop = enable
+		if len(enableCustom) > 0 {
+			opts.EnableHumanInTheLoopCustom = enableCustom[0]
+		}
+		return nil
+	})
+}
+
+// WithTraceContext 设置 W3C trace 传播头，用于跨进程（如 sandbox 容器）trace 上下文传播。
+func WithTraceContext(headers map[string]string) Option {
+	return OptionFunc(func(opts *RunOption) error {
+		opts.TraceContext = headers
 		return nil
 	})
 }

@@ -56,7 +56,7 @@ func (s *SkillChatStep) BuildSkillStep() SkillStep {
 	if s.skillTransferStart() {
 		return SkillTransferStartStep
 	}
-	//技能转换完成这个必须放在skillTransferring 之前判断，因为准换中且finish消息才是完成
+	//技能转换完成这个必须放在skillTransferring 之前判断，因为转换中且finish消息才是完成
 	if s.skillTransferFinish() {
 		return SkillTransferFinishStep
 	}

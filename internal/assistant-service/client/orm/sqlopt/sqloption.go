@@ -1,6 +1,7 @@
 package sqlopt
 
 import (
+	pkg_db "github.com/UnicomAI/wanwu/pkg/db"
 	"gorm.io/gorm"
 )
 
@@ -66,6 +67,24 @@ func WithOrgID(orgId string) SQLOption {
 func WithUserID(userId string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		return db.Where("user_id = ?", userId)
+	})
+}
+
+func WithOrgIDs(orgIds []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgIds) > 0 {
+			return db.Where("org_id IN ?", orgIds)
+		}
+		return db
+	})
+}
+
+func WithUserIDs(userIds []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(userIds) > 0 {
+			return db.Where("user_id IN ?", userIds)
+		}
+		return db
 	})
 }
 
@@ -190,6 +209,24 @@ func WithUuid(uuid string) SQLOption {
 	})
 }
 
+func WithUuids(uuids []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(uuids) > 0 {
+			return db.Where("uuid IN ?", uuids)
+		}
+		return db
+	})
+}
+
+func WithoutUuid(uuid string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(uuid) > 0 {
+			return db.Where("uuid != ?", uuid)
+		}
+		return db
+	})
+}
+
 func WithConversationType(conversationType string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if conversationType != "" {
@@ -201,10 +238,7 @@ func WithConversationType(conversationType string) SQLOption {
 
 func WithConversationId(conversationId string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
-		if conversationId != "" {
-			return db.Where("conversation_id = ?", conversationId)
-		}
-		return db
+		return db.Where("conversation_id = ?", conversationId)
 	})
 }
 
@@ -224,6 +258,51 @@ func WithThreadID(threadId string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if threadId != "" {
 			return db.Where("thread_id = ?", threadId)
+		}
+		return db
+	})
+}
+
+func WithEmployeeID(employeeId string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if employeeId != "" {
+			return db.Where("employee_id = ?", employeeId)
+		}
+		return db
+	})
+}
+
+func WithTitleLike(title string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if title != "" {
+			return db.Where("title LIKE ? ", "%"+title+"%")
+		}
+		return db
+	})
+}
+
+func WithNameLike(name string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if name != "" {
+			return db.Where("name LIKE ? ", "%"+pkg_db.EscapeLike(name)+"%")
+		}
+		return db
+	})
+}
+
+func WithName(name string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if name != "" {
+			return db.Where("name = ? ", name)
+		}
+		return db
+	})
+}
+
+func WithCategories(categories []int32) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(categories) > 0 {
+			return db.Where("category IN ?", categories)
 		}
 		return db
 	})

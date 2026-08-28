@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"sort"
 	"strings"
 	"sync"
 
@@ -159,6 +160,13 @@ func GetApiKeyStatisticRoutes(openApiType string) *response.ListResult {
 			})
 		}
 		return true
+	})
+	// 先按 Path，再按 Method 排序
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].Path != result[j].Path {
+			return result[i].Path < result[j].Path
+		}
+		return result[i].Method < result[j].Method
 	})
 	return &response.ListResult{
 		List:  result,

@@ -1,0 +1,18 @@
+---
+type: concept_group
+id: k8s
+name: Kubernetes集群
+tags: [k8s]
+---
+
+## ConceptGroup: Kubernetes集群
+
+Kubernetes集群相关概念分组
+
+### Object Types
+
+| ID | Name | Description |
+|----|------|-------------|
+| pod | Pod实例 | Kubernetes 中的最小部署单元，一个或多个容器的集合。 |
+| node | Node节点 | Kubernetes 集群中的计算节点，运行 Pod。 |
+| service | Service服务 | Kubernetes 服务抽象层，提供稳定的访问入口。 |

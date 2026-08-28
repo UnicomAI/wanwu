@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	"slices"
 	"strings"
 
@@ -13,23 +14,55 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
+var modelBiz = &ModelBiz{}
+
+type ModelBiz struct{}
+
+func init() {
+	InitBizService(modelBiz)
+}
+
+func (*ModelBiz) BizType() string {
+	return constant.BizModuleModel
+}
+
+func (*ModelBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	resp, err := model.GetModel(ctx, &model_service.GetModelReq{
+		ModelId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	return resp.UserId, resp.OrgId, nil
+}
+
+func (*ModelBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
+}
+
 type ModelInfoOptions struct {
 	UserId string
+	OrgId  string
 }
 
 func DefaultModelInfoOptions() *ModelInfoOptions {
 	return &ModelInfoOptions{
 		UserId: "",
+		OrgId:  "",
 	}
 }
 
 func ImportModel(ctx *gin.Context, userId, orgId string, req *request.ImportOrUpdateModelRequest) error {
+	if err := util.ValidateBriefCreate(&req.DisplayName, &req.ModelDesc, util.SubjectModel); err != nil {
+		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
+	}
 	clientReq, err := parseImportAndUpdateClientReq(userId, orgId, req)
 	if err != nil {
 		return err
@@ -37,16 +70,30 @@ func ImportModel(ctx *gin.Context, userId, orgId string, req *request.ImportOrUp
 	if err = ValidateModel(ctx, clientReq); err != nil {
 		return grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("An error occurred during model import validation: Invalid model: %v, err : %v", clientReq.Model, err))
 	}
-	_, err = model.ImportModel(ctx.Request.Context(), clientReq)
+	imported, err := model.ImportModel(ctx.Request.Context(), clientReq)
 	if err != nil {
 		return err
 	}
+	// 消息中心（best-effort）：按选定可见范围通知（模型导入）；私有范围受众为空集，消息域会自动跳过
+	notifyModelScopeChange(ctx, userId, orgId, imported.GetModelId(), req.DisplayName,
+		noticeScopeNone, normalizeModelScope(req.ScopeType), "imported")
 	return nil
 }
 
 func UpdateModel(ctx *gin.Context, userId, orgId string, req *request.ImportOrUpdateModelRequest) error {
 	if req.ModelId == "" {
 		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, "modelId cannot be empty")
+	}
+	existingModel, err := model.GetModel(ctx.Request.Context(), &model_service.GetModelReq{
+		ModelId: req.ModelId,
+		UserId:  userId,
+		OrgId:   orgId,
+	})
+	if err != nil {
+		return err
+	}
+	if err := util.ValidateBriefUpdate(&req.DisplayName, existingModel.DisplayName, &req.ModelDesc, existingModel.ModelDesc, util.SubjectModel); err != nil {
+		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
 	}
 	clientReq, err := parseImportAndUpdateClientReq(userId, orgId, req)
 	if err != nil {
@@ -55,7 +102,7 @@ func UpdateModel(ctx *gin.Context, userId, orgId string, req *request.ImportOrUp
 	if err = ValidateModel(ctx, clientReq); err != nil {
 		return grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("An error occurred during model update validation: Invalid model: %v, err : %v", clientReq.Model, err))
 	}
-	_, err = model.UpdateModel(ctx, clientReq)
+	_, err = model.UpdateModel(ctx.Request.Context(), clientReq)
 	if err != nil {
 		return err
 	}
@@ -63,6 +110,9 @@ func UpdateModel(ctx *gin.Context, userId, orgId string, req *request.ImportOrUp
 }
 
 func DeleteModel(ctx *gin.Context, userId, orgId string, req *request.DeleteModelRequest) error {
+	// 消息中心：删除是硬删，必须在删除前把 scope 与名称快照下来
+	snapshot := fetchModelSnapshot(ctx, userId, orgId, req.ModelId)
+
 	_, err := model.DeleteModel(ctx.Request.Context(), &model_service.DeleteModelReq{
 		ModelId: req.ModelId,
 		UserId:  userId,
@@ -70,6 +120,11 @@ func DeleteModel(ctx *gin.Context, userId, orgId string, req *request.DeleteMode
 	})
 	if err != nil {
 		return err
+	}
+	// 原可见者收「下线」（模型删除，best-effort）
+	if snapshot != nil {
+		notifyModelScopeChange(ctx, userId, orgId, req.ModelId, snapshot.DisplayName,
+			normalizeModelScope(snapshot.ScopeType), noticeScopeNone, "deleted")
 	}
 	return nil
 }
@@ -83,7 +138,7 @@ func GetModel(ctx *gin.Context, userId, orgId string, req *request.GetModelReque
 	if err != nil {
 		return nil, err
 	}
-	return toModelInfo(ctx, resp, &ModelInfoOptions{UserId: userId})
+	return toModelInfo(ctx, resp, &ModelInfoOptions{UserId: userId, OrgId: orgId})
 }
 
 func GetModelById(ctx *gin.Context, req *request.GetModelRequest) (*response.ModelInfo, error) {
@@ -104,7 +159,7 @@ func ListModels(ctx *gin.Context, userId, orgId string, req *request.ListModelsR
 	if err != nil {
 		return nil, err
 	}
-	list, err := toModelInfos(ctx, resp.Models, &ModelInfoOptions{UserId: userId})
+	list, err := toModelInfos(ctx, resp.Models, &ModelInfoOptions{UserId: userId, OrgId: orgId})
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +170,9 @@ func ListModels(ctx *gin.Context, userId, orgId string, req *request.ListModelsR
 }
 
 func ChangeModelStatus(ctx *gin.Context, userId, orgId string, req *request.ModelStatusRequest) error {
+	// 消息中心：状态改完旧值就没了，必须先查
+	snapshot := fetchModelSnapshot(ctx, userId, orgId, req.ModelId)
+
 	_, err := model.ChangeModelStatus(ctx.Request.Context(), &model_service.ModelStatusReq{
 		ModelId:  req.ModelId,
 		IsActive: req.IsActive,
@@ -123,6 +181,16 @@ func ChangeModelStatus(ctx *gin.Context, userId, orgId string, req *request.Mode
 	})
 	if err != nil {
 		return err
+	}
+	// 模型停用/启用：模型选择器强制 is_active=true，停用后所有可见者在选择器中消失，对使用者近似下线。
+	// 故停用等效 (scope→"")、启用等效 (""→scope)，代入同一差分公式。
+	if snapshot != nil && snapshot.IsActive != req.IsActive {
+		scope := normalizeModelScope(snapshot.ScopeType)
+		oldScope, newScope, suffix := scope, noticeScopeNone, "disabled"
+		if req.IsActive {
+			oldScope, newScope, suffix = noticeScopeNone, scope, "enabled"
+		}
+		notifyModelScopeChange(ctx, userId, orgId, req.ModelId, snapshot.DisplayName, oldScope, newScope, suffix)
 	}
 	return nil
 }
@@ -136,7 +204,7 @@ func ListTypeModels(ctx *gin.Context, userId, orgId string, req *request.ListTyp
 	if err != nil {
 		return nil, err
 	}
-	list, err := toModelInfos(ctx, resp.Models, &ModelInfoOptions{UserId: userId})
+	list, err := toModelInfos(ctx, resp.Models, &ModelInfoOptions{UserId: userId, OrgId: orgId})
 	if err != nil {
 		return nil, err
 	}
@@ -192,11 +260,15 @@ func CheckModelUserPermission(ctx *gin.Context, userId, orgId string, modelIds [
 }
 
 func GetModelIdByUuid(ctx *gin.Context, uuid string) (string, error) {
-	resp, err := model.GetModelByUuid(ctx, &model_service.GetModelByUuidReq{Uuid: uuid})
+	resp, err := model.GetModelByUuid(ctx.Request.Context(), &model_service.GetModelByUuidReq{Uuid: uuid})
 	if err != nil {
 		return "", err
 	}
 	return resp.ModelId, nil
+}
+
+func GetModelByUuid(ctx *gin.Context, uuid string) (*model_service.ModelInfo, error) {
+	return model.GetModelByUuid(ctx.Request.Context(), &model_service.GetModelByUuidReq{Uuid: uuid})
 }
 
 func GetModelUuidById(ctx *gin.Context, modelId string) (string, error) {
@@ -278,14 +350,17 @@ func toModelInfo(ctx *gin.Context, modelInfo *model_service.ModelInfo, opts ...*
 		return nil, err
 	}
 
-	// 判断模型是否支持 编辑
+	// 判断模型是否支持编辑
 	option := DefaultModelInfoOptions()
 	if len(opts) > 0 && opts[0] != nil {
 		if opts[0].UserId != "" {
 			option.UserId = opts[0].UserId
 		}
+		if opts[0].OrgId != "" {
+			option.OrgId = opts[0].OrgId
+		}
 	}
-	allowEdit := modelInfo.UserId == option.UserId
+	allowEdit := checkAllowEdit(modelInfo, option)
 
 	// 不支持编辑，则不展示apiKey
 	if !allowEdit && modelConfig != nil {
@@ -294,6 +369,19 @@ func toModelInfo(ctx *gin.Context, modelInfo *model_service.ModelInfo, opts ...*
 			if err = json.Unmarshal(b, &cfg); err == nil {
 				cfg["apiKey"] = "it-is-not-your-api-key"
 				modelConfig = cfg
+			}
+		}
+	}
+
+	// OCR 模型：注入 yaml 推荐配置里的 supportFileTypes（不落库，按 model 名匹配的能力描述）
+	if modelInfo.ModelType == mp.ModelTypeOcr && modelConfig != nil {
+		if fileTypes := ocrSupportFileTypes(modelInfo.Provider, modelInfo.Model); len(fileTypes) > 0 {
+			cfg := make(map[string]any)
+			if b, err := json.Marshal(modelConfig); err == nil {
+				if err = json.Unmarshal(b, &cfg); err == nil {
+					cfg["supportFileTypes"] = fileTypes
+					modelConfig = cfg
+				}
 			}
 		}
 	}
@@ -320,6 +408,46 @@ func toModelInfo(ctx *gin.Context, modelInfo *model_service.ModelInfo, opts ...*
 		ImportSource: modelInfo.ImportSource,
 	}
 	return res, nil
+}
+
+// ocrSupportFileTypes 从 yaml 推荐配置（recommend_model_config.yaml）中查找指定 provider 下与 model 名匹配的 OCR 模型，返回其支持的文件类型。
+// 匹配不到（如用户自定义导入的 OCR 模型名与推荐配置不一致）返回 nil。
+func ocrSupportFileTypes(provider, model string) []string {
+	for _, p := range config.Cfg().RecommendModels {
+		if p.Provider != provider {
+			continue
+		}
+		for _, item := range p.Ocr {
+			if item.Model == model {
+				return item.SupportFileTypes
+			}
+		}
+	}
+	return nil
+}
+
+// checkAllowEdit 检查用户是否有编辑权限
+// 编辑权限要求：创建者本人 + 组织匹配（公开模型要求在顶层组织）
+func checkAllowEdit(modelInfo *model_service.ModelInfo, option *ModelInfoOptions) bool {
+	// 首先检查是否是创建者
+	if modelInfo.UserId != option.UserId {
+		return false
+	}
+
+	// 根据模型范围类型检查组织
+	switch modelInfo.ScopeType {
+	case config.ModelScopeTypePrivate:
+		// 私有模型：创建者 + 组织匹配
+		return modelInfo.OrgId == option.OrgId
+	case config.ModelScopeTypePublic:
+		// 公开模型：创建者 + 必须在顶层组织操作
+		return option.OrgId == config.TopOrgID
+	case config.ModelScopeTypeOrg:
+		// 组织模型：创建者 + 组织匹配
+		return modelInfo.OrgId == option.OrgId
+	default:
+		return false
+	}
 }
 
 // getModelAllTags 获取模型所有标签
@@ -396,12 +524,15 @@ func GetRecommendModels(_ *gin.Context, req *request.RecommendModelsRequest) (*r
 }
 
 func getModelsByType(p config.RecommendModelsByProvider, modelType string) []response.RecommendModel {
+	// OCR 使用独立的 RecommendModelItemOCR 结构（带 SupportFileTypes），单独转换
+	if modelType == mp.ModelTypeOcr {
+		return convertRecommendModelsOCR(p.Ocr)
+	}
 	modelMap := map[string][]config.RecommendModelItem{
 		mp.ModelTypeTextEmbedding:  p.Embedding,
 		mp.ModelTypeMultiEmbedding: p.MultiEmbedding,
 		mp.ModelTypeTextRerank:     p.Rerank,
 		mp.ModelTypeMultiRerank:    p.MultiRerank,
-		mp.ModelTypeOcr:            p.Ocr,
 		mp.ModelTypeGui:            p.Gui,
 		mp.ModelTypePdfParser:      p.PdfParser,
 		mp.ModelTypeSyncAsr:        p.SyncAsr,
@@ -413,6 +544,17 @@ func getModelsByType(p config.RecommendModelsByProvider, modelType string) []res
 }
 
 func convertRecommendModels(items []config.RecommendModelItem) []response.RecommendModel {
+	result := make([]response.RecommendModel, 0, len(items))
+	for _, item := range items {
+		result = append(result, response.RecommendModel{
+			Model:       item.Model,
+			DisplayName: item.DisplayName,
+		})
+	}
+	return result
+}
+
+func convertRecommendModelsOCR(items []config.RecommendModelItemOCR) []response.RecommendModel {
 	result := make([]response.RecommendModel, 0, len(items))
 	for _, item := range items {
 		result = append(result, response.RecommendModel{

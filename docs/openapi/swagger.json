@@ -28,6 +28,38 @@
             }
         },
         "/agent": {
+            "put": {
+                "description": "修改智能体的名称、描述、图标等基本信息（不涉及开场白、大模型等高级配置，后者请使用 /agent/config）。通过 assistantUuid 定位智能体。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "更新智能体基本信息OpenAPI",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OpenAPIUpdateAgentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "创建智能体OpenAPI",
                 "consumes": [
@@ -68,6 +100,33 @@
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除指定智能体，同时删除其已发布版本。删除后不可恢复，请谨慎操作。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "删除智能体OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "智能体UUID",
+                        "name": "uuid",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -115,7 +174,7 @@
         },
         "/agent/chat/draft": {
             "post": {
-                "description": "智能体草稿态对话OpenAPI，基于草稿配置进行问答，不要求智能体已发布，不计入统计",
+                "description": "智能体草稿态对话OpenAPI，基于草稿配置进行问答，不要求智能体已发布，计入统计",
                 "consumes": [
                     "application/json"
                 ],
@@ -155,7 +214,7 @@
         },
         "/agent/config": {
             "put": {
-                "description": "更新智能体配置OpenAPI",
+                "description": "更新开场白、提示词、模型、知识库等配置。除 assistantUuid 外均为可选，只传要改的字段，未传的沿用当前草稿配置；模型 id 传模型UUID。",
                 "consumes": [
                     "application/json"
                 ],
@@ -231,6 +290,313 @@
                         }
                     }
                 }
+            },
+            "delete": {
+                "description": "删除整个对话（含 conversation 主体及所有历史消息）。如需按条删除消息或仅清空消息保留对话 ID，请使用 /agent/conversation/clear。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "删除智能体对话OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "对话ID",
+                        "name": "conversation_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/agent/conversation/clear": {
+            "delete": {
+                "description": "对指定对话的消息（ES 数据）进行清理：传入 detail_id 则仅删除该条消息；不传则清空整个对话的全部消息。两种情况下 conversation_id 均保留，可继续发起新的问答。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "清空/按条删除智能体对话消息OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "对话ID",
+                        "name": "conversation_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "消息ID（不传则清空整个对话的全部消息）",
+                        "name": "detail_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/agent/conversation/detail": {
+            "get": {
+                "description": "获取指定对话的历史消息列表（问答明细），分页返回。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "智能体对话历史消息OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "对话ID（由创建对话接口返回）",
+                        "name": "conversation_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码，从 1 开始",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数，从 1 开始",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ConversationDetailInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/agent/conversation/draft": {
+            "delete": {
+                "description": "删除草稿智能体对话历史。传入 detail_id 则只删除该条消息，不传则清空全部历史（会话 ID 保留）。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "删除草稿态智能体对话历史OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "智能体UUID",
+                        "name": "uuid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "消息ID（不传则清空全部）",
+                        "name": "detail_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/agent/conversation/draft/detail": {
+            "get": {
+                "description": "获取指定草稿智能体的对话历史消息。草稿态每个智能体只维护一条会话，通过 uuid 定位后分页返回消息列表。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "草稿态智能体对话历史消息OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "智能体UUID",
+                        "name": "uuid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码，从 1 开始",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数，从 1 开始",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ConversationDetailInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/agent/conversation/list": {
+            "get": {
+                "description": "获取指定智能体的已发布对话列表，按创建时间降序排列。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "智能体对话列表OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "智能体UUID",
+                        "name": "uuid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码，从 1 开始",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数，从 1 开始",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ConversationInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
             }
         },
         "/agent/info": {
@@ -274,6 +640,46 @@
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.Assistant"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/agent/list": {
+            "get": {
+                "description": "获取当前 API Key 所属用户下的全部智能体（含草稿与已发布），可按名称模糊筛选。返回的 uuid 字段可用于其他智能体接口。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "智能体列表OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "按名称模糊筛选（可选）",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.OpenAPIAgentListResponse"
                                         }
                                     }
                                 }
@@ -388,6 +794,84 @@
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.OpenAPIChatflowCreateConversationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "对话流删除会话OpenAPI",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "对话流删除会话OpenAPI",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OpenAPIChatflowDeleteConversationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/chatflow/conversation/list": {
+            "post": {
+                "description": "对话流获取会话列表OpenAPI",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "对话流获取会话列表OpenAPI",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OpenAPIChatflowGetConversationListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.OpenAPIChatflowConversationListResponse"
                                         }
                                     }
                                 }
@@ -888,13 +1372,640 @@
                         "schema": {
                             "allOf": [
                                 {
+                                    "$ref": "#/definitions/response.PageResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "list": {
+                                            "$ref": "#/definitions/response.ListDocResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/meta/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "按文档id列表查询各文档的元数据值",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "获取文档元数据值列表",
+                "parameters": [
+                    {
+                        "description": "获取文档元数据值列表请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeMetaValueListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
                                     "$ref": "#/definitions/response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/response.DocPageResult"
+                                            "$ref": "#/definitions/response.KnowledgeMetaValueListResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/meta/update": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "批量更新文档的元数据值；key需已在知识库元数据中定义，option为add时不存在则新增、已存在则覆盖，update仅在已存在时更新",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "更新文档元数据值",
+                "parameters": [
+                    {
+                        "description": "更新文档元数据值请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeDocMetaValueOpenapiReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/batch/create": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "通过csv文件批量新增文档切片",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "批量新增文档切片",
+                "parameters": [
+                    {
+                        "description": "批量新增文档切片请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.BatchCreateDocSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/child/create": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "新增文档子分段；多模态知识库的分段内容可包含图片markdown，普通知识库不允许",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "新增子分段",
+                "parameters": [
+                    {
+                        "description": "新增子分段请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateDocChildSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/child/delete": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "删除文档子分段",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "删除子分段",
+                "parameters": [
+                    {
+                        "description": "删除子分段请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteDocChildSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/child/list": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取子分段列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "获取子分段列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "contentId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "docId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.DocChildSegmentResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/child/update": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "更新文档子分段；多模态知识库的分段内容可包含图片markdown，普通知识库不允许",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "更新子分段",
+                "parameters": [
+                    {
+                        "description": "更新子分段请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateDocChildSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/create": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "新增单条文档切片；多模态知识库的切片内容可包含图片markdown，普通知识库不允许",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "新增文档切片",
+                "parameters": [
+                    {
+                        "description": "新增文档切片请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateDocSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/delete": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "删除文档切片",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "删除文档切片",
+                "parameters": [
+                    {
+                        "description": "删除文档切片请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteDocSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/image/upload": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "上传分段图片并返回markdown格式url，仅多模态知识库可用；返回的url可拼接进切片content中",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "分段图片上传",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "知识库id",
+                        "name": "knowledgeId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "图片文件(png/jpg/jpeg)",
+                        "name": "files",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.RagUploadResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/labels": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "更新文档切片标签",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "更新文档切片标签",
+                "parameters": [
+                    {
+                        "description": "更新文档切片标签请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DocSegmentLabelsReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/list": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取文档切分结果",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "获取文档切分结果",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "docId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageNo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.DocSegmentResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/status/update": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "更新文档切片启用状态",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "更新文档切片启用状态",
+                "parameters": [
+                    {
+                        "description": "更新文档切片启用状态请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateDocSegmentStatusReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/update": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "更新文档切片；多模态知识库的切片内容可包含图片markdown，普通知识库不允许",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "更新文档切片",
+                "parameters": [
+                    {
+                        "description": "更新文档切片请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateDocSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.UpdateDocSegmentResp"
                                         }
                                     }
                                 }
@@ -1088,6 +2199,93 @@
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/meta/list": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取知识库已定义的元数据key列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "获取知识库元数据key列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "knowledgeId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.GetKnowledgeMetaSelectResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/meta/update": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "新增/修改/删除知识库的元数据key定义；文档元数据值的读写见 /knowledge/doc/meta/list 与 /knowledge/doc/meta/update",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "定义知识库元数据key",
+                "parameters": [
+                    {
+                        "description": "定义知识库元数据key请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeMetaKeyOpenapiReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -1574,6 +2772,111 @@
                 }
             }
         },
+        "/rag": {
+            "put": {
+                "description": "修改名称、描述、图标等基本信息（模型、知识库等高级配置请使用 /rag/config）。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "更新知识问答基本信息OpenAPI",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OpenAPIUpdateRagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建一个知识问答应用（草稿态）。返回的 uuid 用于后续配置、发布与问答接口。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "创建知识问答OpenAPI",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OpenAPICreateRagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.OpenAPICreateRagResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除指定知识问答，同时删除其已发布版本。删除后不可恢复，请谨慎操作。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "删除知识问答OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "知识问答UUID",
+                        "name": "uuid",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/rag/chat": {
             "post": {
                 "description": "文本问答OpenAPI",
@@ -1609,6 +2912,938 @@
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/chat/draft": {
+            "post": {
+                "description": "基于草稿配置问答，不要求已发布，计入统计。响应格式与 /rag/chat 一致（stream=true 为 SSE，否则为一次性 JSON）。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "知识问答草稿态问答OpenAPI",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OpenAPIRagDraftChatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.OpenAPIRagChatResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/config": {
+            "put": {
+                "description": "更新模型、知识库、问答库、安全护栏等配置。除 uuid 外均为可选，只传要改的字段，未传的沿用当前草稿配置；模型 id 传模型UUID。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "更新知识问答配置OpenAPI",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OpenAPIRagConfigUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/conversation": {
+            "post": {
+                "description": "创建一条会话，返回的 conversation_id 用于 /rag/chat 携带上下文。不传 conversation_id 的问答不落历史。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "知识问答创建会话OpenAPI",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OpenAPIRagCreateConversationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.OpenAPIRagCreateConversationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除整条会话（含全部历史消息）。只想清空消息、保留会话ID请用 /rag/conversation/clear。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "删除知识问答会话OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "知识问答UUID",
+                        "name": "uuid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "会话ID",
+                        "name": "conversation_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/conversation/clear": {
+            "delete": {
+                "description": "传 detail_id 只删该条问答，不传则清空整条会话的全部消息。两种情况会话ID都保留，可继续提问。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "清空/按条删除知识问答会话消息OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "知识问答UUID",
+                        "name": "uuid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "会话ID",
+                        "name": "conversation_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "问答明细ID（不传则清空全部）",
+                        "name": "detail_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/conversation/detail": {
+            "get": {
+                "description": "获取指定会话的历史问答明细，分页返回，含检索命中列表与耗时。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "知识问答会话历史消息OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "知识问答UUID",
+                        "name": "uuid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "会话ID（由创建会话接口返回）",
+                        "name": "conversation_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码，从 1 开始",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数，从 1 开始",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.RagConversationDetailInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/conversation/draft": {
+            "delete": {
+                "description": "传 detail_id 只删该条问答，不传则删除整条草稿会话。草稿会话尚未创建时直接返回成功。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "删除草稿知识问答会话消息OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "知识问答UUID",
+                        "name": "uuid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "问答明细ID（不传则删除整条草稿会话）",
+                        "name": "detail_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/conversation/draft/detail": {
+            "get": {
+                "description": "草稿态每个知识问答只维护一条会话，按 uuid 定位后分页返回问答明细。尚未发起过对话时返回空列表。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "草稿知识问答会话历史消息OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "知识问答UUID",
+                        "name": "uuid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码，从 1 开始",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数，从 1 开始",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.RagConversationDetailInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/conversation/list": {
+            "get": {
+                "description": "获取指定知识问答下的会话列表，按创建时间降序排列。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "知识问答会话列表OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "知识问答UUID",
+                        "name": "uuid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码，从 1 开始",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数，从 1 开始",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.RagConversationInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/info": {
+            "get": {
+                "description": "获取知识问答详情，通过 published 参数控制返回草稿态或已发布态配置。返回中的模型 id 均为模型UUID。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "获取知识问答详情OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "知识问答UUID",
+                        "name": "uuid",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "true=已发布态，false=草稿态（默认）",
+                        "name": "published",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.RagInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/list": {
+            "get": {
+                "description": "获取当前 API Key 所属用户下的全部知识问答（含草稿与已发布），可按名称模糊筛选。返回的 uuid 可用于其他知识问答接口。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "知识问答列表OpenAPI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "按名称模糊筛选（可选）",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.OpenAPIRagListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/publish": {
+            "post": {
+                "description": "发布知识问答，发布后可通过 /rag/chat 进行正式问答。发布前需先配置对话模型。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "发布知识问答OpenAPI",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OpenAPIRagPublishRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/wga/conversation": {
+            "post": {
+                "security": [
+                    {
+                        "OpenAPIKey": []
+                    }
+                ],
+                "description": "创建通用智能体对话（通过 modelUuid 指定模型）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "创建WGA对话",
+                "parameters": [
+                    {
+                        "description": "创建对话请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OpenAPIWgaCreateConversationReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.CreateGeneralAgentConversationResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "OpenAPIKey": []
+                    }
+                ],
+                "description": "删除通用智能体对话",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "删除WGA对话",
+                "parameters": [
+                    {
+                        "description": "删除对话请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteGeneralAgentConversationReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/wga/conversation/chat": {
+            "post": {
+                "security": [
+                    {
+                        "OpenAPIKey": []
+                    }
+                ],
+                "description": "发送消息并接收AG-UI SSE事件流（modelUuid 必填）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "WGA对话流",
+                "parameters": [
+                    {
+                        "description": "对话流请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.OpenAPIWgaConversationChatReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE流式返回",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/wga/conversation/detail": {
+            "get": {
+                "security": [
+                    {
+                        "OpenAPIKey": []
+                    }
+                ],
+                "description": "获取指定会话的对话详情，包含AG-UI事件流历史",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "WGA对话详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "对话ID",
+                        "name": "threadId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.GeneralAgentConversationDetailInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/wga/conversation/list": {
+            "get": {
+                "security": [
+                    {
+                        "OpenAPIKey": []
+                    }
+                ],
+                "description": "获取通用智能体对话历史列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "WGA对话列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码，从1开始",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页条数",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.GeneralAgentConversationInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/wga/conversation/workspace": {
+            "get": {
+                "security": [
+                    {
+                        "OpenAPIKey": []
+                    }
+                ],
+                "description": "获取工作区目录结构和文件列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "WGA工作区目录树",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "对话ID",
+                        "name": "threadId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "运行ID",
+                        "name": "runId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.GeneralAgentWorkspaceResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/wga/conversation/workspace/download": {
+            "get": {
+                "security": [
+                    {
+                        "OpenAPIKey": []
+                    }
+                ],
+                "description": "下载工作区中的文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "WGA工作区文件下载",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "对话ID",
+                        "name": "threadId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "运行ID",
+                        "name": "runId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "文件路径",
+                        "name": "path",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
                         }
                     }
                 }
@@ -1831,167 +4066,6 @@
                 }
             }
         },
-        "mp.ProviderModelByDeepSeek": {
-            "type": "object",
-            "properties": {
-                "llm": {
-                    "$ref": "#/definitions/mp_deepseek.LLM"
-                }
-            }
-        },
-        "mp.ProviderModelByHuoShan": {
-            "type": "object",
-            "properties": {
-                "embedding": {
-                    "$ref": "#/definitions/mp_huoshan.Embedding"
-                },
-                "llm": {
-                    "$ref": "#/definitions/mp_huoshan.LLM"
-                }
-            }
-        },
-        "mp.ProviderModelByInfini": {
-            "type": "object",
-            "properties": {
-                "embedding": {
-                    "$ref": "#/definitions/mp_infini.Embedding"
-                },
-                "llm": {
-                    "$ref": "#/definitions/mp_infini.LLM"
-                },
-                "rerank": {
-                    "$ref": "#/definitions/mp_infini.Rerank"
-                }
-            }
-        },
-        "mp.ProviderModelByOllama": {
-            "type": "object",
-            "properties": {
-                "embedding": {
-                    "$ref": "#/definitions/mp_ollama.Embedding"
-                },
-                "llm": {
-                    "$ref": "#/definitions/mp_ollama.LLM"
-                }
-            }
-        },
-        "mp.ProviderModelByOpenAICompatible": {
-            "type": "object",
-            "properties": {
-                "embedding": {
-                    "$ref": "#/definitions/mp_openai_compatible.Embedding"
-                },
-                "llm": {
-                    "$ref": "#/definitions/mp_openai_compatible.LLM"
-                },
-                "rerank": {
-                    "$ref": "#/definitions/mp_openai_compatible.Rerank"
-                }
-            }
-        },
-        "mp.ProviderModelByQianFan": {
-            "type": "object",
-            "properties": {
-                "embedding": {
-                    "$ref": "#/definitions/mp_qianfan.Embedding"
-                },
-                "llm": {
-                    "$ref": "#/definitions/mp_qianfan.LLM"
-                },
-                "rerank": {
-                    "$ref": "#/definitions/mp_qianfan.Rerank"
-                }
-            }
-        },
-        "mp.ProviderModelByQwen": {
-            "type": "object",
-            "properties": {
-                "embedding": {
-                    "$ref": "#/definitions/mp_qwen.Embedding"
-                },
-                "llm": {
-                    "$ref": "#/definitions/mp_qwen.LLM"
-                },
-                "multiModalEmbedding": {
-                    "$ref": "#/definitions/mp_qwen.MultiModalEmbedding"
-                },
-                "multiModalRerank": {
-                    "$ref": "#/definitions/mp_qwen.MultiModalRerank"
-                },
-                "rerank": {
-                    "$ref": "#/definitions/mp_qwen.Rerank"
-                }
-            }
-        },
-        "mp.ProviderModelByYuanjing": {
-            "type": "object",
-            "properties": {
-                "embedding": {
-                    "$ref": "#/definitions/mp_yuanjing.Embedding"
-                },
-                "gui": {
-                    "$ref": "#/definitions/mp_yuanjing.Gui"
-                },
-                "llm": {
-                    "$ref": "#/definitions/mp_yuanjing.LLM"
-                },
-                "ocr": {
-                    "$ref": "#/definitions/mp_yuanjing.Ocr"
-                },
-                "pdf-parser": {
-                    "$ref": "#/definitions/mp_yuanjing.PdfParser"
-                },
-                "rerank": {
-                    "$ref": "#/definitions/mp_yuanjing.Rerank"
-                }
-            }
-        },
-        "mp.ProviderModelByZhipu": {
-            "type": "object",
-            "properties": {
-                "embedding": {
-                    "$ref": "#/definitions/mp_zhipu.Embedding"
-                },
-                "llm": {
-                    "$ref": "#/definitions/mp_zhipu.LLM"
-                },
-                "rerank": {
-                    "$ref": "#/definitions/mp_zhipu.Rerank"
-                }
-            }
-        },
-        "mp.ProviderModelConfig": {
-            "type": "object",
-            "properties": {
-                "providerDeepSeek": {
-                    "$ref": "#/definitions/mp.ProviderModelByDeepSeek"
-                },
-                "providerHuoShan": {
-                    "$ref": "#/definitions/mp.ProviderModelByHuoShan"
-                },
-                "providerInfini": {
-                    "$ref": "#/definitions/mp.ProviderModelByInfini"
-                },
-                "providerOllama": {
-                    "$ref": "#/definitions/mp.ProviderModelByOllama"
-                },
-                "providerOpenAICompatible": {
-                    "$ref": "#/definitions/mp.ProviderModelByOpenAICompatible"
-                },
-                "providerQianFan": {
-                    "$ref": "#/definitions/mp.ProviderModelByQianFan"
-                },
-                "providerQwen": {
-                    "$ref": "#/definitions/mp.ProviderModelByQwen"
-                },
-                "providerYuanJing": {
-                    "$ref": "#/definitions/mp.ProviderModelByYuanjing"
-                },
-                "providerZhipu": {
-                    "$ref": "#/definitions/mp.ProviderModelByZhipu"
-                }
-            }
-        },
         "mp_common.LLMParams": {
             "type": "object",
             "properties": {
@@ -2049,773 +4123,6 @@
                 }
             }
         },
-        "mp_deepseek.LLM": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                },
-                "functionCalling": {
-                    "description": "函数调用是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "toolCall"
-                    ]
-                },
-                "maxImageSize": {
-                    "description": "最大图片大小限制",
-                    "type": "integer"
-                },
-                "maxTokens": {
-                    "description": "模型回答最大tokens",
-                    "type": "integer"
-                },
-                "thinkingSupport": {
-                    "description": "深度思考是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                },
-                "visionSupport": {
-                    "description": "视觉支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                }
-            }
-        },
-        "mp_huoshan.Embedding": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_huoshan.LLM": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                },
-                "functionCalling": {
-                    "description": "函数调用是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "toolCall"
-                    ]
-                },
-                "maxImageSize": {
-                    "description": "最大图片大小限制",
-                    "type": "integer"
-                },
-                "maxTokens": {
-                    "description": "模型回答最大tokens",
-                    "type": "integer"
-                },
-                "thinkingSupport": {
-                    "description": "深度思考是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                },
-                "visionSupport": {
-                    "description": "视觉支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                }
-            }
-        },
-        "mp_infini.Embedding": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_infini.LLM": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                },
-                "functionCalling": {
-                    "description": "函数调用是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "toolCall"
-                    ]
-                },
-                "maxImageSize": {
-                    "description": "最大图片大小限制",
-                    "type": "integer"
-                },
-                "maxTokens": {
-                    "description": "模型回答最大tokens",
-                    "type": "integer"
-                },
-                "thinkingSupport": {
-                    "description": "深度思考是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                },
-                "visionSupport": {
-                    "description": "视觉支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                }
-            }
-        },
-        "mp_infini.Rerank": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_ollama.Embedding": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_ollama.LLM": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                },
-                "functionCalling": {
-                    "description": "函数调用是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "toolCall"
-                    ]
-                },
-                "maxTokens": {
-                    "description": "模型回答最大tokens",
-                    "type": "integer"
-                },
-                "thinkingSupport": {
-                    "description": "深度思考是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                },
-                "visionSupport": {
-                    "description": "视觉支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                }
-            }
-        },
-        "mp_openai_compatible.Embedding": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_openai_compatible.LLM": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                },
-                "functionCalling": {
-                    "description": "函数调用是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "toolCall"
-                    ]
-                },
-                "maxImageSize": {
-                    "description": "最大图片大小限制",
-                    "type": "integer"
-                },
-                "maxTokens": {
-                    "description": "模型回答最大tokens",
-                    "type": "integer"
-                },
-                "thinkingSupport": {
-                    "description": "深度思考是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                },
-                "visionSupport": {
-                    "description": "视觉支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                }
-            }
-        },
-        "mp_openai_compatible.Rerank": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_qianfan.Embedding": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_qianfan.LLM": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                },
-                "functionCalling": {
-                    "description": "函数调用是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "toolCall"
-                    ]
-                },
-                "maxImageSize": {
-                    "description": "最大图片大小限制",
-                    "type": "integer"
-                },
-                "maxTokens": {
-                    "description": "模型回答最大tokens",
-                    "type": "integer"
-                },
-                "thinkingSupport": {
-                    "description": "深度思考是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                },
-                "visionSupport": {
-                    "description": "视觉支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                }
-            }
-        },
-        "mp_qianfan.Rerank": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_qwen.Embedding": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_qwen.LLM": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                },
-                "functionCalling": {
-                    "description": "函数调用是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "toolCall"
-                    ]
-                },
-                "maxImageSize": {
-                    "description": "最大图片大小限制",
-                    "type": "integer"
-                },
-                "maxTokens": {
-                    "description": "模型回答最大tokens",
-                    "type": "integer"
-                },
-                "thinkingSupport": {
-                    "description": "深度思考是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                },
-                "visionSupport": {
-                    "description": "视觉支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                }
-            }
-        },
-        "mp_qwen.MultiModalEmbedding": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "type": "string"
-                },
-                "contextSize": {
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "type": "string"
-                },
-                "maxImageSize": {
-                    "type": "integer"
-                },
-                "maxTextLength": {
-                    "type": "integer"
-                },
-                "maxVideoClipSize": {
-                    "type": "integer"
-                },
-                "supportFileTypes": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "mp_qwen.MultiModalRerank": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "type": "string"
-                },
-                "contextSize": {
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "type": "string"
-                },
-                "maxImageSize": {
-                    "type": "integer"
-                },
-                "maxTextLength": {
-                    "type": "integer"
-                },
-                "maxVideoClipSize": {
-                    "type": "integer"
-                },
-                "supportFileTypes": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "supportImageInQuery": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "mp_qwen.Rerank": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_yuanjing.Embedding": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_yuanjing.Gui": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_yuanjing.LLM": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                },
-                "functionCalling": {
-                    "description": "函数调用是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "toolCall"
-                    ]
-                },
-                "maxImageSize": {
-                    "description": "最大图片大小限制",
-                    "type": "integer"
-                },
-                "maxTokens": {
-                    "description": "模型回答最大tokens",
-                    "type": "integer"
-                },
-                "thinkingSupport": {
-                    "description": "深度思考是否支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                },
-                "visionSupport": {
-                    "description": "视觉支持",
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                }
-            }
-        },
-        "mp_yuanjing.Ocr": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_yuanjing.PdfParser": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_yuanjing.Rerank": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_zhipu.Embedding": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
-        "mp_zhipu.LLM": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "type": "string"
-                },
-                "contextSize": {
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "type": "string"
-                },
-                "functionCalling": {
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "toolCall"
-                    ]
-                },
-                "maxImageSize": {
-                    "type": "integer"
-                },
-                "maxTokens": {
-                    "type": "integer"
-                },
-                "thinkingSupport": {
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                },
-                "visionSupport": {
-                    "type": "string",
-                    "enum": [
-                        "noSupport",
-                        "support"
-                    ]
-                }
-            }
-        },
-        "mp_zhipu.Rerank": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "ApiKey",
-                    "type": "string"
-                },
-                "contextSize": {
-                    "description": "上下文长度",
-                    "type": "integer"
-                },
-                "endpointUrl": {
-                    "description": "推理url",
-                    "type": "string"
-                }
-            }
-        },
         "oauth2_util.JWK": {
             "type": "object",
             "properties": {
@@ -2856,6 +4163,10 @@
                 "category": {
                     "description": "知识库类别 0-知识库，1-问答库，2-多模态知识库",
                     "type": "integer"
+                },
+                "description": {
+                    "description": "知识库描述",
+                    "type": "string"
                 },
                 "external": {
                     "description": "外部数据库标识",
@@ -2986,6 +4297,109 @@
                 }
             }
         },
+        "request.AppPublishConfig": {
+            "type": "object",
+            "properties": {
+                "publishType": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.AppQAKnowledgeBase": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "avatar": {
+                    "description": "头像",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "category": {
+                    "description": "知识库类别 0-知识库，1-问答库，2-多模态知识库",
+                    "type": "integer"
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "知识库id",
+                    "type": "string"
+                },
+                "metaDataFilterParams": {
+                    "$ref": "#/definitions/request.MetaDataFilterParams"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "orgName": {
+                    "description": "知识库所属名称",
+                    "type": "string"
+                },
+                "share": {
+                    "description": "是分享，还是私有",
+                    "type": "boolean"
+                }
+            }
+        },
+        "request.AppQAKnowledgebaseConfig": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "description": "问答库参数",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppQAKnowledgebaseParams"
+                        }
+                    ]
+                },
+                "knowledgebases": {
+                    "description": "问答库id、名字",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.AppQAKnowledgeBase"
+                    }
+                }
+            }
+        },
+        "request.AppQAKnowledgebaseParams": {
+            "type": "object",
+            "properties": {
+                "keywordPriority": {
+                    "description": "关键词权重",
+                    "type": "number"
+                },
+                "matchType": {
+                    "description": "matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）",
+                    "type": "string"
+                },
+                "maxHistory": {
+                    "description": "最长上下文",
+                    "type": "integer"
+                },
+                "priorityMatch": {
+                    "description": "权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1",
+                    "type": "integer"
+                },
+                "semanticsPriority": {
+                    "description": "语义权重",
+                    "type": "number"
+                },
+                "threshold": {
+                    "description": "过滤阈值",
+                    "type": "number"
+                },
+                "topK": {
+                    "description": "知识条数",
+                    "type": "integer"
+                }
+            }
+        },
         "request.AppSafetyConfig": {
             "type": "object",
             "properties": {
@@ -3022,6 +4436,36 @@
                 }
             }
         },
+        "request.BatchCreateDocSegmentReq": {
+            "type": "object",
+            "required": [
+                "docId",
+                "fileUploadId"
+            ],
+            "properties": {
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                },
+                "fileUploadId": {
+                    "description": "fileUploadId",
+                    "type": "string"
+                }
+            }
+        },
+        "request.ChildChunk": {
+            "type": "object",
+            "properties": {
+                "chunkNo": {
+                    "description": "子分段序列号",
+                    "type": "integer"
+                },
+                "content": {
+                    "description": "子分段内容",
+                    "type": "string"
+                }
+            }
+        },
         "request.ConversionStreamFile": {
             "type": "object",
             "properties": {
@@ -3033,6 +4477,56 @@
                 },
                 "fileUrl": {
                     "type": "string"
+                }
+            }
+        },
+        "request.CreateDocChildSegmentReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "docId",
+                "parentId"
+            ],
+            "properties": {
+                "content": {
+                    "description": "分段内容",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                },
+                "parentId": {
+                    "description": "父分段id",
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateDocSegmentReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "docId",
+                "labels"
+            ],
+            "properties": {
+                "content": {
+                    "description": "分段内容",
+                    "type": "string"
+                },
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                },
+                "labels": {
+                    "description": "关键词列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -3069,6 +4563,35 @@
                 }
             }
         },
+        "request.DeleteDocChildSegmentReq": {
+            "type": "object",
+            "required": [
+                "childChunkNoList",
+                "docId",
+                "parentId"
+            ],
+            "properties": {
+                "childChunkNoList": {
+                    "description": "子分段序列号列表",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                },
+                "parentChunkNo": {
+                    "description": "父分段序列号",
+                    "type": "integer"
+                },
+                "parentId": {
+                    "description": "父分段id",
+                    "type": "string"
+                }
+            }
+        },
         "request.DeleteDocReq": {
             "type": "object",
             "required": [
@@ -3083,6 +4606,34 @@
                     }
                 },
                 "knowledgeId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.DeleteDocSegmentReq": {
+            "type": "object",
+            "required": [
+                "contentId",
+                "docId"
+            ],
+            "properties": {
+                "contentId": {
+                    "type": "string"
+                },
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                }
+            }
+        },
+        "request.DeleteGeneralAgentConversationReq": {
+            "type": "object",
+            "required": [
+                "threadId"
+            ],
+            "properties": {
+                "threadId": {
+                    "description": "对话ID",
                     "type": "string"
                 }
             }
@@ -3301,7 +4852,20 @@
                 "knowledgeId": {
                     "type": "string"
                 },
+                "metaEndTime": {
+                    "description": "metaType=time 时的结束时间戳(毫秒，字符串)",
+                    "type": "string"
+                },
+                "metaStartTime": {
+                    "description": "metaType=time 时的起始时间戳(毫秒，字符串)",
+                    "type": "string"
+                },
+                "metaType": {
+                    "description": "元数据类型：string/number/time，为空时按旧逻辑(metaValue 模糊匹配，排除 time)",
+                    "type": "string"
+                },
                 "metaValue": {
+                    "description": "元数据值，metaType 为 string/number 时使用",
                     "type": "string"
                 },
                 "pageNo": {
@@ -3390,6 +4954,28 @@
                 }
             }
         },
+        "request.DocSegmentLabelsReq": {
+            "type": "object",
+            "required": [
+                "contentId",
+                "docId",
+                "labels"
+            ],
+            "properties": {
+                "contentId": {
+                    "type": "string"
+                },
+                "docId": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.EmbeddingModel": {
             "type": "object",
             "required": [
@@ -3401,16 +4987,22 @@
                 }
             }
         },
-        "request.History": {
+        "request.GeneralAgentConversationMessage": {
             "type": "object",
+            "required": [
+                "content",
+                "role"
+            ],
             "properties": {
-                "needHistory": {
-                    "type": "boolean"
+                "content": {
+                    "description": "内容 string 或者 [{\"type\":\"text\",\"text\":\"这张图片是什么？\"},{\"type\":\"binary\",\"mimeType\":\"image/png\",\"url\":\"https://...\"}]"
                 },
-                "query": {
+                "id": {
+                    "description": "消息id",
                     "type": "string"
                 },
-                "response": {
+                "role": {
+                    "description": "角色 user",
                     "type": "string"
                 }
             }
@@ -3431,6 +5023,33 @@
                 "knowledgeId": {
                     "description": "知识库id",
                     "type": "string"
+                }
+            }
+        },
+        "request.KnowledgeDocMetaValueOpenapiReq": {
+            "type": "object",
+            "required": [
+                "docIdList",
+                "knowledgeId",
+                "metaValueList"
+            ],
+            "properties": {
+                "docIdList": {
+                    "description": "文档id列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
+                },
+                "metaValueList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.KnowledgeMetaValueItem"
+                    }
                 }
             }
         },
@@ -3523,6 +5142,93 @@
                 "useGraph": {
                     "description": "是否使用知识图谱",
                     "type": "boolean"
+                }
+            }
+        },
+        "request.KnowledgeMetaKeyItem": {
+            "type": "object",
+            "required": [
+                "option"
+            ],
+            "properties": {
+                "metaId": {
+                    "description": "元数据id，option 为 update/delete 时必填",
+                    "type": "string"
+                },
+                "metaKey": {
+                    "description": "key，只能包含小写字母、数字和下划线，且以小写字母开头，option 为 add/update 时必填",
+                    "type": "string"
+                },
+                "metaValueType": {
+                    "description": "值类型：string/number/time，option 为 add/update 时必填",
+                    "type": "string"
+                },
+                "option": {
+                    "description": "操作类型：add(新增)、update(修改)、delete(删除)",
+                    "type": "string"
+                }
+            }
+        },
+        "request.KnowledgeMetaKeyOpenapiReq": {
+            "type": "object",
+            "required": [
+                "knowledgeId",
+                "metaKeyList"
+            ],
+            "properties": {
+                "knowledgeId": {
+                    "description": "知识库id",
+                    "type": "string"
+                },
+                "metaKeyList": {
+                    "description": "元数据key操作列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.KnowledgeMetaKeyItem"
+                    }
+                }
+            }
+        },
+        "request.KnowledgeMetaValueItem": {
+            "type": "object",
+            "required": [
+                "metaKey",
+                "option"
+            ],
+            "properties": {
+                "metaKey": {
+                    "description": "key，需已在知识库元数据中定义",
+                    "type": "string"
+                },
+                "metaValue": {
+                    "description": "值，option 为 delete 时可不填",
+                    "type": "string"
+                },
+                "metaValueType": {
+                    "description": "值类型：string/number/time，需与key的定义一致",
+                    "type": "string"
+                },
+                "option": {
+                    "description": "操作类型：add(不存在则新增、已有则覆盖)、update(仅已存在时更新)、delete(删除)",
+                    "type": "string"
+                }
+            }
+        },
+        "request.KnowledgeMetaValueListReq": {
+            "type": "object",
+            "required": [
+                "docIdList",
+                "knowledgeId"
+            ],
+            "properties": {
+                "docIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "knowledgeId": {
+                    "type": "string"
                 }
             }
         },
@@ -3691,10 +5397,12 @@
         "request.OpenAPIAgentCreateConversationRequest": {
             "type": "object",
             "required": [
+                "title",
                 "uuid"
             ],
             "properties": {
                 "title": {
+                    "description": "作为会话标题落库，为空会导致会话列表显示空白",
                     "type": "string"
                 },
                 "uuid": {
@@ -3787,6 +5495,32 @@
                 }
             }
         },
+        "request.OpenAPIChatflowDeleteConversationRequest": {
+            "type": "object",
+            "required": [
+                "conversation_id",
+                "uuid"
+            ],
+            "properties": {
+                "conversation_id": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.OpenAPIChatflowGetConversationListRequest": {
+            "type": "object",
+            "required": [
+                "uuid"
+            ],
+            "properties": {
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
         "request.OpenAPIChatflowGetConversationMessageListRequest": {
             "type": "object",
             "required": [
@@ -3833,17 +5567,47 @@
                 }
             }
         },
+        "request.OpenAPICreateRagRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "avatar": {
+                    "description": "图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "desc": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                }
+            }
+        },
         "request.OpenAPIRagChatRequest": {
             "type": "object",
             "required": [
+                "conversation_id",
                 "query",
                 "uuid"
             ],
             "properties": {
-                "history": {
+                "conversation_id": {
+                    "description": "由创建会话接口获取，口径与页面侧一致：已发布问答必须先建会话",
+                    "type": "string"
+                },
+                "file_info": {
+                    "description": "随问题携带的文件，当前仅支持 1 张图片(png/jpg/jpeg)",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/request.History"
+                        "$ref": "#/definitions/request.ConversionStreamFile"
                     }
                 },
                 "query": {
@@ -3853,6 +5617,248 @@
                     "type": "boolean"
                 },
                 "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.OpenAPIRagConfigUpdateRequest": {
+            "type": "object",
+            "required": [
+                "uuid"
+            ],
+            "properties": {
+                "knowledgeBaseConfig": {
+                    "description": "知识库",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppKnowledgebaseConfig"
+                        }
+                    ]
+                },
+                "modelConfig": {
+                    "description": "对话模型，modelId 传模型UUID",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppModelConfig"
+                        }
+                    ]
+                },
+                "qaKnowledgeBaseConfig": {
+                    "description": "问答库",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppQAKnowledgebaseConfig"
+                        }
+                    ]
+                },
+                "qaRerankConfig": {
+                    "description": "问答库Rerank模型，modelId 传模型UUID",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppModelConfig"
+                        }
+                    ]
+                },
+                "recommendQuestion": {
+                    "description": "推荐问题",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "rerankConfig": {
+                    "description": "知识库Rerank模型，modelId 传模型UUID",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppModelConfig"
+                        }
+                    ]
+                },
+                "safetyConfig": {
+                    "description": "安全护栏",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppSafetyConfig"
+                        }
+                    ]
+                },
+                "uuid": {
+                    "type": "string"
+                },
+                "visionConfig": {
+                    "description": "视觉开关",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.VisionConfig"
+                        }
+                    ]
+                }
+            }
+        },
+        "request.OpenAPIRagCreateConversationRequest": {
+            "type": "object",
+            "required": [
+                "title",
+                "uuid"
+            ],
+            "properties": {
+                "title": {
+                    "description": "会话标题，一般取首个问题",
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.OpenAPIRagDraftChatRequest": {
+            "type": "object",
+            "required": [
+                "query",
+                "uuid"
+            ],
+            "properties": {
+                "file_info": {
+                    "description": "随问题携带的文件，当前仅支持 1 张图片(png/jpg/jpeg)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ConversionStreamFile"
+                    }
+                },
+                "query": {
+                    "type": "string"
+                },
+                "stream": {
+                    "type": "boolean"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.OpenAPIRagPublishRequest": {
+            "type": "object",
+            "required": [
+                "desc",
+                "publishType",
+                "uuid",
+                "version"
+            ],
+            "properties": {
+                "desc": {
+                    "type": "string"
+                },
+                "publishType": {
+                    "description": "public:系统公开发布 organization:组织公开发布 private:私密发布",
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.OpenAPIUpdateAgentRequest": {
+            "type": "object",
+            "required": [
+                "assistantUuid",
+                "name"
+            ],
+            "properties": {
+                "assistantUuid": {
+                    "description": "智能体UUID",
+                    "type": "string"
+                },
+                "avatar": {
+                    "description": "图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "desc": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                }
+            }
+        },
+        "request.OpenAPIUpdateRagRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "uuid"
+            ],
+            "properties": {
+                "avatar": {
+                    "description": "图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "desc": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "uuid": {
+                    "description": "知识问答UUID",
+                    "type": "string"
+                }
+            }
+        },
+        "request.OpenAPIWgaConversationChatReq": {
+            "type": "object",
+            "required": [
+                "messages",
+                "threadId"
+            ],
+            "properties": {
+                "agentId": {
+                    "description": "智能体ID，可选，为空时使用默认Supervisor",
+                    "type": "string"
+                },
+                "messages": {
+                    "description": "消息列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.GeneralAgentConversationMessage"
+                    }
+                },
+                "modelUuid": {
+                    "description": "模型UUID，可选",
+                    "type": "string"
+                },
+                "threadId": {
+                    "description": "对话ID",
+                    "type": "string"
+                }
+            }
+        },
+        "request.OpenAPIWgaCreateConversationReq": {
+            "type": "object",
+            "required": [
+                "modelUuid",
+                "title"
+            ],
+            "properties": {
+                "modelUuid": {
+                    "description": "模型UUID，必填",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "标题",
                     "type": "string"
                 }
             }
@@ -3917,6 +5923,78 @@
                 }
             }
         },
+        "request.UpdateDocChildSegmentReq": {
+            "type": "object",
+            "required": [
+                "childChunk",
+                "docId",
+                "parentId"
+            ],
+            "properties": {
+                "childChunk": {
+                    "description": "子分段序列号列表",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.ChildChunk"
+                        }
+                    ]
+                },
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                },
+                "parentChunkNo": {
+                    "description": "父分段序列号",
+                    "type": "integer"
+                },
+                "parentId": {
+                    "description": "父分段id",
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateDocSegmentReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "contentId",
+                "docId"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "contentId": {
+                    "type": "string"
+                },
+                "docId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateDocSegmentStatusReq": {
+            "type": "object",
+            "required": [
+                "contentStatus",
+                "docId"
+            ],
+            "properties": {
+                "all": {
+                    "description": "all 代表全部启用，此时将忽略contentId",
+                    "type": "boolean"
+                },
+                "contentId": {
+                    "type": "string"
+                },
+                "contentStatus": {
+                    "description": "\"true\"代表打开，\"false\"代表关闭",
+                    "type": "string"
+                },
+                "docId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.UpdateKnowledgeReq": {
             "type": "object",
             "required": [
@@ -3952,6 +6030,45 @@
                 }
             }
         },
+        "response.AgentFileMeta": {
+            "type": "object",
+            "properties": {
+                "createAt": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.AgentResponseFile": {
+            "type": "object",
+            "properties": {
+                "fileType": {
+                    "type": "string"
+                },
+                "fileUrl": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "description": "扩展信息：",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.AgentFileMeta"
+                        }
+                    ]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.Assistant": {
             "type": "object",
             "required": [
@@ -3981,6 +6098,10 @@
                 "desc": {
                     "description": "描述",
                     "type": "string"
+                },
+                "hideKnowledge": {
+                    "description": "是否隐藏知识库",
+                    "type": "integer"
                 },
                 "instructions": {
                     "description": "系统提示词",
@@ -4031,6 +6152,14 @@
                 "newAgent": {
                     "description": "是否是新版本智能体",
                     "type": "boolean"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id",
+                    "type": "string"
                 },
                 "prologue": {
                     "description": "开场白",
@@ -4145,6 +6274,9 @@
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "description": {
+                    "type": "string"
+                },
                 "enable": {
                     "type": "boolean"
                 },
@@ -4169,6 +6301,20 @@
                 }
             }
         },
+        "response.AssistantRequestFile": {
+            "type": "object",
+            "properties": {
+                "fileUrl": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.AssistantSkillInfo": {
             "type": "object",
             "required": [
@@ -4180,6 +6326,9 @@
                 },
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
+                },
+                "description": {
+                    "type": "string"
                 },
                 "enable": {
                     "type": "boolean"
@@ -4194,7 +6343,8 @@
                     "type": "string",
                     "enum": [
                         "builtin",
-                        "custom"
+                        "custom",
+                        "acquired"
                     ]
                 },
                 "valid": {
@@ -4213,6 +6363,9 @@
                 },
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
+                },
+                "description": {
+                    "type": "string"
                 },
                 "enable": {
                     "type": "boolean"
@@ -4278,6 +6431,27 @@
                 }
             }
         },
+        "response.ChildSegmentInfo": {
+            "type": "object",
+            "properties": {
+                "childId": {
+                    "description": "子分段id",
+                    "type": "string"
+                },
+                "childNum": {
+                    "description": "子分段序号",
+                    "type": "integer"
+                },
+                "content": {
+                    "description": "内容",
+                    "type": "string"
+                },
+                "parentId": {
+                    "description": "父分段id",
+                    "type": "string"
+                }
+            }
+        },
         "response.ChunkSearchList": {
             "type": "object",
             "properties": {
@@ -4300,6 +6474,9 @@
                 "knowledgeName": {
                     "type": "string"
                 },
+                "metaData": {
+                    "description": "MetaData 命中片段元信息，对象内容原样透传 rag 返回（rag 侧字段名为 meta_data），如 file_name/download_link/page_num/chunk_total_num 等"
+                },
                 "rerankInfo": {
                     "type": "array",
                     "items": {
@@ -4317,11 +6494,160 @@
                 }
             }
         },
+        "response.ConversationDetailInfo": {
+            "type": "object",
+            "properties": {
+                "assistantId": {
+                    "type": "string"
+                },
+                "conversationId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "integer"
+                },
+                "createdBy": {
+                    "type": "string"
+                },
+                "feedback": {
+                    "description": "当前反馈状态: 0=无 1=点赞 2=点踩",
+                    "type": "integer"
+                },
+                "feedbackContent": {
+                    "description": "反馈文本内容",
+                    "type": "string"
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "fileSize": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "prompt": {
+                    "type": "string"
+                },
+                "qa_type": {
+                    "type": "integer"
+                },
+                "requestFiles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AssistantRequestFile"
+                    }
+                },
+                "response": {
+                    "type": "string"
+                },
+                "responseFiles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AgentResponseFile"
+                    }
+                },
+                "responseList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ConversationResponse"
+                    }
+                },
+                "searchList": {},
+                "subConversationList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SubConversation"
+                    }
+                },
+                "sysPrompt": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ConversationInfo": {
+            "type": "object",
+            "properties": {
+                "assistantId": {
+                    "type": "string"
+                },
+                "conversationId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ConversationResponse": {
+            "type": "object",
+            "properties": {
+                "errMessage": {
+                    "type": "string"
+                },
+                "errResponse": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "response": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.CreateGeneralAgentConversationResp": {
+            "type": "object",
+            "properties": {
+                "threadId": {
+                    "description": "对话ID",
+                    "type": "string"
+                }
+            }
+        },
         "response.CreateKnowledgeResp": {
             "type": "object",
             "properties": {
                 "knowledgeId": {
                     "type": "string"
+                }
+            }
+        },
+        "response.DocAnalyzerTextInfo": {
+            "type": "object",
+            "properties": {
+                "displayName": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mp_common.Tag"
+                    }
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.DocChildSegmentResp": {
+            "type": "object",
+            "properties": {
+                "contentList": {
+                    "description": "内容",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ChildSegmentInfo"
+                    }
                 }
             }
         },
@@ -4368,70 +6694,28 @@
                 }
             }
         },
-        "response.DocKnowledgeInfo": {
+        "response.DocMetaData": {
             "type": "object",
             "properties": {
-                "avatar": {
-                    "description": "头像",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/request.Avatar"
-                        }
-                    ]
-                },
-                "category": {
-                    "description": "0: 知识库 1: 问答库 2: 多模态知识库",
-                    "type": "integer"
-                },
-                "description": {
+                "metaId": {
+                    "description": "元数据id",
                     "type": "string"
                 },
-                "embeddingModel": {
-                    "$ref": "#/definitions/response.ModelInfo"
-                },
-                "graphSwitch": {
-                    "type": "integer"
-                },
-                "keywords": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.KeywordsInfo"
-                    }
-                },
-                "knowledgeId": {
+                "metaKey": {
+                    "description": "key",
                     "type": "string"
                 },
-                "knowledgeName": {
+                "metaRule": {
+                    "description": "正则表达式",
                     "type": "string"
                 },
-                "llmModelId": {
+                "metaValue": {
+                    "description": "确定值",
                     "type": "string"
                 },
-                "showGraphReport": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "response.DocPageResult": {
-            "type": "object",
-            "properties": {
-                "docKnowledgeInfo": {
-                    "$ref": "#/definitions/response.DocKnowledgeInfo"
-                },
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.ListDocResp"
-                    }
-                },
-                "pageNo": {
-                    "type": "integer"
-                },
-                "pageSize": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
+                "metaValueType": {
+                    "description": "number，time, string",
+                    "type": "string"
                 }
             }
         },
@@ -4477,6 +6761,88 @@
                 }
             }
         },
+        "response.DocSegmentResp": {
+            "type": "object",
+            "properties": {
+                "canPreview": {
+                    "description": "是否可预览",
+                    "type": "boolean"
+                },
+                "contentList": {
+                    "description": "内容",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SegmentContent"
+                    }
+                },
+                "docAnalyzerText": {
+                    "description": "文档解析类型 文字提取 / OCR解析  / 模型解析",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DocAnalyzerTextInfo"
+                    }
+                },
+                "downloadUrl": {
+                    "description": "文档对外下载地址",
+                    "type": "string"
+                },
+                "fileName": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "fileSize": {
+                    "description": "文件大小，单位字节(Byte)",
+                    "type": "integer"
+                },
+                "fileSizeStr": {
+                    "description": "文件大小的人眼友好展示",
+                    "type": "string"
+                },
+                "maxSegmentSize": {
+                    "description": "设置最大长度",
+                    "type": "integer"
+                },
+                "metaDataList": {
+                    "description": "文档元数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DocMetaData"
+                    }
+                },
+                "pageTotal": {
+                    "description": "总页数",
+                    "type": "integer"
+                },
+                "previewFailReason": {
+                    "description": "不可预览原因",
+                    "type": "string"
+                },
+                "segmentImportStatus": {
+                    "description": "分段导入状态描述",
+                    "type": "string"
+                },
+                "segmentMethod": {
+                    "description": "分段方式 父子分段/通用分段",
+                    "type": "string"
+                },
+                "segmentTotalNum": {
+                    "description": "分段数量",
+                    "type": "integer"
+                },
+                "segmentType": {
+                    "description": "分段方式 0自动分段 1自定义分段",
+                    "type": "string"
+                },
+                "splitter": {
+                    "description": "分隔符（只有自定义分段必填）",
+                    "type": "string"
+                },
+                "uploadTime": {
+                    "description": "上传时间",
+                    "type": "string"
+                }
+            }
+        },
         "response.EmbeddingModelInfo": {
             "type": "object",
             "properties": {
@@ -4485,32 +6851,118 @@
                 }
             }
         },
-        "response.KeywordsInfo": {
+        "response.GeneralAgentConversationDetailInfo": {
             "type": "object",
             "properties": {
-                "alias": {
-                    "type": "string"
-                },
-                "id": {
+                "createdAt": {
                     "type": "integer"
                 },
-                "knowledgeBaseIds": {
+                "events": {
+                    "type": "array",
+                    "items": {}
+                },
+                "runId": {
+                    "type": "string"
+                },
+                "threadId": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GeneralAgentConversationInfo": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "isSkillConversation": {
+                    "description": "是否为skill对话",
+                    "type": "boolean"
+                },
+                "previewId": {
+                    "description": "skill preview conversation ID",
+                    "type": "string"
+                },
+                "skillId": {
+                    "description": "custom skill ID",
+                    "type": "string"
+                },
+                "threadId": {
+                    "description": "对话ID",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "对话标题",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "string"
+                }
+            }
+        },
+        "response.GeneralAgentFileNode": {
+            "type": "object",
+            "properties": {
+                "children": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/response.GeneralAgentFileNode"
                     }
                 },
-                "knowledgeBaseNames": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "mimeType": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
                 },
-                "updatedAt": {
+                "size": {
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "\"file\" or \"directory\"",
                     "type": "string"
+                }
+            }
+        },
+        "response.GeneralAgentWorkspaceResp": {
+            "type": "object",
+            "properties": {
+                "fileCount": {
+                    "type": "integer"
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.GeneralAgentFileNode"
+                    }
+                },
+                "isDisplay": {
+                    "type": "boolean"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "runId": {
+                    "type": "string"
+                },
+                "threadId": {
+                    "type": "string"
+                },
+                "totalSize": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.GetKnowledgeMetaSelectResp": {
+            "type": "object",
+            "properties": {
+                "knowledgeMetaList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.KnowledgeMetaItem"
+                    }
                 }
             }
         },
@@ -4692,6 +7144,56 @@
                 }
             }
         },
+        "response.KnowledgeMetaItem": {
+            "type": "object",
+            "properties": {
+                "metaId": {
+                    "type": "string"
+                },
+                "metaKey": {
+                    "type": "string"
+                },
+                "metaValue": {
+                    "description": "确定值",
+                    "type": "string"
+                },
+                "metaValueType": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.KnowledgeMetaValueListResp": {
+            "type": "object",
+            "properties": {
+                "knowledgeMetaValues": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.KnowledgeMetaValues"
+                    }
+                }
+            }
+        },
+        "response.KnowledgeMetaValues": {
+            "type": "object",
+            "properties": {
+                "metaId": {
+                    "type": "string"
+                },
+                "metaKey": {
+                    "type": "string"
+                },
+                "metaValue": {
+                    "description": "确定值",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "metaValueType": {
+                    "type": "string"
+                }
+            }
+        },
         "response.KnowledgeTag": {
             "type": "object",
             "properties": {
@@ -4723,6 +7225,10 @@
                     "description": "文档名称",
                     "type": "string"
                 },
+                "docProgress": {
+                    "description": "文档解析进度百分比 (0-100)",
+                    "type": "integer"
+                },
                 "docType": {
                     "description": "文档类型",
                     "type": "string"
@@ -4735,9 +7241,17 @@
                     "description": "文件大小，单位字节(Byte)",
                     "type": "integer"
                 },
+                "fileSizeStr": {
+                    "description": "文件大小的人眼友好展示",
+                    "type": "string"
+                },
                 "graphErrMsg": {
                     "description": "图谱错误信息",
                     "type": "string"
+                },
+                "graphProgress": {
+                    "description": "图谱解析进度百分比 (0-100)",
+                    "type": "integer"
                 },
                 "graphStatus": {
                     "description": "图谱状态 0:待处理，1.解析中，2.解析成功，3.解析失败 -1. 当文档状态为解析失败时，显示 -",
@@ -4803,103 +7317,6 @@
                 "list": {},
                 "total": {
                     "type": "integer"
-                }
-            }
-        },
-        "response.ModelInfo": {
-            "type": "object",
-            "required": [
-                "model",
-                "modelType",
-                "provider"
-            ],
-            "properties": {
-                "allowEdit": {
-                    "description": "是否允许前端编辑（true: 允许编辑，false: 隐藏编辑按钮）",
-                    "type": "boolean"
-                },
-                "avatar": {
-                    "description": "模型图标路径",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/request.Avatar"
-                        }
-                    ]
-                },
-                "config": {},
-                "createdAt": {
-                    "type": "string"
-                },
-                "displayName": {
-                    "description": "模型显示名称",
-                    "type": "string"
-                },
-                "examples": {
-                    "description": "仅用于swagger展示；模型对应供应商中的对应llm、embedding或rerank结构是config实际的参数",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/mp.ProviderModelConfig"
-                        }
-                    ]
-                },
-                "importSource": {
-                    "description": "模型导入来源(builtin=平台内置,external=外部URL)",
-                    "type": "string"
-                },
-                "isActive": {
-                    "description": "启用状态（true: 启用，false: 禁用）",
-                    "type": "boolean"
-                },
-                "model": {
-                    "description": "模型名称",
-                    "type": "string"
-                },
-                "modelDesc": {
-                    "type": "string"
-                },
-                "modelId": {
-                    "type": "string"
-                },
-                "modelType": {
-                    "type": "string",
-                    "enum": [
-                        "llm",
-                        "embedding",
-                        "rerank"
-                    ]
-                },
-                "orgId": {
-                    "type": "string"
-                },
-                "provider": {
-                    "description": "模型供应商",
-                    "type": "string",
-                    "enum": [
-                        "OpenAI-API-compatible",
-                        "YuanJing"
-                    ]
-                },
-                "publishDate": {
-                    "description": "模型发布时间",
-                    "type": "string"
-                },
-                "scopeType": {
-                    "type": "string"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/mp_common.Tag"
-                    }
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
                 }
             }
         },
@@ -5058,10 +7475,58 @@
                 "kb_name": {
                     "type": "string"
                 },
+                "meta_data": {
+                    "description": "MetaData 知识库命中片段的元信息，原样透传 rag 返回（与流式一致），如 file_name/download_link/page_num/chunk_total_num 等"
+                },
                 "snippet": {
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.OpenAPIAgentBriefInfo": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "头像信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "category": {
+                    "description": "1:单智能体 2:多智能体",
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "publishType": {
+                    "description": "public/organization/private，空字符串表示未发布（草稿）",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "最后更新时间",
+                    "type": "string"
+                },
+                "uuid": {
+                    "description": "智能体唯一标识，供后续接口使用",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "已发布版本号，未发布时为空",
                     "type": "string"
                 }
             }
@@ -5098,6 +7563,12 @@
                 "message": {
                     "type": "string"
                 },
+                "recommend_questions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "response": {
                     "type": "string"
                 },
@@ -5131,6 +7602,39 @@
             "properties": {
                 "conversation_id": {
                     "type": "string"
+                }
+            }
+        },
+        "response.OpenAPIAgentListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.OpenAPIAgentBriefInfo"
+                    }
+                }
+            }
+        },
+        "response.OpenAPIChatflowConversationItem": {
+            "type": "object",
+            "properties": {
+                "conversation_id": {
+                    "type": "string"
+                },
+                "conversation_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.OpenAPIChatflowConversationListResponse": {
+            "type": "object",
+            "properties": {
+                "conversations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.OpenAPIChatflowConversationItem"
+                    }
                 }
             }
         },
@@ -5170,6 +7674,14 @@
                 }
             }
         },
+        "response.OpenAPICreateRagResponse": {
+            "type": "object",
+            "properties": {
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
         "response.OpenAPIModelListItem": {
             "type": "object",
             "properties": {
@@ -5189,6 +7701,47 @@
                     "type": "string"
                 },
                 "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.OpenAPIRagBriefInfo": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "头像信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "publishType": {
+                    "description": "public/organization/private，空字符串表示未发布（草稿）",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "最后更新时间",
+                    "type": "string"
+                },
+                "uuid": {
+                    "description": "知识问答唯一标识，供后续接口使用",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "已发布版本号，未发布时为空",
                     "type": "string"
                 }
             }
@@ -5230,6 +7783,25 @@
                 },
                 "msg_id": {
                     "type": "string"
+                }
+            }
+        },
+        "response.OpenAPIRagCreateConversationResponse": {
+            "type": "object",
+            "properties": {
+                "conversation_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.OpenAPIRagListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.OpenAPIRagBriefInfo"
+                    }
                 }
             }
         },
@@ -5284,6 +7856,284 @@
                 }
             }
         },
+        "response.PageResult": {
+            "type": "object",
+            "properties": {
+                "list": {},
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.RagConversationDetailInfo": {
+            "type": "object",
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "integer"
+                },
+                "detailId": {
+                    "type": "string"
+                },
+                "errMessage": {
+                    "type": "string"
+                },
+                "feedback": {
+                    "description": "当前反馈状态: 0=无 1=点赞 2=点踩",
+                    "type": "integer"
+                },
+                "feedbackContent": {
+                    "description": "反馈文本内容",
+                    "type": "string"
+                },
+                "prompt": {
+                    "type": "string"
+                },
+                "qaErrMessage": {
+                    "description": "问答库检索失败原因，非空表示这轮是问答库报错后转的知识库",
+                    "type": "string"
+                },
+                "qaSearchList": {
+                    "description": "问答库命中结果，与 searchList 互斥；null=没走问答库检索，\"\"=检索未命中",
+                    "type": "string"
+                },
+                "qaSearchListTimeCost": {
+                    "description": "问答库检索起止",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.RagTimeCost"
+                        }
+                    ]
+                },
+                "ragId": {
+                    "type": "string"
+                },
+                "reasoningContent": {
+                    "description": "深度思考过程；null=整轮没思考，\"\"=思考过但无内容",
+                    "type": "string"
+                },
+                "reasoningTimeCost": {
+                    "description": "深度思考起止",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.RagTimeCost"
+                        }
+                    ]
+                },
+                "requestFiles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RagRequestFile"
+                    }
+                },
+                "response": {
+                    "type": "string"
+                },
+                "searchList": {
+                    "description": "知识库引用段落；null=没走知识库检索，\"\"=检索无召回",
+                    "type": "string"
+                },
+                "searchListTimeCost": {
+                    "description": "知识库检索起止",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.RagTimeCost"
+                        }
+                    ]
+                },
+                "traceId": {
+                    "description": "本轮问答的链路id，可据此关联应用/模型统计明细",
+                    "type": "string"
+                }
+            }
+        },
+        "response.RagConversationInfo": {
+            "type": "object",
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "ragId": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.RagInfo": {
+            "type": "object",
+            "required": [
+                "knowledgeBaseConfig",
+                "modelConfig",
+                "name",
+                "qaKnowledgeBaseConfig",
+                "qaRerankConfig",
+                "ragId",
+                "rerankConfig"
+            ],
+            "properties": {
+                "appPublishConfig": {
+                    "description": "发布配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppPublishConfig"
+                        }
+                    ]
+                },
+                "avatar": {
+                    "description": "图标",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "desc": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "knowledgeBaseConfig": {
+                    "description": "知识库",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppKnowledgebaseConfig"
+                        }
+                    ]
+                },
+                "modelConfig": {
+                    "description": "模型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppModelConfig"
+                        }
+                    ]
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "qaKnowledgeBaseConfig": {
+                    "description": "问答库",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppQAKnowledgebaseConfig"
+                        }
+                    ]
+                },
+                "qaRerankConfig": {
+                    "description": "问答库Rerank模型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppModelConfig"
+                        }
+                    ]
+                },
+                "ragId": {
+                    "type": "string"
+                },
+                "recommendQuestion": {
+                    "description": "推荐问题",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "rerankConfig": {
+                    "description": "Rerank模型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppModelConfig"
+                        }
+                    ]
+                },
+                "safetyConfig": {
+                    "description": "敏感词表配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AppSafetyConfig"
+                        }
+                    ]
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "string"
+                },
+                "visionConfig": {
+                    "description": "视觉开关",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.VisionConfig"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.RagRequestFile": {
+            "type": "object",
+            "properties": {
+                "fileName": {
+                    "type": "string"
+                },
+                "fileSize": {
+                    "type": "integer"
+                },
+                "fileUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.RagTimeCost": {
+            "type": "object",
+            "properties": {
+                "end": {
+                    "type": "integer"
+                },
+                "start": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.RagUploadFile": {
+            "type": "object",
+            "properties": {
+                "fileIndex": {
+                    "type": "integer"
+                },
+                "fileUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.RagUploadResponse": {
+            "type": "object",
+            "properties": {
+                "fileList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RagUploadFile"
+                    }
+                }
+            }
+        },
         "response.RecommendConfig": {
             "type": "object",
             "properties": {
@@ -5335,6 +8185,90 @@
                 },
                 "data": {},
                 "msg": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.SegmentContent": {
+            "type": "object",
+            "properties": {
+                "available": {
+                    "type": "boolean"
+                },
+                "childNum": {
+                    "description": "子分段数量",
+                    "type": "integer"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "contentId": {
+                    "type": "string"
+                },
+                "contentNum": {
+                    "type": "integer"
+                },
+                "isParent": {
+                    "description": "父子分段/通用分段 true是父分段，false是通用分段",
+                    "type": "boolean"
+                },
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.SubConversation": {
+            "type": "object",
+            "properties": {
+                "conversationType": {
+                    "description": "subAgent：子智能体；agentTool：主智能体工具；subAgentTool：子智能体工具",
+                    "type": "string"
+                },
+                "errMessage": {
+                    "description": "错误信息",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "事件id",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "事件名称",
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "parentId": {
+                    "description": "事件挂载id",
+                    "type": "string"
+                },
+                "profile": {
+                    "description": "事件头像",
+                    "type": "string"
+                },
+                "response": {
+                    "type": "string"
+                },
+                "searchList": {},
+                "status": {
+                    "description": "1:成功，2：失败",
+                    "type": "integer"
+                },
+                "timeCost": {
+                    "description": "耗时",
+                    "type": "string"
+                }
+            }
+        },
+        "response.UpdateDocSegmentResp": {
+            "type": "object",
+            "properties": {
+                "contentId": {
+                    "description": "更新后的分段id，内容变化时与请求传入的contentId不同",
                     "type": "string"
                 }
             }

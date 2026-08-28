@@ -14,7 +14,7 @@ import (
 )
 
 func GetKnowledgeReport(ctx *gin.Context, userId, orgId string, req *request.KnowledgeReportSelectReq) (*response.KnowledgeReportPageResult, error) {
-	resp, err := knowledgeBaseReport.GetKnowledgeReport(ctx, &knowledgebase_report_service.GetReportReq{
+	resp, err := knowledgeBaseReport.GetKnowledgeReport(ctx.Request.Context(), &knowledgebase_report_service.GetReportReq{
 		KnowledgeInfo: &knowledgebase_report_service.ReportIdentity{
 			KnowledgeId: req.KnowledgeId,
 			UserId:      userId,
@@ -30,7 +30,7 @@ func GetKnowledgeReport(ctx *gin.Context, userId, orgId string, req *request.Kno
 }
 
 func GenerateKnowledgeReport(ctx *gin.Context, userId, orgId string, req *request.KnowledgeReportGenerateReq) error {
-	_, err := knowledgeBaseReport.GenerateKnowledgeReport(ctx, &knowledgebase_report_service.ReportIdentity{
+	_, err := knowledgeBaseReport.GenerateKnowledgeReport(ctx.Request.Context(), &knowledgebase_report_service.ReportIdentity{
 		KnowledgeId: req.KnowledgeId,
 		UserId:      userId,
 		OrgId:       orgId,
@@ -39,7 +39,7 @@ func GenerateKnowledgeReport(ctx *gin.Context, userId, orgId string, req *reques
 }
 
 func DeleteKnowledgeReport(ctx *gin.Context, userId, orgId string, req *request.KnowledgeReportDeleteReq) error {
-	_, err := knowledgeBaseReport.DeleteKnowledgeReport(ctx, &knowledgebase_report_service.DeleteReportReq{
+	_, err := knowledgeBaseReport.DeleteKnowledgeReport(ctx.Request.Context(), &knowledgebase_report_service.DeleteReportReq{
 		KnowledgeInfo: &knowledgebase_report_service.ReportIdentity{
 			KnowledgeId: req.KnowledgeId,
 			UserId:      userId,
@@ -51,7 +51,7 @@ func DeleteKnowledgeReport(ctx *gin.Context, userId, orgId string, req *request.
 }
 
 func UpdateKnowledgeReport(ctx *gin.Context, userId, orgId string, req *request.KnowledgeReportUpdateReq) error {
-	_, err := knowledgeBaseReport.UpdateKnowledgeReport(ctx, &knowledgebase_report_service.UpdateReportReq{
+	_, err := knowledgeBaseReport.UpdateKnowledgeReport(ctx.Request.Context(), &knowledgebase_report_service.UpdateReportReq{
 		KnowledgeInfo: &knowledgebase_report_service.ReportIdentity{
 			KnowledgeId: req.KnowledgeId,
 			UserId:      userId,
@@ -67,7 +67,7 @@ func UpdateKnowledgeReport(ctx *gin.Context, userId, orgId string, req *request.
 }
 
 func AddKnowledgeReport(ctx *gin.Context, userId, orgId string, req *request.KnowledgeReportAddReq) error {
-	_, err := knowledgeBaseReport.AddKnowledgeReport(ctx, &knowledgebase_report_service.AddReportReq{
+	_, err := knowledgeBaseReport.AddKnowledgeReport(ctx.Request.Context(), &knowledgebase_report_service.AddReportReq{
 		KnowledgeInfo: &knowledgebase_report_service.ReportIdentity{
 			KnowledgeId: req.KnowledgeId,
 			UserId:      userId,

@@ -3,17 +3,17 @@ package service
 import (
 	"fmt"
 
-	queue_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/queue-util"
-	"google.golang.org/protobuf/types/known/emptypb"
+	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	safety_service "github.com/UnicomAI/wanwu/api/proto/safety-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/pkg/ahocorasick"
-	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	queue_util "github.com/UnicomAI/wanwu/pkg/queue-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -25,6 +25,65 @@ type chatService interface {
 	serviceType() string
 	buildSensitiveResp(id, content string) []string
 	parseContent(raw string) (id, content string)
+	// onForward 在一帧真正转发给调用方后回调。命中敏感词的那一帧不会转发，
+	// 所以这里累积到的才是用户实际看到的内容，落历史要以它为准
+	onForward(raw string)
+}
+
+type SensitiveChecker struct {
+	PersonalTableIds []string
+	ChatSrv          chatService
+	Enable           bool
+}
+
+func CreateSensitiveChecker(personalTableIds []string, chatSrv chatService, enable bool) *SensitiveChecker {
+	return &SensitiveChecker{
+		PersonalTableIds: personalTableIds,
+		ChatSrv:          chatSrv,
+		Enable:           enable,
+	}
+}
+
+func (c *SensitiveChecker) Check(ctx *gin.Context, query string, executor func() (ch <-chan string, callback func(string, string), err error)) (<-chan string, error) {
+	if !c.Enable {
+		ch, _, err := executor()
+		if err != nil {
+			return nil, err
+		}
+		return ch, nil
+	}
+	//1.查询敏感词表
+	matchDicts, err := BuildSensitiveDict(ctx, c.PersonalTableIds, c.Enable)
+	if err != nil {
+		return nil, err
+	}
+	//2.同步敏感词检测
+	err = SyncSensitiveCheck(query, matchDicts)
+	if err != nil {
+		return nil, err
+	}
+	//3.任务执行
+	rawCh, callback, err := executor()
+	if err != nil {
+		return nil, err
+	}
+	//4.敏感词过滤(必须过滤，全局敏感词)
+	outputCh := ProcessSensitiveWordsWithCallback(ctx, rawCh, matchDicts, c.ChatSrv, callback)
+	return outputCh, nil
+}
+
+func SyncSensitiveCheck(query string, matchDicts []ahocorasick.DictConfig) error {
+	matchResults, err := ahocorasick.ContentMatch(query, matchDicts, true)
+	if err != nil {
+		return err
+	}
+	if len(matchResults) > 0 {
+		if matchResults[0].Reply != "" {
+			return grpc_util.ErrorStatusWithKey(err_code.Code_BFFSensitiveWordCheck, "bff_sensitive_check_req", matchResults[0].Reply)
+		}
+		return grpc_util.ErrorStatusWithKey(err_code.Code_BFFSensitiveWordCheck, "bff_sensitive_check_req_default_reply")
+	}
+	return nil
 }
 
 // 构建敏感词字典
@@ -99,8 +158,15 @@ func BuildSensitiveDict(ctx *gin.Context, personalTableIds []string, enable bool
 	return ret, nil
 }
 
-// ProcessSensitiveWords 中间处理函数，负责敏感词检测并返回处理后的通道
+// ProcessSensitiveWords 中间处理函数，负责敏感词检测并返回处理后的通道。
+// 当下游（前端）断开后 outputCh 无人消费，为避免背压阻塞上游 gRPC 消费和 SSE 会话发布，
+// outputCh 的写入均采用非阻塞方式：缓冲区满时丢弃消息而非阻塞。
 func ProcessSensitiveWords(ctx *gin.Context, rawCh <-chan string, matchDicts []ahocorasick.DictConfig, chatSrv chatService) <-chan string {
+	return ProcessSensitiveWordsWithCallback(ctx, rawCh, matchDicts, chatSrv, nil)
+}
+
+// ProcessSensitiveWordsWithCallback 中间处理函数，负责敏感词检测并返回处理后的通道
+func ProcessSensitiveWordsWithCallback(ctx *gin.Context, rawCh <-chan string, matchDicts []ahocorasick.DictConfig, chatSrv chatService, callback func(string, string)) <-chan string {
 	// 无敏感词字典时直接返回原始通道，跳过检测
 	if len(matchDicts) == 0 {
 		return rawCh
@@ -114,9 +180,6 @@ func ProcessSensitiveWords(ctx *gin.Context, rawCh <-chan string, matchDicts []a
 		// contentQueue: 滑动窗口队列，累积最近M条内容用于检测跨消息拆分的敏感词
 		contentQueue := queue_util.NewOverridableQueue(defaultCheckWindowSize)
 
-		// [新方案] 每条消息检测一次，通过后立即输出
-		// 优点：输出速率与rawCh一致，无启动延迟
-		// 缺点：检测次数多（每条消息检测一次）
 		for raw := range rawCh {
 			currId, currContent := chatSrv.parseContent(raw)
 			id = currId
@@ -126,86 +189,50 @@ func ProcessSensitiveWords(ctx *gin.Context, rawCh <-chan string, matchDicts []a
 			matchResults, err := ahocorasick.ContentMatch(content, matchDicts, true)
 			if err != nil {
 				log.Errorf("[%v] content (%v) check sensitive err: %v", chatSrv.serviceType(), content, err)
-				outputCh <- raw
+				select {
+				case outputCh <- raw:
+					chatSrv.onForward(raw)
+				default:
+					//	log.Warnf("[%v] outputCh full, dropping message", chatSrv.serviceType())
+				}
 				continue
 			}
 			if len(matchResults) > 0 {
 				log.Warnf("[%v] content (%v) check sensitive match results: %+v", chatSrv.serviceType(), content, matchResults)
 				if matchResults[0].Reply != "" {
 					for _, sensitiveMsg := range chatSrv.buildSensitiveResp(id, matchResults[0].Reply) {
-						outputCh <- sensitiveMsg
-						return
+						select {
+						case outputCh <- sensitiveMsg:
+							if callback != nil {
+								callback(currId, sensitiveMsg)
+							}
+							return
+						default:
+							log.Warnf("[%v] outputCh full, dropping sensitive reply", chatSrv.serviceType())
+						}
 					}
 				}
 				for _, sensitiveMsg := range chatSrv.buildSensitiveResp(id, gin_util.I18nKey(ctx, "bff_sensitive_check_resp_default_reply")) {
-					outputCh <- sensitiveMsg
-					return
+					select {
+					case outputCh <- sensitiveMsg:
+						if callback != nil {
+							callback(currId, sensitiveMsg)
+						}
+						return
+					default:
+						log.Warnf("[%v] outputCh full, dropping sensitive default reply", chatSrv.serviceType())
+					}
 				}
 			}
-			outputCh <- raw
+
+			select {
+			case outputCh <- raw:
+				chatSrv.onForward(raw)
+			default:
+				//log.Warnf("[%v] outputCh full, dropping message", chatSrv.serviceType())
+			}
 		}
 
-		// [原始方案] 使用rawQueue缓冲，每满N条（N=defaultRawCacheSize）检测一次并批量输出
-		// 优点：检测次数少
-		// 缺点：有启动延迟（前N条消息缓存不输出），输出不均匀（每N条一批输出）
-		// var matchResults []ahocorasick.MatchResult
-		// var err error
-		// contentQueue := queue_util.NewOverridableQueue(defaultCheckWindowSize)
-		// rawQueue := queue_util.NewBoundedQueue(defaultRawCacheSize)
-		// for raw := range rawCh {
-		// 	currId, currContent := chatSrv.parseContent(raw)
-		// 	id = currId
-		// 	contentQueue.EnQueue(currContent)
-		// 	if rawQueue.IsFull() {
-		// 		// 校验敏感词
-		// 		content = contentQueue.AllValue()
-		// 		matchResults, err = ahocorasick.ContentMatch(content, matchDicts, true)
-		// 		if err != nil {
-		// 			log.Errorf("[%v] content (%v) check sensitive err: %v", chatSrv.serviceType(), content, err)
-		// 		} else if len(matchResults) > 0 {
-		// 			break
-		// 		}
-		// 		// 输出队列内容
-		// 		for !rawQueue.IsEmpty() {
-		// 			if dequeue, ok := rawQueue.Dequeue(); ok {
-		// 				outputCh <- dequeue
-		// 			}
-		// 		}
-		// 	}
-		// 	rawQueue.Enqueue(raw)
-		// }
-
-		// // 处理剩余内容
-		// if len(matchResults) == 0 {
-		// 	content = contentQueue.AllValue()
-		// 	matchResults, err = ahocorasick.ContentMatch(content, matchDicts, true)
-		// 	if err != nil {
-		// 		log.Errorf("[%v] content (%v) check sensitive err: %v", chatSrv.serviceType(), content, err)
-		// 	}
-		// }
-
-		// // 检测到敏感词
-		// if len(matchResults) > 0 {
-		// 	log.Warnf("[%v] content (%v) check sensitive match results: %+v", chatSrv.serviceType(), content, matchResults)
-		// 	if matchResults[0].Reply != "" {
-		// 		for _, sensitiveMsg := range chatSrv.buildSensitiveResp(id, matchResults[0].Reply) {
-		// 			outputCh <- sensitiveMsg
-		// 			return
-		// 		}
-		// 	}
-		// 	for _, sensitiveMsg := range chatSrv.buildSensitiveResp(id, gin_util.I18nKey(ctx, "bff_sensitive_check_resp_default_reply")) {
-		// 		outputCh <- sensitiveMsg
-		// 		return
-		// 	}
-		// }
-
-		// // 返回剩余内容
-		// valueList := rawQueue.AllValue()
-		// if len(valueList) > 0 {
-		// 	for _, value := range valueList {
-		// 		outputCh <- value
-		// 	}
-		// }
 	}()
 	return outputCh
 }

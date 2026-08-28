@@ -1,0 +1,23 @@
+{
+  "schema": {
+    "structure": "doc",
+    "children": [
+      {
+        "structure": "Title",
+        "description": "作文标题，一般位于文档开头段落",
+        "examples": [
+          "作文标题",
+          "我的父亲"
+        ],
+        "required": true,
+        "multiple": false
+      },
+      {
+        "structure": "Text",
+        "description": "作文正文内容，及无法匹配内容",
+        "required": true,
+        "multiple": true
+      }
+    ]
+  }
+}

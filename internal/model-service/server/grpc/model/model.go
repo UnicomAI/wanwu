@@ -12,8 +12,10 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (s *Service) ImportModel(ctx context.Context, req *model_service.ModelInfo) (*emptypb.Empty, error) {
-	if err := s.cli.ImportModel(ctx, &model.ModelImported{
+// ImportModel 导入模型，返回落库后的模型信息（含新生成的 modelId）。
+// 返回值供调用方做后续关联操作（如消息中心的「模型已上线」跳转需要 modelId）。
+func (s *Service) ImportModel(ctx context.Context, req *model_service.ModelInfo) (*model_service.ModelInfo, error) {
+	imported := &model.ModelImported{
 		UUID:           util.NewID(),
 		Provider:       req.Provider,
 		ModelType:      req.ModelType,
@@ -30,10 +32,12 @@ func (s *Service) ImportModel(ctx context.Context, req *model_service.ModelInfo)
 		ModelDesc:    req.ModelDesc,
 		ScopeType:    util.MustU32(req.ScopeType),
 		ImportSource: req.ImportSource,
-	}); err != nil {
+	}
+	// db.Create 会把自增主键回填进 imported，因此这里能直接拿到新模型 ID
+	if err := s.cli.ImportModel(ctx, imported); err != nil {
 		return nil, errStatus(errs.Code_ModelImportedModel, err)
 	}
-	return nil, nil
+	return toModelInfo(imported), nil
 }
 
 func (s *Service) UpdateModel(ctx context.Context, req *model_service.ModelInfo) (*emptypb.Empty, error) {
@@ -167,6 +171,30 @@ func (s *Service) ListModels(ctx context.Context, req *model_service.ListModelsR
 	}
 
 	return toModelInfos(modelsInfoFiltered), nil
+}
+
+func (s *Service) ListModelsInStatisticScope(ctx context.Context, req *model_service.ListModelsInStatisticScopeReq) (*model_service.ModelInfos, error) {
+	modelInfos, err := s.cli.ListModelsInStatisticScope(ctx, req.OrgIds, req.UserIds, req.ModelType)
+	if err != nil {
+		return nil, errStatus(errs.Code_ModelListModels, err)
+	}
+	return toModelInfos(modelInfos), nil
+}
+
+// AdminModelPageList 管理员中心模型全局分页列表（跨用户/组织）
+func (s *Service) AdminModelPageList(ctx context.Context, req *model_service.AdminModelPageListReq) (*model_service.AdminModelPageListResp, error) {
+	modelInfos, total, err := s.cli.AdminModelPageList(ctx, req.Name, req.Provider, req.ModelType, req.UserId, req.OrgId, req.ScopeType, int(req.PageNum), int(req.PageSize))
+	if err != nil {
+		return nil, errStatus(errs.Code_ModelListModels, err)
+	}
+	var models []*model_service.ModelInfo
+	for _, modelInfo := range modelInfos {
+		models = append(models, toModelInfo(modelInfo))
+	}
+	return &model_service.AdminModelPageListResp{
+		Total:  total,
+		Models: models,
+	}, nil
 }
 
 func (s *Service) ListTypeModels(ctx context.Context, req *model_service.ListTypeModelsReq) (*model_service.ModelInfos, error) {

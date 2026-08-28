@@ -1,6 +1,6 @@
 server:
   grpc_endpoint: 0.0.0.0:9988
-  max_recv_msg_size: 4194304 # 1024 * 1024 * 4 = 4M
+  max_recv_msg_size: 4294967296 # 1024 * 1024 * 1024 * 4 = 4G
 
 log:
   std: true
@@ -59,6 +59,8 @@ minio:
   user: root
   password: Wanwu123456
   bucket: safety
+  public_export_bucket: export-public
+  app_log_export_dir: app_log
 
 redis:
   host: localhost
@@ -67,3 +69,8 @@ redis:
   password: Wanwu123456
   standalone: true
   master_name: mymaster
+
+# --- microservice ---
+# 数据清洗：agent 老 id → uuid 依赖 assistant
+assistant:
+  host: assistant-service:8890

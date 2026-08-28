@@ -12,9 +12,16 @@ func Register(callbackAPI *gin.RouterGroup) {
 	// callback
 	mid.Sub("callback").Reg(callbackAPI, "/file/url/base64", http.MethodPost, callback.FileUrlConvertBase64, "文件URL转换为base64")
 	mid.Sub("callback").Reg(callbackAPI, "/file/upload/base64", http.MethodPost, callback.UploadFileByBase64, "通过base64上传文件")
+	mid.Sub("callback").Reg(callbackAPI, "/file/unarchive", http.MethodPost, callback.UnarchiveFile, "解压压缩包")
+	// user
+	mid.Sub("callback").Reg(callbackAPI, "/user/list", http.MethodPost, callback.GetUserListByUserIds, "根据userId获取用户信息")
+	// api key
+	mid.Sub("callback").Reg(callbackAPI, "/api/key/user", http.MethodGet, callback.GetUserInfoByApiKey, "通过apikey获取用户信息（内部接口）")
 	// model
 	mid.Sub("callback").Reg(callbackAPI, "/model/:modelId", http.MethodGet, callback.GetModelById, "根据modelId获取模型")
 	mid.Sub("callback").Reg(callbackAPI, "/model/:modelId/chat/completions", http.MethodPost, callback.ModelChatCompletions, "Model Chat Completions")
+	// 带 trace 上下文的模型代理路由（sandbox 内 opencode/eino-agent 通过 URL 路径传递 trace 信息）
+	mid.Sub("callback").Reg(callbackAPI, "/model/:modelId/trace/:traceId/span/:spanId/chat/completions", http.MethodPost, callback.ModelChatCompletionsWithTrace, "Model Chat Completions with Trace")
 	mid.Sub("callback").Reg(callbackAPI, "/model/:modelId/embeddings", http.MethodPost, callback.ModelEmbeddings, "Model Embeddings")
 	mid.Sub("callback").Reg(callbackAPI, "/model/:modelId/multimodal-embeddings", http.MethodPost, callback.ModelMultiModalEmbeddings, "Model multimodal-Embeddings")
 
@@ -41,12 +48,29 @@ func Register(callbackAPI *gin.RouterGroup) {
 	mid.Sub("callback").Reg(callbackAPI, "/rag/knowledge/stream/search", http.MethodPost, callback.KnowledgeStreamSearch, "根据知识库id 和当前用户id 获取有权限的知识库列表信息")
 	// rag bff proxy
 	mid.Sub("callback").Reg(callbackAPI, "/rag/search-QA-base", http.MethodPost, callback.SearchQABase, "查询问答库列表（命中测试）")
+	// wga rag proxy
+	mid.Sub("callback").Reg(callbackAPI, "/wga/rag/search-knowledge-base", http.MethodPost, callback.WgaRagSearchKnowledgeBase, "WGA知识库检索")
 	// wga sandbox
 	mid.Sub("callback").Reg(callbackAPI, "/wga/sandbox/run", http.MethodPost, callback.WgaSandboxRun, "WGA沙箱运行")
 	mid.Sub("callback").Reg(callbackAPI, "/wga/sandbox/cleanup", http.MethodPost, callback.WgaSandboxCleanup, "WGA沙箱清理")
 	// app record
 	mid.Sub("callback").Reg(callbackAPI, "/app/record", http.MethodPost, callback.AppRecord, "应用使用记录")
-	//skill
-	mid.Sub("callback").Reg(callbackAPI, "/skill/builtin/list", http.MethodPost, callback.SearchBuiltInSkillList, "内置工具详情列表")
+	// skill
+	mid.Sub("callback").Reg(callbackAPI, "/skill/builtin/list", http.MethodPost, callback.SearchBuiltInSkillList, "内置skill详情列表")
+	mid.Sub("callback").Reg(callbackAPI, "/skill/custom/list", http.MethodPost, callback.SearchCustomSkillList, "自定义skill详情列表")
+	mid.Sub("callback").Reg(callbackAPI, "/skill/acquired/list", http.MethodPost, callback.SearchAcquiredSkillList, "我添加skill详情列表")
 	mid.Sub("callback").Reg(callbackAPI, "/skill/detail", http.MethodGet, callback.GetSkillDetail, "获取技能详情")
+
+	// --- 通道内部发消息（无鉴权，供内部服务调用）---
+	mid.Sub("callback").Reg(callbackAPI, "/channel/send-message", http.MethodPost, callback.SendMessage, "内部服务发消息（无鉴权）")
+
+	// rag 回调
+	mid.Sub("callback").Reg(callbackAPI, "/api/docstatus", http.MethodPost, callback.UpdateDocStatus, "算法更新知识库文档状态（模型扩展调用）")
+	mid.Sub("callback").Reg(callbackAPI, "/api/knowledge/status", http.MethodPost, callback.UpdateKnowledgeStatus, "更新知识库相关状态")
+	mid.Sub("callback").Reg(callbackAPI, "/api/doc_status_init", http.MethodGet, callback.DocStatusInit, "将正在解析的文档设置为解析失败")
+
+	// 数字员工发布状态同步（外部系统回调；发布 upsert / 删除下架，均幂等）
+	mid.Sub("callback").Reg(callbackAPI, "/digital-employee/publish/sync", http.MethodPost, callback.SyncDigitalEmployeePublish, "数字员工发布状态同步")
+	mid.Sub("callback").Reg(callbackAPI, "/digital-employee/publish/sync", http.MethodDelete, callback.SyncDigitalEmployeeUnpublish, "数字员工删除/下架同步")
+
 }

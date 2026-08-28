@@ -22,7 +22,7 @@ func (s *Service) CustomPromptCreate(ctx context.Context, req *assistant_service
 }
 
 func (s *Service) CustomPromptDelete(ctx context.Context, req *assistant_service.CustomPromptDeleteReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteCustomPrompt(ctx, util.MustU32(req.CustomPromptId))
+	err := s.cli.DeleteCustomPrompt(ctx, util.MustU32(req.CustomPromptId), req.Identity.UserId, req.Identity.OrgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_AssistantCustomPromptErr, err)
 	}
@@ -65,6 +65,24 @@ func (s *Service) CustomPromptGetList(ctx context.Context, req *assistant_servic
 	}, nil
 }
 
+// GetAdminCustomPromptPageList 管理员中心跨组织查询自定义提示词列表（SQL分页）
+func (s *Service) GetAdminCustomPromptPageList(ctx context.Context, req *assistant_service.GetAdminCustomPromptPageListReq) (*assistant_service.CustomPromptList, error) {
+	customPrompts, count, err := s.cli.GetCustomPromptListAdmin(ctx, req.OrgIdList, req.UserIdList, req.Name, int(req.PageNo), int(req.PageSize))
+	if err != nil {
+		return nil, errStatus(errs.Code_AssistantCustomPromptErr, err)
+	}
+
+	customPromptInfos := make([]*assistant_service.CustomPromptInfo, 0, len(customPrompts))
+	for _, customPrompt := range customPrompts {
+		customPromptInfos = append(customPromptInfos, toCustomPromptInfo(customPrompt))
+	}
+
+	return &assistant_service.CustomPromptList{
+		CustomPromptInfos: customPromptInfos,
+		Total:             count,
+	}, nil
+}
+
 func (s *Service) CustomPromptCopy(ctx context.Context, req *assistant_service.CustomPromptCopyReq) (*assistant_service.CustomPromptIDResp, error) {
 	customPromptId, err := s.cli.CopyCustomPrompt(ctx, util.MustU32(req.CustomPromptId), req.Identity.UserId, req.Identity.OrgId)
 	if err != nil {
@@ -84,6 +102,11 @@ func toCustomPromptInfo(customPrompt *model.CustomPrompt) *assistant_service.Cus
 		Name:           customPrompt.Name,
 		Desc:           customPrompt.Desc,
 		Prompt:         customPrompt.Prompt,
+		CreatedAt:      customPrompt.CreatedAt,
 		UpdatedAt:      customPrompt.UpdatedAt,
+		Identity: &assistant_service.Identity{
+			UserId: customPrompt.UserId,
+			OrgId:  customPrompt.OrgId,
+		},
 	}
 }

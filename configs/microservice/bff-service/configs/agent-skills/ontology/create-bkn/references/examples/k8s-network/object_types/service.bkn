@@ -1,0 +1,38 @@
+---
+type: object_type
+id: service
+name: Service服务
+tags: [拓扑架构, 网络, Kubernetes]
+---
+
+## ObjectType: Service服务
+
+Kubernetes 服务抽象层，提供稳定的访问入口。
+
+### Data Properties
+
+| Name | Display Name | Type | Description | Mapped Field |
+|------|--------------|------|-------------|--------------|
+| id | ID | integer | 主键ID | id |
+| service_name | Service名称 | string | Service名称 | service_name |
+| service_namespace | 命名空间 | string | Service所属命名空间 | service_namespace |
+| service_type | Service类型 | string | Service类型(ClusterIP,NodePort,LoadBalancer) | service_type |
+| service_cluster_ip | Cluster IP | string | Cluster IP地址 | service_cluster_ip |
+| service_ports | 端口映射 | string | 服务端口映射 | service_ports |
+| service_selector | Pod选择器 | string | Pod选择器标签 | service_selector |
+| service_created_at | 创建时间 | datetime | Service创建时间 | service_created_at |
+
+### Keys
+
+Primary Keys: id
+Display Key: service_name
+Incremental Key:
+
+### Logic Properties
+
+
+### Data Source
+
+| Type | ID | Name |
+|------|-----|------|
+| data_view | d2mio43q6gt6p380dith | service_info_view |

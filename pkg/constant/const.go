@@ -1,5 +1,10 @@
 package constant
 
+import (
+	"unicode"
+	"unicode/utf8"
+)
+
 // openapi type
 const (
 	OpenAPITypeChatflow  = "chatflow"  // 对话问答
@@ -8,15 +13,18 @@ const (
 	OpenAPITypeRag       = "rag"       // 文本问答
 	OpenAPITypeKnowledge = "knowledge" // 知识库
 	OpenAPITypeModel     = "model"     // 可用模型列表查询
+	OpenAPITypeWGA       = "wga"       // 通用智能体
 )
 
 // app type
 const (
-	AppTypeAgent     = "agent"     // 智能体
-	AppTypeRag       = "rag"       // 文本问答
-	AppTypeWorkflow  = "workflow"  // 工作流
-	AppTypeChatflow  = "chatflow"  // 对话流
-	AppTypeMCPServer = "mcpserver" // mcp server
+	AppTypeAgent           = "agent"           // 智能体
+	AppTypeRag             = "rag"             // 文本问答
+	AppTypeWorkflow        = "workflow"        // 工作流
+	AppTypeChatflow        = "chatflow"        // 对话流
+	AppTypeSkill           = "skill"           // Skill
+	AppTypeMCPServer       = "mcpserver"       // mcp server
+	AppTypeDigitalEmployee = "digitalemployee" // 数字员工
 )
 
 // app publish type
@@ -67,8 +75,9 @@ const (
 
 // skill type
 const (
-	SkillTypeBuiltIn = "builtin" // 内置技能
-	SkillTypeCustom  = "custom"  // 自定义技能
+	SkillTypeBuiltIn  = "builtin"  // 内置技能
+	SkillTypeCustom   = "custom"   // 自定义技能
+	SkillTypeAcquired = "acquired" // 添加的技能
 )
 
 // safety type
@@ -86,8 +95,78 @@ const (
 
 // app statistic source
 const (
-	AppStatisticSourceWeb     = "web"
-	AppStatisticSourceOpenAPI = "openapi"
-	AppStatisticSourceWebUrl  = "webURL"
-	AppStatisticSourceDraft   = "draft" // 应用的草稿版本不统计
+	BizSourceWeb     = "web"
+	BizSourceOpenAPI = "openapi"
+	BizSourceWebUrl  = "webURL"
 )
+
+// biz module
+const (
+	BizModuleWGA                = "wga"             // 通用智能体
+	BizModuleModel              = "model"           // 模型
+	BizModuleResourceKnowledge  = "knowledge"       // 知识库
+	BizModuleResourceMCP        = "mcp"             // MCP
+	BizModuleResourceTool       = "tool"            // 插件工具
+	BizModuleResourcePrompt     = "prompt"          // 提示词
+	BizModuleResourceSkill      = "skill"           // Skills
+	BizModuleResourceSafety     = "safety"          // 安全护栏
+	BizModuleAppRag             = "rag"             // 知识问答
+	BizModuleAppWorkflow        = "workflow"        // 工作流
+	BizModuleAppAgent           = "agent"           // 智能体
+	BizModuleAppDigitalEmployee = "digitalemployee" // 数字员工
+)
+
+// StatisticModuleAllowsEmptyAppID 应用统计 V2 写入/查询：这些板块允许 appId 为空（板块级维度）。
+func StatisticModuleAllowsEmptyAppID(module string) bool {
+	switch module {
+	case BizModuleWGA, BizModuleModel, BizModuleResourceSkill, BizModuleResourceKnowledge, BizModuleResourcePrompt:
+		return true
+	default:
+		return false
+	}
+}
+
+// BizModuleName 返回业务板块中文展示名；未知 code 原样返回。
+func BizModuleName(module string) string {
+	switch module {
+	case BizModuleWGA:
+		return "通用智能体"
+	case BizModuleModel:
+		return "模型体验"
+	case BizModuleResourceKnowledge:
+		return "知识库"
+	case BizModuleResourceMCP:
+		return "MCP"
+	case BizModuleResourceTool:
+		return "插件工具"
+	case BizModuleResourcePrompt:
+		return "提示词"
+	case BizModuleResourceSkill:
+		return "Skill"
+	case BizModuleResourceSafety:
+		return "安全护栏"
+	case BizModuleAppRag:
+		return "知识问答"
+	case BizModuleAppWorkflow:
+		return "工作流"
+	case BizModuleAppAgent:
+		return "智能体"
+	case BizModuleAppDigitalEmployee:
+		return "数字员工"
+	default:
+		return module
+	}
+}
+
+// BizSourceName 返回调用来源展示名（首字母大写，其余保持原样）。
+// web→Web、openapi→Openapi、webURL→WebURL；未知 code 原样返回。
+func BizSourceName(source string) string {
+	if source == "" {
+		return source
+	}
+	r, size := utf8.DecodeRuneInString(source)
+	if r == utf8.RuneError && size == 1 {
+		return source
+	}
+	return string(unicode.ToUpper(r)) + source[size:]
+}

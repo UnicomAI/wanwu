@@ -167,6 +167,8 @@ eventCh := tr.TranslateStream(ctx, outputCh)
 |------|------|
 | `Run(ctx, opts...)` | 执行任务，返回 `<-chan string` JSON 字符串流 |
 | `Cleanup(ctx, runID)` | 清理沙箱环境 |
+| `ReplyQuestion(ctx, cfg, questionID, answers)` | 回答问题（Human-in-the-Loop，仅 Reuse 模式） |
+| `RejectQuestion(ctx, cfg, questionID)` | 拒绝问题（Human-in-the-Loop，仅 Reuse 模式） |
 
 ### 事件解析
 
@@ -179,6 +181,7 @@ eventCh := tr.TranslateStream(ctx, outputCh)
 | `ParseOpencodeFilePart(data)` | 解析文件部分 |
 | `ParseOpencodeSnapshotPart(data)` | 解析快照部分 |
 | `ParseOpencodeAgentPart(data)` | 解析智能体部分 |
+| `ParseOpencodeQuestionPart(data)` | 解析问题部分（Human-in-the-Loop） |
 
 ### Eino 转换 (wga-sandbox-converter)
 
@@ -205,6 +208,7 @@ eventCh := tr.TranslateStream(ctx, outputCh)
 | `WithSkills` | 技能列表 | 否 |
 | `WithMCPs` | MCP 服务器列表 | 否 |
 | `WithEnableThinking` | 思考模式 | 否 |
+| `WithEnableHumanInTheLoop` | 启用人机交互（可选参数：enableCustom 设置是否允许用户自定义回答） | 否 |
 | `WithSkipCleanup` | 跳过清理 | 否 |
 | `WithAgentName` | 智能体名称 | 否 |
 
@@ -300,3 +304,127 @@ wga_sandbox_option.WithMCPs([]wga_sandbox_option.MCP{
 | `OpencodeEventTypeSubtask` | 子任务 |
 | `OpencodeEventTypeCompaction` | 压缩 |
 | `OpencodeEventTypeError` | 错误 |
+| `OpencodeEventTypeQuestionAsked` | 问题提出（Human-in-the-Loop） |
+| `OpencodeEventTypeQuestionReplied` | 问题已回答（Human-in-the-Loop） |
+| `OpencodeEventTypeQuestionRejected` | 问题被拒绝（Human-in-the-Loop） |
+
+## Human-in-the-Loop
+
+wga-sandbox 支持人机交互（Human-in-the-Loop），允许 AI 在执行过程中向用户提问并等待回复。
+
+### 功能说明
+
+当启用 HITL 后，AI 可以通过 `question.ask()` 向用户提问，系统会：
+1. 发布 `question.asked` SSE 事件，前端显示问题 UI
+2. AI 阻塞等待用户回复
+3. 用户通过 HTTP API 提交回答或取消
+4. AI 收到回复后继续执行
+
+### 适用模式
+
+| 模式 | HITL 支持 | 说明 |
+|------|----------|------|
+| **Reuse** | ✅ 支持 | 单实例 Sandbox，questionID 在 pending Map 中唯一 |
+| **Oneshot** | ❌ 不支持 | 需要额外映射 questionID → runID → SandboxHost |
+
+### 启用方式
+
+```go
+runSession, outputCh, _ := wga_sandbox.Run(ctx,
+    wga_sandbox_option.WithModelConfig(modelConfig),
+    wga_sandbox_option.WithSandbox(wga_sandbox_option.SandboxReuse("localhost")),
+    wga_sandbox_option.WithRunnerType(wga_sandbox_option.RunnerTypeOpencode),
+    wga_sandbox_option.WithMessages(messages),
+    wga_sandbox_option.WithEnableHumanInTheLoop(true),  // 启用人机交互
+)
+```
+
+### 配置生成
+
+启用 HITL 后，opencode.json 中会生成以下配置：
+
+```json
+{
+  "permission": {
+    "*": "allow",
+    "question": "ask"
+  }
+}
+```
+
+未启用时，`permission.question` 默认为 `deny`，AI 无法调用 question 工具。
+
+### 回答/取消问题
+
+```go
+// 回答问题
+err := wga_sandbox.ReplyQuestion(ctx, sandboxCfg, runID, questionID, answers)
+
+// 取消问题
+err := wga_sandbox.RejectQuestion(ctx, sandboxCfg, runID, questionID)
+```
+
+**参数说明**：
+- `ctx`: 上下文
+- `sandboxCfg`: Sandbox 配置，需使用 Reuse 模式
+- `runID`: 运行 ID，从 SSE 事件 `question.asked` 的 `runId` 字段获取
+- `questionID`: 问题 ID，从 SSE 事件 `question.asked` 的 `questionId` 字段获取
+- `answers`: 答案数组，格式为 `[][]string`
+
+### 事件格式
+
+当 AI 提问时，会发送 `question.asked` 事件：
+
+```json
+{
+  "type": "question.asked",
+  "timestamp": 1234567890123,
+  "sessionID": "session-xxx",
+  "part": {
+    "type": "question",
+    "questionId": "question_01JXYZ...",
+    "sessionID": "session-xxx",
+    "status": "pending",
+    "questions": [{
+      "question": "请选择部署环境",
+      "header": "环境选择",
+      "options": [
+        {"label": "开发环境", "description": "用于开发和测试"},
+        {"label": "生产环境", "description": "正式生产部署"}
+      ],
+      "multiple": false,
+      "custom": false
+    }]
+  }
+}
+```
+
+用户回答后，会发送 `question.replied` 事件：
+
+```json
+{
+  "type": "question.replied",
+  "timestamp": 1234567890123,
+  "sessionID": "session-xxx",
+  "part": {
+    "type": "question",
+    "questionId": "question_01JXYZ...",
+    "sessionID": "session-xxx",
+    "status": "answered",
+    "questions": [],
+    "answers": [["开发环境"]]
+  }
+}
+```
+
+**事件类型**：
+- `question.asked`: 问题待回答
+- `question.replied`: 用户已回答，`answers` 字段包含用户选择
+- `question.rejected`: 用户取消
+
+### API
+
+| 函数 | 说明 |
+|------|------|
+| `ReplyQuestion(ctx, cfg, runID, questionID, answers)` | 回答问题（仅 Reuse 模式） |
+| `RejectQuestion(ctx, cfg, runID, questionID)` | 拒绝问题（仅 Reuse 模式） |

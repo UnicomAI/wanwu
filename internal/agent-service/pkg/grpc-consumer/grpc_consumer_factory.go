@@ -2,6 +2,9 @@ package grpc_consumer
 
 import (
 	"fmt"
+
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+	"google.golang.org/grpc"
 )
 
 var grpcConsumerServiceList []*GrpcConsumerService
@@ -15,7 +18,7 @@ func RegisterAllGrpcConsumerService() error {
 		for _, service := range grpcConsumerServiceList {
 			//1.获取配置信息
 			config := (*service).BuildConfig()
-			conn, err := newConn(config)
+			conn, err := trace_util.NewGrpcTracerConn(config.Host, []grpc.UnaryClientInterceptor{UnaryClientInterceptor()})
 			if err != nil {
 				fmt.Printf("register consuemr %s build config error: %s", (*service).GrpcConsumerType(), err.Error())
 				return err

@@ -39,13 +39,17 @@ func (s *Service) UpdateWgaConversationConfig(ctx context.Context, req *assistan
 		return nil, errStatus(errs.Code_WgaConversationUpdateErr, toErrStatus("wga_conversation_update", "identity is required"))
 	}
 
-	modelConfigBytes, _ := json.Marshal(req.ModelConfig)
+	var modelConfig string
+	if req.ModelConfig != nil {
+		modelConfigBytes, _ := json.Marshal(req.ModelConfig)
+		modelConfig = string(modelConfigBytes)
+	}
 
 	config := &model.WgaConversationConfig{
 		ThreadID:    req.ThreadId,
 		UserID:      req.Identity.UserId,
 		OrgID:       req.Identity.OrgId,
-		ModelConfig: string(modelConfigBytes),
+		ModelConfig: modelConfig,
 	}
 
 	status := s.cli.UpdateWgaConversationConfig(ctx, config)
@@ -83,15 +87,19 @@ func (s *Service) UpdateWgaConfig(ctx context.Context, req *assistant_service.Up
 	mcpListJSON, _ := json.Marshal(req.McpList)
 	workflowListJSON, _ := json.Marshal(req.WorkflowList)
 	skillListJSON, _ := json.Marshal(req.SkillList)
+	knowledgeListJSON, _ := json.Marshal(req.KnowledgeList)
+	ontologyKnowledgeListJSON, _ := json.Marshal(req.OntologyKnowledgeList)
 
 	config := &model.WgaConfig{
-		UserID:        req.Identity.UserId,
-		OrgID:         req.Identity.OrgId,
-		AssistantList: string(assistantListJSON),
-		ToolList:      string(toolListJSON),
-		McpList:       string(mcpListJSON),
-		WorkflowList:  string(workflowListJSON),
-		SkillList:     string(skillListJSON),
+		UserID:                req.Identity.UserId,
+		OrgID:                 req.Identity.OrgId,
+		AssistantList:         string(assistantListJSON),
+		ToolList:              string(toolListJSON),
+		McpList:               string(mcpListJSON),
+		WorkflowList:          string(workflowListJSON),
+		SkillList:             string(skillListJSON),
+		KnowledgeList:         string(knowledgeListJSON),
+		OntologyKnowledgeList: string(ontologyKnowledgeListJSON),
 	}
 
 	status := s.cli.UpdateWgaConfig(ctx, config)
@@ -185,6 +193,28 @@ func toProtoWgaConfig(m *model.WgaConfig) *assistant_service.WgaConfig {
 				config.SkillList = append(config.SkillList, &assistant_service.WgaConfigSkill{
 					SkillId:   skills[i].SkillId,
 					SkillType: skills[i].SkillType,
+				})
+			}
+		}
+	}
+
+	if m.KnowledgeList != "" {
+		var knowledges []assistant_service.WgaConfigKnowledge
+		if err := json.Unmarshal([]byte(m.KnowledgeList), &knowledges); err == nil {
+			for i := range knowledges {
+				config.KnowledgeList = append(config.KnowledgeList, &assistant_service.WgaConfigKnowledge{
+					KnowledgeId: knowledges[i].KnowledgeId,
+				})
+			}
+		}
+	}
+
+	if m.OntologyKnowledgeList != "" {
+		var ontologyKnowledges []assistant_service.WgaConfigOntologyKnowledge
+		if err := json.Unmarshal([]byte(m.OntologyKnowledgeList), &ontologyKnowledges); err == nil {
+			for i := range ontologyKnowledges {
+				config.OntologyKnowledgeList = append(config.OntologyKnowledgeList, &assistant_service.WgaConfigOntologyKnowledge{
+					OntologyKnowledgeId: ontologyKnowledges[i].OntologyKnowledgeId,
 				})
 			}
 		}

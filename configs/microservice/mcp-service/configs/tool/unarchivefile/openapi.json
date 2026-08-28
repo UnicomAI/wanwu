@@ -1,0 +1,187 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "文件解压",
+    "description": "解压压缩包并将文件上传到MinIO，返回目录树和文件访问路径",
+    "version": "1.0.0"
+  },
+  "tags": [],
+  "paths": {
+    "/callback/v1/file/unarchive": {
+      "post": {
+        "summary": "解压压缩包",
+        "operationId": "unarchive_file",
+        "deprecated": false,
+        "description": "将MinIO中的压缩包解压，并将解压后的文件上传到MinIO，返回目录树结构和每个文件的MinIO访问路径及下载地址。支持zip、tar、tar.gz/tgz、tar.bz2/tbz2、gz等格式。解压后的文件默认存储7天。",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fileUrl": {
+                    "type": "string",
+                    "description": "压缩包在MinIO中的完整URL路径（例如通过文件上传接口获取的filePath）"
+                  }
+                },
+                "required": ["fileUrl"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "解压成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "description": "返回结果code",
+                      "type": "integer"
+                    },
+                    "msg": {
+                      "description": "返回结果错误信息",
+                      "type": "string"
+                    },
+                    "data": {
+                      "description": "解压结果",
+                      "type": "object",
+                      "properties": {
+                        "objectPath": {
+                          "type": "string",
+                          "description": "MinIO顶层对象路径（如 file-upload/file-expire/unarchive/uuid）"
+                        },
+                        "children": {
+                          "type": "array",
+                          "description": "根目录下的子节点列表",
+                          "items": {
+                            "$ref": "#/components/schemas/UnarchiveFileNode"
+                          }
+                        },
+                        "totalFiles": {
+                          "type": "integer",
+                          "description": "总文件数"
+                        },
+                        "totalSize": {
+                          "type": "integer",
+                          "description": "总文件大小（字节）"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "data"
+                  ]
+                },
+                "example": {
+                  "code": 0,
+                  "msg": "",
+                  "data": {
+                    "objectPath": "file-upload/file-expire/unarchive/a1556b56-016c-4469-a375-e8c089b7931b",
+                    "children": [
+                      {
+                        "name": "src",
+                        "type": "directory",
+                        "objectPath": "file-upload/file-expire/unarchive/abc123/src",
+                        "relativePath": "src",
+                        "size": 0,
+                        "minioUrl": "",
+                        "downloadUrl": "",
+                        "children": [
+                          {
+                            "name": "main.go",
+                            "type": "file",
+                            "objectPath": "file-upload/file-expire/unarchive/abc123/src/main.go",
+                            "relativePath": "src/main.go",
+                            "size": 1024,
+                            "minioUrl": "http://minio-wanwu:9000/file-upload/file-expire/unarchive/abc123/src/main.go",
+                            "downloadUrl": "http://example.com/file-upload/file-expire/unarchive/abc123/src/main.go",
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "name": "README.md",
+                        "type": "file",
+                        "objectPath": "file-upload/file-expire/unarchive/abc123/README.md",
+                        "relativePath": "README.md",
+                        "size": 256,
+                        "minioUrl": "http://minio-wanwu:9000/file-upload/file-expire/unarchive/abc123/README.md",
+                        "downloadUrl": "http://example.com/file-upload/file-expire/unarchive/abc123/README.md",
+                        "children": []
+                      }
+                    ],
+                    "totalFiles": 2,
+                    "totalSize": 1280
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UnarchiveFileNode": {
+        "type": "object",
+        "description": "目录树节点",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "文件或目录名"
+          },
+          "type": {
+            "type": "string",
+            "description": "节点类型：directory 或 file",
+            "enum": ["directory", "file"]
+          },
+          "objectPath": {
+            "type": "string",
+            "description": "MinIO对象路径（如 file-upload/file-expire/unarchive/xxx/src/main.go）"
+          },
+          "relativePath": {
+            "type": "string",
+            "description": "相对路径（如 src/main.go）"
+          },
+          "size": {
+            "type": "integer",
+            "description": "文件大小，字节（目录为0）"
+          },
+          "minioUrl": {
+            "type": "string",
+            "description": "MinIO内部访问地址（仅文件有值，如 http://minio-wanwu:9000/file-upload/...）"
+          },
+          "downloadUrl": {
+            "type": "string",
+            "description": "外部下载地址（仅文件有值）"
+          },
+          "children": {
+            "type": "array",
+            "description": "子节点列表",
+            "items": {
+              "type": "object",
+              "description": "子节点（结构同父节点）"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {}
+  },
+  "servers": [
+    {
+      "url": "http://bff-service:6668",
+      "description": "文件解压服务URL"
+    }
+  ]
+}

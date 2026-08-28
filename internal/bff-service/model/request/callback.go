@@ -1,5 +1,9 @@
 package request
 
+import (
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
+)
+
 type FileUrlConvertBase64Req struct {
 	FileUrl      string `form:"fileUrl" json:"fileUrl" validate:"required"` // 文件URL
 	AddPrefix    bool   `form:"addPrefix" json:"addPrefix"`                 // 是否添加 data:xxx;base64, 前缀
@@ -7,6 +11,11 @@ type FileUrlConvertBase64Req struct {
 }
 
 func (f *FileUrlConvertBase64Req) Check() error {
+	if f.FileUrl != "" {
+		if err := url_util.ValidateURL(f.FileUrl); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -17,5 +26,26 @@ type UploadFileByBase64Req struct {
 }
 
 func (u *UploadFileByBase64Req) Check() error {
+	return nil
+}
+
+type UnarchiveFileReq struct {
+	FileUrl string `form:"fileUrl" json:"fileUrl" validate:"required"` // 压缩包的MinIO URL
+}
+
+func (u *UnarchiveFileReq) Check() error {
+	if u.FileUrl != "" {
+		if err := url_util.ValidateURL(u.FileUrl); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type GetUserListByUserIdsReq struct {
+	UserIds []string `json:"userIds" validate:"required"` // 用户ID列表
+}
+
+func (u *GetUserListByUserIdsReq) Check() error {
 	return nil
 }

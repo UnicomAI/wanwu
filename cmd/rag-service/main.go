@@ -8,12 +8,17 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
+	"time"
 
 	"github.com/UnicomAI/wanwu/internal/rag-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/rag-service/config"
 	"github.com/UnicomAI/wanwu/internal/rag-service/server/grpc"
 	"github.com/UnicomAI/wanwu/pkg/db"
+	"github.com/UnicomAI/wanwu/pkg/es"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	"github.com/UnicomAI/wanwu/pkg/minio"
+	"github.com/UnicomAI/wanwu/pkg/redis"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 )
 
 var (
@@ -53,6 +58,10 @@ func main() {
 		log.Fatalf("init log err: %v", err)
 	}
 
+	if err := trace_util.InitTracer("rag-service"); err != nil {
+		log.Fatalf("init tracer err: %v", err)
+	}
+
 	db, err := db.New(config.Cfg().DB)
 	if err != nil {
 		log.Fatalf("init db failed, err: %v", err)
@@ -62,6 +71,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("init client failed, err: %v", err)
 	}
+
+	initRagES(ctx)
+
+	initRagMinio(ctx)
+
+	initRagRedis(ctx)
 
 	s, err := grpc.NewServer(config.Cfg(), c)
 	if err != nil {
@@ -74,7 +89,44 @@ func main() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, os.Interrupt, syscall.SIGTERM)
 	<-sc
+
+	// flush trace spans
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+	trace_util.ShutdownTracer(shutdownCtx)
+	es.StopRag()
 	s.Stop(ctx)
+}
+
+// initRagRedis redis 用来接 bff 递过来的安全护栏回复
+func initRagRedis(ctx context.Context) {
+	if err := redis.InitRag(ctx, config.Cfg().Redis); err != nil {
+		log.Fatalf("init rag redis err: %v", err)
+	}
+}
+
+func initRagES(ctx context.Context) {
+	if err := es.InitRag(ctx, config.Cfg().ES); err != nil {
+		log.Fatalf("init es err: %v", err)
+	}
+	if err := es.InitRagChatHistoryIndexTemplate(ctx); err != nil {
+		log.Fatalf("init es index template err: %v", err)
+	}
+}
+
+func initRagMinio(ctx context.Context) {
+	minioConfig := config.Cfg().Minio
+	if minioConfig == nil {
+		log.Fatalf("init minio err: minio config empty")
+	}
+	if err := minio.InitFileUpload(ctx, minio.Config{
+		Endpoint:    minioConfig.EndPoint,
+		User:        minioConfig.User,
+		Password:    minioConfig.Password,
+		DownloadURL: minioConfig.DownloadURL,
+	}); err != nil {
+		log.Fatalf("init minio err: %v", err)
+	}
 }
 
 func versionPrint() {

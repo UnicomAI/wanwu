@@ -36,6 +36,8 @@ func (c Config) Load() error {
 		return err
 	}
 	config = cfg
+	//重新填充部分数据
+	config.Rebuild()
 	return nil
 }
 
@@ -45,6 +47,20 @@ func (c Config) StopPriority() int {
 
 func (c Config) Stop() error {
 	return nil
+}
+
+func (c Config) Rebuild() {
+	if c.KnowledgeDocConfig != nil {
+		typeMap := make(map[string]bool)
+		c.KnowledgeDocConfig.DocPreviewFileTypeMap = typeMap
+		fileTypes := c.KnowledgeDocConfig.DocPreviewFileTypes
+		if len(fileTypes) > 0 {
+			allowedTypes := strings.Split(fileTypes, ";")
+			for _, fileType := range allowedTypes {
+				typeMap[fileType] = true
+			}
+		}
+	}
 }
 
 // 系统配置，对应yml
@@ -132,7 +148,10 @@ type UsageLimitConfig struct {
 }
 
 type KnowledgeDocConfig struct {
-	DocLocalFilePath string `mapstructure:"doc-local-file-path" json:"doc-local-file-path"`
+	DocLocalFilePath      string          `mapstructure:"doc-local-file-path" json:"doc-local-file-path"`
+	DocPreviewSizeMax     int64           `mapstructure:"doc-preview-size-max" json:"doc-preview-size-max"`            // 文档预览大小限制，单位：字节，超过此大小不可预览
+	DocPreviewFileTypes   string          `mapstructure:"doc-preview-file-types" json:"doc-preview-file-types"`        // 文档预览支持的文件类型，分号分隔，如 ".pdf;.docx;.txt"
+	DocPreviewFileTypeMap map[string]bool `mapstructure:"doc-preview-file-type-map" json:"doc-preview-file-types-map"` // 文档预览支持的文件类型MAP，分号分隔，如 ".pdf;.docx;.txt"
 }
 
 type RagServerConfig struct {

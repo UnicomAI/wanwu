@@ -3,17 +3,24 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"sort"
 	"time"
+
+	minio_service "github.com/UnicomAI/wanwu/internal/assistant-service/service/minio-service"
+	"github.com/UnicomAI/wanwu/pkg/util"
 
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/service/conversation"
 	"github.com/UnicomAI/wanwu/pkg/es"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	"github.com/UnicomAI/wanwu/pkg/minio"
+	"github.com/UnicomAI/wanwu/pkg/redis"
 	sse_util "github.com/UnicomAI/wanwu/pkg/sse-util"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 )
 
 const (
@@ -21,13 +28,15 @@ const (
 )
 
 type ConversationParams struct {
-	AssistantId    string           `json:"assistantId"`
-	DetailId       string           `json:"detailId"`
-	ConversationId string           `json:"conversationId"`
-	UserId         string           `json:"userId"`
-	OrgId          string           `json:"orgId"`
-	Query          string           `json:"query"`
-	FileInfo       []model.FileInfo `json:"fileInfo"`
+	AssistantId        string           `json:"assistantId"`
+	DetailId           string           `json:"detailId"`
+	ConversationId     string           `json:"conversationId"`
+	SaveConversationId string           `json:"saveConversationId"`
+	UserId             string           `json:"userId"`
+	OrgId              string           `json:"orgId"`
+	Query              string           `json:"query"`
+	FileInfo           []model.FileInfo `json:"fileInfo"`
+	SourceFrom         string           `json:"sourceFrom"`
 }
 
 type AgentChatResp struct {
@@ -48,18 +57,13 @@ func (cp *ConversationProcessor) Process(ctx context.Context, req *ConversationP
 	var conversationResp = conversation.CreateConversationResp()
 	defer func() {
 		if err != nil {
-			log.Errorf("[Conversation] err: %v", err)
 			//错误信息通知
 			_ = cp.SSEWriter.WriteLine(assistant_service.AssistantConversionStreamResp{
 				Content: buildErrMsg(err),
 			}, false, nil, nil)
+			//处理异常
+			processError(ctx, req, conversationResp, err)
 		}
-		if ctx.Err() != nil {
-			err = ctx.Err()
-			log.Errorf("[Conversation] context err: %v", err)
-		}
-		//todo delete
-		log.Infof("[Conversation] fullResponse: %s", conversationResp.Response())
 		//保存会话
 		saveConversation(ctx, req, conversationResp, req.DetailId)
 	}()
@@ -96,11 +100,24 @@ func (cp *ConversationProcessor) conversationLineBuilder(conversationResp *conve
 	}
 }
 
+// 处理会话异常
+func processError(ctx context.Context, req *ConversationParams, conversationResp *conversation.ConversationResp, err error) {
+	log.Errorf("[Conversation] err: %v", err)
+	//错误会话异常
+	//判断异常是不是敏感词
+	sensitiveMsg := redis.GetSensitiveConversation(req.ConversationId, req.DetailId)
+	if len(sensitiveMsg) > 0 {
+		conversationResp.SensitiveResponse(sensitiveMsg)
+	} else {
+		conversationResp.ErrorResponse(err)
+	}
+}
+
 // 构建错误信息,todo 后续考虑创建枚举明细错误信息
 func buildErrMsg(err error) string {
 	var agentChatResp = &AgentChatResp{
 		Code:     1,
-		Message:  "智能体处理异常，请稍后重试",
+		Message:  err.Error(),
 		Response: "智能体处理异常，请稍后重试",
 		Finish:   1,
 	}
@@ -114,26 +131,41 @@ func buildErrMsg(err error) string {
 
 // 使用独立上下文保存对话的辅助函数
 func saveConversation(originalCtx context.Context, req *ConversationParams, conversationResp *conversation.ConversationResp, detailId string) {
+	//增加日志
+	if originalCtx.Err() != nil {
+		err := originalCtx.Err()
+		log.Errorf("[Conversation] context err: %v", err)
+	}
+	//todo delete
+	log.Infof("[Conversation] fullResponse: %s", conversationResp.Response())
 	if len(req.ConversationId) == 0 {
 		return
 	}
-	// 如果原始上下文已取消，创建一个新的独立上下文
-	if originalCtx.Err() != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), esTimeout)
-		defer cancel()
+	ctx, cancel := context.WithTimeout(trace_util.DetachContext(originalCtx), esTimeout)
+	defer cancel()
 
-		if err := saveConversationDetailToES(ctx, req, conversationResp, detailId); err != nil {
-			log.Errorf("保存聊天记录到ES失败，assistantId: %s, conversationId: %s, error: %v",
-				req.AssistantId, req.ConversationId, err)
-		}
-		return
-	}
-
-	// 原始上下文未取消时，继续使用它
-	if err := saveConversationDetailToES(originalCtx, req, conversationResp, detailId); err != nil {
+	if err := saveConversationDetailToES(ctx, req, conversationResp, detailId); err != nil {
 		log.Errorf("保存聊天记录到ES失败，assistantId: %s, conversationId: %s, error: %v",
 			req.AssistantId, req.ConversationId, err)
 	}
+}
+
+// fillStatistic 填充统计信息
+func fillStatistic(ctx context.Context, conversationResp *conversation.ConversationResp, responseList []*model.ConversationResponse, sourceFrom string) {
+	statistic := conversationResp.Statistic
+	//设置总消耗时间
+	statistic.SetTotalCostTime()
+	//设置报错信息
+	statistic.SetErr(conversationResp.Error)
+	if len(responseList) > 0 {
+		for _, response := range responseList {
+			if len(response.ErrMessage) > 0 {
+				statistic.SetErr(errors.New(response.ErrMessage))
+			}
+		}
+	}
+	statistic.SetTraceId(trace_util.GetTraceID(ctx))
+	statistic.SetSourceFrom(sourceFrom)
 }
 
 // saveConversationDetailToES 保存聊天记录到ES
@@ -143,7 +175,7 @@ func saveConversationDetailToES(ctx context.Context, req *ConversationParams, co
 	indexName := fmt.Sprintf("conversation_detail_infos_%d%02d", now.Year(), now.Month())
 
 	// 组装ConversationDetails数据，使用传入的detailId
-	conversationDetail := buildConversationDetail(req, conversationResp, now.UnixMilli(), detailId)
+	conversationDetail := buildConversationDetail(ctx, req, conversationResp, now.UnixMilli(), detailId)
 	// 写入ES
 	if err := es.Assistant().IndexDocument(ctx, indexName, conversationDetail); err != nil {
 		return fmt.Errorf("写入ES失败: %v", err)
@@ -154,14 +186,24 @@ func saveConversationDetailToES(ctx context.Context, req *ConversationParams, co
 	return nil
 }
 
-func buildConversationDetail(req *ConversationParams, conversationResp *conversation.ConversationResp, nowMilli int64, detailId string) *model.ConversationDetails {
+func buildConversationDetail(ctx context.Context, req *ConversationParams, conversationResp *conversation.ConversationResp, nowMilli int64, detailId string) *model.ConversationDetails {
+	if len(conversationResp.SensitiveMessage) > 0 {
+		conversationResp.CurrentData = conversationResp.SensitiveMessage
+	}
+	err := conversation.FinishConversationResp(conversationResp)
+	responseList := conversationResp.ResponseList()
+	//填充统计信息
+	fillStatistic(ctx, conversationResp, responseList, req.SourceFrom)
+	if err != nil {
+		log.Errorf("FinishConversationResp error: %v", err)
+	}
 	return &model.ConversationDetails{
 		Id:                        detailId,
 		AssistantId:               req.AssistantId,
-		ConversationId:            req.ConversationId,
+		ConversationId:            req.SaveConversationId,
 		Prompt:                    req.Query,
-		FileInfo:                  req.FileInfo,
-		ResponseList:              conversationResp.ResponseList(),
+		FileInfo:                  restoreFileList(req.FileInfo),
+		ResponseList:              responseList,
 		Response:                  conversationResp.Response(),
 		SearchList:                conversationResp.References(),
 		UserId:                    req.UserId,
@@ -170,6 +212,7 @@ func buildConversationDetail(req *ConversationParams, conversationResp *conversa
 		UpdatedAt:                 nowMilli,
 		SubConversationDetailList: buildSubConversationDetailList(conversationResp),
 		ResponseFiles:             conversationResp.ResponseFiles,
+		Statistic:                 conversationResp.Statistic,
 	}
 }
 
@@ -226,4 +269,33 @@ func buildConversationType(eventType int) model.ConversationType {
 	default:
 		return model.SubAgent
 	}
+}
+
+func restoreFileList(agentFileList []model.FileInfo) (retFileList []model.FileInfo) {
+	if len(agentFileList) == 0 {
+		return agentFileList
+	}
+	defer util.PrintPanicStackWithCall(func(panicOccur bool, recoverError error) {
+		if panicOccur {
+			retFileList = agentFileList
+			return
+		}
+	})
+	for _, file := range agentFileList {
+		retFileList = append(retFileList, model.FileInfo{
+			FileName: file.FileName,
+			FileSize: file.FileSize,
+			FileUrl:  restoreFile(file.FileUrl),
+		})
+	}
+	return
+}
+
+// restoreFile 重新存储文件地址，原来是临时的，需要做永久存储
+func restoreFile(fileUrl string) string {
+	newFileUrl, _, _, err := minio_service.CopyFile(context.Background(), fileUrl, minio.PermanentDir(), true)
+	if err != nil || len(newFileUrl) == 0 {
+		return fileUrl
+	}
+	return newFileUrl
 }

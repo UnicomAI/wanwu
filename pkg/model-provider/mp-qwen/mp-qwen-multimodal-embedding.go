@@ -31,10 +31,23 @@ func (cfg *MultiModalEmbedding) Tags() []mp_common.Tag {
 }
 
 func (cfg *MultiModalEmbedding) NewReq(req *mp_common.MultiModalEmbeddingReq) (mp_common.IMultiModalEmbeddingReq, error) {
+	// qwen 多模态 embedding 模型要求 text 不能为空字符串，否则下游会报错；
+	// 将空字符串的 text 归一化为 nil，使序列化时通过 omitempty 省略该字段。
+	// 过滤掉所有字段均为 nil 的元素，避免序列化出空对象 {}。
+	input := make([]mp_common.MultiInput, 0, len(req.Input))
+	for _, in := range req.Input {
+		if in.Text != nil && *in.Text == "" {
+			in.Text = nil
+		}
+		if in.Text == nil && in.Image == nil && in.Audio == nil && in.Video == nil {
+			continue
+		}
+		input = append(input, in)
+	}
 	m := map[string]interface{}{
 		"model": req.Model,
 		"input": map[string]interface{}{
-			"contents": req.Input,
+			"contents": input,
 		},
 	}
 	if req.EncodingFormat != "" {

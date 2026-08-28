@@ -16,6 +16,7 @@
 {"code":110007,"key":"","langs":{"zh":"忘记密码已禁用"}}
 {"code":110008,"key":"","langs":{"zh":"邮箱登录已禁用"}}
 {"code":110009,"key":"","langs":{"zh":"单因子登录禁用"}}
+{"code":110013,"key":"","langs":{"en":"Rate limit error: %v","zh":"限流错误：%v"}}
 {"code":0,"key":"------ auth ------","langs":{}}
 {"code":110004,"key":"bff_auth_server_authorized","langs":{"en":"authorized","zh":"已授权"}}
 {"code":110004,"key":"bff_auth_server_error","langs":{"en":"auth-service err","zh":"授权服务异常"}}
@@ -26,16 +27,23 @@
 {"code":110004,"key":"bff_auth_license_permission_error","langs":{"en":"abnormal permission data","zh":"权限数据异常"}}
 {"code":110004,"key":"bff_auth_code_not_define","langs":{"en":"code currently undefined","zh":"code暂无定义"}}
 {"code":0,"key":"------ org ------","langs":{}}
+{"code":110000,"key":"bff_app_publish_no_permission","langs":{"en":"app not published or no access permission","zh":"应用未发布或无访问权限"}}
+{"code":110000,"key":"bff_openapi_app_not_owner","langs":{"en":"openapi can only access app created by yourself","zh":"OpenAPI 只能访问自己创建的应用"}}
+{"code":110000,"key":"bff_rag_conversation_no_permission","langs":{"en":"conversation not found or no access permission","zh":"会话不存在或无访问权限"}}
+{"code":110000,"key":"bff_agent_prologue_required","langs":{"en":"prologue not configured, please set it via the config update api first","zh":"开场白未配置，请先通过配置更新接口设置开场白"}}
+{"code":110000,"key":"bff_agent_model_required","langs":{"en":"llm not configured, please set it via the config update api first","zh":"大模型未配置，请先通过配置更新接口设置大模型"}}
 {"code":110000,"key":"bff_org_disable","langs":{"en":"the organization has been deactivated","zh":"组织已停用"}}
 {"code":110000,"key":"bff_org_cannot_change","langs":{"en":"cannot modify organization","zh":"无法编辑组织"}}
 {"code":110000,"key":"bff_org_cannot_delete","langs":{"en":"cannot delete organization","zh":"无法删除组织"}}
 {"code":110000,"key":"bff_org_cannot_change_status","langs":{"en":"cannot modify organization status","zh":"无法修改组织状态"}}
 {"code":110000,"key":"bff_org_cannot_create","langs":{"en":"cannot create organization","zh":"无法新增组织"}}
+{"code":110000,"key":"bff_system_org_required","langs":{"zh":"非系统下无法操作"}}
 {"code":0,"key":"------ role ------","langs":{}}
 {"code":110000,"key":"bff_role_cannot_change","langs":{"en":"cannot modify role","zh":"无法编辑用户"}}
 {"code":110000,"key":"bff_role_cannot_create","langs":{"en":"cannot create role","zh":"无法新增角色"}}
 {"code":110000,"key":"bff_role_cannot_delete","langs":{"en":"cannot delete role","zh":"无法删除角色"}}
 {"code":110000,"key":"bff_role_cannot_change_status","langs":{"en":"cannot modify role status","zh":"无法修改角色状态"}}
+{"code":110000,"key":"bff_global_role_cannot_operate","langs":{"zh":"无法操作全局角色"}}
 {"code":0,"key":"------ user ------","langs":{}}
 {"code":110000,"key":"bff_user_cannot_change_other_password","langs":{"en":"cannot modify another user's password","zh":"无法修改他人密码"}}
 {"code":110000,"key":"bff_user_cannot_delete","langs":{"en":"only system administrators can delete users","zh":"非系统管理员无法删除用户"}}
@@ -46,6 +54,8 @@
 {"code":110000,"key":"bff_user_cannot_change_status","langs":{"en":"cannot modify user status","zh":"无法修改用户状态"}}
 {"code":110000,"key":"bff_user_cannot_change_password","langs":{"en":"cannot modify user's password","zh":"无法修改密码"}}
 {"code":110000,"key":"bff_user_batch_import_file","langs":{"zh":"批量创建用户失败: %v"}}
+{"code":110000,"key":"bff_org_admin_required","langs":{"zh":"非该组织管理员无法操作"}}
+{"code":110000,"key":"bff_user_cannot_reset_password","langs":{"zh":"无权限重置密码"}}
 {"code":0,"key":"------ file upload ------","langs":{}}
 {"code":110000,"key":"bff_file_upload_check","langs":{"en":"file verification failed, please try again later!","zh":"文件校验失败，请稍后重试！(%v)"}}
 {"code":110000,"key":"bff_file_upload_merge","langs":{"en":"file merge failed, please try again later!","zh":"文件合并失败，请稍后重试！(%v)"}}
@@ -84,6 +94,8 @@
 {"code":110000,"key":"bff_chatflow_application_info","langs":{"zh":"获取对话流应用信息错误:%v"}}
 {"code":110000,"key":"bff_app_publish_version","langs":{"zh":"最新版本(%v)，发布版本(%v)，版本号应递增，需大于上一个版本: %v"}}
 {"code":110010,"key":"","langs":{"zh":"应用类型错误"}}
+{"code":110010,"key":"bff_workflow_name_exists","langs":{"zh":"工作流或对话流已存在，请修改名称后重试"}}
+{"code":110000,"key":"bff_workflow_app_create","langs":{"zh":"工作流、对话流创建错误: %v"}}
 {"code":0,"key":"------ doc ------","langs":{}}
 {"code":110000,"key":"bff_doc_center_file_unescape","langs":{"en":"path unescape error: %v","zh":"路径去除转义错误: %v"}}
 {"code":110000,"key":"bff_doc_center_file_md","langs":{"en":"no markdown files found: %v","zh":"未含有md文件: %v"}}
@@ -121,12 +133,67 @@
 {"code":110000,"key":"bff_model_perm","langs":{"zh":"模型(%v)权限校验失败，请更换模型重试"}}
 {"code":110011,"key":"","langs":{"zh":"模型(%v)已禁用"}}
 {"code":110012,"key":"","langs":{"zh":"Skill解析错误: %v"}}
+{"code":0,"key":"------ skill ------","langs":{}}
+{"code":110000,"key":"bff_skill_acquired_no_permission","langs":{"en":"No permission to access this skill.","zh":"当前无权限访问该技能"}}
+{"code":110000,"key":"bff_skill_acquired_source_inaccessible","langs":{"en":"source skill not found","zh":"源技能不存在"}}
+{"code":110000,"key":"bff_skill_acquired_source_id_empty","langs":{"en":"source skill id is empty","zh":"源技能ID为空"}}
+{"code":110000,"key":"bff_skill_builtin_not_found","langs":{"en":"builtin skill not found","zh":"内置技能不存在"}}
+{"code":110000,"key":"bff_skill_custom_not_found","langs":{"en":"custom skill not found","zh":"自定义技能不存在"}}
+{"code":110000,"key":"bff_skill_acquired_not_found","langs":{"en":"acquired skill not found","zh":"已添加技能不存在"}}
+{"code":110000,"key":"bff_skill_not_owned","langs":{"en":"skill not found or not owned by current user","zh":"技能不存在或不属于当前用户"}}
+{"code":110000,"key":"bff_skill_workspace_not_found","langs":{"en":"skill workspace not found","zh":"技能工作区不存在"}}
+{"code":110000,"key":"bff_skill_workspace_get_dir_failed","langs":{"en":"get skill dir failed","zh":"获取技能目录失败"}}
+{"code":110000,"key":"bff_skill_workspace_init_git_failed","langs":{"en":"init git repo failed","zh":"初始化git仓库失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_not_initialized","langs":{"en":"git repository not initialized","zh":"git仓库未初始化"}}
+{"code":110000,"key":"bff_skill_workspace_build_file_tree_failed","langs":{"en":"build file tree failed","zh":"构建文件树失败"}}
+{"code":110000,"key":"bff_skill_workspace_file_not_found","langs":{"en":"file not found","zh":"文件不存在"}}
+{"code":110000,"key":"bff_skill_workspace_stat_file_failed","langs":{"en":"stat file failed","zh":"获取文件信息失败"}}
+{"code":110000,"key":"bff_skill_workspace_path_is_directory","langs":{"en":"path is a directory","zh":"路径是目录"}}
+{"code":110000,"key":"bff_skill_workspace_file_too_large","langs":{"en":"file too large","zh":"文件过大"}}
+{"code":110000,"key":"bff_skill_workspace_read_file_failed","langs":{"en":"read file failed","zh":"读取文件失败"}}
+{"code":110000,"key":"bff_skill_workspace_create_dir_failed","langs":{"en":"create dir failed","zh":"创建目录失败"}}
+{"code":110000,"key":"bff_skill_workspace_write_file_failed","langs":{"en":"write file failed","zh":"写入文件失败"}}
+{"code":110000,"key":"bff_skill_workspace_get_diff_failed","langs":{"en":"get diff failed","zh":"获取差异失败"}}
+{"code":110000,"key":"bff_skill_workspace_resolve_path_failed","langs":{"en":"resolve file path failed","zh":"解析文件路径失败"}}
+{"code":110000,"key":"bff_skill_workspace_get_head_commit_failed","langs":{"en":"get head commit failed","zh":"获取HEAD提交失败"}}
+{"code":110000,"key":"bff_skill_workspace_get_file_content_failed","langs":{"en":"get file content failed","zh":"获取文件内容失败"}}
+{"code":110000,"key":"bff_skill_workspace_get_file_diff_failed","langs":{"en":"get file diff failed","zh":"获取文件差异失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_status_failed","langs":{"en":"git status failed","zh":"git状态查询失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_add_failed","langs":{"en":"git add failed","zh":"git暂存失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_reset_failed","langs":{"en":"git reset failed","zh":"git取消暂存失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_commit_failed","langs":{"en":"git commit failed","zh":"git提交失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_diff_failed","langs":{"en":"git diff failed","zh":"git差异查询失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_diff_staged_failed","langs":{"en":"git diff --cached failed","zh":"git已暂存差异查询失败"}}
+{"code":110000,"key":"bff_skill_workspace_search_failed","langs":{"en":"search failed","zh":"搜索失败"}}
+{"code":110000,"key":"bff_skill_workspace_check_git_status_failed","langs":{"en":"check git status failed","zh":"检查git状态失败"}}
+{"code":110000,"key":"bff_skill_no_commits","langs":{"en":"workspace has no commits, please commit before publishing","zh":"工作区尚未提交，请先提交后再发布"}}
+{"code":110000,"key":"bff_skill_uncommitted_changes","langs":{"en":"workspace has uncommitted changes, please commit before publishing","zh":"工作区有未提交的更改，请先提交后再发布"}}
+{"code":110000,"key":"bff_skill_version_exists","langs":{"en":"version already exists please use another version","zh":"版本已存在请使用其他版本号"}}
+{"code":110000,"key":"bff_skill_workspace_git_restore_failed","langs":{"en":"git restore failed","zh":"git恢复失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_discard_failed","langs":{"en":"git discard changes failed","zh":"git丢弃变更失败"}}
+{"code":110000,"key":"bff_skill_workspace_git_diff_content_failed","langs":{"en":"get diff content failed","zh":"获取差异内容失败"}}
+{"code":110000,"key":"bff_skill_workspace_delete_file_failed","langs":{"en":"delete file failed","zh":"删除文件失败"}}
+{"code":110000,"key":"bff_skill_workspace_no_permission","langs":{"en":"no permission to edit this workspace","zh":"无权编辑此工作区"}}
+{"code":110000,"key":"bff_skill_workspace_path_not_allowed","langs":{"en":"path is not allowed","zh":"路径不被允许"}}
+{"code":110000,"key":"bff_skill_workspace_path_not_found","langs":{"en":"path not found","zh":"路径不存在"}}
+{"code":110000,"key":"bff_skill_workspace_name_invalid","langs":{"en":"invalid name","zh":"名称无效"}}
+{"code":110000,"key":"bff_skill_workspace_name_conflict","langs":{"en":"name already exists","zh":"名称已存在"}}
+{"code":110000,"key":"bff_skill_workspace_operation_conflict","langs":{"en":"operation conflict, please retry","zh":"操作冲突，请重试"}}
+{"code":110000,"key":"bff_skill_workspace_invalid_multipart","langs":{"en":"invalid multipart form","zh":"无效的 multipart 表单"}}
+{"code":110000,"key":"bff_skill_workspace_upload_empty","langs":{"en":"no files to upload","zh":"没有可上传的文件"}}
+{"code":110000,"key":"bff_skill_workspace_upload_too_large","langs":{"en":"upload file too large","zh":"上传文件过大"}}
+{"code":110000,"key":"bff_skill_workspace_upload_failed","langs":{"en":"upload failed","zh":"上传失败"}}
+{"code":110000,"key":"bff_skill_content_read_tree_failed","langs":{"en":"read published skill content failed","zh":"读取技能发布版本内容失败"}}
+{"code":0,"key":"---- ratelimit ----","langs":{}}
+{"code":110013,"key":"bff_rate_limited_failed_with_attempts","langs":{"en":"%v. You have %v attempt(s) remaining.","zh":"%v，您还有%v次尝试的机会"}}
+{"code":110013,"key":"bff_rate_limited_too_many attempts","langs":{"en":"Too many attempts. Please try again in %v minute(s).","zh":"访问太频繁，请%v分钟之后重试"}}
 {"code":0,"key":"------ custom ------","langs":{}}
-{"code":0,"key":"bff_custom_home_title","langs":{"en":"Yuanjing Wanwu Intelligent Body Platform","zh":"元景万悟智能体平台"}}
-{"code":0,"key":"bff_custom_tab_title","langs":{"en":"Yuanjing Wanwu","zh":"元景万悟"}}
-{"code":0,"key":"bff_custom_login_welcome_text","langs":{"en":"Hi! Welcome to Yuanjing Wanwu Intelligent Body Platform","zh":"嗨！欢迎来到元景万悟智能体平台"}}
+{"code":0,"key":"bff_custom_home_title","langs":{"en":"Intelligent Body Platform","zh":"智能体平台"}}
+{"code":0,"key":"bff_custom_tab_title","langs":{"en":"Intelligent Body Platform","zh":"智能体平台"}}
+{"code":0,"key":"bff_custom_login_welcome_text","langs":{"en":"Hi! Welcome to Intelligent Body Platform","zh":"嗨！欢迎来到智能体平台"}}
 {"code":0,"key":"bff_custom_about_copyright","langs":{"zh":"© 大模型开源平台"}}
 {"code":0,"key":"bff_custom_login_platform_desc","langs":{}}
+{"code":0,"key":"bff_custom_general_agent_welcome","langs":{"en":"Hi, What Can I Do For You？","zh":"您好，有什么可以帮您？"}}
 {"code":120002,"key":"iam_captcha_refresh","langs":{"en":"refresh but key or code empty","zh":"刷新验证码时 key 或 code 为空"}}
 {"code":120002,"key":"iam_captcha_create","langs":{"en":"code not created,  please refresh: %v","zh":"验证码未生成，请刷新: %v"}}
 {"code":120002,"key":"iam_captcha_check","langs":{"en":"check captcha but key or code empty","zh":"检查验证码时 key 或 code 为空"}}
@@ -153,7 +220,11 @@
 {"code":120011,"key":"iam_org_user_add","langs":{"en":"add org %v user %v role %v err: %v","zh":"为组织(%v) 用户(%v) 添加角色(%v) 错误: %v"}}
 {"code":120011,"key":"iam_org_user_remove_top","langs":{"en":"remove org user but remove from top org","zh":"无法从系统中移除用户"}}
 {"code":120011,"key":"iam_org_user_remove","langs":{"en":"remove org %v user %v err: %v","zh":"移除组织(%v) 用户(%v) 错误: %v"}}
+{"code":120011,"key":"iam_org_user_batch_remove","langs":{"zh":"批量移除组织(%v)用户错误: %v"}}
+{"code":120011,"key":"iam_org_user_pairs_validate","langs":{"zh":"校验用户组织关系错误: %v"}}
+{"code":120011,"key":"iam_org_user_membership_get","langs":{"zh":"获取用户(%v)组织关系错误: %v"}}
 {"code":120011,"key":"iam_orgs_get_by_ids","langs":{"en":"get orgs by org id err: %v","zh":"通过组织id获取组织错误: %v"}}
+{"code":120011,"key":"iam_admin_org_sub_tree","langs":{"en":"get admin org sub tree err: %v","zh":"获取管理组织子树错误: %v"}}
 {"code":120011,"key":"iam_perm_check_user_ok","langs":{"en":"check user %v status  err: %v","zh":"检查用户(%v) 状态错误: %v"}}
 {"code":130002,"key":"iam_perm_relogin","langs":{"en":"relogin required","zh":"需要重新登录"}}
 {"code":120011,"key":"iam_perm_user_disable","langs":{"en":"account has been deactivated","zh":"账号已被停用"}}
@@ -164,6 +235,9 @@
 {"code":120021,"key":"iam_role_update","langs":{"en":"update org %v role %v err: %v","zh":"更新组织(%v) 角色(%v) 错误: %v"}}
 {"code":120021,"key":"iam_role_delete","langs":{"en":"delete org %v role %v err: %v","zh":"删除组织(%v) 角色(%v) 错误: %v"}}
 {"code":120021,"key":"iam_role_change","langs":{"en":"change org %v role %v status %v err: %v","zh":"修改组织(%v) 角色(%v) 状态(%v) 错误: %v"}}
+{"code":120021,"key":"iam_role_user_remove","langs":{"en":"remove role %v user %v err: %v","zh":"移除角色(%v) 用户(%v) 错误: %v"}}
+{"code":120021,"key":"iam_role_users_get","langs":{"en":"get role %v users err: %v","zh":"获取角色(%v) 用户列表错误: %v"}}
+{"code":120021,"key":"iam_global_roles_get","langs":{"en":"get global roles err: %v","zh":"获取全局角色列表错误: %v"}}
 {"code":120031,"key":"iam_user_org_check","langs":{"en":"get user %v check org %v user err: %v","zh":"获取用户(%v) 时检查组织(%v) 用户错误: %v"}}
 {"code":120031,"key":"iam_user_get","langs":{"en":"get user %v err: %v","zh":"获取用户(%v) 错误: %v"}}
 {"code":120031,"key":"iam_users_get","langs":{"en":"get org %v users err: %v","zh":"获取组织(%v) 用户错误: %v"}}
@@ -191,6 +265,10 @@
 {"code":120031,"key":"iam_user_batch_create_name","langs":{"zh":"用户(%v)已存在"}}
 {"code":120031,"key":"iam_user_batch_create_phone","langs":{"zh":"用户(%v)电话(%v)已存在"}}
 {"code":120031,"key":"iam_user_batch_create","langs":{"zh":"批量创建用户失败: %v"}}
+{"code":120031,"key":"iam_user_is_admin_of_org","langs":{"en":"check user %v is admin of org %v err: %v","zh":"校验用户(%v) 是否组织(%v) 管理员错误: %v"}}
+{"code":120031,"key":"iam_user_is_org_admin","langs":{"en":"check user %v is org admin err: %v","zh":"校验用户(%v) 是否组织管理员错误: %v"}}
+{"code":120031,"key":"iam_org_user_ids_get","langs":{"zh":"获取用户列表错误: %v"}}
+{"code":120031,"key":"iam_user_batch_delete","langs":{"zh":"批量删除用户错误: %v"}}
 {"code":120002,"key":"iam_login_captcha","langs":{"en":"refresh captcha err:  %v","zh":"刷新验证码错误: %v"}}
 {"code":120021,"key":"iam_role_create","langs":{"en":"create role err: %v","zh":"创建角色错误: %v"}}
 {"code":120031,"key":"iam_user_overview","langs":{"en":"get user over view err: %v","zh":"获取用户总览错误: %v"}}
@@ -210,6 +288,7 @@
 {"code":250004,"key":"model_delete_err","langs":{"zh":"模型删除异常:%v"}}
 {"code":250005,"key":"model_get_err","langs":{"zh":"模型查询异常:%v"}}
 {"code":250006,"key":"model_list_models_err","langs":{"zh":"模型列表异常:%v"}}
+{"code":250006,"key":"model_admin_page_list_err","langs":{"zh":"模型全局列表异常:%v"}}
 {"code":250007,"key":"model_change_model_status_err","langs":{"zh":"模型启停异常:%v"}}
 {"code":250008,"key":"model_list_type_models_err","langs":{"zh":"模型类型列表异常:%v"}}
 {"code":250009,"key":"model_get_by_ids_err","langs":{"zh":"根据id列表获取模型列表信息异常:%v"}}
@@ -223,6 +302,7 @@
 {"code":140001,"key":"know_doc_file_import_failed","langs":{"zh":"文件导入异常"}}
 {"code":140001,"key":"know_qa_pair_count_exceed","langs":{"zh":"问答对数量超过限制"}}
 {"code":140001,"key":"know_same_name_validation_fail","langs":{"zh":"已存在同名文件，请更改名字后重试"}}
+{"code":140001,"key":"know_doc_invalid_file_name","langs":{"zh":"文件名不合法：不能包含斜杠（/）、反斜杠（\\）或连续两个点（..），请修改后重试"}}
 {"code":140001,"key":"know_doc_last_failure_info","langs":{"zh":"最近一次失败信息：%v"}}
 {"code":140001,"key":"know_doc_parsing_service_error","langs":{"zh":"文件解析服务异常"}}
 {"code":140001,"key":"know_doc_file_unusable","langs":{"zh":"文件不可用，需确保文件格式正确、无加密情况、文件能正常打开"}}
@@ -234,6 +314,7 @@
 {"code":140001,"key":"know_doc_embedding_error","langs":{"zh":"向量导入失败"}}
 {"code":140001,"key":"know_doc_text_error","langs":{"zh":"文本导入失败"}}
 {"code":140001,"key":"know_doc_parsing_interrupted","langs":{"zh":"RAG重启"}}
+{"code":140001,"key":"know_doc_file_name_too_long","langs":{"zh":"文件名过长，请缩短后重试（最长80个字符）"}}
 {"code":141001,"key":"","langs":{"zh":"新建失败，请稍后重试"}}
 {"code":141002,"key":"","langs":{"zh":"删除失败，请稍后重试"}}
 {"code":141003,"key":"","langs":{"zh":"修改信息失败，请稍后重试"}}
@@ -245,6 +326,7 @@
 {"code":141009,"key":"","langs":{"zh":"查询列表失败，请稍后重试"}}
 {"code":141010,"key":"","langs":{"zh":"命中测试失败，请稍后重试：%v"}}
 {"code":141011,"key":"","langs":{"zh":"查询知识图谱失败，请稍后重试"}}
+{"code":141012,"key":"","langs":{"zh":"该知识库不存在"}}
 {"code":142001,"key":"","langs":{"zh":"文档正在解析文档，不可删除"}}
 {"code":142002,"key":"","langs":{"zh":"文档删除失败，请稍后重试"}}
 {"code":142003,"key":"","langs":{"zh":"修改文档分段状态失败，请稍后重试"}}
@@ -258,6 +340,11 @@
 {"code":142011,"key":"","langs":{"zh":"更新文档元数据失败，已存在重复key，请稍后重试"}}
 {"code":142012,"key":"","langs":{"zh":"文档导出失败，请稍后重试"}}
 {"code":142013,"key":"","langs":{"zh":"文档信息查询失败，请稍后重试"}}
+{"code":142014,"key":"","langs":{"zh":"文档更新配置失败，请稍后重试"}}
+{"code":142015,"key":"","langs":{"zh":"存在非处理完成状态文档，请重新选择文档后重试"}}
+{"code":142016,"key":"","langs":{"zh":"该文档不存在"}}
+{"code":142017,"key":"","langs":{"zh":"文档部分删除失败，请稍后重试"}}
+{"code":142018,"key":"","langs":{"zh":"该文档由已下架的url方式导入，不支持重新解析"}}
 {"code":143001,"key":"","langs":{"zh":"新建标签失败，请稍后重试"}}
 {"code":143002,"key":"","langs":{"zh":"删除标签失败，请稍后重试"}}
 {"code":143003,"key":"","langs":{"zh":"修改标签失败，请稍后重试"}}
@@ -291,6 +378,8 @@
 {"code":145019,"key":"","langs":{"zh":"非法参数"}}
 {"code":145020,"key":"","langs":{"zh":"文档分段内容为空"}}
 {"code":145021,"key":"","langs":{"zh":"部分元数据更新成功"}}
+{"code":145022,"key":"","langs":{"zh":"当前知识库不支持插入图片，仅多模态知识库可插入图片"}}
+{"code":145023,"key":"","langs":{"zh":"仅支持上传png/jpg/jpeg格式的图片"}}
 {"code":146001,"key":"","langs":{"zh":"获取权限列表失败，请稍后重试"}}
 {"code":146002,"key":"","langs":{"zh":"操作权限不足，请联系管理员添加后重试"}}
 {"code":146003,"key":"","langs":{"zh":"添加权限失败，请稍后重试"}}
@@ -316,6 +405,7 @@
 {"code":148011,"key":"","langs":{"zh":"获取导出记录列表失败，请稍后重试"}}
 {"code":148012,"key":"","langs":{"zh":"删除导出记录失败，请稍后重试"}}
 {"code":148013,"key":"","langs":{"zh":"获取问答库文档任务详情失败，请稍后重试"}}
+{"code":148014,"key":"","langs":{"zh":"该导出记录不存在"}}
 {"code":149001,"key":"","langs":{"zh":"新建外部知识库API失败，请稍后重试"}}
 {"code":149002,"key":"","langs":{"zh":"删除外部知识库API失败，请稍后重试"}}
 {"code":149003,"key":"","langs":{"zh":"修改外部知识库API失败，请稍后重试"}}
@@ -369,17 +459,31 @@
 {"code":310025,"key":"mcp_custom_skill_get_by_message_ids","langs":{"zh":"生成自定义skill获取消息失败"}}
 {"code":310025,"key":"mcp_custom_skill_check_exists","langs":{"zh":"自定义skill获取失败: %v"}}
 {"code":310025,"key":"mcp_custom_skill_save_id_exists","langs":{"zh":"自定义skill已存在"}}
+{"code":310026,"key":"mcp_acquired_skill_create","langs":{"zh":"skill添加失败: %v"}}
+{"code":310026,"key":"mcp_acquired_skill_delete","langs":{"zh":"skill删除失败: %v"}}
+{"code":310026,"key":"mcp_acquired_skill_not_found","langs":{"zh":"skill(%v)不存在"}}
+{"code":310026,"key":"mcp_acquired_skill_get","langs":{"zh":"skill(%v)获取失败: %v"}}
+{"code":310026,"key":"mcp_acquired_skill_list","langs":{"zh":"skill列表获取失败"}}
 {"code":150001,"key":"rag_role_err","langs":{"zh":"角色权限错误：%v"}}
 {"code":150002,"key":"rag_info_not_exist","langs":{"zh":"文本问答信息不存在：%v"}}
 {"code":150003,"key":"rag_delete_err","langs":{"zh":"删除文本问答错误：%v"}}
 {"code":150004,"key":"rag_get_err","langs":{"zh":"获取文本问答错误：%v"}}
 {"code":150005,"key":"rag_list_err","langs":{"zh":"获取文本问答列表错误：%v"}}
+{"code":150005,"key":"rag_admin_page_list_err","langs":{"zh":"知识问答全局列表异常：%v"}}
 {"code":150006,"key":"rag_create_err","langs":{"zh":"创建文本问答错误：%v"}}
 {"code":150007,"key":"rag_update_err","langs":{"zh":"更新文本问答错误：%v"}}
 {"code":150008,"key":"rag_chat_err","langs":{"zh":"问答错误：%v"}}
 {"code":150009,"key":"rag_list_by_ids_err","langs":{"zh":"id列表为空：%v"}}
 {"code":150010,"key":"rag_duplicate_name","langs":{"zh":"已存在同名文本问答"}}
 {"code":150011,"key":"rag_publish_err","langs":{"zh":"发布失败：%v"}}
+{"code":150012,"key":"rag_conversation_create_err","langs":{"zh":"创建知识问答会话错误：%v"}}
+{"code":150012,"key":"rag_conversation_update_err","langs":{"zh":"更新知识问答会话错误：%v"}}
+{"code":150012,"key":"rag_conversation_delete_err","langs":{"zh":"删除知识问答会话错误：%v"}}
+{"code":150012,"key":"rag_conversation_list_err","langs":{"zh":"获取知识问答会话列表错误：%v"}}
+{"code":150012,"key":"rag_conversation_detail_err","langs":{"zh":"获取知识问答对话详情错误：%v"}}
+{"code":150012,"key":"rag_conversation_clear_err","langs":{"zh":"清除知识问答对话记录错误：%v"}}
+{"code":150012,"key":"rag_conversation_feedback_err","langs":{"zh":"知识问答对话反馈错误：%v"}}
+{"code":150013,"key":"rag_conversation_not_exist","langs":{"zh":"知识问答会话不存在"}}
 {"code":160001,"key":"assistant_create","langs":{"zh":"创建智能体错误: %v"}}
 {"code":160001,"key":"assistant_update","langs":{"zh":"更新智能体错误: %v"}}
 {"code":160001,"key":"assistant_delete","langs":{"zh":"删除智能体错误: %v"}}
@@ -387,6 +491,7 @@
 {"code":160001,"key":"assistants_get_by_ids","langs":{"zh":"获取智能体错误: %v"}}
 {"code":160001,"key":"assistants_get_list","langs":{"zh":"获取智能体列表错误: %v"}}
 {"code":160001,"key":"assistant_get_by_name","langs":{"zh":"获取智能体错误: %v"}}
+{"code":160001,"key":"assistant_get_by_uuid","langs":{"zh":"获取智能体错误: %v"}}
 {"code":160001,"key":"assistant_same_name","langs":{"zh":"智能体名称重复: %v"}}
 {"code":160001,"key":"assistant_modelConfig_unmarshal","langs":{"zh":"智能体model配置解析失败: %v"}}
 {"code":160001,"key":"assistant_modelConfig_marshal","langs":{"zh":"智能体model配置解析失败: %v"}}
@@ -407,6 +512,11 @@
 {"code":160001,"key":"assistant_tool","langs":{"zh":"智能体快照回滚tool错误: %v"}}
 {"code":160001,"key":"assistant_mcp","langs":{"zh":"智能体快照回滚mcp错误: %v"}}
 {"code":160001,"key":"assistant_workflow","langs":{"zh":"智能体快照回滚工作流错误: %v"}}
+{"code":160001,"key":"assistants_admin_list","langs":{"zh":"获取智能体列表错误: %v"}}
+{"code":160001,"key":"assistant_publish_upsert_query","langs":{"zh":"查询发布记录错误: %v"}}
+{"code":160001,"key":"assistant_publish_upsert_create","langs":{"zh":"创建发布记录错误: %v"}}
+{"code":160001,"key":"assistant_publish_upsert_update","langs":{"zh":"更新发布记录错误: %v"}}
+{"code":160001,"key":"assistant_publish_delete","langs":{"zh":"删除发布记录错误: %v"}}
 {"code":160002,"key":"assistant_action_update","langs":{"zh":"更新action错误: %v"}}
 {"code":160002,"key":"assistant_action_get","langs":{"zh":"获取action错误: %v"}}
 {"code":160002,"key":"assistant_actions_get_by_assistant_id","langs":{"zh":"获取action错误: %v"}}
@@ -422,7 +532,7 @@
 {"code":160004,"key":"assistant_conversation_create","langs":{"zh":"创建对话错误"}}
 {"code":160004,"key":"assistant_conversation_update","langs":{"zh":"更新对话错误"}}
 {"code":160004,"key":"assistant_conversation_delete","langs":{"zh":"删除对话错误"}}
-{"code":160004,"key":"assistant_conversation_get","langs":{"zh":"获取对话错误"}}
+{"code":160004,"key":"assistant_conversation_get","langs":{"zh":"获取对话错误: %v"}}
 {"code":160004,"key":"assistant_conversation_get_list","langs":{"zh":"获取对话列表错误"}}
 {"code":160004,"key":"assistant_conversation","langs":{"zh":"智能体对话错误: %v"}}
 {"code":160005,"key":"assistant_mcp_create","langs":{"zh":"创建mcp错误: %v"}}
@@ -464,6 +574,13 @@
 {"code":160020,"key":"wga_config_check","langs":{"zh":"通用智能体配置校验报错: %v"}}
 {"code":0,"key":"wga_tool_category_search","langs":{"zh":"搜索"}}
 {"code":0,"key":"wga_tool_category_multimodal","langs":{"zh":"多模态"}}
+{"code":0,"key":"wga_skill_import_title","langs":{"zh":"技能导入"}}
+{"code":0,"key":"wga_skill_convert_mcp_title","langs":{"zh":"MCP 转换技能"}}
+{"code":0,"key":"wga_skill_convert_tool_title","langs":{"zh":"Tool 转换技能"}}
+{"code":0,"key":"wga_skill_convert_agent_title","langs":{"zh":"Agent 转换技能"}}
+{"code":0,"key":"wga_skill_convert_workflow_title","langs":{"zh":"Workflow 转换技能"}}
+{"code":0,"key":"wga_skill_convert_rag_title","langs":{"zh":"Rag 转换技能"}}
+{"code":0,"key":"wga_skill_convert_default_title","langs":{"zh":"技能转换"}}
 {"code":300000,"key":"app_config_delete","langs":{"zh":"删除应用配置错误:%v"}}
 {"code":300001,"key":"app_api_keys_get","langs":{"zh":"获取AppKey列表错误:%v"}}
 {"code":300001,"key":"app_api_key_delete","langs":{"zh":"删除AppKey错误:%v"}}
@@ -529,22 +646,61 @@
 {"code":300013,"key":"api_key_list","langs":{"zh":"获取ApiKey列表错误:%v"}}
 {"code":300013,"key":"api_key_update_status","langs":{"zh":"更新ApiKey状态错误:%v"}}
 {"code":300013,"key":"api_key_get_by_key","langs":{"zh":"获取ApiKey信息错误:%v"}}
-{"code":0,"key":"app_statistic_model_call_trend","langs":{"zh":"模型调用趋势表"}}
-{"code":0,"key":"app_statistic_call_count_total","langs":{"zh":"调用总数"}}
-{"code":0,"key":"app_statistic_call_success","langs":{"zh":"模型调用成功数"}}
-{"code":0,"key":"app_statistic_call_failure","langs":{"zh":"模型调用失败数"}}
-{"code":0,"key":"app_statistic_model_tokens_usage_trend","langs":{"zh":"模型调用Token统计表"}}
-{"code":0,"key":"app_statistic_total_tokens","langs":{"zh":"模型调用总Token"}}
-{"code":0,"key":"app_statistic_completion_tokens","langs":{"zh":"模型调用输出Token"}}
-{"code":0,"key":"app_statistic_prompt_tokens","langs":{"zh":"模型调用输入Token"}}
-{"code":0,"key":"app_statistic_web_call_count","langs":{"zh":"应用网页端调用总数"}}
-{"code":0,"key":"app_statistic_app_call_trend","langs":{"zh":"应用调用趋势表"}}
-{"code":0,"key":"app_statistic_openapi_call_count","langs":{"zh":"应用OpenAPI调用总数"}}
-{"code":0,"key":"app_statistic_web_url_call_count","langs":{"zh":"应用网页URL调用总数"}}
-{"code":0,"key":"app_statistic_api_key_call_trend","langs":{"zh":"APIKey调用趋势表"}}
-{"code":0,"key":"app_statistic_api_call_count_total","langs":{"zh":"APIKey调用总次数"}}
-{"code":0,"key":"app_statistic_api_call_success","langs":{"zh":"APIKey调用成功次数"}}
-{"code":0,"key":"app_statistic_api_call_failure","langs":{"zh":"APIKey调用失败次数"}}
+{"code":300014,"key":"app_model_statistic_get","langs":{"en":"get model statistic err: %v","zh":"获取模型统计错误: %v"}}
+{"code":300014,"key":"app_model_statistic_list_get","langs":{"en":"get model statistic list err: %v","zh":"获取模型统计列表错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_overview","langs":{"en":"get model statistic v2 overview err: %v","zh":"获取模型统计概览错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_chart","langs":{"en":"get model statistic v2 chart err: %v","zh":"获取模型统计趋势错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_list","langs":{"en":"get model statistic v2 list err: %v","zh":"获取模型调用统计列表错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_user_list","langs":{"en":"get model statistic v2 user list err: %v","zh":"获取模型用户使用列表错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_app_list","langs":{"en":"get model statistic v2 app list err: %v","zh":"获取模型应用使用列表错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_record","langs":{"en":"model statistic v2 record err: %v","zh":"模型调用明细错误: %v"}}
+{"code":300014,"key":"app_model_statistic_v2_select","langs":{"en":"get model statistic v2 select err: %v","zh":"获取模型统计下拉列表错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_get","langs":{"en":"get api key statistic err: %v","zh":"获取API Key统计错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_list","langs":{"en":"get api key statistic list err: %v","zh":"获取API Key调用统计错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_record","langs":{"en":"api key statistic record err: %v","zh":"API Key调用记录错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_record_list","langs":{"en":"get api key statistic record list err: %v","zh":"获取API Key调用记录错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_v2_overview","langs":{"en":"get api key statistic v2 overview err: %v","zh":"获取API Key统计概览错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_v2_chart","langs":{"en":"get api key statistic v2 chart err: %v","zh":"获取API Key统计趋势错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_v2_list","langs":{"en":"get api key statistic v2 list err: %v","zh":"获取API Key调用统计列表错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_v2_app_list","langs":{"en":"get api key statistic v2 app list err: %v","zh":"获取API Key应用调用统计列表错误: %v"}}
+{"code":300015,"key":"app_api_key_statistic_v2_record","langs":{"en":"api key statistic v2 record err: %v","zh":"API Key调用明细错误: %v"}}
+{"code":300016,"key":"app_conversation_log_list","langs":{"zh":"获取会话日志列表错误: %v"}}
+{"code":300016,"key":"app_conversation_log_record","langs":{"zh":"记录会话日志错误: %v"}}
+{"code":300016,"key":"app_conversation_log_user_select","langs":{"zh":"获取会话日志使用者列表错误: %v"}}
+{"code":300000,"key":"app_statistic_get","langs":{"en":"get app statistic err: %v","zh":"获取应用统计错误: %v"}}
+{"code":300000,"key":"app_statistic_list_get","langs":{"en":"get app statistic list err: %v","zh":"获取应用统计列表错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_overview","langs":{"en":"get app statistic v2 overview err: %v","zh":"获取应用统计概览错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_chart","langs":{"en":"get app statistic v2 chart err: %v","zh":"获取应用统计趋势错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_list","langs":{"en":"get app statistic v2 list err: %v","zh":"获取应用调用统计列表错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_user_list","langs":{"en":"get app statistic v2 user list err: %v","zh":"获取应用用户使用列表错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_model_list","langs":{"en":"get app statistic v2 model list err: %v","zh":"获取应用模型使用列表错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_record","langs":{"en":"app statistic v2 record err: %v","zh":"应用调用明细错误: %v"}}
+{"code":300000,"key":"app_statistic_v2_select","langs":{"en":"get app statistic v2 select err: %v","zh":"获取应用统计下拉列表错误: %v"}}
+{"code":0,"key":"app_statistic_model_call_trend","langs":{"en":"Model Call Trend","zh":"模型调用趋势表"}}
+{"code":0,"key":"app_statistic_call_count_total","langs":{"en":"Total Calls","zh":"调用总数"}}
+{"code":0,"key":"app_statistic_call_success","langs":{"en":"Successful Calls","zh":"调用成功数"}}
+{"code":0,"key":"app_statistic_call_failure","langs":{"en":"Failed Calls","zh":"调用失败数"}}
+{"code":0,"key":"app_statistic_model_tokens_usage_trend","langs":{"en":"Model Token Usage Trend","zh":"模型调用Token统计表"}}
+{"code":0,"key":"app_statistic_total_tokens","langs":{"en":"Total Tokens","zh":"模型调用总Token"}}
+{"code":0,"key":"app_statistic_completion_tokens","langs":{"en":"Completion Tokens","zh":"模型调用输出Token"}}
+{"code":0,"key":"app_statistic_prompt_tokens","langs":{"en":"Prompt Tokens","zh":"模型调用输入Token"}}
+{"code":0,"key":"app_statistic_web_call_count","langs":{"en":"Web Calls","zh":"应用网页端调用总数"}}
+{"code":0,"key":"app_statistic_app_call_trend","langs":{"en":"App Call Trend","zh":"应用调用趋势表"}}
+{"code":0,"key":"app_statistic_openapi_call_count","langs":{"en":"OpenAPI Calls","zh":"应用OpenAPI调用总数"}}
+{"code":0,"key":"app_statistic_web_url_call_count","langs":{"en":"Web URL Calls","zh":"应用网页URL调用总数"}}
+{"code":0,"key":"app_statistic_api_key_call_trend","langs":{"en":"API Key Call Trend","zh":"API Key调用趋势表"}}
+{"code":0,"key":"app_statistic_api_call_count_total","langs":{"en":"API Key Total Calls","zh":"API Key调用总次数"}}
+{"code":0,"key":"app_statistic_api_call_success","langs":{"en":"API Key Successful Calls","zh":"API Key调用成功次数"}}
+{"code":0,"key":"app_statistic_api_call_failure","langs":{"en":"API Key Failed Calls","zh":"API Key调用失败次数"}}
+{"code":0,"key":"api_key_statistic_calls","langs":{"en":"API Key Call Trend","zh":"API Key调用趋势表"}}
+{"code":0,"key":"app_statistic_call_result","langs":{"en":"Call Result","zh":"调用结果"}}
+{"code":0,"key":"app_statistic_call_trend","langs":{"en":"App Call Trend","zh":"应用调用趋势表"}}
+{"code":0,"key":"app_statistic_source_web","langs":{"en":"Web","zh":"网页端调用"}}
+{"code":0,"key":"app_statistic_source_openapi","langs":{"en":"OpenAPI","zh":"OpenAPI调用"}}
+{"code":0,"key":"app_statistic_source_weburl","langs":{"en":"Web URL","zh":"网页URL调用"}}
+{"code":0,"key":"app_statistic_model_deleted","langs":{"en":"This model has been deleted","zh":"该模型已被删除"}}
+{"code":0,"key":"app_statistic_app_deleted","langs":{"en":"This app has been deleted","zh":"该应用已被删除"}}
+{"code":0,"key":"app_statistic_api_key_deleted","langs":{"en":"This API Key has been deleted","zh":"该API Key已被删除"}}
 {"code":320001,"key":"ope_system_custom_query","langs":{"zh":"查询自定义配置(%v)错误: %v"}}
 {"code":320001,"key":"ope_system_custom_create","langs":{"zh":"创建自定义配置(%v)错误: %v"}}
 {"code":320001,"key":"ope_system_custom_update","langs":{"zh":"更新自定义配置(%v)错误: %v"}}
@@ -552,9 +708,24 @@
 {"code":320002,"key":"ope_client_record_create","langs":{"zh":"新增客户端记录错误: %V"}}
 {"code":320002,"key":"ope_client_overview_get","langs":{"zh":"获取客户端统计总览错误: %v"}}
 {"code":320002,"key":"ope_client_statistic_get","langs":{"zh":"获取客户端统计错误: %v"}}
+{"code":320003,"key":"notice_create","langs":{"zh":"生成消息错误: %v"}}
+{"code":320003,"key":"notice_unread_count","langs":{"zh":"获取未读消息数错误: %v"}}
+{"code":320003,"key":"notice_list","langs":{"zh":"获取消息列表错误: %v"}}
+{"code":320003,"key":"notice_read","langs":{"zh":"标记消息已读错误: %v"}}
+{"code":320003,"key":"notice_read_all","langs":{"zh":"一键已读错误: %v"}}
+{"code":320003,"key":"notice_delete","langs":{"zh":"删除消息错误: %v"}}
+{"code":320003,"key":"notice_watermark_get","langs":{"zh":"获取已读水位错误: %v"}}
 {"code":0,"key":"ope_statistic_client_table","langs":{"zh":"用户量"}}
 {"code":0,"key":"ope_statistic_cumulative_client_line","langs":{"zh":"累计用户量"}}
 {"code":0,"key":"ope_statistic_active_client_line","langs":{"zh":"活跃用户量"}}
 {"code":0,"key":"ope_statistic_new_client_line","langs":{"zh":"新增用户量"}}
 {"code":0,"key":"ope_statistic_browse_table","langs":{"zh":"平台浏览量"}}
 {"code":0,"key":"ope_statistic_browse_line","langs":{"zh":"浏览量"}}
+{"code":110000,"key":"bff_rag_model_not_configured","langs":{"en":"chat model not configured, please configure the model first","zh":"对话模型未配置，请先配置对话模型"}}
+{"code":110000,"key":"bff_rag_knowledge_not_configured","langs":{"en":"no knowledge base configured, please bind at least one knowledge base or QA base","zh":"知识库未配置，请至少绑定一个知识库或问答库"}}
+{"code":110000,"key":"bff_rag_rerank_not_configured","langs":{"en":"knowledge base rerank model not configured, configure it or switch retrieval to hybrid with priority match","zh":"知识库 Rerank 模型未配置，请配置 Rerank 模型，或将知识库检索方式改为混合检索并开启权重匹配"}}
+{"code":110000,"key":"bff_rag_qa_rerank_not_configured","langs":{"en":"QA base rerank model not configured, please configure it","zh":"问答库 Rerank 模型未配置，请配置问答库 Rerank 模型"}}
+{"code":110000,"key":"bff_rag_model_not_vision","langs":{"en":"chat model does not support vision, please switch to a vision-capable model before asking with files","zh":"对话模型不支持图文问答，请先更换为支持视觉的对话模型再带文件提问"}}
+{"code":110000,"key":"bff_rag_vision_not_enabled","langs":{"en":"vision is not enabled, please turn on the vision switch before asking with files","zh":"视觉开关未打开，请先在应用配置中打开视觉开关再带文件提问"}}
+{"code":110000,"key":"bff_rag_knowledge_not_multimodal","langs":{"en":"no multimodal knowledge base bound, please bind at least one multimodal knowledge base","zh":"未绑定多模态知识库，请至少绑定一个多模态知识库"}}
+{"code":110000,"key":"bff_rag_rerank_not_multimodal","langs":{"en":"knowledge base rerank model is not multimodal-rerank, please switch to a multimodal rerank model","zh":"知识库 Rerank 模型不是多模态 Rerank，请更换为多模态 Rerank 模型"}}

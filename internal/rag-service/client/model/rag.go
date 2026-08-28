@@ -23,6 +23,7 @@ type RagInfo struct {
 	QAKnowledgebaseConfig string              `gorm:"column:qa_knowledgebase_config;type:longtext;comment:问答库配置"`
 	SensitiveConfig       SensitiveConfig     `gorm:"embedded;embeddedPrefix:sensitive_"`
 	VisionConfig          VisionConfig        `gorm:"embedded;embeddedPrefix:vision_"`
+	RecommendQuestion     string              `gorm:"column:recommend_question;type:text;comment:推荐问题列表(JSON)"`
 	PublicModel
 }
 

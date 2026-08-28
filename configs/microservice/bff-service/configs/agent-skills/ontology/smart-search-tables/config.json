@@ -1,0 +1,45 @@
+{
+  "name": "smart-search-tables",
+  "version": "2.0.0",
+  "description": "找表/找数编排：bkn object-type query 在元数据 KN 找表/视图实例 → 在职责 KN 找相关部门职责 → 总结。所有 ontology 命令均委托给 ontology-core 执行；本 skill 不直接执行 CLI。",
+  "runtime_contract": {
+    "user_id_source": "由 smart-data-analysis 把当前会话用户的 accountId 注入 ontology 命令的 --user-id；不在 config 内固化",
+    "auth": "本部署 ontology CLI 无须 token；命令体与 body 内均不出现 --token / auth.token / Authorization",
+    "gateway_source": "由 ontology-core 侧 ONTOLOGY_BASE_URL / ONTOLOGY_GATEWAY_MODE 承担；本 skill 不引用 base_url",
+    "kn_id_source": "由 smart-data-analysis 从其 SKILL.md「知识网络声明」表的『找表』行透传注入；本 skill 不自行选 KN",
+    "duty_kn_id_source": "由 smart-data-analysis 从其 SKILL.md「知识网络声明」表的『职责』行透传注入；为空则跳过步骤 2 并在总结中说明",
+    "ot_id_source": "每个 KN 内用于实例检索的对象类 id；不确定时上游先用 bkn object-type list <kn-id> 取候选并 LLM 选定"
+  },
+  "pipeline": [
+    {
+      "step": 1,
+      "role": "find_table_metadata",
+      "ontology_commands": [
+        "bkn object-type query <kn_id> <ot-id> '<condition-json>' [--limit n]",
+        "bkn object-type list <kn_id>（不确定 ot-id 时辅助）"
+      ],
+      "reference": "references/metadata-search.md",
+      "output": "候选表/视图实例（technical_name / business_name / 归属部门 / 主题域 等线索）"
+    },
+    {
+      "step": 2,
+      "role": "department_duty",
+      "ontology_commands": [
+        "bkn object-type query <duty_kn_id> <ot-id> '<condition-json>' [--limit n]"
+      ],
+      "reference": "references/duty-search.md",
+      "condition": "基于步骤 1 派生 query / condition；若 duty_kn_id 缺失则跳过本步并在总结中说明",
+      "output": "相关部门职责条目"
+    },
+    {
+      "step": 3,
+      "role": "summarize",
+      "owner": "smart-search-tables",
+      "must_show": [
+        "候选表（business_name 全称为主，附 technical_name；缺失标注'暂无'）",
+        "职责要点（部门、动作、范围）；与表的'职责-资产'关系或'未直接关联'说明",
+        "下一步建议（取数 → smart-ask-data；换 KN → smart-data-analysis）"
+      ]
+    }
+  ]
+}

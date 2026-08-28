@@ -12,7 +12,11 @@ import (
 
 // FormatInstruction 格式化系统提示词。
 // 支持 Jinja2 模板语法，注入 agent_name、agent_desc、current_time 变量。
+// 如果运行时通过 WithInstruction 设置了动态指令，则直接使用，跳过配置文件的 prompt.md 渲染。
 func (options *Options) FormatInstruction(ctx context.Context, cfg *config.Agent) (string, error) {
+	if options.Instruction != "" {
+		return options.Instruction, nil
+	}
 	// workspace tree
 	var workspaceTree string
 	if options.Workspace.InputDir != "" {

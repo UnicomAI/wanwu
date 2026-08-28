@@ -1,0 +1,164 @@
+---
+title: 大三暑期实习报告：数据分析实习生
+icon: 📊
+cover: # 根据文档主题通过网络搜索合适图片，下载后调用 upload_image 上传，将返回的 image_id 填入此处
+---
+
+## 实习单位简介
+
+<Paragraph>
+    本次实习单位为<Mark bold>某领先互联网科技公司</Mark>（以下简称“公司”）。公司成立于 2010 年，总部位于北京，是全球领先的本地生活服务平台。业务覆盖餐饮外卖、到店餐饮、酒店旅游、休闲娱乐等多个领域，致力于通过科技创新连接消费者和商户，提升服务效率。
+</Paragraph>
+
+## 实习岗位职责
+
+在实习期间，我担任<Mark bold>数据分析实习生</Mark>，隶属于核心业务部数据中心。主要职责包括：
+
+<BulletedList>
+    支持业务部门的日常数据提取需求，编写 SQL 脚本并保证数据准确性。
+</BulletedList>
+<BulletedList>
+    参与业务指标体系的梳理与维护，通过可视化工具监控核心指标波动。
+</BulletedList>
+<BulletedList>
+    协助分析师进行专项分析研究，如用户流失预警、活动效果评估等。
+</BulletedList>
+<BulletedList>
+    负责部分自动化报表的开发与维护，提升团队数据产出效率。
+</BulletedList>
+
+## 主要参与的项目与工作内容
+
+在为期三个月的实习中，我主要参与了以下重点工作，按照时间轴梳理如下：
+
+<Callout icon="📅" blockColor="light_blue" borderColor="blue">
+    <Mark bold>第一阶段：基础夯实与环境熟悉（第 1-2 周）</Mark>
+    <BulletedList>
+        熟悉公司数仓架构（Hive/Spark）及数据开发平台。
+    </BulletedList>
+    <BulletedList>
+        完成 20+ 项简单的业务取数需求，掌握内部口径与取数规范。
+    </BulletedList>
+</Callout>
+
+<Callout icon="🚀" blockColor="light_green" borderColor="green">
+    <Mark bold>第二阶段：核心项目深度参与（第 3-8 周）</Mark>
+    <BulletedList>
+        <Mark bold>用户流失预警模型优化</Mark>：通过特征工程提取用户行为特征，利用 Python 进行逻辑回归建模，模型准确率提升了 <Mark bold color="green">12%</Mark>。
+    </BulletedList>
+    <BulletedList>
+        <Mark bold>618 大促活动效果评估</Mark>：全程参与活动数据监控，对比不同营销补贴策略下的 ROI 表现，产出分析报告 1 份，为后续活动提供了策略调优建议。
+    </BulletedList>
+</Callout>
+
+<Callout icon="🛠️" blockColor="light_purple" borderColor="purple">
+    <Mark bold>第三阶段：自动化报表与沉淀（第 9-12 周）</Mark>
+    <BulletedList>
+        <Mark bold>自动化监控看板搭建</Mark>：使用 Tableau 搭建了“核心业务指标实时监控看板”，实现了从取数到展示的全链路自动化，每周节省人力约 <Mark bold color="purple">5 小时</Mark>。
+    </BulletedList>
+    <BulletedList>
+        <Mark bold>实习知识库总结</Mark>：整理并输出《业务取数常用 SQL 模板库》及《数仓表结构说明文档》，方便新成员快速上手。
+    </BulletedList>
+</Callout>
+
+## 学到的技能与工具
+
+<Table>
+    <TableRow>
+        <TableCell>
+            <Mark bold>分类</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>工具/技能</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>掌握程度与应用场景</Mark>
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            数据查询
+        </TableCell>
+        <TableCell>
+            SQL / Hive
+        </TableCell>
+        <TableCell>
+            精通。能够熟练处理亿级数据关联、窗口函数及复杂逻辑分析。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            编程分析
+        </TableCell>
+        <TableCell>
+            Python (Pandas/NumPy)
+        </TableCell>
+        <TableCell>
+            熟练。用于数据清洗、描述性统计分析及基础机器学习建模。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            数据可视化
+        </TableCell>
+        <TableCell>
+            Tableau / BI 工具
+        </TableCell>
+        <TableCell>
+            熟练。独立设计并上线多维度交互式看板，支撑业务决策。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            统计理论
+        </TableCell>
+        <TableCell>
+            A/B Testing / 假设检验
+        </TableCell>
+        <TableCell>
+            了解。参与实验设计、样本量估算及显著性检验分析。
+        </TableCell>
+    </TableRow>
+</Table>
+
+## 遇到的挑战与解决过程
+
+在实习过程中，我面临的最大挑战是<Mark bold>“数据统计口径不一致”</Mark>的问题。在一次周报汇总时，我发现提取的数据与财务侧存在较大偏差。
+
+<NumberedList>
+    <Mark bold>溯源分析</Mark>：我逐一检查了 SQL 脚本中的关联逻辑，定位到偏差源于对“退款订单”的处理逻辑在不同业务线存在细微差别。
+</NumberedList>
+<NumberedList>
+    <Mark bold>跨部门沟通</Mark>：我主动发起了与产品经理及财务同事的沟通，明确了标准业务口径。
+</NumberedList>
+<NumberedList>
+    <Mark bold>文档规范化</Mark>：在解决问题的基础上，我将该口径差异记录到公司的 Wiki 知识库中，避免了类似问题的再次发生。
+</NumberedList>
+
+## 个人成长与收获
+
+<BlockQuote>
+    “数据分析不仅是处理数字，更是通过数字讲故事，为复杂的商业决策提供坚实的证据。”
+</BlockQuote>
+
+<Paragraph>
+    这段实习经历让我深刻体会到从“学生思维”向“职场思维”的转变。我学会了如何站在业务视角思考问题，而不仅仅是关注算法的复杂度。同时，在高强度的工作节奏下，我的抗压能力和多任务处理能力也得到了显著提升。
+</Paragraph>
+
+## 对未来职业发展的思考
+
+通过这次实习，我更加坚定了未来从事<Mark bold>商业分析/数据产品</Mark>方向的决心。在未来的学习中，我计划：
+
+<BulletedList>
+    <Mark bold>深耕技术底层</Mark>：继续加强分布式计算（Spark）和更高级机器学习算法的学习。
+</BulletedList>
+<BulletedList>
+    <Mark bold>强化业务理解</Mark>：多关注互联网行业的商业模式，提升将业务问题抽象为数据问题的能力。
+</BulletedList>
+<BulletedList>
+    <Mark bold>提升沟通影响力</Mark>：学习如何用更简洁、更有力的方式向非技术背景的业务方传达数据洞察。
+</BulletedList>
+
+<Paragraph textAlign="center">
+    <Mark italic>实习日期：2025 年 6 月 - 2025 年 9 月</Mark>
+</Paragraph>

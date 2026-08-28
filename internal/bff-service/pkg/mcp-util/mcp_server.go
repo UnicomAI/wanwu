@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 	"sync"
 
 	"github.com/ThinkInAIXYZ/go-mcp/server"
 	"github.com/ThinkInAIXYZ/go-mcp/transport"
-	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 )
 
 var msMgr *mcpServerMgr
@@ -57,11 +55,7 @@ func StartMCPServer(ctx context.Context, mcpServerId string) error {
 		return fmt.Errorf("mcp server(%v) already exist", mcpServerId)
 	}
 
-	messageUrl, err := url.JoinPath(config.Cfg().Server.ApiBaseUrl, "/openapi/v1/mcp/server/message")
-	if err != nil {
-		return fmt.Errorf("join message url error: %v", err)
-	}
-	sseTransport, sseHandler, err := transport.NewSSEServerTransportAndHandler(messageUrl,
+	sseTransport, sseHandler, err := transport.NewSSEServerTransportAndHandler("message",
 		transport.WithSSEServerTransportAndHandlerOptionCopyParamKeys([]string{"key"}))
 	if err != nil {
 		return fmt.Errorf("new sse transport and hander with error: %v", err)

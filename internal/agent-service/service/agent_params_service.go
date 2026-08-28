@@ -140,6 +140,8 @@ func buildMCPToolList(mcpToolList []*assistant_service.MCPToolInfo) []*request.M
 			Transport:    item.Transport,
 			ToolNameList: item.ToolNameList,
 			Avatar:       item.Avatar,
+			Headers:      item.Headers,
+			ApiAuth:      item.ApiAuth,
 		}
 	})
 }
@@ -190,8 +192,30 @@ func buildSkillToolList(skillParams *assistant_service.SkillParams) []*request.S
 			ObjectPath: item.ObjectPath,
 			SkillId:    item.SkillId,
 			SkillType:  request.SkillType(item.SkillType),
+			Variables:  protoSkillVariablesToReq(item.Variables),
 		}
 	})
+}
+
+// protoSkillVariablesToReq 把 proto SkillVariable 映射到 agent-svc 本包 SkillVariable。
+// 注意：仅做字段拷贝，VariableValue 不打日志、不参与 Map debug 打印。
+func protoSkillVariablesToReq(in []*assistant_service.SkillVariable) []request.SkillVariable {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make([]request.SkillVariable, 0, len(in))
+	for _, v := range in {
+		if v == nil {
+			continue
+		}
+		out = append(out, request.SkillVariable{
+			Name:          v.Name,
+			Desc:          v.Desc,
+			VariableKey:   v.VariableKey,
+			VariableValue: v.VariableValue,
+		})
+	}
+	return out
 }
 func buildHistory(history []*assistant_service.ConversionHistory) []request.AssistantConversionHistory {
 	if len(history) == 0 {

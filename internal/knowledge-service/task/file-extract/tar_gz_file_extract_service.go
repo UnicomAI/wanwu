@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/UnicomAI/wanwu/pkg/log"
+	"github.com/UnicomAI/wanwu/pkg/util"
 )
 
 type TarGzFileExtractServiceService struct {
@@ -66,6 +67,11 @@ func (t TarGzFileExtractServiceService) ExtractFile(ctx context.Context, localFi
 		if err != nil {
 			log.Errorf("error tar reader: %v", err)
 			return "", err
+		}
+		// 安全检查：拒绝含路径遍历的条目，防止 Tar Slip 写出 destDir 之外
+		if err := util.ValidateArchivePath(header.Name); err != nil {
+			log.Errorf("skip unsafe tar entry: %s, error: %v", header.Name, err)
+			continue
 		}
 		// 获取文件的路径
 		path := filepath.Join(destDir, header.Name)

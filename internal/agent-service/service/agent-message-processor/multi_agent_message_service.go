@@ -10,7 +10,7 @@ import (
 
 // MultiAgentMessage 多智能体消息处理
 func MultiAgentMessage(ctx *gin.Context, iter *adk.AsyncIterator[*adk.AgentEvent], req *request.AgentChatContext) error {
-	respContext := response.NewAgentChatRespContext(true, req.AgentChatReq.AgentBaseParams.Name, req.Order)
+	respContext := response.NewAgentChatRespContext(true, req.Order, req.AgentChatReq)
 	//1.读取enio结果
 	rawCh := safe_go_util.SafeChannelReceiveByIter(ctx, EnioAgentEventIteratorReader(iter, respContext, req))
 	//2.流式返回结果

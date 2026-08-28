@@ -1,23 +1,41 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
+	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/UnicomAI/wanwu/pkg/wga"
 	wga_persistent "github.com/UnicomAI/wanwu/pkg/wga-persistent"
+	wga_sandbox "github.com/UnicomAI/wanwu/pkg/wga-sandbox"
 	wga_option "github.com/UnicomAI/wanwu/pkg/wga/wga-option"
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	generalAgentSkillChatModeNormal  = "normal"
+	generalAgentSkillChatModeImport  = "import"
+	generalAgentSkillChatModeConvert = "convert"
+	generalAgentSkillChatModePreview = "preview"
+
+	generalAgentSkillChatNormalAgentID  = "Skill Chat Agent"
+	generalAgentSkillChatImportAgentID  = "Skill Import Agent"
+	generalAgentSkillChatPreviewAgentID = "Skill Preview Agent"
 )
 
 func CreateGeneralAgentConversation(ctx *gin.Context, userId, orgId string, req request.CreateGeneralAgentConversationReq) (*response.CreateGeneralAgentConversationResp, error) {
@@ -44,10 +62,177 @@ func CreateGeneralAgentConversation(ctx *gin.Context, userId, orgId string, req 
 	return &response.CreateGeneralAgentConversationResp{ThreadID: resp.ThreadId}, nil
 }
 
+func CreateGeneralAgentSkillConversation(ctx *gin.Context, userId, orgId string, req request.CreateGeneralAgentSkillConversationReq) (*response.CreateGeneralAgentSkillConversationResp, error) {
+	generalConversationResp, err := CreateGeneralAgentConversation(ctx, userId, orgId, request.CreateGeneralAgentConversationReq(req))
+	if err != nil {
+		return nil, err
+	}
+
+	previewID := util.GenUUID()
+	customSkillResp, err := mcp.CustomSkillCreate(ctx.Request.Context(), &mcp_service.CustomSkillCreateReq{
+		Name:            req.Title,
+		Author:          getUserNameById(ctx, userId),
+		WgaThreadId:     generalConversationResp.ThreadID,
+		PreviewThreadId: previewID,
+		Identity:        &mcp_service.Identity{UserId: userId, OrgId: orgId},
+	})
+	if err != nil {
+		_, _ = assistant.WgaConversationDelete(ctx.Request.Context(), &assistant_service.WgaConversationDeleteReq{
+			ThreadId: generalConversationResp.ThreadID,
+			Identity: &assistant_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
+		})
+		return nil, err
+	}
+
+	return &response.CreateGeneralAgentSkillConversationResp{
+		CustomSkillID: customSkillResp.SkillId,
+		ThreadID:      generalConversationResp.ThreadID,
+		PreviewID:     previewID,
+	}, nil
+}
+
+func RefreshGeneralAgentSkillConversation(ctx *gin.Context, userId, orgId string, req request.RefreshGeneralAgentSkillConversationReq) (*response.RefreshGeneralAgentSkillConversationResp, error) {
+	publish, err := mcp.CustomSkillGet(ctx.Request.Context(), &mcp_service.CustomSkillGetReq{
+		SkillId: req.SkillID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	skill := publish.GetSkill()
+	if skill == nil {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_custom_not_found")
+	}
+
+	log.Infof("[wga-skill-legacy] refresh skill %v start, objectPathExists=%v, currentThreadID=%s, currentPreviewID=%s", req.SkillID, strings.TrimSpace(skill.ObjectPath) != "", skill.WgaThreadId, skill.PreviewThreadId)
+	if err := ensureLegacyCustomSkillWorkspace(ctx, skill); err != nil {
+		return nil, err
+	}
+
+	title := strings.TrimSpace(skill.Name)
+	if title == "" {
+		title = "Skill Conversation"
+	}
+
+	threadResp, err := assistant.WgaConversationCreate(ctx.Request.Context(), &assistant_service.WgaConversationCreateReq{
+		Prompt: title,
+		Identity: &assistant_service.Identity{
+			UserId: userId,
+			OrgId:  orgId,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	previewID := strings.TrimSpace(skill.PreviewThreadId)
+	if previewID == "" {
+		previewID = util.GenUUID()
+	}
+	_, err = mcp.UpdateCustomSkillThreadMeta(ctx.Request.Context(), &mcp_service.UpdateCustomSkillThreadMetaReq{
+		SkillId:         req.SkillID,
+		WgaThreadId:     threadResp.ThreadId,
+		PreviewThreadId: previewID,
+	})
+	if err != nil {
+		_, _ = assistant.WgaConversationDelete(ctx.Request.Context(), &assistant_service.WgaConversationDeleteReq{
+			ThreadId: threadResp.ThreadId,
+			Identity: &assistant_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
+		})
+		return nil, err
+	}
+	log.Infof("[wga-skill-legacy] refresh skill %v success, newThreadID=%s, previewID=%s", req.SkillID, threadResp.ThreadId, previewID)
+
+	return &response.RefreshGeneralAgentSkillConversationResp{
+		CustomSkillID: req.SkillID,
+		ThreadID:      threadResp.ThreadId,
+		PreviewID:     previewID,
+	}, nil
+}
+
 func DeleteGeneralAgentConversation(ctx *gin.Context, userId, orgId string, req request.DeleteGeneralAgentConversationReq) error {
-	// 删除对话记录
+	threadID := strings.TrimSpace(req.ThreadID)
+	binding, err := getCustomSkillThreadBinding(ctx, userId, orgId, threadID)
+	if err != nil {
+		return err
+	}
+	if binding != nil {
+		if err := clearCustomSkillThreadBinding(ctx, binding); err != nil {
+			return err
+		}
+		if err := deleteWgaConversationHistory(ctx, userId, orgId, binding.previewThreadID); err != nil {
+			return err
+		}
+	}
+	return deleteGeneralAgentConversationCore(ctx, userId, orgId, threadID, "")
+}
+
+func deleteGeneralAgentConversationForSkillDelete(ctx *gin.Context, userId, orgId string, req request.DeleteGeneralAgentConversationReq) error {
+	return deleteGeneralAgentConversationCore(ctx, userId, orgId, strings.TrimSpace(req.ThreadID), "")
+}
+
+type customSkillThreadBinding struct {
+	threadID        string
+	skillID         string
+	previewThreadID string
+}
+
+func getCustomSkillThreadBinding(ctx *gin.Context, userId, orgId, threadID string) (*customSkillThreadBinding, error) {
+	threadID = strings.TrimSpace(threadID)
+	if threadID == "" {
+		return nil, nil
+	}
+
+	resp, err := mcp.GetCustomSkillByThreadID(ctx.Request.Context(), &mcp_service.GetCustomSkillByThreadIDReq{
+		WgaThreadId: threadID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	skill := resp.GetSkill()
+	if skill == nil || strings.TrimSpace(skill.WgaThreadId) != threadID {
+		return nil, nil
+	}
+	skillID := strings.TrimSpace(skill.SkillId)
+	if skillID == "" {
+		return nil, nil
+	}
+	return &customSkillThreadBinding{
+		threadID:        threadID,
+		skillID:         skillID,
+		previewThreadID: strings.TrimSpace(skill.PreviewThreadId),
+	}, nil
+}
+
+func clearCustomSkillThreadBinding(ctx *gin.Context, binding *customSkillThreadBinding) error {
+	if binding == nil || binding.threadID == "" || binding.skillID == "" {
+		return nil
+	}
+	_, err := mcp.UpdateCustomSkillThreadMeta(ctx.Request.Context(), &mcp_service.UpdateCustomSkillThreadMetaReq{
+		SkillId:         binding.skillID,
+		WgaThreadId:     "",
+		PreviewThreadId: "",
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// deleteGeneralAgentConversationCore 删除通用智能体会话（DB 行 + ES 历史）
+// indexName 为空时使用默认 wga 索引（向后兼容）；数字员工场景不经过本函数，走 BFF 侧独立删除
+func deleteGeneralAgentConversationCore(ctx *gin.Context, userId, orgId, threadID, indexName string) error {
+	if indexName == "" {
+		indexName = wgaConversationHistoryEventESIndexName
+	}
 	_, err := assistant.WgaConversationDelete(ctx.Request.Context(), &assistant_service.WgaConversationDeleteReq{
-		ThreadId: req.ThreadID,
+		ThreadId: threadID,
 		Identity: &assistant_service.Identity{
 			UserId: userId,
 			OrgId:  orgId,
@@ -57,30 +242,16 @@ func DeleteGeneralAgentConversation(ctx *gin.Context, userId, orgId string, req 
 		return err
 	}
 
-	// 同步删除 workspace
-	cfg := config.WgaCfg()
-	store, err := wga_persistent.NewStore(wga_persistent.Mode(cfg.Persistent.Mode), cfg.Persistent.BaseDir, req.ThreadID)
-	if err != nil {
-		log.Errorf("[wga] thread %v delete persistent store err: %v", req.ThreadID, err)
-	} else {
-		if threadDir := store.GetThreadDir().Dir; threadDir != "" {
-			if err := util.DeleteDir(threadDir); err != nil {
-				log.Errorf("[wga] thread %v delete persistent dir err: %v", req.ThreadID, err)
-			}
-		}
-	}
-
-	// 同步删除 ES 中的聊天历史
 	_, err = assistant.DeleteFromES(ctx.Request.Context(), &assistant_service.DeleteFromESReq{
-		IndexName: wgaConversationHistoryEventESIndexName,
+		IndexName: indexName,
 		Conditions: map[string]string{
-			"threadId": req.ThreadID,
+			"threadId": threadID,
 			"userId":   userId,
 			"orgId":    orgId,
 		},
 	})
-	if err != nil && !wgaConversationHistoryEventESIndexNotFound(err) {
-		log.Errorf("[wga] thread %v delete chat history from ES err: %v", req.ThreadID, err)
+	if err != nil && !esIndexNotFound(err, indexName) {
+		log.Errorf("[wga] thread %v delete chat history from ES err: %v", threadID, err)
 	}
 
 	return nil
@@ -88,8 +259,9 @@ func DeleteGeneralAgentConversation(ctx *gin.Context, userId, orgId string, req 
 
 func GetGeneralAgentConversationList(ctx *gin.Context, userId, orgId string, req request.GetGeneralAgentConversationListReq) (*response.ListResult, error) {
 	resp, err := assistant.WgaConversationList(ctx.Request.Context(), &assistant_service.WgaConversationListReq{
-		PageSize: int32(req.PageSize),
-		PageNo:   int32(req.PageNo),
+		PageSize:   int32(req.PageSize),
+		PageNo:     int32(req.PageNo),
+		SearchText: strings.TrimSpace(req.SearchText),
 		Identity: &assistant_service.Identity{
 			UserId: userId,
 			OrgId:  orgId,
@@ -98,15 +270,75 @@ func GetGeneralAgentConversationList(ctx *gin.Context, userId, orgId string, req
 	if err != nil {
 		return nil, err
 	}
-	var result []response.GeneralAgentConversationInfo
+	threadIDs := collectWgaConversationThreadIDs(resp.Data)
+	skillByThreadID, err := getGeneralAgentSkillConversationMap(ctx, userId, orgId, threadIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]response.GeneralAgentConversationInfo, 0, len(resp.Data))
 	for _, info := range resp.Data {
-		result = append(result, response.GeneralAgentConversationInfo{
-			ThreadID:  info.ThreadId,
-			Title:     info.Title,
-			CreatedAt: util.Time2Str(info.CreatedAt),
-		})
+		skill := skillByThreadID[info.ThreadId]
+		item := response.GeneralAgentConversationInfo{
+			ThreadID:            info.ThreadId,
+			Title:               info.Title,
+			CreatedAt:           util.Time2Str(info.CreatedAt),
+			UpdatedAt:           util.Time2Str(info.UpdatedAt),
+			IsSkillConversation: skill != nil,
+		}
+		if skill != nil {
+			item.SkillID = skill.SkillId
+			item.PreviewID = skill.PreviewThreadId
+		}
+		result = append(result, item)
 	}
 	return &response.ListResult{List: result, Total: resp.Total}, nil
+}
+
+func getGeneralAgentSkillConversationMap(ctx *gin.Context, userId, orgId string, threadIDs []string) (map[string]*mcp_service.CustomSkill, error) {
+	skillByThreadID := make(map[string]*mcp_service.CustomSkill)
+	if len(threadIDs) == 0 {
+		return skillByThreadID, nil
+	}
+
+	resp, err := mcp.GetCustomSkillListByThreadIDList(ctx.Request.Context(), &mcp_service.GetCustomSkillListByThreadIDListReq{
+		WgaThreadIdList: threadIDs,
+		Identity:        &mcp_service.Identity{UserId: userId, OrgId: orgId},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return skillByThreadID, nil
+	}
+	for _, publish := range resp.List {
+		skill := publish.GetSkill()
+		if skill == nil || strings.TrimSpace(skill.WgaThreadId) == "" || strings.TrimSpace(skill.SkillId) == "" {
+			continue
+		}
+		skillByThreadID[skill.WgaThreadId] = skill
+	}
+	return skillByThreadID, nil
+}
+
+func collectWgaConversationThreadIDs(conversations []*assistant_service.WgaConversationInfo) []string {
+	threadIDs := make([]string, 0, len(conversations))
+	seen := make(map[string]struct{}, len(conversations))
+	for _, conversation := range conversations {
+		if conversation == nil {
+			continue
+		}
+		threadID := strings.TrimSpace(conversation.ThreadId)
+		if threadID == "" {
+			continue
+		}
+		if _, ok := seen[threadID]; ok {
+			continue
+		}
+		seen[threadID] = struct{}{}
+		threadIDs = append(threadIDs, threadID)
+	}
+	return threadIDs
 }
 
 func GetGeneralAgentConversationDetail(ctx *gin.Context, userId, orgId, threadId string) (*response.ListResult, error) {
@@ -121,8 +353,21 @@ func GetGeneralAgentConversationDetail(ctx *gin.Context, userId, orgId, threadId
 		return &response.ListResult{}, nil
 	}
 
+	return getWgaConversationDetailFromES(ctx, userId, orgId, threadId, "")
+}
+
+func GetGeneralAgentSkillPreviewConversationDetail(ctx *gin.Context, userId, orgId string, req request.GetGeneralAgentSkillPreviewConversationDetailReq) (*response.ListResult, error) {
+	return getWgaConversationDetailFromES(ctx, userId, orgId, req.PreviewID, "")
+}
+
+// getWgaConversationDetailFromES 从 ES 回放会话历史
+// indexName 为空时使用默认 wga 索引（向后兼容）；数字员工场景传入 digital_employee_chat_history_event
+func getWgaConversationDetailFromES(ctx *gin.Context, userId, orgId, threadId, indexName string) (*response.ListResult, error) {
+	if indexName == "" {
+		indexName = wgaConversationHistoryEventESIndexName
+	}
 	resp, err := assistant.SearchFromES(ctx.Request.Context(), &assistant_service.SearchFromESReq{
-		IndexName: wgaConversationHistoryEventESIndexName,
+		IndexName: indexName,
 		Conditions: map[string]string{
 			"threadId": threadId,
 			"userId":   userId,
@@ -133,7 +378,7 @@ func GetGeneralAgentConversationDetail(ctx *gin.Context, userId, orgId, threadId
 		PageSize:  1000,
 	})
 	if err != nil {
-		if wgaConversationHistoryEventESIndexNotFound(err) {
+		if esIndexNotFound(err, indexName) {
 			return &response.ListResult{}, nil
 		}
 		return nil, err
@@ -317,4 +562,205 @@ func CheckGeneralAgentConversationConfig(ctx *gin.Context, userId, orgId string,
 	}
 
 	return result, nil
+}
+
+// GeneralAgentConversationChat 通用智能体对话接口
+func GeneralAgentConversationChat(ctx *gin.Context, userId, orgId, clientId string, req request.GeneralAgentConversationChatReq, enableHumanInTheLoop bool) error {
+	// 获取 threadId 的 ModelConfig
+	configResp, err := assistant.GetWgaConversationConfig(ctx.Request.Context(), &assistant_service.GetWgaConversationConfigReq{
+		ThreadId: req.ThreadID,
+		Identity: &assistant_service.Identity{
+			UserId: userId,
+			OrgId:  orgId,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	var modelConfig *common.AppModelConfig
+	if configResp.Config != nil {
+		modelConfig = configResp.Config.ModelConfig
+	}
+
+	// 获取 threadId 的 workspace store
+	var workspaceStore *wga_persistent.Store
+	if config.WgaCfg().Persistent.Enabled {
+		store, err := NewGeneralAgentWorkspaceStore(req.ThreadID)
+		if err != nil {
+			log.Errorf("[wga] thread %v failed to create persistent store: %v", req.ThreadID, err)
+		} else {
+			workspaceStore = store
+		}
+	}
+
+	agentID := req.AgentID
+	if agentID == "" {
+		agentID = config.WgaCfg().AgentID
+	}
+
+	return WgaConversationChat(ctx, &WgaChatParams{
+		UserID:               userId,
+		OrgID:                orgId,
+		AgentID:              agentID,
+		ThreadID:             req.ThreadID,
+		Messages:             req.Messages,
+		ClientID:             clientId,
+		Module:               constant.BizModuleWGA,
+		ModelConfig:          modelConfig,
+		WorkspaceStore:       workspaceStore,
+		SendWorkspaceEvent:   true,
+		EnableHumanInTheLoop: enableHumanInTheLoop,
+	})
+}
+
+// GeneralAgentSkillConversationChat Skill对话接口
+// 根据 mode 选择对应 Skill Agent，workspace 使用 overwrite 模式
+func GeneralAgentSkillConversationChat(ctx *gin.Context, userId, orgId, clientId string, req request.GeneralAgentSkillConversationChatReq) error {
+	mode := strings.TrimSpace(strings.ToLower(req.Mode))
+	chatThreadID := req.ThreadID
+	if mode == generalAgentSkillChatModePreview {
+		if strings.TrimSpace(req.PreviewID) == "" {
+			return grpc_util.ErrorStatus(errs.Code_BFFGeneral, "previewId is required")
+		}
+		chatThreadID = req.PreviewID
+	}
+
+	// 使用 customSkillID 创建 overwrite 模式的 workspace store
+	var workspaceStore *wga_persistent.Store
+	if config.WgaCfg().Persistent.Enabled {
+		store, err := NewGeneralAgentSkillWorkspaceStore(req.CustomSkillID)
+		if err != nil {
+			log.Errorf("[wga-skill] customSkillID %v failed to create persistent store: %v", req.CustomSkillID, err)
+			return err
+		} else {
+			workspaceStore = store
+		}
+	}
+
+	var agentID string
+	switch mode {
+	case "", generalAgentSkillChatModeNormal:
+		agentID = generalAgentSkillChatNormalAgentID
+	case generalAgentSkillChatModeImport, generalAgentSkillChatModeConvert:
+		agentID = generalAgentSkillChatImportAgentID
+	case generalAgentSkillChatModePreview:
+		agentID = generalAgentSkillChatPreviewAgentID
+	default:
+		return grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("unsupported skill chat mode: %s", mode))
+	}
+
+	configResp, err := assistant.GetWgaConversationConfig(ctx.Request.Context(), &assistant_service.GetWgaConversationConfigReq{
+		ThreadId: req.ThreadID,
+		Identity: &assistant_service.Identity{
+			UserId: userId,
+			OrgId:  orgId,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	var modelConfig *common.AppModelConfig
+	if configResp.Config != nil {
+		modelConfig = configResp.Config.ModelConfig
+	}
+
+	if err := WgaConversationChat(ctx, &WgaChatParams{
+		UserID:               userId,
+		OrgID:                orgId,
+		AgentID:              agentID,
+		ThreadID:             chatThreadID,
+		Messages:             req.Messages,
+		ClientID:             clientId,
+		Module:               constant.BizModuleResourceSkill,
+		ModelConfig:          modelConfig,
+		WorkspaceStore:       workspaceStore,
+		WorkspaceReadOnly:    mode == generalAgentSkillChatModePreview,
+		EnableHumanInTheLoop: true,
+	}); err != nil {
+		return err
+	}
+	if mode != generalAgentSkillChatModePreview && workspaceStore != nil {
+		if err := normalizeCustomSkillWorkspaceNestedSkill(req.CustomSkillID); err != nil {
+			log.Errorf("[wga-skill] customSkillID %v normalize nested skill workspace err: %v", req.CustomSkillID, err)
+			return grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("normalize nested skill workspace failed: %v", err))
+		}
+	}
+	if mode != generalAgentSkillChatModePreview {
+		detachedCtx := trace_util.DetachContext(ctx.Request.Context())
+		go func() {
+			defer util.PrintPanicStack()
+			ctx, cancel := context.WithTimeout(detachedCtx, 30*time.Second)
+			defer cancel()
+			// 首次 chat 产物自动提交（从未提交时，须在嵌套目录归并之后）
+			commitSkillWorkspaceIfFirstCommit(req.CustomSkillID, "skill create")
+			updateCustomSkillMetaFromWorkspace(ctx, req.CustomSkillID)
+		}()
+	}
+	return nil
+}
+
+func updateCustomSkillMetaFromWorkspace(ctx context.Context, customSkillID string) {
+	frontMatter, err := findGeneratedSkillFrontMatter(customSkillID)
+	if err != nil {
+		log.Warnf("[wga-skill] customSkillID %v generated skill metadata not ready: %s", customSkillID, formatGeneratedSkillMetaError(err))
+		return
+	}
+	_, err = mcp.UpdateCustomSkillBasicMeta(ctx, &mcp_service.UpdateCustomSkillBasicMetaReq{
+		SkillId: customSkillID,
+		Name:    frontMatter.Name,
+		Desc:    frontMatter.Description,
+	})
+	if err != nil {
+		log.Warnf("[wga-skill] customSkillID %v update generated skill metadata err: %v", customSkillID, err)
+		return
+	}
+	log.Infof("[wga-skill] customSkillID %v updated generated skill metadata from workspace", customSkillID)
+}
+
+func GeneralAgentReplyQuestion(ctx *gin.Context, runID string, questionID string, answers [][]string) error {
+	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
+	sandboxCfg, err := getWgaSandboxConfig()
+	if err != nil {
+		return err
+	}
+
+	if config.Cfg().Ontology.Enable != 0 {
+		go func() {
+			defer util.PrintPanicStack()
+			ontologySandboxCfg, err := getWgaSandboxOntologyConfig()
+			if err != nil {
+				log.Errorf("get ontology sandbox config failed: %v", err)
+				return
+			}
+			if err := wga_sandbox.ReplyQuestion(detachedCtx, ontologySandboxCfg, runID, questionID, answers); err != nil {
+				log.Warnf("reply ontology question failed, runID: %s, questionID: %s, err: %v", runID, questionID, err)
+			}
+		}()
+	}
+
+	return wga_sandbox.ReplyQuestion(ctx.Request.Context(), sandboxCfg, runID, questionID, answers)
+}
+
+func GeneralAgentRejectQuestion(ctx *gin.Context, runID string, questionID string) error {
+	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
+	sandboxCfg, err := getWgaSandboxConfig()
+	if err != nil {
+		return err
+	}
+
+	if config.Cfg().Ontology.Enable != 0 {
+		go func() {
+			defer util.PrintPanicStack()
+			ontologySandboxCfg, err := getWgaSandboxOntologyConfig()
+			if err != nil {
+				log.Errorf("get ontology sandbox config failed: %v", err)
+				return
+			}
+			if err := wga_sandbox.RejectQuestion(detachedCtx, ontologySandboxCfg, runID, questionID); err != nil {
+				log.Warnf("reject ontology question failed, runID: %s, questionID: %s, err: %v", runID, questionID, err)
+			}
+		}()
+	}
+
+	return wga_sandbox.RejectQuestion(ctx.Request.Context(), sandboxCfg, runID, questionID)
 }

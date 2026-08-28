@@ -4,8 +4,8 @@ import json
 import re
 import time
 import logging
+import requests
 from typing import List, Union, Any, Dict
-from openai import OpenAI
 from model_manager.model_config import get_model_configure, LlmModelConfig
 
 logger = logging.getLogger(__name__)
@@ -58,37 +58,43 @@ def req_unicom_VL_plus(image_path: str,
     if not llm_config.is_vision_support:
         logger.info(" llm is not support vision,multimodal_model_id:%s" % multimodal_model_id)
         return model_output
+
+    chat_url = llm_config.endpoint_url
+    if not chat_url.endswith("/chat/completions"):
+        chat_url = chat_url.rstrip("/") + "/chat/completions"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {llm_config.api_key}",
+    }
+    messages = [{
+        "role": "user",
+        "content": [
+            {"type": "text", "text": prompt},
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": img2base64(image_path)
+                }
+            }
+        ]
+    }]
+    payload = {
+        "model": llm_config.model_name,
+        "messages": messages,
+        "stream": False,
+    }
+    if llm_config.provider == "YuanJing":
+        # general:通用；ocr：多模态ocr；math：拍照答题
+        payload["api_option"] = "general"
+
     while retries < max_retries:
         try:
-            client = OpenAI(
-                api_key=llm_config.api_key,
-                base_url=llm_config.endpoint_url
-            )
-            messages = [{
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": img2base64(image_path)
-                        }
-                    }
-                ]
-            }]
-            extra_params = {}
-            if llm_config.provider == "YuanJing":
-                extra_params = {  # 模型其他参数，非必传
-                    "api_option": "general"  # general:通用；ocr：多模态ocr；math：拍照答题
-                }
-
-            completion = client.chat.completions.create(
-                model=llm_config.model_name,
-                messages=messages,
-                stream=False,
-                extra_body=extra_params
-            )
-            model_output = completion.choices[0].message.content
+            response = requests.post(chat_url, headers=headers, json=payload, timeout=120)
+            if response.status_code != 200:
+                raise Exception(f"HTTP {response.status_code}: {response.text}")
+            completion = response.json()
+            model_output = completion["choices"][0]["message"]["content"]
 
             logger.info("==========>multi_model_output：%s" % repr(model_output))
             return model_output

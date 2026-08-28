@@ -1,0 +1,77 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "文档解析",
+    "description": "接收文档 URL，对文档进行解析并返回完整文档内容，支持文件类型.pdf/.docx/.pptx/.doc/.wps/.ofd/.xlsx/.xls/.csv/.txt/.html/.md",
+    "version": "1.0.0"
+  },
+  "tags": [],
+  "paths": {
+    "/v1/doc_parse": {
+      "post": {
+        "summary": "解析文档返回内容",
+        "operationId": "chatdoc",
+        "deprecated": false,
+        "description": "接收文档 URL，对文档进行解析并返回完整文档内容，支持文件类型.pdf/.docx/.pptx/.doc/.wps/.ofd/.xlsx/.xls/.csv/.txt/.html/.md",
+        "tags": ["callback"],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "upload_file_url": {
+                    "type": "string",
+                    "description": "文件下载链接"
+                  }
+                },
+                "required": ["upload_file_url"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "解析成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "description": "返回结果code",
+                      "type": "integer"
+                    },
+                    "msg": {
+                      "description": "返回结果错误信息",
+                      "type": "string"
+                    },
+                    "data": {
+                      "description": "解析后的文档内容",
+                      "type": "string"
+                    }
+                  },
+                  "required": ["code", "data"]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "securitySchemes": {}
+  },
+  "servers": [
+    {
+      "url": "http://callback-wanwu:8669",
+      "description": "文档解析服务URL"
+    }
+  ]
+}

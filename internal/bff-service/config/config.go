@@ -3,12 +3,14 @@ package config
 import (
 	"fmt"
 	"net/url"
+	"os"
 
 	oauth2_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/oauth2-util"
 	"github.com/UnicomAI/wanwu/pkg/i18n"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/minio"
 	"github.com/UnicomAI/wanwu/pkg/redis"
+	rsa_util "github.com/UnicomAI/wanwu/pkg/rsa-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 )
 
@@ -22,6 +24,7 @@ type Config struct {
 	JWT               JWTConfig                  `json:"jwt" mapstructure:"jwt"`
 	OAuth             OAuthConfig                `json:"oauth" mapstructure:"oauth"`
 	Decrypt           DecryptPasswd              `json:"decrypt-passwd" mapstructure:"decrypt-passwd"`
+	RSAKey            RSAKeyConfig               `json:"rsa-key" mapstructure:"rsa-key"`
 	I18n              i18n.Config                `json:"i18n" mapstructure:"i18n"`
 	CustomInfo        CustomInfoConfig           `json:"custom-info" mapstructure:"custom-info"`
 	DocCenter         DocCenterConfig            `json:"doc-center" mapstructure:"doc-center"`
@@ -49,20 +52,24 @@ type Config struct {
 	Rag                 ServiceConfig         `json:"rag" mapstructure:"rag"`
 	Assistant           ServiceConfig         `json:"assistant" mapstructure:"assistant"`
 	Operate             ServiceConfig         `json:"operate" mapstructure:"operate"`
+	AgentService        ServiceConfig         `json:"agent-service" mapstructure:"agent-service"`
+	Channel             ServiceConfig         `json:"channel" mapstructure:"channel"`
 	RagKnowledgeConfig  RagKnowledgeConfig    `json:"rag-knowledge" mapstructure:"rag-knowledge"`
 	DifyKnowledgeConfig DifyKnowledgeConfig   `json:"dify-knowledge" mapstructure:"dify-knowledge"`
 	Workflow            WorkflowServiceConfig `json:"workflow" mapstructure:"workflow"`
 	WgaSandbox          WgaSandboxConfig      `json:"wga-sandbox" mapstructure:"wga-sandbox"`
-	AgentService        AgentServiceConfig    `json:"agent-service" mapstructure:"agent-service"`
+	Ontology            OntologyServiceConfig `json:"ontology" mapstructure:"ontology"`
+	Statistic           StatisticConfig       `json:"statistic" mapstructure:"statistic"`
 }
 
 type ServerConfig struct {
-	Host        string `json:"host" mapstructure:"host"`
-	Port        int    `json:"port" mapstructure:"port"`
-	WebBaseUrl  string `json:"web_base_url" mapstructure:"web_base_url"`
-	ApiBaseUrl  string `json:"api_base_url" mapstructure:"api_base_url"`
-	AppOpenUrl  string `json:"app_open_base_url" mapstructure:"app_open_base_url"`
-	CallbackUrl string `json:"callback_url" mapstructure:"callback_url"`
+	Host         string `json:"host" mapstructure:"host"`
+	Port         int    `json:"port" mapstructure:"port"`
+	CallbackPort int    `json:"callback_port" mapstructure:"callback_port"`
+	WebBaseUrl   string `json:"web_base_url" mapstructure:"web_base_url"`
+	ApiBaseUrl   string `json:"api_base_url" mapstructure:"api_base_url"`
+	AppOpenUrl   string `json:"app_open_base_url" mapstructure:"app_open_base_url"`
+	CallbackUrl  string `json:"callback_url" mapstructure:"callback_url"`
 }
 
 type ServiceModelConfig struct {
@@ -73,10 +80,20 @@ type ServiceModelConfig struct {
 	RecommendModelConfigPath string `json:"recommend_model_config_path" mapstructure:"recommend_model_config_path"`
 }
 
+type StatisticConfig struct {
+	RecordBody int `json:"record_body" mapstructure:"record_body"`
+}
+
 type RecommendModelItemLLM struct {
 	Model       string   `mapstructure:"model" json:"model"`
 	DisplayName string   `mapstructure:"display_name" json:"displayName"`
 	Tags        []string `mapstructure:"tags" json:"tags"`
+}
+
+type RecommendModelItemOCR struct {
+	Model            string   `mapstructure:"model" json:"model"`
+	DisplayName      string   `mapstructure:"display_name" json:"displayName"`
+	SupportFileTypes []string `mapstructure:"support_filetypes" json:"supportFileTypes"`
 }
 
 type RecommendModelItem struct {
@@ -113,13 +130,18 @@ type DecryptPasswd struct {
 	Key string `json:"key" mapstructure:"key"`
 }
 
-type ServiceConfig struct {
-	Host string `json:"host" mapstructure:"host"`
+// RSAKeyConfig RSA密钥配置
+type RSAKeyConfig struct {
+	// 私钥文件路径（权限应为 600）
+	PrivateKeyPath string `json:"private_key_path" mapstructure:"private_key_path"`
+	// 公钥文件路径（权限可为 644）
+	PublicKeyPath string `json:"public_key_path" mapstructure:"public_key_path"`
+	// 密钥轮换周期（天），默认 90 天
+	KeyRotationDays int `json:"key_rotation_days" mapstructure:"key_rotation_days"`
 }
 
-type AgentServiceConfig struct {
+type ServiceConfig struct {
 	Host string `json:"host" mapstructure:"host"`
-	Port int    `json:"port" mapstructure:"port"`
 }
 
 type RagKnowledgeConfig struct {
@@ -141,13 +163,34 @@ type DifyKnowledgeConfig struct {
 }
 
 type WgaSandboxConfig struct {
-	Sandbox WgaSandboxSandboxConfig `json:"sandbox" mapstructure:"sandbox"`
+	Sandbox         WgaSandboxSandboxConfig `json:"sandbox" mapstructure:"sandbox"`
+	SandboxOntology WgaSandboxSandboxConfig `json:"sandbox-ontology" mapstructure:"sandbox-ontology"`
 }
 
 type WgaSandboxSandboxConfig struct {
 	Type      string `json:"type" mapstructure:"type"`
 	Host      string `json:"host" mapstructure:"host"`
 	ImageName string `json:"image-name" mapstructure:"image-name"`
+}
+
+type OntologyServiceConfig struct {
+	Enable                         int                            `json:"enable" mapstructure:"enable"`
+	Endpoint                       string                         `json:"endpoint" mapstructure:"endpoint"`
+	KnowledgeNetworkListUri        string                         `json:"knowledge_network_list_uri" mapstructure:"knowledge_network_list_uri"`
+	DigitalEmployeeListUri         string                         `json:"digital_employee_list_uri" mapstructure:"digital_employee_list_uri"`
+	DigitalEmployeeInfoUri         string                         `json:"digital_employee_info_uri" mapstructure:"digital_employee_info_uri"`                 // 通用智能体 @数字员工 详情（非版本，占位 {digitalEmployeeId}）
+	DigitalEmployeeInfoVersionUri  string                         `json:"digital_employee_info_version_uri" mapstructure:"digital_employee_info_version_uri"` // 数字员工发布（DE）版本最新详情（占位 {dh_id}，/versions/latest）
+	DigitalEmployeeBatchLatestUri  string                         `json:"digital_employee_batch_latest_uri" mapstructure:"digital_employee_batch_latest_uri"` // 数字员工批量最新详情（POST body dh_ids，/versions/latest）
+	DigitalEmployeePromptTemplate  string                         `json:"digital_employee_prompt_template" mapstructure:"digital_employee_prompt_template"`
+	DigitalEmployeeChatPlaceholder string                         `json:"digital_employee_chat_placeholder" mapstructure:"digital_employee_chat_placeholder"` // 数字员工发布对话输入框 placeholder（广场详情下发，区别于通用智能体 DIP Agent 的 placeholder）
+	BuiltinSkills                  []string                       `yaml:"builtin_skills" json:"builtin_skills" mapstructure:"builtin_skills"`
+	SmartDataSkills                []OntologySmartDataSkillConfig `json:"smart_data_skills" mapstructure:"smart_data_skills"`
+}
+
+type OntologySmartDataSkillConfig struct {
+	Name      string `json:"name" mapstructure:"name"`
+	Desc      string `json:"desc" mapstructure:"desc"`
+	SkillPath string `json:"skillPath" mapstructure:"skillPath"`
 }
 
 type WorkflowTemplatePathConfig struct {
@@ -196,7 +239,7 @@ type RecommendModelsByProvider struct {
 	MultiEmbedding []RecommendModelItem    `mapstructure:"multimodal-embedding" json:"multimodal-embedding"`
 	Rerank         []RecommendModelItem    `mapstructure:"rerank" json:"rerank"`
 	MultiRerank    []RecommendModelItem    `mapstructure:"multimodal-rerank" json:"multimodal-rerank"`
-	Ocr            []RecommendModelItem    `mapstructure:"ocr" json:"ocr"`
+	Ocr            []RecommendModelItemOCR `mapstructure:"ocr" json:"ocr"`
 	Gui            []RecommendModelItem    `mapstructure:"gui" json:"gui"`
 	PdfParser      []RecommendModelItem    `mapstructure:"pdf-parser" json:"pdf-parser"`
 	SyncAsr        []RecommendModelItem    `mapstructure:"sync-asr" json:"sync-asr"`
@@ -226,10 +269,11 @@ type WorkflowServiceConfig struct {
 	// conversation
 	CreateChatflowConversationUri string `json:"create_chatflow_conversation_uri" mapstructure:"create_chatflow_conversation_uri"`
 	GetConversationMessageListUri string `json:"get_conversation_message_list_uri" mapstructure:"get_conversation_message_list_uri"`
+	DeleteConversationUri         string `json:"delete_conversation_uri" mapstructure:"delete_conversation_uri"`
 	GetDraftIntelligenceListUri   string `json:"get_draft_intelligence_list_uri" mapstructure:"get_draft_intelligence_list_uri"`
 	GetDraftIntelligenceInfoUri   string `json:"get_draft_intelligence_info_uri" mapstructure:"get_draft_intelligence_info_uri"`
-	DeleteConversationUri         string `json:"delete_conversation_uri" mapstructure:"delete_conversation_uri"`
-	GetProjectConversationDef     string `json:"get_project_conversation_def" mapstructure:"get_project_conversation_def"`
+	GetProjectConversationUri     string `json:"get_project_conversation_uri" mapstructure:"get_project_conversation_uri"`
+	GetProjectConversationListUri string `json:"get_project_conversation_list_uri" mapstructure:"get_project_conversation_list_uri"`
 	// upload
 	UploadActionUri string `json:"upload_action_uri" mapstructure:"upload_action_uri"`
 	UploadCommonUri string `json:"upload_common_uri" mapstructure:"upload_common_uri"`
@@ -295,17 +339,22 @@ type CustomInfoConfig struct {
 	DefaultMode          string        `json:"default_mode" mapstructure:"default_mode"`
 	Modes                []CustomTheme `json:"modes" mapstructure:"modes"`
 	Version              string        `json:"version" mapstructure:"version"`
+	ReleaseNotesPath     string        `json:"release_notes_path" mapstructure:"release_notes_path"`
+	ReleaseNotes         string        `json:"-" mapstructure:"-"`
 	RegisterByEmail      int           `json:"register_by_email" mapstructure:"register_by_email"`
 	ResetPasswordByEmail int           `json:"reset_password_by_email" mapstructure:"reset_password_by_email"`
 	LoginByEmail         int           `json:"login_by_email" mapstructure:"login_by_email"`
+	UserPhoneRequired    int           `json:"user_phone_required" mapstructure:"user_phone_required"`
+	PasswordRSAEncrypt   int           `json:"password_rsa_encrypt" mapstructure:"password_rsa_encrypt"` // 密码RSA加密开关 0-关闭 1-开启
 }
 
 type CustomTheme struct {
-	Mode  string      `json:"mode" mapstructure:"mode"`
-	Login CustomLogin `json:"login" mapstructure:"login"`
-	Home  CustomHome  `json:"home" mapstructure:"home"`
-	Tab   CustomTab   `json:"tab" mapstructure:"tab"`
-	About CustomAbout `json:"about" mapstructure:"about"`
+	Mode         string             `json:"mode" mapstructure:"mode"`
+	Login        CustomLogin        `json:"login" mapstructure:"login"`
+	Home         CustomHome         `json:"home" mapstructure:"home"`
+	Tab          CustomTab          `json:"tab" mapstructure:"tab"`
+	About        CustomAbout        `json:"about" mapstructure:"about"`
+	GeneralAgent CustomGeneralAgent `json:"general_agent" mapstructure:"general_agent"`
 }
 
 type CustomLogin struct {
@@ -332,21 +381,31 @@ type CustomAbout struct {
 	Copyright string `json:"copyright" mapstructure:"copyright"`
 }
 
+type CustomGeneralAgent struct {
+	LogoPath    string `json:"logo_path" mapstructure:"logo_path"`
+	WelcomeText string `json:"welcome_text" mapstructure:"welcome_text"`
+}
+
 type DefaultIconConfig struct {
-	UserIcon        string `json:"user" mapstructure:"user"`
-	RagIcon         string `json:"rag" mapstructure:"rag"`
-	AgentIcon       string `json:"agent" mapstructure:"agent"`
-	WorkflowIcon    string `json:"workflow" mapstructure:"workflow"`
-	ChatflowIcon    string `json:"chatflow" mapstructure:"chatflow"`
-	McpCustomIcon   string `json:"mcpCustom" mapstructure:"mcpCustom"`
-	McpServerIcon   string `json:"mcpServer" mapstructure:"mcpServer"`
-	ToolIcon        string `json:"tool" mapstructure:"tool"`
-	PromptIcon      string `json:"prompt" mapstructure:"prompt"`
-	SkillIcon       string `json:"skill" mapstructure:"skill"`
-	CustomSkillIcon string `json:"skillCustom" mapstructure:"skillCustom"`
-	KnowledgeIcon   string `json:"knowledge" mapstructure:"knowledge"`
-	QAIcon          string `json:"qa" mapstructure:"qa"`
-	ModelIcon       string `json:"model" mapstructure:"model"`
+	UserIcon         string `json:"user" mapstructure:"user"`
+	RagIcon          string `json:"rag" mapstructure:"rag"`
+	AgentIcon        string `json:"agent" mapstructure:"agent"`
+	WorkflowIcon     string `json:"workflow" mapstructure:"workflow"`
+	ChatflowIcon     string `json:"chatflow" mapstructure:"chatflow"`
+	McpCustomIcon    string `json:"mcpCustom" mapstructure:"mcpCustom"`
+	McpServerIcon    string `json:"mcpServer" mapstructure:"mcpServer"`
+	ToolIcon         string `json:"tool" mapstructure:"tool"`
+	PromptIcon       string `json:"prompt" mapstructure:"prompt"`
+	SkillIcon        string `json:"skill" mapstructure:"skill"`
+	CustomSkillIcon  string `json:"skillCustom" mapstructure:"skillCustom"`
+	KnowledgeIcon    string `json:"knowledge" mapstructure:"knowledge"`
+	QAIcon           string `json:"qa" mapstructure:"qa"`
+	ModelIcon        string `json:"model" mapstructure:"model"`
+	GeneralAgentIcon string `json:"generalAgent" mapstructure:"generalAgent"`
+	OrgIcon          string `json:"org" mapstructure:"org"`
+	RoleIcon         string `json:"role" mapstructure:"role"`
+	SystemIcon       string `json:"system" mapstructure:"system"`
+	AdminIcon        string `json:"admin" mapstructure:"admin"`
 }
 
 func LoadConfig(in string) error {
@@ -394,6 +453,25 @@ func LoadConfig(in string) error {
 		if err := util.LoadConfig(recommendModelPath, _c); err != nil {
 			return fmt.Errorf("load recommend model config err: %v", err)
 		}
+	}
+	// 加载 release notes
+	if _c.CustomInfo.ReleaseNotesPath != "" {
+		data, err := os.ReadFile(_c.CustomInfo.ReleaseNotesPath)
+		if err != nil {
+			log.Warnf("load release notes from %s err: %v", _c.CustomInfo.ReleaseNotesPath, err)
+		} else {
+			_c.CustomInfo.ReleaseNotes = string(data)
+		}
+	} else {
+		log.Warnf("release_notes_path is empty, skip loading release notes")
+	}
+	// 初始化RSA密钥管理器
+	if err := rsa_util.InitKeyManager(rsa_util.Config{
+		PrivateKeyPath:  _c.RSAKey.PrivateKeyPath,
+		PublicKeyPath:   _c.RSAKey.PublicKeyPath,
+		KeyRotationDays: _c.RSAKey.KeyRotationDays,
+	}); err != nil {
+		return fmt.Errorf("init rsa key manager err: %v", err)
 	}
 	return nil
 }

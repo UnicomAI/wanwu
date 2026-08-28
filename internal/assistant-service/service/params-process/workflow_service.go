@@ -39,7 +39,7 @@ func (k *WorkflowProcess) Prepare(agent *AgentInfo, prepareParams *AgentPrepareP
 	if len(workflowIDs) == 0 {
 		return nil
 	}
-	list, err := SearchWorkflowByIdList(context.Background(), &WorkflowIdListParams{WorkflowIDs: workflowIDs})
+	list, err := SearchWorkflowByIdList(userQueryParams.Ctx, &WorkflowIdListParams{WorkflowIDs: workflowIDs})
 	if err != nil {
 		return err
 	}

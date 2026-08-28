@@ -13,13 +13,14 @@ var _w *wrapper
 
 // --- API ---
 
-func InitWrapper(handlers ...gin.HandlerFunc) {
+func InitWrapper(handlers []gin.HandlerFunc, postHandlers []gin.HandlerFunc) {
 	if _w != nil {
 		log.Panicf("wrapper already init")
 	}
 	_w = &wrapper{
-		isNavi:      true,
-		middlewares: handlers,
+		isNavi:          true,
+		middlewares:     handlers,
+		postMiddlewares: postHandlers,
 	}
 }
 
@@ -67,8 +68,9 @@ type wrapper struct {
 	canCheck  bool
 	permLevel route.PermLevel
 
-	middlewares []gin.HandlerFunc
-	paths       route.Paths
+	middlewares     []gin.HandlerFunc
+	postMiddlewares []gin.HandlerFunc
+	paths           route.Paths
 
 	subs []*wrapper
 }
@@ -114,12 +116,13 @@ func (w *wrapper) NewSub(subTag, name string, permLevel route.PermLevel, isNavi,
 		log.Panicf("wrapper %v sub %v must cannot check", w.tag, tag)
 	}
 	w.subs = append(w.subs, &wrapper{
-		tag:         tag,
-		name:        name,
-		isNavi:      isNavi,
-		canCheck:    canCheck,
-		permLevel:   permLevel,
-		middlewares: append(w.middlewares, middlewares...),
+		tag:             tag,
+		name:            name,
+		isNavi:          isNavi,
+		canCheck:        canCheck,
+		permLevel:       permLevel,
+		middlewares:     append(w.middlewares, middlewares...),
+		postMiddlewares: w.postMiddlewares,
 	})
 }
 
@@ -159,6 +162,7 @@ func (w *wrapper) RegWithAPIType(rg *gin.RouterGroup, relPath, method string, ha
 		log.Panicf("wrapper %v permLevel %v unknown", w.tag, w.permLevel)
 	}
 	handlers = append(handlers, middlewares...)
+	handlers = append(handlers, w.postMiddlewares...)
 	handlers = append(handlers, handler)
 	rg.Handle(method, relPath, handlers...)
 }

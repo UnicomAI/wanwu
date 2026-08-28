@@ -8,6 +8,9 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
+	"time"
+
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 
 	"github.com/UnicomAI/wanwu/internal/iam-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/iam-service/config"
@@ -50,6 +53,11 @@ func main() {
 		log.Fatalf("init log err: %v", err)
 	}
 
+	// init tracer
+	if err := trace_util.InitTracer("iam-service"); err != nil {
+		log.Fatalf("init tracer err: %v", err)
+	}
+
 	if err := smtp_util.Init(config.Cfg().SMTP); err != nil {
 		log.Fatalf("init email err: %v", err)
 	}
@@ -79,6 +87,12 @@ func main() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, os.Interrupt, syscall.SIGTERM)
 	<-sc
+
+	// flush trace spans
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+	trace_util.ShutdownTracer(shutdownCtx)
+
 	s.Stop()
 	redis.StopIAM()
 }

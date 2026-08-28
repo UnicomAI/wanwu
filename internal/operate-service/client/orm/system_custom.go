@@ -43,6 +43,7 @@ func (c *Client) GetSystemCustom(ctx context.Context, mode SystemCustomMode) (*S
 		key2WithModeKey(SystemCustomTabKey, mode),
 		key2WithModeKey(SystemCustomLoginKey, mode),
 		key2WithModeKey(SystemCustomHomeKey, mode),
+		key2WithModeKey(SystemCustomGeneralAgentKey, mode),
 	}
 
 	var records []model.SystemCustom
@@ -66,6 +67,10 @@ func (c *Client) GetSystemCustom(ctx context.Context, mode SystemCustomMode) (*S
 		case key2WithModeKey(SystemCustomHomeKey, mode):
 			if err := json.Unmarshal([]byte(record.Value), &result.Home); err != nil {
 				log.Errorf("failed to unmarshal HomeConfig mode %s: %v", mode, err)
+			}
+		case key2WithModeKey(SystemCustomGeneralAgentKey, mode):
+			if err := json.Unmarshal([]byte(record.Value), &result.GeneralAgent); err != nil {
+				log.Errorf("failed to unmarshal GeneralAgentConfig mode %s: %v", mode, err)
 			}
 		}
 	}
@@ -121,6 +126,23 @@ func mergeCustomFields(key SystemCustomKey, custom model.SystemCustom, newCustom
 		}
 		if newCustom.Home.BgColor != "" {
 			ret.BgColor = newCustom.Home.BgColor
+		}
+		value, _ := json.Marshal(ret)
+		return string(value)
+
+	case SystemCustomGeneralAgentKey:
+		var ret GeneralAgentConfig
+		if err := json.Unmarshal([]byte(custom.Value), &ret); err != nil {
+			log.Errorf("failed to unmarshal key %s: %v", key, err)
+		}
+		if newCustom.GeneralAgent.GeneralAgentIconPath != "" {
+			ret.GeneralAgentIconPath = newCustom.GeneralAgent.GeneralAgentIconPath
+		}
+		if newCustom.GeneralAgent.GeneralAgentWelcome != "" {
+			ret.GeneralAgentWelcome = newCustom.GeneralAgent.GeneralAgentWelcome
+		}
+		if newCustom.GeneralAgent.GeneralAgentMenuName != "" {
+			ret.GeneralAgentMenuName = newCustom.GeneralAgent.GeneralAgentMenuName
 		}
 		value, _ := json.Marshal(ret)
 		return string(value)

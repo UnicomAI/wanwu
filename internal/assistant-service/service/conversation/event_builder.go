@@ -4,8 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
+)
+
+const (
+	errorDefaultOrder = 999
 )
 
 type SubEventStatus int
@@ -35,21 +40,43 @@ type ConversationResp struct {
 	SearchList           *string
 	ConversationEventMap map[string]*ConversationResp
 	ResponseFiles        []*model.AgentFile
+	CurrentData          string
+	SensitiveMessage     string
 	Error                error
+	Statistic            *model.AgentStatistic
 }
 
 func CreateConversationResp() *ConversationResp {
-	return &ConversationResp{FullResponse: &strings.Builder{}, ConversationEventMap: make(map[string]*ConversationResp)}
+	return &ConversationResp{FullResponse: &strings.Builder{}, ConversationEventMap: make(map[string]*ConversationResp),
+		Order: -1, Statistic: &model.AgentStatistic{
+			StartTime: time.Now().UnixMilli(),
+		}}
 }
 
 func (cr *ConversationResp) Write(data string, order int) {
 	if order != cr.EventOrder {
 		resp := &model.ConversationResponse{Response: cr.FullResponse.String(), Order: cr.EventOrder}
 		cr.EventOrder = order
-		cr.FullResponseList = append(cr.FullResponseList, resp)
+		if !resp.Empty() {
+			cr.FullResponseList = append(cr.FullResponseList, resp)
+		}
 		cr.FullResponse.Reset()
 	}
 	cr.FullResponse.WriteString(data)
+}
+
+func (cr *ConversationResp) WriteError(data string, errMessage string, order int) {
+	if cr.FullResponse.Len() > 0 {
+		resp := &model.ConversationResponse{Response: cr.FullResponse.String(), Order: cr.EventOrder}
+		cr.EventOrder = order
+		cr.FullResponseList = append(cr.FullResponseList, resp)
+		cr.FullResponse.Reset()
+		order += 1
+	}
+	resp := &model.ConversationResponse{ErrMessage: errMessage, ErrResponse: data, Order: order}
+	cr.EventOrder = order
+	cr.FullResponseList = append(cr.FullResponseList, resp)
+	cr.FullResponse.Reset()
 }
 
 func (cr *ConversationResp) References() string {
@@ -72,6 +99,15 @@ func (cr *ConversationResp) Response() string {
 	return conversationResponse
 }
 
+func (cr *ConversationResp) SensitiveResponse(sensitiveResponse string) {
+	if len(sensitiveResponse) > 0 {
+		cr.SensitiveMessage = sensitiveResponse
+	}
+}
+
+func (cr *ConversationResp) ErrorResponse(err error) {
+	cr.Error = err
+}
 func (cr *ConversationResp) ResponseList() []*model.ConversationResponse {
 	var conversationResponse = cr.FullResponse.String()
 	if cr.Error != nil {
@@ -81,8 +117,20 @@ func (cr *ConversationResp) ResponseList() []*model.ConversationResponse {
 		}
 		conversationResponse += terminationMessage
 	}
-	var retList = cr.FullResponseList
-	retList = append(retList, &model.ConversationResponse{Response: conversationResponse, Order: cr.EventOrder})
+	list := cr.FullResponseList
+	var retList []*model.ConversationResponse
+	if len(list) > 0 {
+		for _, data := range list {
+			if data.Order < 0 {
+				continue
+			}
+			retList = append(retList, data)
+		}
+	}
+	if len(conversationResponse) > 0 {
+		retList = append(retList, &model.ConversationResponse{Response: conversationResponse, Order: cr.EventOrder})
+	}
+
 	return retList
 }
 
@@ -108,6 +156,31 @@ func InitBuilder(eventBuilder EventBuilder) {
 }
 
 func BuildConversationResp(conversationResp *ConversationResp, strLine string) error {
+	if strLine == "\n" {
+		return nil
+	}
+	var lastData = conversationResp.CurrentData
+	conversationResp.CurrentData = strLine
+	if len(lastData) == 0 {
+		return nil
+	}
+	// 记录首token到达时间（首次处理到有效数据时）
+	conversationResp.Statistic.SetFirstTokenLatency()
+	return buildConversationResp(conversationResp, lastData)
+}
+
+func FinishConversationResp(conversationResp *ConversationResp) error {
+	if len(conversationResp.CurrentData) > 0 {
+		err := buildConversationResp(conversationResp, conversationResp.CurrentData)
+		return err
+	}
+	if conversationResp.Error != nil {
+		conversationResp.WriteError("智能体处理异常，请稍后重试", conversationResp.Error.Error(), errorDefaultOrder)
+	}
+	return nil
+}
+
+func buildConversationResp(conversationResp *ConversationResp, strLine string) error {
 	conversation, searchResult, agentChatResp := processAgentResp(strLine)
 	if agentChatResp == nil {
 		return nil

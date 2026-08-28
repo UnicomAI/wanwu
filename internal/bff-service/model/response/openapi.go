@@ -1,7 +1,27 @@
 package response
 
+import "github.com/UnicomAI/wanwu/internal/bff-service/model/request"
+
 type OpenAPICreateAgentResponse struct {
 	UUID string `json:"uuid"`
+}
+
+// OpenAPIAgentBriefInfo 智能体列表条目（OpenAPI 专用，以 uuid 作为主键）
+type OpenAPIAgentBriefInfo struct {
+	UUID        string         `json:"uuid"`        // 智能体唯一标识，供后续接口使用
+	Name        string         `json:"name"`        // 名称
+	Desc        string         `json:"desc"`        // 描述
+	Avatar      request.Avatar `json:"avatar"`      // 头像信息
+	Category    int32          `json:"category"`    // 1:单智能体 2:多智能体
+	PublishType string         `json:"publishType"` // public/organization/private，空字符串表示未发布（草稿）
+	Version     string         `json:"version"`     // 已发布版本号，未发布时为空
+	CreatedAt   string         `json:"createdAt"`   // 创建时间
+	UpdatedAt   string         `json:"updatedAt"`   // 最后更新时间
+}
+
+// OpenAPIAgentListResponse 智能体列表响应（非分页接口，全量返回，调用方按需 len(list) 计数即可）
+type OpenAPIAgentListResponse struct {
+	List []OpenAPIAgentBriefInfo `json:"list"`
 }
 
 type OpenAPIAgentCreateConversationResponse struct {
@@ -9,14 +29,15 @@ type OpenAPIAgentCreateConversationResponse struct {
 }
 
 type OpenAPIAgentChatResponse struct {
-	Code           int                    `json:"code"`
-	Message        string                 `json:"message"`
-	Response       string                 `json:"response"`
-	GenFileUrlList []OpenAPIAgentChatFile `json:"gen_file_url_list"`
-	SearchList     []OpenAIChatSearch     `json:"search_list"`
-	History        []OpenAIChatHistory    `json:"history"`
-	Usage          OpenAPIAgentChatUsage  `json:"usage"`
-	Finish         int                    `json:"finish"`
+	Code               int                    `json:"code"`
+	Message            string                 `json:"message"`
+	Response           string                 `json:"response"`
+	GenFileUrlList     []OpenAPIAgentChatFile `json:"gen_file_url_list"`
+	SearchList         []OpenAIChatSearch     `json:"search_list"`
+	History            []OpenAIChatHistory    `json:"history"`
+	Usage              OpenAPIAgentChatUsage  `json:"usage"`
+	Finish             int                    `json:"finish"`
+	RecommendQuestions []string               `json:"recommend_questions,omitempty"`
 }
 
 type OpenAPIAgentChatFile struct {
@@ -47,6 +68,8 @@ type OpenAIChatSearch struct {
 	KBName  string `json:"kb_name"`
 	Title   string `json:"title"`
 	Snippet string `json:"snippet"`
+	// MetaData 知识库命中片段的元信息，原样透传 rag 返回（与流式一致），如 file_name/download_link/page_num/chunk_total_num 等
+	MetaData interface{} `json:"meta_data,omitempty"`
 }
 
 type OpenAIChatHistory struct {

@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
+	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	"github.com/UnicomAI/wanwu/pkg/gin-util/route"
@@ -16,10 +17,13 @@ import (
 
 var (
 	accessRouter = map[string]bool{
-		"/v1/user/password":   true,
-		"/v1/user/permission": true,
-		"/v1/user/info":       true,
-		"/v1/org/select":      true,
+		"/v1/user/password":         true,
+		"/v1/user/permission":       true,
+		"/v1/user/info":             true,
+		"/v1/org/select":            true,
+		"/v1/user/login/email/code": true,
+		"/v1/user/login":            true,
+		"/v1/notice/unread/count":   true,
 	}
 )
 
@@ -87,6 +91,26 @@ func CheckUserPerm(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
+	// admin_center 一级命名空间：权限已由路由层中间件（CheckOrgAdmin 等）校验，
+	// CheckUserPerm 只需校验用户有效性并设置上下文。
+	// 子模块（admin_center.xxx）走正常权限校验。
+	if len(tags) == 1 && tags[0] == "admin_center" {
+		resp, err := service.CheckUserEnable(ctx, userID, genTokenTS)
+		if err != nil {
+			gin_util.ResponseErrWithStatus(ctx, httpStatus, err)
+			ctx.Abort()
+			return
+		}
+		err = checkPasswordUpdateAccess(ctx, resp.LastUpdatePasswordAt)
+		if err != nil {
+			gin_util.ResponseErrCodeKeyWithStatus(ctx, httpStatus, err_code.Code_BFFAuth, "", err.Error())
+			ctx.Abort()
+			return
+		}
+		ctx.Set(gin_util.IS_ADMIN, true)
+		ctx.Set(gin_util.IS_SYSTEM, orgID == config.TopOrgID)
+		return
+	}
 	// check
 	resp, err := service.CheckUserPerm(ctx, userID, genTokenTS, orgID, tags)
 	if err != nil {
@@ -134,12 +158,22 @@ func getOrgID(ctx *gin.Context) (string, error) {
 	return "", errors.New("org id empty")
 }
 
+// 当前用户是否是当前组织内置管理员角色
+func isAdmin(ctx *gin.Context) bool {
+	return ctx.GetBool(gin_util.IS_ADMIN)
+}
+
+// 当前组织是否是内置顶级【系统】组织
+func isSystem(ctx *gin.Context) bool {
+	return ctx.GetBool(gin_util.IS_SYSTEM)
+}
+
 func getGenTokenTS(ctx *gin.Context) (string, error) {
 	claims, ok := ctx.Get(gin_util.CLAIMS)
 	if !ok {
 		return "", errors.New("jwt claims empty")
 	}
-	return strconv.Itoa(int(claims.(*jwt_util.CustomClaims).ExpiresAt * 1000)), nil
+	return strconv.Itoa(int(claims.(*jwt_util.CustomClaims).ExpiresAt.Unix() * 1000)), nil
 }
 
 func checkPasswordUpdateAccess(ctx *gin.Context, lastUpdatePasswordAt int64) error {

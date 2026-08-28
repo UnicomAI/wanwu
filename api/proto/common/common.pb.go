@@ -769,6 +769,457 @@ func (x *ApiAuth) GetAuthValue() string {
 	return ""
 }
 
+type TraceInfo struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	TraceId    string            `protobuf:"bytes,1,opt,name=traceId,proto3" json:"traceId,omitempty"`
+	TraceApi   *TraceApi         `protobuf:"bytes,2,opt,name=traceApi,proto3" json:"traceApi,omitempty"`                                                                                             //api接口信息
+	TraceUser  *TraceUser        `protobuf:"bytes,4,opt,name=traceUser,proto3" json:"traceUser,omitempty"`                                                                                           //用户信息
+	TraceApp   *TraceApp         `protobuf:"bytes,5,opt,name=traceApp,proto3" json:"traceApp,omitempty"`                                                                                             //app信息
+	TraceExtra map[string]string `protobuf:"bytes,6,rep,name=traceExtra,proto3" json:"traceExtra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"` //额外信息
+}
+
+func (x *TraceInfo) Reset() {
+	*x = TraceInfo{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_common_common_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *TraceInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TraceInfo) ProtoMessage() {}
+
+func (x *TraceInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_common_common_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TraceInfo.ProtoReflect.Descriptor instead.
+func (*TraceInfo) Descriptor() ([]byte, []int) {
+	return file_proto_common_common_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *TraceInfo) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *TraceInfo) GetTraceApi() *TraceApi {
+	if x != nil {
+		return x.TraceApi
+	}
+	return nil
+}
+
+func (x *TraceInfo) GetTraceUser() *TraceUser {
+	if x != nil {
+		return x.TraceUser
+	}
+	return nil
+}
+
+func (x *TraceInfo) GetTraceApp() *TraceApp {
+	if x != nil {
+		return x.TraceApp
+	}
+	return nil
+}
+
+func (x *TraceInfo) GetTraceExtra() map[string]string {
+	if x != nil {
+		return x.TraceExtra
+	}
+	return nil
+}
+
+type TraceApi struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ApiName string `protobuf:"bytes,1,opt,name=apiName,proto3" json:"apiName,omitempty"`
+	ApiPath string `protobuf:"bytes,2,opt,name=apiPath,proto3" json:"apiPath,omitempty"`
+}
+
+func (x *TraceApi) Reset() {
+	*x = TraceApi{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_common_common_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *TraceApi) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TraceApi) ProtoMessage() {}
+
+func (x *TraceApi) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_common_common_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TraceApi.ProtoReflect.Descriptor instead.
+func (*TraceApi) Descriptor() ([]byte, []int) {
+	return file_proto_common_common_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *TraceApi) GetApiName() string {
+	if x != nil {
+		return x.ApiName
+	}
+	return ""
+}
+
+func (x *TraceApi) GetApiPath() string {
+	if x != nil {
+		return x.ApiPath
+	}
+	return ""
+}
+
+type TraceUser struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	OrgId    string `protobuf:"bytes,1,opt,name=orgId,proto3" json:"orgId,omitempty"`
+	UserId   string `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`
+	ApiKey   string `protobuf:"bytes,3,opt,name=apiKey,proto3" json:"apiKey,omitempty"`     //openapi 使用的api key
+	UrlId    string `protobuf:"bytes,4,opt,name=urlId,proto3" json:"urlId,omitempty"`       //h5 url id
+	ApiKeyId string `protobuf:"bytes,5,opt,name=apiKeyId,proto3" json:"apiKeyId,omitempty"` //openapi 使用的api key id
+}
+
+func (x *TraceUser) Reset() {
+	*x = TraceUser{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_common_common_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *TraceUser) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TraceUser) ProtoMessage() {}
+
+func (x *TraceUser) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_common_common_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TraceUser.ProtoReflect.Descriptor instead.
+func (*TraceUser) Descriptor() ([]byte, []int) {
+	return file_proto_common_common_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *TraceUser) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
+}
+
+func (x *TraceUser) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *TraceUser) GetApiKey() string {
+	if x != nil {
+		return x.ApiKey
+	}
+	return ""
+}
+
+func (x *TraceUser) GetUrlId() string {
+	if x != nil {
+		return x.UrlId
+	}
+	return ""
+}
+
+func (x *TraceUser) GetApiKeyId() string {
+	if x != nil {
+		return x.ApiKeyId
+	}
+	return ""
+}
+
+type TraceApp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AppId   string `protobuf:"bytes,1,opt,name=appId,proto3" json:"appId,omitempty"`     //应用id
+	AppType string `protobuf:"bytes,2,opt,name=appType,proto3" json:"appType,omitempty"` //应用类型
+}
+
+func (x *TraceApp) Reset() {
+	*x = TraceApp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_common_common_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *TraceApp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TraceApp) ProtoMessage() {}
+
+func (x *TraceApp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_common_common_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TraceApp.ProtoReflect.Descriptor instead.
+func (*TraceApp) Descriptor() ([]byte, []int) {
+	return file_proto_common_common_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *TraceApp) GetAppId() string {
+	if x != nil {
+		return x.AppId
+	}
+	return ""
+}
+
+func (x *TraceApp) GetAppType() string {
+	if x != nil {
+		return x.AppType
+	}
+	return ""
+}
+
+type ConversationLog struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AppId             string `protobuf:"bytes,1,opt,name=appId,proto3" json:"appId,omitempty"`                          // 应用id
+	AppType           string `protobuf:"bytes,2,opt,name=appType,proto3" json:"appType,omitempty"`                      // 应用类型
+	Source            string `protobuf:"bytes,3,opt,name=source,proto3" json:"source,omitempty"`                        // 来源
+	Title             string `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`                          // 会话标题 <128字符
+	ConversationId    string `protobuf:"bytes,5,opt,name=conversationId,proto3" json:"conversationId,omitempty"`        // 会话id
+	MessageCount      int64  `protobuf:"varint,6,opt,name=messageCount,proto3" json:"messageCount,omitempty"`           // 消息数量
+	Costs             int64  `protobuf:"varint,7,opt,name=costs,proto3" json:"costs,omitempty"`                         // 平均耗时
+	FirstTokenLatency int64  `protobuf:"varint,8,opt,name=firstTokenLatency,proto3" json:"firstTokenLatency,omitempty"` // 平均首token时延
+	LikeCount         int64  `protobuf:"varint,9,opt,name=likeCount,proto3" json:"likeCount,omitempty"`                 // 点赞数量
+	DislikeCount      int64  `protobuf:"varint,10,opt,name=dislikeCount,proto3" json:"dislikeCount,omitempty"`          // 点踩数量
+	ErrorCount        int64  `protobuf:"varint,11,opt,name=errorCount,proto3" json:"errorCount,omitempty"`              // 错误数量
+	UserId            string `protobuf:"bytes,12,opt,name=userId,proto3" json:"userId,omitempty"`                       // 用户id
+	OrgId             string `protobuf:"bytes,13,opt,name=orgId,proto3" json:"orgId,omitempty"`                         // 组织id
+	CreateAt          int64  `protobuf:"varint,14,opt,name=createAt,proto3" json:"createAt,omitempty"`                  // 创建时间(毫秒)
+	UpdateAt          int64  `protobuf:"varint,15,opt,name=updateAt,proto3" json:"updateAt,omitempty"`                  // 最后对话时间(毫秒)
+	LogId             string `protobuf:"bytes,16,opt,name=logId,proto3" json:"logId,omitempty"`                         // 会话日志id
+	Version           string `protobuf:"bytes,17,opt,name=version,proto3" json:"version,omitempty"`                     // 版本
+	Ext               string `protobuf:"bytes,18,opt,name=ext,proto3" json:"ext,omitempty"`                             // 扩展字段(JSON)
+}
+
+func (x *ConversationLog) Reset() {
+	*x = ConversationLog{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_common_common_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ConversationLog) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConversationLog) ProtoMessage() {}
+
+func (x *ConversationLog) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_common_common_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConversationLog.ProtoReflect.Descriptor instead.
+func (*ConversationLog) Descriptor() ([]byte, []int) {
+	return file_proto_common_common_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ConversationLog) GetAppId() string {
+	if x != nil {
+		return x.AppId
+	}
+	return ""
+}
+
+func (x *ConversationLog) GetAppType() string {
+	if x != nil {
+		return x.AppType
+	}
+	return ""
+}
+
+func (x *ConversationLog) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *ConversationLog) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *ConversationLog) GetConversationId() string {
+	if x != nil {
+		return x.ConversationId
+	}
+	return ""
+}
+
+func (x *ConversationLog) GetMessageCount() int64 {
+	if x != nil {
+		return x.MessageCount
+	}
+	return 0
+}
+
+func (x *ConversationLog) GetCosts() int64 {
+	if x != nil {
+		return x.Costs
+	}
+	return 0
+}
+
+func (x *ConversationLog) GetFirstTokenLatency() int64 {
+	if x != nil {
+		return x.FirstTokenLatency
+	}
+	return 0
+}
+
+func (x *ConversationLog) GetLikeCount() int64 {
+	if x != nil {
+		return x.LikeCount
+	}
+	return 0
+}
+
+func (x *ConversationLog) GetDislikeCount() int64 {
+	if x != nil {
+		return x.DislikeCount
+	}
+	return 0
+}
+
+func (x *ConversationLog) GetErrorCount() int64 {
+	if x != nil {
+		return x.ErrorCount
+	}
+	return 0
+}
+
+func (x *ConversationLog) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *ConversationLog) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
+}
+
+func (x *ConversationLog) GetCreateAt() int64 {
+	if x != nil {
+		return x.CreateAt
+	}
+	return 0
+}
+
+func (x *ConversationLog) GetUpdateAt() int64 {
+	if x != nil {
+		return x.UpdateAt
+	}
+	return 0
+}
+
+func (x *ConversationLog) GetLogId() string {
+	if x != nil {
+		return x.LogId
+	}
+	return ""
+}
+
+func (x *ConversationLog) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *ConversationLog) GetExt() string {
+	if x != nil {
+		return x.Ext
+	}
+	return ""
+}
+
 var File_proto_common_common_proto protoreflect.FileDescriptor
 
 var file_proto_common_common_proto_rawDesc = []byte{
@@ -871,10 +1322,79 @@ var file_proto_common_common_proto_rawDesc = []byte{
 	0x12, 0x1a, 0x0a, 0x08, 0x61, 0x75, 0x74, 0x68, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01,
 	0x28, 0x09, 0x52, 0x08, 0x61, 0x75, 0x74, 0x68, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09,
 	0x61, 0x75, 0x74, 0x68, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x09, 0x61, 0x75, 0x74, 0x68, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69,
-	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x55, 0x6e, 0x69, 0x63, 0x6f, 0x6d, 0x41,
-	0x49, 0x2f, 0x77, 0x61, 0x6e, 0x77, 0x75, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x2f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x09, 0x61, 0x75, 0x74, 0x68, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x22, 0xb4, 0x02, 0x0a, 0x09, 0x54,
+	0x72, 0x61, 0x63, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x18, 0x0a, 0x07, 0x74, 0x72, 0x61, 0x63,
+	0x65, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x74, 0x72, 0x61, 0x63, 0x65,
+	0x49, 0x64, 0x12, 0x2c, 0x0a, 0x08, 0x74, 0x72, 0x61, 0x63, 0x65, 0x41, 0x70, 0x69, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x54, 0x72,
+	0x61, 0x63, 0x65, 0x41, 0x70, 0x69, 0x52, 0x08, 0x74, 0x72, 0x61, 0x63, 0x65, 0x41, 0x70, 0x69,
+	0x12, 0x2f, 0x0a, 0x09, 0x74, 0x72, 0x61, 0x63, 0x65, 0x55, 0x73, 0x65, 0x72, 0x18, 0x04, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x54, 0x72, 0x61,
+	0x63, 0x65, 0x55, 0x73, 0x65, 0x72, 0x52, 0x09, 0x74, 0x72, 0x61, 0x63, 0x65, 0x55, 0x73, 0x65,
+	0x72, 0x12, 0x2c, 0x0a, 0x08, 0x74, 0x72, 0x61, 0x63, 0x65, 0x41, 0x70, 0x70, 0x18, 0x05, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x54, 0x72, 0x61,
+	0x63, 0x65, 0x41, 0x70, 0x70, 0x52, 0x08, 0x74, 0x72, 0x61, 0x63, 0x65, 0x41, 0x70, 0x70, 0x12,
+	0x41, 0x0a, 0x0a, 0x74, 0x72, 0x61, 0x63, 0x65, 0x45, 0x78, 0x74, 0x72, 0x61, 0x18, 0x06, 0x20,
+	0x03, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x54, 0x72, 0x61,
+	0x63, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x2e, 0x54, 0x72, 0x61, 0x63, 0x65, 0x45, 0x78, 0x74, 0x72,
+	0x61, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x0a, 0x74, 0x72, 0x61, 0x63, 0x65, 0x45, 0x78, 0x74,
+	0x72, 0x61, 0x1a, 0x3d, 0x0a, 0x0f, 0x54, 0x72, 0x61, 0x63, 0x65, 0x45, 0x78, 0x74, 0x72, 0x61,
+	0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38,
+	0x01, 0x22, 0x3e, 0x0a, 0x08, 0x54, 0x72, 0x61, 0x63, 0x65, 0x41, 0x70, 0x69, 0x12, 0x18, 0x0a,
+	0x07, 0x61, 0x70, 0x69, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
+	0x61, 0x70, 0x69, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x70, 0x69, 0x50, 0x61,
+	0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x70, 0x69, 0x50, 0x61, 0x74,
+	0x68, 0x22, 0x83, 0x01, 0x0a, 0x09, 0x54, 0x72, 0x61, 0x63, 0x65, 0x55, 0x73, 0x65, 0x72, 0x12,
+	0x14, 0x0a, 0x05, 0x6f, 0x72, 0x67, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x6f, 0x72, 0x67, 0x49, 0x64, 0x12, 0x16, 0x0a, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x16, 0x0a,
+	0x06, 0x61, 0x70, 0x69, 0x4b, 0x65, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x61,
+	0x70, 0x69, 0x4b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x75, 0x72, 0x6c, 0x49, 0x64, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x75, 0x72, 0x6c, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x61,
+	0x70, 0x69, 0x4b, 0x65, 0x79, 0x49, 0x64, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x61,
+	0x70, 0x69, 0x4b, 0x65, 0x79, 0x49, 0x64, 0x22, 0x3a, 0x0a, 0x08, 0x54, 0x72, 0x61, 0x63, 0x65,
+	0x41, 0x70, 0x70, 0x12, 0x14, 0x0a, 0x05, 0x61, 0x70, 0x70, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x05, 0x61, 0x70, 0x70, 0x49, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x70, 0x70,
+	0x54, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x70, 0x70, 0x54,
+	0x79, 0x70, 0x65, 0x22, 0x89, 0x04, 0x0a, 0x0f, 0x43, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x73, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x4c, 0x6f, 0x67, 0x12, 0x14, 0x0a, 0x05, 0x61, 0x70, 0x70, 0x49, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x61, 0x70, 0x70, 0x49, 0x64, 0x12, 0x18, 0x0a,
+	0x07, 0x61, 0x70, 0x70, 0x54, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
+	0x61, 0x70, 0x70, 0x54, 0x79, 0x70, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63,
+	0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12,
+	0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x26, 0x0a, 0x0e, 0x63, 0x6f, 0x6e, 0x76, 0x65, 0x72, 0x73,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x63,
+	0x6f, 0x6e, 0x76, 0x65, 0x72, 0x73, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x22, 0x0a,
+	0x0c, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x06, 0x20,
+	0x01, 0x28, 0x03, 0x52, 0x0c, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x75, 0x6e,
+	0x74, 0x12, 0x14, 0x0a, 0x05, 0x63, 0x6f, 0x73, 0x74, 0x73, 0x18, 0x07, 0x20, 0x01, 0x28, 0x03,
+	0x52, 0x05, 0x63, 0x6f, 0x73, 0x74, 0x73, 0x12, 0x2c, 0x0a, 0x11, 0x66, 0x69, 0x72, 0x73, 0x74,
+	0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x4c, 0x61, 0x74, 0x65, 0x6e, 0x63, 0x79, 0x18, 0x08, 0x20, 0x01,
+	0x28, 0x03, 0x52, 0x11, 0x66, 0x69, 0x72, 0x73, 0x74, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x4c, 0x61,
+	0x74, 0x65, 0x6e, 0x63, 0x79, 0x12, 0x1c, 0x0a, 0x09, 0x6c, 0x69, 0x6b, 0x65, 0x43, 0x6f, 0x75,
+	0x6e, 0x74, 0x18, 0x09, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x6c, 0x69, 0x6b, 0x65, 0x43, 0x6f,
+	0x75, 0x6e, 0x74, 0x12, 0x22, 0x0a, 0x0c, 0x64, 0x69, 0x73, 0x6c, 0x69, 0x6b, 0x65, 0x43, 0x6f,
+	0x75, 0x6e, 0x74, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0c, 0x64, 0x69, 0x73, 0x6c, 0x69,
+	0x6b, 0x65, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x1e, 0x0a, 0x0a, 0x65, 0x72, 0x72, 0x6f, 0x72,
+	0x43, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0a, 0x65, 0x72, 0x72,
+	0x6f, 0x72, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49,
+	0x64, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12,
+	0x14, 0x0a, 0x05, 0x6f, 0x72, 0x67, 0x49, 0x64, 0x18, 0x0d, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x6f, 0x72, 0x67, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x41,
+	0x74, 0x18, 0x0e, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x41,
+	0x74, 0x12, 0x1a, 0x0a, 0x08, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x41, 0x74, 0x18, 0x0f, 0x20,
+	0x01, 0x28, 0x03, 0x52, 0x08, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x41, 0x74, 0x12, 0x14, 0x0a,
+	0x05, 0x6c, 0x6f, 0x67, 0x49, 0x64, 0x18, 0x10, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6c, 0x6f,
+	0x67, 0x49, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x11,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x10, 0x0a,
+	0x03, 0x65, 0x78, 0x74, 0x18, 0x12, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x65, 0x78, 0x74, 0x42,
+	0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x55, 0x6e,
+	0x69, 0x63, 0x6f, 0x6d, 0x41, 0x49, 0x2f, 0x77, 0x61, 0x6e, 0x77, 0x75, 0x2f, 0x61, 0x70, 0x69,
+	0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -889,7 +1409,7 @@ func file_proto_common_common_proto_rawDescGZIP() []byte {
 	return file_proto_common_common_proto_rawDescData
 }
 
-var file_proto_common_common_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_proto_common_common_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_proto_common_common_proto_goTypes = []interface{}{
 	(*AppBrief)(nil),                   // 0: common.AppBrief
 	(*AppBriefConfig)(nil),             // 1: common.AppBriefConfig
@@ -902,19 +1422,29 @@ var file_proto_common_common_proto_goTypes = []interface{}{
 	(*StatisticChartLineItem)(nil),     // 8: common.StatisticChartLineItem
 	(*ApiAuthWebRequest)(nil),          // 9: common.ApiAuthWebRequest
 	(*ApiAuth)(nil),                    // 10: common.ApiAuth
-	nil,                                // 11: common.ToolActionInputSchema.PropertiesEntry
+	(*TraceInfo)(nil),                  // 11: common.TraceInfo
+	(*TraceApi)(nil),                   // 12: common.TraceApi
+	(*TraceUser)(nil),                  // 13: common.TraceUser
+	(*TraceApp)(nil),                   // 14: common.TraceApp
+	(*ConversationLog)(nil),            // 15: common.ConversationLog
+	nil,                                // 16: common.ToolActionInputSchema.PropertiesEntry
+	nil,                                // 17: common.TraceInfo.TraceExtraEntry
 }
 var file_proto_common_common_proto_depIdxs = []int32{
 	4,  // 0: common.ToolAction.inputSchema:type_name -> common.ToolActionInputSchema
-	11, // 1: common.ToolActionInputSchema.properties:type_name -> common.ToolActionInputSchema.PropertiesEntry
+	16, // 1: common.ToolActionInputSchema.properties:type_name -> common.ToolActionInputSchema.PropertiesEntry
 	7,  // 2: common.StatisticChart.chartLines:type_name -> common.StatisticChartLine
 	8,  // 3: common.StatisticChartLine.items:type_name -> common.StatisticChartLineItem
-	5,  // 4: common.ToolActionInputSchema.PropertiesEntry.value:type_name -> common.ToolActionInputSchemaValue
-	5,  // [5:5] is the sub-list for method output_type
-	5,  // [5:5] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	12, // 4: common.TraceInfo.traceApi:type_name -> common.TraceApi
+	13, // 5: common.TraceInfo.traceUser:type_name -> common.TraceUser
+	14, // 6: common.TraceInfo.traceApp:type_name -> common.TraceApp
+	17, // 7: common.TraceInfo.traceExtra:type_name -> common.TraceInfo.TraceExtraEntry
+	5,  // 8: common.ToolActionInputSchema.PropertiesEntry.value:type_name -> common.ToolActionInputSchemaValue
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_common_common_proto_init() }
@@ -1055,6 +1585,66 @@ func file_proto_common_common_proto_init() {
 				return nil
 			}
 		}
+		file_proto_common_common_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TraceInfo); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_common_common_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TraceApi); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_common_common_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TraceUser); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_common_common_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TraceApp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_common_common_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ConversationLog); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1062,7 +1652,7 @@ func file_proto_common_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_proto_common_common_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

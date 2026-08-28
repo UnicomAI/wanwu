@@ -202,7 +202,7 @@ func RagKnowledgeCreate(ctx context.Context, ragCreateParams *RagCreateParams) e
 // RagCreateKnowledgeReport 创建知识库社区报告
 func RagCreateKnowledgeReport(ctx context.Context, ragImportDocParams *RagImportDocParams) error {
 	ragImportDocParams.MessageType = RagCommunityReport
-	return mq.SendMessage(&RagOperationParams{
+	return mq.SendMessage(ctx, &RagOperationParams{
 		Operation: "add",
 		Type:      "doc",
 		Doc:       ragImportDocParams,

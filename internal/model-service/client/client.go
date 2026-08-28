@@ -17,6 +17,8 @@ type IClient interface {
 	ListModelsByUuids(ctx context.Context, uuids []string) ([]*model.ModelImported, *errs.Status)
 	ListModelsByIds(ctx context.Context, modelIds []uint32) ([]*model.ModelImported, *errs.Status)
 	ListModels(ctx context.Context, req *model.ModelImported) ([]*model.ModelImported, *errs.Status)
+	ListModelsInStatisticScope(ctx context.Context, orgIds, userIds []string, modelType string) ([]*model.ModelImported, *errs.Status)
+	AdminModelPageList(ctx context.Context, name, provider string, modelTypes, userIds, orgIds []string, scopeTypes []uint32, pageNum, pageSize int) ([]*model.ModelImported, int64, *errs.Status)
 	ListTypeModels(ctx context.Context, req *model.ModelImported) ([]*model.ModelImported, *errs.Status)
 
 	// --- model experience ---

@@ -20,7 +20,7 @@ USER root
 #     rm -rf /var/lib/apt/lists/*;
 
 # opencode 安装
-RUN curl -fsSL https://opencode.ai/install | bash -s -- --version 1.4.11
+RUN curl -fsSL https://opencode.ai/install | bash -s -- --version 1.16.2
 ENV PATH="/root/.opencode/bin:${PATH}"
 
 # ----------------------

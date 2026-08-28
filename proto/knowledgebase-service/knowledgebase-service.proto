@@ -9,6 +9,8 @@ option go_package = "gitlab.ai-yuanjing.cn/ai-platform-private/backend-used-bff/
 service KnowledgeBaseService {
   // 获取知识库列表
   rpc SelectKnowledgeList(KnowledgeSelectReq) returns (KnowledgeSelectListResp) {}
+  // 根据组织id的列表和userid的列表获取知识库列表
+  rpc SelectKnowledgeListByUserList(KnowledgeSelectUserListReq) returns (KnowledgeSelectListResp) {}
   // 获取知识库列表
   rpc SelectKnowledgeListByIdList(BatchKnowledgeSelectReq) returns (KnowledgeSelectListResp) {}
   // 获取知识库详情
@@ -65,6 +67,8 @@ service KnowledgeBaseService {
   rpc DeleteKnowledgeExternal(DeleteKnowledgeExternalReq) returns (google.protobuf.Empty) {}
   // 根据知识库名称和文档名称获取文档信息
   rpc GetDocByKnowledgeNameAndDocName(GetDocByKnowledgeNameAndDocNameReq) returns (GetDocByKnowledgeNameAndDocNameResp) {}
+  // 管理员中心知识库全局分页列表
+  rpc AdminKnowledgePageList(AdminKnowledgePageListReq) returns (AdminKnowledgePageListResp) {}
 }
 
 message DeleteKnowledgeReq{
@@ -169,10 +173,19 @@ message KnowledgeSelectReq {
   int32 external = 6; //外部知识库标识，0:知识库，1:外部知识库
 }
 
+message KnowledgeSelectUserListReq {
+  repeated string userId = 1;
+  repeated string orgId = 2;
+  string name = 3; //知识库名称，支持模糊搜索
+  int32 category = 4; //分类信息，0:知识库，1：问答库
+  int32 external = 5; //外部知识库标识，0:知识库，1:外部知识库
+}
+
 message BatchKnowledgeSelectReq {
   string userId = 1;
   string orgId = 2;
   repeated string knowledgeIdList = 3; //知识库id列表
+  bool noPermission = 4; //不需要权限校验
 }
 
 message KnowledgeSelectListResp {
@@ -184,6 +197,9 @@ message KnowledgeDetailSelectReq {
   string orgId = 2;
   string knowledgeId = 3; //知识库id
   string knowledgeName = 4; // 知识库名称
+  bool needOwner = 5; //是否需要获取知识库拥有者信息
+  bool needGraph = 6; //是否需要获取知识图谱信息
+  bool needPermission = 7; //是否获取权限
 }
 
 message KnowledgeDetailSelectListReq{
@@ -230,6 +246,9 @@ message KnowledgeInfo {
   int32 external = 17; //0:知识库 1:外部知识库
   KnowledgeExternalInfo knowledgeExternalInfo = 18; // 外部知识库信息
   string avatarPath = 19; // 头像路径
+  string ownerUserId = 20;// 知识库拥有者的userID，因为知识库可以转让，所以拥有者未必是创建者
+  string ownerOrgId = 21;// 知识库拥有者组织id
+  bool showGraphReport = 22; //是否展示知识图谱和社区报告
 }
 
 message KnowledgeTagInfo {
@@ -260,6 +279,7 @@ message KnowledgeSearchInfo{
   string contentType = 6; // graph：知识图谱（文本）, text：文档分段（文本）, community_report：社区报告（markdown）
   float score = 7;
   repeated RerankInfo rerankInfo = 8;
+  string metaData = 9; // 命中片段元信息，rag 返回原样透传的 JSON 串
 }
 
 message RerankInfo{
@@ -350,7 +370,7 @@ message ExportRecordInfo{
   int32 status = 3; //导出状态
   string filePath = 4; //导出文件路径
   string errorMsg = 5; //错误信息
-  string exportTime =6; //导出时间
+  string exportTime = 6; //导出时间
   string userId = 7;
   string knowledgeName = 8;
 }
@@ -492,7 +512,7 @@ message Weights{
 }
 
 message KeywordSetting {
-  float keywordWeight =1;
+  float keywordWeight = 1;
 }
 
 message VectorSetting {
@@ -525,4 +545,23 @@ message GetDocByKnowledgeNameAndDocNameResp{
   string docId = 3; // 文档ID
   string docType = 4; // 文档类型
   string docName = 5; // 文档名称
+}
+
+// 管理员中心知识库全局分页列表 请求
+message AdminKnowledgePageListReq {
+  string name = 1; // 知识库名称，支持模糊搜索
+  repeated int32 category = 2; // 分类，0:知识库 1:问答库 2:多模态知识库
+  int32 external = 3; // -1:全部 0:内部知识库 1:外部知识库
+  repeated string publishStatus = 4; // 发布状态（预留，暂未实现过滤）
+  repeated string publishScope = 5; // 发布范围（预留，暂未实现过滤）
+  repeated string userId = 6; // 拥有者用户id列表
+  repeated string orgId = 7; // 拥有者组织id列表
+  int32 pageNum = 8; // 页码，从1开始
+  int32 pageSize = 9; // 每页数量
+}
+
+// 管理员中心知识库全局分页列表 响应
+message AdminKnowledgePageListResp {
+  int64 total = 1; // 总数
+  repeated KnowledgeInfo knowledgeList = 2; // 知识库列表
 }

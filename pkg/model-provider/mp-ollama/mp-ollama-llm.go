@@ -38,8 +38,15 @@ func (cfg *LLM) NewReq(req *mp_common.LLMReq) (mp_common.ILLMReq, error) {
 	if err != nil {
 		return nil, err
 	}
-	if req.EnableThinking != nil {
-		m["enable_thinking"] = *req.EnableThinking
+	// 处理思考能力控制：优先使用 ReasoningEffort，否则从 EnableThinking 映射
+	if req.ReasoningEffort != nil {
+		m["reasoning_effort"] = *req.ReasoningEffort
+	} else if req.EnableThinking != nil {
+		if *req.EnableThinking {
+			m["reasoning_effort"] = "high"
+		} else {
+			m["reasoning_effort"] = "none"
+		}
 	}
 	if req.Stream != nil && *req.Stream {
 		if req.StreamOptions != nil && req.StreamOptions.IncludeUsage != nil {

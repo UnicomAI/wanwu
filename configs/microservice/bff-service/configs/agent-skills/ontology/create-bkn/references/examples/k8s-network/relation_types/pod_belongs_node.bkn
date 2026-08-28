@@ -1,0 +1,22 @@
+---
+type: relation_type
+id: pod_belongs_node
+name: Pod属于节点
+tags: [拓扑架构]
+---
+
+## RelationType: Pod属于节点
+
+Pod 与其所在节点之间的归属关系。
+
+### Endpoint
+
+| Source | Target | Type |
+|--------|--------|------|
+| pod | node | direct |
+
+### Mapping Rules
+
+| Source Property | Target Property |
+|-----------------|-----------------|
+| pod_node_name | node_name |

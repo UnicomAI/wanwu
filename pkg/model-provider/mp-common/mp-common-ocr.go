@@ -1,40 +1,51 @@
 package mp_common
 
 import (
+	"context"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
-	"mime/multipart"
 
 	"github.com/UnicomAI/wanwu/pkg/log"
-	"github.com/UnicomAI/wanwu/pkg/util"
-	"github.com/gin-gonic/gin"
-	"github.com/go-resty/resty/v2"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 )
 
 // --- openapi request ---
 
 type OcrReq struct {
-	Files   *multipart.FileHeader `form:"file" json:"file" `
-	OcrData *string               `form:"data" json:"data"`
-	Url     *string               `form:"url" json:"url"`
+	Url                 *string `json:"url,omitempty"`
+	FileData            *string `json:"data,omitempty"`
+	FileName            string  `json:"fileName" validate:"required"`
+	Model               *string `json:"model,omitempty"`
+	FileType            *int    `json:"fileType,omitempty"`
+	ExtractImage        *int    `json:"extract_image,omitempty"`
+	ExtractImageContent *int    `json:"extract_image_content,omitempty"`
+
+	// 以下为千帆 paddleocr 原生模型推理参数（仅 qianfan 使用）
+	UseChartRecognition *bool    `json:"useChartRecognition,omitempty"` // 图表识别
+	UseDocUnwarping     *bool    `json:"useDocUnwarping,omitempty"`     // 文档矫正
+	UseLayoutDetection  *bool    `json:"useLayoutDetection,omitempty"`  // 版面检测
+	LayoutNms           *bool    `json:"layoutNms,omitempty"`           // 版面 NMS 去重
+	RepetitionPenalty   *float64 `json:"repetitionPenalty,omitempty"`   // 重复惩罚
+	Temperature         *float64 `json:"temperature,omitempty"`         // 采样温度
+	TopP                *float64 `json:"topP,omitempty"`                // top-p 采样
+	MinPixels           *int     `json:"minPixels,omitempty"`           // 最小像素
+	MaxPixels           *int     `json:"maxPixels,omitempty"`           // 最大像素
+	Visualize           *bool    `json:"visualize,omitempty"`           // 输出可视化结果
 }
 
 func (req *OcrReq) Check() error {
-	nonEmptyCount := 0
-	if req.Files != nil {
-		nonEmptyCount++
+	if req.FileName == "" {
+		return fmt.Errorf("参数错误：fileName 必填")
 	}
-	if req.OcrData != nil && *req.OcrData != "" {
-		nonEmptyCount++
+	hasUrl := req.Url != nil && *req.Url != ""
+	hasData := req.FileData != nil && *req.FileData != ""
+	if !hasUrl && !hasData {
+		return fmt.Errorf("参数错误：url 和 data 必须传入一个有效参数")
 	}
-	if req.Url != nil && *req.Url != "" {
-		nonEmptyCount++
-	}
-	if nonEmptyCount != 1 {
-		return fmt.Errorf("参数错误：Files、OcrData、Url 必须且只能传入一个有效参数")
+	if hasUrl && hasData {
+		return fmt.Errorf("参数错误：url 和 data 只能传入一个有效参数")
 	}
 	return nil
 }
@@ -54,40 +65,54 @@ func (req *OcrReq) Data() (map[string]interface{}, error) {
 // --- openapi response ---
 
 type OcrResp struct {
-	Code      int       `json:"code"`
-	Message   string    `json:"message" validate:"required"`
-	Version   string    `json:"version"`
-	TimeStamp string    `json:"timestamp"`
-	Id        string    `json:"id"`
-	Sha1      string    `json:"sha1"`
-	TimeCost  float64   `json:"time_cost"`
-	FileName  string    `json:"filename"`
-	OcrData   []OcrData `json:"data" validate:"required,dive"`
+	Code           int          `json:"code"`
+	Message        string       `json:"message"`
+	Meta           *OcrMeta     `json:"meta,omitempty"`
+	Data           *OcrRespData `json:"data,omitempty"`
+	Version        string       `json:"version,omitempty"`
+	PrefixImageUrl string       `json:"prefixImageUrl,omitempty"`
 }
 
-type OcrData struct {
-	PageNum []int  `json:"page_num" validate:"required,min=1"`
-	Type    string `json:"type" validate:"required"`
-	Text    string `json:"text"`
-	Length  int    `json:"length"`
+type OcrMeta struct {
+	RequestId string `json:"requestId,omitempty"`
+	TraceId   string `json:"traceId,omitempty"`
+	Timestamp string `json:"timestamp,omitempty"`
+}
+
+type OcrRespData struct {
+	FileInfo    *OcrFileInfo `json:"fileInfo,omitempty"`
+	FullContent string       `json:"fullContent,omitempty"`
+	OcrResults  []OcrResult  `json:"ocrResults,omitempty"`
+}
+
+type OcrFileInfo struct {
+	FileName   string `json:"fileName,omitempty"`
+	FileType   string `json:"fileType,omitempty"`
+	TotalPages int64  `json:"totalPages,omitempty"`
+}
+
+type OcrResult struct {
+	PageNumber int    `json:"pageNumber"`
+	Type       string `json:"type"`
+	Content    string `json:"content"`
 }
 
 // --- request ---
 
 type IOcrReq interface {
-	Data() *OcrReq
+	Data() map[string]interface{}
 }
 
 // ocrReq implementation of IOcrReq
 type ocrReq struct {
-	data *OcrReq
+	data map[string]interface{}
 }
 
-func NewOcrReq(data *OcrReq) IOcrReq {
+func NewOcrReq(data map[string]interface{}) IOcrReq {
 	return &ocrReq{data: data}
 }
 
-func (req *ocrReq) Data() *OcrReq {
+func (req *ocrReq) Data() map[string]interface{} {
 	return req.data
 }
 
@@ -128,8 +153,9 @@ func (resp *ocrResp) ConvertResp() (*OcrResp, bool) {
 		return nil, false
 	}
 
-	if err := util.Validate(ret); err != nil {
-		log.Errorf("ocr resp validate err: %v", err)
+	// code == 0 表示成功
+	if ret.Code != 0 {
+		log.Errorf("ocr resp code %v, message: %v", ret.Code, ret.Message)
 		return nil, false
 	}
 	return ret, true
@@ -137,7 +163,8 @@ func (resp *ocrResp) ConvertResp() (*OcrResp, bool) {
 
 // --- ocr ---
 
-func Ocr(ctx *gin.Context, provider, apiKey, url string, req *OcrReq, headers ...Header) ([]byte, error) {
+// Ocr 向下游供应商发送 OCR 请求（JSON 格式）
+func Ocr(ctx context.Context, provider, apiKey, url string, req map[string]interface{}, headers ...Header) ([]byte, error) {
 	if apiKey != "" {
 		headers = append(headers, Header{
 			Key:   "Authorization",
@@ -145,48 +172,20 @@ func Ocr(ctx *gin.Context, provider, apiKey, url string, req *OcrReq, headers ..
 		})
 	}
 
-	request := resty.New().
+	request := trace_util.NewResty(ctx).
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验
 		SetTimeout(0).                                             // 关闭请求超时
 		R().
 		SetContext(ctx).
-		SetHeader("Content-Type", "multipart/form-data").
+		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
+		SetBody(req).
 		SetDoNotParseResponse(true)
 	for _, header := range headers {
 		request.SetHeader(header.Key, header.Value)
 	}
-	// 根据不同参数类型，构建对应的请求
-	var resp *resty.Response
-	var err error
-	switch {
-	// 传入 Files（文件）
-	case req.Files != nil:
-		file, err := req.Files.Open()
-		if err != nil {
-			return nil, fmt.Errorf("request %v %v ocr err: %v", url, provider, err)
-		}
-		defer func() { _ = file.Close() }()
-		request.SetFileReader("file", req.Files.Filename, file)
 
-	// 传入 OcrData（base64 编码）
-	case req.OcrData != nil && *req.OcrData != "":
-		// 验证 base64 合法性
-		if _, err := base64.StdEncoding.DecodeString(*req.OcrData); err != nil {
-			return nil, fmt.Errorf("request %v %v ocr err: base64 编码无效 - %v", url, provider, err)
-		}
-
-		request.SetFormData(map[string]string{
-			"data": *req.OcrData,
-		})
-
-	// 传入 Url（公网地址）
-	case req.Url != nil && *req.Url != "":
-		request.SetFormData(map[string]string{
-			"url": *req.Url,
-		})
-	}
-	resp, err = request.Post(url)
+	resp, err := request.Post(url)
 	if err != nil {
 		return nil, fmt.Errorf("request %v %v ocr err: %v", url, provider, err)
 	}

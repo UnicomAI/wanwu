@@ -32,7 +32,7 @@ func (c *Client) CreateAssistantSnapshot(ctx context.Context, assistantSnapshot 
 	})
 }
 
-func (c *Client) UpdateAssistantSnapshot(ctx context.Context, assistantID uint32, desc string, userID, orgID string) *err_code.Status {
+func (c *Client) UpdateAssistantSnapshot(ctx context.Context, assistantID uint32, desc, extra string, userID, orgID string) *err_code.Status {
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
 		// 查询最新版本号
 		var id uint32
@@ -56,7 +56,8 @@ func (c *Client) UpdateAssistantSnapshot(ctx context.Context, assistantID uint32
 
 		// 更新
 		result := sqlopt.WithID(id).Apply(tx).Model(&model.AssistantSnapshot{}).Updates(map[string]interface{}{
-			"desc": desc,
+			"desc":  desc,
+			"extra": extra,
 		})
 		if result.Error != nil {
 			return toErrStatus("assistant_snapshot", fmt.Sprintf("assistant snapshot update failed: %v", result.Error))

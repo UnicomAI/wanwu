@@ -13,6 +13,7 @@ type UpdateAppVersionRequest struct {
 	AppType     string `json:"appType" validate:"required"`     // 应用类型
 	AppId       string `json:"appId" validate:"required"`       // 应用 ID
 	Desc        string `json:"desc"`                            // 描述
+	Extra       string `json:"extra"`                           // 描述
 	PublishType string `json:"publishType" validate:"required"` // 发布类型(public:系统公开发布,organization:组织公开发布,private:私密发布)
 }
 

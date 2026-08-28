@@ -20,12 +20,27 @@ vendor
 # Go workspace file
 go.work
 
-.DS_store
-.idea
-.vscode
-.history
-.log
+# macOS
+.DS_Store
+**/.DS_Store
+
+# IDE
+.idea/
+.vscode/
+.history/
+
+# Logs
+*.log
+log/
+
+# Environment
 .env
+.env.ontology
+*.env.local
+
+# Backup files (except template files)
+*.bak
+
 *_test.go
 bin/amd64/*
 bin/arm64/*
@@ -34,4 +49,6 @@ cmd/*-client
 configs/microservice/bff-service/configs/wanwu-i18n.xlsx
 frontend
 project
-log
+
+# Claude Code
+.claude/

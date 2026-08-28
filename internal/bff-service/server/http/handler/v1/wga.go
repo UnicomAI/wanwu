@@ -1,9 +1,6 @@
 package v1
 
 import (
-	"net/http"
-	"net/url"
-
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
@@ -90,7 +87,7 @@ func GetGeneralAgentAssistantSelect(ctx *gin.Context) {
 	req := request.GetExplorationAppListRequest{
 		Name: ctx.Query("name"),
 	}
-	resp, err := service.GetAssistantSelect(ctx, getUserID(ctx), getOrgID(ctx), req)
+	resp, err := service.GetAssistantSelectSingle(ctx, getUserID(ctx), getOrgID(ctx), req)
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -171,10 +168,47 @@ func GetGeneralAgentWorkflowSelect(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			name	query		string	false	"skill名称"
-//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.CustomSkillDetail}}
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.PublishedSkillInfo}}
 //	@Router			/general/agent/skill/select [get]
 func GetGeneralAgentSkillSelect(ctx *gin.Context) {
 	resp, err := service.GetCustomSkillList(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("name"))
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetGeneralAgentKnowledgeSelect
+//
+//	@Tags			wga
+//	@Summary		通用智能体知识库下拉接口列表
+//	@Description	获取通用智能体知识库下拉接口列表
+//	@Security		JWT
+//	@Accept			json
+//	@Param			data	body	request.KnowledgeSelectReq	true	"查询知识库列表"
+//	@Produce		json
+//	@Success		200	{object}	response.Response{data=response.KnowledgeListResp}
+//	@Router			/general/agent/knowledge/select [post]
+func GetGeneralAgentKnowledgeSelect(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.KnowledgeSelectReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.SelectKnowledgeList(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetGeneralAgentOntologyEmployeeSelect
+//
+//	@Tags			wga
+//	@Summary		通用智能体本体数字员工下拉接口列表
+//	@Description	获取通用智能体本体数字员工下拉接口列表
+//	@Security		JWT
+//	@Accept			json
+//	@Param			name	query	string	false	"数字员工名称"
+//	@Produce		json
+//	@Success		200	{object}	response.Response{data=response.KnowledgeListResp}
+//	@Router			/general/agent/ontology/employee/select [post]
+func GetGeneralAgentOntologyEmployeeSelect(ctx *gin.Context) {
+	resp, err := service.GetGeneralAgentOntologyEmployeeSelect(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("name"))
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -182,7 +216,7 @@ func GetGeneralAgentSkillSelect(ctx *gin.Context) {
 //
 //	@Tags			wga
 //	@Summary		通用智能体资源选择列表
-//	@Description	获取通用智能体资源选择列表，包括MCP、Workflow、Skill、智能体四种类型
+//	@Description	获取通用智能体资源选择列表，包括MCP、Skill、Workflow、Assistant、Ontology五种类型
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
@@ -210,6 +244,86 @@ func CreateGeneralAgentConversation(ctx *gin.Context) {
 		return
 	}
 	resp, err := service.CreateGeneralAgentConversation(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// CreateGeneralAgentSkillConversation
+//
+//	@Tags			wga
+//	@Summary		Create skill conversation
+//	@Description	Create a dedicated conversation for skill creation.
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.CreateGeneralAgentSkillConversationReq	true	"create skill conversation request"
+//	@Success		200		{object}	response.Response{data=response.CreateGeneralAgentSkillConversationResp}
+//	@Router			/general/agent/skill/conversation [post]
+func CreateGeneralAgentSkillConversation(ctx *gin.Context) {
+	var req request.CreateGeneralAgentSkillConversationReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.CreateGeneralAgentSkillConversation(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// ImportGeneralAgentSkillConversation
+//
+//	@Tags			wga
+//	@Summary		Import skill conversation
+//	@Description	Import a skill zip into the skill conversation workspace.
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.ImportGeneralAgentSkillConversationReq	true	"import skill conversation request"
+//	@Success		200		{object}	response.Response{data=response.ImportGeneralAgentSkillConversationResp}
+//	@Router			/general/agent/skill/import/conversation [post]
+func ImportGeneralAgentSkillConversation(ctx *gin.Context) {
+	var req request.ImportGeneralAgentSkillConversationReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.ImportGeneralAgentSkillConversation(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// ConvertGeneralAgentSkillConversation
+//
+//	@Tags			wga
+//	@Summary		Convert resource to skill conversation
+//	@Description	Convert MCP/tool/agent/workflow/RAG into a skill conversation workspace.
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.ConvertGeneralAgentSkillConversationReq	true	"convert skill conversation request"
+//	@Success		200		{object}	response.Response{data=response.ConvertGeneralAgentSkillConversationResp}
+//	@Router			/general/agent/skill/convert/conversation [post]
+func ConvertGeneralAgentSkillConversation(ctx *gin.Context) {
+	var req request.ConvertGeneralAgentSkillConversationReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.ConvertGeneralAgentSkillConversation(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// RefreshGeneralAgentSkillConversation
+//
+//	@Tags			wga
+//	@Summary		Refresh skill conversation
+//	@Description	Create a new WGA conversation with empty model config and bind it to an existing custom skill.
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.RefreshGeneralAgentSkillConversationReq	true	"refresh skill conversation request"
+//	@Success		200		{object}	response.Response{data=response.RefreshGeneralAgentSkillConversationResp}
+//	@Router			/general/agent/skill/refresh/conversation [post]
+func RefreshGeneralAgentSkillConversation(ctx *gin.Context) {
+	var req request.RefreshGeneralAgentSkillConversationReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.RefreshGeneralAgentSkillConversation(ctx, getUserID(ctx), getOrgID(ctx), req)
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -241,8 +355,9 @@ func DeleteGeneralAgentConversation(ctx *gin.Context) {
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int	false	"页码，默认1"
-//	@Param			pageSize	query		int	false	"每页数量，默认20"
+//	@Param			page		query		int		false	"页码，默认1"
+//	@Param			pageSize	query		int		false	"每页数量，默认20"
+//	@Param			searchText	query		string	false	"检索词"
 //	@Success		200			{object}	response.Response{data=response.ListResult{list=[]response.GeneralAgentConversationInfo}}
 //	@Router			/general/agent/conversation/list [get]
 func GetGeneralAgentConversationList(ctx *gin.Context) {
@@ -270,6 +385,25 @@ func GetGeneralAgentConversationDetail(ctx *gin.Context) {
 		return
 	}
 	resp, err := service.GetGeneralAgentConversationDetail(ctx, getUserID(ctx), getOrgID(ctx), req.ThreadID)
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetGeneralAgentSkillPreviewConversationDetail
+//
+//	@Tags			wga
+//	@Summary		获取 Skill preview 对话详情
+//	@Description	用于回显 Skill preview 模式的历史消息
+//	@Security		JWT
+//	@Produce		json
+//	@Param			previewId	query		string	true	"创建或导入接口返回的预览对话 ID"
+//	@Success		200			{object}	response.Response{data=response.ListResult{list=[]response.GeneralAgentConversationDetailInfo}}
+//	@Router			/general/agent/skill/preview/conversation/detail [get]
+func GetGeneralAgentSkillPreviewConversationDetail(ctx *gin.Context) {
+	var req request.GetGeneralAgentSkillPreviewConversationDetailReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	resp, err := service.GetGeneralAgentSkillPreviewConversationDetail(ctx, getUserID(ctx), getOrgID(ctx), req)
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -354,10 +488,7 @@ func GeneralAgentWorkspaceDownload(ctx *gin.Context) {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	ctx.Header("Content-Disposition", "attachment; filename*=utf-8''"+url.QueryEscape(fileName))
-	ctx.Header("Content-Type", "application/octet-stream")
-	ctx.Header("Access-Control-Expose-Headers", "Content-Disposition")
-	ctx.Data(http.StatusOK, "application/octet-stream", data)
+	gin_util.ResponseAttachment(ctx, fileName, data)
 }
 
 // GeneralAgentWorkspacePreview
@@ -381,10 +512,7 @@ func GeneralAgentWorkspacePreview(ctx *gin.Context) {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	ctx.Header("Content-Disposition", "inline; filename*=utf-8''"+url.QueryEscape(fileName))
-	ctx.Header("Content-Type", contentType)
-	ctx.Header("Access-Control-Expose-Headers", "Content-Disposition")
-	ctx.Data(http.StatusOK, contentType, data)
+	gin_util.ResponseInline(ctx, fileName, contentType, data)
 }
 
 // GeneralAgentWorkspaceInfo
@@ -423,8 +551,202 @@ func GeneralAgentConversationChat(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.GeneralAgentConversationChat(ctx, getUserID(ctx), getOrgID(ctx), req)
+	err := service.GeneralAgentConversationChat(ctx, getUserID(ctx), getOrgID(ctx), getClientID(ctx), req, true)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 	}
+}
+
+// GeneralAgentSkillConversationChat
+//
+//	@Tags			wga
+//	@Summary		Skill对话流
+//	@Description	Skill对话流，用于创建自定义技能，SSE流式返回
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		text/event-stream
+//	@Param			data	body		request.GeneralAgentSkillConversationChatReq	true	"Skill对话请求参数"
+//	@Success		200		{object}	string											"SSE流式返回"
+//	@Router			/general/agent/skill/conversation/chat [post]
+func GeneralAgentSkillConversationChat(ctx *gin.Context) {
+	var req request.GeneralAgentSkillConversationChatReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.GeneralAgentSkillConversationChat(ctx, getUserID(ctx), getOrgID(ctx), getClientID(ctx), req)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+	}
+}
+
+// GeneralAgentConversationPending
+//
+//	@Tags			wga
+//	@Summary		查询通用智能体运行中会话
+//	@Description	查询通用智能体是否有运行中的会话，用于断线重连判断
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			threadId	query		string	true	"对话ID"
+//	@Success		200			{object}	response.Response{data=response.WgaConversationPendingResp}
+//	@Router			/general/agent/conversation/pending [get]
+func GeneralAgentConversationPending(ctx *gin.Context) {
+	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
+	var req request.WgaConversationPendingReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	resp, err := service.WgaConversationPending(ctx, userId, orgId, clientId, req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// GeneralAgentSkillConversationPending
+//
+//	@Tags			wga
+//	@Summary		查询通用智能体(Skill)运行中会话
+//	@Description	查询通用智能体(Skill)是否有运行中的会话，用于断线重连判断
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.GeneralAgentSkillConversationPendingReq	true	"Skill对话请求参数"
+//	@Success		200		{object}	response.Response{data=response.WgaConversationPendingResp}
+//	@Router			/general/agent/skill/conversation/pending [get]
+func GeneralAgentSkillConversationPending(ctx *gin.Context) {
+	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
+	var req request.GeneralAgentSkillConversationPendingReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	resp, err := service.WgaConversationPending(ctx, userId, orgId, clientId, request.WgaConversationPendingReq{ThreadID: req.ChatThreadID()})
+	gin_util.Response(ctx, resp, err)
+}
+
+// GeneralAgentConversationConnect
+//
+//	@Tags			wga
+//	@Summary		通用智能体流式问答断线重连
+//	@Description	通用智能体流式问答断线重连，续接之前未完成的SSE流
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		text/event-stream
+//	@Param			data	body		request.WgaConversationConnectReq	true	"断线重连请求参数"
+//	@Success		200		{object}	string								"SSE流式返回"
+//	@Router			/general/agent/conversation/connect [post]
+func GeneralAgentConversationConnect(ctx *gin.Context) {
+	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
+	var req request.WgaConversationConnectReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	if err := service.WgaConversationConnect(ctx, userId, orgId, clientId, req); err != nil {
+		gin_util.Response(ctx, nil, err)
+	}
+}
+
+// GeneralAgentSkillConversationConnect
+//
+//	@Tags			wga
+//	@Summary		通用智能体(Skill)流式问答断线重连
+//	@Description	通用智能体(Skill)流式问答断线重连，续接之前未完成的SSE流
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		text/event-stream
+//	@Param			data	body		request.GeneralAgentSkillConversationConnectReq	true	"Skill对话请求参数"
+//	@Success		200		{object}	string											"SSE流式返回"
+//	@Router			/general/agent/skill/conversation/connect [post]
+func GeneralAgentSkillConversationConnect(ctx *gin.Context) {
+	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
+	var req request.GeneralAgentSkillConversationConnectReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	if err := service.WgaConversationConnect(ctx, userId, orgId, clientId, request.WgaConversationConnectReq{ThreadID: req.ChatThreadID()}); err != nil {
+		gin_util.Response(ctx, nil, err)
+	}
+}
+
+// GeneralAgentConversationCancel
+//
+//	@Tags			wga
+//	@Summary		通用智能体流式问答手动停止
+//	@Description	通用智能体流式问答手动停止，区分网络断开和主动取消
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.WgaConversationCancelReq	true	"手动停止请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/general/agent/conversation/cancel [post]
+func GeneralAgentConversationCancel(ctx *gin.Context) {
+	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
+	var req request.WgaConversationCancelReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.WgaConversationCancel(ctx, userId, orgId, clientId, req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// GeneralAgentSkillConversationCancel
+//
+//	@Tags			wga
+//	@Summary		通用智能体(Skill)流式问答手动停止
+//	@Description	通用智能体(Skill)流式问答手动停止，区分网络断开和主动取消
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.GeneralAgentSkillConversationCancelReq	true	"Skill对话请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/general/agent/skill/conversation/cancel [post]
+func GeneralAgentSkillConversationCancel(ctx *gin.Context) {
+	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
+	var req request.GeneralAgentSkillConversationCancelReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.WgaConversationCancel(ctx, userId, orgId, clientId, request.WgaConversationCancelReq{ThreadID: req.ChatThreadID()})
+	gin_util.Response(ctx, nil, err)
+}
+
+// GeneralAgentReplyQuestion
+//
+//	@Tags			wga
+//	@Summary		回答问题
+//	@Description	回答智能体提出的问题（Human-in-the-Loop），解除 AI 阻塞等待
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.GeneralAgentReplyQuestionReq	true	"回答问题请求参数"
+//	@Success		200		{object}	response.Response						"成功响应"
+//	@Failure		400		{object}	response.Response						"参数错误"
+//	@Failure		500		{object}	response.Response						"服务器错误"
+//	@Router			/general/agent/question/reply [post]
+func GeneralAgentReplyQuestion(ctx *gin.Context) {
+	var req request.GeneralAgentReplyQuestionReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.GeneralAgentReplyQuestion(ctx, req.RunID, req.QuestionID, req.Answers)
+	gin_util.Response(ctx, nil, err)
+}
+
+// GeneralAgentRejectQuestion
+//
+//	@Tags			wga
+//	@Summary		拒绝问题
+//	@Description	取消智能体提出的问题（Human-in-the-Loop），AI 将收到 RejectedError
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.GeneralAgentRejectQuestionReq	true	"拒绝问题请求参数"
+//	@Success		200		{object}	response.Response						"成功响应"
+//	@Failure		400		{object}	response.Response						"参数错误"
+//	@Failure		500		{object}	response.Response						"服务器错误"
+//	@Router			/general/agent/question/reject [post]
+func GeneralAgentRejectQuestion(ctx *gin.Context) {
+	var req request.GeneralAgentRejectQuestionReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.GeneralAgentRejectQuestion(ctx, req.RunID, req.QuestionID)
+	gin_util.Response(ctx, nil, err)
 }

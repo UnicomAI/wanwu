@@ -1,5 +1,5 @@
 # ----------------------
-# 构建阶段：编译 eino-agent
+# 构建阶段：编译 eino-agent + mcp2skill
 # ----------------------
 FROM golang:1.24.13-bookworm AS builder
 
@@ -24,7 +24,17 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOOS=linux GOARCH=$WANWU_ARCH go build -ldflags="-s -w" -o eino-agent ./pkg/wga-sandbox/internal/runner/eino/agent
 
-FROM crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/wga-sandbox-base:1.0.0.152-opencode1.4.11
+# 编译 mcp2skill 二进制
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux GOARCH=$WANWU_ARCH go build -ldflags="-s -w" -o mcp2skill ./pkg/mcp2skill/cmd
+
+# 编译 openapi2skill 二进制
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux GOARCH=$WANWU_ARCH go build -ldflags="-s -w" -o openapi2skill ./pkg/openapi2skill/cmd
+
+FROM crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/wga-sandbox-base:1.0.0.152-opencode1.16.2
 
 USER root
 
@@ -70,6 +80,7 @@ RUN set -eux; \
         reportlab==4.2.0 \
         imageio==2.34.0 \
         "markitdown[pptx]" \
+        "mcp[cli]==1.27.1" \
         --break-system-packages;
 
 # ----------------------
@@ -101,21 +112,18 @@ RUN npm install -g pptxgenjs docx react react-icons react-dom
 # Playwright + Chromium（用于PDF渲染）FIXME uncomment
 # RUN npm install -g playwright && npx playwright install chromium
 
-# openapi-to-skills
-# 克隆源码、安装依赖、构建、全局链接
-RUN set -eux; \
-    git clone https://github.com/colagold/openapi-to-skills.git /tmp/openapi-to-skills && \
-    cd /tmp/openapi-to-skills && \
-    npm install && \
-    npm run build && \
-    npm pack && \
-    npm install -g openapi-to-skills-*.tgz && \
-    cd ~ && \
-    rm -rf /tmp/openapi-to-skills
 
 # eino-agent 安装
 COPY --from=builder /build/eino-agent /usr/local/bin/eino-agent
 RUN chmod 755 /usr/local/bin/eino-agent
+
+# mcp2skill 安装
+COPY --from=builder /build/mcp2skill /usr/local/bin/mcp2skill
+RUN chmod 755 /usr/local/bin/mcp2skill
+
+# openapi2skill 安装
+COPY --from=builder /build/openapi2skill /usr/local/bin/openapi2skill
+RUN chmod 755 /usr/local/bin/openapi2skill
 
 # eino-agent HTTP 服务配置
 RUN printf '[program:eino-agent]\n\

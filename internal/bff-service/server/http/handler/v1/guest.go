@@ -7,8 +7,11 @@ import (
 
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
+	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	bff_rsautil "github.com/UnicomAI/wanwu/internal/bff-service/pkg/rsa-util"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
+	rsautil "github.com/UnicomAI/wanwu/pkg/rsa-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
@@ -70,7 +73,7 @@ func LoginByEmail(ctx *gin.Context) {
 //	@Router		/base/captcha [get]
 func GetCaptcha(ctx *gin.Context) {
 	resp, err := service.GetCaptcha(ctx,
-		util.MD5([]byte(ctx.ClientIP()+ctx.GetHeader("User-Agent")+ctx.GetHeader("Date"))))
+		util.MD5([]byte(ctx.ClientIP()+ctx.GetHeader("User-Agent")+ctx.GetHeader("Date")+ctx.GetHeader(gin_util.X_CLIENT_ID))))
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -98,6 +101,37 @@ func GetLogoCustomInfo(ctx *gin.Context) {
 func GetLanguageSelect(ctx *gin.Context) {
 	resp := service.GetLanguageSelect()
 	gin_util.Response(ctx, resp, nil)
+}
+
+// GetRSAPublicKey
+//
+//	@Tags			guest
+//	@Summary		获取RSA公钥
+//	@Description	获取用于密码加密的RSA公钥和Challenge
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	response.Response{data=response.RSAPublicKey}
+//	@Router			/base/rsa/public-key [get]
+func GetRSAPublicKey(ctx *gin.Context) {
+	keyID, publicKey, expiresIn, err := rsautil.GetManager().GetPublicKey()
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+
+	// 生成Challenge，存入Redis，一次性消费
+	challenge, err := bff_rsautil.GetChallengeManager().GenerateChallenge(ctx.Request.Context())
+	if err != nil {
+		gin_util.Response(ctx, nil, fmt.Errorf("generate challenge failed: %w", err))
+		return
+	}
+
+	gin_util.Response(ctx, &response.RSAPublicKey{
+		KeyID:     keyID,
+		PublicKey: publicKey,
+		Challenge: challenge,
+		ExpiresIn: expiresIn,
+	}, nil)
 }
 
 // RegisterByEmail
@@ -276,4 +310,18 @@ func GetPromptTemplateList(ctx *gin.Context) {
 func GetPromptTemplateDetail(ctx *gin.Context) {
 	resp, err := service.GetPromptTemplateDetail(ctx, ctx.Query("templateId"))
 	gin_util.Response(ctx, resp, err)
+}
+
+// GetReleaseNotes
+//
+//	@Tags			guest
+//	@Summary		获取版本和更新日志
+//	@Description	获取平台版本号和更新日志内容
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	response.Response{data=response.ReleaseNotesResp}
+//	@Router			/custom/about [get]
+func GetReleaseNotes(ctx *gin.Context) {
+	gin_util.Response(ctx, service.GetReleaseNotes(), nil)
 }

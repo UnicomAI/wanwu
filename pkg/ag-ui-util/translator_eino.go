@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/UnicomAI/wanwu/pkg/util"
 	aguievents "github.com/ag-ui-protocol/ag-ui/sdks/community/go/pkg/core/events"
@@ -26,6 +27,9 @@ type AgentActivitySimple struct {
 const (
 	DefaultAgentName     = "default"
 	subAgentActivityType = "sub_agent"
+
+	ExtraKeyQuestionType = "questionType"
+	ExtraKeyQuestionData = "questionData"
 )
 
 func NewAgentActivitySimple(agentName string) *AgentActivitySimple {
@@ -207,12 +211,53 @@ func (t *EinoTranslator) endCurrentAgentActivity() []aguievents.Event {
 }
 
 func (t *EinoTranslator) translateMessageForCurrentAgent(msg *schema.Message) []aguievents.Event {
-	// 创建临时 activity（如果 currentActivity 为空）
+	if msg == nil {
+		return nil
+	}
+
+	if msg.Extra != nil {
+		if questionType, ok := msg.Extra[ExtraKeyQuestionType].(string); ok && questionType == "question" {
+			if questionData, ok := msg.Extra[ExtraKeyQuestionData].(map[string]any); ok {
+				return t.translateQuestionEvent(questionData)
+			}
+		}
+	}
+
 	activity := t.currentActivity
 	if activity == nil {
 		activity = NewAgentActivitySimple(DefaultAgentName)
 	}
 	return translateMessageWithActivity(msg, activity, false)
+}
+
+func (t *EinoTranslator) translateQuestionEvent(data map[string]any) []aguievents.Event {
+	questionID, _ := data["questionId"].(string)
+	status, _ := data["status"].(string)
+	questions := data["questions"]
+	answers, _ := data["answers"].([][]string)
+
+	content := map[string]any{
+		"questionId": questionID,
+		"runId":      t.runID,
+		"threadId":   t.threadID,
+		"status":     status,
+		"questions":  questions,
+		"timestamp":  time.Now().UnixMilli(),
+	}
+	if len(answers) > 0 {
+		content["answers"] = answers
+	}
+
+	var events []aguievents.Event
+	if t.currentActivity != nil {
+		events = append(events, t.currentActivity.EndAll()...)
+	}
+	events = append(events, aguievents.NewActivitySnapshotEvent(
+		aguievents.GenerateStepID(),
+		ActivityTypeQuestion,
+		content,
+	))
+	return events
 }
 
 func (t *EinoTranslator) translateStreamForAgent(ctx context.Context, msgOutput *adk.MessageVariant, out chan<- aguievents.Event) {

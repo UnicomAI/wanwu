@@ -5,17 +5,17 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
-	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
 func CreateOrg(ctx *gin.Context, creatorID, parentID string, orgCreate *request.OrgCreate) (*response.OrgID, error) {
 	resp, err := iam.CreateOrg(ctx.Request.Context(), &iam_service.CreateOrgReq{
-		CreatorId: creatorID,
-		ParentId:  parentID,
-		Name:      orgCreate.Name,
-		Remark:    orgCreate.Remark,
+		CreatorId:  creatorID,
+		ParentId:   parentID,
+		Name:       orgCreate.Name,
+		Remark:     orgCreate.Remark,
+		AvatarPath: orgCreate.Avatar.Key,
 	})
 	if err != nil {
 		return nil, err
@@ -23,20 +23,19 @@ func CreateOrg(ctx *gin.Context, creatorID, parentID string, orgCreate *request.
 	return &response.OrgID{OrgID: resp.Id}, nil
 }
 
-func ChangeOrg(ctx *gin.Context, parentID string, orgUpdate *request.OrgUpdate) error {
+func ChangeOrg(ctx *gin.Context, orgUpdate *request.OrgUpdate) error {
 	_, err := iam.UpdateOrg(ctx.Request.Context(), &iam_service.UpdateOrgReq{
-		ParentId: parentID,
-		OrgId:    orgUpdate.OrgID.OrgID,
-		Name:     orgUpdate.Name,
-		Remark:   orgUpdate.Remark,
+		OrgId:      orgUpdate.OrgID.OrgID,
+		Name:       orgUpdate.Name,
+		Remark:     orgUpdate.Remark,
+		AvatarPath: orgUpdate.Avatar.Key,
 	})
 	return err
 }
 
 func DeleteOrg(ctx *gin.Context, parentID, orgID string) error {
 	_, err := iam.DeleteOrg(ctx.Request.Context(), &iam_service.DeleteOrgReq{
-		ParentId: parentID,
-		OrgId:    orgID,
+		OrgId: orgID,
 	})
 	return err
 }
@@ -48,7 +47,7 @@ func GetOrgInfo(ctx *gin.Context, orgID string) (*response.OrgInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	return toOrgInfo(org), nil
+	return toOrgInfo(ctx, org), nil
 }
 
 func GetOrgList(ctx *gin.Context, parentID, name string, pageNo, pageSize int32) (*response.PageResult, error) {
@@ -63,7 +62,7 @@ func GetOrgList(ctx *gin.Context, parentID, name string, pageNo, pageSize int32)
 	}
 	var orgs []*response.OrgInfo
 	for _, org := range resp.Orgs {
-		orgs = append(orgs, toOrgInfo(org))
+		orgs = append(orgs, toOrgInfo(ctx, org))
 	}
 	return &response.PageResult{
 		List:     orgs,
@@ -75,43 +74,81 @@ func GetOrgList(ctx *gin.Context, parentID, name string, pageNo, pageSize int32)
 
 func ChangeOrgStatus(ctx *gin.Context, parentID, orgID string, status bool) error {
 	_, err := iam.ChangeOrgStatus(ctx.Request.Context(), &iam_service.ChangeOrgStatusReq{
-		ParentId: parentID,
-		OrgId:    orgID,
-		Status:   status,
+		OrgId:  orgID,
+		Status: status,
 	})
 	return err
 }
 
-// --- internal ---
-
-func toOrgIDName(ctx *gin.Context, org *iam_service.IDName) response.IDName {
-	if org.Id == config.TopOrgID {
-		org.Name = gin_util.I18nKey(ctx, "bff_top_org_name")
+func GetAdminOrgSubTree(ctx *gin.Context, userID string) ([]*response.AdminOrgTreeNode, error) {
+	resp, err := iam.GetAdminOrgSubTree(ctx.Request.Context(), &iam_service.GetAdminOrgSubTreeReq{
+		UserId: userID,
+	})
+	if err != nil {
+		return nil, err
 	}
-	return response.IDName{
-		ID:   org.Id,
-		Name: org.Name,
-	}
+	return toAdminOrgTreeNodes(resp.Orgs), nil
 }
 
-func toOrgIDNames(ctx *gin.Context, orgs []*iam_service.IDName, isSystemAdmin bool) []response.IDName {
-	var ret []response.IDName
+func GetAdminOrgSelect(ctx *gin.Context, userID string) (*response.Select, error) {
+	resp, err := iam.GetAdminOrgSelect(ctx.Request.Context(), &iam_service.GetAdminOrgSelectReq{
+		UserId: userID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var selects []response.IDNameWithAvatar
+	for _, s := range resp.Selects {
+		selects = append(selects, response.IDNameWithAvatar{
+			ID:     s.Id,
+			Name:   s.Name,
+			Avatar: cacheOrgAvatar(s.AvatarPath),
+		})
+	}
+	return &response.Select{Select: selects}, nil
+}
+
+// --- internal ---
+
+func toOrgIDNamesWithAvatar(ctx *gin.Context, orgs []*iam_service.IDNameWithAvatar, isSystemAdmin bool) []response.IDNameWithAvatar {
+	var ret []response.IDNameWithAvatar
 	for _, org := range orgs {
 		if len(orgs) > 1 && org.Id == config.TopOrgID && !isSystemAdmin {
 			continue
 		}
-		ret = append(ret, toOrgIDName(ctx, org))
+		ret = append(ret, toOrgIDNameWithAvatar(ctx, org))
 	}
 	return ret
 }
 
-func toOrgInfo(org *iam_service.OrgInfo) *response.OrgInfo {
+func toAdminOrgTreeNodes(nodes []*iam_service.AdminOrgTreeNode) []*response.AdminOrgTreeNode {
+	if len(nodes) == 0 {
+		return nil
+	}
+	var ret []*response.AdminOrgTreeNode
+	for _, node := range nodes {
+		ret = append(ret, &response.AdminOrgTreeNode{
+			OrgID:    node.OrgId,
+			Name:     node.Name,
+			HasPerm:  node.HasPerm,
+			IsSystem: node.OrgId == config.TopOrgID,
+			Avatar:   cacheOrgAvatar(node.AvatarPath),
+			Children: toAdminOrgTreeNodes(node.Children),
+		})
+	}
+	return ret
+}
+
+func toOrgInfo(ctx *gin.Context, org *iam_service.OrgInfo) *response.OrgInfo {
 	return &response.OrgInfo{
 		OrgID:     org.OrgId,
 		Name:      org.Name,
 		Remark:    org.Remark,
-		Creator:   toIDName(org.Creator),
+		Creator:   toUserIDNameWithAvatar(org.Creator),
 		CreatedAt: util.Time2Str(org.CreatedAt),
 		Status:    org.Status,
+		UserCount: org.UserCount,
+		Admins:    org.Admins,
+		Avatar:    cacheOrgAvatar(org.AvatarPath),
 	}
 }

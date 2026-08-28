@@ -1,0 +1,198 @@
+---
+title: App 2.0 版本改版项目复盘报告
+icon: 🚀
+cover: # 根据文档主题通过网络搜索合适图片，下载后调用 upload_image 上传，将返回的 image_id 填入此处
+---
+
+## 1. 项目背景与目标
+
+本次 App 2.0 改版旨在通过全新的视觉语言和交互逻辑，提升用户的使用体验，解决 1.0 版本中存在的视觉陈旧、操作路径冗长以及性能瓶颈等问题。
+
+<Callout icon="🎯" blockColor="light_blue" borderColor="blue">
+    <Mark bold>核心目标</Mark>
+    <BulletedList>
+        视觉焕新：建立统一的 Design System，提升品牌设计感。
+    </BulletedList>
+    <BulletedList>
+        体验优化：核心操作路径缩短 30%，提升关键漏斗转化。
+    </BulletedList>
+    <BulletedList>
+        性能提升：首屏加载时间从 2.5s 降低至 1.2s。
+    </BulletedList>
+</Callout>
+
+## 2. 项目时间线与里程碑
+
+项目历时 3 个月，分为规划、设计、开发、测试及上线五个阶段。
+
+<Table>
+    <TableRow>
+        <TableCell>
+            <Mark bold>阶段</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>时间节点</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>关键里程碑</Mark>
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            启动规划
+        </TableCell>
+        <TableCell>
+            2026-01-05
+        </TableCell>
+        <TableCell>
+            完成竞品分析，确定 2.0 改版核心方向及需求列表。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            设计方案
+        </TableCell>
+        <TableCell>
+            2026-01-25
+        </TableCell>
+        <TableCell>
+            UI/UX 方案定稿，交付 Design System 1.0。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            开发实现
+        </TableCell>
+        <TableCell>
+            2026-02-28
+        </TableCell>
+        <TableCell>
+            完成所有核心功能模块开发及初步联调。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            测试验收
+        </TableCell>
+        <TableCell>
+            2026-03-10
+        </TableCell>
+        <TableCell>
+            完成三轮灰度测试，修复所有 P0/P1 级 Bug。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            正式发布
+        </TableCell>
+        <TableCell>
+            2026-03-15
+        </TableCell>
+        <TableCell>
+            全量上线，并进行首周数据监控。
+        </TableCell>
+    </TableRow>
+</Table>
+
+## 3. 核心成果与数据表现
+
+改版上线后，多项关键指标呈现显著增长趋势。
+
+<Callout icon="📊" blockColor="light_green" borderColor="green">
+    <Mark bold>数据表现概览</Mark>
+    <BulletedList>
+        <Mark bold>用户留存</Mark>：次日留存率从 <Mark bold color="green">35%</Mark> 提升至 <Mark bold color="green">42%</Mark>。
+    </BulletedList>
+    <BulletedList>
+        <Mark bold>加载性能</Mark>：首屏平均渲染耗时下降 <Mark bold color="green">52%</Mark>。
+    </BulletedList>
+    <BulletedList>
+        <Mark bold>满意度调查</Mark>：用户视觉评分从 3.2 升至 <Mark bold color="green">4.8</Mark> (满分 5 分)。
+    </BulletedList>
+</Callout>
+
+## 4. 项目过程中的亮点与创新
+
+<BulletedList>
+    <Mark bold>Design System 原子化应用</Mark>：通过组件库的深度沉淀，使设计与开发的协同效率提升了 40%。
+</BulletedList>
+<BulletedList>
+    <Mark bold>AI 驱动的个性化推荐</Mark>：首页引入智能推荐算法，点击率 (CTR) 提升了 25%。
+</BulletedList>
+<BulletedList>
+    <Mark bold>全链路埋点监控</Mark>：实现了精细化到按钮级别的用户行为追踪，为后续迭代提供精准数据支撑。
+</BulletedList>
+
+## 5. 遇到的问题与改进措施
+
+<Table>
+    <TableRow>
+        <TableCell>
+            <Mark bold>遇到问题</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>原因分析</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>改进措施</Mark>
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            设计稿还原度在旧机型上表现不佳。
+        </TableCell>
+        <TableCell>
+            未充分考虑不同系统版本及屏幕尺寸的兼容性。
+        </TableCell>
+        <TableCell>
+            建立真机测试实验室，增加低端机型的专项验收环节。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            开发进度在联调阶段出现严重滞后。
+        </TableCell>
+        <TableCell>
+            前后端接口文档定义模糊，导致反复沟通确认。
+        </TableCell>
+        <TableCell>
+            推行 API 合约制管理，使用自动化工具生成 Mock 数据及文档。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            灰度期间出现偶发性 Crash。
+        </TableCell>
+        <TableCell>
+            新引入的第三方库在特定环境下存在内存泄露。
+        </TableCell>
+        <TableCell>
+            加强第三方库引入审查，增加压力测试与内存泄漏分析流程。
+        </TableCell>
+    </TableRow>
+</Table>
+
+## 6. 经验教训总结
+
+<Callout icon="💡" blockColor="light_yellow" borderColor="yellow">
+    <Mark bold>核心教训</Mark>
+    <Paragraph>
+        <Mark italic>“预则立，不预则废”</Mark>。项目前期的技术调研与风险评估深度直接决定了中后期的稳定性。未来应在启动阶段投入更多资源进行可行性验证。
+    </Paragraph>
+</Callout>
+
+<BlockQuote>
+        <Mark bold>协作经验</Mark>：跨部门沟通应以文档为准，通过周报及站会机制确保信息透明，避免由于“信息茧房”导致的重复工作。
+</BlockQuote>
+
+## 7. 后续迭代建议
+
+<NumberedList>
+    持续优化 Design System 2.0，增加深色模式 (Dark Mode) 支持。
+</NumberedList>
+<NumberedList>
+    深入挖掘用户流失路径，开展针对性的 A/B 测试。
+</NumberedList>
+<NumberedList>
+    引入性能监控预警系统，实现问题的秒级发现与响应。
+</NumberedList>

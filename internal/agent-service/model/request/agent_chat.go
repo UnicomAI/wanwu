@@ -1,6 +1,7 @@
 package request
 
 import (
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	"github.com/UnicomAI/wanwu/internal/agent-service/model"
 	service_model "github.com/UnicomAI/wanwu/internal/agent-service/service/service-model"
 	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
@@ -10,8 +11,9 @@ import (
 
 // skill type
 const (
-	SkillTypeBuiltIn SkillType = "builtin" // 内置技能
-	SkillTypeCustom  SkillType = "custom"  // 自定义技能
+	SkillTypeBuiltIn  SkillType = "builtin"  // 内置技能
+	SkillTypeCustom   SkillType = "custom"   // 自定义技能
+	SkillTypeAcquired SkillType = "acquired" // 添加的技能
 )
 
 type SkillType string
@@ -45,6 +47,7 @@ type AgentInfo struct {
 }
 
 type ToolConfig struct {
+	ToolID   string
 	Avatar   string
 	ToolName string
 }
@@ -62,7 +65,7 @@ type AgentChatBaseParams struct {
 }
 
 type AgentChatReq struct {
-	AssistantId uint32 `json:"assistantId"  validate:"required"`
+	AssistantId string `json:"assistantId"  validate:"required"`
 	AgentChatBaseReq
 }
 
@@ -72,6 +75,7 @@ type AgentChatParams struct {
 	UploadFile       []string        `json:"uploadFile"`
 	Stream           bool            `json:"stream"`
 	MultiAgent       bool            //是否多智能体
+	MultiSubAgent    bool            //是否多子智能体
 	SubAgentInfoList []*SubAgentInfo //子智能体
 	AgentChatBaseParams
 }
@@ -158,19 +162,32 @@ type PluginToolInfo struct {
 }
 
 type MCPToolInfo struct {
-	URL          string   `json:"url"`
-	Transport    string   `json:"transport"`
-	ToolNameList []string `json:"toolNameList"` // MCP工具方法列表,会根据此方法名的列表进行mcp方法的过滤，如果此列为空，则标识不进行过滤
-	Avatar       string   `json:"avatar"`
+	URL          string                    `json:"url"`
+	Transport    string                    `json:"transport"`
+	ToolNameList []string                  `json:"toolNameList"` // MCP工具方法列表,会根据此方法名的列表进行mcp方法的过滤，如果此列为空，则标识不进行过滤
+	Avatar       string                    `json:"avatar"`
+	Headers      map[string]string         `json:"headers"`
+	ApiAuth      *common.ApiAuthWebRequest `json:"apiAuth"`
 }
 
 type SkillToolInfo struct {
-	SkillId    string    `json:"skillId"`
-	SkillType  SkillType `json:"skillType"`
-	Name       string    `json:"name"`
-	Desc       string    `json:"desc"`
-	Avatar     string    `json:"avatar"`
-	ObjectPath string    `json:"objectPath"`
+	SkillId    string          `json:"skillId"`
+	SkillType  SkillType       `json:"skillType"`
+	Name       string          `json:"name"`
+	Desc       string          `json:"desc"`
+	Avatar     string          `json:"avatar"`
+	ObjectPath string          `json:"objectPath"`
+	Variables  []SkillVariable `json:"variables,omitempty"`
+}
+
+// SkillVariable 与 proto SkillVariable 字段对齐。
+// 注意：VariableValue 仅允许沿 "agent-svc → wga-sandbox option → sandbox 文件" 流动，
+// 不得进入回流 LLM 的上下文（system prompt / SKILL.md / 日志 / 错误信息 / SSE 帧）。
+type SkillVariable struct {
+	Name          string `json:"name"`
+	Desc          string `json:"desc"`
+	VariableKey   string `json:"variableKey"`
+	VariableValue string `json:"variableValue"`
 }
 
 type MetadataFilterParam struct {

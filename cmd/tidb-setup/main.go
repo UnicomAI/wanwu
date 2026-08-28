@@ -103,27 +103,23 @@ func setupTidb(execMode string) error {
 		return fmt.Errorf("set tidb_multi_statement_mode err: %v", err)
 	}
 
-	// 3. 执行 SQL
-	var sqlString string
 	switch execMode {
 	case EXEC_MODE_SET_PASSWORD:
-		sqlString = fmt.Sprintf("USE mysql;ALTER USER 'root'@'%%' IDENTIFIED BY '%s';FLUSH PRIVILEGES;SET GLOBAL tidb_skip_isolation_level_check = 1;", dbPassword)
+		// 使用参数化查询替代字符串拼接，防止 SQL 注入
+		if _, err = db.Exec("USE mysql;ALTER USER 'root'@'%%' IDENTIFIED BY ?;FLUSH PRIVILEGES;SET GLOBAL tidb_skip_isolation_level_check = 1;", dbPassword); err != nil {
+			return fmt.Errorf("exec sql err: %v", err)
+		}
 	case EXEC_MODE_INIT_DATA:
 		sqlBytes, err := os.ReadFile(sqlFile)
 		if err != nil {
 			return fmt.Errorf("read sql file %v err: %v", sqlFile, err)
 		}
-		sqlString = string(sqlBytes)
+		if _, err = db.Exec(string(sqlBytes)); err != nil {
+			return fmt.Errorf("exec sql err: %v", err)
+		}
 	default:
 		return fmt.Errorf("invalid exec mode: %v", execMode)
 	}
-
-	if _, err = db.Exec(sqlString); err != nil {
-		return fmt.Errorf("exec sql err: %v", err)
-	}
-
-	// 4. 关闭多语句模式
-	_, _ = db.Exec("SET tidb_multi_statement_mode = 'OFF'")
 
 	log.Printf("setup db success, exec mode: %v", execMode)
 	return nil

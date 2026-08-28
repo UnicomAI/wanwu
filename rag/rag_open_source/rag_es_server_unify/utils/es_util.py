@@ -4,6 +4,7 @@ import requests
 import uuid
 import warnings
 import json
+import re
 
 import utils.mapping_util as es_mapping
 from settings import KBNAME_MAPPING_INDEX, DELETE_BACTH_SIZE
@@ -103,6 +104,8 @@ def bulk_add_index_data(index_name, kb_name, data):
     # ============ 若索引不存在则新建 ============
     # 提前设置doc_meta字段mapping，避免自动mapping
     es_mapping.update_doc_meta_mapping(index_name)
+    # 补齐缺失的向量动态模板（如 vector_2560），使旧索引新写入的向量字段自动按模板建为可 knn 检索
+    es_mapping.update_vector_dynamic_templates(index_name)
     for item in data:  # 往索引里插数据，以index的方式，若_id已存在则先删除再添加
         # 生成一个随机的UUID，相当于不校验重复
         cont_str = kb_name + item["content"] + item["file_name"] + str(item["meta_data"]["chunk_current_num"])
@@ -562,6 +565,10 @@ def search_data_knn_recall(index_name: str,
         query_vector = emb_util.get_multimodal_embs([query], embedding_model_id=embedding_model_id)["result"][0]["dense_vec"]
     else:
         query_vector = emb_util.get_embs([query], embedding_model_id=embedding_model_id)["result"][0]["dense_vec"]
+    # embedding 失败可能被静默吞成 None（如多模态含图项失败占位），此处显式拦截，避免后续 len(None) 报无关 TypeError
+    if query_vector is None:
+        raise ValueError("Failed to generate query embedding (query vector is None). "
+                         "请检查 query 是否为空或 embedding 服务是否正常。")
     field_name = f"q_{len(query_vector)}_content_vector"
     # 检查索引映射以确定使用哪个字段
     field_exist, properties = is_field_exist(index_name, field_name)
@@ -1118,31 +1125,87 @@ def delete_index(index_name):
     return delete_status
 
 
-def get_file_content_list(index_name: str, kb_name: str, file_name: str, page_size: int, search_after: int):
+# 用于子串匹配的临时清洗：剔除 markdown 图片/链接语法与裸 URL，避免命中 URL 内部片段（如图片 UUID）
+_MD_IMAGE_RE = re.compile(r'!\[[^\]]*\]\([^)]*\)')   # ![alt](url)，含 alt 整体删除
+_MD_LINK_RE = re.compile(r'\[[^\]]*\]\([^)]*\)')      # [text](url)，含链接文字整体删除
+_BARE_URL_RE = re.compile(r'https?://[^\s)]+')        # 裸 http(s)://...
+
+
+def _content_for_matching(text: str) -> str:
+    """返回仅用于子串匹配的临时副本：剔除 markdown 图片/链接语法与裸 URL。
+    返回值绝不回传 UI —— hit 中的原始 content 保持不变。
+    链接显示文字按需求不参与匹配，故整段 [text](url) 一并删除。"""
+    if not text:
+        return ''
+    text = _MD_IMAGE_RE.sub('', text)
+    text = _MD_LINK_RE.sub('', text)
+    text = _BARE_URL_RE.sub('', text)
+    return text
+
+
+def get_file_content_list(index_name: str, kb_name: str, file_name: str, page_size: int, search_after: int,
+                          query_text: str = None):
     """ 获取 主控表中 知识片段的分页展示 """
     # ======== 分页查询参数 =============
+    must_conditions = [
+        {"term": {"kb_name": kb_name}},
+        {"term": {"file_name": file_name}},
+    ]
+    # 排除向量字段，减少返回数据量
+    source_excludes = {
+        "excludes": [
+            "content_vector",
+            "q_768_content_vector",
+            "q_1024_content_vector",
+            "q_1536_content_vector",
+            "q_2048_content_vector"
+        ]
+    }
+    # 可选：按正文做真正子串筛选，要求 content 完全连续包含 query_text
+    # 由于 content 是 ik_max_word 分词后的 text 字段，ES 的 match_phrase/wildcard 只能匹配词项而非原始串，
+    # 因此这里先拉取该文件全部分段，再用 Python in 做字面子串过滤，最后切片分页。
+    if query_text:
+        query = {
+            "query": {
+                "bool": {
+                    "must": must_conditions
+                }
+            },
+            "size": 10000,
+            "sort": {"meta_data.chunk_current_num": {"order": "asc"}},  # 确保按照文档ID升序排序
+            "_source": source_excludes
+        }
+        # 执行查询，拉取该文件全部分段
+        response = es.search(
+            index=index_name,
+            body=query
+        )
+        all_hits = [doc['_source'] for doc in response['hits']['hits']]
+        # 字面子串过滤：仅保留 content 完全连续包含 query_text 的分段
+        # 清洗临时副本（剔除图片/链接/裸 URL），避免命中 URL 内部片段（如图片 UUID）；
+        # 返回的 hit 中 content 仍为原始 markdown
+        filtered_hits = [
+            h for h in all_hits
+            if query_text in _content_for_matching(h.get('content') or '')
+        ]
+        chunk_total_num = len(filtered_hits)
+        # 切片分页
+        page_list = filtered_hits[search_after: search_after + page_size]
+        return {
+            "content_list": page_list,
+            "chunk_total_num": chunk_total_num
+        }
     query = {
         "query": {
             "bool": {
-                "must": [
-                    {"term": {"kb_name": kb_name}},
-                    {"term": {"file_name": file_name}},
-                ]
+                "must": must_conditions
             }
         },
         #"search_after": [search_after],  # 初始化search_after参数
         "from": search_after,
         "size": page_size,
         "sort": {"meta_data.chunk_current_num": {"order": "asc"}},  # 确保按照文档ID升序排序
-        "_source": {
-            "excludes": [
-                "content_vector",
-                "q_768_content_vector",
-                "q_1024_content_vector",
-                "q_1536_content_vector",
-                "q_2048_content_vector"
-            ]
-        } #查询community report 索引时排除embedding数据
+        "_source": source_excludes #查询community report 索引时排除embedding数据
     }
     # 执行查询
     response = es.search(

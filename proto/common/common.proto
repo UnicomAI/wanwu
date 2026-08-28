@@ -5,69 +5,69 @@ package common;
 option go_package = "github.com/UnicomAI/wanwu/api/proto/common";
 
 message AppBrief {
-    string orgId = 1;
-    string userId = 2;
-    string appId = 3;
-    string appType = 4; // 应用类型 agent,rag,workflow
-    string avatarPath = 5; // 图标minio object path
-    string name = 6;
-    string desc = 7;
-    int64 createdAt = 8; // 创建时间，毫秒时间戳
-    int64 updatedAt = 9; // 更新时间，毫秒时间戳
+  string orgId = 1;
+  string userId = 2;
+  string appId = 3;
+  string appType = 4; // 应用类型 agent,rag,workflow
+  string avatarPath = 5; // 图标minio object path
+  string name = 6;
+  string desc = 7;
+  int64 createdAt = 8; // 创建时间，毫秒时间戳
+  int64 updatedAt = 9; // 更新时间，毫秒时间戳
 }
 
 message AppBriefConfig {
-    string name = 1;
-    string desc = 2;
-    string avatarPath = 3;
+  string name = 1;
+  string desc = 2;
+  string avatarPath = 3;
 }
 
 message AppModelConfig {
-    string provider = 1;
-    string model = 2;
-    string modelId = 3;
-    string modelType = 4;
-    string config = 5;
+  string provider = 1;
+  string model = 2;
+  string modelId = 3;
+  string modelType = 4;
+  string config = 5;
 }
 
 message ToolAction {
-    string name = 1;
-    string description = 2;
-    ToolActionInputSchema inputSchema = 3;
+  string name = 1;
+  string description = 2;
+  ToolActionInputSchema inputSchema = 3;
 }
 
 message ToolActionInputSchema {
-    string type = 1; // 固定 object
-    map<string, ToolActionInputSchemaValue> properties = 2;
-    repeated string required = 3;
+  string type = 1; // 固定 object
+  map<string, ToolActionInputSchemaValue> properties = 2;
+  repeated string required = 3;
 }
 
 message ToolActionInputSchemaValue {
-    string type = 1;
-    string description = 2;
+  string type = 1;
+  string description = 2;
 }
 
 message StatisticChart {
-    string tableName = 1;
-    repeated StatisticChartLine chartLines = 2;
+  string tableName = 1;
+  repeated StatisticChartLine chartLines = 2;
 }
 
 message StatisticChartLine {
-    string lineName = 1;
-    repeated StatisticChartLineItem items = 2;
+  string lineName = 1;
+  repeated StatisticChartLineItem items = 2;
 }
 
 message StatisticChartLineItem {
-    string key = 1;
-    float value = 2;
+  string key = 1;
+  float value = 2;
 }
 
 message ApiAuthWebRequest{
-    string authType = 1;
-    string apiKeyHeaderPrefix = 2;
-    string apiKeyHeader = 3;
-    string apiKeyQueryParam = 4;
-    string apiKeyValue = 5;
+  string authType = 1;
+  string apiKeyHeaderPrefix = 2;
+  string apiKeyHeader = 3;
+  string apiKeyQueryParam = 4;
+  string apiKeyValue = 5;
 }
 
 message ApiAuth {
@@ -75,4 +75,51 @@ message ApiAuth {
   string authIn = 2;
   string authName = 3;
   string authValue = 4;
+}
+
+message TraceInfo {
+  string traceId = 1;
+  TraceApi traceApi = 2; //api接口信息
+  TraceUser traceUser = 4;//用户信息
+  TraceApp traceApp = 5;//app信息
+  map<string, string> traceExtra = 6;//额外信息
+}
+
+message TraceApi {
+  string apiName = 1;
+  string apiPath = 2;
+}
+
+message TraceUser {
+  string orgId = 1;
+  string userId = 2;
+  string apiKey = 3;//openapi 使用的api key
+  string urlId = 4; //h5 url id
+  string apiKeyId = 5; //openapi 使用的api key id
+}
+
+message TraceApp {
+  string appId = 1; //应用id
+  string appType = 2; //应用类型
+}
+
+message ConversationLog {
+  string appId = 1;                     // 应用id
+  string appType = 2;                   // 应用类型
+  string source = 3;                    // 来源
+  string title = 4;                     // 会话标题 <128字符
+  string conversationId = 5;            // 会话id
+  int64 messageCount = 6;               // 消息数量
+  int64 costs = 7;                      // 平均耗时
+  int64 firstTokenLatency = 8;          // 平均首token时延
+  int64 likeCount = 9;                  // 点赞数量
+  int64 dislikeCount = 10;              // 点踩数量
+  int64 errorCount = 11;                // 错误数量
+  string userId = 12;                   // 用户id
+  string orgId = 13;                    // 组织id
+  int64 createAt = 14;                  // 创建时间(毫秒)
+  int64 updateAt = 15;                  // 最后对话时间(毫秒)
+  string logId = 16;                    // 会话日志id
+  string version = 17;                  // 版本
+  string ext = 18;                      // 扩展字段(JSON)
 }

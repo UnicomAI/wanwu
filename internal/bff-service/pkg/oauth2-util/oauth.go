@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"github.com/redis/go-redis/v9"
+
+	rsa_util "github.com/UnicomAI/wanwu/pkg/rsa-util"
 )
 
 var (
@@ -39,6 +41,11 @@ func Init(redisCli *redis.Client, rsa RSAConfig, issuer, jwtSecret string) error
 	}
 	if issuer == "" {
 		return errors.New("issuer empty")
+	}
+
+	// 自动生成RSA密钥文件（如果不存在）
+	if err := rsa_util.EnsureKeyFiles(rsa.PrivateKeyPath, rsa.PublicKeyPath); err != nil {
+		return fmt.Errorf("ensure oauth rsa key files failed: %w", err)
 	}
 
 	rsaPublicKey, err := os.ReadFile(rsa.PublicKeyPath)

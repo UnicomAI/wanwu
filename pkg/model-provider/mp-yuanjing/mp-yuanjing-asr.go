@@ -13,8 +13,8 @@ import (
 
 	"github.com/UnicomAI/wanwu/pkg/log"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
-	"github.com/go-resty/resty/v2"
 )
 
 type SyncAsr struct {
@@ -31,33 +31,6 @@ func (cfg *SyncAsr) Tags() []mp_common.Tag {
 	}
 	return tags
 }
-
-// 元景ASR原生模型入参
-//type syncAsrReq struct {
-//	File   *multipart.FileHeader `form:"file" json:"file" validate:"required"`
-//	Config SyncAsrConfigOut      `form:"config" json:"config" validate:"required"`
-//}
-//
-//type SyncAsrConfigOut struct {
-//	Config SyncAsrConfig `form:"config" json:"config" validate:"required"`
-//}
-//
-//type SyncAsrConfig struct {
-//	SessionId           string  `json:"session_id" validate:"required"`
-//	AddPunc             int     `json:"add_punc,omitempty"`
-//	ItnSwitch           int     `json:"itn_switch,omitempty"`
-//	VadSwitch           int     `json:"vad_switch,omitempty"`
-//	Diarization         int     `json:"diarization,omitempty"`
-//	SpkNum              int     `json:"spk_num,omitempty"`
-//	Translate           int     `json:"translate,omitempty"`
-//	Sensitive           int     `json:"sensitive,omitempty"`
-//	Language            int     `json:"language,omitempty"`
-//	AudioClassification int     `json:"audio_classification,omitempty"`
-//	DiarizationMode     int     `json:"diarization_mode,omitempty"`
-//	MaxEndSil           int     `json:"max_end_sil,omitempty"`
-//	MaxSingleSeg        int     `json:"max_single_seg,omitempty"`
-//	SpeechNoiseThres    float64 `json:"speech_noise_thres,omitempty"`
-//}
 
 func (cfg *SyncAsr) NewReq(req *mp_common.SyncAsrReq) (mp_common.ISyncAsrReq, error) {
 	var targetContent mp_common.SyncAsrReqC
@@ -152,7 +125,7 @@ func syncAsrFormData(ctx context.Context, provider, apiKey, url string, req map[
 		return nil, fmt.Errorf("marshal config failed: %v", err)
 	}
 
-	request := resty.New().
+	request := trace_util.NewResty(ctx).
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验
 		SetTimeout(0).                                             // 关闭请求超时
 		R().

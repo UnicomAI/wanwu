@@ -1,6 +1,6 @@
 server:
   grpc_endpoint: 0.0.0.0:9640
-  max_recv_msg_size: 4194304 # 1024 * 1024 * 4 = 4M
+  max_recv_msg_size: 4294967296 # 1024 * 1024 * 1024 * 4 = 4G
 
 log:
   std: true
@@ -73,8 +73,20 @@ redis:
   standalone: true
   master_name: mymaster
 
+es:
+  address: elastic-wanwu:9200
+  username: elastic
+  password: Wanwu123456
+
 knowledge:
   host: knowledge-service:8889
+
+minio:
+  endpoint: localhost:9000
+  user: root
+  password: Wanwu123456
+  download_url: http://localhost:8081/minio/download/api
+  bucket: file-upload
 
 
 ragServer:

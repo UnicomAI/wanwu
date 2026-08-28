@@ -1,7 +1,7 @@
 {
   "api_schema": {
     "info": {
-      "description": "接收文档 URL，对文档进行解析并返回完整文档内容，不进行切分",
+      "description": "接收文档 URL，对文档进行解析并返回完整文档内容，不支持图片和压缩包",
       "title": "chatdoc",
       "version": "1.0.0"
     },
@@ -9,7 +9,7 @@
     "paths": {
       "/v1/doc_parse": {
         "post": {
-          "description": "接收文档 URL，对文档进行解析并返回完整文档内容，不进行切分",
+          "description": "接收文档 URL，对文档进行解析并返回完整文档内容，不支持图片和压缩包",
           "summary": "解析文档返回内容",
           "operationId": "chatdoc",
           "requestBody": {

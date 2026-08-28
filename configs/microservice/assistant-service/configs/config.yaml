@@ -1,6 +1,6 @@
 server:
   grpc_endpoint: 0.0.0.0:8890
-  max_recv_msg_size: 4194304 # 1024 * 1024 * 4 = 4M
+  max_recv_msg_size: 4294967296 # 1024 * 1024 * 1024 * 4 = 4G
   callback_url: http://bff-service:6668
 
 log:
@@ -72,7 +72,8 @@ minio:
   endpoint: localhost:9000
   user: root
   password: Wanwu123456
-  bucket: agent-prod
+  download_url: http://localhost:8081/minio/download/api
+  bucket: file-upload
 
 # 智能体相关接口
 assistant:
@@ -94,3 +95,11 @@ workflow:
 skill:
   endpoint: http://bff-service:6668
   builtin_skill_list_uri: /callback/v1/skill/builtin/list
+  custom_skill_list_uri: /callback/v1/skill/custom/list
+  acquired_skill_list_uri: /callback/v1/skill/acquired/list
+
+# 创建智能体时自动绑定的内置工具列表
+builtin_tools:
+  - tool_id: "doc_parser"
+    tool_type: "builtin"
+    action_name: "chatdoc"

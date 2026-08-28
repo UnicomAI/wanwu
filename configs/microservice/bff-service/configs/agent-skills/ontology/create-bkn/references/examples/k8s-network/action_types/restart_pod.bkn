@@ -1,0 +1,73 @@
+---
+type: action_type
+id: restart_pod
+name: 重启Pod
+tags: [运维操作, 故障恢复]
+action_type: modify
+enabled: false
+risk_level: medium
+requires_approval: true
+---
+
+## ActionType: 重启Pod
+
+当 Pod 状态异常时，自动执行重启操作。
+
+### Bound Object
+
+| Bound Object | Action Type |
+|--------------|-------------|
+| pod | modify |
+
+### Trigger Condition
+
+```yaml
+condition:
+  object_type_id: pod
+  field: pod_status
+  operation: in
+  value:
+    - Unknown
+    - Failed
+```
+
+> 当 Pod 状态为 Unknown 或 Failed 时触发
+
+### Pre-conditions
+
+| Object | Check | Condition | Message |
+|--------|-------|-----------|---------|
+| pod | relation:pod_belongs_node | exist | Pod 必须已调度到某个 Node |
+
+### Scope of Impact
+
+| Object | Impact Description |
+|--------|---------------------|
+| pod | Delete and recreate Pod |
+
+### Tool Configuration
+
+| Type | Toolbox ID | Tool ID |
+|------|------------|---------|
+| tool | k8s_toolbox | kubectl_delete_pod |
+
+### Parameter Binding
+
+| Parameter | Source | Binding | Description |
+|-----------|--------|---------|-------------|
+| pod | property | pod_name | Pod name |
+| namespace | property | pod_namespace | Namespace |
+| grace_period | const | 30 | Grace period seconds |
+
+### Schedule
+
+| Type | Expression |
+|------|------------|
+| FIX_RATE | 5m |
+
+### 执行说明
+
+1. 确认 Pod 状态异常
+2. 执行删除操作
+3. 等待控制器重建
+4. 验证新 Pod 状态

@@ -2,11 +2,41 @@ package service
 
 import (
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
+	"github.com/UnicomAI/wanwu/api/proto/common"
+	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	"github.com/UnicomAI/wanwu/pkg/constant"
+	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
+
+type PromptBiz struct{}
+
+func init() {
+	InitBizService(&PromptBiz{})
+}
+
+func (*PromptBiz) BizType() string { return constant.BizModuleResourcePrompt }
+
+func (*PromptBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	resp, err := assistant.CustomPromptGet(ctx, &assistant_service.CustomPromptGetReq{
+		CustomPromptId: bizId,
+		Identity:       &assistant_service.Identity{},
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if resp.Identity == nil {
+		return "", "", nil
+	}
+	return resp.Identity.UserId, resp.Identity.OrgId, nil
+}
+
+func (*PromptBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
+}
 
 func CreateCustomPrompt(ctx *gin.Context, userId, orgId string, req request.CustomPromptCreate) (*response.CustomPromptIDResp, error) {
 	resp, err := assistant.CustomPromptCreate(ctx.Request.Context(), &assistant_service.CustomPromptCreateReq{
@@ -53,7 +83,17 @@ func DeleteCustomPrompt(ctx *gin.Context, userId, orgId string, req request.Cust
 }
 
 func UpdateCustomPrompt(ctx *gin.Context, userId, orgId string, req request.UpdateCustomPrompt) error {
-	_, err := assistant.CustomPromptUpdate(ctx.Request.Context(), &assistant_service.CustomPromptUpdateReq{
+	existingPrompt, err := assistant.CustomPromptGet(ctx.Request.Context(), &assistant_service.CustomPromptGetReq{
+		CustomPromptId: req.CustomPromptID,
+		Identity:       &assistant_service.Identity{UserId: userId, OrgId: orgId},
+	})
+	if err != nil {
+		return err
+	}
+	if err := util.ValidateBriefUpdate(&req.Name, existingPrompt.Name, &req.Desc, existingPrompt.Desc, util.SubjectPrompt); err != nil {
+		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
+	}
+	_, err = assistant.CustomPromptUpdate(ctx.Request.Context(), &assistant_service.CustomPromptUpdateReq{
 		CustomPromptId: req.CustomPromptID,
 		AvatarPath:     req.Avatar.Key,
 		Name:           req.Name,

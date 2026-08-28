@@ -2,23 +2,19 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 	"net"
-	"runtime/debug"
 	"time"
 
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 	model "github.com/UnicomAI/wanwu/internal/model-service/server/grpc/model"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"google.golang.org/grpc"
 
 	"github.com/UnicomAI/wanwu/internal/model-service/client"
 	"github.com/UnicomAI/wanwu/internal/model-service/config"
 	"github.com/UnicomAI/wanwu/pkg/log"
-	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/status"
 )
 
 type Server struct {
@@ -40,24 +36,17 @@ func (s *Server) Start(ctx context.Context) error {
 		return nil
 	}
 
-	// init
-	opts := []grpc_recovery.Option{
-		grpc_recovery.WithRecoveryHandler(func(p interface{}) error {
-			log.Errorf("[PANIC] %v\n%v", p, string(debug.Stack()))
-			return status.Error(codes.Internal, fmt.Sprintf("panic: %v", p))
-		}),
-	}
-	serverOptions := []grpc.ServerOption{
-		grpc.MaxRecvMsgSize(s.cfg.Server.MaxRecvMsgSize),
-		grpc.MaxSendMsgSize(s.cfg.Server.MaxRecvMsgSize),
-		grpc.ChainUnaryInterceptor(grpc_recovery.UnaryServerInterceptor(opts...)),
-		grpc.ChainStreamInterceptor(grpc_recovery.StreamServerInterceptor(opts...)),
-	}
-	s.serv = grpc.NewServer(serverOptions...)
+	// 使用 trace_util 创建 gRPC Server（自动集成追踪和 recovery）
+	s.serv = trace_util.NewGrpcTracerServer(
+		[]grpc.UnaryServerInterceptor{
+			trace_util.LoggingUnaryGRPC(),
+		},
+		nil,
+	)
 
 	healthcheck := health.NewServer()
 	healthpb.RegisterHealthServer(s.serv, healthcheck)
-	// 注册operate_service
+	// 注册 model_service
 	model_service.RegisterModelServiceServer(s.serv, s.model)
 	// listen
 	lis, err := net.Listen("tcp", s.cfg.Server.GrpcEndpoint)

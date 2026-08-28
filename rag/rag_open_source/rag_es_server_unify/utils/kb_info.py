@@ -5,48 +5,8 @@ import uuid
 from utils.config_util import es
 from log.logger import logger
 from elasticsearch import helpers
-from settings import GET_KB_ID_URL, KBNAME_MAPPING_INDEX
+from settings import KBNAME_MAPPING_INDEX
 
-
-def get_maas_kb_id(user_id, kb_name):
-    """获取maas的kb_id"""
-    try:
-        url = GET_KB_ID_URL + f"?userId={user_id}&categoryName={kb_name}"
-        r = requests.get(url)
-        result_data = json.loads(r.text)
-        if result_data["code"] == 0:
-            kb_id = result_data["data"].get('categoryId')
-            return kb_id
-        else:
-            raise RuntimeError(f"{kb_name},get_maas_kb_id Error, result: {result_data}, url:{GET_KB_ID_URL}")
-    except Exception as e:
-        raise RuntimeError(kb_name + ",get_maas_kb_id Error: " + str(e) + "url:" + GET_KB_ID_URL) from e
-
-
-def get_uk_kb_id(userId, kb_name):
-    """ 获取知识库映射的 kb_id """
-    kb_id = ""
-    logger.info(f"userId:{userId},kb_name:{kb_name} ====== get_uk_kb_id")
-    # 查询条件
-    query = {
-        "query": {
-            "bool": {
-                "must": [
-                    {"term": {"userId": userId}},
-                    {"term": {"kb_name": kb_name}},
-                ]
-            }
-        }
-    }
-    response = es.search(index=KBNAME_MAPPING_INDEX, body=query)
-    # 遍历搜索结果，获取 kb_id
-    for hit in response["hits"]["hits"]:
-        kb_id = hit['_source']["kb_id"]
-    # ========= 返回 =========
-    if not kb_id:
-        kb_id = get_maas_kb_id(userId, kb_name)  # 如果没有找到，则从 maas 知识库中获取
-    logger.info(f"userId:{userId},kb_name:{kb_name} 对应的 kb_id 为:{kb_id}")
-    return kb_id
 
 def is_multimodal_kb(user_id: str,
                      kb_name: str):
@@ -78,8 +38,6 @@ def get_uk_kb_info(userId, kb_name):
         raise ValueError("存在多条kb info 记录")
     for hit in response["hits"]["hits"]:
         kb_id = hit['_source']["kb_id"]
-        if not kb_id:
-            kb_id = get_maas_kb_id(userId, kb_name)  # 如果没有找到，则从 maas 知识库中获取
         kb_info["kb_id"] = kb_id
         kb_info["embedding_model_id"] = hit['_source']["embedding_model_id"]
         if "enable_graph" in hit['_source']:
@@ -121,12 +79,27 @@ def get_uk_kb_name_list(index_name, user_id):
 
 
 def get_uk_kb_id_list(index_name, user_id):
-    """ 获取 userid 的所有 kb_name 映射表下 某个 user_id 所有的知识库名称的集合"""
-    kb_id_list = []
-    kb_name_list = get_uk_kb_name_list(index_name, user_id)
-    for kb_name in kb_name_list:
-        kb_id_list.append(get_uk_kb_id(user_id, kb_name))
-    return kb_id_list
+    """获取某个 user_id 在映射表中所有知识库的 kb_id 列表（含 QA 库）"""
+    query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {"term": {"userId": user_id}},
+                ]
+            }
+        },
+        "_source": ["kb_id"],
+    }
+    return [
+        doc["_source"]["kb_id"]
+        for doc in helpers.scan(
+            es,
+            query=query,
+            index=index_name,
+            scroll="5m",
+            size=1000,
+        )
+    ]
 
 
 def get_uk_kb_emb_model_id(userId, kb_name):

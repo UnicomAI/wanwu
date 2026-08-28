@@ -3,6 +3,8 @@ package orm
 import (
 	"context"
 
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/orm/sqlopt"
 	async_task "github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/async-task"
@@ -37,6 +39,10 @@ func CreateKnowledgeQAPairImportTask(ctx context.Context, importTask *model.Know
 		//2.通知rag更新知识库
 		return async_task.SubmitTask(ctx, async_task.KnowledgeQAPairImportTaskType, &async_task.DocImportTaskParams{
 			TaskId: importTask.ImportId,
+			TaskTraceParams: async_task.TaskTraceParams{
+				TraceID: trace_util.GetTraceID(ctx),
+				SpanID:  trace_util.GetSpanID(ctx),
+			},
 		})
 	})
 }

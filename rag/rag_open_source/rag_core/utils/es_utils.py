@@ -9,12 +9,12 @@ from settings import ES_BASE_URL, TIME_OUT
 logger = logging.getLogger(__name__)
 
 
-def add_file(user_id, kb_name, file_name, file_meta, kb_id=""):
+def add_file(user_id, kb_info, file_name, file_meta):
     response_info = {'code': 0, "message": "成功"}
     url = ES_BASE_URL + '/api/v1/rag/es/add_file'
     headers = {'Content-Type': 'application/json'}
 
-    req_data = {'user_id': user_id, 'kb_name': kb_name, 'kb_id': kb_id, 'file_name': file_name, 'file_meta': file_meta}
+    req_data = {'user_id': user_id, 'kb_info': kb_info, 'file_name': file_name, 'file_meta': file_meta}
 
     try:
         response = requests.post(url, headers=headers, json=req_data, timeout=TIME_OUT)
@@ -31,11 +31,11 @@ def add_file(user_id, kb_name, file_name, file_meta, kb_id=""):
         return {'code': 1, "message": f"{e}"}
 
 
-def allocate_chunks(user_id, kb_name, file_name, count, chunk_type="text", kb_id=""):
+def allocate_chunks(user_id, kb_info, file_name, count, chunk_type="text"):
     url = ES_BASE_URL + '/api/v1/rag/es/allocate_chunks'
     headers = {'Content-Type': 'application/json'}
 
-    req_data = {'user_id': user_id, 'kb_name': kb_name, 'kb_id': kb_id, 'file_name': file_name, 'count': count, "chunk_type":chunk_type}
+    req_data = {'user_id': user_id, 'kb_info': kb_info, 'file_name': file_name, 'count': count, "chunk_type":chunk_type}
 
     try:
         response = requests.post(url, headers=headers, json=req_data, timeout=TIME_OUT)
@@ -49,14 +49,13 @@ def allocate_chunks(user_id, kb_name, file_name, count, chunk_type="text", kb_id
         return {'code': 1, "message": f"{e}"}
 
 
-def allocate_child_chunks(user_id, kb_name, file_name, chunk_id, count, kb_id=""):
+def allocate_child_chunks(user_id, kb_info, file_name, chunk_id, count):
     url = ES_BASE_URL + '/api/v1/rag/es/allocate_child_chunks'
     headers = {'Content-Type': 'application/json'}
 
     req_data = {
         'user_id': user_id,
-        'kb_name': kb_name,
-        'kb_id': kb_id,
+        'kb_info': kb_info,
         'file_name': file_name,
         'chunk_id': chunk_id,
         'count': count
@@ -74,12 +73,13 @@ def allocate_child_chunks(user_id, kb_name, file_name, chunk_id, count, kb_id=""
         return {'code': 1, "message": f"{e}"}
 
 
-def add_es(user_id, kb_name, docs, file_name, kb_id=""):
+def add_es(user_id, kb_info, docs, file_name):
     batch_size = 1000
     response_info = {'code': 0, "message": "成功"}
     url = ES_BASE_URL + '/api/v1/rag/es/bulk_add'
     headers = {'Content-Type': 'application/json'}
 
+    kb_name = kb_info["kb_name"]
     batch_count = 0
     success_count = 0
     fail_count = 0
@@ -91,8 +91,7 @@ def add_es(user_id, kb_name, docs, file_name, kb_id=""):
         es_data['index_name'] = es_data['index_name'].lower()
         es_data['doc_list'] = []
         es_data['user_id'] = user_id
-        es_data['kb_name'] = kb_name
-        es_data['kb_id'] = kb_id
+        es_data['kb_info'] = kb_info
 
         for doc in docs[i:i + batch_size]:
             chunk_dict = {
@@ -192,12 +191,17 @@ def kb_rescore(query, weights, search_list, top_k):
         return {"code": 1, "message": str(e)}
 
 
-def search_es(user_id, kb_names, query, top_k, kb_ids=[], filter_file_name_list=[], metadata_filtering_conditions = []):
+def search_es(user_id, kb_infos, query, top_k, filter_file_name_list=[], metadata_filtering_conditions = []):
+    """
+    :param kb_infos: [{"kb_name": "...", "kb_id": "..."}, ...]
+    """
     search_list = []
-    for kb_name in kb_names:
+    for kb_info in kb_infos:
+        kb_name = kb_info["kb_name"]
+        kb_id = kb_info["kb_id"]
         es_data = {}
         es_data['user_id'] = user_id
-        es_data['kb_name'] = kb_name
+        es_data['kb_info'] = kb_info
         es_data['query'] = query
         es_data['top_k'] = top_k
         es_data['min_score'] = 0
@@ -209,9 +213,7 @@ def search_es(user_id, kb_names, query, top_k, kb_ids=[], filter_file_name_list=
             response = requests.post(es_url, headers=headers, json=es_data, timeout=TIME_OUT)
             if response.status_code == 200:
                 tmp_sl = response.json()['result']['search_list']
-                for x in range(len(tmp_sl)):
-                    tmp_sl[x]['kb_name'] = kb_name
-                search_list = search_list + tmp_sl
+                search_list.extend(tmp_sl)
                 logger.info("知识库：" + repr(kb_name) + "es检索请求成功")
             else:
                 logger.error("知识库：" + repr(kb_name) + "es检索请求失败：" + repr(response.text))
@@ -220,12 +222,17 @@ def search_es(user_id, kb_names, query, top_k, kb_ids=[], filter_file_name_list=
     return search_list
 
 
-def search_graph_es(user_id, kb_names, query, top_k, kb_ids=[], filter_file_name_list=[]):
+def search_graph_es(user_id, kb_infos, query, top_k, filter_file_name_list=[]):
+    """
+    :param kb_infos: [{"kb_name": "...", "kb_id": "..."}, ...]
+    """
     search_list = []
-    for kb_name in kb_names:
+    for kb_info in kb_infos:
+        kb_name = kb_info["kb_name"]
+        kb_id = kb_info["kb_id"]
         es_data = {}
         es_data['user_id'] = user_id
-        es_data['kb_name'] = kb_name
+        es_data['kb_info'] = kb_info
         es_data['query'] = query
         es_data['top_k'] = top_k
         es_data['search_by'] = "graph_data_text"
@@ -237,9 +244,7 @@ def search_graph_es(user_id, kb_names, query, top_k, kb_ids=[], filter_file_name
             response = requests.post(es_url, headers=headers, json=es_data, timeout=TIME_OUT)
             if response.status_code == 200:
                 tmp_sl = response.json()['result']['search_list']
-                for x in range(len(tmp_sl)):
-                    tmp_sl[x]['kb_name'] = kb_name
-                search_list = search_list + tmp_sl
+                search_list.extend(tmp_sl)
                 logger.info("知识库：" + repr(kb_name) + f" query:{query}" + "graph_es检索请求成功")
             else:
                 logger.error("知识库：" + repr(kb_name) + f" query:{query}" + "graph_es检索请求失败：" + repr(response.text))
@@ -248,12 +253,17 @@ def search_graph_es(user_id, kb_names, query, top_k, kb_ids=[], filter_file_name
     return search_list
 
 
-def search_keyword(user_id, kb_names, keywords, top_k, kb_ids=[], filter_file_name_list=[], metadata_filtering_conditions = []):
+def search_keyword(user_id, kb_infos, keywords, top_k, filter_file_name_list=[], metadata_filtering_conditions = []):
+    """
+    :param kb_infos: [{"kb_name": "...", "kb_id": "..."}, ...]
+    """
     search_list = []
-    for kb_name in kb_names:
+    for kb_info in kb_infos:
+        kb_name = kb_info["kb_name"]
+        kb_id = kb_info["kb_id"]
         es_data = {}
         es_data['user_id'] = user_id
-        es_data['kb_name'] = kb_name
+        es_data['kb_info'] = kb_info
         es_data['keywords'] = keywords
         es_data['top_k'] = top_k
         es_data['min_score'] = 0
@@ -267,6 +277,7 @@ def search_keyword(user_id, kb_names, keywords, top_k, kb_ids=[], filter_file_na
                 tmp_sl = response.json()['result']['search_list']
                 for x in range(len(tmp_sl)):
                     tmp_sl[x]['kb_name'] = kb_name
+                    tmp_sl[x]['kb_id'] = kb_id
                 search_list = search_list + tmp_sl
                 logger.info("知识库：" + repr(kb_name) + "es keyword 检索请求成功")
             else:
@@ -276,15 +287,15 @@ def search_keyword(user_id, kb_names, keywords, top_k, kb_ids=[], filter_file_na
     return search_list
 
 
-def del_es_file(user_id, kb_name, file_name, kb_id=""):
+def del_es_file(user_id, kb_info, file_name):
     response_info = {'code': 0, "message": "成功"}
+    kb_name = kb_info["kb_name"]
     es_data = {}
     es_data['index_name'] = 'rag2_' + user_id + '_' + kb_name
     es_data['index_name'] = es_data['index_name'].lower()
     es_data['user_id'] = user_id
-    es_data['kb_name'] = kb_name
+    es_data['kb_info'] = kb_info
     es_data['title'] = file_name
-    es_data['kb_id'] = kb_id
     es_url = ES_BASE_URL + "/api/v1/rag/es/delete_doc"
     headers = {'Content-Type': 'application/json'}
     try:
@@ -317,14 +328,12 @@ def del_es_file(user_id, kb_name, file_name, kb_id=""):
         return response_info
 
 
-def del_es_kb(user_id, kb_name, kb_id=""):
+def del_es_kb(user_id, kb_info):
     response_info = {'code': 0, "message": "成功"}
+    kb_name = kb_info["kb_name"]
     es_data = {}
-    es_data['index_name'] = 'rag2_' + user_id + '_' + kb_name
-    es_data['index_name'] = es_data['index_name'].lower()
     es_data['user_id'] = user_id
-    es_data['kb_name'] = kb_name
-    es_data['kb_id'] = kb_id
+    es_data['kb_info'] = kb_info
     es_url = ES_BASE_URL + "/api/v1/rag/es/delete_index"
     headers = {'Content-Type': 'application/json'}
     response = requests.post(es_url, headers=headers, json=es_data, timeout=TIME_OUT)
@@ -391,15 +400,15 @@ def add_es_bak(user_id, kb_name, docs, file_name):
         print(traceback.format_exc())
         return False
 
-def init_qa_base(user_id, qa_base_name, qa_base_id, embedding_model_id):
+def init_qa_base(user_id, qa_info, embedding_model_id):
     response_info = {'code': 0, "message": '成功'}
     url = ES_BASE_URL + '/api/v1/rag/es/init_QA_base'
     headers = {'Content-Type': 'application/json'}
 
+    qa_base_name = qa_info["QABase"]
     data = {
         "userId": user_id,
-        "QABase": qa_base_name,
-        "QAId": qa_base_id,
+        "qa_info": qa_info,
         "embedding_model_id": embedding_model_id
     }
     try:
@@ -421,15 +430,15 @@ def init_qa_base(user_id, qa_base_name, qa_base_id, embedding_model_id):
         logger.error(f"es问答库初始化请求异常, user_id: {user_id}, qa_base_name: {qa_base_name}, exception: {repr(e)}")
         return response_info
 
-def del_qa_base(user_id, qa_base_name, qa_base_id):
+def del_qa_base(user_id, qa_info):
     response_info = {'code': 0, "message": "成功"}
     url = ES_BASE_URL + '/api/v1/rag/es/delete_QA_base'
     headers = {'Content-Type': 'application/json'}
 
+    qa_base_name = qa_info["QABase"]
     data = {
         "userId": user_id,
-        "QABase": qa_base_name,
-        "QAId": qa_base_id
+        "qa_info": qa_info
     }
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'), timeout=TIME_OUT)
@@ -451,15 +460,15 @@ def del_qa_base(user_id, qa_base_name, qa_base_id):
         return response_info
 
 
-def del_qas(user_id, qa_base_name, qa_base_id, qa_pair_ids):
+def del_qas(user_id, qa_info, qa_pair_ids):
     response_info = {'code': 0, "message": "成功"}
     url = ES_BASE_URL + '/api/v1/rag/es/batch-delete-QAs'
     headers = {'Content-Type': 'application/json'}
 
+    qa_base_name = qa_info["QABase"]
     data = {
         "userId": user_id,
-        "QABase": qa_base_name,
-        "QAId": qa_base_id,
+        "qa_info": qa_info,
         "QAPairIds": qa_pair_ids
     }
     try:
@@ -481,18 +490,20 @@ def del_qas(user_id, qa_base_name, qa_base_id, qa_pair_ids):
         logger.error(f"es删除问答对请求异常, user_id: {user_id}, qa_base_name: {qa_base_name}, exception: {repr(e)}")
         return response_info
 
-def add_qas(user_id, qa_base_name, qa_base_id, qa_list):
+def add_qas(user_id, qa_info, qa_list):
     batch_size = 1000
     response_info = {'code': 0, "message": "成功"}
     url = ES_BASE_URL + '/api/v1/rag/es/add-QAs'
     headers = {'Content-Type': 'application/json'}
 
+    qa_base_name = qa_info["QABase"]
+    qa_base_id = qa_info["QAId"]
     batch_count = 0
     qa_pair_ids = []
 
     try:
         for i in range(0, len(qa_list), batch_size):
-            es_data = {"userId": user_id, "QABase": qa_base_name, "QAId": qa_base_id, 'data': []}
+            es_data = {"userId": user_id, "qa_info": qa_info, 'data': []}
 
             for qa in qa_list[i:i + batch_size]:
                 qa_dict = {
@@ -528,7 +539,7 @@ def add_qas(user_id, qa_base_name, qa_base_id, qa_list):
         response_info['code'] = 1
         response_info['message'] = str(e)
         # 回滚
-        del_res = del_qas(user_id, qa_base_name, qa_base_id, qa_pair_ids)
+        del_res = del_qas(user_id, qa_info, qa_pair_ids)
         if del_res["code"] != 0:
             del_err_msg = del_res["message"]
             logger.error(f"问答对分批部分添加es失败后, 数据回滚也失败, user_id: {user_id}, qa_base_name: {qa_base_name}, "
@@ -537,15 +548,15 @@ def add_qas(user_id, qa_base_name, qa_base_id, qa_list):
     return response_info
 
 
-def update_qa_data(user_id, qa_base_name, qa_base_id, qa_pair_id, update_data):
+def update_qa_data(user_id, qa_info, qa_pair_id, update_data):
     response_info = {'code': 0, "message": "成功"}
     url = ES_BASE_URL + '/api/v1/rag/es/update_QA'
     headers = {'Content-Type': 'application/json'}
 
+    qa_base_name = qa_info["QABase"]
     data = {
         "userId": user_id,
-        "QABase": qa_base_name,
-        "QAId": qa_base_id,
+        "qa_info": qa_info,
         "QAPairId": qa_pair_id,
         "data": update_data
     }
@@ -569,15 +580,15 @@ def update_qa_data(user_id, qa_base_name, qa_base_id, qa_pair_id, update_data):
         return response_info
 
 
-def get_qa_list(user_id, qa_base_name, qa_base_id, page_size, search_after):
+def get_qa_list(user_id, qa_info, page_size, search_after):
     response_info = {'code': 0, "message": "成功"}
     url = ES_BASE_URL + '/api/v1/rag/es/get_QA_list'
     headers = {'Content-Type': 'application/json'}
 
+    qa_base_name = qa_info["QABase"]
     data = {
         "userId": user_id,
-        "QABase": qa_base_name,
-        "QAId": qa_base_id,
+        "qa_info": qa_info,
         "page_size": page_size,
         "search_after": search_after
     }
@@ -600,15 +611,15 @@ def get_qa_list(user_id, qa_base_name, qa_base_id, page_size, search_after):
         logger.error(f"问答对分页请求异常, user_id: {user_id}, qa_base_name: {qa_base_name}, exception: {repr(e)}")
         return response_info
 
-def update_qa_metas(user_id, qa_base_name, qa_base_id, metas, update_type):
+def update_qa_metas(user_id, qa_info, metas, update_type):
     response_info = {'code': 0, "message": "成功"}
     url = ES_BASE_URL + '/api/v1/rag/es/update_QA_metas'
     headers = {'Content-Type': 'application/json'}
 
+    qa_base_name = qa_info["QABase"]
     data = {
         "userId": user_id,
-        "QABase": qa_base_name,
-        "QAId": qa_base_id,
+        "qa_info": qa_info,
         "metas": metas,
         "update_type": update_type
     }
@@ -631,14 +642,14 @@ def update_qa_metas(user_id, qa_base_name, qa_base_id, metas, update_type):
         logger.error(f"es更新问答对元数据请求异常, user_id: {user_id}, qa_base_name: {qa_base_name}, exception: {repr(e)}")
         return response_info
 
-def vector_search(user_id, base_names, question, top_k, threshold=0.0, metadata_filtering_conditions = [], base_type="qa"):
+def vector_search(user_id, qa_infos, question, top_k, threshold=0.0, metadata_filtering_conditions = [], base_type="qa"):
     response_info = {'code': 0, "message": "成功", "data": {}}
     url = ES_BASE_URL + '/api/v1/rag/es/vector_search'
     headers = {'Content-Type': 'application/json'}
 
     data = {
         "userId": user_id,
-        "base_names": base_names,
+        "qa_infos": qa_infos,
         "topk": top_k,
         "question": question,
         "threshold": threshold,
@@ -650,31 +661,31 @@ def vector_search(user_id, base_names, question, top_k, threshold=0.0, metadata_
                                  timeout=TIME_OUT)
         if response.status_code != 200:
             logger.error(
-                f"问答对向量检索请求失败, user_id: {user_id}, base_names: {base_names}, response: {repr(response.text)}")
+                f"问答对向量检索请求失败, user_id: {user_id}, qa_infos: {qa_infos}, response: {repr(response.text)}")
             raise RuntimeError(str(response.text))
 
         result_data = response.json()
         if result_data['code'] != 0:
             logger.error(
-                f"问答对向量检索请求失败, user_id: {user_id}, base_names: {base_names}, response: {result_data}")
+                f"问答对向量检索请求失败, user_id: {user_id}, qa_infos: {qa_infos}, response: {result_data}")
             raise RuntimeError(result_data['message'])
 
-        logger.info(f"问答对向量检索请求成功, user_id: {user_id}, base_names: {base_names}")
+        logger.info(f"问答对向量检索请求成功, user_id: {user_id}, qa_infos: {qa_infos}")
         return result_data
     except Exception as e:
         response_info['code'] = 1
         response_info['message'] = str(e)
-        logger.error(f"问答对向量检索请求异常, user_id: {user_id}, base_names: {base_names}, exception: {repr(e)}")
+        logger.error(f"问答对向量检索请求异常, user_id: {user_id}, qa_infos: {qa_infos}, exception: {repr(e)}")
         return response_info
 
-def full_text_search(user_id, base_names, question, top_k, search_by = "question", threshold=0.0, metadata_filtering_conditions=[], base_type="qa"):
+def full_text_search(user_id, qa_infos, question, top_k, search_by = "question", threshold=0.0, metadata_filtering_conditions=[], base_type="qa"):
     response_info = {'code': 0, "message": "成功", "data": {}}
     url = ES_BASE_URL + '/api/v1/rag/es/text_search'
     headers = {'Content-Type': 'application/json'}
 
     data = {
         "userId": user_id,
-        "base_names": base_names,
+        "qa_infos": qa_infos,
         "topk": top_k,
         "question": question,
         "threshold": threshold,
@@ -686,21 +697,21 @@ def full_text_search(user_id, base_names, question, top_k, search_by = "question
                                  timeout=TIME_OUT)
         if response.status_code != 200:
             logger.error(
-                f"问答对全文检索请求失败, user_id: {user_id}, base_names: {base_names}, response: {repr(response.text)}")
+                f"问答对全文检索请求失败, user_id: {user_id}, qa_infos: {qa_infos}, response: {repr(response.text)}")
             raise RuntimeError(str(response.text))
 
         result_data = response.json()
         if result_data['code'] != 0:
             logger.error(
-                f"问答对全文检索请求失败, user_id: {user_id}, base_names: {base_names}, response: {result_data}")
+                f"问答对全文检索请求失败, user_id: {user_id}, qa_infos: {qa_infos}, response: {result_data}")
             raise RuntimeError(result_data['message'])
 
-        logger.info(f"问答对全文检索请求成功, user_id: {user_id}, base_names: {base_names}")
+        logger.info(f"问答对全文检索请求成功, user_id: {user_id}, qa_infos: {qa_infos}")
         return result_data
     except Exception as e:
         response_info['code'] = 1
         response_info['message'] = str(e)
-        logger.error(f"问答对全文检索请求异常, user_id: {user_id}, base_names: {base_names}, exception: {repr(e)}")
+        logger.error(f"问答对全文检索请求异常, user_id: {user_id}, qa_infos: {qa_infos}, exception: {repr(e)}")
         return response_info
 
 def qa_rescore(query, weights, top_k, search_list_infos):

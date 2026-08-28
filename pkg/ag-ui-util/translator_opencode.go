@@ -3,6 +3,7 @@ package ag_ui_util
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	aguievents "github.com/ag-ui-protocol/ag-ui/sdks/community/go/pkg/core/events"
 	"github.com/sst/opencode-sdk-go"
@@ -14,9 +15,12 @@ import (
 type opencodeEventType string
 
 const (
-	opencodeEventTypeText      opencodeEventType = "text"
-	opencodeEventTypeToolUse   opencodeEventType = "tool_use"
-	opencodeEventTypeReasoning opencodeEventType = "reasoning"
+	opencodeEventTypeText             opencodeEventType = "text"
+	opencodeEventTypeToolUse          opencodeEventType = "tool_use"
+	opencodeEventTypeReasoning        opencodeEventType = "reasoning"
+	opencodeEventTypeQuestionAsked    opencodeEventType = "question.asked"
+	opencodeEventTypeQuestionReplied  opencodeEventType = "question.replied"
+	opencodeEventTypeQuestionRejected opencodeEventType = "question.rejected"
 )
 
 type opencodeEvent struct {
@@ -115,6 +119,8 @@ func (t *OpencodeTranslator) translate(_ context.Context, line string) []aguieve
 		events = t.translateToolUse(evt.Part)
 	case opencodeEventTypeReasoning:
 		events = t.translateReasoning(evt.Part)
+	case opencodeEventTypeQuestionAsked, opencodeEventTypeQuestionReplied, opencodeEventTypeQuestionRejected:
+		events = t.translateQuestion(evt.Part, string(evt.Type))
 	case "error":
 		events = t.translateError(evt.Part)
 	}
@@ -254,4 +260,86 @@ func (t *OpencodeTranslator) getToolInput(state opencode.ToolPartState) string {
 		data, _ := json.Marshal(v)
 		return string(data)
 	}
+}
+
+type questionPart struct {
+	Type       string         `json:"type"`
+	QuestionID string         `json:"questionId"`
+	SessionID  string         `json:"sessionID"`
+	Status     string         `json:"status,omitempty"`
+	Questions  []questionItem `json:"questions"`
+	Answers    [][]string     `json:"answers,omitempty"`
+}
+
+type questionItem struct {
+	Question string           `json:"question"`
+	Header   string           `json:"header"`
+	Options  []questionOption `json:"options"`
+	Multiple bool             `json:"multiple"`
+	Custom   bool             `json:"custom"`
+}
+
+type questionOption struct {
+	Label       string `json:"label"`
+	Description string `json:"description"`
+}
+
+func (t *OpencodeTranslator) translateQuestion(partData json.RawMessage, eventType string) []aguievents.Event {
+	var part questionPart
+	if err := json.Unmarshal(partData, &part); err != nil {
+		log.Warnf("[ag-ui-util][%s] failed to parse question part: %v", t.RunID(), err)
+		return nil
+	}
+
+	status := part.Status
+	if status == "" {
+		switch eventType {
+		case string(opencodeEventTypeQuestionAsked):
+			status = "pending"
+		case string(opencodeEventTypeQuestionReplied):
+			status = "answered"
+		case string(opencodeEventTypeQuestionRejected):
+			status = "rejected"
+		}
+	}
+
+	questions := make([]any, 0, len(part.Questions))
+	for _, q := range part.Questions {
+		options := make([]any, 0, len(q.Options))
+		for _, opt := range q.Options {
+			options = append(options, map[string]any{
+				"label":       opt.Label,
+				"description": opt.Description,
+			})
+		}
+		questions = append(questions, map[string]any{
+			"question": q.Question,
+			"header":   q.Header,
+			"options":  options,
+			"multiple": q.Multiple,
+			"custom":   q.Custom,
+		})
+	}
+
+	content := map[string]any{
+		"questionId": part.QuestionID,
+		"runId":      t.RunID(),
+		"threadId":   t.ThreadID(),
+		"status":     status,
+		"questions":  questions,
+		"timestamp":  time.Now().UnixMilli(),
+	}
+	if len(part.Answers) > 0 {
+		content["answers"] = part.Answers
+	}
+
+	var events []aguievents.Event
+	events = append(events, t.EnsureRunStarted()...)
+	events = append(events, t.EndAll()...)
+	events = append(events, aguievents.NewActivitySnapshotEvent(
+		aguievents.GenerateStepID(),
+		ActivityTypeQuestion,
+		content,
+	))
+	return events
 }

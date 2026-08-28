@@ -109,6 +109,8 @@ definitions:
     type: object
   mp.ProviderModelByOpenAICompatible:
     properties:
+      asr:
+        $ref: '#/definitions/mp_openai_compatible.SyncAsr'
       embedding:
         $ref: '#/definitions/mp_openai_compatible.Embedding'
       llm:
@@ -356,11 +358,13 @@ definitions:
     properties:
       chat_template_kwargs:
         additionalProperties: true
+        description: 控制模型是否开启深度思考模式（元景）
         type: object
       do_sample:
         description: Yuanjing
         type: boolean
       enable_thinking:
+        description: 控制模型是否开启深度思考模式。
         type: boolean
       extra_body:
         allOf:
@@ -399,6 +403,9 @@ definitions:
       presence_penalty:
         description: 控制模型生成文本时的内容重复度
         type: number
+      reasoning_effort:
+        description: '控制模型的推理强度（Ds）Possible values: [high, max]'
+        type: string
       repetition_penalty:
         description: 模型生成时连续序列中的重复度
         type: number
@@ -602,48 +609,107 @@ definitions:
     required:
     - results
     type: object
-  mp_common.OcrData:
+  mp_common.OcrFileInfo:
     properties:
-      length:
+      fileName:
+        type: string
+      fileType:
+        type: string
+      totalPages:
         type: integer
-      page_num:
-        items:
-          type: integer
-        minItems: 1
-        type: array
-      text:
+    type: object
+  mp_common.OcrMeta:
+    properties:
+      requestId:
         type: string
-      type:
+      timestamp:
         type: string
+      traceId:
+        type: string
+    type: object
+  mp_common.OcrReq:
+    properties:
+      data:
+        type: string
+      extract_image:
+        type: integer
+      extract_image_content:
+        type: integer
+      fileName:
+        type: string
+      fileType:
+        type: integer
+      layoutNms:
+        description: 版面 NMS 去重
+        type: boolean
+      maxPixels:
+        description: 最大像素
+        type: integer
+      minPixels:
+        description: 最小像素
+        type: integer
+      model:
+        type: string
+      repetitionPenalty:
+        description: 重复惩罚
+        type: number
+      temperature:
+        description: 采样温度
+        type: number
+      topP:
+        description: top-p 采样
+        type: number
+      url:
+        type: string
+      useChartRecognition:
+        description: 以下为千帆 paddleocr 原生模型推理参数（仅 qianfan 使用）
+        type: boolean
+      useDocUnwarping:
+        description: 文档矫正
+        type: boolean
+      useLayoutDetection:
+        description: 版面检测
+        type: boolean
+      visualize:
+        description: 输出可视化结果
+        type: boolean
     required:
-    - page_num
-    - type
+    - fileName
     type: object
   mp_common.OcrResp:
     properties:
       code:
         type: integer
       data:
-        items:
-          $ref: '#/definitions/mp_common.OcrData'
-        type: array
-      filename:
-        type: string
-      id:
-        type: string
+        $ref: '#/definitions/mp_common.OcrRespData'
       message:
         type: string
-      sha1:
-        type: string
-      time_cost:
-        type: number
-      timestamp:
+      meta:
+        $ref: '#/definitions/mp_common.OcrMeta'
+      prefixImageUrl:
         type: string
       version:
         type: string
-    required:
-    - data
-    - message
+    type: object
+  mp_common.OcrRespData:
+    properties:
+      fileInfo:
+        $ref: '#/definitions/mp_common.OcrFileInfo'
+      fullContent:
+        type: string
+      ocrResults:
+        items:
+          $ref: '#/definitions/mp_common.OcrResult'
+        type: array
+    type: object
+  mp_common.OcrResult:
+    properties:
+      content:
+        type: string
+      pageNumber:
+        type: integer
+      type:
+        type: string
     type: object
   mp_common.OpenAIFunction:
     properties:
@@ -662,6 +728,8 @@ definitions:
       function_call:
         $ref: '#/definitions/mp_common.FunctionCall'
       name:
+        type: string
+      reasoning:
         type: string
       reasoning_content:
         type: string
@@ -682,6 +750,8 @@ definitions:
       function_call:
         $ref: '#/definitions/mp_common.FunctionCall'
       name:
+        type: string
+      reasoning:
         type: string
       reasoning_content:
         type: string
@@ -1220,6 +1290,17 @@ definitions:
         description: 推理url
         type: string
     type: object
+  mp_openai_compatible.SyncAsr:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      endpointUrl:
+        description: 推理url（完整地址，含 /v1/chat/completions）
+        type: string
+      maxAsrFileSize:
+        type: integer
+    type: object
   mp_qianfan.Embedding:
     properties:
       apiKey:
@@ -1445,6 +1526,11 @@ definitions:
       endpointUrl:
         description: 推理url
         type: string
+      supportFileTypes:
+        description: 支持的文件类型，由 bff-service 从 recommend_model_config.yaml 注入
+        items:
+          type: string
+        type: array
     type: object
   mp_yuanjing.PdfParser:
     properties:
@@ -1678,20 +1764,39 @@ definitions:
     type: object
   request.AppRecordRequest:
     properties:
+      answer:
+        description: 回复（精简）；始终落库；流式可空
+        type: string
       appId:
         type: string
       appType:
         type: string
+      failureReason:
+        description: FailureReason 失败原因；成功时传空。
+        type: string
       isStream:
         type: boolean
-      isSuccess:
-        type: boolean
+      module:
+        description: 板块 agent|rag|workflow|knowledge|...；空则按 appType 推断
+        type: string
       nonStreamCosts:
         type: integer
       orgId:
         type: string
+      question:
+        description: 用户提问（精简）；始终落库
+        type: string
+      requestBody:
+        description: 整体请求 JSON；受 statistic.record_body 控制
+        type: string
+      responseBody:
+        description: 整体响应 JSON；流式忽略；受 statistic.record_body 控制
+        type: string
       source:
         type: string
+      statusCode:
+        description: StatusCode 调用方透传的 HTTP 语义状态码；成功传 200，失败传对应码（如 500）。
+        type: integer
       streamCosts:
         type: integer
       userId:
@@ -1737,6 +1842,38 @@ definitions:
       llm_model_id:
         type: string
     type: object
+  request.DeleteDigitalEmployeePublishSyncReq:
+    properties:
+      employeeId:
+        description: 数字员工ID（即 app 表 appId）
+        type: string
+      userId:
+        description: 操作人用户ID（外部系统提供）
+        type: string
+    required:
+    - employeeId
+    - userId
+    type: object
+  request.DigitalEmployeePublishSyncReq:
+    properties:
+      employeeId:
+        description: 数字员工ID（即 app 表 appId）
+        type: string
+      orgId:
+        description: 发布者组织ID（外部系统提供）
+        type: string
+      publishType:
+        description: 发布类型(public/organization/private)
+        type: string
+      userId:
+        description: 发布者用户ID（外部系统提供）
+        type: string
+    required:
+    - employeeId
+    - orgId
+    - publishType
+    - userId
+    type: object
   request.FileUrlConvertBase64Req:
     properties:
       addPrefix:
@@ -1750,6 +1887,16 @@ definitions:
         type: string
     required:
     - fileUrl
+    type: object
+  request.GetUserListByUserIdsReq:
+    properties:
+      userIds:
+        description: 用户ID列表
+        items:
+          type: string
+        type: array
+    required:
+    - userIds
     type: object
   request.HistoryItem:
     properties:
@@ -2015,26 +2162,85 @@ definitions:
     - knowledgeIdList
     - userId
     type: object
-  request.SearchBuiltinSkillListReq:
+  request.SearchAcquiredSkillListReq:
     properties:
+      orgId:
+        type: string
       skillIdList:
         items:
           type: string
         type: array
+      userId:
+        description: |-
+          UserId/OrgId：同 SearchCustomSkillListReq 说明，应传智能体创建者身份，
+          而非 HTTP 调用者身份。
+        type: string
     required:
     - skillIdList
     type: object
-  request.SearchKnowledgeInfoReq:
+  request.SearchBuiltinSkillListReq:
     properties:
-      categoryName:
-        type: string
       orgId:
+        type: string
+      skillIdList:
+        items:
+          type: string
+        type: array
+      userId:
+        description: |-
+          UserId / OrgId 用于 mcp.GetBuiltinSkillVars 鉴权（builtin skill var 按 user 配）。
+          老 caller 不传时回退为不带 vars 的行为，保持向后兼容。
+        type: string
+    required:
+    - skillIdList
+    type: object
+  request.SearchCustomSkillListReq:
+    properties:
+      orgId:
+        type: string
+      skillIdList:
+        items:
+          type: string
+        type: array
+      userId:
+        description: |-
+          UserId/OrgId：调用方期望"以哪个用户身份"查询这批 skill 的详情与变量。
+          callback 由 assistant-service 在处理智能体（Assistant）对话时内部回调过来，
+          此处应传智能体在 assistant 表里的 user_id / org_id（智能体创建者），
+          而不是发起 HTTP 请求的调用者——发布态智能体常被非创建者调用，
+          用调用者身份会查不到创建者配置的 per-user skill 变量。
+        type: string
+    required:
+    - skillIdList
+    type: object
+  request.SendMessageRequest:
+    properties:
+      channelId:
+        type: string
+      content:
+        type: string
+      fileMimeType:
+        type: string
+      fileName:
+        type: string
+      fileUrl:
+        type: string
+      msgType:
+        type: string
+      title:
         type: string
       userId:
         type: string
     required:
-    - categoryName
-    - userId
+    - channelId
+    type: object
+  request.UnarchiveFileReq:
+    properties:
+      fileUrl:
+        description: 压缩包的MinIO URL
+        type: string
+    required:
+    - fileUrl
     type: object
   request.UploadFileByBase64Req:
     properties:
@@ -2058,12 +2264,36 @@ definitions:
         description: 语义权重
         type: number
     type: object
+  request.WgaRagSearchKnowledgeBaseReq:
+    properties:
+      knowledgeIdList:
+        items:
+          type: string
+        type: array
+      question:
+        type: string
+    required:
+    - knowledgeIdList
+    - question
+    type: object
   request.WgaSandboxCleanupReq:
     properties:
       runId:
         type: string
     required:
     - runId
+    type: object
+  request.WgaSandboxMCP:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      url:
+        type: string
+    required:
+    - name
+    - url
     type: object
   request.WgaSandboxMessage:
     properties:
@@ -2085,6 +2315,10 @@ definitions:
         type: string
       instruction:
         type: string
+      mcps:
+        items:
+          $ref: '#/definitions/request.WgaSandboxMCP'
+        type: array
       messages:
         items:
           $ref: '#/definitions/request.WgaSandboxMessage'
@@ -2116,10 +2350,127 @@ definitions:
     properties:
       dir:
         type: string
+      variables:
+        items:
+          $ref: '#/definitions/request.WgaSandboxSkillVariable'
+        type: array
     required:
     - dir
     type: object
+  request.WgaSandboxSkillVariable:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      variableKey:
+        type: string
+      variableValue:
+        type: string
+    required:
+    - name
+    - variableKey
+    - variableValue
+    type: object
   request.WgaSandboxTool:
+    properties:
+      apiAuth:
+        allOf:
+        - $ref: '#/definitions/util.ApiAuthWebRequest'
+        description: API 认证配置
+      operationIds:
+        description: 允许的 operations，空=全部允许
+        items:
+          type: string
+        type: array
+      schema:
+        description: OpenAPI 3.0 schema JSON 字符串
+        type: string
+    required:
+    - schema
+    type: object
+  response.CallbackAcquiredSkillDetail:
+    properties:
+      author:
+        type: string
+      avatar:
+        $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
+      desc:
+        type: string
+      name:
+        type: string
+      objectPath:
+        type: string
+      orgId:
+        type: string
+      skillId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      variables:
+        items:
+          $ref: '#/definitions/response.SkillVariable'
+        type: array
+    type: object
+  response.CallbackAcquiredSkillDetailListResp:
+    properties:
+      skillList:
+        items:
+          $ref: '#/definitions/response.CallbackAcquiredSkillDetail'
+        type: array
+    type: object
+  response.CallbackSkillDetail:
+    properties:
+      avatar:
+        type: string
+      desc:
+        type: string
+      name:
+        type: string
+      objectPath:
+        type: string
+      skillId:
+        type: string
+      skillType:
+        type: string
+    type: object
+  response.CustomSkillDetailListResp:
+    properties:
+      skillList:
+        items:
+          $ref: '#/definitions/response.CustomSkillListDetail'
+        type: array
+    type: object
+  response.CustomSkillListDetail:
+    properties:
+      author:
+        type: string
+      avatar:
+        $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
+      desc:
+        type: string
+      name:
+        type: string
+      objectPath:
+        type: string
+      orgId:
+        type: string
+      skillId:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      variables:
+        items:
+          $ref: '#/definitions/response.SkillVariable'
+        type: array
     type: object
   response.CustomToolActionInfo:
     properties:
@@ -2163,8 +2514,27 @@ definitions:
         description: schema
         type: string
     type: object
+  response.IDNameWithAvatar:
+    properties:
+      avatar:
+        $ref: '#/definitions/request.Avatar'
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  response.ListResult:
+    properties:
+      list: {}
+      total:
+        type: integer
+    type: object
   response.MCPDetail:
     properties:
+      apiAuth:
+        allOf:
+        - $ref: '#/definitions/util.ApiAuthWebRequest'
+        description: api身份认证
       avatar:
         allOf:
         - $ref: '#/definitions/request.Avatar'
@@ -2184,6 +2554,11 @@ definitions:
       from:
         description: 来源
         type: string
+      headers:
+        additionalProperties:
+          type: string
+        description: 请求头
+        type: object
       manual:
         description: 使用说明
         type: string
@@ -2210,6 +2585,9 @@ definitions:
         type: string
       transport:
         description: '传输协议: "sse" 或 "streamable"'
+        type: string
+      type:
+        description: 'type: mcp'
         type: string
     type: object
   response.MCPServerDetail:
@@ -2244,6 +2622,9 @@ definitions:
         items:
           $ref: '#/definitions/response.MCPServerToolInfo'
         type: array
+      transport:
+        description: sse/streamable
+        type: string
     type: object
   response.MCPServerToolInfo:
     properties:
@@ -2316,6 +2697,7 @@ definitions:
         description: 模型发布时间
         type: string
       scopeType:
+        description: 模型公开范围(1-私有 2-公开 3-组织)
         type: string
       tags:
         items:
@@ -2343,42 +2725,31 @@ definitions:
   response.SkillDetail:
     properties:
       author:
-        description: 作者
         type: string
       avatar:
-        allOf:
-        - $ref: '#/definitions/request.Avatar'
-        description: 模板头像
+        $ref: '#/definitions/request.Avatar'
+      createdAt:
+        type: string
       desc:
-        description: 模板描述
         type: string
       name:
-        description: 模板名称
+        type: string
+      orgId:
         type: string
       skillId:
-        description: 模板ID
         type: string
       skillMarkdown:
-        description: 模板markdown预览
         type: string
       skillPath:
-        description: markdown地址，内部使用，不要对外
         type: string
-    type: object
-  response.SkillDetailForWorkflow:
-    properties:
-      avatar:
+      updatedAt:
         type: string
-      desc:
+      userId:
         type: string
-      name:
-        type: string
-      objectPath:
-        type: string
-      skillId:
-        type: string
-      skillType:
-        type: string
+      variables:
+        items:
+          $ref: '#/definitions/response.SkillVariable'
+        type: array
     type: object
   response.SkillDetailListResp:
     properties:
@@ -2386,6 +2757,19 @@ definitions:
         items:
           $ref: '#/definitions/response.SkillDetail'
         type: array
+    type: object
+  response.SkillVariable:
+    properties:
+      desc:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      variableKey:
+        type: string
+      variableValue:
+        type: string
     type: object
   response.ToolSquareDetail:
     properties:
@@ -2431,11 +2815,66 @@ definitions:
           $ref: '#/definitions/protocol.Tool'
         type: array
     type: object
+  response.UnarchiveFileNode:
+    properties:
+      children:
+        description: 子节点（仅目录有）
+        items:
+          $ref: '#/definitions/response.UnarchiveFileNode'
+        type: array
+      downloadUrl:
+        description: 外部下载地址（仅文件有值）
+        type: string
+      minioUrl:
+        description: MinIO内部访问地址（仅文件有值）
+        type: string
+      name:
+        description: 文件或目录名
+        type: string
+      objectPath:
+        description: MinIO对象路径（如 file-upload/file-expire/unarchive/xxx/src/main.go）
+        type: string
+      relativePath:
+        description: 相对路径（如 src/main.go）
+        type: string
+      size:
+        description: 文件大小，字节（目录为0）
+        type: integer
+      type:
+        description: '"directory" 或 "file"'
+        type: string
+    type: object
+  response.UnarchiveFileResp:
+    properties:
+      children:
+        description: 目录树（从解压根目录的子节点开始）
+        items:
+          $ref: '#/definitions/response.UnarchiveFileNode'
+        type: array
+      objectPath:
+        description: MinIO顶层对象路径（如 file-upload/file-expire/unarchive/uuid）
+        type: string
+      totalFiles:
+        description: 总文件数
+        type: integer
+      totalSize:
+        description: 总文件大小（字节）
+        type: integer
+    type: object
   response.UploadFileByBase64Resp:
     properties:
       uri:
         type: string
       url:
+        type: string
+    type: object
+  response.UserInfoByApiKey:
+    properties:
+      orgId:
+        type: string
+      userId:
+        type: string
+      username:
         type: string
     type: object
   util.ApiAuthWebRequest:
@@ -2498,28 +2937,6 @@ paths:
       summary: 智能体代理问答
       tags:
       - callback
-  /api/category/info:
-    get:
-      consumes:
-      - application/json
-      description: 获取Maas平台知识库信息（模型扩展调用）
-      parameters:
-      - description: 根据知识库名称请求参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/request.SearchKnowledgeInfoReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-      summary: 获取Maas平台知识库信息（模型扩展调用）
-      tags:
-      - callback
   /api/deploy/info:
     get:
       consumes:
@@ -2570,6 +2987,31 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: 更新文档状态（模型扩展调用）
+      tags:
+      - callback
+  /api/key/user:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: api key
+        in: query
+        name: apikey
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.UserInfoByApiKey'
+              type: object
+      summary: 通过apikey获取用户信息（内部接口）
       tags:
       - callback
   /api/knowledge/status:
@@ -2668,11 +3110,62 @@ paths:
       summary: 获取MCP Server详情
       tags:
       - mcp.server
+  /callback/v1/channel/send-message:
+    post:
+      consumes:
+      - application/json
+      description: 内部服务给指定通道发消息（无鉴权，callback 接口）。channelId 必填；userId 可选，缺省由 channel-service
+        自动取该通道最近互动过的 IM 用户作收件人。msgType 支持 text（默认）/markdown/file；file 类型需 fileUrl+fileName，channel-service
+        下载字节后投递。成功无返回体，失败透传 gRPC err_code。
+      parameters:
+      - description: 内部服务发消息请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.SendMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 内部服务发消息
+      tags:
+      - callback
+  /callback/v1/skill/acquired/list:
+    post:
+      consumes:
+      - application/json
+      description: 获取我添加skill详情列表
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.SearchAcquiredSkillListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.CallbackAcquiredSkillDetailListResp'
+              type: object
+      summary: 获取我添加skill详情列表
+      tags:
+      - skill
   /callback/v1/skill/builtin/list:
     post:
       consumes:
       - application/json
-      description: 获取内置工具列表
+      description: 获取内置skill详情列表
       parameters:
       - description: 请求参数
         in: body
@@ -2692,7 +3185,34 @@ paths:
                 data:
                   $ref: '#/definitions/response.SkillDetailListResp'
               type: object
-      summary: 获取内置工具列表
+      summary: 获取内置skill详情列表
+      tags:
+      - skill
+  /callback/v1/skill/custom/list:
+    post:
+      consumes:
+      - application/json
+      description: 获取自定义skill详情列表
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.SearchCustomSkillListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.CustomSkillDetailListResp'
+              type: object
+      summary: 获取自定义skill详情列表
       tags:
       - skill
   /callback/v1/skill/detail:
@@ -2721,55 +3241,11 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/response.SkillDetailForWorkflow'
+                  $ref: '#/definitions/response.CallbackSkillDetail'
               type: object
-      summary: 获取技能详情（供workflow回调使用）
+      summary: 获取技能详情
       tags:
       - skill
-  /callback/wga/sandbox/cleanup:
-    post:
-      consumes:
-      - application/json
-      description: 清理沙箱资源
-      parameters:
-      - description: 请求参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/request.WgaSandboxCleanupReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-      summary: WGA沙箱清理
-      tags:
-      - wga-sandbox
-  /callback/wga/sandbox/run:
-    post:
-      consumes:
-      - application/json
-      description: 在沙箱容器中执行智能体任务，SSE流式返回结果
-      parameters:
-      - description: 请求参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/request.WgaSandboxRunReq'
-      produces:
-      - text/event-stream
-      responses:
-        "200":
-          description: SSE流式返回
-          schema:
-            type: string
-      summary: WGA沙箱运行
-      tags:
-      - wga-sandbox
   /chatflow/list:
     get:
       consumes:
@@ -2794,6 +3270,78 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: 根据userId和spaceId获取Chatflow
+      tags:
+      - callback
+  /digital-employee/publish/sync:
+    delete:
+      consumes:
+      - application/json
+      description: 外部系统（ontology/vega）删除数字员工时回调本接口，删除 app 表 appType=digitalemployee
+        行（以 employeeId 为准，幂等，目标不存在也返回成功）。万悟自拟格式：employeeId/userId。
+      parameters:
+      - description: 删除/下架同步请求
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteDigitalEmployeePublishSyncReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 数字员工删除/下架同步
+      tags:
+      - callback
+    post:
+      consumes:
+      - application/json
+      description: 外部系统（ontology/vega）发布数字员工时回调本接口，登记 app 表 appType=digitalemployee
+        行（upsert，幂等）。万悟自拟格式：employeeId/publishType/userId/orgId。
+      parameters:
+      - description: 发布状态同步请求
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DigitalEmployeePublishSyncReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 数字员工发布状态同步
+      tags:
+      - callback
+  /file/unarchive:
+    post:
+      consumes:
+      - application/json
+      description: 解压MinIO中的压缩包，将文件上传到MinIO并返回目录结构
+      parameters:
+      - description: 解压压缩包请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UnarchiveFileReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.UnarchiveFileResp'
+              type: object
+      summary: 解压压缩包
       tags:
       - callback
   /file/upload/base64:
@@ -3032,18 +3580,19 @@ paths:
   /model/{modelId}/ocr:
     post:
       consumes:
-      - multipart/form-data
+      - application/json
       parameters:
       - description: 模型ID
         in: path
         name: modelId
         required: true
         type: string
-      - description: 文件
-        in: formData
-        name: file
+      - description: 请求参数
+        in: body
+        name: data
         required: true
-        type: file
+        schema:
+          $ref: '#/definitions/mp_common.OcrReq'
       produces:
       - application/json
       responses:
@@ -3108,6 +3657,42 @@ paths:
           schema:
             $ref: '#/definitions/mp_common.RerankResp'
       summary: Model Rerank
+      tags:
+      - callback
+  /model/{modelId}/trace/{traceId}/span/{spanId}/chat/completions:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 模型ID
+        in: path
+        name: modelId
+        required: true
+        type: string
+      - description: Trace ID
+        in: path
+        name: traceId
+        required: true
+        type: string
+      - description: Span ID
+        in: path
+        name: spanId
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/mp_common.LLMReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/mp_common.LLMResp'
+      summary: Model Chat Completions with Trace
       tags:
       - callback
   /rag/knowledge/stream/search:
@@ -3176,6 +3761,110 @@ paths:
       summary: 查询问答列表（命中测试）
       tags:
       - callback
+  /user/list:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 根据userIds获取用户信息参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetUserListByUserIdsReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      List:
+                        items:
+                          $ref: '#/definitions/response.IDNameWithAvatar'
+                        type: array
+                    type: object
+              type: object
+      summary: 根据userIds获取用户信息
+      tags:
+      - callback
+  /wga/rag/search-knowledge-base:
+    post:
+      consumes:
+      - application/json
+      description: WGA专用知识库检索接口
+      parameters:
+      - description: 用户ID
+        in: header
+        name: X-uid
+        required: true
+        type: string
+      - description: WGA知识库检索请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.WgaRagSearchKnowledgeBaseReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: WGA知识库检索
+      tags:
+      - callback
+  /wga/sandbox/cleanup:
+    post:
+      consumes:
+      - application/json
+      description: 清理沙箱资源
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.WgaSandboxCleanupReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: WGA沙箱清理
+      tags:
+      - wga-sandbox
+  /wga/sandbox/run:
+    post:
+      consumes:
+      - application/json
+      description: 在沙箱容器中执行智能体任务，SSE流式返回结果
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.WgaSandboxRunReq'
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: SSE流式返回
+          schema:
+            type: string
+      summary: WGA沙箱运行
+      tags:
+      - wga-sandbox
   /workflow/list:
     get:
       consumes:

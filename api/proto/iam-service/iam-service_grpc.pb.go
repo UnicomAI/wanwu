@@ -34,25 +34,39 @@ const (
 	IAMService_GetUserPermission_FullMethodName           = "/iam_service.IAMService/GetUserPermission"
 	IAMService_ChangeUserLanguage_FullMethodName          = "/iam_service.IAMService/ChangeUserLanguage"
 	IAMService_UpdateUserAvatar_FullMethodName            = "/iam_service.IAMService/UpdateUserAvatar"
+	IAMService_IsUserOrgAdmin_FullMethodName              = "/iam_service.IAMService/IsUserOrgAdmin"
+	IAMService_IsAdminInOrgs_FullMethodName               = "/iam_service.IAMService/IsAdminInOrgs"
 	IAMService_GetOrgSelect_FullMethodName                = "/iam_service.IAMService/GetOrgSelect"
 	IAMService_GetOrgList_FullMethodName                  = "/iam_service.IAMService/GetOrgList"
 	IAMService_GetOrgInfo_FullMethodName                  = "/iam_service.IAMService/GetOrgInfo"
 	IAMService_GetOrgByOrgIDs_FullMethodName              = "/iam_service.IAMService/GetOrgByOrgIDs"
+	IAMService_GetUsersByOrgIDs_FullMethodName            = "/iam_service.IAMService/GetUsersByOrgIDs"
+	IAMService_ValidateUserOrgPairs_FullMethodName        = "/iam_service.IAMService/ValidateUserOrgPairs"
+	IAMService_GetUserOrgMembership_FullMethodName        = "/iam_service.IAMService/GetUserOrgMembership"
 	IAMService_GetOrgAndSubOrgSelectByUser_FullMethodName = "/iam_service.IAMService/GetOrgAndSubOrgSelectByUser"
 	IAMService_GetFirstClassOrgAndSubs_FullMethodName     = "/iam_service.IAMService/GetFirstClassOrgAndSubs"
+	IAMService_GetAdminOrgSelect_FullMethodName           = "/iam_service.IAMService/GetAdminOrgSelect"
+	IAMService_GetAdminOrgSubTree_FullMethodName          = "/iam_service.IAMService/GetAdminOrgSubTree"
+	IAMService_GetAdminOrgIDs_FullMethodName              = "/iam_service.IAMService/GetAdminOrgIDs"
 	IAMService_CreateOrg_FullMethodName                   = "/iam_service.IAMService/CreateOrg"
 	IAMService_UpdateOrg_FullMethodName                   = "/iam_service.IAMService/UpdateOrg"
 	IAMService_DeleteOrg_FullMethodName                   = "/iam_service.IAMService/DeleteOrg"
 	IAMService_ChangeOrgStatus_FullMethodName             = "/iam_service.IAMService/ChangeOrgStatus"
 	IAMService_AddOrgUser_FullMethodName                  = "/iam_service.IAMService/AddOrgUser"
 	IAMService_RemoveOrgUser_FullMethodName               = "/iam_service.IAMService/RemoveOrgUser"
+	IAMService_BatchRemoveOrgUser_FullMethodName          = "/iam_service.IAMService/BatchRemoveOrgUser"
+	IAMService_BatchDeleteUser_FullMethodName             = "/iam_service.IAMService/BatchDeleteUser"
 	IAMService_GetRoleSelect_FullMethodName               = "/iam_service.IAMService/GetRoleSelect"
+	IAMService_GetGlobalRoleSelect_FullMethodName         = "/iam_service.IAMService/GetGlobalRoleSelect"
+	IAMService_GetGlobalRoleList_FullMethodName           = "/iam_service.IAMService/GetGlobalRoleList"
 	IAMService_GetRoleList_FullMethodName                 = "/iam_service.IAMService/GetRoleList"
 	IAMService_GetRoleInfo_FullMethodName                 = "/iam_service.IAMService/GetRoleInfo"
 	IAMService_CreateRole_FullMethodName                  = "/iam_service.IAMService/CreateRole"
 	IAMService_UpdateRole_FullMethodName                  = "/iam_service.IAMService/UpdateRole"
 	IAMService_DeleteRole_FullMethodName                  = "/iam_service.IAMService/DeleteRole"
 	IAMService_ChangeRoleStatus_FullMethodName            = "/iam_service.IAMService/ChangeRoleStatus"
+	IAMService_GetRoleUsers_FullMethodName                = "/iam_service.IAMService/GetRoleUsers"
+	IAMService_RemoveRoleUser_FullMethodName              = "/iam_service.IAMService/RemoveRoleUser"
 	IAMService_GetCaptcha_FullMethodName                  = "/iam_service.IAMService/GetCaptcha"
 	IAMService_Login_FullMethodName                       = "/iam_service.IAMService/Login"
 	IAMService_LoginByEmail_FullMethodName                = "/iam_service.IAMService/LoginByEmail"
@@ -84,9 +98,9 @@ type IAMServiceClient interface {
 	// 获取用户
 	GetUserInfo(ctx context.Context, in *GetUserInfoReq, opts ...grpc.CallOption) (*UserInfo, error)
 	// 创建用户
-	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*IDName, error)
+	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*IDNameWithAvatar, error)
 	// 批量导入用户
-	CreateUsers(ctx context.Context, in *CreateUsersReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CreateUsers(ctx context.Context, in *CreateUsersReq, opts ...grpc.CallOption) (*CreateUsersResp, error)
 	// 编辑用户
 	UpdateUser(ctx context.Context, in *UpdateUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 删除用户
@@ -103,20 +117,36 @@ type IAMServiceClient interface {
 	ChangeUserLanguage(ctx context.Context, in *ChangeUserLanguageReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 上传用户头像
 	UpdateUserAvatar(ctx context.Context, in *UpdateUserAvatarReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 查询用户在系统中是否存在任一组织的管理员角色
+	IsUserOrgAdmin(ctx context.Context, in *IsUserOrgAdminReq, opts ...grpc.CallOption) (*IsUserOrgAdminResp, error)
+	// 查询用户对指定组织是否拥有管理员权限（含祖先组织继承）
+	IsAdminInOrgs(ctx context.Context, in *IsAdminInOrgsReq, opts ...grpc.CallOption) (*IsAdminInOrgsResp, error)
 	// 获取组织列表（用于下拉选择）
-	GetOrgSelect(ctx context.Context, in *GetOrgSelectReq, opts ...grpc.CallOption) (*Select, error)
+	GetOrgSelect(ctx context.Context, in *GetOrgSelectReq, opts ...grpc.CallOption) (*OrgSelectResp, error)
 	// 获取组织列表
 	GetOrgList(ctx context.Context, in *GetOrgListReq, opts ...grpc.CallOption) (*GetOrgListResp, error)
 	// 获取组织
 	GetOrgInfo(ctx context.Context, in *GetOrgInfoReq, opts ...grpc.CallOption) (*OrgInfo, error)
 	// 通过orgIds获取组织信息
 	GetOrgByOrgIDs(ctx context.Context, in *GetOrgByOrgIDsReq, opts ...grpc.CallOption) (*GetOrgByOrgIDsResp, error)
+	// 通过多个orgId获取用户列表（去重、不过滤禁用状态）
+	GetUsersByOrgIDs(ctx context.Context, in *GetUsersByOrgIDsReq, opts ...grpc.CallOption) (*GetUsersByOrgIDsResp, error)
+	// 校验用户-组织二元组有效性（去重 + 过滤禁用账号/禁用成员 + 数量上限）
+	ValidateUserOrgPairs(ctx context.Context, in *ValidateUserOrgPairsReq, opts ...grpc.CallOption) (*ValidateUserOrgPairsResp, error)
+	// 查询单用户在指定组织的成员关系（加入时间 + 状态）
+	GetUserOrgMembership(ctx context.Context, in *GetUserOrgMembershipReq, opts ...grpc.CallOption) (*GetUserOrgMembershipResp, error)
 	// 获取子组织信息
 	GetOrgAndSubOrgSelectByUser(ctx context.Context, in *GetOrgAndSubOrgSelectByUserReq, opts ...grpc.CallOption) (*GetOrgAndSubOrgSelectByUserResp, error)
 	// 获取组织树
 	GetFirstClassOrgAndSubs(ctx context.Context, in *GetFirstClassOrgAndSubsReq, opts ...grpc.CallOption) (*GetFirstClassOrgAndSubsResp, error)
+	// 获取管理员组织及下级组织列表（用于下拉选择）
+	GetAdminOrgSelect(ctx context.Context, in *GetAdminOrgSelectReq, opts ...grpc.CallOption) (*OrgSelectResp, error)
+	// 获取管理员组织及下级组织树
+	GetAdminOrgSubTree(ctx context.Context, in *GetAdminOrgSubTreeReq, opts ...grpc.CallOption) (*AdminOrgSubTreeResp, error)
+	// 获取用户有权限的组织ID列表（登录用户的管理员组织及其所有下级组织）
+	GetAdminOrgIDs(ctx context.Context, in *GetAdminOrgIDsReq, opts ...grpc.CallOption) (*GetAdminOrgIDsResp, error)
 	// 创建组织
-	CreateOrg(ctx context.Context, in *CreateOrgReq, opts ...grpc.CallOption) (*IDName, error)
+	CreateOrg(ctx context.Context, in *CreateOrgReq, opts ...grpc.CallOption) (*IDNameWithAvatar, error)
 	// 编辑组织
 	UpdateOrg(ctx context.Context, in *UpdateOrgReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 删除组织
@@ -127,8 +157,16 @@ type IAMServiceClient interface {
 	AddOrgUser(ctx context.Context, in *AddOrgUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 移除组织用户
 	RemoveOrgUser(ctx context.Context, in *RemoveOrgUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 批量移除组织用户
+	BatchRemoveOrgUser(ctx context.Context, in *BatchRemoveOrgUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 批量删除用户（从系统删除）
+	BatchDeleteUser(ctx context.Context, in *BatchDeleteUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 获取角色列表（用于下拉选择）
 	GetRoleSelect(ctx context.Context, in *GetRoleSelectReq, opts ...grpc.CallOption) (*GetRoleSelectResp, error)
+	// 获取全局角色列表（用于下拉选择）
+	GetGlobalRoleSelect(ctx context.Context, in *GetGlobalRoleSelectReq, opts ...grpc.CallOption) (*GetGlobalRoleSelectResp, error)
+	// 获取全局角色列表
+	GetGlobalRoleList(ctx context.Context, in *GetGlobalRoleListReq, opts ...grpc.CallOption) (*GetGlobalRoleListResp, error)
 	// 获取角色列表
 	GetRoleList(ctx context.Context, in *GetRoleListReq, opts ...grpc.CallOption) (*GetRoleListResp, error)
 	// 获取角色
@@ -141,6 +179,10 @@ type IAMServiceClient interface {
 	DeleteRole(ctx context.Context, in *DeleteRoleReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 修改角色状态
 	ChangeRoleStatus(ctx context.Context, in *ChangeRoleStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 获取角色关联用户列表
+	GetRoleUsers(ctx context.Context, in *GetRoleUsersReq, opts ...grpc.CallOption) (*GetRoleUsersResp, error)
+	// 移除角色关联用户
+	RemoveRoleUser(ctx context.Context, in *RemoveRoleUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 获取验证码
 	GetCaptcha(ctx context.Context, in *GetCaptchaReq, opts ...grpc.CallOption) (*GetCaptchaResp, error)
 	// 登录
@@ -226,9 +268,9 @@ func (c *iAMServiceClient) GetUserInfo(ctx context.Context, in *GetUserInfoReq, 
 	return out, nil
 }
 
-func (c *iAMServiceClient) CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*IDName, error) {
+func (c *iAMServiceClient) CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*IDNameWithAvatar, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(IDName)
+	out := new(IDNameWithAvatar)
 	err := c.cc.Invoke(ctx, IAMService_CreateUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -236,9 +278,9 @@ func (c *iAMServiceClient) CreateUser(ctx context.Context, in *CreateUserReq, op
 	return out, nil
 }
 
-func (c *iAMServiceClient) CreateUsers(ctx context.Context, in *CreateUsersReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *iAMServiceClient) CreateUsers(ctx context.Context, in *CreateUsersReq, opts ...grpc.CallOption) (*CreateUsersResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
+	out := new(CreateUsersResp)
 	err := c.cc.Invoke(ctx, IAMService_CreateUsers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -326,9 +368,29 @@ func (c *iAMServiceClient) UpdateUserAvatar(ctx context.Context, in *UpdateUserA
 	return out, nil
 }
 
-func (c *iAMServiceClient) GetOrgSelect(ctx context.Context, in *GetOrgSelectReq, opts ...grpc.CallOption) (*Select, error) {
+func (c *iAMServiceClient) IsUserOrgAdmin(ctx context.Context, in *IsUserOrgAdminReq, opts ...grpc.CallOption) (*IsUserOrgAdminResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Select)
+	out := new(IsUserOrgAdminResp)
+	err := c.cc.Invoke(ctx, IAMService_IsUserOrgAdmin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) IsAdminInOrgs(ctx context.Context, in *IsAdminInOrgsReq, opts ...grpc.CallOption) (*IsAdminInOrgsResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IsAdminInOrgsResp)
+	err := c.cc.Invoke(ctx, IAMService_IsAdminInOrgs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetOrgSelect(ctx context.Context, in *GetOrgSelectReq, opts ...grpc.CallOption) (*OrgSelectResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OrgSelectResp)
 	err := c.cc.Invoke(ctx, IAMService_GetOrgSelect_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -366,6 +428,36 @@ func (c *iAMServiceClient) GetOrgByOrgIDs(ctx context.Context, in *GetOrgByOrgID
 	return out, nil
 }
 
+func (c *iAMServiceClient) GetUsersByOrgIDs(ctx context.Context, in *GetUsersByOrgIDsReq, opts ...grpc.CallOption) (*GetUsersByOrgIDsResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUsersByOrgIDsResp)
+	err := c.cc.Invoke(ctx, IAMService_GetUsersByOrgIDs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ValidateUserOrgPairs(ctx context.Context, in *ValidateUserOrgPairsReq, opts ...grpc.CallOption) (*ValidateUserOrgPairsResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateUserOrgPairsResp)
+	err := c.cc.Invoke(ctx, IAMService_ValidateUserOrgPairs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetUserOrgMembership(ctx context.Context, in *GetUserOrgMembershipReq, opts ...grpc.CallOption) (*GetUserOrgMembershipResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserOrgMembershipResp)
+	err := c.cc.Invoke(ctx, IAMService_GetUserOrgMembership_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *iAMServiceClient) GetOrgAndSubOrgSelectByUser(ctx context.Context, in *GetOrgAndSubOrgSelectByUserReq, opts ...grpc.CallOption) (*GetOrgAndSubOrgSelectByUserResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetOrgAndSubOrgSelectByUserResp)
@@ -386,9 +478,39 @@ func (c *iAMServiceClient) GetFirstClassOrgAndSubs(ctx context.Context, in *GetF
 	return out, nil
 }
 
-func (c *iAMServiceClient) CreateOrg(ctx context.Context, in *CreateOrgReq, opts ...grpc.CallOption) (*IDName, error) {
+func (c *iAMServiceClient) GetAdminOrgSelect(ctx context.Context, in *GetAdminOrgSelectReq, opts ...grpc.CallOption) (*OrgSelectResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(IDName)
+	out := new(OrgSelectResp)
+	err := c.cc.Invoke(ctx, IAMService_GetAdminOrgSelect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetAdminOrgSubTree(ctx context.Context, in *GetAdminOrgSubTreeReq, opts ...grpc.CallOption) (*AdminOrgSubTreeResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminOrgSubTreeResp)
+	err := c.cc.Invoke(ctx, IAMService_GetAdminOrgSubTree_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetAdminOrgIDs(ctx context.Context, in *GetAdminOrgIDsReq, opts ...grpc.CallOption) (*GetAdminOrgIDsResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAdminOrgIDsResp)
+	err := c.cc.Invoke(ctx, IAMService_GetAdminOrgIDs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) CreateOrg(ctx context.Context, in *CreateOrgReq, opts ...grpc.CallOption) (*IDNameWithAvatar, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IDNameWithAvatar)
 	err := c.cc.Invoke(ctx, IAMService_CreateOrg_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -446,10 +568,50 @@ func (c *iAMServiceClient) RemoveOrgUser(ctx context.Context, in *RemoveOrgUserR
 	return out, nil
 }
 
+func (c *iAMServiceClient) BatchRemoveOrgUser(ctx context.Context, in *BatchRemoveOrgUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, IAMService_BatchRemoveOrgUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) BatchDeleteUser(ctx context.Context, in *BatchDeleteUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, IAMService_BatchDeleteUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *iAMServiceClient) GetRoleSelect(ctx context.Context, in *GetRoleSelectReq, opts ...grpc.CallOption) (*GetRoleSelectResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetRoleSelectResp)
 	err := c.cc.Invoke(ctx, IAMService_GetRoleSelect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetGlobalRoleSelect(ctx context.Context, in *GetGlobalRoleSelectReq, opts ...grpc.CallOption) (*GetGlobalRoleSelectResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetGlobalRoleSelectResp)
+	err := c.cc.Invoke(ctx, IAMService_GetGlobalRoleSelect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetGlobalRoleList(ctx context.Context, in *GetGlobalRoleListReq, opts ...grpc.CallOption) (*GetGlobalRoleListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetGlobalRoleListResp)
+	err := c.cc.Invoke(ctx, IAMService_GetGlobalRoleList_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -510,6 +672,26 @@ func (c *iAMServiceClient) ChangeRoleStatus(ctx context.Context, in *ChangeRoleS
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, IAMService_ChangeRoleStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetRoleUsers(ctx context.Context, in *GetRoleUsersReq, opts ...grpc.CallOption) (*GetRoleUsersResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRoleUsersResp)
+	err := c.cc.Invoke(ctx, IAMService_GetRoleUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) RemoveRoleUser(ctx context.Context, in *RemoveRoleUserReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, IAMService_RemoveRoleUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -689,9 +871,9 @@ type IAMServiceServer interface {
 	// 获取用户
 	GetUserInfo(context.Context, *GetUserInfoReq) (*UserInfo, error)
 	// 创建用户
-	CreateUser(context.Context, *CreateUserReq) (*IDName, error)
+	CreateUser(context.Context, *CreateUserReq) (*IDNameWithAvatar, error)
 	// 批量导入用户
-	CreateUsers(context.Context, *CreateUsersReq) (*emptypb.Empty, error)
+	CreateUsers(context.Context, *CreateUsersReq) (*CreateUsersResp, error)
 	// 编辑用户
 	UpdateUser(context.Context, *UpdateUserReq) (*emptypb.Empty, error)
 	// 删除用户
@@ -708,20 +890,36 @@ type IAMServiceServer interface {
 	ChangeUserLanguage(context.Context, *ChangeUserLanguageReq) (*emptypb.Empty, error)
 	// 上传用户头像
 	UpdateUserAvatar(context.Context, *UpdateUserAvatarReq) (*emptypb.Empty, error)
+	// 查询用户在系统中是否存在任一组织的管理员角色
+	IsUserOrgAdmin(context.Context, *IsUserOrgAdminReq) (*IsUserOrgAdminResp, error)
+	// 查询用户对指定组织是否拥有管理员权限（含祖先组织继承）
+	IsAdminInOrgs(context.Context, *IsAdminInOrgsReq) (*IsAdminInOrgsResp, error)
 	// 获取组织列表（用于下拉选择）
-	GetOrgSelect(context.Context, *GetOrgSelectReq) (*Select, error)
+	GetOrgSelect(context.Context, *GetOrgSelectReq) (*OrgSelectResp, error)
 	// 获取组织列表
 	GetOrgList(context.Context, *GetOrgListReq) (*GetOrgListResp, error)
 	// 获取组织
 	GetOrgInfo(context.Context, *GetOrgInfoReq) (*OrgInfo, error)
 	// 通过orgIds获取组织信息
 	GetOrgByOrgIDs(context.Context, *GetOrgByOrgIDsReq) (*GetOrgByOrgIDsResp, error)
+	// 通过多个orgId获取用户列表（去重、不过滤禁用状态）
+	GetUsersByOrgIDs(context.Context, *GetUsersByOrgIDsReq) (*GetUsersByOrgIDsResp, error)
+	// 校验用户-组织二元组有效性（去重 + 过滤禁用账号/禁用成员 + 数量上限）
+	ValidateUserOrgPairs(context.Context, *ValidateUserOrgPairsReq) (*ValidateUserOrgPairsResp, error)
+	// 查询单用户在指定组织的成员关系（加入时间 + 状态）
+	GetUserOrgMembership(context.Context, *GetUserOrgMembershipReq) (*GetUserOrgMembershipResp, error)
 	// 获取子组织信息
 	GetOrgAndSubOrgSelectByUser(context.Context, *GetOrgAndSubOrgSelectByUserReq) (*GetOrgAndSubOrgSelectByUserResp, error)
 	// 获取组织树
 	GetFirstClassOrgAndSubs(context.Context, *GetFirstClassOrgAndSubsReq) (*GetFirstClassOrgAndSubsResp, error)
+	// 获取管理员组织及下级组织列表（用于下拉选择）
+	GetAdminOrgSelect(context.Context, *GetAdminOrgSelectReq) (*OrgSelectResp, error)
+	// 获取管理员组织及下级组织树
+	GetAdminOrgSubTree(context.Context, *GetAdminOrgSubTreeReq) (*AdminOrgSubTreeResp, error)
+	// 获取用户有权限的组织ID列表（登录用户的管理员组织及其所有下级组织）
+	GetAdminOrgIDs(context.Context, *GetAdminOrgIDsReq) (*GetAdminOrgIDsResp, error)
 	// 创建组织
-	CreateOrg(context.Context, *CreateOrgReq) (*IDName, error)
+	CreateOrg(context.Context, *CreateOrgReq) (*IDNameWithAvatar, error)
 	// 编辑组织
 	UpdateOrg(context.Context, *UpdateOrgReq) (*emptypb.Empty, error)
 	// 删除组织
@@ -732,8 +930,16 @@ type IAMServiceServer interface {
 	AddOrgUser(context.Context, *AddOrgUserReq) (*emptypb.Empty, error)
 	// 移除组织用户
 	RemoveOrgUser(context.Context, *RemoveOrgUserReq) (*emptypb.Empty, error)
+	// 批量移除组织用户
+	BatchRemoveOrgUser(context.Context, *BatchRemoveOrgUserReq) (*emptypb.Empty, error)
+	// 批量删除用户（从系统删除）
+	BatchDeleteUser(context.Context, *BatchDeleteUserReq) (*emptypb.Empty, error)
 	// 获取角色列表（用于下拉选择）
 	GetRoleSelect(context.Context, *GetRoleSelectReq) (*GetRoleSelectResp, error)
+	// 获取全局角色列表（用于下拉选择）
+	GetGlobalRoleSelect(context.Context, *GetGlobalRoleSelectReq) (*GetGlobalRoleSelectResp, error)
+	// 获取全局角色列表
+	GetGlobalRoleList(context.Context, *GetGlobalRoleListReq) (*GetGlobalRoleListResp, error)
 	// 获取角色列表
 	GetRoleList(context.Context, *GetRoleListReq) (*GetRoleListResp, error)
 	// 获取角色
@@ -746,6 +952,10 @@ type IAMServiceServer interface {
 	DeleteRole(context.Context, *DeleteRoleReq) (*emptypb.Empty, error)
 	// 修改角色状态
 	ChangeRoleStatus(context.Context, *ChangeRoleStatusReq) (*emptypb.Empty, error)
+	// 获取角色关联用户列表
+	GetRoleUsers(context.Context, *GetRoleUsersReq) (*GetRoleUsersResp, error)
+	// 移除角色关联用户
+	RemoveRoleUser(context.Context, *RemoveRoleUserReq) (*emptypb.Empty, error)
 	// 获取验证码
 	GetCaptcha(context.Context, *GetCaptchaReq) (*GetCaptchaResp, error)
 	// 登录
@@ -803,10 +1013,10 @@ func (UnimplementedIAMServiceServer) GetUserList(context.Context, *GetUserListRe
 func (UnimplementedIAMServiceServer) GetUserInfo(context.Context, *GetUserInfoReq) (*UserInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserInfo not implemented")
 }
-func (UnimplementedIAMServiceServer) CreateUser(context.Context, *CreateUserReq) (*IDName, error) {
+func (UnimplementedIAMServiceServer) CreateUser(context.Context, *CreateUserReq) (*IDNameWithAvatar, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (UnimplementedIAMServiceServer) CreateUsers(context.Context, *CreateUsersReq) (*emptypb.Empty, error) {
+func (UnimplementedIAMServiceServer) CreateUsers(context.Context, *CreateUsersReq) (*CreateUsersResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUsers not implemented")
 }
 func (UnimplementedIAMServiceServer) UpdateUser(context.Context, *UpdateUserReq) (*emptypb.Empty, error) {
@@ -833,7 +1043,13 @@ func (UnimplementedIAMServiceServer) ChangeUserLanguage(context.Context, *Change
 func (UnimplementedIAMServiceServer) UpdateUserAvatar(context.Context, *UpdateUserAvatarReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserAvatar not implemented")
 }
-func (UnimplementedIAMServiceServer) GetOrgSelect(context.Context, *GetOrgSelectReq) (*Select, error) {
+func (UnimplementedIAMServiceServer) IsUserOrgAdmin(context.Context, *IsUserOrgAdminReq) (*IsUserOrgAdminResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsUserOrgAdmin not implemented")
+}
+func (UnimplementedIAMServiceServer) IsAdminInOrgs(context.Context, *IsAdminInOrgsReq) (*IsAdminInOrgsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsAdminInOrgs not implemented")
+}
+func (UnimplementedIAMServiceServer) GetOrgSelect(context.Context, *GetOrgSelectReq) (*OrgSelectResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrgSelect not implemented")
 }
 func (UnimplementedIAMServiceServer) GetOrgList(context.Context, *GetOrgListReq) (*GetOrgListResp, error) {
@@ -845,13 +1061,31 @@ func (UnimplementedIAMServiceServer) GetOrgInfo(context.Context, *GetOrgInfoReq)
 func (UnimplementedIAMServiceServer) GetOrgByOrgIDs(context.Context, *GetOrgByOrgIDsReq) (*GetOrgByOrgIDsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrgByOrgIDs not implemented")
 }
+func (UnimplementedIAMServiceServer) GetUsersByOrgIDs(context.Context, *GetUsersByOrgIDsReq) (*GetUsersByOrgIDsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUsersByOrgIDs not implemented")
+}
+func (UnimplementedIAMServiceServer) ValidateUserOrgPairs(context.Context, *ValidateUserOrgPairsReq) (*ValidateUserOrgPairsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ValidateUserOrgPairs not implemented")
+}
+func (UnimplementedIAMServiceServer) GetUserOrgMembership(context.Context, *GetUserOrgMembershipReq) (*GetUserOrgMembershipResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserOrgMembership not implemented")
+}
 func (UnimplementedIAMServiceServer) GetOrgAndSubOrgSelectByUser(context.Context, *GetOrgAndSubOrgSelectByUserReq) (*GetOrgAndSubOrgSelectByUserResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrgAndSubOrgSelectByUser not implemented")
 }
 func (UnimplementedIAMServiceServer) GetFirstClassOrgAndSubs(context.Context, *GetFirstClassOrgAndSubsReq) (*GetFirstClassOrgAndSubsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFirstClassOrgAndSubs not implemented")
 }
-func (UnimplementedIAMServiceServer) CreateOrg(context.Context, *CreateOrgReq) (*IDName, error) {
+func (UnimplementedIAMServiceServer) GetAdminOrgSelect(context.Context, *GetAdminOrgSelectReq) (*OrgSelectResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAdminOrgSelect not implemented")
+}
+func (UnimplementedIAMServiceServer) GetAdminOrgSubTree(context.Context, *GetAdminOrgSubTreeReq) (*AdminOrgSubTreeResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAdminOrgSubTree not implemented")
+}
+func (UnimplementedIAMServiceServer) GetAdminOrgIDs(context.Context, *GetAdminOrgIDsReq) (*GetAdminOrgIDsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAdminOrgIDs not implemented")
+}
+func (UnimplementedIAMServiceServer) CreateOrg(context.Context, *CreateOrgReq) (*IDNameWithAvatar, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOrg not implemented")
 }
 func (UnimplementedIAMServiceServer) UpdateOrg(context.Context, *UpdateOrgReq) (*emptypb.Empty, error) {
@@ -869,8 +1103,20 @@ func (UnimplementedIAMServiceServer) AddOrgUser(context.Context, *AddOrgUserReq)
 func (UnimplementedIAMServiceServer) RemoveOrgUser(context.Context, *RemoveOrgUserReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveOrgUser not implemented")
 }
+func (UnimplementedIAMServiceServer) BatchRemoveOrgUser(context.Context, *BatchRemoveOrgUserReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchRemoveOrgUser not implemented")
+}
+func (UnimplementedIAMServiceServer) BatchDeleteUser(context.Context, *BatchDeleteUserReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchDeleteUser not implemented")
+}
 func (UnimplementedIAMServiceServer) GetRoleSelect(context.Context, *GetRoleSelectReq) (*GetRoleSelectResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRoleSelect not implemented")
+}
+func (UnimplementedIAMServiceServer) GetGlobalRoleSelect(context.Context, *GetGlobalRoleSelectReq) (*GetGlobalRoleSelectResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGlobalRoleSelect not implemented")
+}
+func (UnimplementedIAMServiceServer) GetGlobalRoleList(context.Context, *GetGlobalRoleListReq) (*GetGlobalRoleListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGlobalRoleList not implemented")
 }
 func (UnimplementedIAMServiceServer) GetRoleList(context.Context, *GetRoleListReq) (*GetRoleListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRoleList not implemented")
@@ -889,6 +1135,12 @@ func (UnimplementedIAMServiceServer) DeleteRole(context.Context, *DeleteRoleReq)
 }
 func (UnimplementedIAMServiceServer) ChangeRoleStatus(context.Context, *ChangeRoleStatusReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangeRoleStatus not implemented")
+}
+func (UnimplementedIAMServiceServer) GetRoleUsers(context.Context, *GetRoleUsersReq) (*GetRoleUsersResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRoleUsers not implemented")
+}
+func (UnimplementedIAMServiceServer) RemoveRoleUser(context.Context, *RemoveRoleUserReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveRoleUser not implemented")
 }
 func (UnimplementedIAMServiceServer) GetCaptcha(context.Context, *GetCaptchaReq) (*GetCaptchaResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCaptcha not implemented")
@@ -1211,6 +1463,42 @@ func _IAMService_UpdateUserAvatar_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_IsUserOrgAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsUserOrgAdminReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).IsUserOrgAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_IsUserOrgAdmin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).IsUserOrgAdmin(ctx, req.(*IsUserOrgAdminReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_IsAdminInOrgs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsAdminInOrgsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).IsAdminInOrgs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_IsAdminInOrgs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).IsAdminInOrgs(ctx, req.(*IsAdminInOrgsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IAMService_GetOrgSelect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrgSelectReq)
 	if err := dec(in); err != nil {
@@ -1283,6 +1571,60 @@ func _IAMService_GetOrgByOrgIDs_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_GetUsersByOrgIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUsersByOrgIDsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetUsersByOrgIDs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetUsersByOrgIDs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetUsersByOrgIDs(ctx, req.(*GetUsersByOrgIDsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ValidateUserOrgPairs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateUserOrgPairsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ValidateUserOrgPairs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ValidateUserOrgPairs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ValidateUserOrgPairs(ctx, req.(*ValidateUserOrgPairsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetUserOrgMembership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserOrgMembershipReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetUserOrgMembership(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetUserOrgMembership_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetUserOrgMembership(ctx, req.(*GetUserOrgMembershipReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IAMService_GetOrgAndSubOrgSelectByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrgAndSubOrgSelectByUserReq)
 	if err := dec(in); err != nil {
@@ -1315,6 +1657,60 @@ func _IAMService_GetFirstClassOrgAndSubs_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMServiceServer).GetFirstClassOrgAndSubs(ctx, req.(*GetFirstClassOrgAndSubsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetAdminOrgSelect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAdminOrgSelectReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetAdminOrgSelect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetAdminOrgSelect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetAdminOrgSelect(ctx, req.(*GetAdminOrgSelectReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetAdminOrgSubTree_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAdminOrgSubTreeReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetAdminOrgSubTree(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetAdminOrgSubTree_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetAdminOrgSubTree(ctx, req.(*GetAdminOrgSubTreeReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetAdminOrgIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAdminOrgIDsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetAdminOrgIDs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetAdminOrgIDs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetAdminOrgIDs(ctx, req.(*GetAdminOrgIDsReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1427,6 +1823,42 @@ func _IAMService_RemoveOrgUser_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_BatchRemoveOrgUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchRemoveOrgUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).BatchRemoveOrgUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_BatchRemoveOrgUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).BatchRemoveOrgUser(ctx, req.(*BatchRemoveOrgUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_BatchDeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchDeleteUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).BatchDeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_BatchDeleteUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).BatchDeleteUser(ctx, req.(*BatchDeleteUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IAMService_GetRoleSelect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetRoleSelectReq)
 	if err := dec(in); err != nil {
@@ -1441,6 +1873,42 @@ func _IAMService_GetRoleSelect_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMServiceServer).GetRoleSelect(ctx, req.(*GetRoleSelectReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetGlobalRoleSelect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGlobalRoleSelectReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetGlobalRoleSelect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetGlobalRoleSelect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetGlobalRoleSelect(ctx, req.(*GetGlobalRoleSelectReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetGlobalRoleList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGlobalRoleListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetGlobalRoleList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetGlobalRoleList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetGlobalRoleList(ctx, req.(*GetGlobalRoleListReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1549,6 +2017,42 @@ func _IAMService_ChangeRoleStatus_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMServiceServer).ChangeRoleStatus(ctx, req.(*ChangeRoleStatusReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetRoleUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRoleUsersReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetRoleUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetRoleUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetRoleUsers(ctx, req.(*GetRoleUsersReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_RemoveRoleUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveRoleUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).RemoveRoleUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_RemoveRoleUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).RemoveRoleUser(ctx, req.(*RemoveRoleUserReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1905,6 +2409,14 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMService_UpdateUserAvatar_Handler,
 		},
 		{
+			MethodName: "IsUserOrgAdmin",
+			Handler:    _IAMService_IsUserOrgAdmin_Handler,
+		},
+		{
+			MethodName: "IsAdminInOrgs",
+			Handler:    _IAMService_IsAdminInOrgs_Handler,
+		},
+		{
 			MethodName: "GetOrgSelect",
 			Handler:    _IAMService_GetOrgSelect_Handler,
 		},
@@ -1921,12 +2433,36 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMService_GetOrgByOrgIDs_Handler,
 		},
 		{
+			MethodName: "GetUsersByOrgIDs",
+			Handler:    _IAMService_GetUsersByOrgIDs_Handler,
+		},
+		{
+			MethodName: "ValidateUserOrgPairs",
+			Handler:    _IAMService_ValidateUserOrgPairs_Handler,
+		},
+		{
+			MethodName: "GetUserOrgMembership",
+			Handler:    _IAMService_GetUserOrgMembership_Handler,
+		},
+		{
 			MethodName: "GetOrgAndSubOrgSelectByUser",
 			Handler:    _IAMService_GetOrgAndSubOrgSelectByUser_Handler,
 		},
 		{
 			MethodName: "GetFirstClassOrgAndSubs",
 			Handler:    _IAMService_GetFirstClassOrgAndSubs_Handler,
+		},
+		{
+			MethodName: "GetAdminOrgSelect",
+			Handler:    _IAMService_GetAdminOrgSelect_Handler,
+		},
+		{
+			MethodName: "GetAdminOrgSubTree",
+			Handler:    _IAMService_GetAdminOrgSubTree_Handler,
+		},
+		{
+			MethodName: "GetAdminOrgIDs",
+			Handler:    _IAMService_GetAdminOrgIDs_Handler,
 		},
 		{
 			MethodName: "CreateOrg",
@@ -1953,8 +2489,24 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMService_RemoveOrgUser_Handler,
 		},
 		{
+			MethodName: "BatchRemoveOrgUser",
+			Handler:    _IAMService_BatchRemoveOrgUser_Handler,
+		},
+		{
+			MethodName: "BatchDeleteUser",
+			Handler:    _IAMService_BatchDeleteUser_Handler,
+		},
+		{
 			MethodName: "GetRoleSelect",
 			Handler:    _IAMService_GetRoleSelect_Handler,
+		},
+		{
+			MethodName: "GetGlobalRoleSelect",
+			Handler:    _IAMService_GetGlobalRoleSelect_Handler,
+		},
+		{
+			MethodName: "GetGlobalRoleList",
+			Handler:    _IAMService_GetGlobalRoleList_Handler,
 		},
 		{
 			MethodName: "GetRoleList",
@@ -1979,6 +2531,14 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangeRoleStatus",
 			Handler:    _IAMService_ChangeRoleStatus_Handler,
+		},
+		{
+			MethodName: "GetRoleUsers",
+			Handler:    _IAMService_GetRoleUsers_Handler,
+		},
+		{
+			MethodName: "RemoveRoleUser",
+			Handler:    _IAMService_RemoveRoleUser_Handler,
 		},
 		{
 			MethodName: "GetCaptcha",

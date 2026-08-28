@@ -1,0 +1,12 @@
+{"input": "根据这份 PRD 创建知识网络", "expected": "trigger", "reason": "明确的新增 BKN 意图"}
+{"input": "新建一个供应链领域的 BKN", "expected": "trigger", "reason": "触发词: 新建 + BKN"}
+{"input": "帮我提取这篇文档里的对象类和关系类", "expected": "trigger", "reason": "触发词: 提取对象类/关系类"}
+{"input": "把知识网络里的采购订单对象类删掉", "expected": "trigger", "reason": "触发词: 知识网络 + 删除"}
+{"input": "BKN push 到线上环境", "expected": "trigger", "reason": "触发词: BKN push"}
+{"input": "本体平台有哪些功能", "expected": "no_trigger", "reason": "查询平台功能，非 BKN 生命周期操作，应走 ontology-core"}
+{"input": "查一下 Vega 上数据源的健康状态", "expected": "no_trigger", "reason": "Vega 健康巡检，应走 ontology-core"}
+{"input": "帮我基于这份流程文档建模，供应链和项目交付看起来都相关，你先判断主领域", "expected": "trigger", "reason": "BKN 建模意图，且存在领域冲突候选，应由 bkn-creator 触发并进入领域确认/委托路径"}
+{"input": "对象和关系先提了，但现在有 4 个待确认对象，请你继续完善", "expected": "trigger", "reason": "BKN 提取/建模续作，pending_objects 过多场景应触发 bkn-creator 并走顾问收敛路径"}
+{"input": "这批关系方向互相矛盾、主键也缺失，你来修正成可生成 BKN 的清单", "expected": "trigger", "reason": "BKN 清单质量不足，属于 bkn-creator 提取治理范围"}
+{"input": "提取关系时请用中文关系名，不要英文 relation name", "expected": "trigger", "reason": "关系类提取规则调整，属于 bkn-creator 约束范围"}
+{"input": "供应链对象类里有待确认对象，先别让我确认完整性，先逐项处理待确认", "expected": "trigger", "reason": "明确要求执行 pending_objects 处理门禁，属于 bkn-creator 提取流程"}

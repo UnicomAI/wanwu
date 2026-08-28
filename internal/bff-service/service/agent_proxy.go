@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bufio"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -16,6 +15,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
@@ -30,7 +30,8 @@ const proxyAgentChatOpenAPITemplate = `{
   "info": {
     "title": {{.Title | tojson}},
     "version": {{.Version | tojson}},
-    "description": {{.Description | tojson}}
+    "description": {{.Description | tojson}},
+    "x-wanwu-type": "agent"
   },
   "servers": [
     {
@@ -163,11 +164,10 @@ const proxyAgentChatOpenAPITemplate = `{
 }`
 
 func AgentChatProxy(ctx *gin.Context, assistantId string, req *request.AgentChatProxyReq) (string, error) {
-	agentConfig := config.Cfg().AgentService
-	url := fmt.Sprintf("http://%s:%d/agent/chat", agentConfig.Host, agentConfig.Port)
+	url := fmt.Sprintf("http://%s/agent/chat", config.Cfg().AgentService.Host)
 
 	agentReq := map[string]interface{}{
-		"assistantId": util.MustU32(assistantId),
+		"assistantId": assistantId,
 		"input":       req.Input,
 		"stream":      true,
 		// "uploadFile":  req.UploadFile,
@@ -198,7 +198,7 @@ func agentStreamProxy(ctx context.Context, url string, req map[string]interface{
 		var resp *resty.Response
 		var err error
 
-		request := resty.New().
+		request := trace_util.NewResty(ctx).
 			SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}).
 			R().
 			SetContext(ctx).
@@ -236,7 +236,7 @@ func agentStreamProxy(ctx context.Context, url string, req map[string]interface{
 
 		close(errCh)
 
-		scan := bufio.NewScanner(resp.RawResponse.Body)
+		scan := util.NewScanner(resp.RawResponse.Body)
 		for scan.Scan() {
 			sseData := scan.Text()
 			data := parseAgentSSEData(sseData)

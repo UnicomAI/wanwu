@@ -19,11 +19,11 @@ import (
 //	@Security	JWT
 //	@Accept		json
 //	@Produce	json
-//	@Param		data	body		request.AppBriefConfig	true	"创建Chatflow的请求参数"
+//	@Param		data	body		request.CreateChatflowReq	true	"创建Chatflow的请求参数"
 //	@Success	200		{object}	response.Response{data=response.CozeWorkflowIDData}
 //	@Router		/appspace/chatflow [post]
 func CreateChatflow(ctx *gin.Context) {
-	var req request.AppBriefConfig
+	var req request.CreateChatflowReq
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}

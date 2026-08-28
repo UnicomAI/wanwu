@@ -15,17 +15,20 @@ type opencodeConverter struct {
 func newOpencodeConverter() *opencodeConverter {
 	return &opencodeConverter{
 		handlers: map[wga_sandbox.OpencodeEventType]partParser{
-			wga_sandbox.OpencodeEventTypeStepStart:  parseSkipPart,
-			wga_sandbox.OpencodeEventTypeStepFinish: parseSkipPart,
-			wga_sandbox.OpencodeEventTypeText:       parseTextPart,
-			wga_sandbox.OpencodeEventTypeReasoning:  parseReasoningPart,
-			wga_sandbox.OpencodeEventTypeToolUse:    parseToolUsePart,
-			wga_sandbox.OpencodeEventTypeFile:       parseFilePart,
-			wga_sandbox.OpencodeEventTypeSnapshot:   parseSnapshotPart,
-			wga_sandbox.OpencodeEventTypeAgent:      parseAgentPart,
-			wga_sandbox.OpencodeEventTypePatch:      parsePatchPart,
-			wga_sandbox.OpencodeEventTypeRetry:      parseRetryPart,
-			wga_sandbox.OpencodeEventTypeError:      parseErrorPart,
+			wga_sandbox.OpencodeEventTypeStepStart:        parseSkipPart,
+			wga_sandbox.OpencodeEventTypeStepFinish:       parseSkipPart,
+			wga_sandbox.OpencodeEventTypeText:             parseTextPart,
+			wga_sandbox.OpencodeEventTypeReasoning:        parseReasoningPart,
+			wga_sandbox.OpencodeEventTypeToolUse:          parseToolUsePart,
+			wga_sandbox.OpencodeEventTypeFile:             parseFilePart,
+			wga_sandbox.OpencodeEventTypeSnapshot:         parseSnapshotPart,
+			wga_sandbox.OpencodeEventTypeAgent:            parseAgentPart,
+			wga_sandbox.OpencodeEventTypePatch:            parsePatchPart,
+			wga_sandbox.OpencodeEventTypeRetry:            parseRetryPart,
+			wga_sandbox.OpencodeEventTypeError:            parseErrorPart,
+			wga_sandbox.OpencodeEventTypeQuestionAsked:    parseQuestionPart,
+			wga_sandbox.OpencodeEventTypeQuestionReplied:  parseQuestionPart,
+			wga_sandbox.OpencodeEventTypeQuestionRejected: parseQuestionPart,
 		},
 	}
 }
@@ -53,12 +56,16 @@ func (c *opencodeConverter) Convert(line string) ([]*schema.Message, error) {
 	var messages []*schema.Message
 
 	if len(content.toolCalls) > 0 || content.content != "" || content.reasoningContent != "" {
-		messages = append(messages, &schema.Message{
+		msg := &schema.Message{
 			Role:             schema.Assistant,
 			Content:          content.content,
 			ReasoningContent: content.reasoningContent,
 			ToolCalls:        content.toolCalls,
-		})
+		}
+		if content.extra != nil {
+			msg.Extra = content.extra
+		}
+		messages = append(messages, msg)
 	}
 
 	if content.toolResult != nil {
@@ -78,6 +85,7 @@ type messageContent struct {
 	toolCalls        []schema.ToolCall
 	toolResult       *toolResult
 	skip             bool
+	extra            map[string]any
 }
 
 type toolResult struct {
@@ -203,4 +211,47 @@ func parseErrorPart(part json.RawMessage) (messageContent, error) {
 		msg += ": " + p.Error.Data.Message
 	}
 	return messageContent{content: msg}, nil
+}
+
+func parseQuestionPart(part json.RawMessage) (messageContent, error) {
+	p, err := wga_sandbox.ParseOpencodeQuestionPart(part)
+	if err != nil {
+		return messageContent{}, err
+	}
+
+	questions := make([]map[string]any, 0, len(p.Questions))
+	for _, q := range p.Questions {
+		options := make([]map[string]any, 0, len(q.Options))
+		for _, opt := range q.Options {
+			options = append(options, map[string]any{
+				"label":       opt.Label,
+				"description": opt.Description,
+			})
+		}
+		questions = append(questions, map[string]any{
+			"question": q.Question,
+			"header":   q.Header,
+			"options":  options,
+			"multiple": q.Multiple,
+			"custom":   q.Custom,
+		})
+	}
+
+	questionData := map[string]any{
+		"questionId": p.QuestionID,
+		"sessionId":  p.SessionID,
+		"status":     p.Status,
+		"questions":  questions,
+	}
+	if len(p.Answers) > 0 {
+		questionData["answers"] = p.Answers
+	}
+
+	return messageContent{
+		content: "[question] " + p.QuestionID,
+		extra: map[string]any{
+			"questionType": "question",
+			"questionData": questionData,
+		},
+	}, nil
 }

@@ -1,7 +1,7 @@
 ARG WANWU_ARCH
 
 # 基于已构建的基础镜像
-FROM --platform=linux/$WANWU_ARCH crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/callback-base:v0.4.2-bc4c9bf1
+FROM --platform=linux/$WANWU_ARCH crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/callback-base:v0.6.1-be84affd
 
 # 工作目录
 WORKDIR /callback

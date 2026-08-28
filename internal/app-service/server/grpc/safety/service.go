@@ -53,7 +53,7 @@ func (s *Service) UpdateSensitiveWordTableReply(ctx context.Context, req *safety
 }
 
 func (s *Service) DeleteSensitiveWordTable(ctx context.Context, req *safety_service.DeleteSensitiveWordTableReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteSensitiveWordTable(ctx, util.MustU32(req.TableId))
+	err := s.cli.DeleteSensitiveWordTable(ctx, util.MustU32(req.TableId), req.UserId, req.OrgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_AppSafety, err)
 	}
@@ -99,7 +99,7 @@ func (s *Service) UploadSensitiveVocabulary(ctx context.Context, req *safety_ser
 }
 
 func (s *Service) DeleteSensitiveVocabulary(ctx context.Context, req *safety_service.DeleteSensitiveVocabularyReq) (*emptypb.Empty, error) {
-	err := s.cli.DeleteSensitiveVocabulary(ctx, util.MustU32(req.TableId), util.MustU32(req.WordId))
+	err := s.cli.DeleteSensitiveVocabulary(ctx, util.MustU32(req.TableId), util.MustU32(req.WordId), req.UserId, req.OrgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_AppSafety, err)
 	}
@@ -155,6 +155,21 @@ func (s *Service) GetGlobalSensitiveWordTableList(ctx context.Context, req *empt
 	return ret, nil
 }
 
+func (s *Service) AdminSensitiveWordPageList(ctx context.Context, req *safety_service.AdminSensitiveWordPageListReq) (*safety_service.AdminSensitiveWordPageListResp, error) {
+	tables, total, err := s.cli.AdminGetSensitiveWordTableList(ctx, req.UserId, req.OrgId, req.Name, int(req.PageNum), int(req.PageSize))
+	if err != nil {
+		return nil, errStatus(errs.Code_AppSafety, err)
+	}
+	var list []*safety_service.SensitiveWordTable
+	for _, t := range tables {
+		list = append(list, toProtoSensitiveWordTable(t))
+	}
+	return &safety_service.AdminSensitiveWordPageListResp{
+		Total: total,
+		List:  list,
+	}, nil
+}
+
 func toProtoSensitiveWordTable(sensitiveWordTable *model.SensitiveWordTable) *safety_service.SensitiveWordTable {
 	return &safety_service.SensitiveWordTable{
 		TableId:   util.Int2Str(sensitiveWordTable.ID),
@@ -164,6 +179,9 @@ func toProtoSensitiveWordTable(sensitiveWordTable *model.SensitiveWordTable) *sa
 		Version:   sensitiveWordTable.Version,
 		CreatedAt: sensitiveWordTable.CreatedAt,
 		TableType: sensitiveWordTable.TableType,
+		UserId:    sensitiveWordTable.UserID,
+		OrgId:     sensitiveWordTable.OrgID,
+		UpdatedAt: sensitiveWordTable.UpdatedAt,
 	}
 }
 

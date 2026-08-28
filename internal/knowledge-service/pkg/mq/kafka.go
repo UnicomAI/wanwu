@@ -1,22 +1,23 @@
 package mq
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"time"
 
+	"github.com/IBM/sarama"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/config"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
-
-	"github.com/IBM/sarama"
 )
 
 var kafka = Kafka{}
 
 type Kafka struct {
-	KafkaProducer sarama.SyncProducer
+	KafkaProducer *trace_util.SyncProducer
 }
 
 func init() {
@@ -65,7 +66,7 @@ func initKafkaAdmin() (sarama.ClusterAdmin, error) {
 	return admin, nil
 }
 
-func initKafka(kafkaAdmin sarama.ClusterAdmin) (sarama.SyncProducer, error) {
+func initKafka(kafkaAdmin sarama.ClusterAdmin) (*trace_util.SyncProducer, error) {
 	log.Infof("开始初始化Kafka配置")
 	defaultPartitionNum := config.GetConfig().Kafka.DefaultPartitionNum
 	var defaultTopic = config.GetConfig().Kafka.Topic
@@ -92,6 +93,7 @@ func initKafka(kafkaAdmin sarama.ClusterAdmin) (sarama.SyncProducer, error) {
 		log.Errorf("创建Producer失败: %v", err)
 		return nil, err
 	}
+	wrappedProducer := trace_util.WrapSyncProducer(kafkaConfig, producer)
 	log.Infof("Producer创建成功，开始初始化Admin客户端")
 
 	// 初始化Kafka Admin客户端
@@ -134,10 +136,10 @@ func initKafka(kafkaAdmin sarama.ClusterAdmin) (sarama.SyncProducer, error) {
 	}
 
 	log.Infof("Kafka初始化完成")
-	return producer, nil
+	return wrappedProducer, nil
 }
 
-func SendMessage(msg interface{}, topic string) error {
+func SendMessage(ctx context.Context, msg interface{}, topic string) error {
 	if msg == nil {
 		return errors.New("message is nil")
 	}
@@ -149,7 +151,7 @@ func SendMessage(msg interface{}, topic string) error {
 	kafkaMsg.Topic = topic
 	kafkaMsg.Value = sarama.StringEncoder(message)
 	log.Infof("kafka send topic: %s ;send msg>>>>>>>>>>>>> %s", topic, message)
-	_, _, err = kafka.KafkaProducer.SendMessage(kafkaMsg)
+	_, _, err = kafka.KafkaProducer.SendMessage(ctx, kafkaMsg)
 	if err != nil {
 		log.Errorf("kafka send topic: %s ;send error %v", topic, err)
 		return err

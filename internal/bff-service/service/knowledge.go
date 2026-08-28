@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	"io"
 	"net/http"
 	"strings"
@@ -28,6 +29,7 @@ import (
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	http_client "github.com/UnicomAI/wanwu/pkg/http-client"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -46,6 +48,33 @@ type RagData struct {
 	Score      []float64          `json:"score"`
 	Output     string             `json:"output"`
 	SearchList []*ChunkSearchList `json:"searchList"`
+}
+
+var knowledgeBiz = &KnowledgeBiz{}
+
+type KnowledgeBiz struct {
+}
+
+func init() {
+	InitBizService(knowledgeBiz)
+}
+func (*KnowledgeBiz) BizType() string {
+	return constant.BizModuleResourceKnowledge
+}
+func (*KnowledgeBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	knowledgeInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx, &knowledgebase_service.KnowledgeDetailSelectReq{
+		KnowledgeId: bizId,
+		NeedOwner:   true,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	userId, orgId = knowledgeInfo.OwnerUserId, knowledgeInfo.OwnerOrgId
+	return
+}
+
+func (*KnowledgeBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
 }
 
 // SelectKnowledgeList 查询知识库列表，主要根据userId 查询用户所有知识库
@@ -112,21 +141,6 @@ func KnowledgeStreamSearch(ctx *gin.Context, req *request.RagKnowledgeChatReq) e
 	return nil
 }
 
-// SelectKnowledgeInfoByName 根据知识库名称查询知识库信息
-func SelectKnowledgeInfoByName(ctx *gin.Context, userId, orgId string, r *request.SearchKnowledgeInfoReq) (interface{}, error) {
-	resp, err := knowledgeBase.SelectKnowledgeDetailByName(ctx.Request.Context(), &knowledgebase_service.KnowledgeDetailSelectReq{
-		UserId:        userId,
-		OrgId:         orgId,
-		KnowledgeName: r.KnowledgeName,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return map[string]string{
-		"categoryId": resp.KnowledgeId,
-	}, nil
-}
-
 // SelectKnowledgeIdByRagName 根据ragName获取知识库ID
 func SelectKnowledgeIdByRagName(ctx *gin.Context, ragName string) (string, error) {
 	resp, err := knowledgeBase.SelectKnowledgeIdByRagName(ctx.Request.Context(), &knowledgebase_service.SelectKnowledgeIdByRagNameReq{
@@ -142,7 +156,7 @@ func SelectKnowledgeIdByRagName(ctx *gin.Context, ragName string) (string, error
 func CreateKnowledge(ctx *gin.Context, userId, orgId string, r *request.CreateKnowledgeReq) (*response.CreateKnowledgeResp, error) {
 	knowledgeGraph := &knowledgebase_service.KnowledgeGraph{}
 	if r.Category == request.CategoryKnowledge || r.Category == request.CategoryMultimodalKnowledge {
-		if r.KnowledgeGraph.Switch {
+		if r.KnowledgeGraph != nil && r.KnowledgeGraph.Switch {
 			knowledgeGraph = &knowledgebase_service.KnowledgeGraph{
 				Switch:     r.KnowledgeGraph.Switch,
 				LlmModelId: r.KnowledgeGraph.LLMModelId,
@@ -169,26 +183,60 @@ func CreateKnowledge(ctx *gin.Context, userId, orgId string, r *request.CreateKn
 }
 
 func CreateKnowledgeOpenapi(ctx *gin.Context, userId, orgId string, r *request.CreateKnowledgeReq) (*response.CreateKnowledgeResp, error) {
-	embModelId, err := GetModelIdByUuid(ctx, r.EmbeddingModel.ModelId)
+	embModel, err := model.GetModelByUuid(ctx.Request.Context(), &model_service.GetModelByUuidReq{Uuid: r.EmbeddingModel.ModelId})
 	if err != nil {
 		return nil, err
 	}
-	r.EmbeddingModel.ModelId = embModelId
+	// 校验所选模型为对应类型的 embedding 模型：多模态知识库需多模态 embedding，其余需文本 embedding
+	if err := checkEmbeddingModelType(r.Category, embModel.ModelType); err != nil {
+		return nil, err
+	}
+	r.EmbeddingModel.ModelId = embModel.ModelId
 	if r.Category == request.CategoryKnowledge || r.Category == request.CategoryMultimodalKnowledge {
-		if r.KnowledgeGraph.Switch {
-			llmModelId, err := GetModelIdByUuid(ctx, r.KnowledgeGraph.LLMModelId)
+		if r.KnowledgeGraph != nil && r.KnowledgeGraph.Switch {
+			llmModel, err := model.GetModelByUuid(ctx.Request.Context(), &model_service.GetModelByUuidReq{Uuid: r.KnowledgeGraph.LLMModelId})
 			if err != nil {
 				return nil, err
 			}
-			r.KnowledgeGraph.LLMModelId = llmModelId
+			// 校验知识图谱所选模型为 LLM 类型
+			if llmModel.ModelType != mp.ModelTypeLLM {
+				return nil, grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, "knowledge graph requires an llm model")
+			}
+			r.KnowledgeGraph.LLMModelId = llmModel.ModelId
 		}
 	}
 	return CreateKnowledge(ctx, userId, orgId, r)
 }
 
+// checkEmbeddingModelType 校验知识库 embedding 模型类型与知识库类型匹配
+func checkEmbeddingModelType(category int32, modelType string) error {
+	// 多模态知识库需多模态 embedding；文本知识库、问答库可用文本 embedding 或多模态 embedding
+	if category == request.CategoryMultimodalKnowledge {
+		if modelType != mp.ModelTypeMultiEmbedding {
+			return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, "multimodal knowledge requires a multimodal-embedding model")
+		}
+		return nil
+	}
+	if modelType != mp.ModelTypeTextEmbedding && modelType != mp.ModelTypeMultiEmbedding {
+		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, "knowledge requires an embedding model")
+	}
+	return nil
+}
+
 // UpdateKnowledge 更新知识库
 func UpdateKnowledge(ctx *gin.Context, userId, orgId string, r *request.UpdateKnowledgeReq) error {
-	_, err := knowledgeBase.UpdateKnowledge(ctx.Request.Context(), &knowledgebase_service.UpdateKnowledgeReq{
+	existingKnowledge, err := knowledgeBase.SelectKnowledgeDetailById(ctx.Request.Context(), &knowledgebase_service.KnowledgeDetailSelectReq{
+		UserId:      userId,
+		OrgId:       orgId,
+		KnowledgeId: r.KnowledgeId,
+	})
+	if err != nil {
+		return err
+	}
+	if err := utils.ValidateBriefUpdate(&r.Name, existingKnowledge.Name, &r.Description, existingKnowledge.Description, utils.SubjectKnowledge); err != nil {
+		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
+	}
+	_, err = knowledgeBase.UpdateKnowledge(ctx.Request.Context(), &knowledgebase_service.UpdateKnowledgeReq{
 		KnowledgeId: r.KnowledgeId,
 		Name:        r.Name,
 		Description: r.Description,
@@ -201,6 +249,11 @@ func UpdateKnowledge(ctx *gin.Context, userId, orgId string, r *request.UpdateKn
 
 // DeleteKnowledge 删除知识库
 func DeleteKnowledge(ctx *gin.Context, userId, orgId string, r *request.DeleteKnowledge) (interface{}, error) {
+	// 删除知识库：全部被共享者收「已被删除」。
+	// ⚠ 删库是异步清权限，必须在发起删除**前**查全量共享名单与库名，事后查不到
+	sharedPairs := listKnowledgeSharedPairs(ctx, userId, orgId, r.KnowledgeId)
+	knowledgeName := resolveKnowledgeName(ctx, userId, orgId, r.KnowledgeId)
+
 	resp, err := knowledgeBase.DeleteKnowledge(ctx.Request.Context(), &knowledgebase_service.DeleteKnowledgeReq{
 		KnowledgeId: r.KnowledgeId,
 		UserId:      userId,
@@ -209,11 +262,43 @@ func DeleteKnowledge(ctx *gin.Context, userId, orgId string, r *request.DeleteKn
 	if err != nil {
 		return nil, err
 	}
+	notifyKnowledgeDelta(ctx, userId, orgId, r.KnowledgeId, knowledgeName,
+		nil, sharedPairs, nil,
+		noticeVariantDeleted, "",
+		fmt.Sprintf("knowledge:%v:deleted", r.KnowledgeId))
 	return resp, nil
 }
 
 // KnowledgeHit 知识库命中
-func KnowledgeHit(ctx *gin.Context, userId, orgId string, r *request.KnowledgeHitReq) (*response.KnowledgeHitResp, error) {
+func KnowledgeHit(ctx *gin.Context, userId, orgId string, r *request.KnowledgeHitReq) (ret *response.KnowledgeHitResp, err error) {
+	startTime := time.Now()
+	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
+	defer func() {
+		var appID string
+		// 与 WithKnowledgeHitResource 一致：按有效 knowledgeId 数量判定；openapi 可传多项但 len=1 仍记。
+		switch len(r.KnowledgeList) {
+		case 1:
+			appID = r.KnowledgeList[0].ID
+		default:
+			return
+		}
+		statusCode, failureReason := GrpcErrorToHTTPStatus(err)
+		source := resolveAppStatisticSource(detachedCtx, constant.BizSourceWeb)
+		// appType 由 RecordAppStatistic 从 Trace.moduleResourceType 回填（knowledge）
+		costs := time.Since(startTime).Milliseconds()
+		respBody := ""
+		if ret != nil {
+			if b, e := json.Marshal(ret); e == nil {
+				respBody = string(b)
+			}
+		}
+		go func() {
+			defer utils.PrintPanicStack()
+			RecordAppStatistic(detachedCtx, userId, orgId, appID, "", constant.BizModuleResourceKnowledge,
+				statusCode, failureReason, false, 0, costs, source, MarshalStatisticBody(r), respBody, r.Question, "")
+		}()
+	}()
+
 	matchParams := r.KnowledgeMatchParams
 	resp, err := knowledgeBase.KnowledgeHit(ctx.Request.Context(), &knowledgebase_service.KnowledgeHitReq{
 		Question:      r.Question,
@@ -249,7 +334,7 @@ func checkRerank(ctx *gin.Context, rerankModelId, question string, hasImage bool
 		return errors.New("只输入图片必须选择多模态reranker")
 	}
 	if rerankModelId != "" {
-		rerankModel, err = model.GetModel(ctx, &model_service.GetModelReq{ModelId: rerankModelId})
+		rerankModel, err = model.GetModel(ctx.Request.Context(), &model_service.GetModelReq{ModelId: rerankModelId})
 		if err != nil {
 			return err
 		}
@@ -454,9 +539,6 @@ func buildKnowledgeInfoList(ctx *gin.Context, knowledgeListResp *knowledgebase_s
 	var list []*response.KnowledgeInfo
 	for _, knowledge := range knowledgeListResp.KnowledgeList {
 		avatar := cacheKnowledgeAvatar(ctx, knowledge.AvatarPath, knowledge.Category)
-		if avatar.Path != "" {
-			avatar.Path = config.Cfg().Server.ApiBaseUrl + avatar.Path
-		}
 		share := knowledge.ShareCount > 1
 		list = append(list, &response.KnowledgeInfo{
 			KnowledgeId: knowledge.KnowledgeId,
@@ -513,7 +595,7 @@ func buildOtherOrgInfoMap(ctx *gin.Context, knowledgeListResp *knowledgebase_ser
 	}
 	var dataMap = make(map[string]string)
 	if len(shareOrgIdList) > 0 {
-		orgInfoList, err := iam.GetOrgByOrgIDs(ctx, &iam_service.GetOrgByOrgIDsReq{
+		orgInfoList, err := iam.GetOrgByOrgIDs(ctx.Request.Context(), &iam_service.GetOrgByOrgIDsReq{
 			OrgIds: shareOrgIdList,
 		})
 		if err != nil {
@@ -559,6 +641,13 @@ func buildKnowledgeHitResp(resp *knowledgebase_service.KnowledgeHitResp) *respon
 			for _, score := range search.ChildScore {
 				childScore = append(childScore, float64(score))
 			}
+			// meta_data 为 rag 原样透传的 JSON 串，解回对象返回
+			var metaData interface{}
+			if search.MetaData != "" {
+				if err := json.Unmarshal([]byte(search.MetaData), &metaData); err != nil {
+					log.Errorf("knowledge hit meta_data unmarshal err: %v", err)
+				}
+			}
 			searchList = append(searchList, &response.ChunkSearchList{
 				Title:            search.Title,
 				Snippet:          search.Snippet,
@@ -568,6 +657,7 @@ func buildKnowledgeHitResp(resp *knowledgebase_service.KnowledgeHitResp) *respon
 				ContentType:      search.ContentType,
 				Score:            float64(search.Score),
 				RerankInfo:       buildRerankInfo(search.RerankInfo),
+				MetaData:         metaData,
 			})
 		}
 	}

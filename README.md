@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/6ceb4269-a861-4545-84db-bad322592156" style="width:45%; height:auto;" />
+  <img src="https://github.com/user-attachments/assets/4788ed8f-eefc-4c19-aa77-7ec776743f3d" style="width:45%; height:auto;" />
 <p>
   <a href="#🚩 Core Function Modules">Core Function Modules</a> •
   <a href="#x1F3AF; Typical Application Scenarios">Typical Application Scenarios</a> •
@@ -24,7 +24,9 @@
 </div>
 
 
-The **Yuanjing Wanwu AI Agent Platform** is an **enterprise-oriented**, **one-stop**, and **commercial-license-friendly** **agent development platform**, dedicated to providing enterprises with secure, efficient, and compliant one-stop AI solutions. With the core philosophy of "open technology and collaborative ecosystem building," we integrate cutting-edge technologies such as large language models and business process automation to build an AI engineering platform with a complete functional system covering full-lifecycle model management, MCP, web search, **General agent & Skills orchestration**, enterprise knowledge base construction, and complex workflow orchestration. The platform has now fully upgraded to a **"General Agent + Vertical Scenario Skills" dual-engine development platform**. While ensuring enterprise data security and privacy protection, it significantly lowers the application threshold of AI technology, helping enterprises accelerate their digital transformation processes to achieve cost reduction, efficiency enhancement, and business innovation.
+Yuanjing Wanwu Agent Platform is an **all-in-one, commercial-friendly licensed agent development platform** designed for enterprise scenarios. Guided by the core philosophy of *open technology and co-construction of ecosystem*, we are committed to providing enterprises with **secure, efficient, and compliant AI solutions**.
+
+Wanwu aims to deliver **all tooling capabilities required by Forward Deployed Engineer (FDEs)**, forming a full‑stack FDE toolchain. It covers core enterprise assets, centers on customers, deeply integrates capabilities into customer systems, drastically lowers the barrier to AI project delivery, and bridges the final mile from *build* to *field*. It simplifies every business decision and empowers every FDE.
 
 ------
 
@@ -37,26 +39,96 @@ The **Yuanjing Wanwu AI Agent Platform** is an **enterprise-oriented**, **one-st
 
 ------
 
-### 📢 Open Ecosystem
+### 🌟 Full‑Stack FDE Toolchain: 5 Core Capabilities
 
-- [External Knowledge Base Compatibility](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93/%E8%BF%9E%E6%8E%A5%E5%A4%96%E6%8E%A5%E7%9F%A5%E8%AF%86%E5%BA%93.md): Supports API-based import of knowledge bases created in Dify, with retrieval and recall in agents, Q&A, and workflows.
-- [MCP Hub](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/2.%E8%B5%84%E6%BA%90%E5%BA%93%2FMCP%E6%9C%8D%E5%8A%A1.md): Supports importing and using MCP from different service providers.
-- [Skills](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/2.%E8%B5%84%E6%BA%90%E5%BA%93%2FSkills.md): Supports creating and downloading Skills, with seamless integration to OpenClaw.
-- [OpenClaw Sandbox](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/8.%E9%80%9A%E7%94%A8%E6%99%BA%E8%83%BD%E4%BD%93%2F%E6%9C%BA%E5%99%A8%E4%BA%BA%E5%8A%A9%E6%89%8B-OPENCLAW%2F%E5%A6%82%E4%BD%95%E5%9C%A8%E4%B8%87%E6%82%9F%E4%B8%AD%E6%8E%A5%E5%85%A5OpenClaw%E6%9C%BA%E5%99%A8%E4%BA%BA.md): We provide the option to deploy each “OpenClaw Robot” in a standalone Docker container. You can directly access your locally deployed OpenClaw robot within Yuanjing Wanwu.
+To address complex enterprise scenarios, Wanwu provides 5 core agent capabilities to solve delivery pain points, making AI not only thinkable but also doable.
+
+#### 1️⃣ RAG/Knowledge Base Agent
+
+<p align="center">
+  <img width="900" alt="rag" src="https://github.com/user-attachments/assets/7bbc16b2-e7d0-49cb-89e3-5c395416c028" />
+</p>
+
+Solves scattered documents and gives AI reliable memory. Provides end‑to‑end knowledge management for massive enterprise documents and policies, building a high‑precision, memory‑enabled knowledge brain to prevent AI hallucinations.
+
+- **High‑precision parsing & retrieval:** Supports 12 file formats and URL crawling; OCR and MinerU model private deployment; multimodal retrieval, cascaded/adaptive chunking, intelligent ranking, illustrated generation, and source citation.
+- **GraphRAG enhancement:** Built‑in UniAI‑GraphRAG with domain ontology modeling, greatly improving completeness and logic in cross‑document summarization and multi‑hop reasoning, with industry‑leading F1 score.
+- **External knowledge base compatibility:** Supports API import of knowledge bases created in Dify for retrieval in agents, chat, and workflows.
+
+#### 2️⃣ Ontology Agent
+
+<p align="center">
+  <img width="900" alt="ontology" src="https://github.com/user-attachments/assets/7a582447-9edc-4cce-ace4-29291b5ad2ac" />
+</p>
+
+Handles structured data and enables multi‑step reasoning and decision‑making. Breaks the limitation that LLMs only understand text, adapting to complex structured business data.
+
+- **Deep reasoning & decision‑making:** Automatically builds business knowledge networks from enterprise data and documents, empowering AI with deep reasoning and closed‑loop action. It elevates LLMs from knowledge Q&A to business analysis brains.
+
+#### 3️⃣ Workflow Agent
+
+<p align="center">
+  <img width="900" alt="workflow" src="https://github.com/user-attachments/assets/8064a56a-63b2-493c-9dea-e0987c3cc64d" />
+</p>
+
+Manages complex processes and ensures AI follows business rules.
+
+For contract review, expense approval, and other complex workflows, standardizes AI execution paths via low‑code for stable delivery.
+
+- **Visual orchestration:** Low‑code drag‑and‑drop canvas with built‑in conditional branches, APIs, LLMs, knowledge bases, code, MCP, etc. Supports end‑to‑end debugging and performance analysis.
+- **Zero‑code orchestration closed‑loop:** Industry‑first zero‑code Skill invocation in agent development, closing the loop from intent recognition to skill execution. Flexibly calls built‑in tools, MCP, workflows, etc., parses hundreds of pages in seconds, and displays results in a unified workspace.
+
+#### 4️⃣ GUI Agent ([Download Client](https://pan.baidu.com/s/1xqQcjwAbrd1YVS2XHG81rw?pwd=ae86))
+
+<p align="center">
+  <img width="900" alt="gui" src="https://github.com/user-attachments/assets/0576488a-9f55-49fa-8b21-b7810ac3faac" />
+</p>
+
+Operates various applications without APIs. Eliminates integration barriers for legacy or non‑API systems by giving AI vision and click capabilities.
+
+- **UI‑level interaction:** AI directly operates application interfaces without underlying API integration.
+- **Sandbox support:** Isolated Docker containers for each bot to safely execute UI operations.
+
+#### 5️⃣ General Agent + Skill Development
+
+<p align="center">
+  <img width="900" alt="wga" src="https://github.com/user-attachments/assets/340c131c-11ed-4547-a395-250f40770160" />
+</p>
+
+Unifies all capabilities with natural language. Industry‑first dual engine of General Agent + Vertical‑scene Skills, building a super agent that is both knowledgeable and professional for complex interactive needs.
+
+- **All‑around brain & minimal construction:** Professional analyst‑level multi‑step reasoning; one‑sentence Skill creation turns business experience into a dedicated toolbox via natural language; one‑click conversion of platform apps to Skills.
 
 ------
 
-### &#x1F525; Adopt a permissive and friendly Apache 2.0 License, supporting developers to freely expand and develop secondary
+### 🚀 3 Deployment Methods: Reach Business On‑Site
 
-✔ **Enterprise-level engineering**: Provides a complete toolchain from model management to application landing, solving the "last mile" problem of LLM technology landing
+After capability building, Wanwu provides 3 deployment paths to minimize FDE delivery difficulty:
 
-✔ **Open-source ecological**: Adopt a permissive and friendly **Apache 2.0 License**, supporting developers to freely expand and develop
+#### 📦 Method 1: Out‑of‑the‑Box Platform
 
-✔ **Full-stack technology support**: Equipped with a professional team to provide **architecture consulting, performance optimization** and full-cycle empowerment for ecological partners
+Use directly via visual interface; no coding required for creating agents, workflows, and Q&A. Zero‑threshold AI productivity for rapid on‑site validation and delivery.
 
-✔ **Multi-tenant architecture**: Provides a multi-tenant account system to meet the core needs of users in cost control, data security isolation, business elasticity expansion, industry customization, rapid online and ecological collaboration
+#### 🔗 Method 2: API Seamless Integration
 
-✔ **XinChuang adaptation**: The product has been awarded the **“Xinchuang AI Hardware and Software System Inspection Certificate“**，featuring hardware support for Huawei Kunpeng CPUs and software compatibility with domestic operating systems (e.g., openEuler, CULinux, Kylin) and databases (e.g., TiDB, OceanBase).
+RESTful API (BaaS) for embedding into OA, CRM, ERP, etc. Fine‑grained permission control enables deep AI integration without changing user habits.
+
+#### 🖥️Method 3: Skill + UniClaw Dedicated Client
+
+For high‑privilege scenarios (local PC control, DingTalk messages, etc.). FDEs develop Skills and execute via UniClaw to handle cross‑system high‑privilege on‑site operations.
+
+UniClaw download: https://maas.ai-yuanjing.com/app/uniclaw/uniclaw-official.html
+
+------
+
+### 🛠️ Infrastructure & Ecosystem
+
+- 🔥 **Apache‑2.0 License**: Free extension, secondary development, and commercial use.
+- ✔ **Model Hub**: Unified access to hundreds of proprietary/open‑source models; deep OpenAI API compatibility and Yuanjing ecosystem support; multiple inference backends.
+- ✔ **Skill Plaza**: 100+ built‑in industry Skills ready to use; no adapters needed for external capabilities.
+- ✔ **Web Search**: Real‑time information, multi‑source integration, intelligent retrieval strategies.
+- ✔ **Multi‑tenant architecture**: Isolated accounts for cost control, data security, and elastic scaling.
+- **✔ Xinchuang compliance**: Certified *Xinchuang AI Software/Hardware System Inspection Certificate*. Supports Kunpeng CPUs, Euler, Kylin, CULinux, TiDB, OceanBase, etc.
 
 ------
 
@@ -107,7 +179,11 @@ The **Yuanjing Wanwu AI Agent Platform** is an **enterprise-oriented**, **one-st
 
 ▸ **Basic Development Paradigm**: Still supports traditional Agent construction based on **function calling**, supporting private knowledge base association and multi-round online debugging
 
-#### **7. Backend as a Service (BaaS)**
+#### 7.Wanwu Ontology Agent
+
+▸ Automatically constructs business knowledge networks from enterprise data and documents, empowering AI with deep reasoning and closed-loop action capabilities to truly understand business and make decisions.
+
+#### **8. Backend as a Service (BaaS)**
 ▸ Provides **RESTful API**, supports deep integration with existing enterprise systems (OA/CRM/ERP, etc.)
 
 ▸ Provides **fine-grained permission control** to ensure stable operation in production environments
@@ -121,6 +197,7 @@ The **Yuanjing Wanwu AI Agent Platform** is an **enterprise-oriented**, **one-st
 |               Direct OCR import                |   ✅   |                ❌                |             ❌              |                ❌                |                ❌                |
 |                   RAG engine                   |   ✅   |                ✅                |             ✅              |                ✅                |                ✅                |
 |                    GraphRAG                    |   ✅   |                ❌                |             ❌              |                ✅                |                ❌                |
+|                 Ontology Agent                 |   ✅   |                ❌                |             ❌              |                ❌                |                ❌                |
 |    Multi-Agent Orchestration & Development     |   ✅   |                ❌                |             ✅              |                ✅                |                ❌                |
 | General Agent & Skills Orchestration Framework |   ✅   |                ❌                |             ❌              |                ❌                |                ❌                |
 |                     Agent                      |   ✅   |                ✅                |             ✅              |                ✅                |                ✅                |
@@ -130,7 +207,7 @@ The **Yuanjing Wanwu AI Agent Platform** is an **enterprise-oriented**, **one-st
 |                Local deployment                |   ✅   |                ✅                |             ✅              |                ✅                |                ✅                |
 |                  Multi-tenant                  |   ✅   |   ❌(Commercially restricted)    | ❌(Commercially restricted) |                ✅                | ✅(Users are not interconnected) |
 |                license friendly                |   ✅   |   ❌(Commercially restricted)    | ❌(Commercially restricted) |      Not fully open source      |                ✅                |
-> As of April 22, 2026.
+> As of May 15, 2026.
 
 ------
 
@@ -152,14 +229,22 @@ The platform has been successfully applied in multiple industries such as **fina
 
 - **Recommended Configuration:**
   - CPU: 8-core or 16-core; RAM: 32GB; Storage: 200GB or more; GPU: Not required.
-  
+
+- **Model Requirements:**
+  - When using WanwuBot (General Agent) or creating Skills with a single command, the selected model must have a context length >= 32000 when importing.
+
+- **Security Statement:**
+  - All middleware components (MySQL, Redis, MinIO, Kafka, Elasticsearch, etc.) support custom passwords configured in the `.env` file.
+  - For front-end and back-end user password transmission, RSA asymmetric encryption is used to encrypt passwords. The key pair is automatically generated on first service startup; custom key pairs can also be configured via `WANWU_BFF_LOGIN_RSA_PATH` in `.env`.
+  - It is strongly recommended to change all default passwords and keep them secure before deploying in a production environment to avoid security risks associated with default credentials.
+
 - **Docker Installation (Recommended)**
 
 1. Before the first run
 
     1.1 Copy the environment variable file
     ```bash
-    cp .env.bak .env
+    cp .env.example .env
     ```
 
     1.2 Modify the `WANWU_ARCH` and `WANWU_EXTERNAL_IP` variables in the .env file according to the system
@@ -177,7 +262,25 @@ The platform has been successfully applied in multiple industries such as **fina
     WANWU_BFF_JWT_SIGNING_KEY=
     ```
 
-    1.4 Create a Docker running network
+    1.4 Copy environment variable file (Ontology Agent)
+    ```bash
+    cp .env.ontology.example .env.ontology
+    ```
+
+    1.5 (Optional) Generate custom RSA keys before the first run (Ontology Agent)
+    > Skip this step to use the default keys baked into the images. To use independent keys in production, generate them as follows.
+
+    - 1.5.1 Generate RSA key pair
+      ```bash
+      ./configs/microservice/ontology/vega-server/generate-keys.sh configs/microservice/ontology/vega-server
+      ```
+
+    - 1.5.2 Generate frontend public key configuration (cross-platform, requires Node environment)
+      ```bash
+      node configs/microservice/ontology/vega-server/generate-public-key-js.js
+      ```
+
+    1.6 Create a Docker running network
     ```
     docker network create wanwu-net
     ```
@@ -186,9 +289,9 @@ The platform has been successfully applied in multiple industries such as **fina
 
     ```bash
     # For amd64 system:
-    docker compose --env-file .env --env-file .env.image.amd64 up -d
+    docker compose --env-file .env --env-file .env.ontology --env-file .env.image.amd64 up -d
     # For arm64 system:
-    docker compose --env-file .env --env-file .env.image.arm64 up -d
+    docker compose --env-file .env --env-file .env.ontology --env-file .env.image.arm64 up -d
     ```
 
 3. Log in to the system: http://localhost:8081
@@ -202,9 +305,9 @@ The platform has been successfully applied in multiple industries such as **fina
 
     ```bash
     # For amd64 system:
-    docker compose --env-file .env --env-file .env.image.amd64 down
+    docker compose --env-file .env --env-file .env.ontology --env-file .env.image.amd64 down
     # For arm64 system:
-    docker compose --env-file .env --env-file .env.image.arm64 down
+    docker compose --env-file .env --env-file .env.ontology --env-file .env.image.arm64 down
     ```
 
 5. Having trouble pulling middleware or other Docker images? We've prepared a backup of the images on Netdisk. Please follow the instructions in its README file: [Wanwu Docker Image Backup](https://pan.baidu.com/e/1cupIcEP2RBwi_hOr4xQnFQ?pwd=ae86)
@@ -235,18 +338,6 @@ The platform has been successfully applied in multiple industries such as **fina
 
 ------
 
-### 📦 Sandbox Startup
-
-The Wanwu sandbox can be used for features like WanwuBot(General Agent), creating Skills with a single command and needs to be started separately; note that when using WanwuBot, creating Skills, the selected model must have a context length >= 32000 when importing.
-
-1. Based on the above Docker installation steps, complete the configuration before the first run
-
-2. Start the sandbox (taking amd64 as an example)
-
-   ```
-   docker compose --env-file .env --env-file .env.image.amd64 -f docker-compose.wga-sandbox.yaml up -d
-   ```
-
 ### ⬆️ Version Upgrade
 
 1. Based on the above Docker installation steps, completely stop the system service
@@ -261,12 +352,20 @@ The Wanwu sandbox can be used for features like WanwuBot(General Agent), creatin
     git pull
     ```
 
-    2.2 Recopy the environment variable file (if there are changes to the environment variables, please modify them again)
+    2.2 Recopy environment variable file (if there are changes to the environment variables, please modify them again)
     ```bash
     # Backup the current .env file
     cp .env .env.old
     # Copy the .env file
-    cp .env.bak .env
+    cp .env.example .env
+    ```
+
+    2.3 Recopy environment variable file (if there are changes to the environment variables, please modify them again)
+    ```bash
+    # Backup current .env.ontology file
+    cp .env.ontology .env.ontology.old
+    # Copy .env.ontology file
+    cp .env.ontology.example .env.ontology
     ```
 
 3. Based on the above Docker installation steps, completely start the system service
@@ -299,6 +398,7 @@ To help you quickly get started with this project, we strongly recommend that yo
 | Feature                                                      | Detailed Description                                         |
 | :----------------------------------------------------------- | :----------------------------------------------------------- |
 | [General Agent](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/8.%e9%80%9a%e7%94%a8%e6%99%ba%e8%83%bd%e4%bd%93) | The platform deeply integrates advanced capabilities such as deep research and data analysis, achieving a comprehensive leap from simple Q&A to complex business processing, creating your all-around AI digital assistant. |
+| [Ontology Agent](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/10.%E6%9C%AC%E4%BD%93%E6%99%BA%E8%83%BD%E4%BD%93/%E6%95%B0%E6%8D%AE%E8%BF%9E%E6%8E%A5/%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86.md) | Automatically constructs business knowledge networks from enterprise data and documents, empowering AI with deep reasoning and closed-loop action capabilities to truly understand business and make decisions. |
 | [Model Management](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/1.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86.md) | Supports users to import LLM, Embedding, and Rerank models from various model providers, including Unicom Yuanjing, OpenAI-API-compatible, Ollama, Tongyi Qianwen, and Volcano Engine. [Model Import Methods - Detailed Version](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/%E6%A8%A1%E5%9E%8B%E5%AF%BC%E5%85%A5%E6%96%B9%E5%BC%8F-%E8%AF%A6%E7%BB%86%E7%89%88.md) |
 | [Knowledge Base](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93) | In terms of document parsing capabilities: supports uploading of 12 file types and URL parsing; Supports private deployment and integration for document parsing via two methods: OCR and [a proprietary MinerU model (for scenarios like titles, tables, and formulas)](https://github.com/UnicomAI/DocParserServer/tree/main) ; document segmentation settings support both general segmentation and parent-child segmentation. In terms of optimization capabilities: supports metadata management 、Graph RAG and metadata filtering queries, supports adding, deleting, and modifying segmented content, supports setting keyword tags for segments to improve recall performance, supports segment enable/disable operations, and supports hit testing. In terms of retrieval capabilities: supports multiple retrieval modes including vector search, full-text search, and hybrid search. In terms of Q&A capabilities: supports automatic citation of sources and generating answers with both text and images.<br |
 | [Resource Library](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/3.%E5%B7%A5%E5%85%B7%E5%B9%BF%E5%9C%BA.md) | Supports importing your own MCP services or custom tools or skills for use in workflows and agents. |
@@ -334,10 +434,11 @@ The F1 score serving as the comprehensive evaluation metric (the harmonic mean o
 
 - [x] General Agent
 - [x] Skills
+- [x] Trace Tracking
 - [ ] Support importing databases into knowledge base
-- [ ] A2A Protocol
 - [ ] Agent and Model Evaluation
-- [ ] Trace Tracking
+- [ ] Long-term Memory
+- [ ] A2A Protocol
 
 ------
 
@@ -382,6 +483,7 @@ The F1 score serving as the comprehensive evaluation metric (the harmonic mean o
 - [LangChain](https://github.com/langchain-ai/langchain)
 - [AIO Sandbox](https://github.com/agent-infra/sandbox)
 - [OpenCode](https://github.com/anomalyco/opencode)
+- [KWeaver Core](https://github.com/kweaver-ai/kweaver-core)
 
 ------
 
@@ -390,7 +492,56 @@ The Yuanjing Wanwu AI Agent Platform is released under the Apache License 2.0.
 
 ------
 
+### ⚠️ Disclaimer and Privacy Agreement
+
+By using the Yuanjing Wanwu Intelligent Agent Platform (hereinafter referred to as "this Platform"), you indicate that you have read and agree to the following terms.
+
+#### 1. Disclaimer on Generated Content
+
+All content provided by this Platform is generated by artificial intelligence models and is intended solely for technical reference and learning exchange.
+
+* **Not Constituting Advice:** The generated content does not represent the views of this Platform and does not constitute any form of professional advice (including but not limited to legal, medical, financial investment, etc.).
+* **Assumption of Risk:** AI may involve risks of information lag, logical bias, or hallucinations. Users must independently verify the generated content. The user assumes full responsibility for any consequences arising from decisions made based on reliance on the generated content.
+
+#### 2. Privacy and Data Security
+
+**Please do not input any personal privacy, trade secrets, or state secrets during the conversation.**
+
+##### 🔴 Visibility Rules for Interaction Records
+
+The intelligent agents on this Platform are created by third-party developers:
+
+* **Third-Party Visibility:** To optimize the performance of the intelligent agents, **the creators of the intelligent agents have the right to view the complete conversation records between users and their agents in their management backend.**
+* **Sensitive Information Warning:** Given the aforementioned mechanism, your conversation content is visible to the creators. Please ensure that the conversation does not contain sensitive information such as phone numbers, ID card numbers, passwords, internal company documents, etc.
+* **Platform Responsibility:** This Platform has constrained creators to use data compliantly through agreements; however, it cannot fully control third-party behavior. The risk of leakage caused by the user's voluntary input of sensitive information shall be borne by the user.
+
+#### 3. User Code of Conduct
+
+Users promise to use this Platform legally and are strictly prohibited from using this service to engage in the following behaviors:
+
+* Generating content that violates laws and regulations or disrupts public order and good morals;
+* Infringing upon the legitimate rights and interests of others, such as intellectual property rights, portrait rights, and reputation rights;
+* Interfering with the normal operation of the Platform or attacking the Platform system.
+
+#### 4. Intellectual Property Rights
+
+* **User-Created Assets:** The intellectual property rights of intelligent agents, workflows, and related configuration content created and developed by users using this Platform's tools belong to the users.
+* **Platform Assets:** The intellectual property rights of the Platform's infrastructure, source code, and official documentation belong to the Platform.
+
+#### 5. Security Statement
+
+- The various middleware involved in the Platform (MySQL, Redis, MinIO, Kafka, Elasticsearch, etc.) all support customizing passwords in the `.env` file.
+- In frontend-backend user password transmission scenarios, RSA asymmetric encryption is used to encrypt passwords for transmission. The key pair is automatically generated when the service starts for the first time; it also supports customizing the key pair through the `WANWU_BFF_LOGIN_RSA_PATH` configuration in `.env`.
+- It is strongly recommended to modify all default passwords and keep them safe before deploying in a production environment to avoid security risks caused by using default credentials. Security risks, data leaks, or system damage caused by failure to modify default credentials (including but not limited to default accounts, passwords, keys, etc.) shall be the responsibility of the deploying party and have no relation to this Platform or the development team.
+
+#### 6. Service Modifications
+
+This Platform reserves the right to modify, suspend, or terminate the service at any time without assuming breach of contract liability to the user.
+
+------
+
 ### &#x1F4E9; Contact Us
-| QQ Group1(Full):490071123                                    | QQ Group2(Full):1026898615                                         | QQ Group3:1019579243                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/010f1d68-78e9-446d-baf1-0a7339efb48e" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/10796f69-5c18-4f21-adbb-b22b6ef88df2" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/9badde43-b421-48ce-a998-1fc2e33bdc55" /> |
+
+| QQ Group1(Full):490071123                                    | QQ Group2(Full):1026898615                                         | QQ Group3(Full):1019579243                                         | QQ Group4:967463724                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/f20bcff4-63e7-4e07-9909-bbeee4bc50f6" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/11755b2f-80f9-454e-aa4e-01706d40d729" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/c1be21bb-2a85-43cc-b856-270501a04a94" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/f5aef62d-61ca-4bc1-9217-ba4a358a7d08" /> |

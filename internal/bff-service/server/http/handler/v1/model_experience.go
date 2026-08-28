@@ -23,7 +23,53 @@ func ModelExperienceLLM(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	service.ModelExperienceLLM(ctx, getUserID(ctx), getOrgID(ctx), &req)
+	service.ModelExperienceLLM(ctx, getUserID(ctx), getOrgID(ctx), getClientID(ctx), &req)
+}
+
+// ModelExperienceLLMConnect
+//
+//	@Tags			model.experience
+//	@Summary		模型体验流式问答断开后重连
+//	@Description	模型体验流式问答断开后重连
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.ModelExperienceLlmConnectRequest	true	"模型体验流式重连"
+//	@Success		200		{object}	response.Response
+//	@Router			/model/experience/llm/connect [post]
+func ModelExperienceLLMConnect(ctx *gin.Context) {
+	userId, orgId, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
+	var req request.ModelExperienceLlmConnectRequest
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	if err := service.ModelExperienceLLMConnect(ctx, userId, orgId, clientId, req); err != nil {
+		gin_util.Response(ctx, nil, nil)
+	}
+}
+
+// ModelExperienceLLMCancel
+//
+//	@Tags			model.experience
+//	@Summary		模型体验流式问答手动停止
+//	@Description	模型体验流式问答手动停止
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.ModelExperienceLlmCancelRequest	true	"模型体验流式问答手动停止参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/model/experience/llm/cancel [post]
+func ModelExperienceLLMCancel(ctx *gin.Context) {
+	_, _, clientId := getUserID(ctx), getOrgID(ctx), getClientID(ctx)
+	var req request.ModelExperienceLlmCancelRequest
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	if err := service.ModelExperienceLLMCancel(req, clientId); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	gin_util.Response(ctx, nil, nil)
 }
 
 // ModelExperienceSaveDialog

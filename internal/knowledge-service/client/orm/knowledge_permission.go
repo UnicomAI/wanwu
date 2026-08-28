@@ -26,9 +26,20 @@ func SelectKnowledgePermissionById(ctx context.Context, permissionId string) (*m
 }
 
 // SelectKnowledgeIdByPermission 查询用户有权限的知识库id
-func SelectKnowledgeIdByPermission(ctx context.Context, userId, orgId string, permission int) ([]*model.KnowledgePermission, error) {
+func SelectKnowledgeIdByPermission(ctx context.Context, userId, orgId string, permission int, knowledgeIdList []string) ([]*model.KnowledgePermission, error) {
 	var knowledgePermissionList []*model.KnowledgePermission
-	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithOverKnowledgePermission(permission)).
+	err := sqlopt.SQLOptions(sqlopt.WithKnowledgeIDList(knowledgeIdList), sqlopt.WithPermit(orgId, userId), sqlopt.WithOverKnowledgePermission(permission)).
+		Apply(db.GetHandle(ctx), &model.KnowledgePermission{}).Find(&knowledgePermissionList).Error
+	if err != nil {
+		return nil, err
+	}
+	return knowledgePermissionList, nil
+}
+
+// SelectKnowledgeIdByPermissionOrgList 查询用户有权限的知识库id
+func SelectKnowledgeIdByPermissionOrgList(ctx context.Context, userId, orgId []string, permission int) ([]*model.KnowledgePermission, error) {
+	var knowledgePermissionList []*model.KnowledgePermission
+	err := sqlopt.SQLOptions(sqlopt.WithPermitList(orgId, userId), sqlopt.WithOverKnowledgePermission(permission)).
 		Apply(db.GetHandle(ctx), &model.KnowledgePermission{}).Find(&knowledgePermissionList).Error
 	if err != nil {
 		return nil, err
@@ -37,9 +48,9 @@ func SelectKnowledgeIdByPermission(ctx context.Context, userId, orgId string, pe
 }
 
 // SelectUserKnowledgePermissionList 查询用户知识库权限
-func SelectUserKnowledgePermissionList(ctx context.Context, knowledgeId string) ([]*model.KnowledgePermission, error) {
+func SelectUserKnowledgePermissionList(ctx context.Context, knowledgeId string, permission int) ([]*model.KnowledgePermission, error) {
 	var permissionList []*model.KnowledgePermission
-	err := sqlopt.SQLOptions(sqlopt.WithKnowledgeID(knowledgeId)).
+	err := sqlopt.SQLOptions(sqlopt.WithKnowledgeID(knowledgeId), sqlopt.WithOverKnowledgePermission(permission)).
 		Apply(db.GetHandle(ctx), &model.KnowledgePermission{}).Find(&permissionList).Error
 	if err != nil {
 		return nil, err

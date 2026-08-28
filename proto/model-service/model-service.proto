@@ -10,8 +10,8 @@ service ModelService {
 
     // --- model ---
 
-    // 模型导入
-    rpc ImportModel(ModelInfo) returns (google.protobuf.Empty) {}
+    // 模型导入（返回落库后的模型信息，含新生成的 modelId）
+    rpc ImportModel(ModelInfo) returns (ModelInfo) {}
     // 导入模型更新
     rpc UpdateModel(ModelInfo) returns (google.protobuf.Empty) {}
     // 导入模型删除
@@ -30,6 +30,11 @@ service ModelService {
     rpc ListModelsByIds(ListModelsByIdsReq) returns (ModelInfos) {}
     // llm/rerank/embedding模型列表展示
     rpc ListTypeModels(ListTypeModelsReq) returns (ModelInfos) {}
+    // 统计看板：按 orgIds/userIds 批量查询模型（org_id IN + user_id IN，单次查询）
+    rpc ListModelsInStatisticScope(ListModelsInStatisticScopeReq) returns (ModelInfos) {}
+
+    // AdminModelPageList 管理员中心模型全局分页列表（跨用户/组织）
+    rpc AdminModelPageList(AdminModelPageListReq) returns (AdminModelPageListResp) {}
 
     // --- model experience ---
 
@@ -71,6 +76,22 @@ message ModelInfo {
 message ModelInfos {
     repeated ModelInfo models = 1;
     int64 total = 2;
+}
+
+message AdminModelPageListReq {
+    string name = 1;                // 模型显示名称，支持模糊搜索
+    repeated string modelType = 2;  // 模型类型
+    string provider = 3;            // 模型供应商
+    repeated string userId = 4;     // 拥有者用户id列表
+    repeated string orgId = 5;      // 拥有者组织id列表
+    int32 pageNum = 6;              // 页码，从1开始
+    int32 pageSize = 7;             // 每页数量
+    repeated uint32 scopeType = 8;  // 发布范围过滤：1私有 2公开 3组织（对应发布范围 private/public/organization）
+}
+
+message AdminModelPageListResp {
+    int64 total = 1;
+    repeated ModelInfo models = 2;
 }
 
 message DeleteModelReq {
@@ -123,6 +144,14 @@ message ListTypeModelsReq {
     string modelType = 3;       // 模型类型
 }
 
+// 统计看板模型下拉：orgIds/userIds 与统计 SQL 一致（IN + IN）
+message ListModelsInStatisticScopeReq {
+    repeated string orgIds = 1;
+    repeated string userIds = 2;
+    string modelType = 3;
+    string filterScope = 4;     // 同 ListModelsReq.filterScope，空表示不过滤公开/私有
+}
+
 // --- model experience ---
 
 message SaveModelExperienceDialogReq {
@@ -152,6 +181,7 @@ message ModelExperienceDialog {
     string title = 4;
     string modelSetting = 5;  // 模型参数配置
     int64 createdAt = 6;
+    int64 updatedAt = 7;
 }
 
 message ModelExperienceDialogs {
@@ -168,6 +198,7 @@ message SaveModelExperienceDialogRecordReq {
     string handledContent = 7;  // 处理后的内容
     string reasoningContent = 8;  // 思考过程
     string role = 9;  // 角色
+    string fileInfo = 10; // 文件信息JSON
 }
 
 message GetModelExperienceDialogRecordsReq {
@@ -187,6 +218,7 @@ message ModelExperienceDialogRecord {
     string handledContent = 7;  // 处理后的内容
     string reasoningContent = 8;  // 思考过程
     string role = 9;  // 角色
+    string fileInfo = 10; // 文件信息JSON
 }
 
 message ModelExperienceDialogRecords {

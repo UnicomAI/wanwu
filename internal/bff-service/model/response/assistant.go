@@ -29,6 +29,9 @@ type Assistant struct {
 	NewAgent               bool                           `json:"newAgent"`            // 是否是新版本智能体
 	PublishType            string                         `json:"publishType"`         // 发布类型
 	Category               int32                          `json:"category"`            // 智能体分类 1.单智能体 2.多智能体
+	HideKnowledge          int32                          `json:"hideKnowledge"`       // 是否隐藏知识库
+	OwnerUserId            string                         `json:"ownerUserId"`         // 拥有者用户id
+	OwnerOrgId             string                         `json:"ownerOrgId"`          // 拥有者组织id
 }
 
 type AssistantWorkFlowInfo struct {
@@ -42,36 +45,39 @@ type AssistantWorkFlowInfo struct {
 }
 
 type AssistantMCPInfo struct {
-	UniqueId   string         `json:"uniqueId"`
-	MCPId      string         `json:"mcpId"`
-	MCPType    string         `json:"mcpType" validate:"required,oneof=mcp mcpserver"`
-	MCPName    string         `json:"mcpName"`
-	ActionName string         `json:"actionName"`
-	Enable     bool           `json:"enable"`
-	Valid      bool           `json:"valid"`
-	Avatar     request.Avatar `json:"avatar"`
+	UniqueId    string         `json:"uniqueId"`
+	MCPId       string         `json:"mcpId"`
+	MCPType     string         `json:"mcpType" validate:"required,oneof=mcp mcpserver"`
+	MCPName     string         `json:"mcpName"`
+	ActionName  string         `json:"actionName"`
+	Enable      bool           `json:"enable"`
+	Valid       bool           `json:"valid"`
+	Avatar      request.Avatar `json:"avatar"`
+	Description string         `json:"description"`
 }
 
 type AssistantToolInfo struct {
-	UniqueId   string                      `json:"uniqueId"`
-	ToolId     string                      `json:"toolId"`
-	ToolType   string                      `json:"toolType" validate:"required,oneof=builtin custom"`
-	ToolName   string                      `json:"toolName"`
-	ActionName string                      `json:"actionName"`
-	Enable     bool                        `json:"enable"`
-	Valid      bool                        `json:"valid"`
-	ToolConfig request.AssistantToolConfig `json:"toolConfig"`
-	Avatar     request.Avatar              `json:"avatar"`
+	UniqueId    string                      `json:"uniqueId"`
+	ToolId      string                      `json:"toolId"`
+	ToolType    string                      `json:"toolType" validate:"required,oneof=builtin custom"`
+	ToolName    string                      `json:"toolName"`
+	ActionName  string                      `json:"actionName"`
+	Enable      bool                        `json:"enable"`
+	Valid       bool                        `json:"valid"`
+	ToolConfig  request.AssistantToolConfig `json:"toolConfig"`
+	Avatar      request.Avatar              `json:"avatar"`
+	Description string                      `json:"description"`
 }
 
 type AssistantSkillInfo struct {
-	SkillId   string         `json:"skillId"`
-	SkillType string         `json:"skillType" validate:"required,oneof=builtin custom"`
-	SkillName string         `json:"skillName"`
-	Author    string         `json:"author"`
-	Enable    bool           `json:"enable"`
-	Valid     bool           `json:"valid"`
-	Avatar    request.Avatar `json:"avatar"`
+	SkillId     string         `json:"skillId"`
+	SkillType   string         `json:"skillType" validate:"required,oneof=builtin custom acquired"`
+	SkillName   string         `json:"skillName"`
+	Author      string         `json:"author"`
+	Enable      bool           `json:"enable"`
+	Valid       bool           `json:"valid"`
+	Avatar      request.Avatar `json:"avatar"`
+	Description string         `json:"description"`
 }
 
 type AssistantAgentInfo struct {
@@ -89,11 +95,14 @@ type ConversationInfo struct {
 	AssistantId    string `json:"assistantId"`
 	Title          string `json:"title"`
 	CreatedAt      string `json:"createdAt"`
+	UpdatedAt      string `json:"updatedAt"`
 }
 
 type ConversationResponse struct {
-	Response string `json:"response"`
-	Order    int32  `json:"order"`
+	Response    string `json:"response"`
+	Order       int32  `json:"order"`
+	ErrResponse string `json:"errResponse"`
+	ErrMessage  string `json:"errMessage"`
 }
 
 type ConversationDetailInfo struct {
@@ -114,6 +123,8 @@ type ConversationDetailInfo struct {
 	FileName            string                  `json:"fileName"`
 	SubConversationList []*SubConversation      `json:"subConversationList"`
 	ResponseFiles       []*AgentResponseFile    `json:"responseFiles"`
+	Feedback            int32                   `json:"feedback"`        // 当前反馈状态: 0=无 1=点赞 2=点踩
+	FeedbackContent     string                  `json:"feedbackContent"` // 反馈文本内容
 }
 
 type SubConversation struct {
@@ -127,6 +138,7 @@ type SubConversation struct {
 	Status           int32       `json:"status"`           // 1:成功，2：失败
 	ConversationType string      `json:"conversationType"` // subAgent：子智能体；agentTool：主智能体工具；subAgentTool：子智能体工具
 	Order            int32       `json:"order"`
+	ErrMessage       string      `json:"errMessage"` //错误信息
 }
 
 type AssistantRequestFile struct {
@@ -145,6 +157,13 @@ type ConversationIdResp struct {
 
 type AssistantCreateResp struct {
 	AssistantId string `json:"assistantId"`
+}
+
+type PendingConversationResp struct {
+	ConversationId         string                 `json:"conversationId"`         // 会话id
+	HasPendingConversation bool                   `json:"hasPendingConversation"` // 是否有进行中会话
+	Prompt                 string                 `json:"prompt"`
+	RequestFiles           []AssistantRequestFile `json:"requestFiles"`
 }
 
 // --- conversation sse ---
@@ -211,4 +230,9 @@ type AssistantTemplateInfo struct {
 	Feature                   string   `json:"feature"`             // 特性说明
 	Scenario                  string   `json:"scenario"`            // 应用场景
 	WorkFlowConfigInstruction string   `json:"workFlowInstruction"` // 工作流配置说明
+}
+
+// MessageFeedbackResp 消息点赞/点踩响应
+type MessageFeedbackResp struct {
+	FeedbackType int32 `json:"feedbackType"` // 当前反馈状态: 0=无 1=点赞 2=点踩
 }

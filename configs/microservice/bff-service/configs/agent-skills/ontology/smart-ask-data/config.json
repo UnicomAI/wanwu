@@ -1,0 +1,77 @@
+{
+  "name": "smart-ask-data",
+  "version": "2.0.0",
+  "description": "问数编排：bkn list/get 选 KN → bkn object-type get 发现 schema（含 logic_properties）→ 路由判定（SQL 路径 or 逻辑属性路径）→ dataview query --sql / bkn object-type properties 执行 → 总结。所有 ontology 命令均委托给 ontology-core 执行；本 skill 不直接执行 CLI。",
+  "runtime_contract": {
+    "user_id_source": "由 smart-data-analysis 把当前会话用户的 accountId 注入 ontology 命令的 --user-id；不在 config 内固化",
+    "auth": "本部署 ontology CLI 无须 token；命令体与 body 内均不出现 --token / auth.token / Authorization",
+    "gateway_source": "由 ontology-core 侧 ONTOLOGY_BASE_URL / ONTOLOGY_GATEWAY_MODE 承担；本 skill 不引用 base_url",
+    "kn_id_source": "由 smart-data-analysis 从其 SKILL.md「知识网络声明」表的『问数』行透传注入；本 skill 不自行选 KN"
+  },
+  "pipeline": [
+    {
+      "step": 1,
+      "role": "receive_kn",
+      "ontology_commands": [],
+      "reference": "references/kn-resolve.md",
+      "condition": "接收 smart-data-analysis 透传的 kn_id；为空则告知用户并停止"
+    },
+    {
+      "step": 2,
+      "role": "schema_discovery",
+      "ontology_commands": [
+        "bkn object-type list <kn-id>",
+        "bkn object-type get <kn-id> <ot-id>"
+      ],
+      "reference": "references/schema-discovery.md",
+      "output": "schema 摘要：相关对象类、字段、dataview-id（取自 data_source.id，type 须为 data_view）、logic_properties（逻辑属性定义，含 name/parameters/execution_unit）、关系"
+    },
+    {
+      "step": 3,
+      "role": "route_decision",
+      "owner": "smart-data-analysis (LLM)",
+      "reference": "references/sql-execute.md",
+      "constraints": [
+        "二选一路由，禁止混用",
+        "逻辑属性路径：用户要的指标名命中 step-2 返回的 logic_properties[].name",
+        "SQL 路径：聚合/JOIN/普通字段取值，logic_properties 为空或不含目标属性"
+      ]
+    },
+    {
+      "step": 3,
+      "step_label": "sql_path",
+      "role": "sql_generation",
+      "owner": "smart-data-analysis (LLM)",
+      "reference": "references/sql-execute.md",
+      "constraints": ["SELECT/WITH only", "字段表名必须来自 step2 摘要", "含聚合时带 GROUP BY", "默认 LIMIT ≤ 200"]
+    },
+    {
+      "step": 3,
+      "step_label": "logic_property_path",
+      "role": "logic_property_resolve",
+      "owner": "smart-data-analysis (LLM)",
+      "reference": "references/sql-execute.md",
+      "constraints": [
+        "从 logic_properties[].name 提取目标逻辑属性名",
+        "从用户提供或 bkn object-type query 查得 instance_identities",
+        "不生成 SQL；bkn object-type properties 是固定 body 结构的取值命令"
+      ]
+    },
+    {
+      "step": 4,
+      "role": "execute",
+      "ontology_commands": [
+        "dataview query <dataview-id> --sql <sql> [--limit n] [--offset n] [--need-total]（SQL 路径）",
+        "bkn object-type properties <kn-id> <ot-id> '{\"_instance_identities\":[{...}],\"properties\":[...]}'（逻辑属性路径）",
+        "bkn object-type query <kn-id> <ot-id> '<filter-json>'（简单单表过滤备选）"
+      ],
+      "reference": "references/sql-execute.md"
+    },
+    {
+      "step": 5,
+      "role": "summarize",
+      "owner": "smart-ask-data",
+      "must_show": ["执行的 SQL 或逻辑属性取值命令（可脱敏不可省）", "关键结果数据（表/行/聚合/计算值）", "结论 + 数据依据 + 限制"]
+    }
+  ]
+}

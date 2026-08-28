@@ -5,27 +5,25 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"sort"
-
 	"math"
-
-	safe_go_util "github.com/UnicomAI/wanwu/pkg/safe-go-util"
-
-	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
-	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
-
+	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
+	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
+	knowledgebase_doc_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-doc-service"
 	knowledgebase_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	prompt_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/prompt-util"
-	"github.com/gin-gonic/gin"
-
+	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	http_client "github.com/UnicomAI/wanwu/pkg/http-client"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	safe_go_util "github.com/UnicomAI/wanwu/pkg/safe-go-util"
+	"github.com/UnicomAI/wanwu/pkg/util"
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -302,9 +300,62 @@ func localKnowledgeHit(ctx *gin.Context, req *request.RagSearchKnowledgeBaseReq,
 			return
 		}
 		if hit != nil {
+			hit = rebuildFileName(hit)
 			ragSearchContext.LocalKnowledgeData = hit.Data
 		}
 	}
+}
+
+// rebuildFileName 重新构造文件名，主要处理url类型的文件
+func rebuildFileName(hit *RagKnowledgeHitResp) (hit1 *RagKnowledgeHitResp) {
+	defer util.PrintPanicStackWithCall(func(panicOccur bool, recoverError error) {
+		if panicOccur {
+			hit1 = hit
+		}
+	})
+	if hit.Data != nil && len(hit.Data.SearchList) > 0 {
+		var docIdMap = make(map[string]bool)
+		var docIdList []string
+		//根据文件名去重获取docId
+		for _, item := range hit.Data.SearchList {
+			//url 类会写死.txt
+			if filepath.Ext(item.Title) != ".txt" {
+				continue
+			}
+			baseName := strings.TrimSuffix(filepath.Base(item.Title), ".txt")
+			if !docIdMap[baseName] {
+				docIdMap[baseName] = true
+				docIdList = append(docIdList, baseName)
+			}
+		}
+		if len(docIdList) > 0 {
+			//根据docId 批量查询文件详情
+			docListResp, _ := knowledgeBaseDoc.GetDocListByDocIdList(context.Background(), &knowledgebase_doc_service.GetDocListByDocIdListReq{
+				DocIdList: docIdList,
+			})
+			docMap := make(map[string]string)
+			if docListResp != nil && len(docListResp.Docs) > 0 {
+				for _, doc := range docListResp.Docs {
+					docMap[doc.DocId] = doc.DocName
+				}
+			}
+			if len(docMap) > 0 {
+				//替换文件名
+				for _, item := range hit.Data.SearchList {
+					//url 类会写死.txt
+					if filepath.Ext(item.Title) != ".txt" {
+						continue
+					}
+					baseName := strings.TrimSuffix(filepath.Base(item.Title), ".txt")
+					docName := docMap[baseName]
+					if docName != "" {
+						item.Title = docName + filepath.Ext(item.Title)
+					}
+				}
+			}
+		}
+	}
+	return hit
 }
 
 // buildLocalHitParams 构造本地查查询请求参数，注意深copy问题

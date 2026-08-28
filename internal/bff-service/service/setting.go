@@ -50,3 +50,20 @@ func UploadCustomHome(ctx *gin.Context, userId, orgId, mode string, req *request
 	}
 	return nil
 }
+
+func UploadCustomGeneralAgent(ctx *gin.Context, userId, orgId, mode string, req *request.CustomGeneralAgentConfig) error {
+	_, err := operate.CreateSystemCustomGeneralAgent(ctx.Request.Context(), &operate_service.CreateSystemCustomGeneralAgentReq{
+		OrgId:  orgId,
+		UserId: userId,
+		Mode:   mode,
+		GeneralAgent: &operate_service.GeneralAgent{
+			GeneralAgentIcon:     req.GeneralAgentIcon.Key,
+			GeneralAgentWelcome:  req.GeneralAgentWelcome,
+			GeneralAgentMenuName: req.GeneralAgentMenuName,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}

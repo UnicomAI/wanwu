@@ -14,4 +14,6 @@ type Org struct {
 	Name string `gorm:"index:idx_org_name"`
 	// 描述
 	Remark string
+	// 组织头像
+	AvatarPath string
 }

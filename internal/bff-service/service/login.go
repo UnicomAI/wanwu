@@ -19,10 +19,13 @@ func Login(ctx *gin.Context, login *request.Login, language string) (*response.L
 	if config.Cfg().CustomInfo.LoginByEmail != 0 {
 		return nil, grpc_util.ErrorStatus(err_code.Code_BFFSingleLoginDisable)
 	}
-	password, err := decryptPD(login.Password)
+
+	// 使用RSA解密密码
+	password, err := decryptCipherRSA(ctx.Request.Context(), login.Cipher, login.KeyID, challengeConsume)
 	if err != nil {
 		return nil, fmt.Errorf("decrypt password err: %v", err)
 	}
+
 	resp, err := iam.Login(ctx.Request.Context(), &iam_service.LoginReq{
 		UserName: login.Username,
 		Password: password,
@@ -40,10 +43,13 @@ func LoginByEmail(ctx *gin.Context, login *request.Login) (*response.LoginByEmai
 	if config.Cfg().CustomInfo.LoginByEmail == 0 {
 		return nil, grpc_util.ErrorStatus(err_code.Code_BFFLoginDisable)
 	}
-	password, err := decryptPD(login.Password)
+
+	// 使用RSA解密密码
+	password, err := decryptCipherRSA(ctx.Request.Context(), login.Cipher, login.KeyID, challengeConsume)
 	if err != nil {
 		return nil, fmt.Errorf("decrypt password err: %v", err)
 	}
+
 	resp, err := iam.LoginByEmail(ctx.Request.Context(), &iam_service.LoginByEmailReq{
 		UserName: login.Username,
 		Password: password,
@@ -90,13 +96,13 @@ func ChangeUserPasswordByEmail(ctx *gin.Context, login *request.ChangeUserPasswo
 	if config.Cfg().CustomInfo.LoginByEmail == 0 {
 		return nil, grpc_util.ErrorStatus(err_code.Code_BFFLoginDisable)
 	}
-	oldPassword, err := decryptPD(login.OldPassword)
+	oldPassword, err := decryptCipherRSA(ctx.Request.Context(), login.OldCipher, login.KeyID, challengeValidateOnly)
 	if err != nil {
-		return nil, fmt.Errorf("decrypt password err: %v", err)
+		return nil, fmt.Errorf("decrypt old password err: %v", err)
 	}
-	newPassword, err := decryptPD(login.NewPassword)
+	newPassword, err := decryptCipherRSA(ctx.Request.Context(), login.NewCipher, login.KeyID, challengeConsume)
 	if err != nil {
-		return nil, fmt.Errorf("decrypt password err: %v", err)
+		return nil, fmt.Errorf("decrypt new password err: %v", err)
 	}
 	resp, err := iam.ChangeUserPasswordByEmail(ctx.Request.Context(), &iam_service.ChangeUserPasswordByEmailReq{
 		UserId:      userId,
@@ -144,9 +150,9 @@ func getLoginResp(ctx *gin.Context, resp *iam_service.LoginResp) (*response.Logi
 		Username:         resp.User.GetUserName(),
 		Nickname:         resp.User.GetNickName(),
 		Token:            token,
-		ExpiresAt:        claims.ExpiresAt * 1000, // 超时事件戳毫秒
+		ExpiresAt:        claims.ExpiresAt.Unix() * 1000, // 超时事件戳毫秒
 		ExpireIn:         strconv.FormatInt(jwt_util.UserTokenTimeout, 10),
-		Orgs:             toOrgIDNames(ctx, orgs.Selects, resp.User.GetUserId() == config.SystemAdminUserID),
+		Orgs:             toOrgIDNamesWithAvatar(ctx, orgs.Selects, resp.User.GetUserId() == config.SystemAdminUserID),
 		OrgPermission:    toOrgPermission(ctx, resp.Permission),
 		Language:         getLanguageByCode(resp.User.Language),
 		IsUpdatePassword: resp.Permission.LastUpdatePasswordAt != 0,

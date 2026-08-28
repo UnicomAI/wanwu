@@ -1,6 +1,10 @@
 package response
 
-import "github.com/cloudwego/eino/schema"
+import (
+	"encoding/json"
+
+	"github.com/cloudwego/eino/schema"
+)
 
 type ToolStep int
 
@@ -11,6 +15,22 @@ const (
 	ToolParamFinishStep  ToolStep = 3 //输出工具参数完成阶段
 	ToolResultFinishStep ToolStep = 4 //输出工具结果完成阶段
 )
+
+type AgentToolErrResp struct {
+	ErrorMsg string `json:"errorMsg"`
+}
+
+func ToolErrResp(err error) (string, error) {
+	if err == nil {
+		return "", nil
+	}
+	resp := AgentToolErrResp{ErrorMsg: err.Error()}
+	marshal, err := json.Marshal(resp)
+	if err != nil {
+		return "", err
+	}
+	return string(marshal), nil
+}
 
 type AgentTool struct {
 	ToolId    string

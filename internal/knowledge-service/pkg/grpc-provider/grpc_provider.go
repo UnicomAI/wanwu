@@ -2,22 +2,19 @@ package grpc_provider
 
 import (
 	"context"
-	"fmt"
 	"net"
-	"runtime/debug"
 	"time"
 
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/config"
 	knowledge_log "github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/knowledge-log"
+	_ "github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/tracer"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
-	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/status"
 )
 
 var grpcProvider = GrpcProvider{}
@@ -59,21 +56,7 @@ func (c GrpcProvider) LoadType() string {
 func (c GrpcProvider) Load() error {
 	configInfo := config.GetConfig()
 
-	// init
-	opts := []grpc_recovery.Option{
-		grpc_recovery.WithRecoveryHandler(func(p interface{}) error {
-			log.Errorf("[PANIC] %v\n%v", p, string(debug.Stack()))
-			return status.Error(codes.Internal, fmt.Sprintf("panic: %v", p))
-		}),
-	}
-	serverOptions := []grpc.ServerOption{
-		grpc.MaxRecvMsgSize(configInfo.Server.MaxRecvMsgSize),
-		grpc.MaxSendMsgSize(configInfo.Server.MaxRecvMsgSize),
-		grpc.ChainUnaryInterceptor(grpc_recovery.UnaryServerInterceptor(opts...)),
-		grpc.ChainStreamInterceptor(grpc_recovery.StreamServerInterceptor(opts...)),
-		grpc.ChainUnaryInterceptor(serverInterceptor.Unary()),
-	}
-	c.Serv = grpc.NewServer(serverOptions...)
+	c.Serv = trace_util.NewGrpcTracerServer([]grpc.UnaryServerInterceptor{serverInterceptor.Unary()}, nil)
 
 	healthcheck := health.NewServer()
 	healthpb.RegisterHealthServer(c.Serv, healthcheck)

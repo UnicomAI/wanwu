@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
 )
 
@@ -77,10 +78,12 @@ type PluginListAlgRequest struct {
 }
 
 type MCPToolInfo struct {
-	URL          string   `json:"url"`
-	Transport    string   `json:"transport"`
-	ToolNameList []string `json:"toolNameList"`
-	Avatar       string   `json:"avatar"`
+	URL          string                    `json:"url"`
+	Transport    string                    `json:"transport"`
+	ToolNameList []string                  `json:"toolNameList"`
+	Avatar       string                    `json:"avatar"`
+	Headers      map[string]string         `json:"headers"`
+	ApiAuth      *common.ApiAuthWebRequest `json:"apiAuth"`
 }
 
 type ToolsMap map[string]MCPToolInfo

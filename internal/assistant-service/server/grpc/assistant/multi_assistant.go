@@ -18,14 +18,17 @@ import (
 	http_client "github.com/UnicomAI/wanwu/pkg/http-client"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	sse_util "github.com/UnicomAI/wanwu/pkg/sse-util"
-	"github.com/UnicomAI/wanwu/pkg/util"
-	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
 func (s *Service) GetMultiAssistantById(ctx context.Context, req *assistant_service.GetMultiAssistantByIdReq) (*assistant_service.MultiAssistantDetailResp, error) {
-	agent, agentSnapshot, subAgents, err := s.cli.GetMultiAssistant(ctx, req.AssistantId, req.Identity.GetUserId(), req.Identity.GetOrgId(), req.Draft, req.Version, req.FilterSubEnable)
+	// 通过 UUID 获取自增 ID（带权限校验）
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	agent, agentSnapshot, subAgents, err := s.cli.GetMultiAssistant(ctx, assistant.ID, req.Identity.GetUserId(), req.Identity.GetOrgId(), req.Draft, req.Version, req.FilterSubEnable)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +38,7 @@ func (s *Service) GetMultiAssistantById(ctx context.Context, req *assistant_serv
 	}
 	var subParamsList []*assistant_service.AgentDetail
 	for _, subAgent := range subAgents {
-		params, err := buildSubAgentParams(ctx, s.cli, subAgent)
+		params, err := buildSubAgentParams(ctx, s.cli, agentSnapshot, subAgent)
 		if err != nil {
 			return nil, err
 		}
@@ -48,12 +51,26 @@ func (s *Service) GetMultiAssistantById(ctx context.Context, req *assistant_serv
 }
 
 func (s *Service) MultiAssistantConversionStream(req *assistant_service.MultiAssistantConversionStreamReq, stream grpc.ServerStreamingServer[assistant_service.AssistantConversionStreamResp]) error {
-	req.DetailId = uuid.New().String()
+	var saveConversationId = req.ConversationId
+	// 刷新会话 updated_at，使会话列表按最近聊天排序
+	if req.ConversationId != "" {
+		// 带归属查会话：查不到即不属于调用者，不能往他人会话里写消息
+		conversation, status := s.cli.GetConversation(stream.Context(), req.ConversationId, req.Identity.GetUserId(), req.Identity.GetOrgId())
+		if status != nil {
+			return errStatus(errs.Code_AssistantConversationErr, status)
+		}
+		if status := s.cli.UpdateConversation(stream.Context(), &model.Conversation{ConversationId: req.ConversationId}); status != nil {
+			log.Errorf("[Conversation] touch conversation updated_at failed, id: %s, err: %v", req.ConversationId, status)
+		}
+		if len(conversation.ConversationId) > 0 {
+			saveConversationId = buildConversationId(conversation)
+		}
+	}
 	//会话处理
 	conversationProcessor := &service.ConversationProcessor{
 		SSEWriter: sse_util.NewGrpcSSEWriter(stream, "MultiAssistantConversionStreamNew", nil),
 	}
-	err := conversationProcessor.Process(stream.Context(), buildMultiConversationParams(req), buildMultiAgentSendRequest(req))
+	err := conversationProcessor.Process(stream.Context(), buildMultiConversationParams(req, saveConversationId), buildMultiAgentSendRequest(req))
 	if err != nil {
 		log.Errorf("Assistant服务处理智能体流式对话失败，assistantId: %s, error: %v", req.AssistantId, err)
 		return grpc_util.ErrorStatusWithKey(errs.Code_AssistantConversationErr, "assistant_conversation", "agent服务异常")
@@ -72,6 +89,7 @@ func buildMultiAgentParams(ctx context.Context, cli client.IClient, agent *model
 		ConversationId: req.ConversationId,
 		QueryOrgId:     req.Identity.OrgId,
 		QueryUserId:    req.Identity.UserId,
+		Ctx:            ctx,
 	}
 	return service.NewAgentChatParamsBuilder(&params_process.AgentInfo{
 		Assistant:         agent,
@@ -84,7 +102,7 @@ func buildMultiAgentParams(ctx context.Context, cli client.IClient, agent *model
 }
 
 // buildSubAgentParams 构建子智能体参数，由于子智能体只能选发布后的智能体所以结构体是snapshot
-func buildSubAgentParams(ctx context.Context, cli client.IClient, agentSnapshot *model.AssistantSnapshot) (*assistant_service.AgentDetail, error) {
+func buildSubAgentParams(ctx context.Context, cli client.IClient, multiAgentSnapshot *model.AssistantSnapshot, agentSnapshot *model.AssistantSnapshot) (*assistant_service.AgentDetail, error) {
 	clientInfo := &params_process.ClientInfo{
 		Cli:       cli,
 		Knowledge: Knowledge,
@@ -95,11 +113,15 @@ func buildSubAgentParams(ctx context.Context, cli client.IClient, agentSnapshot 
 		log.Errorf("转换智能体信息失败，assistantId: %d, error: %v", agentSnapshot.AssistantID, err)
 		return nil, errors.New("build agent info err")
 	}
+	//兼容多智能体,知识库状态隐藏功能
+	if multiAgentSnapshot != nil && multiAgentSnapshot.SnapshotExtra != "" {
+		agentSnapshot.SnapshotExtra = multiAgentSnapshot.SnapshotExtra
+	}
 	return service.NewAgentChatParamsBuilder(&params_process.AgentInfo{
 		Assistant:         assistant,
 		AssistantSnapshot: agentSnapshot,
 		Draft:             agentSnapshot == nil,
-	}, nil, clientInfo).
+	}, &params_process.UserQueryParams{Ctx: ctx}, clientInfo).
 		AgentBaseParams().
 		ModelParams().
 		KnowledgeParams().
@@ -108,15 +130,17 @@ func buildSubAgentParams(ctx context.Context, cli client.IClient, agentSnapshot 
 		Build()
 }
 
-func buildMultiConversationParams(req *assistant_service.MultiAssistantConversionStreamReq) *service.ConversationParams {
+func buildMultiConversationParams(req *assistant_service.MultiAssistantConversionStreamReq, saveConversationId string) *service.ConversationParams {
 	return &service.ConversationParams{
-		AssistantId:    req.AssistantId,
-		ConversationId: req.ConversationId,
-		FileInfo:       extractFileInfos(req.FileInfo),
-		OrgId:          req.Identity.OrgId,
-		Query:          req.Prompt,
-		UserId:         req.Identity.UserId,
-		DetailId:       req.DetailId,
+		AssistantId:        req.AssistantId,
+		ConversationId:     req.ConversationId,
+		SaveConversationId: saveConversationId,
+		FileInfo:           extractFileInfos(req.FileInfo),
+		OrgId:              req.Identity.OrgId,
+		Query:              req.Prompt,
+		UserId:             req.Identity.UserId,
+		DetailId:           req.DetailId,
+		SourceFrom:     req.SourceFrom,
 	}
 }
 
@@ -137,7 +161,7 @@ func buildMultiAgentSendRequest(req *assistant_service.MultiAssistantConversionS
 		OrgId:          req.Identity.OrgId,
 		Draft:          req.Draft,
 		DetailId:       req.DetailId,
-	}, util.MustU32(req.AssistantId))
+	}, req.AssistantId)
 	var monitorKey = "multi_agent_chat_service"
 
 	return func(ctx context.Context) (string, *http.Response, context.CancelFunc, error) {
@@ -159,13 +183,28 @@ func buildMultiAgentSendRequest(req *assistant_service.MultiAssistantConversionS
 		}
 		ctx, cancel := context.WithTimeout(ctx, params.Timeout)
 		result, err := http_client.Default().PostJsonOriResp(ctx, params)
+		if err == nil {
+			err = readHttpErr(result)
+		}
 		return monitorKey, result, cancel, err
 	}
 }
 
 func (s *Service) MultiAgentCreate(ctx context.Context, req *assistant_service.MultiAgentCreateReq) (*empty.Empty, error) {
+	// 父智能体（req.AssistantId）与子智能体（req.AgentId）均为业务唯一 UUID，分别转换为自增 ID
+	parentAssistant, err := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if err != nil {
+		return nil, errStatus(errs.Code_AssistantMultiAgentErr, err)
+	}
+	childAssistant, err := s.cli.GetAssistantByUuidWithPerm(ctx, req.AgentId, "", "")
+	if err != nil {
+		return nil, errStatus(errs.Code_AssistantMultiAgentErr, err)
+	}
+	parentID := parentAssistant.ID
+	childID := childAssistant.ID
+
 	// 获取已发布的子智能体详情
-	subAgent, err := s.cli.GetAssistantSnapshot(ctx, util.MustU32(req.AgentId), "")
+	subAgent, err := s.cli.GetAssistantSnapshot(ctx, childID, "")
 	if err != nil {
 		return nil, errStatus(errs.Code_AssistantErr, err)
 	}
@@ -176,7 +215,7 @@ func (s *Service) MultiAgentCreate(ctx context.Context, req *assistant_service.M
 	}
 
 	// 判断是否已有重复子智能体
-	_, err = s.cli.FetchMultiAssistantRelationFirst(ctx, util.MustU32(req.AssistantId), subAgent.AssistantID)
+	_, err = s.cli.FetchMultiAssistantRelationFirst(ctx, parentID, subAgent.AssistantID)
 	if err == nil {
 		return nil, errStatus(errs.Code_AssistantMultiAgentErr, &errs.Status{
 			TextKey: "assistant_multi_agent_repeat",
@@ -186,7 +225,7 @@ func (s *Service) MultiAgentCreate(ctx context.Context, req *assistant_service.M
 
 	// 组装multiAgent参数
 	newMultiAgent := &model.MultiAgentRelation{
-		MultiAgentId: util.MustU32(req.AssistantId),
+		MultiAgentId: parentID,
 		AgentId:      subAgent.AssistantID,
 		Description:  snapshotAssistant.Desc,
 		Enable:       true,
@@ -202,15 +241,31 @@ func (s *Service) MultiAgentCreate(ctx context.Context, req *assistant_service.M
 }
 
 func (s *Service) MultiAgentDelete(ctx context.Context, req *assistant_service.MultiAgentCreateReq) (*empty.Empty, error) {
-	if status := s.cli.DeleteMultiAssistantRelation(ctx, util.MustU32(req.AssistantId), util.MustU32(req.AgentId)); status != nil {
+	parentAssistant, err := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if err != nil {
+		return nil, errStatus(errs.Code_AssistantMultiAgentErr, err)
+	}
+	childAssistant, err := s.cli.GetAssistantByUuidWithPerm(ctx, req.AgentId, "", "")
+	if err != nil {
+		return nil, errStatus(errs.Code_AssistantMultiAgentErr, err)
+	}
+	if status := s.cli.DeleteMultiAssistantRelation(ctx, parentAssistant.ID, childAssistant.ID); status != nil {
 		return nil, errStatus(errs.Code_AssistantMultiAgentErr, status)
 	}
 	return &empty.Empty{}, nil
 }
 
 func (s *Service) MultiAgentEnableSwitch(ctx context.Context, req *assistant_service.MultiAgentEnableSwitchReq) (*empty.Empty, error) {
+	parentAssistant, err := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if err != nil {
+		return nil, errStatus(errs.Code_AssistantMultiAgentErr, err)
+	}
+	childAssistant, err := s.cli.GetAssistantByUuidWithPerm(ctx, req.AgentId, "", "")
+	if err != nil {
+		return nil, errStatus(errs.Code_AssistantMultiAgentErr, err)
+	}
 	// 获取多智能体详情
-	multiAgent, err := s.cli.FetchMultiAssistantRelationFirst(ctx, util.MustU32(req.AssistantId), util.MustU32(req.AgentId))
+	multiAgent, err := s.cli.FetchMultiAssistantRelationFirst(ctx, parentAssistant.ID, childAssistant.ID)
 	if err != nil {
 		return nil, errStatus(errs.Code_AssistantMultiAgentErr, err)
 	}
@@ -222,8 +277,16 @@ func (s *Service) MultiAgentEnableSwitch(ctx context.Context, req *assistant_ser
 }
 
 func (s *Service) MultiAgentConfigUpdate(ctx context.Context, req *assistant_service.MultiAgentConfigUpdateReq) (*empty.Empty, error) {
+	parentAssistant, err := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if err != nil {
+		return nil, errStatus(errs.Code_AssistantMultiAgentErr, err)
+	}
+	childAssistant, err := s.cli.GetAssistantByUuidWithPerm(ctx, req.AgentId, "", "")
+	if err != nil {
+		return nil, errStatus(errs.Code_AssistantMultiAgentErr, err)
+	}
 	// 获取多智能体详情
-	multiAgent, err := s.cli.FetchMultiAssistantRelationFirst(ctx, util.MustU32(req.AssistantId), util.MustU32(req.AgentId))
+	multiAgent, err := s.cli.FetchMultiAssistantRelationFirst(ctx, parentAssistant.ID, childAssistant.ID)
 	if err != nil {
 		return nil, errStatus(errs.Code_AssistantMultiAgentErr, err)
 	}

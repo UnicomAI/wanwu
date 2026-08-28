@@ -18,7 +18,7 @@ import (
 )
 
 func (s *Service) SelectKnowledgeUserPermission(ctx context.Context, req *knowledgebase_permission_service.KnowledgeUserPermissionReq) (*knowledgebase_permission_service.KnowledgeUserPermissionResp, error) {
-	permissionList, err := orm.SelectUserKnowledgePermissionList(ctx, req.KnowledgeId)
+	permissionList, err := orm.SelectUserKnowledgePermissionList(ctx, req.KnowledgeId, model.PermissionTypeNone)
 	if err != nil {
 		log.Errorf(fmt.Sprintf("SelectKnowledgeUserPermission 失败(%v)  参数(%v)", err, req))
 		return nil, util.ErrCode(errs.Code_KnowledgePermissionSelectedFailed)

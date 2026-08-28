@@ -1,0 +1,97 @@
+server:
+  port: ${DATA_CONNECTION_PORT:8098}
+  max-http-header-size: 512KB
+  tomcat:
+    accept-count: 1000
+    max-threads: 800
+    min-spare-threads: 100
+
+spring:
+  main:
+    allow-circular-references: true
+  application:
+    name: data-connection
+    version: 1.0.0
+    queryName: vega-calculate-coordinator
+    dbType: mysql
+  mvc:
+    throw-exception-if-no-handler-found: true
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+  servlet:
+    multipart:
+      max-file-size: 256MB
+      max-request-size: 256MB
+  datasource:
+    dynamic:
+      primary: default
+      strict: false
+      lazy: false
+      datasource:
+        default:
+          driver-class-name: org.mariadb.jdbc.Driver
+          url: jdbc:mariadb://${DB_HOST:mysql}:${DB_PORT:3306}/${DB_NAME:kweaver}?useUnicode=true&useSSL=false&characterEncoding=utf8mb4&serverTimezone=GMT%2B8
+          username: ${DB_USER:root}
+          password: ${DB_PASSWORD:root123}
+          type: com.alibaba.druid.pool.DruidDataSource
+          druid:
+            default-auto-commit: false
+            initial-size: 5
+            min-idle: 5
+            max-active: 20
+            max-wait: 60000
+            test-while-idle: true
+            time-between-eviction-runs-millis: 60000
+            min-evictable-idle-time-millis: 30000
+            validation-query: select 'x'
+            test-on-borrow: false
+            test-on-return: false
+            pool-prepared-statements: true
+            max-pool-prepared-statement-per-connection-size: 20
+
+mybatis-plus:
+  global-config:
+    banner: false
+    enable-sql-runner: true
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+openlookeng:
+  jdbc:
+    pushdown-module: FULL_PUSHDOWN
+
+olk:
+  view:
+    catalog: olk_view_vdm
+
+# OpenSearch 客户端配置
+# trust-all=true 时跳过 HTTPS 证书校验（仅自签场景，禁止用于生产）
+opensearch:
+  trust-all: ${OPENSEARCH_TRUST_ALL:false}
+
+services:
+  is-local: true
+  hydra-admin: ${HYDRA_ADMIN_PROTOCOL:http}://${HYDRA_ADMIN_HOST:hydra-admin}:${HYDRA_ADMIN_PORT:4445}
+  user-management-private: ${USER_MANAGEMENT_PROTOCOL:http}://${USER_MANAGEMENT_HOST:user-mgmt}:${USER_MANAGEMENT_PORT:30980}
+  authorization-private: ${AUTHORIZATION_PROTOCOL:http}://${AUTHORIZATION_HOST:authorization}:${AUTHORIZATION_PORT:30920}
+  vega-gateway: ${VEGA_GATEWAY_PROTOCOL:http}://${VEGA_GATEWAY_HOST:vega-gateway}:${VEGA_GATEWAY_PORT:8099}
+  vega-calculate-coordinator: ${VEGA_CALCULATE_COORDINATOR_PROTOCOL:http}://${VEGA_CALCULATE_COORDINATOR_HOST:vega-calculate-coordinator}:${VEGA_CALCULATE_COORDINATOR_PORT:8090}
+
+logging:
+  config: classpath:logback-spring.xml
+
+mq:
+  mqHost: ${KAFKA_HOST:kafka}
+  mqPort: ${KAFKA_PORT:9092}
+  mqLookupdHost: ${ZOOKEEPER_HOST:zookeeper}
+  mqLookupdPort: ${ZOOKEEPER_PORT:2181}
+  mqType: kafka
+  auth:
+    username: ${KAFKA_USER:}
+    password: ${KAFKA_PASSWORD:}
+    mechanism: ${KAFKA_MECHANISM:PLAIN}
+
+rsa:
+  publicKeyPath: /opt/vega/config/public_key.pem
+  privateKeyPath: /opt/vega/config/private_key.pem

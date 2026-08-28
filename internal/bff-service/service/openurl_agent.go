@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
@@ -13,6 +14,8 @@ import (
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	sse_util "github.com/UnicomAI/wanwu/pkg/sse-util"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,7 +24,7 @@ func UrlConversationCreate(ctx *gin.Context, req request.UrlConversationCreateRe
 	if err != nil {
 		return nil, err
 	}
-	resp, err := assistant.ConversationCreate(ctx, &assistant_service.ConversationCreateReq{
+	resp, err := assistant.ConversationCreate(ctx.Request.Context(), &assistant_service.ConversationCreateReq{
 		AssistantId:      appUrlInfo.AppId,
 		Prompt:           req.Prompt,
 		ConversationType: constant.ConversationTypeWebURL,
@@ -43,7 +46,10 @@ func UrlConversationDelete(ctx *gin.Context, userId, suffix string, req request.
 	if err != nil {
 		return err
 	}
-	_, err = assistant.ConversationDelete(ctx, &assistant_service.ConversationDeleteReq{
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, userId, appUrlInfo); err != nil {
+		return err
+	}
+	_, err = assistant.ConversationDelete(ctx.Request.Context(), &assistant_service.ConversationDeleteReq{
 		ConversationId: req.ConversationId,
 		Identity: &assistant_service.Identity{
 			UserId: userId,
@@ -59,6 +65,9 @@ func UrlConversationDelete(ctx *gin.Context, userId, suffix string, req request.
 func UrlConversationClear(ctx *gin.Context, userId, suffix string, req request.UrlConversationIdRequest) error {
 	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
 	if err != nil {
+		return err
+	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, userId, appUrlInfo); err != nil {
 		return err
 	}
 	// 清空已发布智能体的对话ES数据（不删除会话ID）
@@ -81,7 +90,7 @@ func GetAppUrlInfo(ctx *gin.Context, suffix string) (*response.AppUrlConfig, err
 	if err != nil {
 		return nil, err
 	}
-	assistantInfo, err := assistant.AssistantSnapshotInfo(ctx, &assistant_service.AssistantSnapshotInfoReq{
+	assistantInfo, err := assistant.AssistantSnapshotInfo(ctx.Request.Context(), &assistant_service.AssistantSnapshotInfoReq{
 		AssistantId: appUrlInfo.AppId,
 	})
 	if err != nil {
@@ -97,20 +106,39 @@ func GetAppUrlInfo(ctx *gin.Context, suffix string) (*response.AppUrlConfig, err
 	}, nil
 }
 
-func GetUrlConversationList(ctx *gin.Context, xCId, suffix string) (*response.ListResult, error) {
+func GetAppUrlModel(ctx *gin.Context, suffix string) (*response.ModelInfo, error) {
 	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := assistant.GetConversationList(ctx, &assistant_service.GetConversationListReq{
-		PageSize:         1000,
-		PageNo:           1,
+	assistantInfo, err := assistant.AssistantSnapshotInfo(ctx.Request.Context(), &assistant_service.AssistantSnapshotInfoReq{
+		AssistantId: appUrlInfo.AppId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return GetModelById(ctx, &request.GetModelRequest{
+		BaseModelRequest: request.BaseModelRequest{
+			ModelId: assistantInfo.ModelConfig.ModelId,
+		},
+	})
+}
+
+func GetUrlConversationList(ctx *gin.Context, xCId, suffix string, req request.GetUrlConversationListReq) (*response.ListResult, error) {
+	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := assistant.GetConversationList(ctx.Request.Context(), &assistant_service.GetConversationListReq{
+		PageSize:         int32(req.PageSize),
+		PageNo:           int32(req.PageNo),
 		ConversationType: constant.ConversationTypeWebURL,
 		Identity: &assistant_service.Identity{
 			UserId: xCId,
 			OrgId:  appUrlInfo.OrgId,
 		},
 		AssistantId: appUrlInfo.AppId,
+		SearchText:  strings.TrimSpace(req.SearchText),
 	})
 	if err != nil {
 		return nil, err
@@ -121,6 +149,9 @@ func GetUrlConversationList(ctx *gin.Context, xCId, suffix string) (*response.Li
 func GetUrlConversationDetailList(ctx *gin.Context, req request.UrlConversationIdRequest, xCId, suffix string) (*response.ListResult, error) {
 	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
 	if err != nil {
+		return nil, err
+	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCId, appUrlInfo); err != nil {
 		return nil, err
 	}
 	resp, err := GetConversationDetailList(ctx, xCId, appUrlInfo.OrgId, request.ConversationGetDetailListRequest{
@@ -139,29 +170,88 @@ func AppUrlConversionStream(ctx *gin.Context, req request.UrlConversionStreamReq
 	if err != nil {
 		return err
 	}
-	streamParams := &agentChatStreamParams{startTime: time.Now()}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCid, appUrlInfo); err != nil {
+		return err
+	}
+	ctx.Set(gin_util.CONVERSATION_ID, req.ConversationId)
+	ctx.Set(gin_util.CONVERSATION_LOG_USER_ID, xCid)
+	ctx.Set(gin_util.CONVERSATION_LOG_ORG_ID, appUrlInfo.OrgId)
+	streamParams := &agentChatStreamParams{ctx: ctx}
+	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	defer func() {
-		RecordAppStatistic(ctx.Request.Context(), appUrlInfo.UserId, appUrlInfo.OrgId, appUrlInfo.AppId, constant.AppTypeAgent, !streamParams.hasErr, true, streamParams.firstTokenLatency, 0, constant.AppStatisticSourceWebUrl)
+		statusCode, failureReason := appStreamStatisticStatus(streamParams.err, streamParams.errMsg)
+		go func() {
+			defer util.PrintPanicStack()
+			RecordAppStatistic(detachedCtx, appUrlInfo.UserId, appUrlInfo.OrgId, appUrlInfo.AppId, constant.AppTypeAgent, "",
+				statusCode, failureReason, true, streamParams.firstTokenLatency, 0, constant.BizSourceWebUrl, MarshalStatisticBody(req), "", req.Prompt, "")
+		}()
 	}()
 
-	chatCh, err := CallAssistantConversationStream(ctx, xCid, appUrlInfo.OrgId, request.ConversionStreamRequest{
+	chatCh, err := CallAssistantConversationStream(ctx, xCid, appUrlInfo.OrgId, xCid, request.ConversionStreamRequest{
 		AssistantId:    appUrlInfo.AppId,
 		ConversationId: req.ConversationId,
 		FileInfo:       req.FileInfo,
 		Prompt:         req.Prompt,
+		SseHold:        true,
 	}, true)
 	if err != nil {
-		streamParams.hasErr = true
+		streamParams.err = err
 		return err
 	}
 	// 2. 流式返回结果
+	streamParams.startTime = time.Now()
 	_ = sse_util.NewSSEWriter(ctx, fmt.Sprintf("[Agent] %v conversation %v recv", appUrlInfo.AppId, req.ConversationId), sse_util.DONE_MSG).
 		WriteStream(chatCh, streamParams, buildAgentChatRespLineProcessor(), nil)
 	return nil
 }
 
+func AppUrlGetPendingConversation(ctx *gin.Context, req request.UrlPendingConversionRequest, xCid, suffix string) (*response.PendingConversationResp, error) {
+	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCid, appUrlInfo); err != nil {
+		return nil, err
+	}
+	return GetPendingConversation(ctx, appUrlInfo.UserId, appUrlInfo.OrgId, xCid, request.PendingConversionRequest{
+		ConversationId: req.ConversationId,
+		Draft:          false,
+		AssistantId:    appUrlInfo.AppId,
+	})
+}
+
+func AppUrlConversionStreamConnect(ctx *gin.Context, req request.UrlConversionStreamConnectRequest, xCid, suffix string) error {
+	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
+	if err != nil {
+		return err
+	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCid, appUrlInfo); err != nil {
+		return err
+	}
+	return AssistantConversionStreamConnect(ctx, appUrlInfo.UserId, appUrlInfo.OrgId, xCid, request.ConversionStreamConnectRequest{
+		AssistantId:    appUrlInfo.AppId,
+		ConversationId: req.ConversationId,
+	})
+}
+
+func AppUrlConversionStreamCancel(ctx *gin.Context, req request.UrlConversionStreamCancelRequest, xCid, suffix string) error {
+	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
+	if err != nil {
+		return err
+	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCid, appUrlInfo); err != nil {
+		return err
+	}
+	return AssistantConversionStreamCancel(ctx, appUrlInfo.UserId, appUrlInfo.OrgId, xCid, request.ConversionStreamCancelRequest{
+		PendingConversionRequest: request.PendingConversionRequest{
+			AssistantId:    appUrlInfo.AppId,
+			ConversationId: req.ConversationId,
+		},
+	})
+}
+
 func getAppUrlInfoAndCheck(ctx *gin.Context, suffix string) (*app_service.AppUrlInfo, error) {
-	appUrlInfo, err := app.GetAppUrlInfoBySuffix(ctx, &app_service.GetAppUrlInfoBySuffixReq{
+	appUrlInfo, err := app.GetAppUrlInfoBySuffix(ctx.Request.Context(), &app_service.GetAppUrlInfoBySuffixReq{
 		Suffix: suffix,
 	})
 	if err != nil {
@@ -181,16 +271,50 @@ func getAppUrlInfoAndCheck(ctx *gin.Context, suffix string) (*app_service.AppUrl
 	return appUrlInfo, nil
 }
 
+// checkUrlConversationOwner 校验 conversationId 属于当前 X-Client-ID 用户且属于 suffix 对应的智能体。
+// openurl 为匿名访问，用户身份为 X-Client-ID（xCId），assistantId 来自 suffix 反查的 appUrlInfo.AppId。
+// conversationId 为空时跳过校验（首次对话等场景由后端创建）。
+func checkUrlConversationOwner(ctx *gin.Context, conversationId, xCId string, appUrlInfo *app_service.AppUrlInfo) error {
+	if conversationId == "" {
+		return nil
+	}
+	return CheckConversationOwner(ctx, conversationId, appUrlInfo.AppId, xCId, appUrlInfo.OrgId)
+}
+
 func AppUrlQuestionRecommend(ctx *gin.Context, req request.UrlQuestionRecommendRequest, xCid, suffix string) error {
 	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
 	if err != nil {
 		return err
 	}
-	err = AssistantQuestionRecommend(ctx, xCid, appUrlInfo.OrgId, &request.QuestionRecommendRequest{
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCid, appUrlInfo); err != nil {
+		return err
+	}
+	AssistantQuestionRecommend(ctx, xCid, appUrlInfo.OrgId, &request.QuestionRecommendRequest{
 		Query:          req.Query,
 		AssistantId:    appUrlInfo.AppId,
 		ConversationId: req.ConversationId,
 		Trial:          false,
 	})
-	return err
+	return nil
+}
+
+func AppUrlMessageFeedback(ctx *gin.Context, req request.UrlMessageFeedbackRequest, xCid, suffix string) (*response.MessageFeedbackResp, error) {
+	appUrlInfo, err := getAppUrlInfoAndCheck(ctx, suffix)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkUrlConversationOwner(ctx, req.ConversationId, xCid, appUrlInfo); err != nil {
+		return nil, err
+	}
+	// openurl 匿名链路：写入真实身份，供 RecordConversation 中间件异步记录会话日志(点赞/点踩后刷新 like_count)
+	ctx.Set(gin_util.CONVERSATION_ID, req.ConversationId)
+	ctx.Set(gin_util.CONVERSATION_LOG_USER_ID, xCid)
+	ctx.Set(gin_util.CONVERSATION_LOG_ORG_ID, appUrlInfo.OrgId)
+	return MessageFeedback(ctx, xCid, appUrlInfo.OrgId, &request.MessageFeedbackRequest{
+		AssistantId:     appUrlInfo.AppId,
+		ConversationId:  req.ConversationId,
+		DetailId:        req.DetailId,
+		FeedbackType:    req.FeedbackType,
+		FeedbackContent: req.FeedbackContent,
+	})
 }

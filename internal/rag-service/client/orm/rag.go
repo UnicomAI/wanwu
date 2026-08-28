@@ -11,16 +11,32 @@ import (
 	"github.com/UnicomAI/wanwu/internal/rag-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/rag-service/client/orm/sqlopt"
 	"github.com/UnicomAI/wanwu/pkg/constant"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	"gorm.io/gorm"
 )
 
+// RagNotExistKey rag 不存在 / 不属于请求方（归属过滤未命中）的统一 text key，
+// service 层据此映射成 Code_RagInfoNotExist，不区分"无权限"和"不存在"
+const RagNotExistKey = "rag_info_not_exist"
+
+// 归属过滤：userId/orgId 为空则不加该条件（管理员中心、公开应用问答等跨用户场景）
+func ownerOpts(userId, orgId string) []sqlopt.SQLOption {
+	return []sqlopt.SQLOption{sqlopt.WithUserID(userId), sqlopt.WithOrgID(orgId)}
+}
+
 func (c *Client) DeleteRag(ctx context.Context, req *rag_service.RagDeleteReq) *err_code.Status {
+	userId, orgId := req.GetIdentity().GetUserId(), req.GetIdentity().GetOrgId()
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		err := sqlopt.WithRagID(req.RagId).Apply(c.db.WithContext(ctx)).Delete(&model.RagInfo{}).Error
-		if err != nil {
-			return toErrStatus("rag_delete_err", err.Error())
+		del := sqlopt.SQLOptions(append(ownerOpts(userId, orgId), sqlopt.WithRagID(req.RagId))...).
+			Apply(tx.WithContext(ctx)).Delete(&model.RagInfo{})
+		if del.Error != nil {
+			return toErrStatus("rag_delete_err", del.Error.Error())
 		}
-		err = sqlopt.WithRagID(req.RagId).Apply(c.db.WithContext(ctx)).Delete(&model.RagPublish{}).Error
+		// 删除是无条件成功的，行数为 0 说明 ragId 不存在或不属于请求方
+		if del.RowsAffected == 0 {
+			return toErrStatus(RagNotExistKey, req.RagId)
+		}
+		err := sqlopt.WithRagID(req.RagId).Apply(tx.WithContext(ctx)).Delete(&model.RagPublish{}).Error
 		if err != nil {
 			return toErrStatus("rag_delete_err", err.Error())
 		}
@@ -31,9 +47,10 @@ func (c *Client) DeleteRag(ctx context.Context, req *rag_service.RagDeleteReq) *
 func (c *Client) GetRag(ctx context.Context, req *rag_service.RagDetailReq) (*rag_service.RagInfo, *err_code.Status) {
 	info := &model.RagInfo{}
 	// 获取 rag 信息
-	err := sqlopt.WithRagID(req.RagId).Apply(c.db.WithContext(ctx)).First(info).Error
+	err := sqlopt.SQLOptions(append(ownerOpts(req.GetIdentity().GetUserId(), req.GetIdentity().GetOrgId()),
+		sqlopt.WithRagID(req.RagId))...).Apply(c.db.WithContext(ctx)).First(info).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, toErrStatus("rag_get_err", "rag not found: "+req.RagId)
+		return nil, toErrStatus(RagNotExistKey, req.RagId)
 	} else if err != nil {
 		return nil, toErrStatus("rag_get_err", err.Error())
 	}
@@ -86,6 +103,14 @@ func BuildRagInfo(info *model.RagInfo) (*rag_service.RagInfo, *err_code.Status) 
 		}
 	}
 
+	// 反序列化推荐问题
+	var recommendQuestion []string
+	if info.RecommendQuestion != "" {
+		if err := json.Unmarshal([]byte(info.RecommendQuestion), &recommendQuestion); err != nil {
+			return nil, toErrStatus("rag_get_err", "recommend_question "+err.Error())
+		}
+	}
+
 	// 填充 rag 的信息
 	resp := &rag_service.RagInfo{
 		RagId: info.RagID,
@@ -127,6 +152,13 @@ func BuildRagInfo(info *model.RagInfo) (*rag_service.RagInfo, *err_code.Status) 
 		VisionConfig: &rag_service.RagVisionConfig{
 			PicNum: info.VisionConfig.PicNum,
 		},
+		RecommendQuestion: recommendQuestion,
+		Identity: &rag_service.Identity{
+			UserId: info.UserID,
+			OrgId:  info.OrgID,
+		},
+		CreateTime: info.CreatedAt,
+		UpdateTime: info.UpdatedAt,
 	}
 	return resp, nil
 }
@@ -143,7 +175,40 @@ func (c *Client) GetRagList(ctx context.Context, req *rag_service.RagListReq) (*
 		return nil, toErrStatus("rag_list_err", err.Error())
 	}
 
-	var list []*common.AppBrief
+	return &rag_service.RagListResp{
+		RagInfos: toAppBriefs(info),
+		Total:    int64(len(info)),
+	}, nil
+}
+
+// AdminRagPageList 管理员中心知识问答列表，按 updated_at 倒序分页；total 恒为匹配总数。
+func (c *Client) AdminRagPageList(ctx context.Context, req *rag_service.AdminRagPageListReq) (*rag_service.AdminRagPageListResp, *err_code.Status) {
+	query := sqlopt.SQLOptions(
+		sqlopt.LikeBriefName(db.EscapeLike(req.Name)),
+		sqlopt.WithUserIDs(req.UserId),
+		sqlopt.WithOrgIDs(req.OrgId),
+	).Apply(c.db.WithContext(ctx)).Model(&model.RagInfo{})
+
+	var info []*model.RagInfo
+	var total int64
+	if err := query.
+		Count(&total).
+		Order("updated_at DESC").
+		Offset(int(req.PageSize * (req.PageNum - 1))).
+		Limit(int(req.PageSize)).
+		Find(&info).Error; err != nil {
+		return nil, toErrStatus("rag_admin_page_list_err", err.Error())
+	}
+
+	return &rag_service.AdminRagPageListResp{
+		RagInfos: toAppBriefs(info),
+		Total:    total,
+	}, nil
+}
+
+// toAppBriefs 将知识问答转为通用应用简要信息
+func toAppBriefs(info []*model.RagInfo) []*common.AppBrief {
+	list := make([]*common.AppBrief, 0, len(info))
 	for _, v := range info {
 		list = append(list, &common.AppBrief{
 			AppId:      v.RagID,
@@ -157,41 +222,22 @@ func (c *Client) GetRagList(ctx context.Context, req *rag_service.RagListReq) (*
 			UserId:     v.UserID,
 		})
 	}
-
-	return &rag_service.RagListResp{
-		RagInfos: list,
-		Total:    int64(len(info)),
-	}, nil
+	return list
 }
 
 func (c *Client) GetRagByIds(ctx context.Context, req *rag_service.GetRagByIdsReq) (*rag_service.AppBriefList, *err_code.Status) {
+	// InRagIds 在 len==0 时不加条件，此处必须短路，否则会查全表。
 	if len(req.RagIdList) == 0 {
-		return nil, toErrStatus("rag_list_err", "ragIdList cannot be empty")
+		return &rag_service.AppBriefList{}, nil
 	}
-
 	info := make([]*model.RagInfo, 0)
 	err := sqlopt.InRagIds(req.RagIdList).Apply(c.db.WithContext(ctx)).Order("updated_at DESC").Find(&info).Error
 	if err != nil {
 		return nil, toErrStatus("rag_list_err", err.Error())
 	}
 
-	var list []*common.AppBrief
-	for _, v := range info {
-		list = append(list, &common.AppBrief{
-			AppId:      v.RagID,
-			AppType:    constant.AppTypeRag,
-			AvatarPath: v.BriefConfig.AvatarPath,
-			Name:       v.BriefConfig.Name,
-			Desc:       v.BriefConfig.Desc,
-			CreatedAt:  v.CreatedAt,
-			UpdatedAt:  v.UpdatedAt,
-			OrgId:      v.OrgID,
-			UserId:     v.UserID,
-		})
-	}
-
 	return &rag_service.AppBriefList{
-		RagInfos: list,
+		RagInfos: toAppBriefs(info),
 	}, nil
 }
 
@@ -224,15 +270,16 @@ func (c *Client) CreateRag(ctx context.Context, rag *model.RagInfo) *err_code.St
 	})
 }
 
-func (c *Client) UpdateRag(ctx context.Context, rag *model.RagInfo) *err_code.Status {
+func (c *Client) UpdateRag(ctx context.Context, rag *model.RagInfo, userId, orgId string) *err_code.Status {
 	if rag.RagID == "" {
 		return toErrStatus("rag_update_err", "update rag but ragID is empty")
 	}
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		// 检查ragID是否存在
-		if err := sqlopt.WithRagID(rag.RagID).Apply(tx).First(&model.RagInfo{}).Error; err != nil {
+		// 检查ragID是否存在且属于请求方
+		if err := sqlopt.SQLOptions(append(ownerOpts(userId, orgId), sqlopt.WithRagID(rag.RagID))...).
+			Apply(tx).First(&model.RagInfo{}).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return toErrStatus("rag_update_err", "rag not found: "+rag.RagID)
+				return toErrStatus(RagNotExistKey, rag.RagID)
 			} else {
 				return toErrStatus("rag_update_err", "failed to check rag: "+err.Error())
 			}
@@ -244,7 +291,8 @@ func (c *Client) UpdateRag(ctx context.Context, rag *model.RagInfo) *err_code.St
 				"brief_avatar_path": rag.BriefConfig.AvatarPath,
 			}
 			// 只更新指定 ragID 的记录
-			if err := sqlopt.WithRagID(rag.RagID).Apply(tx).Model(&model.RagInfo{}).Updates(updateMap).Error; err != nil {
+			if err := sqlopt.SQLOptions(append(ownerOpts(userId, orgId), sqlopt.WithRagID(rag.RagID))...).
+				Apply(tx).Model(&model.RagInfo{}).Updates(updateMap).Error; err != nil {
 				return toErrStatus("rag_update_err", "failed to update basic rag: "+err.Error())
 			}
 		}
@@ -252,15 +300,16 @@ func (c *Client) UpdateRag(ctx context.Context, rag *model.RagInfo) *err_code.St
 	})
 }
 
-func (c *Client) UpdateRagConfig(ctx context.Context, rag *model.RagInfo) *err_code.Status {
+func (c *Client) UpdateRagConfig(ctx context.Context, rag *model.RagInfo, userId, orgId string) *err_code.Status {
 	if rag.RagID == "" {
 		return toErrStatus("rag_update_err", "update rag but ragID is empty")
 	}
 	return c.transaction(ctx, func(tx *gorm.DB) *err_code.Status {
-		// 检查ragID是否存在
-		if err := sqlopt.WithRagID(rag.RagID).Apply(tx).First(&model.RagInfo{}).Error; err != nil {
+		// 检查ragID是否存在且属于请求方
+		if err := sqlopt.SQLOptions(append(ownerOpts(userId, orgId), sqlopt.WithRagID(rag.RagID))...).
+			Apply(tx).First(&model.RagInfo{}).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return toErrStatus("rag_update_err", "rag not found: "+rag.RagID)
+				return toErrStatus(RagNotExistKey, rag.RagID)
 			} else {
 				return toErrStatus("rag_update_err", "failed to check rag: "+err.Error())
 			}
@@ -305,10 +354,13 @@ func (c *Client) UpdateRagConfig(ctx context.Context, rag *model.RagInfo) *err_c
 				"sensitive_table_ids": rag.SensitiveConfig.TableIds,
 
 				"vision_pic_num": rag.VisionConfig.PicNum,
+
+				"recommend_question": rag.RecommendQuestion,
 			}
 
 			// 只更新指定 ragID 的记录
-			if err := sqlopt.WithRagID(rag.RagID).Apply(tx).Model(&model.RagInfo{}).Updates(updateMap).Error; err != nil {
+			if err := sqlopt.SQLOptions(append(ownerOpts(userId, orgId), sqlopt.WithRagID(rag.RagID))...).
+				Apply(tx).Model(&model.RagInfo{}).Updates(updateMap).Error; err != nil {
 				return toErrStatus("rag_update_err", "failed to update basic rag config: "+err.Error())
 			}
 		}
@@ -316,12 +368,16 @@ func (c *Client) UpdateRagConfig(ctx context.Context, rag *model.RagInfo) *err_c
 	})
 }
 
-func (c *Client) FetchRagFirst(ctx context.Context, ragId string) (*model.RagInfo, *err_code.Status) {
+func (c *Client) FetchRagFirst(ctx context.Context, ragId, userId, orgId string) (*model.RagInfo, *err_code.Status) {
 	if ragId == "" {
 		return nil, toErrStatus("rag_get_err", "get rag but ragID is empty")
 	}
 	rag := &model.RagInfo{}
-	if err := sqlopt.WithRagID(ragId).Apply(c.db.WithContext(ctx)).First(rag).Error; err != nil {
+	if err := sqlopt.SQLOptions(append(ownerOpts(userId, orgId), sqlopt.WithRagID(ragId))...).
+		Apply(c.db.WithContext(ctx)).First(rag).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, toErrStatus(RagNotExistKey, ragId)
+		}
 		return nil, toErrStatus("rag_get_err", "failed to fetch rag: "+err.Error())
 	}
 	return rag, nil
@@ -386,17 +442,20 @@ func (c *Client) PublishRag(ctx context.Context, rag *model.RagPublish) *err_cod
 	})
 }
 
-func (c *Client) FetchPublishRagFirst(ctx context.Context, ragId, version string) (*model.RagPublish, *err_code.Status) {
+func (c *Client) FetchPublishRagFirst(ctx context.Context, ragId, version, userId, orgId string) (*model.RagPublish, *err_code.Status) {
 	if ragId == "" {
 		return nil, toErrStatus("rag_get_err", "get rag but ragID is empty")
 	}
 	rag := &model.RagPublish{}
 	// 如果version为空，则返回最新版本
-	if err := sqlopt.SQLOptions(sqlopt.WithRagID(ragId), sqlopt.WithVersion(version)).
+	if err := sqlopt.SQLOptions(append(ownerOpts(userId, orgId), sqlopt.WithRagID(ragId), sqlopt.WithVersion(version))...).
 		Apply(c.db.WithContext(ctx)).
 		Order("created_at DESC").
 		Limit(1).
 		First(rag).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, toErrStatus(RagNotExistKey, ragId)
+		}
 		return nil, toErrStatus("rag_get_err", "failed to fetch rag: "+err.Error())
 	}
 	return rag, nil
@@ -412,12 +471,13 @@ func (c *Client) UpdatePublishRag(ctx context.Context, rag *model.RagPublish) *e
 	})
 }
 
-func (c *Client) FetchPublishRagList(ctx context.Context, ragId string) ([]*model.RagPublish, *err_code.Status) {
+func (c *Client) FetchPublishRagList(ctx context.Context, ragId, userId, orgId string) ([]*model.RagPublish, *err_code.Status) {
 	if ragId == "" {
 		return nil, toErrStatus("rag_get_err", "get rag but ragID is empty")
 	}
 	ragList := make([]*model.RagPublish, 0)
-	err := sqlopt.SQLOptions(sqlopt.WithRagID(ragId)).Apply(c.db.WithContext(ctx)).Order("created_at DESC").Find(&ragList).Error
+	err := sqlopt.SQLOptions(append(ownerOpts(userId, orgId), sqlopt.WithRagID(ragId))...).
+		Apply(c.db.WithContext(ctx)).Order("created_at DESC").Find(&ragList).Error
 	if err != nil {
 		return nil, toErrStatus("rag_get_err", "failed to fetch rag: "+err.Error())
 	}
@@ -425,12 +485,13 @@ func (c *Client) FetchPublishRagList(ctx context.Context, ragId string) ([]*mode
 }
 
 // FetchPublishRagListByRagIds 按 rag_id IN 返回全部匹配的发布记录（含历史版本）；每个 rag 取最新由 GetPublishRagDescBatch 按 CreatedAt 聚合。
-func (c *Client) FetchPublishRagListByRagIds(ctx context.Context, ragIds []string) ([]*model.RagPublish, *err_code.Status) {
+func (c *Client) FetchPublishRagListByRagIds(ctx context.Context, ragIds []string, userId, orgId string) ([]*model.RagPublish, *err_code.Status) {
 	if len(ragIds) == 0 {
 		return nil, toErrStatus("rag_get_err", "ragIds cannot be empty")
 	}
 	ragList := make([]*model.RagPublish, 0)
-	err := sqlopt.SQLOptions(sqlopt.InRagIds(ragIds)).Apply(c.db.WithContext(ctx)).Order("created_at DESC").Find(&ragList).Error
+	err := sqlopt.SQLOptions(append(ownerOpts(userId, orgId), sqlopt.InRagIds(ragIds))...).
+		Apply(c.db.WithContext(ctx)).Order("created_at DESC").Find(&ragList).Error
 	if err != nil {
 		return nil, toErrStatus("rag_get_err", "failed to fetch rag: "+err.Error())
 	}

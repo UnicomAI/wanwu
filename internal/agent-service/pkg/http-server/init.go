@@ -9,8 +9,10 @@ import (
 	"github.com/UnicomAI/wanwu/internal/agent-service/pkg"
 	"github.com/UnicomAI/wanwu/internal/agent-service/pkg/config"
 	"github.com/UnicomAI/wanwu/internal/agent-service/pkg/http-server/middleware"
+	_ "github.com/UnicomAI/wanwu/internal/agent-service/pkg/tracer"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -40,7 +42,7 @@ func (c GinHttpServer) Load() error {
 
 	// router
 	gin.ForceConsoleColor()
-	ginHttpClient.GinEngine = gin.Default()
+	ginHttpClient.GinEngine = trace_util.NewTracerGin("agent-service")
 	//初始化路由
 	err := InitGinGroup(ginHttpClient.GinEngine, middleware.Record)
 	if err != nil {

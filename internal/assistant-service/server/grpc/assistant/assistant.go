@@ -3,11 +3,13 @@ package assistant
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"strings"
 
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/service"
 	params_process "github.com/UnicomAI/wanwu/internal/assistant-service/service/params-process"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
@@ -21,14 +23,8 @@ import (
 
 // GetAssistantByIds 根据智能体id集合获取智能体列表
 func (s *Service) GetAssistantByIds(ctx context.Context, req *assistant_service.GetAssistantByIdsReq) (*assistant_service.AppBriefList, error) {
-	// 转换字符串ID为uint32
-	var assistantIDs []uint32
-	for _, idStr := range req.AssistantIdList {
-		assistantIDs = append(assistantIDs, util.MustU32(idStr))
-	}
-
-	// 调用client方法获取智能体列表
-	assistants, status := s.cli.GetAssistantsByIDs(ctx, assistantIDs)
+	// 调用client方法获取智能体列表（assistantIdList 为业务唯一 UUID 列表）
+	assistants, status := s.cli.GetAssistantsByUuids(ctx, req.AssistantIdList)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
@@ -36,21 +32,7 @@ func (s *Service) GetAssistantByIds(ctx context.Context, req *assistant_service.
 	// 转换为响应格式
 	var appBriefs []*assistant_service.AssistantBrief
 	for _, assistant := range assistants {
-		appBriefs = append(appBriefs, &assistant_service.AssistantBrief{
-			Info: &common.AppBrief{
-				OrgId:      assistant.OrgId,
-				UserId:     assistant.UserId,
-				AppId:      util.Int2Str(assistant.ID),
-				AppType:    "agent",
-				AvatarPath: assistant.AvatarPath,
-				Name:       assistant.Name,
-				Desc:       assistant.Desc,
-				CreatedAt:  assistant.CreatedAt,
-				UpdatedAt:  assistant.UpdatedAt,
-			},
-			Category: int32(assistant.Category),
-		})
-
+		appBriefs = append(appBriefs, transToAssistantBrief(assistant, ""))
 	}
 
 	return &assistant_service.AppBriefList{
@@ -83,18 +65,22 @@ func (s *Service) AssistantCreate(ctx context.Context, req *assistant_service.As
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 
+	// 创建智能体后自动绑定配置中的内置工具
+	for _, tool := range config.Cfg().BuiltinTools {
+		if status := s.cli.CreateAssistantTool(ctx, assistant.ID, tool.ToolId, tool.ToolType, tool.ActionName, req.Identity.UserId, req.Identity.OrgId); status != nil {
+			log.Warnf("auto bind builtin tool %s for assistant %d failed: %v", tool.ToolId, assistant.ID, status)
+		}
+	}
+
 	return &assistant_service.AssistantCreateResp{
-		AssistantId: util.Int2Str(assistant.ID),
+		AssistantId: assistant.UUID,
 	}, nil
 }
 
 // AssistantUpdate 修改智能体
 func (s *Service) AssistantUpdate(ctx context.Context, req *assistant_service.AssistantUpdateReq) (*emptypb.Empty, error) {
-	// 转换ID
-	assistantID := util.MustU32(req.AssistantId)
-
 	// 获取现有智能体信息
-	existingAssistant, status := s.cli.GetAssistant(ctx, assistantID, "", "")
+	existingAssistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
@@ -118,12 +104,25 @@ func (s *Service) AssistantUpdate(ctx context.Context, req *assistant_service.As
 
 // AssistantDelete 删除智能体
 func (s *Service) AssistantDelete(ctx context.Context, req *assistant_service.AssistantDeleteReq) (*emptypb.Empty, error) {
-	// 转换ID
-	assistantID := util.MustU32(req.AssistantId)
+	// 通过 UUID 获取智能体（带权限校验）
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, req.Identity.UserId, req.Identity.OrgId)
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
 
 	// 调用client方法删除智能体
-	if status := s.cli.DeleteAssistant(ctx, assistantID); status != nil {
+	if status := s.cli.DeleteAssistant(ctx, assistant.ID, req.Identity.UserId, req.Identity.OrgId); status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+
+	// 应用已删除，清理ES中的对话详情数据（best-effort：失败只记日志，不把已成功的删除报成失败）
+	if _, err := s.DeleteFromES(ctx, &assistant_service.DeleteFromESReq{
+		IndexName: "conversation_detail_infos_*",
+		Conditions: map[string]string{
+			"assistantId": req.AssistantId,
+		},
+	}); err != nil {
+		log.Errorf("删除智能体会话ES数据失败，assistantId: %s, err: %v", req.AssistantId, err)
 	}
 
 	return &emptypb.Empty{}, nil
@@ -131,11 +130,8 @@ func (s *Service) AssistantDelete(ctx context.Context, req *assistant_service.As
 
 // AssistantConfigUpdate 修改智能体配置
 func (s *Service) AssistantConfigUpdate(ctx context.Context, req *assistant_service.AssistantConfigUpdateReq) (*emptypb.Empty, error) {
-	// 转换ID
-	assistantID := util.MustU32(req.AssistantId)
-
-	// 先获取现有智能体信息
-	existingAssistant, status := s.cli.GetAssistant(ctx, assistantID, "", "")
+	// 先获取现有智能体信息（通过 UUID 带权限校验）
+	existingAssistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
@@ -261,7 +257,7 @@ func (s *Service) GetAssistantListMyAll(ctx context.Context, req *assistant_serv
 			Info: &common.AppBrief{
 				OrgId:      assistant.OrgId,
 				UserId:     assistant.UserId,
-				AppId:      util.Int2Str(assistant.ID),
+				AppId:      assistant.UUID,
 				AppType:    "agent",
 				AvatarPath: assistant.AvatarPath,
 				Name:       assistant.Name,
@@ -270,6 +266,7 @@ func (s *Service) GetAssistantListMyAll(ctx context.Context, req *assistant_serv
 				UpdatedAt:  assistant.UpdatedAt,
 			},
 			Category: int32(assistant.Category),
+			Uuid:     assistant.UUID,
 		})
 
 	}
@@ -281,23 +278,15 @@ func (s *Service) GetAssistantListMyAll(ctx context.Context, req *assistant_serv
 
 // GetAssistantInfo 查看智能体详情
 func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.GetAssistantInfoReq) (*assistant_service.AssistantInfo, error) {
-	// 转换ID
-	assistantId, err := util.U32(req.AssistantId)
-	if err != nil {
-		return nil, err
-	}
-
-	// 判空处理，根据Identity是否为空使用不同参数
-	var assistant *model.Assistant
-	var status *errs.Status
+	// 通过 UUID 获取智能体（带权限校验）
 	if req.Identity == nil {
-		assistant, status = s.cli.GetAssistant(ctx, assistantId, "", "")
-	} else {
-		assistant, status = s.cli.GetAssistant(ctx, assistantId, req.Identity.UserId, req.Identity.OrgId)
+		req.Identity = &assistant_service.Identity{}
 	}
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, req.Identity.UserId, req.Identity.OrgId)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
+	assistantId := assistant.ID
 
 	// 获取关联的WorkFlows
 	workflows, _ := s.cli.GetAssistantWorkflowsByAssistantID(ctx, assistantId)
@@ -441,16 +430,25 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 				Args:    []string{err.Error()},
 			})
 		}
+	} else {
+		recommendConfig = &assistant_service.AssistantRecommendConfig{
+			MaxHistory: config.DefaultRecommendMaxHistory,
+		}
 	}
 
 	// 构建多智能体信息
-	multiAgentInfos, err := s.GetMultiAgentInfos(ctx, assistantId, req.Identity.UserId, req.Identity.OrgId, "", true)
+	userId, orgId := "", ""
+	if req.Identity != nil {
+		userId = req.Identity.UserId
+		orgId = req.Identity.OrgId
+	}
+	multiAgentInfos, err := s.GetMultiAgentInfos(ctx, assistantId, userId, orgId, "", true)
 	if err != nil {
 		return nil, err
 	}
 
 	return &assistant_service.AssistantInfo{
-		AssistantId: util.Int2Str(assistant.ID),
+		AssistantId: assistant.UUID,
 		Identity: &assistant_service.Identity{
 			UserId: assistant.UserId,
 			OrgId:  assistant.OrgId,
@@ -483,14 +481,56 @@ func (s *Service) GetAssistantInfo(ctx context.Context, req *assistant_service.G
 	}, nil
 }
 
-func (s *Service) GetAssistantIdByUuid(ctx context.Context, req *assistant_service.GetAssistantIdByUuidReq) (*assistant_service.GetAssistantIdByUuidResp, error) {
-	assistant, status := s.cli.GetAssistantByUuid(ctx, req.Uuid)
+// GetAssistantBriefByPrimaryIds 根据 assistant 自增主键 id 批量查询 AssistantBrief。
+// 返回 map[主键id]*AssistantBrief，brief.Info.AppId 为 uuid。GetAssistantsByIDs 返回顺序不保证，用 a.ID 做 key。
+func (s *Service) GetAssistantBriefByPrimaryIds(ctx context.Context, req *assistant_service.GetAssistantBriefByPrimaryIdsReq) (*assistant_service.GetAssistantBriefByPrimaryIdsResp, error) {
+	briefMap := make(map[string]*assistant_service.AssistantBrief, len(req.AssistantPrimaryIds))
+	if len(req.AssistantPrimaryIds) == 0 {
+		return &assistant_service.GetAssistantBriefByPrimaryIdsResp{BriefMap: briefMap}, nil
+	}
+	var ids []uint32
+	for _, idStr := range req.AssistantPrimaryIds {
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			log.Warnf("GetAssistantBriefByPrimaryIds parse primaryId %q err: %v", idStr, err)
+			continue
+		}
+		ids = append(ids, uint32(id))
+	}
+	if len(ids) == 0 {
+		return &assistant_service.GetAssistantBriefByPrimaryIdsResp{BriefMap: briefMap}, nil
+	}
+	assistants, status := s.cli.GetAssistantsByIDs(ctx, ids)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
-	return &assistant_service.GetAssistantIdByUuidResp{
-		AssistantId: util.Int2Str(assistant.ID),
-	}, nil
+	for _, a := range assistants {
+		if a == nil {
+			continue
+		}
+		briefMap[strconv.FormatUint(uint64(a.ID), 10)] = transToAssistantBrief(a, "")
+	}
+	return &assistant_service.GetAssistantBriefByPrimaryIdsResp{BriefMap: briefMap}, nil
+}
+
+// GetAssistantPrimaryIdsByUuids 根据 uuid 批量查询 assistant 自增主键 id。
+// 返回 map[uuid]主键id字符串。GetAssistantsByUuids 返回顺序不保证，用 a.UUID 做 key。
+func (s *Service) GetAssistantPrimaryIdsByUuids(ctx context.Context, req *assistant_service.GetAssistantPrimaryIdsByUuidsReq) (*assistant_service.GetAssistantPrimaryIdsByUuidsResp, error) {
+	assistantPrimaryIdMap := make(map[string]string, len(req.Uuids))
+	if len(req.Uuids) == 0 {
+		return &assistant_service.GetAssistantPrimaryIdsByUuidsResp{AssistantPrimaryIdMap: assistantPrimaryIdMap}, nil
+	}
+	assistants, status := s.cli.GetAssistantsByUuids(ctx, req.Uuids)
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	for _, a := range assistants {
+		if a == nil {
+			continue
+		}
+		assistantPrimaryIdMap[a.UUID] = strconv.FormatUint(uint64(a.ID), 10)
+	}
+	return &assistant_service.GetAssistantPrimaryIdsByUuidsResp{AssistantPrimaryIdMap: assistantPrimaryIdMap}, nil
 }
 
 func (s *Service) GetMultiAgentInfos(ctx context.Context, assistantId uint32, userId, orgId, version string, draft bool) ([]*assistant_service.AssistantMultiAgentInfos, error) {
@@ -516,7 +556,7 @@ func (s *Service) GetMultiAgentInfos(ctx context.Context, assistantId uint32, us
 		relationMap := buildRelationMap(relations)
 		for _, subAgent := range subAgentInfos {
 			multiAgentInfos = append(multiAgentInfos, &assistant_service.AssistantMultiAgentInfos{
-				AgentId:    util.Int2Str(subAgent.ID),
+				AgentId:    subAgent.UUID,
 				Name:       subAgent.Name,
 				Desc:       relationMap[subAgent.ID].Description,
 				AvatarPath: subAgent.AvatarPath,
@@ -528,16 +568,12 @@ func (s *Service) GetMultiAgentInfos(ctx context.Context, assistantId uint32, us
 }
 
 func (s *Service) AssistantCopy(ctx context.Context, req *assistant_service.AssistantCopyReq) (*assistant_service.AssistantCreateResp, error) {
-	assistantId, err := util.U32(req.AssistantId)
-	if err != nil {
-		return nil, err
-	}
-
-	// 获取父智能体信息
-	parentAssistant, status := s.cli.GetAssistant(ctx, assistantId, "", "")
+	// 获取父智能体信息（通过 UUID 带权限校验）
+	parentAssistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
+	assistantId := parentAssistant.ID
 
 	// 获取关联的 workflow
 	workflows, status := s.cli.GetAssistantWorkflowsByAssistantID(ctx, assistantId)
@@ -570,29 +606,87 @@ func (s *Service) AssistantCopy(ctx context.Context, req *assistant_service.Assi
 	}
 
 	// 复制智能体
-	assistantID, status := s.cli.CopyAssistant(ctx, parentAssistant, workflows, mcps, tools, subAgents, skills)
+	_, newAssistantUuid, status := s.cli.CopyAssistant(ctx, parentAssistant, workflows, mcps, tools, subAgents, skills)
 	if status != nil {
 		return nil, errStatus(errs.Code_AssistantErr, status)
 	}
 	return &assistant_service.AssistantCreateResp{
-		AssistantId: util.Int2Str(assistantID),
+		AssistantId: newAssistantUuid,
 	}, nil
 }
 
 func (s *Service) GetAssistantDetailById(ctx context.Context, req *assistant_service.GetAssistantDetailByIdReq) (*assistant_service.AssistantDetailResp, error) {
-	detail, snapshot, err := searchAssistantDetail(ctx, req.Draft, req.AssistantId, s.cli, req.Version)
+	// 通过 UUID 获取自增 ID（带权限校验）后查询详情
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	detail, snapshot, err := searchAssistantDetail(ctx, req.Draft, assistant.ID, s.cli, req.Version)
 	if err != nil {
 		return nil, err
 	}
 	params, err := buildAgentParams(ctx, s.cli, detail, snapshot, req.ConversationId, req.Identity.UserId, req.Identity.OrgId)
 	if err != nil {
-		log.Errorf("Assistant服务获取智能体信息失败，assistantId: %d, error: %v", req.AssistantId, err)
+		log.Errorf("Assistant服务获取智能体信息失败，assistantId: %s, error: %v", req.AssistantId, err)
 		return nil, errCode(errs.Code_AssistantConversationErr)
 	}
 	return &assistant_service.AssistantDetailResp{
 		AgentDetail: params,
 	}, nil
 }
+
+// AdminAssistantPageList 管理员中心智能体列表
+func (s *Service) AdminAssistantPageList(ctx context.Context, req *assistant_service.AdminAssistantPageListReq) (*assistant_service.AdminAssistantPageListResp, error) {
+	pageNum := int(req.PageNum)
+	pageSize := int(req.PageSize)
+
+	var items []*model.AdminAssistantItem
+	var total int64
+	var status *errs.Status
+
+	if req.PublishStatus == nil {
+		// 查询所有智能体
+		items, total, status = s.cli.AdminGetAssistantListAll(ctx, req.UserId, req.OrgId, req.Name, req.Category)
+	} else {
+		// 分页查询
+		items, total, status = s.cli.AdminGetAssistantListPage(ctx, req.UserId, req.OrgId, req.Name, req.Category, pageNum, pageSize)
+	}
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+
+	var appBriefs []*assistant_service.AssistantBrief
+	for _, item := range items {
+		appBriefs = append(appBriefs, transToAssistantBrief(&item.Assistant, item.PublishType))
+	}
+
+	return &assistant_service.AdminAssistantPageListResp{
+		Total: total,
+		List:  appBriefs,
+	}, nil
+}
+
+// SyncAssistantPublish 同步智能体发布状态到 assistant 数据库的关联表
+// publishType 非空=发布记录，空=删除发布记录(取消发布)
+func (s *Service) SyncAssistantPublish(ctx context.Context, req *assistant_service.SyncAssistantPublishReq) (*emptypb.Empty, error) {
+	// 通过 UUID 获取自增 ID（内部同步调用，无 Identity）
+	assistant, status := s.cli.GetAssistantByUuidWithPerm(ctx, req.AssistantId, "", "")
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	assistantId := assistant.ID
+	if req.PublishType == "" {
+		status = s.cli.DeleteAssistantPublish(ctx, assistantId)
+	} else {
+		status = s.cli.UpsertAssistantPublish(ctx, assistantId, req.PublishType)
+	}
+	if status != nil {
+		return nil, errStatus(errs.Code_AssistantErr, status)
+	}
+	return &emptypb.Empty{}, nil
+}
+
+// ---internal methods---
 
 func searchAssistantDetail(ctx context.Context, draft bool, assistantId uint32, cli client.IClient, version string) (*model.Assistant, *model.AssistantSnapshot, error) {
 	assistant := &model.Assistant{}
@@ -629,6 +723,7 @@ func buildAgentParams(ctx context.Context, cli client.IClient, agent *model.Assi
 		ConversationId: conversationId,
 		QueryUserId:    userId,
 		QueryOrgId:     orgId,
+		Ctx:            ctx,
 	}
 	return service.NewAgentChatParamsBuilder(&params_process.AgentInfo{
 		Assistant:         agent,
@@ -665,4 +760,26 @@ func buildRelationMap(relations []*model.MultiAgentRelation) map[uint32]*model.M
 		relationMap[relation.AgentId] = relation
 	}
 	return relationMap
+}
+
+func transToAssistantBrief(assistant *model.Assistant, publishType string) *assistant_service.AssistantBrief {
+	assistantBrief := assistant_service.AssistantBrief{
+		Info: &common.AppBrief{
+			OrgId:      assistant.OrgId,
+			UserId:     assistant.UserId,
+			AppId:      assistant.UUID,
+			AppType:    constant.AppTypeAgent,
+			AvatarPath: assistant.AvatarPath,
+			Name:       assistant.Name,
+			Desc:       assistant.Desc,
+			CreatedAt:  assistant.CreatedAt,
+			UpdatedAt:  assistant.UpdatedAt,
+		},
+		Category: int32(assistant.Category),
+		Uuid:     assistant.UUID,
+	}
+	if publishType != "" {
+		assistantBrief.PublishType = publishType
+	}
+	return &assistantBrief
 }

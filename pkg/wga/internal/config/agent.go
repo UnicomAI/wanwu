@@ -45,9 +45,18 @@ type SandboxConfig struct {
 	ImageName string `json:"image_name" mapstructure:"image_name"`
 }
 
+// SkillVariable 技能变量配置。
+type SkillVariable struct {
+	Name          string `json:"name" mapstructure:"name"`                   // 变量名称
+	Description   string `json:"description" mapstructure:"description"`     // 变量描述
+	VariableKey   string `json:"variableKey" mapstructure:"variableKey"`     // 变量键
+	VariableValue string `json:"variableValue" mapstructure:"variableValue"` // 变量值
+}
+
 // Skill 技能配置。
 type Skill struct {
-	Dir string `json:"dir"` // skill 目录路径（相对程序运行目录）
+	Dir       string          `json:"dir"`       // skill 目录路径（相对程序运行目录）
+	Variables []SkillVariable `json:"variables"` // 用户自定义变量
 }
 
 // ToolCategory 工具类别配置。
@@ -96,7 +105,8 @@ type agentConfig struct {
 }
 
 type skillConfig struct {
-	Dir string `json:"dir" mapstructure:"dir"`
+	Dir       string          `json:"dir" mapstructure:"dir"`
+	Variables []SkillVariable `json:"variables" mapstructure:"variables"`
 }
 
 type toolCategory struct {

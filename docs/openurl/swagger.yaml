@@ -79,6 +79,112 @@ definitions:
         - $ref: '#/definitions/mp_common.LLMParams'
         description: 大语言模型配置
     type: object
+  mp.ProviderModelByDeepSeek:
+    properties:
+      llm:
+        $ref: '#/definitions/mp_deepseek.LLM'
+    type: object
+  mp.ProviderModelByHuoShan:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_huoshan.Embedding'
+      llm:
+        $ref: '#/definitions/mp_huoshan.LLM'
+    type: object
+  mp.ProviderModelByInfini:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_infini.Embedding'
+      llm:
+        $ref: '#/definitions/mp_infini.LLM'
+      rerank:
+        $ref: '#/definitions/mp_infini.Rerank'
+    type: object
+  mp.ProviderModelByOllama:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_ollama.Embedding'
+      llm:
+        $ref: '#/definitions/mp_ollama.LLM'
+    type: object
+  mp.ProviderModelByOpenAICompatible:
+    properties:
+      asr:
+        $ref: '#/definitions/mp_openai_compatible.SyncAsr'
+      embedding:
+        $ref: '#/definitions/mp_openai_compatible.Embedding'
+      llm:
+        $ref: '#/definitions/mp_openai_compatible.LLM'
+      rerank:
+        $ref: '#/definitions/mp_openai_compatible.Rerank'
+    type: object
+  mp.ProviderModelByQianFan:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_qianfan.Embedding'
+      llm:
+        $ref: '#/definitions/mp_qianfan.LLM'
+      rerank:
+        $ref: '#/definitions/mp_qianfan.Rerank'
+    type: object
+  mp.ProviderModelByQwen:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_qwen.Embedding'
+      llm:
+        $ref: '#/definitions/mp_qwen.LLM'
+      multiModalEmbedding:
+        $ref: '#/definitions/mp_qwen.MultiModalEmbedding'
+      multiModalRerank:
+        $ref: '#/definitions/mp_qwen.MultiModalRerank'
+      rerank:
+        $ref: '#/definitions/mp_qwen.Rerank'
+    type: object
+  mp.ProviderModelByYuanjing:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_yuanjing.Embedding'
+      gui:
+        $ref: '#/definitions/mp_yuanjing.Gui'
+      llm:
+        $ref: '#/definitions/mp_yuanjing.LLM'
+      ocr:
+        $ref: '#/definitions/mp_yuanjing.Ocr'
+      pdf-parser:
+        $ref: '#/definitions/mp_yuanjing.PdfParser'
+      rerank:
+        $ref: '#/definitions/mp_yuanjing.Rerank'
+    type: object
+  mp.ProviderModelByZhipu:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_zhipu.Embedding'
+      llm:
+        $ref: '#/definitions/mp_zhipu.LLM'
+      rerank:
+        $ref: '#/definitions/mp_zhipu.Rerank'
+    type: object
+  mp.ProviderModelConfig:
+    properties:
+      providerDeepSeek:
+        $ref: '#/definitions/mp.ProviderModelByDeepSeek'
+      providerHuoShan:
+        $ref: '#/definitions/mp.ProviderModelByHuoShan'
+      providerInfini:
+        $ref: '#/definitions/mp.ProviderModelByInfini'
+      providerOllama:
+        $ref: '#/definitions/mp.ProviderModelByOllama'
+      providerOpenAICompatible:
+        $ref: '#/definitions/mp.ProviderModelByOpenAICompatible'
+      providerQianFan:
+        $ref: '#/definitions/mp.ProviderModelByQianFan'
+      providerQwen:
+        $ref: '#/definitions/mp.ProviderModelByQwen'
+      providerYuanJing:
+        $ref: '#/definitions/mp.ProviderModelByYuanjing'
+      providerZhipu:
+        $ref: '#/definitions/mp.ProviderModelByZhipu'
+    type: object
   mp_common.LLMParams:
     properties:
       frequencyPenalty:
@@ -115,6 +221,575 @@ definitions:
         description: Top P(开关)
         type: boolean
     type: object
+  mp_common.Tag:
+    properties:
+      text:
+        type: string
+    type: object
+  mp_deepseek.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_huoshan.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_huoshan.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_infini.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_infini.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_infini.Rerank:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_ollama.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_ollama.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_openai_compatible.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_openai_compatible.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_openai_compatible.Rerank:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_openai_compatible.SyncAsr:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      endpointUrl:
+        description: 推理url（完整地址，含 /v1/chat/completions）
+        type: string
+      maxAsrFileSize:
+        type: integer
+    type: object
+  mp_qianfan.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_qianfan.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_qianfan.Rerank:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_qwen.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_qwen.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_qwen.MultiModalEmbedding:
+    properties:
+      apiKey:
+        type: string
+      contextSize:
+        type: integer
+      endpointUrl:
+        type: string
+      maxImageSize:
+        type: integer
+      maxTextLength:
+        type: integer
+      maxVideoClipSize:
+        type: integer
+      supportFileTypes:
+        items:
+          type: string
+        type: array
+    type: object
+  mp_qwen.MultiModalRerank:
+    properties:
+      apiKey:
+        type: string
+      contextSize:
+        type: integer
+      endpointUrl:
+        type: string
+      maxImageSize:
+        type: integer
+      maxTextLength:
+        type: integer
+      maxVideoClipSize:
+        type: integer
+      supportFileTypes:
+        items:
+          type: string
+        type: array
+      supportImageInQuery:
+        type: boolean
+    type: object
+  mp_qwen.Rerank:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_yuanjing.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_yuanjing.Gui:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_yuanjing.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_yuanjing.Ocr:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      endpointUrl:
+        description: 推理url
+        type: string
+      supportFileTypes:
+        description: 支持的文件类型，由 bff-service 从 recommend_model_config.yaml 注入
+        items:
+          type: string
+        type: array
+    type: object
+  mp_yuanjing.PdfParser:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_yuanjing.Rerank:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_zhipu.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_zhipu.LLM:
+    properties:
+      apiKey:
+        type: string
+      contextSize:
+        type: integer
+      endpointUrl:
+        type: string
+      functionCalling:
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        type: integer
+      maxTokens:
+        type: integer
+      thinkingSupport:
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        enum:
+        - noSupport
+        - support
+        type: string
+    type: object
+  mp_zhipu.Rerank:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
   request.AppKnowledgeBase:
     properties:
       avatar:
@@ -124,6 +799,9 @@ definitions:
       category:
         description: 知识库类别 0-知识库，1-问答库，2-多模态知识库
         type: integer
+      description:
+        description: 知识库描述
+        type: string
       external:
         description: 外部数据库标识
         type: integer
@@ -249,12 +927,15 @@ definitions:
     type: object
   request.ConversationIdRequest:
     properties:
+      assistantId:
+        type: string
       conversationId:
         type: string
       detailId:
         description: 可选，传值则删除单条对话，不传则删除全部对话
         type: string
     required:
+    - assistantId
     - conversationId
     type: object
   request.ConversionStreamFile:
@@ -349,6 +1030,20 @@ definitions:
     required:
     - conversationId
     type: object
+  request.UrlConversionStreamCancelRequest:
+    properties:
+      conversationId:
+        type: string
+    required:
+    - conversationId
+    type: object
+  request.UrlConversionStreamConnectRequest:
+    properties:
+      conversationId:
+        type: string
+    required:
+    - conversationId
+    type: object
   request.UrlConversionStreamRequest:
     properties:
       conversationId:
@@ -361,6 +1056,30 @@ definitions:
         type: string
     required:
     - prompt
+    type: object
+  request.UrlMessageFeedbackRequest:
+    properties:
+      conversationId:
+        type: string
+      detailId:
+        description: 消息详情ID
+        type: string
+      feedbackContent:
+        description: 反馈文本内容
+        type: string
+      feedbackType:
+        description: '反馈类型: 1=点赞 2=点踩'
+        type: integer
+    required:
+    - conversationId
+    - detailId
+    type: object
+  request.UrlPendingConversionRequest:
+    properties:
+      conversationId:
+        type: string
+    required:
+    - conversationId
     type: object
   request.UrlQuestionRecommendRequest:
     properties:
@@ -477,6 +1196,9 @@ definitions:
       desc:
         description: 描述
         type: string
+      hideKnowledge:
+        description: 是否隐藏知识库
+        type: integer
       instructions:
         description: 系统提示词
         type: string
@@ -508,6 +1230,12 @@ definitions:
       newAgent:
         description: 是否是新版本智能体
         type: boolean
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id
+        type: string
       prologue:
         description: 开场白
         type: string
@@ -581,6 +1309,8 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      description:
+        type: string
       enable:
         type: boolean
       mcpId:
@@ -614,6 +1344,8 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      description:
+        type: string
       enable:
         type: boolean
       skillId:
@@ -624,6 +1356,7 @@ definitions:
         enum:
         - builtin
         - custom
+        - acquired
         type: string
       valid:
         type: boolean
@@ -636,6 +1369,8 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      description:
+        type: string
       enable:
         type: boolean
       toolConfig:
@@ -694,6 +1429,12 @@ definitions:
         type: integer
       createdBy:
         type: string
+      feedback:
+        description: '当前反馈状态: 0=无 1=点赞 2=点踩'
+        type: integer
+      feedbackContent:
+        description: 反馈文本内容
+        type: string
       fileName:
         type: string
       fileSize:
@@ -738,9 +1479,15 @@ definitions:
         type: string
       title:
         type: string
+      updatedAt:
+        type: string
     type: object
   response.ConversationResponse:
     properties:
+      errMessage:
+        type: string
+      errResponse:
+        type: string
       order:
         type: integer
       response:
@@ -763,6 +1510,94 @@ definitions:
       originalFileName:
         description: 原始文件名
         type: string
+    type: object
+  response.MessageFeedbackResp:
+    properties:
+      feedbackType:
+        description: '当前反馈状态: 0=无 1=点赞 2=点踩'
+        type: integer
+    type: object
+  response.ModelInfo:
+    properties:
+      allowEdit:
+        description: '是否允许前端编辑（true: 允许编辑，false: 隐藏编辑按钮）'
+        type: boolean
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 模型图标路径
+      config: {}
+      createdAt:
+        type: string
+      displayName:
+        description: 模型显示名称
+        type: string
+      examples:
+        allOf:
+        - $ref: '#/definitions/mp.ProviderModelConfig'
+        description: 仅用于swagger展示；模型对应供应商中的对应llm、embedding或rerank结构是config实际的参数
+      importSource:
+        description: 模型导入来源(builtin=平台内置,external=外部URL)
+        type: string
+      isActive:
+        description: '启用状态（true: 启用，false: 禁用）'
+        type: boolean
+      model:
+        description: 模型名称
+        type: string
+      modelDesc:
+        type: string
+      modelId:
+        type: string
+      modelType:
+        enum:
+        - llm
+        - embedding
+        - rerank
+        type: string
+      orgId:
+        type: string
+      provider:
+        description: 模型供应商
+        enum:
+        - OpenAI-API-compatible
+        - YuanJing
+        type: string
+      publishDate:
+        description: 模型发布时间
+        type: string
+      scopeType:
+        description: 模型公开范围(1-私有 2-公开 3-组织)
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/mp_common.Tag'
+        type: array
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      uuid:
+        type: string
+    required:
+    - model
+    - modelType
+    - provider
+    type: object
+  response.PendingConversationResp:
+    properties:
+      conversationId:
+        description: 会话id
+        type: string
+      hasPendingConversation:
+        description: 是否有进行中会话
+        type: boolean
+      prompt:
+        type: string
+      requestFiles:
+        items:
+          $ref: '#/definitions/response.AssistantRequestFile'
+        type: array
     type: object
   response.RecommendConfig:
     properties:
@@ -795,6 +1630,9 @@ definitions:
     properties:
       conversationType:
         description: subAgent：子智能体；agentTool：主智能体工具；subAgentTool：子智能体工具
+        type: string
+      errMessage:
+        description: 错误信息
         type: string
       id:
         description: 事件id
@@ -840,6 +1678,83 @@ info:
   title: AI Agent Productivity Platform - OpenUrl
   version: v0.0.1
 paths:
+  /agent/:suffix/pending/conversation:
+    get:
+      consumes:
+      - application/json
+      description: 获取智能体运行中会话
+      parameters:
+      - description: 获取智能体运行中会话请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UrlPendingConversionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PendingConversationResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取智能体运行中会话
+      tags:
+      - openurl
+  /agent/:suffix/stream/cancel:
+    post:
+      consumes:
+      - application/json
+      description: 智能体流式问答手动停止
+      parameters:
+      - description: 智能体流式问答手动停止参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UrlConversionStreamCancelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 智能体流式问答手动停止
+      tags:
+      - openurl
+  /agent/:suffix/stream/connect:
+    post:
+      consumes:
+      - application/json
+      description: 草稿智能体流式问答断开后重连
+      parameters:
+      - description: 草稿智能体流式问答断开后重连参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UrlConversionStreamConnectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 草稿智能体流式问答断开后重连
+      tags:
+      - openurl
   /agent/{suffix}:
     get:
       consumes:
@@ -1040,6 +1955,20 @@ paths:
         name: suffix
         required: true
         type: string
+      - description: 页码
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页数量
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      - description: 检索词
+        in: query
+        name: searchText
+        type: string
       produces:
       - application/json
       responses:
@@ -1062,6 +1991,78 @@ paths:
       security:
       - JWT: []
       summary: 获取智能体对话列表
+      tags:
+      - openurl
+  /agent/{suffix}/llm:
+    get:
+      consumes:
+      - application/json
+      description: 智能体模型配置
+      parameters:
+      - description: 临时唯一标识
+        in: header
+        name: X-Client-ID
+        required: true
+        type: string
+      - description: Url后缀
+        in: path
+        name: suffix
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ModelInfo'
+              type: object
+      security:
+      - JWT: []
+      summary: 智能体模型配置
+      tags:
+      - openurl
+  /agent/{suffix}/message/feedback:
+    post:
+      consumes:
+      - application/json
+      description: 对智能体单条消息点赞或点踩
+      parameters:
+      - description: 临时唯一标识
+        in: header
+        name: X-Client-ID
+        required: true
+        type: string
+      - description: Url后缀
+        in: path
+        name: suffix
+        required: true
+        type: string
+      - description: 消息反馈参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UrlMessageFeedbackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.MessageFeedbackResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 智能体消息点赞/点踩
       tags:
       - openurl
   /agent/{suffix}/recommend:

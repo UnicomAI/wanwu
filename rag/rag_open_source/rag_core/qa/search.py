@@ -23,13 +23,12 @@ def search_qa_base(question, top_k, threshold=0.0, return_meta=False, retrieve_m
 
         for user_id, qa_base_name_id_list in qa_base_info.items():
             search_result = None
-            qa_base_names = [qa_base_name_id["QABase"] for qa_base_name_id in qa_base_name_id_list]
             if retrieve_method in {"semantic_search", "hybrid_search"}:
-                search_result = es_utils.vector_search(user_id, qa_base_names, question, top_k, threshold=threshold,
+                search_result = es_utils.vector_search(user_id, qa_base_name_id_list, question, top_k, threshold=threshold,
                                                        metadata_filtering_conditions = metadata_filtering_conditions)
 
             if retrieve_method in {"full_text_search", "hybrid_search"}:
-                search_result = es_utils.full_text_search(user_id, qa_base_names, question, top_k,threshold=threshold, metadata_filtering_conditions=metadata_filtering_conditions)
+                search_result = es_utils.full_text_search(user_id, qa_base_name_id_list, question, top_k,threshold=threshold, metadata_filtering_conditions=metadata_filtering_conditions)
 
             search_result_str = json.dumps(search_result, ensure_ascii=False)
             logger.info(f"问题问答库查询结果：查询类型：{retrieve_method}, user_id: {user_id}, qa_base_name_id_list: {qa_base_name_id_list}, question: {question}, search_result: {search_result_str}")
@@ -47,7 +46,7 @@ def search_qa_base(question, top_k, threshold=0.0, return_meta=False, retrieve_m
                 qa_result_list.append(qa_info)
 
             search_list_infos[user_id] = {
-                "base_names": qa_base_names,
+                "base_infos": qa_base_name_id_list,
                 "search_list": search_list
             }
 

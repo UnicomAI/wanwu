@@ -180,7 +180,7 @@ func GetQAPairList(ctx context.Context, userId, orgId, knowledgeId, name string,
 	limit := pageSize
 	offset := pageSize * (pageNum - 1)
 	var qaPairList []*model.KnowledgeQAPair
-	err = tx.Order("create_at asc").Limit(int(limit)).Offset(int(offset)).Find(&qaPairList).Error
+	err = tx.Order("create_at asc, id asc").Limit(int(limit)).Offset(int(offset)).Find(&qaPairList).Error
 	if err != nil {
 		return nil, 0, err
 	}

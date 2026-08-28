@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/pkg/i18n"
@@ -43,6 +44,14 @@ const (
 	// OAuth相关
 	OAUTH_SCOPE     = "SCOPE"
 	OAUTH_CLIENT_ID = "OAuth_Client_ID"
+
+	// 会话ID
+	CONVERSATION_ID = "CONVERSATION_ID"
+
+	// 会话日志查询身份（openurl 等匿名链路：写 ES detail 用的 userId/orgId 与登录态不同，
+	// 由对应 handler 写入这两个 key，供 RecordConversation 中间件落库时按真实身份查询 ES）
+	CONVERSATION_LOG_USER_ID = "CONVERSATION_LOG_USER_ID"
+	CONVERSATION_LOG_ORG_ID  = "CONVERSATION_LOG_ORG_ID"
 )
 
 // http common query key
@@ -200,6 +209,22 @@ func ResponseRawByte(ctx *gin.Context, httpStatus int, data []byte) {
 	ctx.Set(STATUS, httpStatus)
 	ctx.Set(RESULT, string(data))
 	ctx.Data(httpStatus, "application/json; charset=utf-8", data)
+}
+
+// ResponseAttachment 以附件形式下载二进制数据，按 RFC 5987 编码 UTF-8 文件名。
+func ResponseAttachment(ctx *gin.Context, fileName string, data []byte) {
+	ctx.Header("Content-Disposition", "attachment; filename*=utf-8''"+url.QueryEscape(fileName))
+	ctx.Header("Content-Type", "application/octet-stream")
+	ctx.Header("Access-Control-Expose-Headers", "Content-Disposition")
+	ctx.Data(http.StatusOK, "application/octet-stream", data)
+}
+
+// ResponseInline 以 inline 形式回传二进制数据用于浏览器预览。
+func ResponseInline(ctx *gin.Context, fileName, contentType string, data []byte) {
+	ctx.Header("Content-Disposition", "inline; filename*=utf-8''"+url.QueryEscape(fileName))
+	ctx.Header("Content-Type", contentType)
+	ctx.Header("Access-Control-Expose-Headers", "Content-Disposition")
+	ctx.Data(http.StatusOK, contentType, data)
 }
 
 // response 与model/response中Response一致，后者只用于swagger生成

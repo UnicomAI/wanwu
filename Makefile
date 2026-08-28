@@ -55,6 +55,12 @@ build-app-amd64:
 build-app-arm64:
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -mod vendor -ldflags "$(LDFLAGS)" -o ./bin/arm64/ ./cmd/app-service
 
+build-channel-amd64:
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod vendor -ldflags "$(LDFLAGS)" -o ./bin/amd64/ ./cmd/channel-service
+
+build-channel-arm64:
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -mod vendor -ldflags "$(LDFLAGS)" -o ./bin/arm64/ ./cmd/channel-service
+
 build-operate-amd64:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod vendor -ldflags "$(LDFLAGS)" -o ./bin/amd64/ ./cmd/operate-service
 
@@ -95,6 +101,10 @@ doc-swag:
 	swag fmt  -g guest.go -d internal/bff-service/server/http/handler/v1
 	swag init -g guest.go -d internal/bff-service/server/http/handler/v1 -o docs/v1 --md docs --pd
 	@echo '// nolint' | cat - docs/v1/docs.go > tmp && mv tmp docs/v1/docs.go
+	# v2
+	swag fmt  -g common.go -d internal/bff-service/server/http/handler/v2
+	swag init -g common.go -d internal/bff-service/server/http/handler/v2 -o docs/v2 --pd
+	@echo '// nolint' | cat - docs/v2/docs.go > tmp && mv tmp docs/v2/docs.go
 	# openapi
 	swag fmt  -g openapi.go -d internal/bff-service/server/http/handler/openapi
 	swag init -g openapi.go -d internal/bff-service/server/http/handler/openapi -o docs/openapi --pd
@@ -134,7 +144,7 @@ docker-image-wga-sandbox:
 	docker build -f Dockerfile.wga-sandbox --build-arg WANWU_ARCH=${WANWU_ARCH} -t wanwulite/wga-sandbox:${WANWU_VERSION}-$(shell git rev-parse --short HEAD)-${WANWU_ARCH} .
 
 docker-image-wga-sandbox-base:
-	docker build -f Dockerfile.wga-sandbox-base --build-arg WANWU_ARCH=${WANWU_ARCH} -t wanwulite/wga-sandbox-base:1.0.0.152-opencode1.4.11-${WANWU_ARCH} .
+	docker build -f Dockerfile.wga-sandbox-base --build-arg WANWU_ARCH=${WANWU_ARCH} -t wanwulite/wga-sandbox-base:1.0.0.152-opencode1.16.2-${WANWU_ARCH} .
 
 grpc-protoc:
 	protoc --proto_path=. --go_out=paths=source_relative:api --go-grpc_out=paths=source_relative:api proto/*/*.proto

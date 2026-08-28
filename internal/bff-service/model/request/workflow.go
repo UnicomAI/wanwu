@@ -1,6 +1,12 @@
 package request
 
-import "mime/multipart"
+import (
+	"fmt"
+	"mime/multipart"
+
+	"github.com/UnicomAI/wanwu/pkg/constant"
+	"github.com/UnicomAI/wanwu/pkg/util"
+)
 
 type WorkflowIDReq struct {
 	WorkflowID string `json:"workflow_id" validate:"required"`
@@ -19,13 +25,39 @@ func (g *GetWorkflowListReq) Check() error {
 	return nil
 }
 
+type CreateWorkflowReq struct {
+	AppType string `json:"appType" validate:"required"` // workflow 或 chatflow
+	AppBriefConfig
+}
+
+func (r *CreateWorkflowReq) Check() error {
+	// 校验 appType
+	if r.AppType != constant.AppTypeWorkflow && r.AppType != constant.AppTypeChatflow {
+		return fmt.Errorf("appType must be 'workflow' or 'chatflow'")
+	}
+	// 根据 appType 选择 subject
+	subject := util.SubjectWorkflow
+	if r.AppType == constant.AppTypeChatflow {
+		subject = util.SubjectChatflow
+	}
+	return util.ValidateBriefCreate(&r.Name, &r.Desc, subject)
+}
+
+type CreateChatflowReq struct {
+	AppBriefConfig
+}
+
+func (r *CreateChatflowReq) Check() error {
+	return util.ValidateBriefCreate(&r.Name, &r.Desc, util.SubjectChatflow)
+}
+
 type CreateWorkflowByTemplateReq struct {
 	TemplateId string `json:"templateId" validate:"required"`
 	AppBriefConfig
 }
 
 func (r *CreateWorkflowByTemplateReq) Check() error {
-	return nil
+	return util.ValidateBriefCreate(&r.Name, &r.Desc, util.SubjectWorkflow)
 }
 
 type WorkflowUploadFileReq struct {

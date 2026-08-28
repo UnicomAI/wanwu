@@ -1,6 +1,8 @@
 package callback
 
 import (
+	"errors"
+
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
@@ -28,6 +30,61 @@ func FileUrlConvertBase64(ctx *gin.Context) {
 		return
 	}
 	resp, err := service.FileUrlConvertBase64(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// UploadFileByBase64
+//
+//	@Tags		callback
+//	@Summary	通过base64上传文件
+//	@Accept		json
+//	@Produce	json
+//	@Param		data	body		request.UploadFileByBase64Req	true	"通过base64格式上传文件参数"
+//	@Success	200		{object}	response.Response{data=response.UploadFileByBase64Resp}
+//	@Router		/file/upload/base64 [post]
+func UploadFileByBase64(ctx *gin.Context) {
+	var req request.UploadFileByBase64Req
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.UploadFileByBase64(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// UnarchiveFile
+//
+//	@Tags			callback
+//	@Summary		解压压缩包
+//	@Description	解压MinIO中的压缩包，将文件上传到MinIO并返回目录结构
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.UnarchiveFileReq	true	"解压压缩包请求参数"
+//	@Success		200		{object}	response.Response{data=response.UnarchiveFileResp}
+//	@Router			/file/unarchive [post]
+func UnarchiveFile(ctx *gin.Context) {
+	var req request.UnarchiveFileReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.UnarchiveFile(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetUserListByUserIds
+//
+//	@Tags		callback
+//	@Summary	根据userIds获取用户信息
+//	@Accept		json
+//	@Produce	json
+//	@Param		data	body		request.GetUserListByUserIdsReq	true	"根据userIds获取用户信息参数"
+//	@Success	200		{object}	response.Response{data=response.ListResult{List=[]response.IDNameWithAvatar}}
+//	@Router		/user/list [post]
+func GetUserListByUserIds(ctx *gin.Context) {
+	var req request.GetUserListByUserIdsReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.GetUserListByUserIds(ctx, req.UserIds)
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -97,25 +154,6 @@ func GetDeployInfo(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// SelectKnowledgeInfoByName
-//
-//	@Tags			callback
-//	@Summary		获取Maas平台知识库信息（模型扩展调用）
-//	@Description	获取Maas平台知识库信息（模型扩展调用）
-//	@Accept			json
-//	@Produce		json
-//	@Param			data	body		request.SearchKnowledgeInfoReq	true	"根据知识库名称请求参数"
-//	@Success		200		{object}	response.Response{}
-//	@Router			/api/category/info [get]
-func SelectKnowledgeInfoByName(ctx *gin.Context) {
-	var req request.SearchKnowledgeInfoReq
-	if !gin_util.BindQuery(ctx, &req) {
-		return
-	}
-	resp, err := service.SelectKnowledgeInfoByName(ctx, req.UserId, req.OrgId, &req)
-	gin_util.Response(ctx, resp, err)
-}
-
 // SearchKnowledgeBase
 //
 //	@Tags			callback
@@ -147,6 +185,11 @@ func SearchKnowledgeBase(ctx *gin.Context) {
 //	@Router			/rag/knowledge/stream/search [post]
 func KnowledgeStreamSearch(ctx *gin.Context) {
 	userId := ctx.GetHeader("X-uid")
+	if userId == "" {
+		resp, httpStatus := response.CommonRagKnowledgeError(errors.New("callback: empty X-uid"))
+		gin_util.ResponseRawByte(ctx, httpStatus, resp)
+		return
+	}
 	var req request.RagKnowledgeChatReq
 	if !gin_util.Bind(ctx, &req) {
 		return
@@ -177,22 +220,4 @@ func SearchQABase(ctx *gin.Context) {
 	}
 	resp, httpStatus := service.RagSearchQABase(ctx, &req)
 	gin_util.ResponseRawByte(ctx, httpStatus, resp)
-}
-
-// UploadFileByBase64
-//
-//	@Tags		callback
-//	@Summary	通过base64上传文件
-//	@Accept		json
-//	@Produce	json
-//	@Param		data	body		request.UploadFileByBase64Req	true	"通过base64格式上传文件参数"
-//	@Success	200		{object}	response.Response{data=response.UploadFileByBase64Resp}
-//	@Router		/file/upload/base64 [post]
-func UploadFileByBase64(ctx *gin.Context) {
-	var req request.UploadFileByBase64Req
-	if !gin_util.Bind(ctx, &req) {
-		return
-	}
-	resp, err := service.UploadFileByBase64(ctx, &req)
-	gin_util.Response(ctx, resp, err)
 }

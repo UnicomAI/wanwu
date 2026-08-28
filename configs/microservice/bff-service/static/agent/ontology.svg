@@ -1,0 +1,57 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- 定义节点样式 -->
+    <style>
+        .node {
+        fill: black;
+        }
+        .link {
+        stroke: black;
+        stroke-width: 8;
+        }
+    </style>
+
+    <!-- 绘制连接线 (Edges) -->
+    <!-- 顶点到三个主要节点的连线 -->
+    <line x1="30" y1="30" x2="40" y2="160" class="link"/>
+    <line x1="30" y1="30" x2="170" y2="50" class="link"/>
+    <line x1="30" y1="30" x2="160" y2="150" class="link"/>
+
+    <!-- 左下角节点的分支 -->
+    <line x1="40" y1="160" x2="20" y2="140" class="link"/>
+    <line x1="40" y1="160" x2="60" y2="175" class="link"/>
+    <line x1="40" y1="160" x2="25" y2="175" class="link"/>
+
+    <!-- 右上角节点的分支 -->
+    <line x1="170" y1="50" x2="185" y2="30" class="link"/>
+    <line x1="170" y1="50" x2="190" y2="60" class="link"/>
+    <line x1="170" y1="50" x2="150" y2="35" class="link"/>
+
+    <!-- 右下角节点的分支 -->
+    <line x1="160" y1="150" x2="180" y2="140" class="link"/>
+    <line x1="160" y1="150" x2="185" y2="165" class="link"/>
+    <line x1="160" y1="150" x2="140" y2="175" class="link"/>
+
+    <!-- 绘制节点 (Nodes) -->
+    <!-- 顶点节点 -->
+    <circle cx="30" cy="30" r="12" class="node"/>
+
+    <!-- 三个主要节点 -->
+    <circle cx="40" cy="160" r="11" class="node"/>
+    <circle cx="170" cy="50" r="11" class="node"/>
+    <circle cx="160" cy="150" r="11" class="node"/>
+
+    <!-- 左下角分支节点 -->
+    <circle cx="20" cy="140" r="8" class="node"/>
+    <circle cx="60" cy="175" r="8" class="node"/>
+    <circle cx="25" cy="175" r="8" class="node"/>
+
+    <!-- 右上角分支节点 -->
+    <circle cx="185" cy="30" r="8" class="node"/>
+    <circle cx="190" cy="60" r="8" class="node"/>
+    <circle cx="150" cy="35" r="8" class="node"/>
+
+    <!-- 右下角分支节点 -->
+    <circle cx="180" cy="140" r="8" class="node"/>
+    <circle cx="185" cy="165" r="8" class="node"/>
+    <circle cx="140" cy="175" r="8" class="node"/>
+</svg>

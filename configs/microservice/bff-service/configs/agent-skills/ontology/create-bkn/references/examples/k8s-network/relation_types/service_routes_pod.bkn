@@ -1,0 +1,22 @@
+---
+type: relation_type
+id: service_routes_pod
+name: Service路由Pod
+tags: [拓扑架构, 网络]
+---
+
+## RelationType: Service路由Pod
+
+Service 到 Pod 的流量路由关系。
+
+### Endpoint
+
+| Source | Target | Type |
+|--------|--------|------|
+| service | pod | direct |
+
+### Mapping Rules
+
+| Source Property | Target Property |
+|-----------------|-----------------|
+| service_name | pod_service_name |

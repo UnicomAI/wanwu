@@ -23,9 +23,16 @@ type IteratorReader[T any, R any] struct {
 }
 
 func SafeChannelReceiveByIter[T any, R any](ctx context.Context, lineIter *IteratorReader[R, T]) <-chan T {
+	return SafeChannelReceiveByIterCloser(ctx, lineIter, nil)
+}
+
+func SafeChannelReceiveByIterCloser[T any, R any](ctx context.Context, lineIter *IteratorReader[R, T], bizCloser func(context.Context)) <-chan T {
 	rawCh := make(chan T, 128)
 	var closer = func(ctx context.Context) {
 		close(rawCh)
+		if bizCloser != nil {
+			bizCloser(ctx)
+		}
 	}
 	// 起一个协程安全执行数据接收的方法
 	SafeGo(safeCycleReceiveFuncByIter(ctx, lineIter, rawCh, closer))

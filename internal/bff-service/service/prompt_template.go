@@ -14,11 +14,14 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -56,7 +59,6 @@ func GetPromptTemplateList(ctx *gin.Context, category, name string) (*response.L
 		}
 		promptTemplateList = append(promptTemplateList, buildPromptTempDetail(*promptCfg))
 	}
-	fmt.Println()
 	return &response.ListResult{
 		List:  promptTemplateList,
 		Total: int64(len(promptTemplateList)),
@@ -87,7 +89,7 @@ func GetPromptOptimize(ctx *gin.Context, userID, orgID string, req request.Promp
 		},
 		Stream: &stream,
 	}
-	getPromptCustom(ctx, req.ModelId, reqInfo)
+	getPromptCustom(ctx, userID, orgID, req.ModelId, reqInfo)
 }
 
 func GetPromptReason(ctx *gin.Context, userID, orgID string, req request.PromptReasonReq) {
@@ -102,7 +104,7 @@ func GetPromptReason(ctx *gin.Context, userID, orgID string, req request.PromptR
 		},
 		Stream: &stream,
 	}
-	getPromptCustom(ctx, req.ModelId, reqInfo)
+	getPromptCustom(ctx, userID, orgID, req.ModelId, reqInfo)
 }
 
 func GetPromptEvaluate(ctx *gin.Context, userID, orgID string, req request.PromptEvaluateReq) {
@@ -125,18 +127,39 @@ func GetPromptEvaluate(ctx *gin.Context, userID, orgID string, req request.Promp
 		},
 		Stream: &stream,
 	}
-	getPromptCustom(ctx, req.ModelId, evaReqInfo)
+	getPromptCustom(ctx, userID, orgID, req.ModelId, evaReqInfo)
 }
 
 // --- internal ---
-func getPromptCustom(ctx *gin.Context, modelId string, reqInfo *mp_common.LLMReq) {
+// getPromptCustom 提示词优化/推理/评估共用流式调用；写模型统计 + 应用统计（prompt 板块级，appId 为空）。
+func getPromptCustom(ctx *gin.Context, userID, orgID, modelId string, reqInfo *mp_common.LLMReq) {
+	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
+	modelRequestBody := MarshalStatisticBody(reqInfo)
+	var (
+		statErr           error
+		firstTokenLatency int
+		startTime         time.Time
+	)
+	defer func() {
+		statusCode, failureReason := appStreamStatisticStatus(statErr, "")
+		source := resolveAppStatisticSource(detachedCtx, constant.BizSourceWeb)
+		// 流式：记录真实首 token 时延；未打到则保持 0（不用总耗时冒充 TTFT）
+		go func() {
+			defer util.PrintPanicStack()
+			RecordAppStatistic(detachedCtx, userID, orgID, "", "", constant.BizModuleResourcePrompt,
+				statusCode, failureReason, true, int64(firstTokenLatency), 0, source, modelRequestBody, "", "", "")
+		}()
+	}()
+
 	// 获取模型信息
 	modelInfo, err := model.GetModel(ctx.Request.Context(), &model_service.GetModelReq{ModelId: modelId})
 	if err != nil {
+		statErr = err
 		gin_util.Response(ctx, nil, err)
 		return
 	}
 	if !modelInfo.IsActive {
+		statErr = grpc_util.ErrorStatus(errs.Code_BFFModelStatus, modelInfo.ModelId)
 		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(errs.Code_BFFModelStatus, modelInfo.ModelId))
 		return
 	}
@@ -144,8 +167,12 @@ func getPromptCustom(ctx *gin.Context, modelId string, reqInfo *mp_common.LLMReq
 
 	llm, err := mp.ToModelConfig(modelInfo.Provider, modelInfo.ModelType, modelInfo.ProviderConfig)
 	if err != nil {
-		recordModelStatistic(ctx, modelInfo, false, 0, 0, 0, 0, 0, false)
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("model %v chat completions err: %v", modelInfo.ModelId, err)))
+		statErr = err
+		go func() {
+			defer util.PrintPanicStack()
+			recordModelStatisticV2Failure(detachedCtx, modelInfo, false, modelRequestBody, err)
+		}()
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error()))
 		return
 	}
 
@@ -164,35 +191,48 @@ func getPromptCustom(ctx *gin.Context, modelId string, reqInfo *mp_common.LLMReq
 
 	iLLM, ok := llm.(mp.ILLM)
 	if !ok {
-		recordModelStatistic(ctx, modelInfo, false, 0, 0, 0, 0, 0, false)
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("model %v chat completions err: invalid provider", modelInfo.ModelId)))
+		statErr = fmt.Errorf("model %v chat completions err: invalid provider", modelInfo.ModelId)
+		errMsg := fmt.Sprintf("model %v chat completions err: invalid provider", modelInfo.ModelId)
+		go func() {
+			defer util.PrintPanicStack()
+			recordModelStatisticV2Failure(detachedCtx, modelInfo, false, modelRequestBody, fmt.Errorf("%s", errMsg))
+		}()
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, errMsg))
 		return
 	}
-	startTime := time.Now()
 
 	// chat completions
 	llmReq, err := iLLM.NewReq(reqInfo)
 	if err != nil {
-		recordModelStatistic(ctx, modelInfo, false, 0, 0, 0, 0, 0, false)
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("model %v chat completions NewReq err: %v", modelInfo.ModelId, err)))
+		statErr = err
+		go func() {
+			defer util.PrintPanicStack()
+			recordModelStatisticV2Failure(detachedCtx, modelInfo, false, modelRequestBody, err)
+		}()
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error()))
 		return
 	}
+	startTime = time.Now()
 	_, sseCh, err := iLLM.ChatCompletions(ctx.Request.Context(), llmReq)
 	if err != nil {
-		recordModelStatistic(ctx, modelInfo, false, 0, 0, 0, 0, 0, false)
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("model %v chat completions err: %v", modelInfo.ModelId, err)))
+		statErr = err
+		go func() {
+			defer util.PrintPanicStack()
+			recordModelStatisticV2Failure(detachedCtx, modelInfo, false, modelRequestBody, err)
+		}()
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error()))
 		return
 	}
 
 	// stream
 	var answer string
+	var finishReason string
 
 	var (
-		firstTokenTime    time.Time
-		firstTokenLatency int
-		promptTokens      int
-		completionTokens  int
-		totalTokens       int
+		firstTokenTime   time.Time
+		promptTokens     int
+		completionTokens int
+		totalTokens      int
 	)
 
 	ctx.Header("Cache-Control", "no-cache")
@@ -207,6 +247,9 @@ func getPromptCustom(ctx *gin.Context, modelId string, reqInfo *mp_common.LLMReq
 		var shouldSend = true // 标记是否应该发送此响应
 
 		if ok && data != nil {
+			if len(data.Choices) > 0 && data.Choices[0].FinishReason != "" {
+				finishReason = data.Choices[0].FinishReason
+			}
 			currentResponse := "" // 记录当前流式增量内容
 			if len(data.Choices) > 0 && data.Choices[0].Delta != nil {
 				content := data.Choices[0].Delta.Content
@@ -305,15 +348,23 @@ func getPromptCustom(ctx *gin.Context, modelId string, reqInfo *mp_common.LLMReq
 	}
 
 	if len(answer) == 0 {
-		recordModelStatistic(ctx, modelInfo, false, 0, 0, 0, 0, 0, true)
+		statErr = fmt.Errorf("answer is empty")
+		go func() {
+			defer util.PrintPanicStack()
+			recordModelStatisticV2Failure(detachedCtx, modelInfo, true, modelRequestBody, fmt.Errorf("answer is empty"))
+		}()
 		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, "answer is empty"))
 		return
 	}
 
 	ctx.Set(gin_util.STATUS, http.StatusOK)
 	ctx.Set(gin_util.RESULT, answer)
-	recordModelStatistic(ctx, modelInfo, true,
-		promptTokens, completionTokens, totalTokens, 0, firstTokenLatency, true)
+	go func() {
+		defer util.PrintPanicStack()
+		recordModelStatisticV2(detachedCtx, modelInfo,
+			promptTokens, completionTokens, totalTokens, 0, firstTokenLatency, true,
+			http.StatusOK, modelRequestBody, answer, finishReason, "")
+	}()
 }
 
 func buildPromptTempDetail(wtfCfg config.PromptTempConfig) *response.PromptTemplateDetail {

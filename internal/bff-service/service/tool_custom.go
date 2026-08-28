@@ -15,6 +15,38 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type ToolBiz struct{}
+
+func init() {
+	InitBizService(&ToolBiz{})
+}
+
+func (*ToolBiz) BizType() string { return constant.BizModuleResourceTool }
+
+func (*ToolBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	// 优先按自定义工具查询，查不到再按内置工具查询（custom/builtin 共用同一 bizType）
+	resp, err := mcp.GetCustomToolInfo(ctx, &mcp_service.GetCustomToolInfoReq{
+		CustomToolId: bizId,
+	})
+	if err == nil && resp != nil && resp.Owner != nil {
+		return resp.Owner.UserId, resp.Owner.OrgId, nil
+	}
+	builtinResp, err := mcp.GetSquareTool(ctx, &mcp_service.GetSquareToolReq{
+		ToolSquareId: bizId,
+		Identity:     &mcp_service.Identity{UserId: "", OrgId: ""},
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if builtinResp.Info == nil {
+		return "", "", nil
+	}
+	return getUserID(ctx), getOrgID(ctx), nil
+}
+
+func (*ToolBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
+}
 func CreateCustomTool(ctx *gin.Context, userID, orgID string, req request.CustomToolCreate) error {
 	if err := openapi3_util.ValidateSchema(ctx.Request.Context(), []byte(req.Schema)); err != nil {
 		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, err.Error())
@@ -76,6 +108,10 @@ func DeleteCustomTool(ctx *gin.Context, userID, orgID string, req request.Custom
 	_, err := assistant.AssistantToolDeleteByToolId(ctx.Request.Context(), &assistant_service.AssistantToolDeleteByToolIdReq{
 		ToolId:   req.CustomToolID,
 		ToolType: constant.ToolTypeCustom,
+		Identity: &assistant_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	})
 	if err != nil {
 		return err
@@ -83,6 +119,10 @@ func DeleteCustomTool(ctx *gin.Context, userID, orgID string, req request.Custom
 
 	_, err = mcp.DeleteCustomTool(ctx.Request.Context(), &mcp_service.DeleteCustomToolReq{
 		CustomToolId: req.CustomToolID,
+		Identity: &mcp_service.Identity{
+			UserId: userID,
+			OrgId:  orgID,
+		},
 	})
 	return err
 }
@@ -91,7 +131,17 @@ func UpdateCustomTool(ctx *gin.Context, userID, orgID string, req request.Custom
 	if err := openapi3_util.ValidateSchema(ctx.Request.Context(), []byte(req.Schema)); err != nil {
 		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, err.Error())
 	}
-	_, err := mcp.UpdateCustomTool(ctx.Request.Context(), &mcp_service.UpdateCustomToolReq{
+	existingTool, err := mcp.GetCustomToolInfo(ctx.Request.Context(), &mcp_service.GetCustomToolInfoReq{
+		CustomToolId: req.CustomToolID,
+		Identity:     &mcp_service.Identity{UserId: userID, OrgId: orgID},
+	})
+	if err != nil {
+		return err
+	}
+	if err := util.ValidateBriefUpdate(&req.Name, existingTool.Name, &req.Description, existingTool.Description, util.SubjectCustomTool); err != nil {
+		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, err.Error())
+	}
+	_, err = mcp.UpdateCustomTool(ctx.Request.Context(), &mcp_service.UpdateCustomToolReq{
 		CustomToolId: req.CustomToolID,
 		AvatarPath:   req.Avatar.Key,
 		Name:         req.Name,

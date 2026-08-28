@@ -11,22 +11,27 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/router/openapi"
 	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/router/openurl"
 	v1 "github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/router/v1"
+	v2 "github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/router/v2"
 	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/middleware"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/gin-gonic/gin"
 )
 
 var (
-	httpServ *http.Server
+	httpServ, callbackServ *http.Server
 )
 
 func Start(ctx context.Context) {
 
 	// router
 	gin.ForceConsoleColor()
-	r := gin.Default()
+
+	// engin
+	r := trace_util.NewTracerGin("bff-service")
+	rcb := trace_util.NewTracerGin("bff-service-callback")
 
 	// middleware
 	middleware.Init(r)
@@ -39,14 +44,14 @@ func Start(ctx context.Context) {
 	// v1
 	v1.Register(r.Group("/v1"))
 	// v2
-	// v3
+	v2.Register(r.Group("/v2"))
 	// ..
 	// openapi v1
 	openapi.Register(r.Group("/openapi/v1"))
-	// callback v1
-	callback.Register(r.Group("/callback/v1"))
 	// openurl v1
 	openurl.Register(r.Group("/openurl/v1"))
+	// callback v1
+	callback.Register(rcb.Group("/callback/v1"))
 
 	// service
 	if err := service.Init(); err != nil {
@@ -63,6 +68,17 @@ func Start(ctx context.Context) {
 		log.Fatalf("start mcp server err: %v", err)
 	}
 
+	// start callback http server
+	callbackServ = &http.Server{
+		Addr:    ":" + strconv.Itoa(config.Cfg().Server.CallbackPort),
+		Handler: rcb,
+	}
+	go func() {
+		if err := callbackServ.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("callback fatal: %v", err)
+		}
+	}()
+	log.Infof("callback listen on: %v", config.Cfg().Server.CallbackPort)
 	// start http server
 	httpServ = &http.Server{
 		Addr:    ":" + strconv.Itoa(config.Cfg().Server.Port),
@@ -86,5 +102,10 @@ func Stop(ctx context.Context) {
 		log.Fatalf("server forced to shutdown: %v", err)
 	} else {
 		log.Infof("close http server gracefully")
+	}
+	if err := callbackServ.Shutdown(cancelCtx); err != nil {
+		log.Fatalf("callback server forced to shutdown: %v", err)
+	} else {
+		log.Infof("close callback server gracefully")
 	}
 }

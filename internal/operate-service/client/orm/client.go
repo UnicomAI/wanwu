@@ -1,10 +1,15 @@
 package orm
 
 import (
+	"context"
+	"errors"
 	"log"
 
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
+	"github.com/UnicomAI/wanwu/internal/operate-service/client/assistant"
+	"github.com/UnicomAI/wanwu/internal/operate-service/client/iam"
 	"github.com/UnicomAI/wanwu/internal/operate-service/client/model"
+	"github.com/UnicomAI/wanwu/internal/operate-service/config"
 	"gorm.io/gorm"
 )
 
@@ -12,9 +17,10 @@ type SystemCustomKey string
 type SystemCustomMode string
 
 const (
-	SystemCustomTabKey   SystemCustomKey = "system_custom_tab"
-	SystemCustomLoginKey SystemCustomKey = "system_custom_login"
-	SystemCustomHomeKey  SystemCustomKey = "system_custom_home"
+	SystemCustomTabKey          SystemCustomKey = "system_custom_tab"
+	SystemCustomLoginKey        SystemCustomKey = "system_custom_login"
+	SystemCustomHomeKey         SystemCustomKey = "system_custom_home"
+	SystemCustomGeneralAgentKey SystemCustomKey = "system_custom_general_agent"
 )
 const (
 	SystemCustomModeLight SystemCustomMode = "light"
@@ -23,24 +29,59 @@ const (
 
 type Client struct {
 	db *gorm.DB
+	// iam 消息中心的受众校验与 joinedAt 查询数据源
+	iam iam.IClient
+	// assistant 消息中心 actions 清洗（agent 老 id → uuid）数据源
+	assistant assistant.IClient
+	// notice 消息中心配置（名单上限）
+	notice config.NoticeConfig
 }
 
-func NewClient(db *gorm.DB) (*Client, error) {
+func NewClient(db *gorm.DB, iamCli iam.IClient, assistantCli assistant.IClient, noticeCfg config.NoticeConfig) (*Client, error) {
 	// auto migrate
 	if err := db.AutoMigrate(
 		model.SystemCustom{},
 		model.ClientRecord{},
 		model.ClientDailyRecord{},
+		// --- 消息中心五表 ---
+		model.NoticeMessage{},
+		model.MessageOrg{},
+		model.MessageAudience{},
+		model.UserStatus{},
+		model.ReadWatermark{},
+		// 迁移状态标记表（仿 app-service：版本 key 门控一次性迁移）
+		Metadata{},
 	); err != nil {
+		return nil, err
+	}
+	c := &Client{
+		db:        db,
+		iam:       iamCli,
+		assistant: assistantCli,
+		notice:    noticeCfg.Fill(),
+	}
+	// 一次性迁移：notice_messages.actions 中 agent 的 appId（老 id）→ uuid
+	if err := migrateAgentAppIDToUUID(db, c.assistant); err != nil {
 		return nil, err
 	}
 	// init corn
 	if err := CronInit(db); err != nil {
 		log.Fatalf("init corn failed, err: %v", err)
 	}
-	return &Client{
-		db: db,
-	}, nil
+	return c, nil
+}
+
+// transaction 事务封装：业务逻辑返回 *err_code.Status，非 nil 时回滚。
+// 与 iam/rag/model/mcp/assistant 各服务 orm 包内的同名封装保持一致。
+func (c *Client) transaction(ctx context.Context, fc func(tx *gorm.DB) *err_code.Status) *err_code.Status {
+	var status *err_code.Status
+	_ = c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if status = fc(tx); status != nil {
+			return errors.New(status.String())
+		}
+		return nil
+	})
+	return status
 }
 
 func toErrStatus(key string, args ...string) *err_code.Status {
@@ -51,9 +92,10 @@ func toErrStatus(key string, args ...string) *err_code.Status {
 }
 
 type SystemCustom struct {
-	Login LoginConfig `json:"login"` // 登录页配置
-	Tab   TabConfig   `json:"tab"`   // 标签页配置
-	Home  HomeConfig  `json:"home"`  // 首页配置
+	Login        LoginConfig        `json:"login"`        // 登录页配置
+	Tab          TabConfig          `json:"tab"`          // 标签页配置
+	Home         HomeConfig         `json:"home"`         // 首页配置
+	GeneralAgent GeneralAgentConfig `json:"generalAgent"` // 通用智能体配置
 }
 
 type LoginConfig struct {
@@ -72,6 +114,12 @@ type HomeConfig struct {
 	LogoPath string `json:"logoPath"` // 平台logo路径
 	Name     string `json:"name"`     // 平台名称
 	BgColor  string `json:"bgColor"`  // 平台背景颜色
+}
+
+type GeneralAgentConfig struct {
+	GeneralAgentIconPath string `json:"generalAgentIconPath"` // 通用智能体图标路径
+	GeneralAgentWelcome  string `json:"generalAgentWelcome"`  // 通用智能体欢迎语
+	GeneralAgentMenuName string `json:"generalAgentMenuName"` // 通用智能体菜单名称
 }
 
 type ClientStatistic struct {

@@ -7,6 +7,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetDocKnowledgeDetail
+//
+//	@Tags			knowledge.doc
+//	@Summary		获取文档知识库信息
+//	@Description	获取文档知识库信息
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	query		request.DocKnowledgeDetailReq	true	"获取文档知识库信息请求参数"
+//	@Success		200		{object}	response.Response{data=response.DocKnowledgeInfo}
+//	@Router			/knowledge/doc/detail [get]
+func GetDocKnowledgeDetail(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.DocKnowledgeDetailReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	//无需校验权限，中间件有校验
+	resp, err := service.GetDocKnowledgeDetail(ctx, userId, orgId, &req, &service.DocKnowledgeParams{
+		NeedGraph:      true,
+		NeedPermission: true,
+	})
+	gin_util.Response(ctx, resp, err)
+}
+
 // GetDocConfig
 //
 //	@Tags			knowledge.doc
@@ -37,7 +62,7 @@ func GetDocConfig(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.DocListReq	true	"文档列表查询请求参数"
-//	@Success		200		{object}	response.Response{data=response.DocPageResult}
+//	@Success		200		{object}	response.PageResult{list=response.ListDocResp}
 //	@Router			/knowledge/doc/list [post]
 func GetDocList(ctx *gin.Context) {
 	userId, orgId := getUserID(ctx), getOrgID(ctx)
@@ -154,27 +179,6 @@ func UpdateDocMetaData(ctx *gin.Context) {
 	gin_util.Response(ctx, nil, err)
 }
 
-// BatchUpdateDocMetaData
-//
-//	@Tags			knowledge.doc
-//	@Summary		批量更新文档元数据
-//	@Description	批量更新文档元数据
-//	@Security		JWT
-//	@Accept			json
-//	@Produce		json
-//	@Param			data	body		request.BatchDocMetaDataReq	true	"批量文档更新元数据请求参数"
-//	@Success		200		{object}	response.Response
-//	@Router			/knowledge/doc/meta/batch [post]
-func BatchUpdateDocMetaData(ctx *gin.Context) {
-	userId, orgId := getUserID(ctx), getOrgID(ctx)
-	var req request.BatchDocMetaDataReq
-	if !gin_util.Bind(ctx, &req) {
-		return
-	}
-	err := service.BatchUpdateDocMetaData(ctx, userId, orgId, &req)
-	gin_util.Response(ctx, nil, err)
-}
-
 // GetDocImportTip
 //
 //	@Tags			knowledge.doc
@@ -238,26 +242,16 @@ func UpdateDocSegmentStatus(ctx *gin.Context) {
 	gin_util.Response(ctx, nil, err)
 }
 
-// AnalysisDocUrl
-//
-//	@Tags			knowledge.doc
-//	@Summary		解析url
-//	@Description	解析url
-//	@Security		JWT
-//	@Accept			json
-//	@Produce		json
-//	@Param			data	body		request.AnalysisUrlDocReq	true	"解析url请求参数"
-//	@Success		200		{object}	response.Response{data=response.AnalysisDocUrlResp}
-//	@Router			/knowledge/doc/url/analysis [post]
-func AnalysisDocUrl(ctx *gin.Context) {
-	userId, orgId := getUserID(ctx), getOrgID(ctx)
-	var req request.AnalysisUrlDocReq
-	if !gin_util.Bind(ctx, &req) {
-		return
-	}
-	resp, err := service.AnalysisDocUrl(ctx, userId, orgId, &req)
-	gin_util.Response(ctx, resp, err)
-}
+// AnalysisDocUrl 解析url，已下架，路由注册同步注释
+// func AnalysisDocUrl(ctx *gin.Context) {
+// 	userId, orgId := getUserID(ctx), getOrgID(ctx)
+// 	var req request.AnalysisUrlDocReq
+// 	if !gin_util.Bind(ctx, &req) {
+// 		return
+// 	}
+// 	resp, err := service.AnalysisDocUrl(ctx, userId, orgId, &req)
+// 	gin_util.Response(ctx, resp, err)
+// }
 
 // UpdateDocSegmentLabels
 //
@@ -352,7 +346,7 @@ func DeleteDocSegment(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.UpdateDocSegmentReq	true	"更新文档切片请求参数"
-//	@Success		200		{object}	response.Response
+//	@Success		200		{object}	response.Response{data=response.UpdateDocSegmentResp}
 //	@Router			/knowledge/doc/segment/update [post]
 func UpdateDocSegment(ctx *gin.Context) {
 	userId, orgId := getUserID(ctx), getOrgID(ctx)
@@ -360,8 +354,8 @@ func UpdateDocSegment(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.UpdateDocSegment(ctx, userId, orgId, &req)
-	gin_util.Response(ctx, nil, err)
+	data, err := service.UpdateDocSegment(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, data, err)
 }
 
 // GetDocChildSegmentList

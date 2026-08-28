@@ -7,6 +7,135 @@
     },
     "basePath": "/openurl/v1",
     "paths": {
+        "/agent/:suffix/pending/conversation": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取智能体运行中会话",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openurl"
+                ],
+                "summary": "获取智能体运行中会话",
+                "parameters": [
+                    {
+                        "description": "获取智能体运行中会话请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UrlPendingConversionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PendingConversationResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/agent/:suffix/stream/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "智能体流式问答手动停止",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openurl"
+                ],
+                "summary": "智能体流式问答手动停止",
+                "parameters": [
+                    {
+                        "description": "智能体流式问答手动停止参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UrlConversionStreamCancelRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/agent/:suffix/stream/connect": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "草稿智能体流式问答断开后重连",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openurl"
+                ],
+                "summary": "草稿智能体流式问答断开后重连",
+                "parameters": [
+                    {
+                        "description": "草稿智能体流式问答断开后重连参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UrlConversionStreamConnectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/agent/{suffix}": {
             "get": {
                 "security": [
@@ -342,6 +471,26 @@
                         "name": "suffix",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "pageNo",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "检索词",
+                        "name": "searchText",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -372,6 +521,127 @@
                                                     }
                                                 }
                                             ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/agent/{suffix}/llm": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "智能体模型配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openurl"
+                ],
+                "summary": "智能体模型配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "临时唯一标识",
+                        "name": "X-Client-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Url后缀",
+                        "name": "suffix",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ModelInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/agent/{suffix}/message/feedback": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "对智能体单条消息点赞或点踩",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openurl"
+                ],
+                "summary": "智能体消息点赞/点踩",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "临时唯一标识",
+                        "name": "X-Client-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Url后缀",
+                        "name": "suffix",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "消息反馈参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UrlMessageFeedbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.MessageFeedbackResp"
                                         }
                                     }
                                 }
@@ -789,6 +1059,170 @@
                 }
             }
         },
+        "mp.ProviderModelByDeepSeek": {
+            "type": "object",
+            "properties": {
+                "llm": {
+                    "$ref": "#/definitions/mp_deepseek.LLM"
+                }
+            }
+        },
+        "mp.ProviderModelByHuoShan": {
+            "type": "object",
+            "properties": {
+                "embedding": {
+                    "$ref": "#/definitions/mp_huoshan.Embedding"
+                },
+                "llm": {
+                    "$ref": "#/definitions/mp_huoshan.LLM"
+                }
+            }
+        },
+        "mp.ProviderModelByInfini": {
+            "type": "object",
+            "properties": {
+                "embedding": {
+                    "$ref": "#/definitions/mp_infini.Embedding"
+                },
+                "llm": {
+                    "$ref": "#/definitions/mp_infini.LLM"
+                },
+                "rerank": {
+                    "$ref": "#/definitions/mp_infini.Rerank"
+                }
+            }
+        },
+        "mp.ProviderModelByOllama": {
+            "type": "object",
+            "properties": {
+                "embedding": {
+                    "$ref": "#/definitions/mp_ollama.Embedding"
+                },
+                "llm": {
+                    "$ref": "#/definitions/mp_ollama.LLM"
+                }
+            }
+        },
+        "mp.ProviderModelByOpenAICompatible": {
+            "type": "object",
+            "properties": {
+                "asr": {
+                    "$ref": "#/definitions/mp_openai_compatible.SyncAsr"
+                },
+                "embedding": {
+                    "$ref": "#/definitions/mp_openai_compatible.Embedding"
+                },
+                "llm": {
+                    "$ref": "#/definitions/mp_openai_compatible.LLM"
+                },
+                "rerank": {
+                    "$ref": "#/definitions/mp_openai_compatible.Rerank"
+                }
+            }
+        },
+        "mp.ProviderModelByQianFan": {
+            "type": "object",
+            "properties": {
+                "embedding": {
+                    "$ref": "#/definitions/mp_qianfan.Embedding"
+                },
+                "llm": {
+                    "$ref": "#/definitions/mp_qianfan.LLM"
+                },
+                "rerank": {
+                    "$ref": "#/definitions/mp_qianfan.Rerank"
+                }
+            }
+        },
+        "mp.ProviderModelByQwen": {
+            "type": "object",
+            "properties": {
+                "embedding": {
+                    "$ref": "#/definitions/mp_qwen.Embedding"
+                },
+                "llm": {
+                    "$ref": "#/definitions/mp_qwen.LLM"
+                },
+                "multiModalEmbedding": {
+                    "$ref": "#/definitions/mp_qwen.MultiModalEmbedding"
+                },
+                "multiModalRerank": {
+                    "$ref": "#/definitions/mp_qwen.MultiModalRerank"
+                },
+                "rerank": {
+                    "$ref": "#/definitions/mp_qwen.Rerank"
+                }
+            }
+        },
+        "mp.ProviderModelByYuanjing": {
+            "type": "object",
+            "properties": {
+                "embedding": {
+                    "$ref": "#/definitions/mp_yuanjing.Embedding"
+                },
+                "gui": {
+                    "$ref": "#/definitions/mp_yuanjing.Gui"
+                },
+                "llm": {
+                    "$ref": "#/definitions/mp_yuanjing.LLM"
+                },
+                "ocr": {
+                    "$ref": "#/definitions/mp_yuanjing.Ocr"
+                },
+                "pdf-parser": {
+                    "$ref": "#/definitions/mp_yuanjing.PdfParser"
+                },
+                "rerank": {
+                    "$ref": "#/definitions/mp_yuanjing.Rerank"
+                }
+            }
+        },
+        "mp.ProviderModelByZhipu": {
+            "type": "object",
+            "properties": {
+                "embedding": {
+                    "$ref": "#/definitions/mp_zhipu.Embedding"
+                },
+                "llm": {
+                    "$ref": "#/definitions/mp_zhipu.LLM"
+                },
+                "rerank": {
+                    "$ref": "#/definitions/mp_zhipu.Rerank"
+                }
+            }
+        },
+        "mp.ProviderModelConfig": {
+            "type": "object",
+            "properties": {
+                "providerDeepSeek": {
+                    "$ref": "#/definitions/mp.ProviderModelByDeepSeek"
+                },
+                "providerHuoShan": {
+                    "$ref": "#/definitions/mp.ProviderModelByHuoShan"
+                },
+                "providerInfini": {
+                    "$ref": "#/definitions/mp.ProviderModelByInfini"
+                },
+                "providerOllama": {
+                    "$ref": "#/definitions/mp.ProviderModelByOllama"
+                },
+                "providerOpenAICompatible": {
+                    "$ref": "#/definitions/mp.ProviderModelByOpenAICompatible"
+                },
+                "providerQianFan": {
+                    "$ref": "#/definitions/mp.ProviderModelByQianFan"
+                },
+                "providerQwen": {
+                    "$ref": "#/definitions/mp.ProviderModelByQwen"
+                },
+                "providerYuanJing": {
+                    "$ref": "#/definitions/mp.ProviderModelByYuanjing"
+                },
+                "providerZhipu": {
+                    "$ref": "#/definitions/mp.ProviderModelByZhipu"
+                }
+            }
+        },
         "mp_common.LLMParams": {
             "type": "object",
             "properties": {
@@ -838,6 +1272,804 @@
                 }
             }
         },
+        "mp_common.Tag": {
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "mp_deepseek.LLM": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                },
+                "functionCalling": {
+                    "description": "函数调用是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "toolCall"
+                    ]
+                },
+                "maxImageSize": {
+                    "description": "最大图片大小限制",
+                    "type": "integer"
+                },
+                "maxTokens": {
+                    "description": "模型回答最大tokens",
+                    "type": "integer"
+                },
+                "thinkingSupport": {
+                    "description": "深度思考是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                },
+                "visionSupport": {
+                    "description": "视觉支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                }
+            }
+        },
+        "mp_huoshan.Embedding": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_huoshan.LLM": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                },
+                "functionCalling": {
+                    "description": "函数调用是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "toolCall"
+                    ]
+                },
+                "maxImageSize": {
+                    "description": "最大图片大小限制",
+                    "type": "integer"
+                },
+                "maxTokens": {
+                    "description": "模型回答最大tokens",
+                    "type": "integer"
+                },
+                "thinkingSupport": {
+                    "description": "深度思考是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                },
+                "visionSupport": {
+                    "description": "视觉支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                }
+            }
+        },
+        "mp_infini.Embedding": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_infini.LLM": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                },
+                "functionCalling": {
+                    "description": "函数调用是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "toolCall"
+                    ]
+                },
+                "maxImageSize": {
+                    "description": "最大图片大小限制",
+                    "type": "integer"
+                },
+                "maxTokens": {
+                    "description": "模型回答最大tokens",
+                    "type": "integer"
+                },
+                "thinkingSupport": {
+                    "description": "深度思考是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                },
+                "visionSupport": {
+                    "description": "视觉支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                }
+            }
+        },
+        "mp_infini.Rerank": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_ollama.Embedding": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_ollama.LLM": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                },
+                "functionCalling": {
+                    "description": "函数调用是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "toolCall"
+                    ]
+                },
+                "maxTokens": {
+                    "description": "模型回答最大tokens",
+                    "type": "integer"
+                },
+                "thinkingSupport": {
+                    "description": "深度思考是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                },
+                "visionSupport": {
+                    "description": "视觉支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                }
+            }
+        },
+        "mp_openai_compatible.Embedding": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_openai_compatible.LLM": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                },
+                "functionCalling": {
+                    "description": "函数调用是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "toolCall"
+                    ]
+                },
+                "maxImageSize": {
+                    "description": "最大图片大小限制",
+                    "type": "integer"
+                },
+                "maxTokens": {
+                    "description": "模型回答最大tokens",
+                    "type": "integer"
+                },
+                "thinkingSupport": {
+                    "description": "深度思考是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                },
+                "visionSupport": {
+                    "description": "视觉支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                }
+            }
+        },
+        "mp_openai_compatible.Rerank": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_openai_compatible.SyncAsr": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "endpointUrl": {
+                    "description": "推理url（完整地址，含 /v1/chat/completions）",
+                    "type": "string"
+                },
+                "maxAsrFileSize": {
+                    "type": "integer"
+                }
+            }
+        },
+        "mp_qianfan.Embedding": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_qianfan.LLM": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                },
+                "functionCalling": {
+                    "description": "函数调用是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "toolCall"
+                    ]
+                },
+                "maxImageSize": {
+                    "description": "最大图片大小限制",
+                    "type": "integer"
+                },
+                "maxTokens": {
+                    "description": "模型回答最大tokens",
+                    "type": "integer"
+                },
+                "thinkingSupport": {
+                    "description": "深度思考是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                },
+                "visionSupport": {
+                    "description": "视觉支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                }
+            }
+        },
+        "mp_qianfan.Rerank": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_qwen.Embedding": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_qwen.LLM": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                },
+                "functionCalling": {
+                    "description": "函数调用是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "toolCall"
+                    ]
+                },
+                "maxImageSize": {
+                    "description": "最大图片大小限制",
+                    "type": "integer"
+                },
+                "maxTokens": {
+                    "description": "模型回答最大tokens",
+                    "type": "integer"
+                },
+                "thinkingSupport": {
+                    "description": "深度思考是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                },
+                "visionSupport": {
+                    "description": "视觉支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                }
+            }
+        },
+        "mp_qwen.MultiModalEmbedding": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string"
+                },
+                "contextSize": {
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "type": "string"
+                },
+                "maxImageSize": {
+                    "type": "integer"
+                },
+                "maxTextLength": {
+                    "type": "integer"
+                },
+                "maxVideoClipSize": {
+                    "type": "integer"
+                },
+                "supportFileTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "mp_qwen.MultiModalRerank": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string"
+                },
+                "contextSize": {
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "type": "string"
+                },
+                "maxImageSize": {
+                    "type": "integer"
+                },
+                "maxTextLength": {
+                    "type": "integer"
+                },
+                "maxVideoClipSize": {
+                    "type": "integer"
+                },
+                "supportFileTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "supportImageInQuery": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "mp_qwen.Rerank": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_yuanjing.Embedding": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_yuanjing.Gui": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_yuanjing.LLM": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                },
+                "functionCalling": {
+                    "description": "函数调用是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "toolCall"
+                    ]
+                },
+                "maxImageSize": {
+                    "description": "最大图片大小限制",
+                    "type": "integer"
+                },
+                "maxTokens": {
+                    "description": "模型回答最大tokens",
+                    "type": "integer"
+                },
+                "thinkingSupport": {
+                    "description": "深度思考是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                },
+                "visionSupport": {
+                    "description": "视觉支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                }
+            }
+        },
+        "mp_yuanjing.Ocr": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                },
+                "supportFileTypes": {
+                    "description": "支持的文件类型，由 bff-service 从 recommend_model_config.yaml 注入",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "mp_yuanjing.PdfParser": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_yuanjing.Rerank": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_zhipu.Embedding": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_zhipu.LLM": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string"
+                },
+                "contextSize": {
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "type": "string"
+                },
+                "functionCalling": {
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "toolCall"
+                    ]
+                },
+                "maxImageSize": {
+                    "type": "integer"
+                },
+                "maxTokens": {
+                    "type": "integer"
+                },
+                "thinkingSupport": {
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                },
+                "visionSupport": {
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                }
+            }
+        },
+        "mp_zhipu.Rerank": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
         "request.AppKnowledgeBase": {
             "type": "object",
             "required": [
@@ -855,6 +2087,10 @@
                 "category": {
                     "description": "知识库类别 0-知识库，1-问答库，2-多模态知识库",
                     "type": "integer"
+                },
+                "description": {
+                    "description": "知识库描述",
+                    "type": "string"
                 },
                 "external": {
                     "description": "外部数据库标识",
@@ -1036,9 +2272,13 @@
         "request.ConversationIdRequest": {
             "type": "object",
             "required": [
+                "assistantId",
                 "conversationId"
             ],
             "properties": {
+                "assistantId": {
+                    "type": "string"
+                },
                 "conversationId": {
                     "type": "string"
                 },
@@ -1182,6 +2422,28 @@
                 }
             }
         },
+        "request.UrlConversionStreamCancelRequest": {
+            "type": "object",
+            "required": [
+                "conversationId"
+            ],
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UrlConversionStreamConnectRequest": {
+            "type": "object",
+            "required": [
+                "conversationId"
+            ],
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.UrlConversionStreamRequest": {
             "type": "object",
             "required": [
@@ -1198,6 +2460,41 @@
                     }
                 },
                 "prompt": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UrlMessageFeedbackRequest": {
+            "type": "object",
+            "required": [
+                "conversationId",
+                "detailId"
+            ],
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                },
+                "detailId": {
+                    "description": "消息详情ID",
+                    "type": "string"
+                },
+                "feedbackContent": {
+                    "description": "反馈文本内容",
+                    "type": "string"
+                },
+                "feedbackType": {
+                    "description": "反馈类型: 1=点赞 2=点踩",
+                    "type": "integer"
+                }
+            }
+        },
+        "request.UrlPendingConversionRequest": {
+            "type": "object",
+            "required": [
+                "conversationId"
+            ],
+            "properties": {
+                "conversationId": {
                     "type": "string"
                 }
             }
@@ -1379,6 +2676,10 @@
                     "description": "描述",
                     "type": "string"
                 },
+                "hideKnowledge": {
+                    "description": "是否隐藏知识库",
+                    "type": "integer"
+                },
                 "instructions": {
                     "description": "系统提示词",
                     "type": "string"
@@ -1428,6 +2729,14 @@
                 "newAgent": {
                     "description": "是否是新版本智能体",
                     "type": "boolean"
+                },
+                "ownerOrgId": {
+                    "description": "拥有者组织id",
+                    "type": "string"
+                },
+                "ownerUserId": {
+                    "description": "拥有者用户id",
+                    "type": "string"
                 },
                 "prologue": {
                     "description": "开场白",
@@ -1542,6 +2851,9 @@
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "description": {
+                    "type": "string"
+                },
                 "enable": {
                     "type": "boolean"
                 },
@@ -1592,6 +2904,9 @@
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
                 },
+                "description": {
+                    "type": "string"
+                },
                 "enable": {
                     "type": "boolean"
                 },
@@ -1605,7 +2920,8 @@
                     "type": "string",
                     "enum": [
                         "builtin",
-                        "custom"
+                        "custom",
+                        "acquired"
                     ]
                 },
                 "valid": {
@@ -1624,6 +2940,9 @@
                 },
                 "avatar": {
                     "$ref": "#/definitions/request.Avatar"
+                },
+                "description": {
+                    "type": "string"
                 },
                 "enable": {
                     "type": "boolean"
@@ -1710,6 +3029,14 @@
                 "createdBy": {
                     "type": "string"
                 },
+                "feedback": {
+                    "description": "当前反馈状态: 0=无 1=点赞 2=点踩",
+                    "type": "integer"
+                },
+                "feedbackContent": {
+                    "description": "反馈文本内容",
+                    "type": "string"
+                },
                 "fileName": {
                     "type": "string"
                 },
@@ -1775,12 +3102,21 @@
                 },
                 "title": {
                     "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
         "response.ConversationResponse": {
             "type": "object",
             "properties": {
+                "errMessage": {
+                    "type": "string"
+                },
+                "errResponse": {
+                    "type": "string"
+                },
                 "order": {
                     "type": "integer"
                 },
@@ -1812,6 +3148,135 @@
                 "originalFileName": {
                     "description": "原始文件名",
                     "type": "string"
+                }
+            }
+        },
+        "response.MessageFeedbackResp": {
+            "type": "object",
+            "properties": {
+                "feedbackType": {
+                    "description": "当前反馈状态: 0=无 1=点赞 2=点踩",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ModelInfo": {
+            "type": "object",
+            "required": [
+                "model",
+                "modelType",
+                "provider"
+            ],
+            "properties": {
+                "allowEdit": {
+                    "description": "是否允许前端编辑（true: 允许编辑，false: 隐藏编辑按钮）",
+                    "type": "boolean"
+                },
+                "avatar": {
+                    "description": "模型图标路径",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.Avatar"
+                        }
+                    ]
+                },
+                "config": {},
+                "createdAt": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "description": "模型显示名称",
+                    "type": "string"
+                },
+                "examples": {
+                    "description": "仅用于swagger展示；模型对应供应商中的对应llm、embedding或rerank结构是config实际的参数",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/mp.ProviderModelConfig"
+                        }
+                    ]
+                },
+                "importSource": {
+                    "description": "模型导入来源(builtin=平台内置,external=外部URL)",
+                    "type": "string"
+                },
+                "isActive": {
+                    "description": "启用状态（true: 启用，false: 禁用）",
+                    "type": "boolean"
+                },
+                "model": {
+                    "description": "模型名称",
+                    "type": "string"
+                },
+                "modelDesc": {
+                    "type": "string"
+                },
+                "modelId": {
+                    "type": "string"
+                },
+                "modelType": {
+                    "type": "string",
+                    "enum": [
+                        "llm",
+                        "embedding",
+                        "rerank"
+                    ]
+                },
+                "orgId": {
+                    "type": "string"
+                },
+                "provider": {
+                    "description": "模型供应商",
+                    "type": "string",
+                    "enum": [
+                        "OpenAI-API-compatible",
+                        "YuanJing"
+                    ]
+                },
+                "publishDate": {
+                    "description": "模型发布时间",
+                    "type": "string"
+                },
+                "scopeType": {
+                    "description": "模型公开范围(1-私有 2-公开 3-组织)",
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mp_common.Tag"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.PendingConversationResp": {
+            "type": "object",
+            "properties": {
+                "conversationId": {
+                    "description": "会话id",
+                    "type": "string"
+                },
+                "hasPendingConversation": {
+                    "description": "是否有进行中会话",
+                    "type": "boolean"
+                },
+                "prompt": {
+                    "type": "string"
+                },
+                "requestFiles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AssistantRequestFile"
+                    }
                 }
             }
         },
@@ -1861,6 +3326,10 @@
             "properties": {
                 "conversationType": {
                     "description": "subAgent：子智能体；agentTool：主智能体工具；subAgentTool：子智能体工具",
+                    "type": "string"
+                },
+                "errMessage": {
+                    "description": "错误信息",
                     "type": "string"
                 },
                 "id": {

@@ -7,9 +7,10 @@ type RagKnowledgeHitResp struct {
 }
 
 type KnowledgeHitData struct {
-	Prompt     string             `json:"prompt"`
-	SearchList []*ChunkSearchList `json:"searchList"`
-	Score      []float64          `json:"score"`
+	Prompt       string             `json:"prompt"`
+	SearchList   []*ChunkSearchList `json:"searchList"`
+	Score        []float64          `json:"score"`
+	AutoCitation bool               `json:"autoCitation"` // 是否自动角标
 }
 
 type ChunkSearchList struct {

@@ -32,13 +32,15 @@ func (s *Service) GetSquareTool(ctx context.Context, req *mcp_service.GetSquareT
 			OrgID:        req.Identity.OrgId,
 			UserID:       req.Identity.UserId,
 		})
+		var apiKeyValue string
 		if info != nil {
 			apiAuthJson := info.AuthJSON
 			if err := json.Unmarshal([]byte(apiAuthJson), apiAuth); err != nil {
 				return nil, errStatus(errs.Code_MCPGetSquareToolErr, toErrStatus("mcp_get_square_tool_err", err.Error()))
 			}
-			apiAuth = toBuiltinToolApiAuth(toolCfg, apiAuth.ApiKeyValue)
+			apiKeyValue = apiAuth.ApiKeyValue
 		}
+		apiAuth = toBuiltinToolApiAuth(toolCfg, apiKeyValue)
 	}
 	return buildSquareToolDetail(toolCfg, apiAuth), nil
 }

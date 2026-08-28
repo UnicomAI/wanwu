@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
+	"time"
 
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/config"
@@ -18,6 +19,7 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/minio"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	"github.com/UnicomAI/wanwu/pkg/redis"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 )
 
 var (
@@ -52,8 +54,17 @@ func main() {
 		log.Fatalf("init log err: %v", err)
 	}
 
+	// init tracer
+	if err := trace_util.InitTracer("assistant-service"); err != nil {
+		log.Fatalf("init tracer err: %v", err)
+	}
+
 	if err := redis.InitSys(ctx, config.Cfg().Redis); err != nil {
 		log.Fatalf("init redis err: %v", err)
+	}
+
+	if err := redis.InitAssistant(ctx, config.Cfg().Redis); err != nil {
+		log.Fatalf("init assistant redis err: %v", err)
 	}
 
 	if err := es.InitAssistant(ctx, config.Cfg().ES); err != nil {
@@ -68,11 +79,17 @@ func main() {
 		log.Fatalf("init wga chat history index template err: %v", err)
 	}
 
-	if err := minio.InitAssistant(ctx, minio.Config{
-		Endpoint: config.Cfg().Minio.EndPoint,
-		User:     config.Cfg().Minio.User,
-		Password: config.Cfg().Minio.Password,
-	}, config.Cfg().Minio.Bucket); err != nil {
+	if err := es.InitDigitalEmployeeChatHistoryEventIndexTemplate(ctx); err != nil {
+		log.Fatalf("init digital employee chat history index template err: %v", err)
+	}
+
+	minioConfig := config.Cfg().Minio
+	if err := minio.InitFileUpload(ctx, minio.Config{
+		Endpoint:    minioConfig.EndPoint,
+		User:        minioConfig.User,
+		Password:    minioConfig.Password,
+		DownloadURL: minioConfig.DownloadURL,
+	}); err != nil {
 		log.Fatalf("init minio err: %v", err)
 	}
 
@@ -100,8 +117,15 @@ func main() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, os.Interrupt, syscall.SIGTERM)
 	<-sc
+
+	// flush trace spans
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+	trace_util.ShutdownTracer(shutdownCtx)
+
 	s.Stop()
 	redis.StopSys()
+	redis.StopAssistant()
 	es.StopAssistant()
 }
 

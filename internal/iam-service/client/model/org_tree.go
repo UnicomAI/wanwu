@@ -7,18 +7,20 @@ import (
 )
 
 type OrgNode struct {
-	id       uint32
-	parentID uint32
-	roleID   uint32 // 当前org内置管理员角色
-	name     string
-	status   bool
-	parent   *OrgNode
-	subs     []*OrgNode
+	id         uint32
+	parentID   uint32
+	roleID     uint32 // 当前org内置管理员角色
+	name       string
+	status     bool
+	avatarPath string
+	parent     *OrgNode
+	subs       []*OrgNode
 }
 
-type idName struct {
-	ID   uint32
-	Name string
+type idNameWithAvatar struct {
+	ID         uint32
+	Name       string
+	AvatarPath string
 }
 
 func NewOrgTree(orgs []*Org, orgRoles []*OrgRole) (*OrgNode, error) {
@@ -32,10 +34,11 @@ func NewOrgTree(orgs []*Org, orgRoles []*OrgRole) (*OrgNode, error) {
 		}
 		// current
 		currNode := &OrgNode{
-			id:       org.ID,
-			parentID: org.ParentID,
-			name:     org.Name,
-			status:   org.Status,
+			id:         org.ID,
+			parentID:   org.ParentID,
+			name:       org.Name,
+			avatarPath: org.AvatarPath,
+			status:     org.Status,
 		}
 		// parent
 		for _, node := range nodes {
@@ -86,7 +89,7 @@ func (n *OrgNode) GetOrg(orgID uint32) *OrgNode {
 	return n.getOrg(orgID)
 }
 
-func (n *OrgNode) Select(userOrgs []*OrgUser, userRoles []*UserRole) []idName {
+func (n *OrgNode) Select(userOrgs []*OrgUser, userRoles []*UserRole) []idNameWithAvatar {
 	var roleIDs []uint32
 	for _, userRole := range userRoles {
 		if userRole.IsAdmin {
@@ -97,7 +100,7 @@ func (n *OrgNode) Select(userOrgs []*OrgUser, userRoles []*UserRole) []idName {
 	for _, userOrg := range userOrgs {
 		orgIDs = append(orgIDs, userOrg.OrgID)
 	}
-	var ret []idName
+	var ret []idNameWithAvatar
 	n.sel(orgIDs, roleIDs, &ret)
 	return ret
 }
@@ -116,6 +119,14 @@ func (n *OrgNode) GetFullName(orgID uint32) string {
 	return n.getOrg(orgID).getFullName()
 }
 
+// GetOrgName 返回组织在数据库中存储的原始名（不含上级前缀）
+func (n *OrgNode) GetOrgName(orgID uint32) string {
+	if org := n.getOrg(orgID); org != nil {
+		return org.name
+	}
+	return ""
+}
+
 func (n *OrgNode) GetSubs(orgID uint32) []*OrgNode {
 	org := n.getOrg(orgID)
 	if org == nil {
@@ -126,6 +137,10 @@ func (n *OrgNode) GetSubs(orgID uint32) []*OrgNode {
 
 func (n *OrgNode) GetOrgID() uint32 {
 	return n.id
+}
+
+func (n *OrgNode) GetAvatarPath() string {
+	return n.avatarPath
 }
 
 func (n *OrgNode) GetFirstClassOrg() *OrgNode {
@@ -139,14 +154,49 @@ func (n *OrgNode) GetFirstClassOrg() *OrgNode {
 	return curr
 }
 
+// GetAncestorIDs 返回从指定组织到根的所有祖先ID（不含自身，不含根节点）
+func (n *OrgNode) GetAncestorIDs(orgID uint32) []uint32 {
+	node := n.getOrg(orgID)
+	if node == nil {
+		return nil
+	}
+	var ancestors []uint32
+	for node.parent != nil && node.parent.parent != nil {
+		ancestors = append(ancestors, node.parent.id)
+		node = node.parent
+	}
+	return ancestors
+}
+
+// CollectDescendants 收集指定组织及其所有后代的ID列表
+func (n *OrgNode) CollectDescendants(orgID uint32) []uint32 {
+	node := n.getOrg(orgID)
+	if node == nil {
+		return nil
+	}
+	var ids []uint32
+	collectDescendantsFromNode(node, &ids)
+	return ids
+}
+
+func collectDescendantsFromNode(node *OrgNode, ids *[]uint32) {
+	if node == nil {
+		return
+	}
+	*ids = append(*ids, node.id)
+	for _, sub := range node.subs {
+		collectDescendantsFromNode(sub, ids)
+	}
+}
+
 // --- internal ---
 
-func (n *OrgNode) sel(orgIDs, roleIDs []uint32, list *[]idName) {
+func (n *OrgNode) sel(orgIDs, roleIDs []uint32, list *[]idNameWithAvatar) {
 	if n == nil || !n.status {
 		return
 	}
 	if n.isAdmin(roleIDs) || util.Exist(orgIDs, n.id) {
-		*list = append(*list, idName{ID: n.id, Name: n.getFullName()})
+		*list = append(*list, idNameWithAvatar{ID: n.id, Name: n.getFullName(), AvatarPath: n.avatarPath})
 	}
 	for _, org := range n.subs {
 		org.sel(orgIDs, roleIDs, list)

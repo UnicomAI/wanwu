@@ -305,6 +305,19 @@ TEXT_MESSAGE_START (如果 TEXT_MESSAGE 未活跃)
 TEXT_MESSAGE_CONTENT
 ```
 
+#### Question（Human-in-the-Loop）
+
+收到 question 事件时，发送 `ACTIVITY_SNAPSHOT`（独立事件，不需要 START/END）：
+
+```
+REASONING_MESSAGE_END (如果 REASONING 活跃)
+REASONING_END (如果 REASONING 活跃)
+TEXT_MESSAGE_END (如果 TEXT_MESSAGE 活跃)
+ACTIVITY_SNAPSHOT (activityType: "question")
+```
+
+> **说明**：question 作为独立的 activity，必须先结束所有活跃消息再发送，确保不穿插事件序列。
+
 ## 转换器
 
 | 转换器 | 输入 | 使用场景 |

@@ -49,15 +49,15 @@ func GetUserPermission(ctx *gin.Context, userID, orgID string) (*response.UserPe
 	}
 	user, err := iam.GetUserInfo(ctx.Request.Context(), &iam_service.GetUserInfoReq{
 		UserId: userID,
+		OrgId:  orgID,
 	})
 	if err != nil {
 		return nil, err
 	}
 	return &response.UserPermission{
+		UserInfo:         *toUserInfo(ctx, user),
 		OrgPermission:    toOrgPermission(ctx, resp),
-		Language:         getLanguageByCode(user.Language),
 		IsUpdatePassword: resp.LastUpdatePasswordAt != 0,
-		Avatar:           cacheUserAvatar(ctx, user.AvatarPath),
 	}, nil
 }
 
@@ -67,7 +67,7 @@ func GetOrgSelect(ctx *gin.Context, userID string) (*response.Select, error) {
 		return nil, err
 	}
 	return &response.Select{
-		Select: toOrgIDNames(ctx, resp.Selects, userID == config.SystemAdminUserID),
+		Select: toOrgIDNamesWithAvatar(ctx, resp.Selects, userID == config.SystemAdminUserID),
 	}, nil
 }
 
@@ -149,18 +149,6 @@ func cacheAppAvatar(ctx *gin.Context, avatarObjectPath, appType string) request.
 	}
 	if avatarObjectPath == "" && appType == constant.AppTypeAgent {
 		avatar.Path = config.Cfg().DefaultIcon.AgentIcon
-		return avatar
-	}
-	return CacheAvatar(avatarObjectPath)
-}
-
-// cacheUserAvatar 获取用户头像的缓存URL
-// 1. 空avatar返回默认用户图标
-// 2. 否则调用CacheAvatar转换
-func cacheUserAvatar(ctx *gin.Context, avatarObjectPath string) request.Avatar {
-	avatar := request.Avatar{}
-	if avatarObjectPath == "" {
-		avatar.Path = config.Cfg().DefaultIcon.UserIcon
 		return avatar
 	}
 	return CacheAvatar(avatarObjectPath)
@@ -316,6 +304,42 @@ func cacheKnowledgeAvatar(ctx *gin.Context, avatarObjectPath string, knowledgeTy
 		default:
 			avatar.Path = config.Cfg().DefaultIcon.KnowledgeIcon
 		}
+		return avatar
+	}
+	return CacheAvatar(avatarObjectPath)
+}
+
+// cacheUserAvatar 获取用户头像的缓存URL
+// 1. 空avatar返回默认用户图标
+// 2. 否则调用CacheAvatar转换
+func cacheUserAvatar(avatarObjectPath string) request.Avatar {
+	avatar := request.Avatar{}
+	if avatarObjectPath == "" {
+		avatar.Path = config.Cfg().DefaultIcon.UserIcon
+		return avatar
+	}
+	return CacheAvatar(avatarObjectPath)
+}
+
+// cacheOrgAvatar 获取组织头像的缓存URL
+// 1. 空avatar返回默认组织图标
+// 2. 否则调用CacheAvatar转换
+func cacheOrgAvatar(avatarObjectPath string) request.Avatar {
+	avatar := request.Avatar{}
+	if avatarObjectPath == "" {
+		avatar.Path = config.Cfg().DefaultIcon.OrgIcon
+		return avatar
+	}
+	return CacheAvatar(avatarObjectPath)
+}
+
+// cacheRoleAvatar 获取角色头像的缓存URL
+// 1. 空avatar返回默认角色图标
+// 2. 否则调用CacheAvatar转换
+func cacheRoleAvatar(avatarObjectPath string) request.Avatar {
+	avatar := request.Avatar{}
+	if avatarObjectPath == "" {
+		avatar.Path = config.Cfg().DefaultIcon.RoleIcon
 		return avatar
 	}
 	return CacheAvatar(avatarObjectPath)

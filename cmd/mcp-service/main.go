@@ -8,12 +8,14 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
+	"time"
 
 	"github.com/UnicomAI/wanwu/internal/mcp-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/config"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/server/grpc"
 	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 )
 
 var (
@@ -49,6 +51,11 @@ func main() {
 		log.Fatalf("init log err: %v", err)
 	}
 
+	// init tracer
+	if err := trace_util.InitTracer("mcp-service"); err != nil {
+		log.Fatalf("init tracer err: %v", err)
+	}
+
 	db, err := db.New(config.Cfg().DB)
 	if err != nil {
 		log.Fatalf("init db failed, err: %v", err)
@@ -70,6 +77,12 @@ func main() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, os.Interrupt, syscall.SIGTERM)
 	<-sc
+
+	// flush trace spans
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+	trace_util.ShutdownTracer(shutdownCtx)
+
 	s.Stop(ctx)
 }
 

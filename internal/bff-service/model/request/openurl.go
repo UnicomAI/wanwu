@@ -1,5 +1,9 @@
 package request
 
+import (
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
+)
+
 type UrlConversationCreateRequest struct {
 	Prompt string `json:"prompt"  validate:"required"`
 }
@@ -13,6 +17,13 @@ type UrlConversationIdRequest struct {
 
 func (c *UrlConversationIdRequest) Check() error { return nil }
 
+type GetUrlConversationListReq struct {
+	PageSearch
+	SearchText string `json:"searchText" form:"searchText"` // 标题关键词，模糊匹配，空则不过滤
+}
+
+func (c *GetUrlConversationListReq) Check() error { return nil }
+
 type UrlConversionStreamRequest struct {
 	ConversationId string                 `json:"conversationId" form:"conversionId"`
 	Prompt         string                 `json:"prompt" form:"prompt"  validate:"required"`
@@ -20,11 +31,39 @@ type UrlConversionStreamRequest struct {
 }
 
 func (c *UrlConversionStreamRequest) Check() error {
+	for _, f := range c.FileInfo {
+		if f.FileUrl != "" {
+			if err := url_util.ValidateURL(f.FileUrl); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
+}
+
+type UrlPendingConversionRequest struct {
+	ConversationId string `json:"conversationId" form:"conversationId"  validate:"required"`
+	CommonCheck
+}
+
+type UrlConversionStreamConnectRequest struct {
+	UrlPendingConversionRequest
+}
+
+type UrlConversionStreamCancelRequest struct {
+	UrlPendingConversionRequest
 }
 
 type UrlQuestionRecommendRequest struct {
 	ConversationId string `json:"conversationId" form:"conversionId"`
 	Query          string `json:"query" form:"query"  validate:"required"`
+	CommonCheck
+}
+
+type UrlMessageFeedbackRequest struct {
+	ConversationId  string `json:"conversationId" form:"conversionId" validate:"required"`
+	DetailId        string `json:"detailId" form:"detailId" validate:"required"` // 消息详情ID
+	FeedbackType    int32  `json:"feedbackType" form:"feedbackType"`             // 反馈类型: 1=点赞 2=点踩
+	FeedbackContent string `json:"feedbackContent" form:"feedbackContent"`       // 反馈文本内容
 	CommonCheck
 }

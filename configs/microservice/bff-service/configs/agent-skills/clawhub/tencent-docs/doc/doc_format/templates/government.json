@@ -1,0 +1,44 @@
+{
+  "schema": {
+    "structure": "doc",
+    "children": [
+      {
+        "structure": "Content",
+        "required": true,
+        "multiple": false,
+        "children": [
+          {
+            "structure": "Title",
+            "description": "公文标题",
+            "required": true,
+            "multiple": false
+          },
+          {
+            "structure": "Addressee",
+            "description": "主送机关",
+            "required": true,
+            "multiple": false
+          },
+          {
+            "structure": "Text",
+            "description": "公文正文",
+            "required": false,
+            "multiple": true
+          },
+          {
+            "structure": "Heading2",
+            "description": "二级标题",
+            "required": false,
+            "multiple": true
+          },
+          {
+            "structure": "SignOff",
+            "description": "签发单位",
+            "required": true,
+            "multiple": false
+          }
+        ]
+      }
+    ]
+  }
+}

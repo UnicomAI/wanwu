@@ -44,13 +44,17 @@ type ExtraTool struct {
 
 // Skill 技能配置。
 type Skill struct {
-	Dir string // skill 目录路径（相对程序运行目录）
+	Dir       string                 `json:"dir"`       // skill 目录路径（相对程序运行目录）
+	Variables []config.SkillVariable `json:"variables"` // 用户自定义变量
 }
 
 // MCP MCP 服务器配置。
 type MCP struct {
-	Name string // MCP 名称
-	URL  string // MCP SSE/STREAMABLE 服务器地址
+	Name        string                  // MCP 名称
+	URL         string                  // MCP SSE/STREAMABLE 服务器地址
+	Description string                  // MCP 描述
+	ApiAuth     *util.ApiAuthWebRequest // API 认证配置（可选）
+	Headers     map[string]string       // 自定义请求头（可选）
 }
 
 // WorkspaceConfig 工作空间配置。
@@ -83,14 +87,19 @@ func (f optionFunc) apply(opts *Options) error {
 
 // Options 智能体运行选项。
 type Options struct {
-	RunSession RunSession      // 执行会话标识
-	Workspace  WorkspaceConfig // 工作空间配置
-	Model      ModelConfig     // 模型配置
-	Tools      []ToolConfig    // 工具配置列表（配置文件工具的认证）
-	ExtraTools []ExtraTool     // 额外工具列表（运行时传入）
-	Skills     []Skill         // 技能列表（运行时传入）
-	MCPs       []MCP           // MCP 服务器列表
-	Messages   []adk.Message   // 历史消息 + 当前问题（最后一条 User 消息）
+	RunSession                 RunSession            // 执行会话标识
+	Workspace                  WorkspaceConfig       // 工作空间配置
+	Model                      ModelConfig           // 模型配置
+	Tools                      []ToolConfig          // 工具配置列表（配置文件工具的认证）
+	ExtraTools                 []ExtraTool           // 额外工具列表（运行时传入）
+	Skills                     []Skill               // 技能列表（运行时传入）
+	MCPs                       []MCP                 // MCP 服务器列表
+	Messages                   []adk.Message         // 历史消息 + 当前问题（最后一条 User 消息）
+	Instruction                string                // 运行时动态指令（覆盖配置文件 prompt.md）
+	OverallTask                string                // 运行时动态整体任务（用于子智能体）
+	EnableHumanInTheLoop       bool                  // 是否启用人机交互
+	EnableHumanInTheLoopCustom bool                  // 是否允许用户自定义回答
+	SystemMessageStrategy      SystemMessageStrategy // system 消息处理策略，默认不处理
 }
 
 // Apply 应用选项。
@@ -232,6 +241,23 @@ func WithSkill(skill Skill) Option {
 		if skill.Dir == "" {
 			return fmt.Errorf("skill dir is required")
 		}
+		// 验证变量
+		seen := make(map[string]bool)
+		for _, v := range skill.Variables {
+			if v.Name == "" {
+				return fmt.Errorf("skill [%s] variable name is required", skill.Dir)
+			}
+			if seen[v.Name] {
+				return fmt.Errorf("skill [%s] variable name [%s] duplicate", skill.Dir, v.Name)
+			}
+			if v.VariableKey == "" {
+				return fmt.Errorf("skill [%s] variable [%s] key is required", skill.Dir, v.Name)
+			}
+			if v.VariableValue == "" {
+				return fmt.Errorf("skill [%s] variable [%s] value is required", skill.Dir, v.Name)
+			}
+			seen[v.Name] = true
+		}
 		opts.Skills = append(opts.Skills, skill)
 		return nil
 	})
@@ -269,6 +295,34 @@ func WithRunSession(session RunSession) Option {
 func WithMessages(messages []adk.Message) Option {
 	return optionFunc(func(opts *Options) error {
 		opts.Messages = append(opts.Messages, messages...)
+		return nil
+	})
+}
+
+// WithInstruction 设置运行时动态指令，覆盖配置文件中的 prompt.md。
+func WithInstruction(instruction string) Option {
+	return optionFunc(func(opts *Options) error {
+		opts.Instruction = instruction
+		return nil
+	})
+}
+
+// WithOverallTask 设置运行时动态整体任务。
+func WithOverallTask(overallTask string) Option {
+	return optionFunc(func(opts *Options) error {
+		opts.OverallTask = overallTask
+		return nil
+	})
+}
+
+// WithEnableHumanInTheLoop 设置是否启用人机交互。
+// enableCustom 为可选参数，设置是否允许用户自定义回答。
+func WithEnableHumanInTheLoop(enable bool, enableCustom ...bool) Option {
+	return optionFunc(func(opts *Options) error {
+		opts.EnableHumanInTheLoop = enable
+		if len(enableCustom) > 0 {
+			opts.EnableHumanInTheLoopCustom = enableCustom[0]
+		}
 		return nil
 	})
 }

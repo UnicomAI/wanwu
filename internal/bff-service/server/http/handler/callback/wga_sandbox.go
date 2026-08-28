@@ -16,7 +16,7 @@ import (
 //	@Produce		text/event-stream
 //	@Param			data	body		request.WgaSandboxRunReq	true	"请求参数"
 //	@Success		200		{object}	string						"SSE流式返回"
-//	@Router			/callback/wga/sandbox/run [post]
+//	@Router			/wga/sandbox/run [post]
 func WgaSandboxRun(ctx *gin.Context) {
 	var req request.WgaSandboxRunReq
 	if !gin_util.Bind(ctx, &req) {
@@ -37,7 +37,7 @@ func WgaSandboxRun(ctx *gin.Context) {
 //	@Produce		json
 //	@Param			data	body		request.WgaSandboxCleanupReq	true	"请求参数"
 //	@Success		200		{object}	response.Response
-//	@Router			/callback/wga/sandbox/cleanup [post]
+//	@Router			/wga/sandbox/cleanup [post]
 func WgaSandboxCleanup(ctx *gin.Context) {
 	var req request.WgaSandboxCleanupReq
 	if !gin_util.Bind(ctx, &req) {

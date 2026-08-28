@@ -4,11 +4,10 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/UnicomAI/wanwu/pkg/util"
-
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 	"github.com/UnicomAI/wanwu/internal/model-service/client/model"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -69,6 +68,7 @@ func (s *Service) SaveModelExperienceDialogRecord(ctx context.Context, req *mode
 		HandledContent:    req.HandledContent,
 		ReasoningContent:  req.ReasoningContent,
 		Role:              req.Role,
+		FileInfo:          req.FileInfo,
 		PublicModel: model.PublicModel{
 			OrgID:  req.OrgId,
 			UserID: req.UserId,
@@ -101,6 +101,7 @@ func toModelExperienceDialog(dialog *model.ModelExperienceDialog) *model_service
 		Title:             dialog.Title,
 		ModelSetting:      dialog.ModelSetting,
 		CreatedAt:         dialog.CreatedAt,
+		UpdatedAt:         dialog.UpdatedAt,
 	}
 }
 
@@ -113,5 +114,6 @@ func toModelExperienceDialogRecord(record *model.ModelExperienceDialogRecord) *m
 		HandledContent:    record.HandledContent,
 		ReasoningContent:  record.ReasoningContent,
 		Role:              record.Role,
+		FileInfo:          record.FileInfo,
 	}
 }

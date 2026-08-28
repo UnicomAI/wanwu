@@ -61,16 +61,60 @@ service MCPService {
   // --- custom skill ---
   rpc CustomSkillCreate(CustomSkillCreateReq) returns (CustomSkillCreateResp) {}
   rpc CustomSkillDelete(CustomSkillDeleteReq) returns (google.protobuf.Empty) {}
-  rpc CustomSkillGet(CustomSkillGetReq) returns (CustomSkill) {}
+  rpc CustomSkillGet(CustomSkillGetReq) returns (PublishCustomSkill) {}
+  rpc GetCustomSkillByPreviewID(GetCustomSkillByPreviewIDReq) returns (GetCustomSkillByPreviewIDResp) {}
+  rpc GetCustomSkillByThreadID(GetCustomSkillByThreadIDReq) returns (GetCustomSkillByThreadIDResp) {}
+  rpc GetCustomSkillListByThreadIDList(GetCustomSkillListByThreadIDListReq) returns (CustomSkillGetListResp) {}
   rpc CustomSkillGetList(CustomSkillGetListReq) returns (CustomSkillGetListResp) {}
-  rpc CustomSkillGetBySaveIds(CustomSkillGetBySaveIdsReq) returns (CustomSkillSaveIdsResp) {}
+  // 管理员中心 skill 全局分页列表（跨用户，按 userId[]/orgId[] 过滤）
+  rpc AdminCustomSkillPageList(AdminCustomSkillPageListReq) returns (CustomSkillGetListResp) {}
   rpc GetCustomSkillDetailByIdList(CustomSkillDetailByIdListReq) returns (CustomSkillDetailByIdListResp) {}
+  rpc UpdateCustomSkillBasicMeta(UpdateCustomSkillBasicMetaReq) returns (google.protobuf.Empty) {}
+  rpc UpdateCustomSkillThreadMeta(UpdateCustomSkillThreadMetaReq) returns (google.protobuf.Empty) {}
+  rpc CreateCustomSkillVar(CreateCustomSkillVarReq) returns (SkillVariableCreateResp) {}
+  rpc GetCustomSkillVars(GetCustomSkillVarsReq) returns (CustomSkillVars) {}
+  rpc UpdateCustomSkillVar(UpdateCustomSkillVarReq) returns (google.protobuf.Empty) {}
+  rpc DeleteCustomSkillVar(DeleteCustomSkillVarReq) returns (google.protobuf.Empty) {}
 
-  //================AcquiredSkill================
+  // --- acquired skill ---
   rpc AcquiredSkillCreate(AcquiredSkillCreateReq) returns (AcquiredSkillCreateResp) {}
   rpc AcquiredSkillDelete(AcquiredSkillDeleteReq) returns (google.protobuf.Empty) {}
   rpc AcquiredSkillGet(AcquiredSkillGetReq) returns (AcquiredSkill) {}
   rpc AcquiredSkillGetList(AcquiredSkillGetListReq) returns (AcquiredSkillGetListResp) {}
+  rpc AcquiredSkillGetByIDList(AcquiredSkillGetByIDListReq) returns (AcquiredSkillGetByIDListResp) {}
+  rpc AcquiredSkillGetHistoryList(AcquiredSkillGetHistoryListReq) returns (AcquiredSkillHistoryListResp) {}
+  rpc CreateAcquiredSkillVar(CreateAcquiredSkillVarReq) returns (SkillVariableCreateResp) {}
+  rpc GetAcquiredSkillVars(GetAcquiredSkillVarsReq) returns (AcquiredSkillVars) {}
+  rpc UpdateAcquiredSkillVar(UpdateAcquiredSkillVarReq) returns (google.protobuf.Empty) {}
+  rpc DeleteAcquiredSkillVar(DeleteAcquiredSkillVarReq) returns (google.protobuf.Empty) {}
+  rpc CheckAcquiredSkill(CheckAcquiredSkillReq) returns (CheckAcquiredSkillResp) {}
+
+  // --- builtin skill config ---
+  rpc CreateBuiltinSkillVar(CreateBuiltinSkillVarReq) returns (SkillVariableCreateResp) {}
+  rpc DeleteBuiltinSkillVar(DeleteBuiltinSkillVarReq) returns (google.protobuf.Empty) {}
+  rpc GetBuiltinSkillVars(GetBuiltinSkillVarsReq) returns (BuiltinSkillVars) {}
+  rpc UpdateBuiltinSkillVar(UpdateBuiltinSkillVarReq) returns (google.protobuf.Empty) {}
+  rpc GetBuiltinSkillsVars(GetBuiltinSkillsVarsReq) returns (GetBuiltinSkillsVarsResp) {}
+
+  // --- skill publish ---
+  rpc CreatePublishCustomSkill(PublishCustomSkillReq) returns (google.protobuf.Empty) {}
+  rpc UpdatePublishCustomSkill(UpdatePublishCustomSkillReq) returns (google.protobuf.Empty) {}
+  rpc GetPublishCustomSkillHistoryList(GetPublishCustomSkillHistoryListReq) returns (PublishCustomSkillHistoryListResp) {}
+  rpc GetPublishCustomSkillByLatest(GetPublishCustomSkillByLatestReq) returns (PublishCustomSkill) {}
+  rpc GetPublishCustomSkillByVersion(GetPublishCustomSkillByVersionReq) returns (PublishCustomSkill) {}
+  rpc GetPublishCustomSkillList(GetPublishCustomSkillListReq) returns (GetPublishCustomSkillListResp) {}
+  rpc GetPublishCustomSkillByIDList(GetPublishCustomSkillByIDListReq) returns (GetPublishCustomSkillByIDListResp) {}
+
+  // --- skill statistic ---
+  rpc IncrementCustomSkillDownloadCount(IncrementCustomSkillDownloadCountReq) returns (google.protobuf.Empty) {}
+  rpc IncrementCustomSkillAcquiredCount(IncrementCustomSkillAcquiredCountReq) returns (google.protobuf.Empty) {}
+  rpc IncrementBuiltinSkillDownloadCount(IncrementBuiltinSkillDownloadCountReq) returns (google.protobuf.Empty) {}
+  rpc GetBuiltinSkillDownloadCounts(GetBuiltinSkillDownloadCountsReq) returns (GetBuiltinSkillDownloadCountsResp) {}
+
+  // --- admin center ---
+  rpc GetAdminCustomToolPageList(GetAdminCustomToolPageListReq) returns (GetAdminCustomToolPageListResp) {}
+  rpc GetAdminCustomMCPPageList(GetAdminCustomMCPPageListReq) returns (GetAdminCustomMCPPageListResp) {}
+  rpc GetAdminMCPServerPageList(GetAdminMCPServerPageListReq) returns (GetAdminMCPServerPageListResp) {}
 }
 
 // --- req ---
@@ -103,6 +147,8 @@ message CreateCustomMCPReq {
   string avatarPath = 8;
   string streamableUrl = 9;
   string transport = 10; // 传输协议: "sse" 或 "streamable"
+  common.ApiAuthWebRequest apiAuth = 11; // api身份认证
+  map<string, string> headers = 12; // 请求头
 }
 
 message UpdateCustomMCPReq {
@@ -116,6 +162,8 @@ message UpdateCustomMCPReq {
   string avatarPath = 8;
   string streamableUrl = 9;
   string transport = 10; // 传输协议: "sse" 或 "streamable"
+  common.ApiAuthWebRequest apiAuth = 11; // api身份认证
+  map<string, string> headers = 12; // 请求头
 }
 
 message GetCustomMCPReq {
@@ -125,6 +173,8 @@ message GetCustomMCPReq {
 
 message DeleteCustomMCPReq {
   string mcpId = 1;
+  string orgId = 2;
+  string userId = 3;
 }
 
 message GetCustomMCPListReq {
@@ -165,6 +215,11 @@ message CustomMCPDetail {
   SquareMCPIntro intro = 5;
   string streamableUrl = 6;
   string transport = 7; // 传输协议: "sse" 或 "streamable"
+  common.ApiAuthWebRequest apiAuth = 8; // api身份认证
+  map<string, string> headers = 9; // 请求头
+  Identity owner = 10; // 资源所有者（管理员中心owner解析用）
+  int64 createdAt = 11; // 创建时间（毫秒）
+  int64 updatedAt = 12; // 更新时间（毫秒）
 }
 
 message CustomMCPInfo {
@@ -174,6 +229,10 @@ message CustomMCPInfo {
   SquareMCPInfo info = 4;
   string streamableUrl = 5;
   string transport = 6; // 传输协议: "sse" 或 "streamable"
+  common.ApiAuthWebRequest apiAuth = 7; // api身份认证
+  map<string, string> headers = 8; // 请求头
+  Identity owner = 9; // 资源所有者（管理员中心owner解析用）
+  int64 updatedAt = 10; // 更新时间（毫秒）
 }
 
 message SquareMCPDetail {
@@ -242,6 +301,9 @@ message GetCustomToolInfoResp {
   string description = 5;
   string privacyPolicy = 6;
   string avatarPath = 7;
+  Identity owner = 8; // 资源所有者（管理员中心owner解析用）
+  int64 createdAt = 9; // 创建时间（毫秒）
+  int64 updatedAt = 10; // 更新时间（毫秒）
 }
 
 message GetCustomToolListReq {
@@ -265,6 +327,79 @@ message GetCustomToolListResp {
   repeated GetCustomToolItem list = 1;
 }
 
+// --- admin center ---
+
+message GetAdminCustomToolPageListReq {
+  string name = 1;                     // 名称（模糊查询）
+  repeated string orgIdList = 2;       // 组织id列表（空=全部组织）
+  repeated string userIdList = 3;      // 用户id列表（空=全部用户）
+  int32 pageNo = 4;                    // 页码（从1开始）
+  int32 pageSize = 5;                  // 每页条数
+}
+
+message AdminCustomToolItem {
+  string customToolId = 1;
+  string name = 2;
+  string description = 3;
+  string avatarPath = 4;
+  Identity owner = 5;                  // 资源所有者
+  int64 updatedAt = 6;                 // 更新时间（毫秒）
+}
+
+message GetAdminCustomToolPageListResp {
+  repeated AdminCustomToolItem list = 1;
+  int64 total = 2;                     // 总条数
+}
+
+// --- admin center: mcp ---
+
+message GetAdminCustomMCPPageListReq {
+  string name = 1;                     // 名称（模糊查询）
+  repeated string orgIdList = 2;       // 组织id列表（空=全部组织）
+  repeated string userIdList = 3;      // 用户id列表（空=全部用户）
+  int32 pageNo = 4;                    // 页码（从1开始）
+  int32 pageSize = 5;                  // 每页条数
+}
+
+message AdminCustomMCPItem {
+  string mcpId = 1;
+  string name = 2;
+  string desc = 3;
+  string avatarPath = 4;
+  string from = 5;                     // 来源
+  Identity owner = 6;                  // 资源所有者
+  int64 updatedAt = 7;                 // 更新时间（毫秒）
+}
+
+message GetAdminCustomMCPPageListResp {
+  repeated AdminCustomMCPItem list = 1;
+  int64 total = 2;                     // 总条数
+}
+
+// --- admin center: mcp server ---
+
+message GetAdminMCPServerPageListReq {
+  string name = 1;                     // 名称（模糊查询）
+  repeated string orgIdList = 2;       // 组织id列表（空=全部组织）
+  repeated string userIdList = 3;      // 用户id列表（空=全部用户）
+  int32 pageNo = 4;                    // 页码（从1开始）
+  int32 pageSize = 5;                  // 每页条数
+}
+
+message AdminMCPServerItem {
+  string mcpServerId = 1;
+  string name = 2;
+  string desc = 3;
+  string avatarPath = 4;
+  Identity owner = 5;                  // 资源所有者
+  int64 updatedAt = 6;                 // 更新时间（毫秒）
+}
+
+message GetAdminMCPServerPageListResp {
+  repeated AdminMCPServerItem list = 1;
+  int64 total = 2;                     // 总条数
+}
+
 message UpdateCustomToolReq {
   string customToolId = 1;
   string schema = 2;
@@ -278,6 +413,7 @@ message UpdateCustomToolReq {
 
 message DeleteCustomToolReq {
   string customToolId = 1;
+  Identity identity = 2;
 }
 
 message GetSquareToolReq {
@@ -354,6 +490,9 @@ message MCPServerInfo{
   string streamableUrl = 8;
   string streamableExample = 9;
   string transport = 10; // 传输协议: "sse" 或 "streamable"
+  Identity owner = 11; // 资源所有者（管理员中心owner解析用）
+  int64 createdAt = 12; // 创建时间（毫秒）
+  int64 updatedAt = 13; // 更新时间（毫秒）
 }
 
 message CreateMCPServerReq {
@@ -380,6 +519,7 @@ message GetMCPServerReq {
 
 message DeleteMCPServerReq {
   string mcpServerId = 1;
+  Identity identity = 2;
 }
 
 message GetMCPServerListReq {
@@ -394,6 +534,7 @@ message GetMCPServerListResp {
 message CreateMCPServerToolReq {
   string mcpServerId = 1;
   repeated MCPServerToolInfo mcpServiceToolInfos = 2;
+  Identity identity = 3;
 }
 
 message UpdateMCPServerToolReq {
@@ -405,6 +546,7 @@ message UpdateMCPServerToolReq {
 
 message DeleteMCPServerToolReq {
   string mcpServerToolId = 1;
+  Identity identity = 2;
 }
 
 message GetMCPServerToolReq {
@@ -444,5 +586,27 @@ message GetToolByToolIdListResp {
 message GetToolDetailByToolIdListResp {
   repeated GetCustomToolInfoResp customList = 1;
   repeated SquareToolDetail toolSquareInfoList = 2;
+}
+
+// --- skill statistic ---
+
+message IncrementCustomSkillDownloadCountReq {
+  string skill_id = 1;
+}
+
+message IncrementCustomSkillAcquiredCountReq {
+  string skill_id = 1;
+}
+
+message IncrementBuiltinSkillDownloadCountReq {
+  string skillId = 1;
+}
+
+message GetBuiltinSkillDownloadCountsReq {
+  repeated string skillIds = 1;
+}
+
+message GetBuiltinSkillDownloadCountsResp {
+  map<string, int32> countMap = 1;  // skill_id -> download_count
 }
 

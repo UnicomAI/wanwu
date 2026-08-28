@@ -1,0 +1,18 @@
+---
+type: knowledge_network
+id: {network_id}
+name: {网络名称}
+tags: [{标签1}, {标签2}]
+business_domain: {业务领域}
+---
+
+# {网络名称}
+
+{网络描述}
+
+## Network Overview
+
+- **ObjectTypes** (object_types/): {object_id_1}, {object_id_2}
+- **RelationTypes** (relation_types/): {relation_id_1}, {relation_id_2}
+- **ActionTypes** (action_types/): {action_id_1}
+- **ConceptGroups** (concept_groups/): {group_id_1}

@@ -245,6 +245,7 @@ func processCsvFileLine(ctx context.Context, csvUrl string,
 			return 0, nil
 		}
 		log.Errorf("read header line err: %v", err)
+		return 0, err
 	}
 
 	var lineCount = 0
@@ -257,7 +258,7 @@ func processCsvFileLine(ctx context.Context, csvUrl string,
 		if err != nil {
 			// 可以选择记录错误并继续，或者直接返回错误
 			log.Errorf("解析CSV行时出错: %v, lineCount %d", err, lineCount)
-			continue
+			break
 		}
 		lineCount++
 		if len(record) < 2 {

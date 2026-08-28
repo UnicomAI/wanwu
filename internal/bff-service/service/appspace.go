@@ -6,6 +6,7 @@ import (
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
+	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
 	rag_service "github.com/UnicomAI/wanwu/api/proto/rag-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
@@ -17,27 +18,60 @@ import (
 )
 
 func DeleteAppSpaceApp(ctx *gin.Context, userId, orgId, appId, appType string) error {
+	if appType == constant.AppTypeRag {
+		if _, err := rag.GetRagDetail(ctx.Request.Context(), &rag_service.RagDetailReq{
+			RagId:    appId,
+			Identity: &rag_service.Identity{UserId: userId, OrgId: orgId},
+		}); err != nil {
+			return err
+		}
+	}
+	// 消息中心：删除前把发布范围与名称快照下来——DeleteApp 之后记录已消失，事后查不到
+	oldPublishType := appPublishTypeOf(ctx, appId, appType)
+	appName, nameErr := resolveNoticeAppName(ctx, userId, orgId, appId, appType)
+	if nameErr != nil {
+		log.Errorf("notice: resolve app name (%v/%v) failed: %v", appType, appId, nameErr)
+	}
+
 	// delete publish app
 	_, err := app.DeleteApp(ctx.Request.Context(), &app_service.DeleteAppReq{
 		AppId:   appId,
 		AppType: appType,
+		UserId:  userId,
+		OrgId:   orgId,
 	})
 	if err != nil {
 		return err
+	}
+	// 应用删除：原可见者收「已下线」（应用删除仍发下线，范围变更不发）
+	if nameErr == nil {
+		notifyAppDeleted(ctx, userId, orgId, appId, appType, appName, oldPublishType)
 	}
 	// delete app
 	switch appType {
 	case constant.AppTypeRag:
 		_, err = rag.DeleteRag(ctx.Request.Context(), &rag_service.RagDeleteReq{
 			RagId: appId,
+			Identity: &rag_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
 		})
 	case constant.AppTypeAgent:
 		_, err = assistant.AssistantDelete(ctx.Request.Context(), &assistant_service.AssistantDeleteReq{
 			AssistantId: appId,
+			Identity: &assistant_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
 		})
 	case constant.AppTypeWorkflow:
 		_, err = assistant.AssistantWorkFlowDeleteByWorkflowId(ctx.Request.Context(), &assistant_service.AssistantWorkFlowDeleteByWorkflowIdReq{
 			WorkflowId: appId,
+			Identity: &assistant_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
 		})
 		if err != nil {
 			return err
@@ -46,6 +80,10 @@ func DeleteAppSpaceApp(ctx *gin.Context, userId, orgId, appId, appType string) e
 	case constant.AppTypeChatflow:
 		_, err = assistant.AssistantWorkFlowDeleteByWorkflowId(ctx.Request.Context(), &assistant_service.AssistantWorkFlowDeleteByWorkflowIdReq{
 			WorkflowId: appId,
+			Identity: &assistant_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
 		})
 		if err != nil {
 			return err
@@ -53,12 +91,22 @@ func DeleteAppSpaceApp(ctx *gin.Context, userId, orgId, appId, appType string) e
 		// 复用工作流的删除接口
 		err = DeleteWorkflow(ctx, orgId, appId)
 	}
+	if err != nil {
+		return err
+	}
+	// 应用已删除，清理其会话日志（best-effort：失败只记日志，不把已成功的删除报成失败）
+	if _, logErr := app.DeleteConversationLogByAppId(ctx.Request.Context(), &app_service.DeleteConversationLogByAppIdReq{
+		AppId:   appId,
+		AppType: appType,
+	}); logErr != nil {
+		log.Errorf("delete conversation log by app failed, appId: %s, appType: %s, err: %v", appId, appType, logErr)
+	}
 	return err
 }
 
 func GetAppSpaceAppList(ctx *gin.Context, userId, orgId, name, appType string) (*response.ListResult, error) {
 	var ret []response.AppBriefInfo
-	if appType == "" || appType == constant.AppTypeRag {
+	if appType == constant.AppTypeRag {
 		resp, err := rag.ListRag(ctx.Request.Context(), &rag_service.RagListReq{
 			Name: name,
 			Identity: &rag_service.Identity{
@@ -73,7 +121,7 @@ func GetAppSpaceAppList(ctx *gin.Context, userId, orgId, name, appType string) (
 			ret = append(ret, appBriefProto2Model(ctx, ragInfo, 0))
 		}
 	}
-	if appType == "" || appType == constant.AppTypeAgent {
+	if appType == constant.AppTypeAgent {
 		resp, err := assistant.GetAssistantListMyAll(ctx.Request.Context(), &assistant_service.GetAssistantListMyAllReq{
 			Name: name,
 			Identity: &assistant_service.Identity{
@@ -88,59 +136,48 @@ func GetAppSpaceAppList(ctx *gin.Context, userId, orgId, name, appType string) (
 			ret = append(ret, appBriefProto2Model(ctx, assistantInfo.Info, assistantInfo.Category))
 		}
 	}
+	return fillAppPublishInfo(ctx, userId, orgId, ret)
+}
+
+// GetWorkflowAndChatflowList 获取工作流和对话流列表
+// appType: 空=全部, workflow=工作流, chatflow=对话流
+func GetWorkflowAndChatflowList(ctx *gin.Context, userId, orgId, name, appType string) (*response.ListResult, error) {
+	var ret []response.AppBriefInfo
+
+	// 根据 appType 决定获取哪些列表
 	if appType == "" || appType == constant.AppTypeWorkflow {
-		resp, err := ListWorkflow(ctx, orgId, name, constant.AppTypeWorkflow)
+		// 获取工作流列表
+		workflowResp, err := ListWorkflow(ctx, orgId, name, constant.AppTypeWorkflow)
 		if err != nil {
 			return nil, err
 		}
-		for _, workflowInfo := range resp.Workflows {
+		for _, workflowInfo := range workflowResp.Workflows {
 			ret = append(ret, cozeWorkflowInfo2Model(workflowInfo))
 		}
 	}
+
 	if appType == "" || appType == constant.AppTypeChatflow {
-		resp, err := ListWorkflow(ctx, orgId, name, constant.AppTypeChatflow)
+		// 获取对话流列表
+		chatflowResp, err := ListWorkflow(ctx, orgId, name, constant.AppTypeChatflow)
 		if err != nil {
 			return nil, err
 		}
-		for _, chatflowInfo := range resp.Workflows {
+		for _, chatflowInfo := range chatflowResp.Workflows {
 			ret = append(ret, cozeChatflowInfo2Model(chatflowInfo))
 		}
 	}
-	var appIds []string
-	for _, appInfo := range ret {
-		appIds = append(appIds, appInfo.AppId)
-	}
-	appInfos, err := app.GetAppListByIds(ctx, &app_service.GetAppListByIdsReq{
-		AppIdsList: appIds,
-	})
-	if err != nil {
-		return nil, err
-	}
-	publishAppMap := make(map[string]*app_service.AppInfo, len(appInfos.Infos))
-	for _, appInfo := range appInfos.Infos {
-		publishAppMap[appInfo.AppId] = appInfo
-	}
-
-	versionMap := getAppVersionBatch(ctx, userId, orgId, publishAppMap)
-	for idx, appInfo := range ret {
-		// 填充发布类型和版本信息
-		if publishAppInfo, ok := publishAppMap[appInfo.AppId]; ok {
-			ret[idx].PublishType = publishAppInfo.PublishType
-			if version, ok := versionMap[appInfo.AppId]; ok {
-				ret[idx].Version = version
-			}
-		}
-	}
-	sort.SliceStable(ret, func(i, j int) bool {
-		return ret[i].UpdatedAt > ret[j].UpdatedAt
-	})
-	return &response.ListResult{
-		List:  ret,
-		Total: int64(len(ret)),
-	}, nil
+	return fillAppPublishInfo(ctx, userId, orgId, ret)
 }
 
 func PublishApp(ctx *gin.Context, userId, orgId string, req request.PublishAppRequest) error {
+	var rollbackPublishPackage func()
+	publishPackageCommitted := true
+	defer func() {
+		if !publishPackageCommitted && rollbackPublishPackage != nil {
+			rollbackPublishPackage()
+		}
+	}()
+
 	if req.AppType == constant.AppTypeWorkflow || req.AppType == constant.AppTypeChatflow {
 		if err := PublishWorkflow(ctx, orgId, req.AppId, req.Version, req.Desc); err != nil {
 			return err
@@ -163,6 +200,7 @@ func PublishApp(ctx *gin.Context, userId, orgId string, req request.PublishAppRe
 			AssistantId: req.AppId,
 			Version:     req.Version,
 			Desc:        req.Desc,
+			Extra:       req.Extra,
 			Identity: &assistant_service.Identity{
 				UserId: userId,
 				OrgId:  orgId,
@@ -173,26 +211,30 @@ func PublishApp(ctx *gin.Context, userId, orgId string, req request.PublishAppRe
 		}
 	}
 	if req.AppType == constant.AppTypeRag {
-		resp, _ := rag.GetPublishRagDesc(ctx.Request.Context(), &rag_service.GetPublishRagDescReq{
-			RagId: req.AppId,
-			Identity: &rag_service.Identity{
-				UserId: userId,
-				OrgId:  orgId,
-			},
-		})
-		if resp != nil {
-			if err := util.IsVersionGreaterThan(req.Version, resp.Version); err != nil {
-				return grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_app_publish_version", resp.Version, req.Version, err.Error())
+		if err := publishRag(ctx, userId, orgId, req.AppId, req.Version, req.Desc); err != nil {
+			return err
+		}
+	}
+	if req.AppType == constant.AppTypeSkill {
+		resp, err := mcp.GetPublishCustomSkillByLatest(ctx.Request.Context(), &mcp_service.GetPublishCustomSkillByLatestReq{SkillId: req.AppId})
+		if err == nil && resp != nil && resp.GetVersion() != "" {
+			if err := util.IsVersionGreaterThan(req.Version, resp.GetVersion()); err != nil {
+				return grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_app_publish_version", resp.GetVersion(), req.Version, err.Error())
 			}
 		}
-		_, err := rag.PublishRag(ctx.Request.Context(), &rag_service.PublishRagReq{
-			RagId:   req.AppId,
-			Version: req.Version,
-			Desc:    req.Desc,
-			Identity: &rag_service.Identity{
-				UserId: userId,
-				OrgId:  orgId,
-			},
+		objectPath, markdown, rollback, err := buildCustomSkillPublishPackage(ctx, userId, orgId, req.AppId, req.Version)
+		if err != nil {
+			return err
+		}
+		rollbackPublishPackage = rollback
+		publishPackageCommitted = false
+		_, err = mcp.CreatePublishCustomSkill(ctx.Request.Context(), &mcp_service.PublishCustomSkillReq{
+			SkillId:     req.AppId,
+			Version:     req.Version,
+			VersionDesc: req.Desc,
+			Identity:    &mcp_service.Identity{UserId: userId, OrgId: orgId},
+			ObjectPath:  objectPath,
+			Markdown:    markdown,
 		})
 		if err != nil {
 			return err
@@ -205,13 +247,23 @@ func PublishApp(ctx *gin.Context, userId, orgId string, req request.PublishAppRe
 		UserId:      userId,
 		OrgId:       orgId,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	publishPackageCommitted = true
+	// 消息中心（best-effort，不阻塞发布主流程）：发新版本 → 整个新范围统一收「已上线」
+	notifyAppPublish(ctx, userId, orgId, req.AppId, req.AppType, req.PublishType, req.Version)
+	return nil
 }
 
 func UnPublishApp(ctx *gin.Context, userId, orgId string, req request.UnPublishAppRequest) error {
 	if req.AppType == constant.AppTypeWorkflow {
 		_, err := assistant.AssistantWorkFlowDeleteByWorkflowId(ctx.Request.Context(), &assistant_service.AssistantWorkFlowDeleteByWorkflowIdReq{
 			WorkflowId: req.AppId,
+			Identity: &assistant_service.Identity{
+				UserId: userId,
+				OrgId:  orgId,
+			},
 		})
 		if err != nil {
 			return err
@@ -230,9 +282,9 @@ func UnPublishApp(ctx *gin.Context, userId, orgId string, req request.UnPublishA
 
 func GetAppList(ctx *gin.Context, userId, orgId, appType string) (*response.ListResult, error) {
 	resp, err := app.GetAppList(ctx.Request.Context(), &app_service.GetAppListReq{
-		OrgId:   orgId,
+		OrgIds:  []string{orgId},
+		UserIds: []string{userId},
 		AppType: appType,
-		UserId:  userId,
 	})
 	if err != nil {
 		return nil, err
@@ -249,7 +301,7 @@ func GetAppList(ctx *gin.Context, userId, orgId, appType string) (*response.List
 func getAppVersionBatch(ctx *gin.Context, userId, orgId string, publishAppMap map[string]*app_service.AppInfo) map[string]string {
 	versionMap := make(map[string]string)
 
-	var ragIds, assistantIds, workflowIds, chatflowIds []string
+	var ragIds, assistantIds, workflowIds, chatflowIds, skillIds []string
 	for appId, appInfo := range publishAppMap {
 		switch appInfo.AppType {
 		case constant.AppTypeRag:
@@ -260,6 +312,8 @@ func getAppVersionBatch(ctx *gin.Context, userId, orgId string, publishAppMap ma
 			workflowIds = append(workflowIds, appId)
 		case constant.AppTypeChatflow:
 			chatflowIds = append(chatflowIds, appId)
+		case constant.AppTypeSkill:
+			skillIds = append(skillIds, appId)
 		}
 
 	}
@@ -322,6 +376,67 @@ func getAppVersionBatch(ctx *gin.Context, userId, orgId string, publishAppMap ma
 			}
 		}
 	}
+	if len(skillIds) > 0 {
+		publishBySkill, err := getCustomSkillPublishMap(ctx, skillIds)
+		if err != nil {
+			log.Errorf("getAppVersionBatch skill batch query failed, userId=%s orgId=%s skillCount=%d err=%v", userId, orgId, len(skillIds), err)
+		} else {
+			for skillId, item := range publishBySkill {
+				versionMap[skillId] = item.GetVersion()
+			}
+		}
+	}
 
 	return versionMap
+}
+
+// fillAppPublishInfo 批量填充应用发布信息（发布类型和版本）
+func fillAppPublishInfo(ctx *gin.Context, userId, orgId string, apps []response.AppBriefInfo) (*response.ListResult, error) {
+	if len(apps) == 0 {
+		return &response.ListResult{List: apps, Total: 0}, nil
+	}
+
+	// 收集 appIds
+	var appIds []string
+	for _, appInfo := range apps {
+		appIds = append(appIds, appInfo.AppId)
+	}
+
+	// 批量获取 app 信息
+	appInfos, err := app.GetAppListByIds(ctx.Request.Context(), &app_service.GetAppListByIdsReq{
+		AppIdsList: appIds,
+		AppType:    "",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// 构建 map
+	publishAppMap := make(map[string]*app_service.AppInfo, len(appInfos.Infos))
+	for _, appInfo := range appInfos.Infos {
+		publishAppMap[appInfo.AppId] = appInfo
+	}
+
+	// 批量获取版本信息
+	versionMap := getAppVersionBatch(ctx, userId, orgId, publishAppMap)
+
+	// 填充发布类型和版本
+	for idx := range apps {
+		if publishAppInfo, ok := publishAppMap[apps[idx].AppId]; ok {
+			apps[idx].PublishType = publishAppInfo.PublishType
+			if version, ok := versionMap[apps[idx].AppId]; ok {
+				apps[idx].Version = version
+			}
+		}
+	}
+
+	// 按更新时间降序排序
+	sort.SliceStable(apps, func(i, j int) bool {
+		return apps[i].UpdatedAt > apps[j].UpdatedAt
+	})
+
+	return &response.ListResult{
+		List:  apps,
+		Total: int64(len(apps)),
+	}, nil
 }

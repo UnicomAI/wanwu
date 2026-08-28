@@ -46,6 +46,24 @@ func WithUserID(userID string) SQLOption {
 	})
 }
 
+func WithOrgIDs(orgIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgIDs) > 0 {
+			return db.Where("org_id IN ?", orgIDs)
+		}
+		return db
+	})
+}
+
+func WithUserIDs(userIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(userIDs) > 0 {
+			return db.Where("user_id IN ?", userIDs)
+		}
+		return db
+	})
+}
+
 func WithAppIDs(Ids []string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		return db.Where("app_id IN (?)", Ids)
@@ -95,6 +113,15 @@ func WithAppType(appType string) SQLOption {
 	})
 }
 
+func WithAppTypes(appTypes []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(appTypes) > 0 {
+			return db.Where("app_type IN ?", appTypes)
+		}
+		return db
+	})
+}
+
 func WithID(id uint32) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		return db.Where("id = ?", id)
@@ -129,15 +156,6 @@ func InAppIds(appIds []string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if len(appIds) > 0 {
 			return db.Where("app_id IN ?", appIds)
-		}
-		return db
-	})
-}
-
-func LikeName(name string) SQLOption {
-	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
-		if name != "" {
-			return db.Where("name LIKE ?", "%"+name+"%")
 		}
 		return db
 	})
@@ -191,11 +209,11 @@ func WithSearchType(userID, orgID, searchType string) SQLOption {
 		var args []interface{}
 		switch searchType {
 		case "", "all":
-			query = "(user_id = ? AND publish_type = ?) OR (publish_type = ?) OR (publish_type = ? AND org_id = ?)"
-			args = append(args, userID, constant.AppPublishPrivate, constant.AppPublishPublic, constant.AppPublishOrganization, orgID)
+			query = "(user_id = ? AND org_id = ? AND publish_type = ?) OR (publish_type = ?) OR (publish_type = ? AND org_id = ?)"
+			args = append(args, userID, orgID, constant.AppPublishPrivate, constant.AppPublishPublic, constant.AppPublishOrganization, orgID)
 		case "private":
-			query = "user_id = ? AND publish_type = ?"
-			args = append(args, userID, constant.AppPublishPrivate)
+			query = "user_id = ? AND org_id = ? AND publish_type = ?"
+			args = append(args, userID, orgID, constant.AppPublishPrivate)
 		}
 		return db.Where(query, args...)
 	})
@@ -343,6 +361,161 @@ func WithMethodPaths(methodPaths []string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if len(methodPaths) > 0 {
 			return db.Where("method_path IN ?", methodPaths)
+		}
+		return db
+	})
+}
+
+func WithModule(module string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if module != "" {
+			return db.Where("module = ?", module)
+		}
+		return db
+	})
+}
+
+func WithSource(source string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if source != "" {
+			return db.Where("source = ?", source)
+		}
+		return db
+	})
+}
+
+func WithModuleCreatorOrgIDs(orgIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgIDs) > 0 {
+			return db.Where("module_creator_org_id IN ?", orgIDs)
+		}
+		return db
+	})
+}
+
+func WithModuleCreatorUserIDs(userIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(userIDs) > 0 {
+			return db.Where("module_creator_user_id IN ?", userIDs)
+		}
+		return db
+	})
+}
+
+func WithModelCreatorOrgIDs(orgIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgIDs) > 0 {
+			return db.Where("model_creator_org_id IN ?", orgIDs)
+		}
+		return db
+	})
+}
+
+func WithModelCreatorUserIDs(userIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(userIDs) > 0 {
+			return db.Where("model_creator_user_id IN ?", userIDs)
+		}
+		return db
+	})
+}
+
+// WithStatisticAppIDFilter 应用统计查询的 app_id 。
+// - 允许空 appId 的板块（wga/model/skill/knowledge/prompt）：不加限制
+// - module 空（查全部）：保留有 appId 的行，以及允许空 appId 的板块级行
+// - 其它指定 module：要求 app_id 非空
+func WithStatisticAppIDFilter(module string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if constant.StatisticModuleAllowsEmptyAppID(module) {
+			return db
+		}
+		if module == "" {
+			return db.Where("(app_id != '' AND app_id IS NOT NULL) OR module IN ?", []string{
+				constant.BizModuleWGA,
+				constant.BizModuleModel,
+				constant.BizModuleResourceSkill,
+				constant.BizModuleResourceKnowledge,
+				constant.BizModuleResourcePrompt,
+			})
+		}
+		return db.Where("app_id != '' AND app_id IS NOT NULL")
+	})
+}
+
+// WithStatisticAppID 钻取定位主表行：非空按 app_id 精确匹配；空串匹配空 app_id（板块级行）。
+func WithStatisticAppID(appID string) SQLOption {
+	if appID != "" {
+		return WithAppID(appID)
+	}
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		return db.Where("(app_id = '' OR app_id IS NULL)")
+	})
+}
+
+func WithNonEmptyModelID() SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		return db.Where("model_id != '' AND model_id IS NOT NULL")
+	})
+}
+
+func WithAPIKeyID(apiKeyID string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if apiKeyID != "" {
+			return db.Where("api_key_id = ?", apiKeyID)
+		}
+		return db
+	})
+}
+
+func WithMethodPath(methodPath string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if methodPath != "" {
+			return db.Where("method_path = ?", methodPath)
+		}
+		return db
+	})
+}
+
+func WithSources(sources []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(sources) > 0 {
+			return db.Where("source IN ?", sources)
+		}
+		return db
+	})
+}
+
+func WithExportIDs(exportIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(exportIDs) > 0 {
+			return db.Where("export_id IN ?", exportIDs)
+		}
+		return db
+	})
+}
+
+func LikeTitle(title string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if title != "" {
+			return db.Where("title LIKE ?", "%"+title+"%")
+		}
+		return db
+	})
+}
+
+func WithExportID(exportID string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if exportID != "" {
+			return db.Where("export_id = ?", exportID)
+		}
+		return db
+	})
+}
+
+func WithLogIDs(logIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(logIDs) > 0 {
+			return db.Where("log_id IN ?", logIDs)
 		}
 		return db
 	})

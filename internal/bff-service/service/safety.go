@@ -1,10 +1,14 @@
 package service
 
 import (
+	"errors"
+	"github.com/UnicomAI/wanwu/api/proto/common"
+
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	safety_service "github.com/UnicomAI/wanwu/api/proto/safety-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/minio"
@@ -18,7 +22,7 @@ const (
 )
 
 func CreateSensitiveWordTable(ctx *gin.Context, userId, orgId string, req *request.CreateSensitiveWordTableReq) (*response.CreateSensitiveWordTableResp, error) {
-	resp, err := safety.CreateSensitiveWordTable(ctx, &safety_service.CreateSensitiveWordTableReq{
+	resp, err := safety.CreateSensitiveWordTable(ctx.Request.Context(), &safety_service.CreateSensitiveWordTableReq{
 		UserId:    userId,
 		OrgId:     orgId,
 		TableName: req.TableName,
@@ -32,7 +36,14 @@ func CreateSensitiveWordTable(ctx *gin.Context, userId, orgId string, req *reque
 }
 
 func UpdateSensitiveWordTable(ctx *gin.Context, userId, orgId string, req *request.UpdateSensitiveWordTableReq) error {
-	_, err := safety.UpdateSensitiveWordTable(ctx, &safety_service.UpdateSensitiveWordTableReq{
+	existingTable, err := safety.GetSensitiveWordTableByID(ctx.Request.Context(), &safety_service.GetSensitiveWordTableByIDReq{TableId: req.TableId})
+	if err != nil {
+		return err
+	}
+	if err := util.ValidateBriefUpdate(&req.TableName, existingTable.TableName, &req.Remark, existingTable.Remark, util.SubjectSensitiveWordTable); err != nil {
+		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, err.Error())
+	}
+	_, err = safety.UpdateSensitiveWordTable(ctx.Request.Context(), &safety_service.UpdateSensitiveWordTableReq{
 		OrgId:     orgId,
 		UserId:    userId,
 		TableId:   req.TableId,
@@ -45,9 +56,11 @@ func UpdateSensitiveWordTable(ctx *gin.Context, userId, orgId string, req *reque
 	return nil
 }
 
-func DeleteSensitiveWordTable(ctx *gin.Context, req *request.DeleteSensitiveWordTableReq) error {
-	_, err := safety.DeleteSensitiveWordTable(ctx, &safety_service.DeleteSensitiveWordTableReq{
+func DeleteSensitiveWordTable(ctx *gin.Context, req *request.DeleteSensitiveWordTableReq, userId, orgId string) error {
+	_, err := safety.DeleteSensitiveWordTable(ctx.Request.Context(), &safety_service.DeleteSensitiveWordTableReq{
 		TableId: req.TableId,
+		UserId:  userId,
+		OrgId:   orgId,
 	})
 	if err != nil {
 		return err
@@ -56,7 +69,7 @@ func DeleteSensitiveWordTable(ctx *gin.Context, req *request.DeleteSensitiveWord
 }
 
 func GetSensitiveWordTableList(ctx *gin.Context, userId, orgId, tableType string) (*response.ListResult, error) {
-	listResult, err := safety.GetSensitiveWordTableList(ctx, &safety_service.GetSensitiveWordTableListReq{
+	listResult, err := safety.GetSensitiveWordTableList(ctx.Request.Context(), &safety_service.GetSensitiveWordTableListReq{
 		OrgId:     orgId,
 		UserId:    userId,
 		TableType: tableType,
@@ -75,7 +88,7 @@ func GetSensitiveWordTableList(ctx *gin.Context, userId, orgId, tableType string
 }
 
 func GetSensitiveVocabularyList(ctx *gin.Context, userId, orgId string, pageNo, pageSize int32, req *request.GetSensitiveVocabularyReq) (*response.PageResult, error) {
-	listResult, err := safety.GetSensitiveVocabularyList(ctx, &safety_service.GetSensitiveVocabularyListReq{
+	listResult, err := safety.GetSensitiveVocabularyList(ctx.Request.Context(), &safety_service.GetSensitiveVocabularyListReq{
 		OrgId:    orgId,
 		UserId:   userId,
 		TableId:  req.TableId,
@@ -113,7 +126,7 @@ func UploadSensitiveVocabulary(ctx *gin.Context, userId, orgId string, req *requ
 			return grpc_util.ErrorStatus(errs.Code_AppSafetyImportUrlFailed)
 		}
 	}
-	_, err = safety.UploadSensitiveVocabulary(ctx, &safety_service.UploadSensitiveVocabularyReq{
+	_, err = safety.UploadSensitiveVocabulary(ctx.Request.Context(), &safety_service.UploadSensitiveVocabularyReq{
 		OrgId:         orgId,
 		UserId:        userId,
 		FilePath:      filePath,
@@ -128,10 +141,12 @@ func UploadSensitiveVocabulary(ctx *gin.Context, userId, orgId string, req *requ
 	return nil
 }
 
-func DeleteSensitiveVocabulary(ctx *gin.Context, req *request.DeleteSensitiveVocabularyReq) error {
-	_, err := safety.DeleteSensitiveVocabulary(ctx, &safety_service.DeleteSensitiveVocabularyReq{
+func DeleteSensitiveVocabulary(ctx *gin.Context, req *request.DeleteSensitiveVocabularyReq, userId, orgId string) error {
+	_, err := safety.DeleteSensitiveVocabulary(ctx.Request.Context(), &safety_service.DeleteSensitiveVocabularyReq{
 		TableId: req.TableId,
 		WordId:  req.WordId,
+		UserId:  userId,
+		OrgId:   orgId,
 	})
 	if err != nil {
 		return err
@@ -140,7 +155,7 @@ func DeleteSensitiveVocabulary(ctx *gin.Context, req *request.DeleteSensitiveVoc
 }
 
 func UpdateSensitiveWordTableReply(ctx *gin.Context, userId, orgId string, req *request.UpdateSensitiveWordTableReplyReq) error {
-	_, err := safety.UpdateSensitiveWordTableReply(ctx, &safety_service.UpdateSensitiveWordTableReplyReq{
+	_, err := safety.UpdateSensitiveWordTableReply(ctx.Request.Context(), &safety_service.UpdateSensitiveWordTableReplyReq{
 		OrgId:   orgId,
 		UserId:  userId,
 		TableId: req.TableId,
@@ -153,7 +168,7 @@ func UpdateSensitiveWordTableReply(ctx *gin.Context, userId, orgId string, req *
 }
 
 func GetSensitiveWordTableByID(ctx *gin.Context, req *request.GetSensitiveVocabularyReq) (*response.SensitiveWordTableDetail, error) {
-	resp, err := safety.GetSensitiveWordTableByID(ctx, &safety_service.GetSensitiveWordTableByIDReq{TableId: req.TableId})
+	resp, err := safety.GetSensitiveWordTableByID(ctx.Request.Context(), &safety_service.GetSensitiveWordTableByIDReq{TableId: req.TableId})
 	if err != nil {
 		return nil, err
 	}
@@ -169,6 +184,36 @@ func convertSensitiveWordTableToResp(table *safety_service.SensitiveWordTable) *
 		Remark:    table.Remark,
 		Reply:     table.Reply,
 		CreatedAt: util.Time2Str(table.CreatedAt),
+		UpdatedAt: util.Time2Str(table.UpdatedAt),
 		Type:      table.TableType,
 	}
+}
+
+var sensitiveWordBizImpl = &SensitiveWordBiz{}
+
+type SensitiveWordBiz struct{}
+
+func init() {
+	InitBizService(sensitiveWordBizImpl)
+}
+
+func (*SensitiveWordBiz) BizType() string {
+	return constant.BizModuleResourceSafety
+}
+
+func (*SensitiveWordBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	resp, err := safety.GetSensitiveWordTableByID(ctx, &safety_service.GetSensitiveWordTableByIDReq{
+		TableId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if resp == nil || resp.TableId == "" {
+		return "", "", errors.New("sensitive word table not found")
+	}
+	return resp.UserId, resp.OrgId, nil
+}
+
+func (*SensitiveWordBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
 }

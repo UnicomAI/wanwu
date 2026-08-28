@@ -20,6 +20,7 @@ services:
     networks:
       - ${WANWU_DOCKER_NETWORK}
     ports:
+      - 6667:6667
       - 6668:6668
     volumes:
       - /etc/localtime:/etc/localtime
@@ -32,10 +33,9 @@ services:
       - ${WANWU_PROJECT_DIR}/bff-service/cache:/app/cache
       - ${WANWU_PROJECT_DIR}/bff-service/log:/app/log
       - ${WANWU_PROJECT_DIR}/bff-service/tmp:/app/tmp
-      - ${WANWU_BFF_OAUTH_RSA_PRIVATE_KEY_PATH}:/app/tmp/oauth_rsa_private.pem
-      - ${WANWU_BFF_OAUTH_RSA_PUBLIC_KEY_PATH}:/app/tmp/oauth_rsa_public.pem
+      - ${WANWU_BFF_OAUTH_RSA_PATH}:/app/tmp/rsa/oauth-rsa
+      - ${WANWU_BFF_LOGIN_RSA_PATH}:/app/tmp/rsa/login-rsa
     environment:
-      CUSTOM_INFO_VERSION: ${WANWU_VERSION}
       SERVER_WEB_BASE_URL: ${WANWU_WEB_BASE_URL}
       SERVER_API_BASE_URL: ${WANWU_API_BASE_URL}
       SERVER_APP_OPEN_BASE_URL: ${WANWU_APP_OPEN_BASE_URL}
@@ -52,11 +52,16 @@ services:
       REDIS_HOST: ${WANWU_REDIS_HOST}
       REDIS_PORT: ${WANWU_REDIS_PORT}
       REDIS_PASSWORD: ${WANWU_REDIS_PASSWORD}
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
       JWT_SIGNING_KEY: ${WANWU_BFF_JWT_SIGNING_KEY}
       CUSTOM_INFO_REGISTER_BY_EMAIL: ${WANWU_BFF_REGISTER_BY_EMAIL}
       CUSTOM_INFO_RESET_PASSWORD_BY_EMAIL: ${WANWU_BFF_RESET_PASSWORD_BY_EMAIL}
       CUSTOM_INFO_LOGIN_BY_EMAIL: ${WANWU_BFF_LOGIN_BY_EMAIL}
       OAUTH_SWITCH: ${WANWU_BFF_OAUTH_SWITCH}
+      ONTOLOGY_ENABLE: ${WANWU_BFF_ONTOLOGY_ENABLE}
+      CUSTOM_INFO_USER_PHONE_REQUIRED: ${WANWU_BFF_USER_PHONE_REQUIRED}
+      STATISTIC_RECORD_BODY: ${WANWU_BFF_STATISTIC_RECORD_BODY}
     working_dir: /app
     command: ./bin/bff-service
 
@@ -76,6 +81,7 @@ services:
     environment:
       DB_NAME: ${WANWU_DB_NAME}
       DB_MYSQL_ADDRESS: ${WANWU_MYSQL_ADDRESS}
+      DB_MYSQL_USER: ${WANWU_MYSQL_USER}
       DB_MYSQL_PASSWORD: ${WANWU_MYSQL_PASSWORD}
       DB_TIDB_ADDRESS: ${WANWU_TIDB_ADDRESS}
       DB_TIDB_PASSWORD: ${WANWU_TIDB_PASSWORD}
@@ -85,6 +91,8 @@ services:
       REDIS_HOST: ${WANWU_REDIS_HOST}
       REDIS_PORT: ${WANWU_REDIS_PORT}
       REDIS_PASSWORD: ${WANWU_REDIS_PASSWORD}
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
       SMTP_HOST: ${WANWU_IAM_SMTP_HOST}
       SMTP_PORT: ${WANWU_IAM_SMTP_PORT}
       SMTP_USERNAME: ${WANWU_IAM_SMTP_USERNAME}
@@ -110,6 +118,7 @@ services:
     environment:
       DB_NAME: ${WANWU_DB_NAME}
       DB_MYSQL_ADDRESS: ${WANWU_MYSQL_ADDRESS}
+      DB_MYSQL_USER: ${WANWU_MYSQL_USER}
       DB_MYSQL_PASSWORD: ${WANWU_MYSQL_PASSWORD}
       DB_TIDB_ADDRESS: ${WANWU_TIDB_ADDRESS}
       DB_TIDB_PASSWORD: ${WANWU_TIDB_PASSWORD}
@@ -119,6 +128,8 @@ services:
       REDIS_HOST: ${WANWU_REDIS_HOST}
       REDIS_PORT: ${WANWU_REDIS_PORT}
       REDIS_PASSWORD: ${WANWU_REDIS_PASSWORD}
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
     working_dir: /app
     command: ./bin/model-service
 
@@ -136,9 +147,10 @@ services:
       - ./configs/microservice/mcp-service/configs:/app/configs/microservice/mcp-service/configs
       - ${WANWU_PROJECT_DIR}/mcp-service/log:/app/log
     environment:
-      SERVER_API_BASE_URL: ${WANWU_API_BASE_URL}
+      SERVER_API_BASE_URL: http://bff-service:6667
       DB_NAME: ${WANWU_DB_NAME}
       DB_MYSQL_ADDRESS: ${WANWU_MYSQL_ADDRESS}
+      DB_MYSQL_USER: ${WANWU_MYSQL_USER}
       DB_MYSQL_PASSWORD: ${WANWU_MYSQL_PASSWORD}
       DB_TIDB_ADDRESS: ${WANWU_TIDB_ADDRESS}
       DB_TIDB_PASSWORD: ${WANWU_TIDB_PASSWORD}
@@ -148,6 +160,8 @@ services:
       REDIS_HOST: ${WANWU_REDIS_HOST}
       REDIS_PORT: ${WANWU_REDIS_PORT}
       REDIS_PASSWORD: ${WANWU_REDIS_PASSWORD}
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
     working_dir: /app
     command: ./bin/mcp-service
 
@@ -168,6 +182,7 @@ services:
     environment:
       DB_NAME: ${WANWU_DB_NAME}
       DB_MYSQL_ADDRESS: ${WANWU_MYSQL_ADDRESS}
+      DB_MYSQL_USER: ${WANWU_MYSQL_USER}
       DB_MYSQL_PASSWORD: ${WANWU_MYSQL_PASSWORD}
       DB_TIDB_ADDRESS: ${WANWU_TIDB_ADDRESS}
       DB_TIDB_PASSWORD: ${WANWU_TIDB_PASSWORD}
@@ -180,6 +195,8 @@ services:
       MINIO_ENDPOINT: ${WANWU_MINIO_ENDPOINT}
       MINIO_USER: ${WANWU_MINIO_USER}
       MINIO_PASSWORD: ${WANWU_MINIO_PASSWORD}
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
     working_dir: /app
     command: ./bin/knowledge-service
 
@@ -199,6 +216,7 @@ services:
     environment:
       DB_NAME: ${WANWU_DB_NAME}
       DB_MYSQL_ADDRESS: ${WANWU_MYSQL_ADDRESS}
+      DB_MYSQL_USER: ${WANWU_MYSQL_USER}
       DB_MYSQL_PASSWORD: ${WANWU_MYSQL_PASSWORD}
       DB_TIDB_ADDRESS: ${WANWU_TIDB_ADDRESS}
       DB_TIDB_PASSWORD: ${WANWU_TIDB_PASSWORD}
@@ -208,6 +226,15 @@ services:
       REDIS_HOST: ${WANWU_REDIS_HOST}
       REDIS_PORT: ${WANWU_REDIS_PORT}
       REDIS_PASSWORD: ${WANWU_REDIS_PASSWORD}
+      MINIO_ENDPOINT: ${WANWU_MINIO_ENDPOINT}
+      MINIO_USER: ${WANWU_MINIO_USER}
+      MINIO_PASSWORD: ${WANWU_MINIO_PASSWORD}
+      MINIO_DOWNLOAD_URL: ${WANWU_WEB_BASE_URL}/minio/download/api/
+      ES_ADDRESS: ${WANWU_ELASTIC_ADDRESS}
+      ES_USERNAME: ${WANWU_ELASTIC_USER}
+      ES_PASSWORD: ${WANWU_ELASTIC_PASSWORD}
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
     working_dir: /app
     command: ./bin/rag-service
 
@@ -227,6 +254,7 @@ services:
     environment:
       DB_NAME: ${WANWU_DB_NAME}
       DB_MYSQL_ADDRESS: ${WANWU_MYSQL_ADDRESS}
+      DB_MYSQL_USER: ${WANWU_MYSQL_USER}
       DB_MYSQL_PASSWORD: ${WANWU_MYSQL_PASSWORD}
       DB_TIDB_ADDRESS: ${WANWU_TIDB_ADDRESS}
       DB_TIDB_PASSWORD: ${WANWU_TIDB_PASSWORD}
@@ -243,6 +271,8 @@ services:
       ES_ADDRESS: ${WANWU_ELASTIC_ADDRESS}
       ES_USERNAME: ${WANWU_ELASTIC_USER}
       ES_PASSWORD: ${WANWU_ELASTIC_PASSWORD}
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
     working_dir: /app
     command: ./bin/assistant-service
 
@@ -266,6 +296,8 @@ services:
       MINIO_USER: ${WANWU_MINIO_USER}
       MINIO_PASSWORD: ${WANWU_MINIO_PASSWORD}
       MINIO_DOWNLOAD_URL: ${WANWU_WEB_BASE_URL}/minio/download/api
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
     working_dir: /app
     command: ./bin/agent-service
 
@@ -285,12 +317,15 @@ services:
     environment:
       DB_NAME: ${WANWU_DB_NAME}
       DB_MYSQL_ADDRESS: ${WANWU_MYSQL_ADDRESS}
+      DB_MYSQL_USER: ${WANWU_MYSQL_USER}
       DB_MYSQL_PASSWORD: ${WANWU_MYSQL_PASSWORD}
       DB_TIDB_ADDRESS: ${WANWU_TIDB_ADDRESS}
       DB_TIDB_PASSWORD: ${WANWU_TIDB_PASSWORD}
       DB_OCEANBASE_USER: ${WANWU_OCEAN_BASE_USER}@${WANWU_OCEAN_BASE_TENANT_NAME}
       DB_OCEANBASE_ADDRESS: ${WANWU_OCEAN_BASE_HOST}:${WANWU_OCEAN_BASE_PORT}
       DB_OCEANBASE_PASSWORD: ${WANWU_OCEAN_BASE_PASSWORD}
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
     working_dir: /app
     command: ./bin/operate-service
 
@@ -310,6 +345,7 @@ services:
     environment:
       DB_NAME: ${WANWU_DB_NAME}
       DB_MYSQL_ADDRESS: ${WANWU_MYSQL_ADDRESS}
+      DB_MYSQL_USER: ${WANWU_MYSQL_USER}
       DB_MYSQL_PASSWORD: ${WANWU_MYSQL_PASSWORD}
       DB_TIDB_ADDRESS: ${WANWU_TIDB_ADDRESS}
       DB_TIDB_PASSWORD: ${WANWU_TIDB_PASSWORD}
@@ -322,6 +358,8 @@ services:
       MINIO_ENDPOINT: ${WANWU_MINIO_ENDPOINT}
       MINIO_USER: ${WANWU_MINIO_USER}
       MINIO_PASSWORD: ${WANWU_MINIO_PASSWORD}
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
     working_dir: /app
     command: ./bin/app-service
 
@@ -343,7 +381,11 @@ services:
       REDIS_HOST: ${WANWU_REDIS_HOST}
       REDIS_PORT: ${WANWU_REDIS_PORT}
       REDIS_PASSWORD: ${WANWU_REDIS_PASSWORD}
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
       URL_RAG_DOC_PARSER: http://rag-wanwu:8681/rag/doc_parser
+      # 文档解析强制 rag 开关：0 走正常逻辑（本地支持走本地，不支持回退 rag），1 强制只走 rag
+      DOC_RAG_ONLY: "0"
       URL_MINIO_DOWNLOAD: ${WANWU_WEB_BASE_URL}/minio/download/api
       WANWU_CALLBACK_URL_TO_BASE64: http://bff-service:6668/callback/v1/file/url/base64  
       GUNICORN_WORKERS: 2
@@ -363,13 +405,14 @@ services:
       - /etc/localtime:/etc/localtime
       - ../wanwu-workflow/wanwu-backend/bin/${WANWU_ARCH}/workflow-wanwu:/app/bin/workflow-wanwu
       - ../wanwu-workflow/wanwu-backend/configs:/app/configs
-      - ../wanwu-workflow/backend/infra/impl/document/parser/builtin/parse_pdf.py:/app/parse_pdf.py
-      - ../wanwu-workflow/backend/infra/impl/document/parser/builtin/parse_docx.py:/app/parse_docx.py
-      - ../wanwu-workflow/backend/infra/impl/coderunner/script/sandbox.py:/app/sandbox.py
+      - ../wanwu-workflow/backend/infra/document/parser/impl/builtin/parse_pdf.py:/app/parse_pdf.py
+      - ../wanwu-workflow/backend/infra/document/parser/impl/builtin/parse_docx.py:/app/parse_docx.py
+      - ../wanwu-workflow/backend/infra/coderunner/impl/script/sandbox.py:/app/sandbox.py
       - ${WANWU_PROJECT_DIR}/workflow-wanwu/log:/app/log
     environment:
       DB_NAME: ${WANWU_DB_NAME}
       DB_MYSQL_ADDRESS: ${WANWU_MYSQL_ADDRESS}
+      DB_MYSQL_USER: ${WANWU_MYSQL_USER}
       DB_MYSQL_PASSWORD: ${WANWU_MYSQL_PASSWORD}
       DB_TIDB_ADDRESS: ${WANWU_TIDB_ADDRESS}
       DB_TIDB_PASSWORD: ${WANWU_TIDB_PASSWORD}
@@ -382,6 +425,8 @@ services:
       MINIO_ENDPOINT: ${WANWU_MINIO_ENDPOINT}
       MINIO_USER: ${WANWU_MINIO_USER}
       MINIO_PASSWORD: ${WANWU_MINIO_PASSWORD}
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
       JWT_SIGNING_KEY: ${WANWU_BFF_JWT_SIGNING_KEY}
       # --- 以下env用于workflow-wanwu适配 ---
       WANWU_EXTERNAL_ENDPOINT: ${WANWU_EXTERNAL_ENDPOINT}
@@ -393,12 +438,14 @@ services:
       WANWU_CALLBACK_CHATFLOW_LIST_URL: http://bff-service:6668/callback/v1/chatflow/list
       WANWU_CALLBACK_MCP_GET_URL: http://bff-service:6668/callback/v1/mcp
       WANWU_CALLBACK_MCP_SERVER_GET_URL: http://bff-service:6668/callback/v1/mcp/server
-      WANWU_CALLBACK_SKILL_DETAIL_URL: http://bff-service:6668/callback/v1/skill/detail
+      WANWU_CALLBACK_BUILTIN_SKILL_LIST_URL: http://bff-service:6668/callback/v1/skill/builtin/list
+      WANWU_CALLBACK_CUSTOM_SKILL_LIST_URL: http://bff-service:6668/callback/v1/skill/custom/list
+      WANWU_CALLBACK_ACQUIRED_SKILL_LIST_URL: http://bff-service:6668/callback/v1/skill/acquired/list
       WANWU_CALLBACK_WORKFLOW_LIST_SCHEMA_URL: http://workflow-wanwu:8999/v1/workflow/list_schema_by_wanwu
       WANWU_AGENT_API_URL: http://agent-service:8990/agent/chat/direct
       WANWU_KNOWLEDGE_SEARCH_URL: http://bff-service:6668/callback/v1/rag/search-knowledge-base
       WANWU_FILE_GENERATOR_URL: http://callback-wanwu:8669/v1/generate_file
-      WANWU_FILE_PARSER_URL: http://rag-wanwu:8681/rag/doc_parser
+      WANWU_FILE_PARSER_URL: http://callback-wanwu:8669/v1/doc_parse
       WANWU_QA_SEARCH_URL: http://bff-service:6668/callback/v1/rag/search-QA-base
       WANWU_CALLBACK_APP_RECORD_URL: http://bff-service:6668/callback/v1/app/record
       # 用于openapi调用workflow是否跳过execute history；默认0不跳过，会记录execute history；追求高并发为1不记录
@@ -452,16 +499,70 @@ services:
       REDIS_HOST: ${WANWU_REDIS_HOST}
       REDIS_PORT: ${WANWU_REDIS_PORT}
       REDIS_PASSWD: ${WANWU_REDIS_PASSWORD}
-      # 用于rag调用外部API的env
-      GET_KB_ID_URL: http://bff-service:6668/v1/api/category/info
-      KAFKA_MQ_REL_URL: http://bff-service:6668/v1/api/docstatus
-      KAFKA_MQ_KB_STATUS_URL: http://bff-service:6668/v1/api/knowledge/status
-      KAFKA_DOC_STATUS_INIT_URL: http://bff-service:6668/v1/api/doc_status_init
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
+      # bff 6668
       MODEL_PROVIDER_URL: http://bff-service:6668
+      KAFKA_MQ_REL_URL: http://bff-service:6668/callback/v1/api/docstatus
+      KAFKA_MQ_KB_STATUS_URL: http://bff-service:6668/callback/v1/api/knowledge/status
+      KAFKA_DOC_STATUS_INIT_URL: http://bff-service:6668/callback/v1/api/doc_status_init
       REPLACE_MINIO_DOWNLOAD_URL: ${WANWU_WEB_BASE_URL}/minio/download/api/
     command: /model_extend/start.sh
 
+  channel-service:
+    restart: always
+    image: ${WANWU_GO_IMAGE}
+    container_name: channel-service
+    networks:
+      - ${WANWU_DOCKER_NETWORK}
+    ports:
+      - 9990:9990
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ./bin/${WANWU_ARCH}/channel-service:/app/bin/channel-service
+      - ./configs/microservice/channel-service/configs:/app/configs/microservice/channel-service/configs
+      - ${WANWU_PROJECT_DIR}/channel-service/log:/app/log
+    environment:
+      DB_NAME: ${WANWU_DB_NAME}
+      DB_MYSQL_ADDRESS: ${WANWU_MYSQL_ADDRESS}
+      DB_MYSQL_USER: ${WANWU_MYSQL_USER}
+      DB_MYSQL_PASSWORD: ${WANWU_MYSQL_PASSWORD}
+      DB_TIDB_ADDRESS: ${WANWU_TIDB_ADDRESS}
+      DB_TIDB_PASSWORD: ${WANWU_TIDB_PASSWORD}
+      DB_OCEANBASE_USER: ${WANWU_OCEAN_BASE_USER}@${WANWU_OCEAN_BASE_TENANT_NAME}
+      DB_OCEANBASE_ADDRESS: ${WANWU_OCEAN_BASE_HOST}:${WANWU_OCEAN_BASE_PORT}
+      DB_OCEANBASE_PASSWORD: ${WANWU_OCEAN_BASE_PASSWORD}
+      REDIS_HOST: ${WANWU_REDIS_HOST}
+      REDIS_PORT: ${WANWU_REDIS_PORT}
+      REDIS_PASSWORD: ${WANWU_REDIS_PASSWORD}
+      JAEGER_ENABLE: ${WANWU_JAEGER_ENABLE}
+      JAEGER_OTLP_ENDPOINT: ${WANWU_JAEGER_OTLP_ENDPOINT}
+    working_dir: /app
+    command: ./bin/channel-service
+
   # ------ middleware ------
+
+  jaeger:
+    restart: always
+    image: ${WANWU_JAEGER_IMAGE}
+    container_name: jaeger-wanwu
+    networks:
+      - ${WANWU_DOCKER_NETWORK}
+    # ports:
+    #   - 16686:16686
+    #   - 4317:4317
+    #   - 4318:4318
+    command: ["--config", "/etc/jaeger/config.yaml"]
+    volumes:
+      - ./configs/middleware/jaeger/config.yaml:/etc/jaeger/config.yaml:ro
+      - wanwu_jaeger_data:/tmp/jaeger/badger
+    user: "0"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:16686/jaeger/"]
+      interval: 15s
+      timeout: 5s
+      retries: 99
+      start_period: 10s
 
   kibana:
     restart: always
@@ -502,3 +603,4 @@ volumes:
   wanwu_es_certs:
   wanwu_shared_data_wga_bff:
   wanwu_shared_data_wga_sandbox_rag:
+  wanwu_jaeger_data:

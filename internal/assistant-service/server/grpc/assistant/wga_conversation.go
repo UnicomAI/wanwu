@@ -44,7 +44,7 @@ func (s *Service) WgaConversationCreate(ctx context.Context, req *assistant_serv
 
 // WgaConversationDelete 删除WGA对话
 func (s *Service) WgaConversationDelete(ctx context.Context, req *assistant_service.WgaConversationDeleteReq) (*emptypb.Empty, error) {
-	if status := s.cli.DeleteWgaConversationConfig(ctx, req.ThreadId); status != nil {
+	if status := s.cli.DeleteWgaConversationConfig(ctx, req.ThreadId, req.Identity.UserId, req.Identity.OrgId); status != nil {
 		return nil, errStatus(errs.Code_WgaConversationGetErr, status)
 	}
 	return &emptypb.Empty{}, nil
@@ -54,7 +54,7 @@ func (s *Service) WgaConversationDelete(ctx context.Context, req *assistant_serv
 func (s *Service) WgaConversationList(ctx context.Context, req *assistant_service.WgaConversationListReq) (*assistant_service.WgaConversationListResp, error) {
 	offset := (req.PageNo - 1) * req.PageSize
 
-	configs, total, status := s.cli.GetWgaConversationConfigList(ctx, req.Identity.UserId, req.Identity.OrgId, offset, req.PageSize)
+	configs, total, status := s.cli.GetWgaConversationConfigList(ctx, req.Identity.UserId, req.Identity.OrgId, req.SearchText, offset, req.PageSize)
 	if status != nil {
 		return nil, errStatus(errs.Code_WgaConversationGetErr, status)
 	}
@@ -65,6 +65,7 @@ func (s *Service) WgaConversationList(ctx context.Context, req *assistant_servic
 			ThreadId:  config.ThreadID,
 			Title:     config.Title,
 			CreatedAt: config.CreatedAt,
+			UpdatedAt: config.UpdatedAt,
 		})
 	}
 

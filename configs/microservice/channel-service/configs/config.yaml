@@ -1,0 +1,61 @@
+server:
+  grpc_endpoint: 0.0.0.0:9990
+  max_recv_msg_size: 4294967296  # 4G
+
+log:
+  std: true
+  level: debug
+  logs:
+    - enable: true
+      filename: log/channel-info.log
+      level: info
+      max_size: 10
+      max_backups: 10
+      max_age: 30
+    - enable: true
+      filename: log/channel-err.log
+      level: error
+      max_size: 10
+      max_backups: 10
+      max_age: 30
+
+db:
+  name: mysql
+  mysql:
+    address: localhost:3306
+    user: root
+    password: Wanwu123456
+    database: channel_service
+    max_open_conns: 16
+    max_idle_conns: 16
+    log_mode: true
+  postgres:
+    address: localhost:5432
+    user: postgres
+    password: Wanwu123456
+    database: channel_service
+    max_open_conns: 16
+    max_idle_conns: 16
+    log_mode: true
+
+redis:
+  host: localhost
+  port: 6379
+  username:
+  password: Wanwu123456
+  standalone: true
+  master_name: mymaster
+
+bff:
+  api_base_url: "http://bff-service:6667"
+
+# 下游 workflow 服务：用于获取对话流开始节点输入参数
+# GET /v1/workflow/{uuid}/schema_by_wanwu（鉴权只要 X-Org-Id/X-User-Id）
+workflow:
+  endpoint: "http://workflow-wanwu:8999"
+
+dingtalk:
+  stream_mode: true
+
+wechat:
+  base_url: "https://ilinkai.weixin.qq.com"

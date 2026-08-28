@@ -2,8 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"net/http"
-	"net/url"
 
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
@@ -11,33 +9,65 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetSquareSkillList 获取广场skill列表
+// GetSquareBuiltinSkillList
 //
 //	@Tags			exploration.skill
-//	@Summary		获取广场skill列表
-//	@Description	获取探索广场中的skill列表
+//	@Summary		获取广场内置skill列表
+//	@Description	获取探索广场中的内置skill列表
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
 //	@Param			name	query		string	false	"skill名称"
-//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.SquareSkillDetail}}
-//	@Router			/square/skills [get]
-func GetSquareSkillList(ctx *gin.Context) {
-	resp, err := service.GetSquareSkillList(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("name"))
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.BuiltinSkillInfo}}
+//	@Router			/square/skill/builtin/list [get]
+func GetSquareBuiltinSkillList(ctx *gin.Context) {
+	resp, err := service.GetSquareBuiltinSkillList(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("name"))
 	gin_util.Response(ctx, resp, err)
 }
 
-// ShareSquareSkill 添加广场skill到资源库
+// GetSquareBuiltinSkillDetail
 //
 //	@Tags			exploration.skill
-//	@Summary		添加广场skill到资源库
-//	@Description	将广场中的skill添加到我的资源库
+//	@Summary		获取广场内置skill详情
+//	@Description	获取探索广场中的内置skill详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			skillId	query		string	true	"skill ID"
+//	@Success		200		{object}	response.Response{data=response.BuiltinSkillDetail}
+//	@Router			/square/skill/builtin/detail [get]
+func GetSquareBuiltinSkillDetail(ctx *gin.Context) {
+	resp, err := service.GetSquareBuiltinSkillDetail(ctx, ctx.Query("skillId"))
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetSquareShareSkillList
+//
+//	@Tags			exploration.skill
+//	@Summary		获取广场共享skill列表
+//	@Description	获取探索广场中的共享skill列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	query		string	false	"skill名称"
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.SharedSkillInfo}}
+//	@Router			/square/skill/share/list [get]
+func GetSquareShareSkillList(ctx *gin.Context) {
+	resp, err := service.GetSquareShareSkillList(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("name"))
+	gin_util.Response(ctx, resp, err)
+}
+
+// ShareSquareSkill
+//
+//	@Tags			exploration.skill
+//	@Summary		添加共享skill到资源库
+//	@Description	将共享skill添加到我的资源库
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
 //	@Param			skillId	body		request.ShareSquareSkillReq	true	"skill ID"
 //	@Success		200		{object}	response.Response
-//	@Router			/square/skills/share [post]
+//	@Router			/square/skill/share [post]
 func ShareSquareSkill(ctx *gin.Context) {
 	var req request.ShareSquareSkillReq
 	if !gin_util.Bind(ctx, &req) {
@@ -47,42 +77,104 @@ func ShareSquareSkill(ctx *gin.Context) {
 	gin_util.Response(ctx, nil, err)
 }
 
-// GetSquareSkillDetail 获取广场skill详情
+// GetSquareShareSkillDetail
 //
 //	@Tags			exploration.skill
-//	@Summary		获取广场skill详情
-//	@Description	获取探索广场中的skill详情
+//	@Summary		获取共享skill详情
+//	@Description	获取共享skill详情
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
 //	@Param			skillId	query		string	true	"skill ID"
-//	@Success		200		{object}	response.Response{data=response.SquareSkillDetailInfo}
-//	@Router			/square/skills/detail [get]
-func GetSquareSkillDetail(ctx *gin.Context) {
-	resp, err := service.GetSquareSkillDetail(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("skillId"))
+//	@Success		200		{object}	response.Response{data=response.SharedSkillDetail}
+//	@Router			/square/skill/share/detail [get]
+func GetSquareShareSkillDetail(ctx *gin.Context) {
+	resp, err := service.GetSquareShareSkillDetail(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("skillId"))
 	gin_util.Response(ctx, resp, err)
 }
 
-// DownloadSquareSkill 下载广场skill
+// DownloadSquareShareSkill
 //
 //	@Tags			exploration.skill
-//	@Summary		下载广场skill
-//	@Description	下载探索广场中的skill ZIP包
+//	@Summary		下载共享skill
+//	@Description	下载共享skill ZIP包
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		application/octet-stream
 //	@Param			skillId	query		string	true	"skill ID"
 //	@Success		200		{object}	response.Response
-//	@Router			/square/skills/download [get]
-func DownloadSquareSkill(ctx *gin.Context) {
-	fileName := fmt.Sprintf("%s.zip", ctx.Query("skillId"))
-	resp, err := service.DownloadSquareSkill(ctx, ctx.Query("skillId"))
+//	@Router			/square/skill/share/download [get]
+func DownloadSquareShareSkill(ctx *gin.Context) {
+	skillId := ctx.Query("skillId")
+	fileName := fmt.Sprintf("%s.zip", skillId)
+	resp, err := service.DownloadSquareShareSkill(ctx, skillId)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	ctx.Header("Content-Disposition", "attachment; filename*=utf-8''"+url.QueryEscape(fileName))
-	ctx.Header("Content-Type", "application/octet-stream")
-	ctx.Header("Access-Control-Expose-Headers", "Content-Disposition")
-	ctx.Data(http.StatusOK, "application/octet-stream", resp)
+	gin_util.ResponseAttachment(ctx, fileName, resp)
+}
+
+// GetSquareShareSkillVersionList
+//
+//	@Tags			exploration.skill
+//	@Summary		获取共享skill版本列表
+//	@Description	获取共享skill的版本历史列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			skillId	query		string	true	"skill ID"
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.SkillVersionInfo}}
+//	@Router			/square/skill/share/version/list [get]
+func GetSquareShareSkillVersionList(ctx *gin.Context) {
+	resp, err := service.GetSquareShareSkillVersionList(ctx, ctx.Query("skillId"))
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetSquareCreatedSkillList
+//
+//	@Tags			exploration.skill
+//	@Summary		获取我发布skill列表
+//	@Description	获取我发布的skill列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	query		string	false	"skill名称"
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.PublishedSkillInfo}}
+//	@Router			/square/skill/created/list [get]
+func GetSquareCreatedSkillList(ctx *gin.Context) {
+	resp, err := service.GetSquareCreatedSkillList(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("name"))
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetSquareCreatedSkillDetail
+//
+//	@Tags			exploration.skill
+//	@Summary		获取我发布skill详情
+//	@Description	获取我发布的skill详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			customSkillId	query		string	true	"custom skill ID"
+//	@Success		200				{object}	response.Response{data=response.PublishedSkillDetail}
+//	@Router			/square/skill/created/detail [get]
+func GetSquareCreatedSkillDetail(ctx *gin.Context) {
+	resp, err := service.GetSquareCreatedSkillDetail(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("customSkillId"))
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetSquareCreatedSkillVersionList
+//
+//	@Tags			exploration.skill
+//	@Summary		获取我发布skill版本列表
+//	@Description	获取我发布的skill版本历史列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			customSkillId	query		string	true	"custom skill ID"
+//	@Success		200				{object}	response.Response{data=response.ListResult{list=[]response.SkillVersionInfo}}
+//	@Router			/square/skill/created/version/list [get]
+func GetSquareCreatedSkillVersionList(ctx *gin.Context) {
+	resp, err := service.GetSquareCreatedSkillVersionList(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("customSkillId"))
+	gin_util.Response(ctx, resp, err)
 }

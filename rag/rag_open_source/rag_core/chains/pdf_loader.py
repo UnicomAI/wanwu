@@ -20,7 +20,6 @@ import os
 import logging
 
 from utils import minio_utils
-from utils import ocr_utils
 from settings import IMAGE_MINIMUM_WIDTH, IMAGE_MINIMUM_HEIGHT
 from utils.constant import MIN_EMBEDDING_SIZE
 logger = logging.getLogger(__name__)
@@ -705,8 +704,8 @@ class PDFLoader(TextLoader):
             height_list = sorted(data, key=lambda x: int(next(iter(x.keys()))), reverse=True)
             if len(height_list) >= 2 and len(text) > 0 and (has_table or has_image):
                 chunk_type = 2
-            elif (text == '') and ('ocr' in self.parser_choices):
-                chunk_type = 3
+            # 移除 chunk_type=3 分支：text 模式提取不出文字的 PDF，返回默认 chunk_type=1
+            # 不再根据 "ocr" in parser_choices 判断
 
         except Exception as e:
             raise RuntimeError(f"Error loading {self.file_path}") from e
@@ -1200,15 +1199,7 @@ class PDFLoader(TextLoader):
                                 image_file_name = "%s_%s" % (file_name, unique_id)
                                 image_file_path = self.crop_image(element, pageObj, directory, image_file_name)
                                 logger.info("------>image_file_path=%s" % image_file_path)
-                                if "ocr" in self.parser_choices:
-                                    ocr_parser_data = ocr_utils.ocr_parser_native(image_file_path, self.ocr_model_id)
-                                    logger.info(json.dumps(ocr_parser_data, ensure_ascii=False))
-                                    if 'data' in ocr_parser_data:
-                                        for item in ocr_parser_data["data"]:
-                                            if item["type"] == "figure":
-                                                image_extract_text = item["text"]
-                                                if image_extract_text:
-                                                    image_labels.extend(image_extract_text.split("\n"))
+                                # text 模式下 LTFigure 只做图片裁剪→转换→上传 MinIO，不做 OCR 提取文字
 
                                 # 将裁剪后的pdf转换为图像
                                 image_url = self.convert_to_images(image_file_path, directory, image_file_name)
@@ -1261,23 +1252,7 @@ class PDFLoader(TextLoader):
                         page_chunk["end_position"] = end_position
                         page_chunks.append(page_chunk)
                         text += current_page_content + "\n"
-                    elif "ocr" in self.parser_choices:
-                        page_data, page_num = ocr_utils.get_page_data(pagenum, self.file_path, self.ocr_model_id)
-                        if page_data is not None:
-                            for item in page_data:
-                                if "text" not in item:
-                                    continue
-                                if item["type"] not in ['page-header', 'page-footer']:
-                                    current_page_content_len = len(item["text"])
-                                    page_chunk = {}
-                                    page_chunk["text"] = item["text"]
-                                    page_chunk["page_num"] = [pagenum + 1]
-                                    page_chunk["file_path"] = self.file_path
-                                    page_chunk["type"] = "text"
-                                    page_chunk["embedding_chunks"] = []
-                                    page_chunk["start_position"] = {}
-                                    page_chunk["end_position"] = {}
-                                    page_chunks.append(page_chunk)
+                    # text 模式下页面为空则不追加，不做 OCR 回退
                     logger.info("------>page_num=%s,content_len=%s" % (pagenum + 1, current_page_content_len))
                 except Exception as error:
                     import traceback
@@ -1391,8 +1366,8 @@ class PDFLoader(TextLoader):
                                 page_content.append(bottom_line)
                     else:
                         clean_text = plumber_page.extract_text()
-                        logger.info("---->clean_text=%s" % clean_text)
-                        print("---->clean_text=%s" % clean_text)
+                        # logger.info("---->clean_text=%s" % clean_text)
+                        # print("---->clean_text=%s" % clean_text)
                         page_content.append(clean_text)
 
                     current_page_content = "".join(page_content)
@@ -1415,18 +1390,8 @@ class PDFLoader(TextLoader):
         finally:
             pdf.close()
 
-        # doc_list = []
+        # text 模式下提取不出文字就是空结果，不再回退到 OCR
         metadata = {"source": self.file_path}
-        if (text == '' or len(text) <= 150 or page_empty_count > 2) and ("ocr" in self.parser_choices):
-            try:
-                chunks = ocr_utils.ocr_parser(self.file_path, self.ocr_model_id)
-                for chunk in chunks:
-                    text += chunk["text"] + "\n"
-            except Exception as err:
-                import traceback
-                logger.error("------> ocr error %s" % err)
-                logger.error(traceback.format_exc())
-
         return [Document(page_content=text, metadata=metadata)]
 
 

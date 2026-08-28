@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/UnicomAI/wanwu/internal/agent-service/model/response"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/mark3labs/mcp-go/client"
@@ -12,13 +13,13 @@ import (
 )
 
 /**
- * 可以重试的mcp客户端，默认重试3次，每次重试间隔阶梯等待
+ * 可以重试的mcp客户端，默认重试2次，每次重试间隔阶梯等待
  */
 
 var defaultRetry = &Retry{
 	Span:     time.Second * 3,
 	StepSpan: true,
-	Times:    3,
+	Times:    2,
 }
 
 type Retry struct {
@@ -179,7 +180,23 @@ func (r *RetryMcpClient) CallTool(
 			time.Sleep(duration)
 		}
 	}
-	return callTool(r.client, ctx, request, r.log, 0)
+	result, err := callTool(r.client, ctx, request, r.log, 0)
+	if err != nil {
+		resp, err1 := response.ToolErrResp(err)
+		if err1 != nil {
+			return result, err
+		}
+		return &mcp.CallToolResult{
+			IsError: false,
+			Content: []mcp.Content{
+				&mcp.TextContent{
+					Type: "text",
+					Text: resp,
+				},
+			},
+		}, nil
+	}
+	return result, nil
 }
 
 // SetLevel sets the logging level for the server

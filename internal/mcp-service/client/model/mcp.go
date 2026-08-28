@@ -14,4 +14,6 @@ type MCPClient struct {
 	StreamableUrl string
 	Transport     string // 传输协议: "sse" 或 "streamable"
 	AvatarPath    string `gorm:"column:avatar_path;comment:'自定义工具头像'"`
+	AuthJSON      string `gorm:"column:auth_json;type:longtext;comment:'鉴权json'"`
+	Headers       string `gorm:"column:headers;type:longtext;comment:'请求头json'"`
 }

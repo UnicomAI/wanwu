@@ -1,0 +1,10 @@
+{
+  "name": "腾讯企业邮箱",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "imap": "^0.8.19",
+    "mailparser": "^3.6.5",
+    "nodemailer": "^6.9.7"
+  }
+}

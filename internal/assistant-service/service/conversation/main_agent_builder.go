@@ -1,5 +1,9 @@
 package conversation
 
+const (
+	successCode = 0
+)
+
 var mainAgent = &MainAgent{}
 
 type MainAgent struct {
@@ -16,7 +20,9 @@ func (*MainAgent) Build(conversationResp *ConversationResp, conversation, search
 	if conversationResp.SearchList == nil && len(searchResult) > 0 {
 		conversationResp.SearchList = &searchResult
 	}
-	if len(conversation) > 0 {
+	if agentChatResp.Code != successCode {
+		conversationResp.WriteError(conversation, agentChatResp.Message, agentChatResp.Order)
+	} else if len(conversation) > 0 {
 		//保存对话
 		conversationResp.Write(conversation, agentChatResp.Order)
 	}

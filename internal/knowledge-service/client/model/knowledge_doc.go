@@ -7,16 +7,21 @@ const (
 	DocInit             = 0  //文档待处理
 	DocSuccess          = 1  //文档处理完成
 	DocProcessing       = 3  //文档处理中
-	DocFail             = 5  //文档待处理
+	DocFail             = 5  //文档解析失败
 	DocSuccessNew       = 10 //文档处理完成
 
-	GraphInit          GraphStatus = 0   //图谱未处理
-	GraphSuccess       GraphStatus = 100 //图谱生成成功
-	GraphChunkFail     GraphStatus = 101 //图谱生成chunk文本失败
-	GraphExtractFail   GraphStatus = 102 //图谱生成提取失败
-	GraphStoreFail     GraphStatus = 103 //图谱持久化存储失败
-	GraphProcessing    GraphStatus = 110 //图谱开始解析
-	GraphInterruptFail GraphStatus = 119
+	GraphInit           GraphStatus = 0   //图谱未处理
+	GraphSuccess        GraphStatus = 100 //graph 图谱提取成功（终态·成功）
+	GraphChunkFail      GraphStatus = 101 //生成图谱获取 chunk 文本失败
+	GraphExtractFail    GraphStatus = 102 //提取图谱失败
+	GraphStoreFail      GraphStatus = 103 //图谱持久化存储失败
+	GraphSchemaFail     GraphStatus = 104 //graph schema 解析失败
+	GraphProcessing     GraphStatus = 110 //图谱开始解析
+	GraphSchemaSuccess  GraphStatus = 111 //graph schema 解析成功
+	GraphChunkSuccess   GraphStatus = 112 //生成图谱获取 chunk 文本成功
+	GraphExtractSuccess GraphStatus = 113 //提取图谱成功
+	GraphStoreSuccess   GraphStatus = 114 //图谱持久化存储成功
+	GraphInterruptFail  GraphStatus = 119 //重启打断执行
 )
 
 type KnowledgeDoc struct {
@@ -48,15 +53,15 @@ func SuccessGraphStatus(status int) bool {
 	return GraphStatus(status) == GraphSuccess
 }
 
-// BuildGraphShowStatus 报告展示状态 0:待处理，1.解析中，2.解析成功，3.解析失败
+// BuildGraphShowStatus 报告展示状态 0:待处理，1.解析中，2.解析成功，3.解析失败 4. 文档处理失败，不显示图谱状态
 func BuildGraphShowStatus(status GraphStatus, docStatus int) (int, string) {
 	if docStatus == DocFail {
-		return -1, "文档处理失败，不显示图谱状态"
+		return 4, "文档处理失败，不显示图谱状态"
 	}
 	switch status {
 	case GraphInit:
 		return 0, ""
-	case GraphProcessing:
+	case GraphProcessing, GraphSchemaSuccess, GraphChunkSuccess, GraphExtractSuccess, GraphStoreSuccess:
 		return 1, ""
 	case GraphSuccess:
 		return 2, ""
@@ -68,14 +73,15 @@ func BuildGraphShowStatus(status GraphStatus, docStatus int) (int, string) {
 func buildErrorMessage(status GraphStatus) string {
 	switch status {
 	case GraphChunkFail:
-		return "图谱生成chunk文本失败"
+		return "生成图谱获取chunk文本失败"
 	case GraphExtractFail:
-		return "图谱生成提取失败"
+		return "提取图谱失败"
 	case GraphStoreFail:
 		return "图谱持久化存储失败"
+	case GraphSchemaFail:
+		return "graph schema 解析失败"
 	case GraphInterruptFail:
-		return "图谱中断失败"
-
+		return "重启打断执行"
 	}
 	return ""
 }
@@ -83,4 +89,25 @@ func buildErrorMessage(status GraphStatus) string {
 func InGraphStatus(status int) bool {
 	graphStatus := GraphStatus(status)
 	return graphStatus >= GraphSuccess && graphStatus <= GraphInterruptFail
+}
+
+// BuildGraphProgress 将图谱原始状态码映射为进度百分比 (0-100)，用于前端进度条展示。
+// 同一进度值同时代表"该阶段完成"和"在下一阶段失败"，进度条停留在最后成功的位置。
+func BuildGraphProgress(status GraphStatus) int {
+	switch status {
+	case GraphProcessing, GraphSchemaFail: // 开始解析 / schema 阶段失败
+		return 5
+	case GraphSchemaSuccess, GraphChunkFail: // schema 完成 / chunk 文本阶段失败
+		return 25
+	case GraphChunkSuccess, GraphExtractFail: // chunk 完成 / 提取阶段失败
+		return 45
+	case GraphExtractSuccess, GraphStoreFail: // 提取完成 / 持久化阶段失败
+		return 65
+	case GraphStoreSuccess: // 持久化完成
+		return 85
+	case GraphSuccess: // 全部完成
+		return 100
+	default: // 0 待处理 / 119 中断 / 未知码
+		return 0
+	}
 }

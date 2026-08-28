@@ -1,15 +1,30 @@
 package request
 
-type AssistantBrief struct {
+import (
+	"errors"
+	"fmt"
+
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
+	"github.com/UnicomAI/wanwu/pkg/util"
+)
+
+type AssistantUpdateReq struct {
 	AssistantId string `json:"assistantId"  validate:"required"`
 	AppBriefConfig
 }
 
-func (a *AssistantBrief) Check() error { return nil }
+func (a *AssistantUpdateReq) Check() error {
+	// name/desc 校验在 service 层处理
+	return nil
+}
 
 type AssistantCreateReq struct {
 	Category int `json:"category"` // 1:单智能体 2:多智能体
 	AppBriefConfig
+}
+
+func (a *AssistantCreateReq) Check() error {
+	return util.ValidateBriefCreate(&a.Name, &a.Desc, util.SubjectAssistant)
 }
 
 type AssistantConfig struct {
@@ -107,7 +122,7 @@ func (a *AssistantMCPToolEnableRequest) Check() error { return nil }
 type AssistantSkillAddRequest struct {
 	AssistantId string `json:"assistantId" validate:"required"`
 	SkillId     string `json:"skillId" validate:"required"`
-	SkillType   string `json:"skillType" validate:"required,oneof=builtin custom"`
+	SkillType   string `json:"skillType" validate:"required,oneof=builtin custom acquired"`
 }
 
 func (a *AssistantSkillAddRequest) Check() error { return nil }
@@ -115,7 +130,7 @@ func (a *AssistantSkillAddRequest) Check() error { return nil }
 type AssistantSkillDelRequest struct {
 	AssistantId string `json:"assistantId" validate:"required"`
 	SkillId     string `json:"skillId" validate:"required"`
-	SkillType   string `json:"skillType" validate:"required,oneof=builtin custom"`
+	SkillType   string `json:"skillType" validate:"required,oneof=builtin custom acquired"`
 }
 
 func (a *AssistantSkillDelRequest) Check() error { return nil }
@@ -123,7 +138,7 @@ func (a *AssistantSkillDelRequest) Check() error { return nil }
 type AssistantSkillEnableSwitchRequest struct {
 	AssistantId string `json:"assistantId" validate:"required"`
 	SkillId     string `json:"skillId" validate:"required"`
-	SkillType   string `json:"skillType" validate:"required,oneof=builtin custom"`
+	SkillType   string `json:"skillType" validate:"required,oneof=builtin custom acquired"`
 	Enable      bool   `json:"enable"`
 }
 
@@ -144,21 +159,33 @@ type ConversationDeleteRequest struct {
 func (c *ConversationDeleteRequest) Check() error { return nil }
 
 type ConversationIdRequest struct {
+	AssistantId    string `json:"assistantId" form:"assistantId" validate:"required"`
 	ConversationId string `json:"conversationId" form:"conversationId"  validate:"required"`
 	DetailId       string `json:"detailId" form:"detailId"` // 可选，传值则删除单条对话，不传则删除全部对话
 }
 
 func (c *ConversationIdRequest) Check() error { return nil }
 
+type MessageFeedbackRequest struct {
+	AssistantId     string `json:"assistantId" form:"assistantId"   validate:"required"`
+	ConversationId  string `json:"conversationId" form:"conversationId"  validate:"required"`
+	DetailId        string `json:"detailId" form:"detailId" validate:"required"` // 消息详情ID
+	FeedbackType    int32  `json:"feedbackType" form:"feedbackType"`             // 反馈类型: 1=点赞 2=点踩
+	FeedbackContent string `json:"feedbackContent" form:"feedbackContent"`       // 反馈文本内容
+	CommonCheck
+}
+
 type ConversationGetListRequest struct {
 	AssistantId string `json:"assistantId" form:"assistantId"  validate:"required"`
 	PageSize    int    `json:"pageSize" form:"pageSize"  validate:"required"`
 	PageNo      int    `json:"pageNo" form:"pageNo"  validate:"required"`
+	SearchText  string `json:"searchText" form:"searchText"` // 标题关键词，模糊匹配，空则不过滤
 }
 
 func (c *ConversationGetListRequest) Check() error { return nil }
 
 type ConversationGetDetailListRequest struct {
+	AssistantId    string `json:"assistantId" form:"assistantId"  validate:"required"`
 	ConversationId string `json:"conversationId" form:"conversationId"  validate:"required"`
 	PageSize       int    `json:"pageSize" form:"pageSize"  validate:"required"`
 	PageNo         int    `json:"pageNo" form:"pageNo"  validate:"required"`
@@ -173,9 +200,47 @@ type ConversionStreamRequest struct {
 	Prompt         string                 `json:"prompt" form:"prompt"  validate:"required"`
 	SystemPrompt   string                 `json:"systemPrompt" form:"systemPrompt"`
 	IsCompare      bool                   `json:"isCompare" form:"isCompare"`
+	SseHold        bool                   `json:"sseHold" form:"sseHold"`
+}
+
+type PendingConversionRequest struct {
+	AssistantId    string `json:"assistantId" form:"assistantId"  validate:"required"`
+	Draft          bool   `json:"draft" form:"draft"`                 //是否草稿态
+	ConversationId string `json:"conversationId" form:"conversionId"` //当非草稿时，conversationId必填
+}
+
+func (p *PendingConversionRequest) Check() error {
+	if !p.Draft && p.ConversationId == "" {
+		return fmt.Errorf("conversationId is required")
+	}
+	return nil
+}
+
+type ConversionStreamConnectRequest struct {
+	AssistantId    string `json:"assistantId" form:"assistantId"  validate:"required"`
+	ConversationId string `json:"conversationId" form:"conversionId"  validate:"required"`
+	CommonCheck
+}
+
+type ConversionStreamCancelRequest struct {
+	PendingConversionRequest
+}
+
+func (p *ConversionStreamCancelRequest) Check() error {
+	if !p.Draft && p.ConversationId == "" {
+		return fmt.Errorf("conversationId is required")
+	}
+	return nil
 }
 
 func (c *ConversionStreamRequest) Check() error {
+	for _, f := range c.FileInfo {
+		if f.FileUrl != "" {
+			if err := url_util.ValidateURL(f.FileUrl); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -254,10 +319,13 @@ type MultiAgentConfigUpdateReq struct {
 type QuestionRecommendRequest struct {
 	Query          string `json:"query" form:"query"  validate:"required"`             //用户问题
 	AssistantId    string `json:"assistantId" form:"assistantId"  validate:"required"` //智能体id
-	ConversationId string `json:"conversationId" form:"conversionId"`                  //会话id，如果非试用则不可为空
+	ConversationId string `json:"conversationId" form:"conversationId"`                //会话id，如果非试用则不可为空
 	Trial          bool   `json:"trial" form:"trial"`
 }
 
 func (c *QuestionRecommendRequest) Check() error {
+	if !c.Trial && c.ConversationId == "" {
+		return errors.New("conversationId can not be empty")
+	}
 	return nil
 }

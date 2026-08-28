@@ -1,6 +1,7 @@
 package agent_chat_builder
 
 import (
+	"encoding/json"
 	"strconv"
 
 	"github.com/UnicomAI/wanwu/internal/agent-service/model/request"
@@ -76,8 +77,9 @@ func buildAgentProcessContent(req *request.AgentChatContext, respContext *respon
 			retList = append(retList, contents...)
 		}
 	}
-
-	if len(chatMessage.Content) > 0 {
+	//提取错误消息
+	errMsg := extractErrMsg(chatMessage, step)
+	if len(errMsg) == 0 && len(chatMessage.Content) > 0 {
 		respContext.IncreaseOrder()
 		contents := buildMessageContent([]string{chatMessage.Content}, buildSubAgentEvent(req, respContext, step))
 		if len(contents) > 0 {
@@ -85,11 +87,31 @@ func buildAgentProcessContent(req *request.AgentChatContext, respContext *respon
 		}
 		return retList, nil
 	}
-	contents := buildMessageContent(nil, buildSubAgentEvent(req, respContext, step))
+
+	var contentList []string
+	subAgentEvent := buildSubAgentEvent(req, respContext, step)
+	//错误消息重置消息状态为失败
+	if len(errMsg) > 0 {
+		subAgentEvent.ErrMessage = errMsg
+		subAgentEvent.Status = response.EventFailStatus
+		contentList = []string{errMsg}
+	}
+
+	contents := buildMessageContent(contentList, subAgentEvent)
 	if len(contents) > 0 {
 		retList = append(retList, contents...)
 	}
 	return retList, nil
+}
+
+func extractErrMsg(chatMessage *schema.Message, step AgentStep) string {
+	if step == AgentStopStep && len(chatMessage.Content) > 0 {
+		//错误消息处理
+		errResp := response.AgentToolErrResp{}
+		_ = json.Unmarshal([]byte(chatMessage.Content), &errResp)
+		return errResp.ErrorMsg
+	}
+	return ""
 }
 
 // buildAgentStep 构建智能体步骤

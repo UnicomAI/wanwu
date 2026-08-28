@@ -1,6 +1,7 @@
 package params_process
 
 import (
+	"context"
 	"fmt"
 
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
@@ -29,6 +30,7 @@ type UserQueryParams struct {
 	ConversationId string `json:"conversationId"` //会话id,当此参数不为空，会构造会话历史
 	QueryUserId    string `json:"queryUserId"`
 	QueryOrgId     string `json:"queryOrgId"`
+	Ctx            context.Context
 }
 
 type AgentInfo struct {
@@ -87,7 +89,8 @@ type AgentPrepareParams struct {
 	McpToolMap           map[string][]string
 	ConversionDetailList []*model.ConversationDetails
 	builtinSkillList     []*SkillDetail
-	CustomSkillList      []*mcp_service.CustomSkill
+	CustomSkillList      []*CustomSkillDetail
+	AcquiredSkillList    []*AcquiredSkillDetail
 	Err                  error
 }
 

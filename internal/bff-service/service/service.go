@@ -5,6 +5,7 @@ import (
 
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
+	channel_service "github.com/UnicomAI/wanwu/api/proto/channel-service"
 	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
 	knowledgebase_doc_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-doc-service"
 	knowledgebase_keywords_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-keywords-service"
@@ -22,13 +23,10 @@ import (
 	safety_service "github.com/UnicomAI/wanwu/api/proto/safety-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-)
-
-const (
-	maxMsgSize            = 1024 * 1024 * 4 // 4M
-	headlessServiceSchema = "dns:///"
 )
 
 var (
@@ -49,6 +47,8 @@ var (
 	assistant               assistant_service.AssistantServiceClient
 	safety                  safety_service.SafetyServiceClient
 	operate                 operate_service.OperateServiceClient
+	notice                  operate_service.NoticeServiceClient
+	channel                 channel_service.ChannelServiceClient
 )
 
 // --- API ---
@@ -87,6 +87,10 @@ func Init() error {
 	if err != nil {
 		return fmt.Errorf("init operate-service connection err: %v", err)
 	}
+	channelConn, err := newConn(config.Cfg().Channel.Host)
+	if err != nil {
+		return fmt.Errorf("init channel-service connection err: %v", err)
+	}
 	// grpc clients
 	iam = iam_service.NewIAMServiceClient(iamConn)
 	perm = perm_service.NewPermServiceClient(iamConn)
@@ -105,36 +109,49 @@ func Init() error {
 	assistant = assistant_service.NewAssistantServiceClient(assistantConn)
 	safety = safety_service.NewSafetyServiceClient(appConn)
 	operate = operate_service.NewOperateServiceClient(operateConn)
+	// 消息中心与 OperateService 同宿主，复用同一条连接
+	notice = operate_service.NewNoticeServiceClient(operateConn)
+	channel = channel_service.NewChannelServiceClient(channelConn)
 	return nil
 }
 
 // --- internal ---
 
 func newConn(host string) (*grpc.ClientConn, error) {
-	conn, err := grpc.NewClient(headlessServiceSchema+host,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
-		grpc.WithDefaultCallOptions(
-			grpc.MaxCallRecvMsgSize(maxMsgSize),
-			grpc.MaxCallSendMsgSize(maxMsgSize)),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return conn, err
+	return trace_util.NewGrpcTracerConn(host, nil)
 }
 
-func toIDName(idName *iam_service.IDName) response.IDName {
-	return response.IDName{
-		ID:   idName.Id,
-		Name: idName.Name,
+func toUserIDNameWithAvatar(idName *iam_service.IDNameWithAvatar) response.IDNameWithAvatar {
+	return response.IDNameWithAvatar{
+		ID:     idName.Id,
+		Name:   idName.Name,
+		Avatar: cacheUserAvatar(idName.AvatarPath),
 	}
 }
 
-func toIDNames(idNames []*iam_service.IDName) []response.IDName {
-	var ret []response.IDName
+func toUsersIDNameWithAvatar(idNames []*iam_service.IDNameWithAvatar) []response.IDNameWithAvatar {
+	var ret []response.IDNameWithAvatar
 	for _, idName := range idNames {
-		ret = append(ret, toIDName(idName))
+		ret = append(ret, toUserIDNameWithAvatar(idName))
+	}
+	return ret
+}
+
+func toOrgIDNameWithAvatar(ctx *gin.Context, org *iam_service.IDNameWithAvatar) response.IDNameWithAvatar {
+	if org.Id == config.TopOrgID {
+		org.Name = gin_util.I18nKey(ctx, "bff_top_org_name")
+	}
+	return response.IDNameWithAvatar{
+		ID:     org.Id,
+		Name:   org.Name,
+		Avatar: cacheOrgAvatar(org.AvatarPath),
+	}
+}
+
+func toOrgsIDNameWithAvatar(ctx *gin.Context, idNames []*iam_service.IDNameWithAvatar) []response.IDNameWithAvatar {
+	var ret []response.IDNameWithAvatar
+	for _, idName := range idNames {
+		ret = append(ret, toOrgIDNameWithAvatar(ctx, idName))
 	}
 	return ret
 }

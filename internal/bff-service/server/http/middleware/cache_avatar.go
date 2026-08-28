@@ -40,61 +40,59 @@ var (
 // 2. 根据路径前缀分发处理：mcp/、workflow/、custom/、其他
 // 3. 检查本地缓存是否已存在，存在则直接返回
 // 4. 不存在则从远程下载并缓存到本地
-func CacheAvatar() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		urlPath := ctx.Request.URL.Path
-		cacheIndex := strings.Index(urlPath, service.AvatarCachePrefix)
-		prefixLen := len(service.AvatarCachePrefix)
-		if cacheIndex == -1 {
-			ctx.Next()
-			return
-		}
-		// 提取 AvatarCachePrefix 后面的相对路径
-		relativePath := urlPath[cacheIndex+prefixLen:]
-		relativePath = strings.TrimPrefix(relativePath, "/")
-		if relativePath == "" {
-			ctx.Next()
-			return
-		}
-		// 保留查询参数（如MinIO预签名URL的签名）
-		if ctx.Request.URL.RawQuery != "" {
-			relativePath += "?" + ctx.Request.URL.RawQuery
-		}
-		// 根据路径前缀分发处理
-		if strings.HasPrefix(relativePath, "mcp/") {
-			// MCP服务图片，去掉mcp/前缀后处理
-			avatarPath := strings.TrimPrefix(relativePath, "mcp/")
-			if handleMCPAvatar(ctx, avatarPath) {
-				return
-			}
-		} else if strings.HasPrefix(relativePath, "workflow/") {
-			// 工作流/对话流图片，去掉workflow/前缀后处理
-			avatarPath := strings.TrimPrefix(relativePath, "workflow/")
-			if handleWorkflowAvatarCache(ctx, avatarPath) {
-				return
-			}
-		} else {
-			// MinIO通用图片或用户自定义图片
-			isResize := true
-			realPath := relativePath
-			if strings.HasPrefix(realPath, "custom/") {
-				// custom/前缀表示用户自定义图片，不压缩
-				realPath = strings.TrimPrefix(realPath, "custom/")
-				isResize = false
-			}
-			avatarPath := downloadAndCacheAvatar(ctx, realPath, isResize)
-			if avatarPath == "" {
-				ctx.Next()
-				return
-			}
-			if _, err := os.Stat(avatarPath); err == nil {
-				ctx.File(avatarPath)
-				ctx.Abort()
-				return
-			}
-		}
+func CacheAvatar(ctx *gin.Context) {
+	urlPath := ctx.Request.URL.Path
+	cacheIndex := strings.Index(urlPath, service.AvatarCachePrefix)
+	prefixLen := len(service.AvatarCachePrefix)
+	if cacheIndex == -1 {
 		ctx.Next()
+		return
 	}
+	// 提取 AvatarCachePrefix 后面的相对路径
+	relativePath := urlPath[cacheIndex+prefixLen:]
+	relativePath = strings.TrimPrefix(relativePath, "/")
+	if relativePath == "" {
+		ctx.Next()
+		return
+	}
+	// 保留查询参数（如MinIO预签名URL的签名）
+	if ctx.Request.URL.RawQuery != "" {
+		relativePath += "?" + ctx.Request.URL.RawQuery
+	}
+	// 根据路径前缀分发处理
+	if strings.HasPrefix(relativePath, "mcp/") {
+		// MCP服务图片，去掉mcp/前缀后处理
+		avatarPath := strings.TrimPrefix(relativePath, "mcp/")
+		if handleMCPAvatar(ctx, avatarPath) {
+			return
+		}
+	} else if strings.HasPrefix(relativePath, "workflow/") {
+		// 工作流/对话流图片，去掉workflow/前缀后处理
+		avatarPath := strings.TrimPrefix(relativePath, "workflow/")
+		if handleWorkflowAvatarCache(ctx, avatarPath) {
+			return
+		}
+	} else {
+		// MinIO通用图片或用户自定义图片
+		isResize := true
+		realPath := relativePath
+		if strings.HasPrefix(realPath, "custom/") {
+			// custom/前缀表示用户自定义图片，不压缩
+			realPath = strings.TrimPrefix(realPath, "custom/")
+			isResize = false
+		}
+		avatarPath := downloadAndCacheAvatar(ctx, realPath, isResize)
+		if avatarPath == "" {
+			ctx.Next()
+			return
+		}
+		if _, err := os.Stat(avatarPath); err == nil {
+			ctx.File(avatarPath)
+			ctx.Abort()
+			return
+		}
+	}
+	ctx.Next()
 }
 
 // handleWorkflowAvatarCache 处理工作流图片缓存请求

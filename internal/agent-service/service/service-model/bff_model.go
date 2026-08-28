@@ -37,4 +37,6 @@ type LLMModelConfig struct {
 	EndpointUrl     string `json:"endpointUrl"`     // 模型名称
 	FunctionCalling string `json:"functionCalling"` // 是否支持functionCall
 	VisionSupport   string `json:"visionSupport"`   // 是否支持多模态
+	MaxTokens       int    `json:"maxTokens"`       // 最大token限制
+	ContextSize     int    `json:"contextSize"`     // 模型上下文限制
 }

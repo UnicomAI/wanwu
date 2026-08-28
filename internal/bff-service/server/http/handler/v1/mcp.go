@@ -73,7 +73,7 @@ func DeleteMCP(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	gin_util.Response(ctx, nil, service.DeleteMCP(ctx, req.MCPID))
+	gin_util.Response(ctx, nil, service.DeleteMCP(ctx, getUserID(ctx), getOrgID(ctx), req.MCPID))
 }
 
 // GetMCPList
@@ -98,13 +98,15 @@ func GetMCPList(ctx *gin.Context) {
 //	@Description	获取MCP Tool列表
 //	@Accept			json
 //	@Produce		json
-//	@Param			mcpId		query		string	false	"mcpId(和serverUrl传一个)"
-//	@Param			serverUrl	query		string	false	"serverUrl,就是sseUrl/streamable(和mcpId传一个)"
-//	@Param			transport	query		string	false	"传输协议类型: sse 或 streamable(仅当serverUrl不为空时生效)"
-//	@Success		200			{object}	response.Response{data=response.MCPToolList}
-//	@Router			/mcp/tool/list [get]
+//	@Param			data	body		request.MCPToolListReq	true	"mcp工具列表请求参数"
+//	@Success		200		{object}	response.Response{data=response.MCPToolList}
+//	@Router			/mcp/tool/list [post]
 func GetMCPTools(ctx *gin.Context) {
-	resp, err := service.GetMCPToolList(ctx, ctx.Query("mcpId"), ctx.Query("serverUrl"), ctx.Query("transport"))
+	var req request.MCPToolListReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.GetMCPToolList(ctx, req)
 	gin_util.Response(ctx, resp, err)
 }
 

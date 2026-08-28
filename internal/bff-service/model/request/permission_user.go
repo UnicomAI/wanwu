@@ -1,7 +1,16 @@
 package request
 
+type OrgIDsReq struct {
+	IsAllOrg  bool     `json:"isAllOrg"`            // 是否查询全部组织（用户有权限的组织）
+	OrgIDList []string `json:"orgIdList,omitempty"` // 组织ID列表，isAllOrg=false 时必填
+}
+
+func (o *OrgIDsReq) Check() error {
+	return nil
+}
+
 type UserCreate struct {
-	Username string `json:"username" validate:"required"` // 用户名
+	OrgID string `json:"orgId" validate:"required"`
 	UserInfo
 }
 
@@ -11,6 +20,7 @@ func (u *UserCreate) Check() error {
 
 type UserUpdate struct {
 	UserID string `json:"userId" validate:"required"` // 用户ID
+	OrgID  string `json:"orgId" validate:"required"`  // 组织ID
 	UserInfo
 }
 
@@ -19,25 +29,38 @@ func (u *UserUpdate) Check() error {
 }
 
 type UserInfo struct {
-	Nickname string   `json:"nickname"`                     // 昵称
-	Password string   `json:"password" validate:"required"` // 密码
-	Phone    string   `json:"phone" validate:"required"`    // 电话
+	UserName string   `json:"userName" validate:"required"` // 用户名
+	Cipher   string   `json:"cipher" validate:"required"`   // RSA加密后的Base64字符串，包含{password, challenge}
+	Phone    string   `json:"phone"`                        // 电话
 	Remark   string   `json:"remark"`                       // 备注
-	Gender   string   `json:"gender"`                       // 性别（0-女，1-男，空-未知）
-	Company  string   `json:"company"`                      // 公司
+	Email    string   `json:"email"`                        // 邮箱
 	RoleIDs  []string `json:"roleIds" validate:"max=1"`     // 角色列表
+	KeyID    string   `json:"keyId" validate:"required"`    // RSA公钥ID
 }
 
 type UserID struct {
 	UserID string `json:"userId" validate:"required"` // 用户ID
 }
 
-func (u *UserID) Check() error {
+type UserWithOrgID struct {
+	UserID string `json:"userId" validate:"required"` // 用户ID
+	OrgID  string `json:"orgId" validate:"required"`  // 组织ID
+}
+
+func (u *UserWithOrgID) Check() error {
+	return nil
+}
+
+type UserDelete struct {
+	UserWithOrgID
+}
+
+func (u *UserDelete) Check() error {
 	return nil
 }
 
 type UserStatus struct {
-	UserID
+	UserWithOrgID
 	Status bool `json:"status"`
 }
 
@@ -47,8 +70,9 @@ func (u *UserStatus) Check() error {
 
 type UserPassword struct {
 	UserID
-	OldPassword string `json:"oldPassword" validate:"required"`
-	NewPassword string `json:"newPassword" validate:"required"`
+	OldCipher string `json:"oldCipher" validate:"required"` // 旧密码RSA加密后的Base64字符串，包含{password, challenge}
+	NewCipher string `json:"newCipher" validate:"required"` // 新密码RSA加密后的Base64字符串，包含{password, challenge}
+	KeyID     string `json:"keyId" validate:"required"`     // RSA公钥ID
 }
 
 func (u *UserPassword) Check() error {
@@ -56,10 +80,20 @@ func (u *UserPassword) Check() error {
 }
 
 type UserPasswordByAdmin struct {
-	UserID
-	Password string `json:"password" validate:"required"`
+	UserWithOrgID
+	Cipher string `json:"cipher" validate:"required"` // RSA加密后的Base64字符串，包含{password, challenge}
+	KeyID  string `json:"keyId" validate:"required"`  // RSA公钥ID
 }
 
 func (u *UserPasswordByAdmin) Check() error {
+	return nil
+}
+
+type BatchDeleteUserReq struct {
+	OrgID   string   `json:"orgId" validate:"required"`
+	UserIDs []string `json:"userIds" validate:"required,min=1"`
+}
+
+func (b *BatchDeleteUserReq) Check() error {
 	return nil
 }

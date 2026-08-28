@@ -1,7 +1,6 @@
 package mp_common
 
 import (
-	"bufio"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -10,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/go-resty/resty/v2"
 )
@@ -126,9 +126,10 @@ type LLMReq struct {
 	Tools          []OpenAITool          `json:"tools,omitempty"`
 
 	// custom
-	Thinking            *Thinking              `json:"thinking,omitempty"` // 控制模型是否开启深度思考模式。
-	EnableThinking      *bool                  `json:"enable_thinking,omitempty"`
-	ChatTemplateKwargs  map[string]interface{} `json:"chat_template_kwargs,omitempty"`
+	Thinking            *Thinking              `json:"thinking,omitempty"`              // 控制模型是否开启深度思考模式。
+	EnableThinking      *bool                  `json:"enable_thinking,omitempty"`       // 控制模型是否开启深度思考模式。
+	ChatTemplateKwargs  map[string]interface{} `json:"chat_template_kwargs,omitempty"`  // 控制模型是否开启深度思考模式（元景）
+	ReasoningEffort     *string                `json:"reasoning_effort,omitempty"`      // 控制模型的推理强度（Ds）Possible values: [high, max]
 	MaxCompletionTokens *int                   `json:"max_completion_tokens,omitempty"` // 控制模型输出的最大长度[0,64k]
 	LogitBias           map[string]int         `json:"logit_bias,omitempty"`            // 调整指定 token 在模型输出内容中出现的概率
 	ToolChoice          interface{}            `json:"tool_choice,omitempty"`           // 强制指定工具调用的策略
@@ -160,6 +161,7 @@ type OpenAIReqMsg struct {
 	Content          interface{}   `json:"content"`
 	ToolCallId       *string       `json:"tool_call_id,omitempty"`
 	ReasoningContent *string       `json:"reasoning_content,omitempty"`
+	Reasoning        *string       `json:"reasoning,omitempty"`
 	Name             *string       `json:"name,omitempty"`
 	FunctionCall     *FunctionCall `json:"function_call,omitempty"`
 	ToolCalls        []*ToolCall   `json:"tool_calls,omitempty"`
@@ -198,6 +200,7 @@ type OpenAIMsg struct {
 	Content          string        `json:"content"`
 	ToolCallId       *string       `json:"tool_call_id,omitempty"`
 	ReasoningContent *string       `json:"reasoning_content,omitempty"`
+	Reasoning        *string       `json:"reasoning,omitempty"`
 	Name             *string       `json:"name,omitempty"`
 	FunctionCall     *FunctionCall `json:"function_call,omitempty"`
 	ToolCalls        []*ToolCall   `json:"tool_calls,omitempty"`
@@ -337,6 +340,7 @@ type llmResp struct {
 	resp       *LLMResp // 缓存 unmarshal 结果
 	respStr    string   // 缓存 marshal 结果
 	inThinking bool     // 流式思维链状态
+	prefixSep  string   // 流式数据前缀分隔符，保持原始格式
 }
 
 func NewLLMResp(stream bool, raw string) ILLMResp {
@@ -367,7 +371,15 @@ func (resp *llmResp) ConvertResp() (*LLMResp, bool) {
 
 	raw := resp.raw
 	if resp.stream {
-		raw = strings.TrimPrefix(resp.raw, "data:")
+		// 提取原始前缀分隔符格式，保持 data: 或 data: 的一致性
+		afterPrefix := strings.TrimPrefix(resp.raw, "data:")
+		if len(afterPrefix) > 0 && afterPrefix[0] == ' ' {
+			resp.prefixSep = "data: "
+			raw = afterPrefix[1:] // 去掉空格
+		} else {
+			resp.prefixSep = "data:"
+			raw = afterPrefix
+		}
 	}
 
 	ret := &LLMResp{}
@@ -396,7 +408,7 @@ func (resp *llmResp) ConvertResp() (*LLMResp, bool) {
 	if newData, err := json.Marshal(ret); err == nil {
 		prefix := ""
 		if resp.stream {
-			prefix = "data:"
+			prefix = resp.prefixSep
 		}
 		resp.respStr = prefix + string(newData) + "\n"
 	}
@@ -428,7 +440,7 @@ func chatCompletionsUnary(ctx context.Context, provider, apiKey, url string, req
 		})
 	}
 
-	request := resty.New().
+	request := trace_util.NewResty(ctx).
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验
 		SetTimeout(0).                                             // 关闭请求超时
 		R().
@@ -478,7 +490,7 @@ func chatCompletionsStream(ctx context.Context, provider, apiKey, url string, re
 		var resp *resty.Response
 		var err error
 
-		request := resty.New().
+		request := trace_util.NewResty(ctx).
 			SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验
 			R().
 			SetContext(ctx).
@@ -519,7 +531,7 @@ func chatCompletionsStream(ctx context.Context, provider, apiKey, url string, re
 		close(errChan)
 
 		var inThinking bool
-		scan := bufio.NewScanner(resp.RawResponse.Body)
+		scan := util.NewScanner(resp.RawResponse.Body)
 		for scan.Scan() {
 			sseData := scan.Text()
 			sseResp := respConverter(true, sseData)
@@ -591,8 +603,13 @@ func extractThinkingFromResp(resp *LLMResp) {
 	if msg == nil {
 		return
 	}
+	// 优先级：reasoning_content > reasoning > 从content提取
 	if msg.ReasoningContent == nil || *msg.ReasoningContent == "" {
-		if msg.Content != "" {
+		// 检查 reasoning 字段
+		if msg.Reasoning != nil && *msg.Reasoning != "" {
+			msg.ReasoningContent = msg.Reasoning
+			msg.Reasoning = nil
+		} else if msg.Content != "" {
 			reasoning, cleanContent := extractThinkingFromContent(msg.Content)
 			if reasoning != "" {
 				msg.ReasoningContent = &reasoning
@@ -604,6 +621,13 @@ func extractThinkingFromResp(resp *LLMResp) {
 
 func extractThinkingFromDelta(delta *OpenAIMsg, inThinking bool) (bool, *string) {
 	if delta == nil {
+		return inThinking, nil
+	}
+
+	// 如果 reasoning 字段有值，直接转存到 reasoning_content
+	if delta.Reasoning != nil && *delta.Reasoning != "" {
+		delta.ReasoningContent = delta.Reasoning
+		delta.Reasoning = nil
 		return inThinking, nil
 	}
 

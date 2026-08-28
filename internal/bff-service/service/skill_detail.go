@@ -10,19 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetSkillDetailForWorkflow 根据 skillType 和 skillId 获取 skill 详情，供 workflow 回调接口使用
-func GetSkillDetailForWorkflow(ctx *gin.Context, skillId, skillType string) (*response.SkillDetailForWorkflow, error) {
+// GetCallbackSkillDetail 根据 skillType 和 skillId 获取 skill 详情。
+func GetCallbackSkillDetail(ctx *gin.Context, skillId, skillType string) (*response.CallbackSkillDetail, error) {
 	switch skillType {
 	case constant.SkillTypeCustom:
-		return getCustomSkillDetailForWorkflow(ctx, skillId)
+		return getCustomCallbackSkillDetail(ctx, skillId)
 	case constant.SkillTypeBuiltIn:
-		return getBuiltinSkillDetailForWorkflow(skillId)
+		return getBuiltinCallbackSkillDetail(skillId)
 	default:
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, "skill_detail_unknown_type", "unsupported skill type: "+skillType)
 	}
 }
 
-func getCustomSkillDetailForWorkflow(ctx *gin.Context, skillId string) (*response.SkillDetailForWorkflow, error) {
+func getCustomCallbackSkillDetail(ctx *gin.Context, skillId string) (*response.CallbackSkillDetail, error) {
 	resp, err := mcp.GetCustomSkillDetailByIdList(ctx.Request.Context(), &mcp_service.CustomSkillDetailByIdListReq{
 		SkillIds: []string{skillId},
 	})
@@ -33,7 +33,7 @@ func getCustomSkillDetailForWorkflow(ctx *gin.Context, skillId string) (*respons
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, "skill_detail_not_found", "custom skill not found: "+skillId)
 	}
 	skill := resp.SkillDetails[0]
-	return &response.SkillDetailForWorkflow{
+	return &response.CallbackSkillDetail{
 		SkillId:    skill.SkillId,
 		SkillType:  constant.SkillTypeCustom,
 		Name:       skill.Name,
@@ -43,7 +43,7 @@ func getCustomSkillDetailForWorkflow(ctx *gin.Context, skillId string) (*respons
 	}, nil
 }
 
-func getBuiltinSkillDetailForWorkflow(skillId string) (*response.SkillDetailForWorkflow, error) {
+func getBuiltinCallbackSkillDetail(skillId string) (*response.CallbackSkillDetail, error) {
 	skillsCfg, exist := config.Cfg().AgentSkill(skillId)
 	if !exist {
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, "skill_detail_not_found", "builtin skill not found: "+skillId)
@@ -52,7 +52,7 @@ func getBuiltinSkillDetailForWorkflow(skillId string) (*response.SkillDetailForW
 	if skillsCfg.Avatar != "" {
 		iconUrl = skillsCfg.Avatar
 	}
-	return &response.SkillDetailForWorkflow{
+	return &response.CallbackSkillDetail{
 		SkillId:    skillsCfg.SkillId,
 		SkillType:  constant.SkillTypeBuiltIn,
 		Name:       skillsCfg.Name,

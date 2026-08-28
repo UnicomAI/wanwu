@@ -7,6 +7,7 @@ import (
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	model_client "github.com/UnicomAI/wanwu/internal/model-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/model-service/client/orm/sqlopt"
+	"github.com/UnicomAI/wanwu/pkg/db"
 	"gorm.io/gorm"
 )
 
@@ -170,6 +171,48 @@ func (c *Client) ListModels(ctx context.Context, tab *model_client.ModelImported
 		return nil, toErrStatus("model_list_models_err", err.Error())
 	}
 	return modelInfos, nil
+}
+
+// ListModelsInStatisticScope 统计看板：org_id IN + user_id IN，与 app 统计 scope 语义一致。
+func (c *Client) ListModelsInStatisticScope(ctx context.Context, orgIds, userIds []string, modelType string) ([]*model_client.ModelImported, *errs.Status) {
+	var modelInfos []*model_client.ModelImported
+	db := sqlopt.SQLOptions(
+		sqlopt.WithUserIDs(userIds),
+		sqlopt.WithOrgIDs(orgIds),
+		sqlopt.WithModelType(modelType),
+	).Apply(c.db.WithContext(ctx))
+	if err := db.Order("updated_at DESC").Find(&modelInfos).Error; err != nil {
+		return nil, toErrStatus("model_list_models_in_statistic_scope_err", err.Error())
+	}
+	return modelInfos, nil
+}
+
+// AdminModelPageList 管理员中心模型全局分页列表：跨用户/组织（userIds/orgIds IN），
+// 支持按显示名模糊、供应商、模型类型集合过滤，按 updated_at 倒序分页，返回当前页数据与总数。
+func (c *Client) AdminModelPageList(ctx context.Context, name, provider string, modelTypes, userIds, orgIds []string, scopeTypes []uint32, pageNum, pageSize int) ([]*model_client.ModelImported, int64, *errs.Status) {
+	query := sqlopt.SQLOptions(
+		sqlopt.WithUserIDs(userIds),
+		sqlopt.WithOrgIDs(orgIds),
+		sqlopt.WithProvider(provider),
+		sqlopt.LikeDisplayNameOrModel(db.EscapeLike(name)),
+		sqlopt.WithModelTypes(modelTypes),
+		sqlopt.WithScopeTypes(scopeTypes),
+	).Apply(c.db.WithContext(ctx)).Model(&model_client.ModelImported{})
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, toErrStatus("model_admin_page_list_err", err.Error())
+	}
+
+	var modelInfos []*model_client.ModelImported
+	if err := query.
+		Order("updated_at DESC").
+		Offset((pageNum - 1) * pageSize).
+		Limit(pageSize).
+		Find(&modelInfos).Error; err != nil {
+		return nil, 0, toErrStatus("model_admin_page_list_err", err.Error())
+	}
+	return modelInfos, total, nil
 }
 
 func (c *Client) ListTypeModels(ctx context.Context, tab *model_client.ModelImported) ([]*model_client.ModelImported, *errs.Status) {

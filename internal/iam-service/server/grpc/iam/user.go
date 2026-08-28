@@ -33,7 +33,11 @@ func (s *Service) GetUserSelectByUserIDs(ctx context.Context, req *iam_service.G
 }
 
 func (s *Service) GetUserList(ctx context.Context, req *iam_service.GetUserListReq) (*iam_service.GetUserListResp, error) {
-	users, count, err := s.cli.GetUsers(ctx, util.MustU32(req.OrgId), req.UserName, toOffset(req), req.PageSize)
+	var roleIDs []uint32
+	for _, roleID := range req.RoleIds {
+		roleIDs = append(roleIDs, util.MustU32(roleID))
+	}
+	users, count, err := s.cli.GetUsers(ctx, util.MustU32(req.OrgId), req.UserName, req.Email, roleIDs, toOffset(req), req.PageSize)
 	if err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
@@ -56,7 +60,7 @@ func (s *Service) GetUserInfo(ctx context.Context, req *iam_service.GetUserInfoR
 	return toUserInfo(user), nil
 }
 
-func (s *Service) CreateUser(ctx context.Context, req *iam_service.CreateUserReq) (*iam_service.IDName, error) {
+func (s *Service) CreateUser(ctx context.Context, req *iam_service.CreateUserReq) (*iam_service.IDNameWithAvatar, error) {
 	var roleIDs []uint32
 	for _, roleID := range req.RoleIds {
 		roleIDs = append(roleIDs, util.MustU32(roleID))
@@ -68,6 +72,7 @@ func (s *Service) CreateUser(ctx context.Context, req *iam_service.CreateUserReq
 		Nick:      req.NickName,
 		Gender:    req.Gender,
 		Phone:     req.Phone,
+		Email:     req.Email,
 		Company:   req.Company,
 		Remark:    req.Remark,
 		Password:  req.Password,
@@ -75,14 +80,26 @@ func (s *Service) CreateUser(ctx context.Context, req *iam_service.CreateUserReq
 	if err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
-	return &iam_service.IDName{Id: strconv.Itoa(int(userID)), Name: req.UserName}, nil
+	return &iam_service.IDNameWithAvatar{Id: strconv.Itoa(int(userID)), Name: req.UserName, AvatarPath: req.AvatarPath}, nil
 }
 
-func (s *Service) CreateUsers(ctx context.Context, req *iam_service.CreateUsersReq) (*emptypb.Empty, error) {
-	if err := s.cli.CreateUsers(ctx, toUsersInfo(req.Users), util.MustU32(req.CreatorId), util.MustU32(req.OrgId)); err != nil {
+func (s *Service) CreateUsers(ctx context.Context, req *iam_service.CreateUsersReq) (*iam_service.CreateUsersResp, error) {
+	result, err := s.cli.CreateUsers(ctx, toUsersInfo(req.Users), util.MustU32(req.CreatorId), util.MustU32(req.OrgId))
+	if err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
-	return &emptypb.Empty{}, nil
+	resp := &iam_service.CreateUsersResp{
+		Total:   int32(result.Total),
+		Success: int32(result.Success),
+		Failed:  int32(result.Failed),
+	}
+	for _, e := range result.Errors {
+		resp.Errors = append(resp.Errors, &iam_service.CreateUsersError{
+			Index:  int32(e.Index),
+			Reason: e.Reason,
+		})
+	}
+	return resp, nil
 }
 
 func (s *Service) UpdateUser(ctx context.Context, req *iam_service.UpdateUserReq) (*emptypb.Empty, error) {
@@ -91,13 +108,11 @@ func (s *Service) UpdateUser(ctx context.Context, req *iam_service.UpdateUserReq
 		roleIDs = append(roleIDs, util.MustU32(roleID))
 	}
 	if err := s.cli.UpdateUser(ctx, &model.User{
-		ID:      util.MustU32(req.UserId),
-		Name:    req.UserName,
-		Nick:    req.NickName,
-		Gender:  req.Gender,
-		Phone:   req.Phone,
-		Company: req.Company,
-		Remark:  req.Remark,
+		ID:     util.MustU32(req.UserId),
+		Name:   req.UserName,
+		Phone:  req.Phone,
+		Email:  req.Email,
+		Remark: req.Remark,
 	}, util.MustU32(req.OrgId), roleIDs); err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
@@ -106,6 +121,13 @@ func (s *Service) UpdateUser(ctx context.Context, req *iam_service.UpdateUserReq
 
 func (s *Service) DeleteUser(ctx context.Context, req *iam_service.DeleteUserReq) (*emptypb.Empty, error) {
 	if err := s.cli.DeleteUser(ctx, util.MustU32(req.UserId)); err != nil {
+		return nil, errStatus(errs.Code_IAMUser, err)
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (s *Service) BatchDeleteUser(ctx context.Context, req *iam_service.BatchDeleteUserReq) (*emptypb.Empty, error) {
+	if err := s.cli.BatchDeleteUser(ctx, util.MustU32s(req.UserIds)); err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
 	return &emptypb.Empty{}, nil
@@ -137,7 +159,29 @@ func (s *Service) GetUserPermission(ctx context.Context, req *iam_service.GetUse
 	if err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
-	return toPermission(permission), nil
+	ret := toPermission(permission)
+	ret.UserId = req.UserId
+	return ret, nil
+}
+
+func (s *Service) IsUserOrgAdmin(ctx context.Context, req *iam_service.IsUserOrgAdminReq) (*iam_service.IsUserOrgAdminResp, error) {
+	isOrgAdmin, status := s.cli.IsUserOrgAdmin(ctx, util.MustU32(req.UserId))
+	if status != nil {
+		return nil, errStatus(errs.Code_IAMUser, status)
+	}
+	return &iam_service.IsUserOrgAdminResp{IsOrgAdmin: isOrgAdmin}, nil
+}
+
+func (s *Service) IsAdminInOrgs(ctx context.Context, req *iam_service.IsAdminInOrgsReq) (*iam_service.IsAdminInOrgsResp, error) {
+	var orgIDs []uint32
+	for _, orgID := range req.OrgIds {
+		orgIDs = append(orgIDs, util.MustU32(orgID))
+	}
+	isAdmin, status := s.cli.IsAdminInOrgs(ctx, util.MustU32(req.UserId), orgIDs)
+	if status != nil {
+		return nil, errStatus(errs.Code_IAMUser, status)
+	}
+	return &iam_service.IsAdminInOrgsResp{IsAdmin: isAdmin}, nil
 }
 
 func (s *Service) ChangeUserLanguage(ctx context.Context, req *iam_service.ChangeUserLanguageReq) (*emptypb.Empty, error) {
@@ -152,6 +196,38 @@ func (s *Service) UpdateUserAvatar(ctx context.Context, req *iam_service.UpdateU
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
 	return &emptypb.Empty{}, nil
+}
+
+func (s *Service) GetUsersByOrgIDs(ctx context.Context, req *iam_service.GetUsersByOrgIDsReq) (*iam_service.GetUsersByOrgIDsResp, error) {
+	var orgIDs []uint32
+	if req.IsAllOrg {
+		// 查询用户有权限的所有组织
+		adminOrgIDs, err := s.cli.GetAdminOrgIDs(ctx, util.MustU32(req.UserId))
+		if err != nil {
+			return nil, errStatus(errs.Code_IAMUser, err)
+		}
+		if len(adminOrgIDs) == 0 {
+			return &iam_service.GetUsersByOrgIDsResp{}, nil
+		}
+		orgIDs = adminOrgIDs
+	} else {
+		for _, orgID := range req.OrgIds {
+			orgIDs = append(orgIDs, util.MustU32(orgID))
+		}
+	}
+	users, err := s.cli.GetUsersByOrgIDs(ctx, orgIDs)
+	if err != nil {
+		return nil, errStatus(errs.Code_IAMUser, err)
+	}
+	resp := &iam_service.GetUsersByOrgIDsResp{}
+	for _, user := range users {
+		resp.Users = append(resp.Users, &iam_service.IDNameWithAvatar{
+			Id:         strconv.Itoa(int(user.ID)),
+			Name:       user.Name,
+			AvatarPath: user.AvatarPath,
+		})
+	}
+	return resp, nil
 }
 
 // --- internal function ---
@@ -174,7 +250,7 @@ func toUserInfo(user *orm.UserInfo) *iam_service.UserInfo {
 	}
 	for _, userOrg := range user.Orgs {
 		ret.Orgs = append(ret.Orgs, &iam_service.UserOrg{
-			Org:   toIDName(userOrg.Org.IDName),
+			Org:   toIDName(userOrg.Org.IDNameWithAvatar),
 			Roles: toRoleIDNames(userOrg.Roles),
 		})
 	}
@@ -207,6 +283,7 @@ func toUsersInfo(req []*iam_service.CreateUsersInfo) []*orm.UsersInfo {
 		ret = append(ret, &orm.UsersInfo{
 			UserName: user.UserName,
 			Phone:    user.Phone,
+			Email:    user.Email,
 			Company:  user.Company,
 			Remark:   user.Remark,
 			Password: user.Password,

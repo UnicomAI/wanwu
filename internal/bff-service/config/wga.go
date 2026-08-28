@@ -8,13 +8,12 @@ import (
 var _wga *WgaConfig
 
 type WgaConfig struct {
-	ConfigPath  string               `yaml:"configPath" json:"configPath" mapstructure:"configPath"`
-	AgentID     string               `yaml:"agentId" json:"agentId" mapstructure:"agentId"`
-	Model       WgaModelConfig       `yaml:"model" json:"model" mapstructure:"model"`
-	Persistent  WgaPersistentConfig  `yaml:"persistent" json:"persistent" mapstructure:"persistent"`
-	Tools       []WgaToolConfig      `yaml:"tools" json:"tools" mapstructure:"tools"`
-	SubAgents   []WgaAgentInfo       `yaml:"sub_agents" json:"sub_agents" mapstructure:"sub_agents"`
-	UploadLimit WgaUploadLimitConfig `yaml:"upload_limit" json:"upload_limit" mapstructure:"upload_limit"`
+	ConfigPath     string               `yaml:"configPath" json:"configPath" mapstructure:"configPath"`
+	AgentID        string               `yaml:"agentId" json:"agentId" mapstructure:"agentId"`
+	HumanInTheLoop bool                 `yaml:"humanInTheLoop" json:"humanInTheLoop" mapstructure:"humanInTheLoop"`
+	Persistent     WgaPersistentConfig  `yaml:"persistent" json:"persistent" mapstructure:"persistent"`
+	SubAgents      []WgaAgentInfo       `yaml:"sub_agents" json:"sub_agents" mapstructure:"sub_agents"`
+	UploadLimit    WgaUploadLimitConfig `yaml:"upload_limit" json:"upload_limit" mapstructure:"upload_limit"`
 }
 
 type WgaAgentInfo struct {
@@ -31,24 +30,11 @@ type WgaUploadLimitConfig struct {
 	MaxFileSize  int    `yaml:"max_file_size" json:"max_file_size" mapstructure:"max_file_size"`
 }
 
-type WgaModelConfig struct {
-	Provider     string `yaml:"provider" json:"provider" mapstructure:"provider"`
-	ProviderName string `yaml:"provider_name" json:"provider_name" mapstructure:"provider_name"`
-	BaseURL      string `yaml:"base_url" json:"base_url" mapstructure:"base_url"`
-	APIKey       string `yaml:"api_key" json:"api_key" mapstructure:"api_key"`
-	Model        string `yaml:"model" json:"model" mapstructure:"model"`
-	ModelName    string `yaml:"model_name" json:"model_name" mapstructure:"model_name"`
-}
-
 type WgaPersistentConfig struct {
-	Enabled bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`    // 是否启用持久化
-	BaseDir string `yaml:"base_dir" json:"base_dir" mapstructure:"base_dir"` // 持久化根目录
-	Mode    string `yaml:"mode" json:"mode" mapstructure:"mode"`             // 持久化模式：overwrite 或 versioned
-}
-
-type WgaToolConfig struct {
-	Title   string                 `yaml:"title" json:"title" mapstructure:"title"`
-	APIAuth util.ApiAuthWebRequest `yaml:"apiAuth" json:"apiAuth" mapstructure:"apiAuth"`
+	Enabled      bool   `yaml:"enabled" json:"enabled" mapstructure:"enabled"`                      // 是否启用持久化
+	BaseDir      string `yaml:"base_dir" json:"base_dir" mapstructure:"base_dir"`                   // 持久化根目录
+	SkillBaseDir string `yaml:"skill_base_dir" json:"skill_base_dir" mapstructure:"skill_base_dir"` // Skill overwrite 持久化根目录
+	Mode         string `yaml:"mode" json:"mode" mapstructure:"mode"`                               // 持久化模式：overwrite 或 versioned
 }
 
 func LoadWgaConfig(path string) error {

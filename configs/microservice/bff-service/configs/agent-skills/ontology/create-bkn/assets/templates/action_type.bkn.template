@@ -1,0 +1,86 @@
+---
+type: action_type
+id: {action_id}
+name: {行动名称}
+tags: [{标签1}, {标签2}]
+action_type: modify       # 必填，取值仅限 add | modify | delete（详见 SPECIFICATION）
+enabled: false
+risk_level: medium
+requires_approval: true
+---
+
+## ActionType: {行动名称}
+
+{详细描述}
+
+### Bound Object
+
+| Bound Object | Action Type |
+|--------------|-------------|
+| {object_id} | modify |
+
+### Affect Object
+
+| Affect Object |
+|---------------|
+| {object_id} |
+
+### Trigger Condition
+
+```yaml
+condition:
+  object_type_id: {object_type_id}
+  field: {property_name}
+  operation: {operator}
+  value: {value}
+```
+
+> {触发条件说明}
+
+### Pre-conditions
+
+<!-- 可选：执行前的数据前置条件，不满足则阻止执行 -->
+
+| Object | Check | Condition | Message |
+|--------|-------|-----------|---------|
+| {object_id} | relation:{relation_id} | exist | {违反说明} |
+
+### Scope of Impact
+
+| Object | Impact Description |
+|--------|---------------------|
+| {object_id} | {影响描述} |
+
+### Tool Configuration
+
+<!-- tool 类型 -->
+| Type | Toolbox ID | Tool ID |
+|------|------------|---------|
+| tool | {box_id} | {tool_id} |
+
+<!-- 或 mcp 类型 -->
+<!-- | Type | MCP ID | Tool Name |
+|------|--------|-----------|
+| mcp | {mcp_id} | {tool_name} | -->
+
+### Parameter Binding
+
+| Parameter | Type | Source | Binding | Description |
+|-----------|------|--------|---------|-------------|
+| {param} | string | property | {property_name} | {说明} |
+| {param} | array | input | - | {说明} |
+| {param} | number | const | {value} | {说明} |
+
+### Schedule
+
+<!-- 可选 -->
+
+| Type | Expression |
+|------|------------|
+| FIX_RATE | {interval} |
+
+### Execution Description
+
+1. {步骤1}
+2. {步骤2}
+3. {步骤3}

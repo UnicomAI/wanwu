@@ -1,9 +1,12 @@
 package service
 
 import (
+	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	knowledgebase_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
+	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -39,7 +42,18 @@ func CreateKnowledgeExternalAPI(ctx *gin.Context, userId, orgId string, r *reque
 
 // UpdateKnowledgeExternalAPI 编辑外部知识库API
 func UpdateKnowledgeExternalAPI(ctx *gin.Context, userId, orgId string, r *request.UpdateKnowledgeExternalAPIReq) error {
-	_, err := knowledgeBase.UpdateKnowledgeExternalAPI(ctx.Request.Context(), &knowledgebase_service.UpdateKnowledgeExternalAPIReq{
+	existingExternalAPI, err := knowledgeBase.SelectKnowledgeExternalAPIInfo(ctx.Request.Context(), &knowledgebase_service.KnowledgeExternalAPIInfoSelectReq{
+		UserId:        userId,
+		OrgId:         orgId,
+		ExternalAPIId: r.ExternalAPIId,
+	})
+	if err != nil {
+		return err
+	}
+	if err := util.ValidateBriefUpdate(&r.Name, existingExternalAPI.Name, &r.Description, existingExternalAPI.Description, util.SubjectKnowledgeExternalAPI); err != nil {
+		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
+	}
+	_, err = knowledgeBase.UpdateKnowledgeExternalAPI(ctx.Request.Context(), &knowledgebase_service.UpdateKnowledgeExternalAPIReq{
 		ExternalAPIId: r.ExternalAPIId,
 		Name:          r.Name,
 		Description:   r.Description,
@@ -93,9 +107,20 @@ func CreateKnowledgeExternal(ctx *gin.Context, userId, orgId string, r *request.
 	}, nil
 }
 
-// UpdateKnowledgeExternal 编辑外部知识库API
+// UpdateKnowledgeExternal 编辑外部知识库
 func UpdateKnowledgeExternal(ctx *gin.Context, userId, orgId string, r *request.UpdateKnowledgeExternalReq) error {
-	_, err := knowledgeBase.UpdateKnowledgeExternal(ctx.Request.Context(), &knowledgebase_service.UpdateKnowledgeExternalReq{
+	existingKnowledge, err := knowledgeBase.SelectKnowledgeDetailById(ctx.Request.Context(), &knowledgebase_service.KnowledgeDetailSelectReq{
+		UserId:      userId,
+		OrgId:       orgId,
+		KnowledgeId: r.KnowledgeId,
+	})
+	if err != nil {
+		return err
+	}
+	if err := util.ValidateBriefUpdate(&r.Name, existingKnowledge.Name, &r.Description, existingKnowledge.Description, util.SubjectKnowledge); err != nil {
+		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
+	}
+	_, err = knowledgeBase.UpdateKnowledgeExternal(ctx.Request.Context(), &knowledgebase_service.UpdateKnowledgeExternalReq{
 		KnowledgeId:         r.KnowledgeId,
 		Name:                r.Name,
 		Description:         r.Description,

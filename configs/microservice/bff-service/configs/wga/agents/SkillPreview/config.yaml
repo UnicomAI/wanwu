@@ -1,0 +1,19 @@
+id: Skill Preview Agent
+type: sandbox
+name: Skill预览智能体
+description: |
+  用于预览运行已生成的Skill。
+
+configure:
+  enable_thinking: true
+  sandbox:
+    type: reuse
+    host: wga-sandbox-wanwu
+
+prompt_relative_path: ./prompt.md
+
+tool_categories:
+
+skills:
+
+sub_agents:

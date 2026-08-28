@@ -4,6 +4,9 @@ import (
 	"gorm.io/gorm"
 )
 
+// docFailStatus 文档解析失败相关的 status 码（上传/切片/向量化等环节失败）
+var docFailStatus = []int{5, 51, 52, 53, 54, 55, 56, 61, 62}
+
 type SqlOptions []SQLOption
 
 func SQLOptions(opts ...SQLOption) SqlOptions {
@@ -57,9 +60,12 @@ func WithQuestionMd5(questionMd5 string) SQLOption {
 	})
 }
 
-func WithOverKnowledgePermission(id int) SQLOption {
+func WithOverKnowledgePermission(permission int) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
-		return db.Where("permission_type >= ?", id)
+		if permission < 0 {
+			return db
+		}
+		return db.Where("permission_type >= ?", permission)
 	})
 }
 
@@ -247,6 +253,19 @@ func WithPermit(orgID, userID string) SQLOption {
 	})
 }
 
+// WithPermitList 权限查询条件
+func WithPermitList(orgID, userID []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgID) > 0 {
+			db = db.Where("org_id IN ?", orgID)
+		}
+		if len(userID) > 0 {
+			db = db.Where("user_id IN ?", userID)
+		}
+		return db
+	})
+}
+
 func WithStatusList(status []int) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if len(status) == 0 {
@@ -262,10 +281,8 @@ func WithGraphStatusList(graphStatus []int) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if len(graphStatus) == 0 {
 			return db
-		} else if len(graphStatus) == 1 {
-			return db.Where("graph_status = ?", graphStatus[0])
 		}
-		return db.Where("graph_status IN ?", graphStatus)
+		return db.Where("graph_status IN ? AND status NOT IN ?", graphStatus, docFailStatus)
 	})
 }
 
@@ -389,6 +406,31 @@ func LikeMetaValue(value string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if value != "" {
 			return db.Where("value_main LIKE ?", "%"+value+"%")
+		}
+		return db
+	})
+}
+
+// WithValueType 按元数据类型(value_type)精确过滤
+func WithValueType(valueType string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if valueType != "" {
+			return db.Where("value_type = ?", valueType)
+		}
+		return db
+	})
+}
+
+// BetweenMetaValueTime 按时间区间过滤 value_main(存储为毫秒时间戳字符串)
+// 时间戳为等宽非负十进制(13位毫秒在 2286 年前均为 13 位)，字符串比较与数值比较等价，可跨数据库方言。
+// start/end 为空时对应一侧不限制；闭区间 [start, end]。
+func BetweenMetaValueTime(start, end string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if start != "" {
+			db = db.Where("value_main >= ?", start)
+		}
+		if end != "" {
+			db = db.Where("value_main <= ?", end)
 		}
 		return db
 	})

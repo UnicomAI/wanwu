@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
@@ -17,7 +18,7 @@ import (
 	rag_service "github.com/UnicomAI/wanwu/api/proto/rag-service"
 	"github.com/UnicomAI/wanwu/internal/rag-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/rag-service/config"
-	http_client "github.com/UnicomAI/wanwu/internal/rag-service/pkg/http-client"
+	http_client "github.com/UnicomAI/wanwu/pkg/http-client"
 	"github.com/UnicomAI/wanwu/pkg/log"
 )
 
@@ -117,7 +118,7 @@ func requestRagStreamChat(ctx context.Context, userId string, req *RagChatParams
 		log.Errorf("build http params fail %s", err.Error())
 		return nil, err
 	}
-	sseResp, err := http_client.GetClient().PostJsonOriResp(ctx, params)
+	sseResp, err := http_client.Default().PostJsonOriResp(ctx, params)
 	if err != nil {
 		log.Errorf("error: 调用下游服务异常: %v", err)
 		return nil, fmt.Errorf("error: 调用下游服务异常: %v", err)
@@ -246,7 +247,7 @@ func getBool(m map[string]interface{}, key string, defaultVal bool) bool {
 func buildAttachmentList(fileInfos []*rag_service.FileInfo) []*AttachmentInfo {
 	retList := make([]*AttachmentInfo, 0)
 	for _, file := range fileInfos {
-		ext := filepath.Ext(file.FileUrl)
+		ext := strings.ToLower(filepath.Ext(file.FileUrl))
 		switch ext {
 		case ".png", ".jpg", ".jpeg":
 			retList = append(retList, &AttachmentInfo{

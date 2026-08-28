@@ -148,7 +148,7 @@ func (c *client) upload(ctx context.Context, localPath, remotePath string) error
 		FileSize int64  `json:"file_size"`
 		Success  bool   `json:"success"`
 	}]
-	_, err = c.client.R().
+	httpResp, err := c.client.R().
 		SetContext(ctx).
 		SetHeader("Content-Type", writer.FormDataContentType()).
 		SetBody(buf.Bytes()).
@@ -156,6 +156,9 @@ func (c *client) upload(ctx context.Context, localPath, remotePath string) error
 		Post(c.endpoint + "/v1/file/upload")
 	if err != nil {
 		return fmt.Errorf("upload request failed: %w", err)
+	}
+	if httpResp.StatusCode() >= 300 {
+		return fmt.Errorf("upload failed: status=%d, body=%s", httpResp.StatusCode(), httpResp.String())
 	}
 	if !resp.Success {
 		return fmt.Errorf("upload failed: %s", resp.Message)
@@ -183,17 +186,20 @@ func (c *client) uploadData(ctx context.Context, data []byte, remotePath string)
 		FileSize int64  `json:"file_size"`
 		Success  bool   `json:"success"`
 	}]
-	_, err = c.client.R().
+	httpResp, err := c.client.R().
 		SetContext(ctx).
 		SetHeader("Content-Type", writer.FormDataContentType()).
 		SetBody(buf.Bytes()).
 		SetResult(&resp).
 		Post(c.endpoint + "/v1/file/upload")
 	if err != nil {
-		return fmt.Errorf("upload data request failed: %w", err)
+		return fmt.Errorf("upload data request failed (size=%d, path=%s): %w", len(data), remotePath, err)
+	}
+	if httpResp.StatusCode() >= 300 {
+		return fmt.Errorf("upload data failed (size=%d, path=%s): status=%d, body=%s", len(data), remotePath, httpResp.StatusCode(), httpResp.String())
 	}
 	if !resp.Success {
-		return fmt.Errorf("upload data failed: %s", resp.Message)
+		return fmt.Errorf("upload data failed (size=%d, path=%s): %s", len(data), remotePath, resp.Message)
 	}
 	return nil
 }

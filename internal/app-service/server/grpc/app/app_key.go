@@ -33,7 +33,7 @@ func (s *Service) GetAppKeyList(ctx context.Context, req *app_service.GetAppKeyL
 }
 
 func (s *Service) DelAppKey(ctx context.Context, req *app_service.DelAppKeyReq) (*emptypb.Empty, error) {
-	err := s.cli.DelAppKey(ctx, util.MustU32(req.AppKeyId))
+	err := s.cli.DelAppKey(ctx, util.MustU32(req.AppKeyId), req.UserId, req.OrgId)
 	if err != nil {
 		return nil, errStatus(errs.Code_Appkey, err)
 	}

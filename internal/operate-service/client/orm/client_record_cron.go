@@ -28,7 +28,7 @@ type CronManager struct {
 // 初始化定时任务
 func CronInit(db *gorm.DB) error {
 	cronManager = &CronManager{
-		ctx:  context.TODO(),
+		ctx:  context.Background(),
 		cron: cron.New(),
 		db:   db,
 	}

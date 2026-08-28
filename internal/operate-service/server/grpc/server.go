@@ -2,24 +2,21 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 	"net"
-	"runtime/debug"
 	"time"
 
-	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 
 	operate_service "github.com/UnicomAI/wanwu/api/proto/operate-service"
 	"github.com/UnicomAI/wanwu/internal/operate-service/client"
 	"github.com/UnicomAI/wanwu/internal/operate-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/operate-service/config"
+	"github.com/UnicomAI/wanwu/internal/operate-service/server/grpc/notice"
 	"github.com/UnicomAI/wanwu/internal/operate-service/server/grpc/operate"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/status"
 )
 
 type Server struct {
@@ -27,11 +24,14 @@ type Server struct {
 	serv *grpc.Server
 
 	operate *operate.Service
+	// notice 消息中心（独立 service，与 OperateService 并列双注册）
+	notice *notice.Service
 }
 
 func NewServer(cfg *config.Config, cli client.IClient) (*Server, error) {
 	s := &Server{
 		operate: operate.NewService(cli),
+		notice:  notice.NewService(cli),
 		cfg:     cfg,
 	}
 	return s, nil
@@ -43,25 +43,14 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	// init
-	opts := []grpc_recovery.Option{
-		grpc_recovery.WithRecoveryHandler(func(p interface{}) error {
-			log.Errorf("[PANIC] %v\n%v", p, string(debug.Stack()))
-			return status.Error(codes.Internal, fmt.Sprintf("panic: %v", p))
-		}),
-	}
-	serverOptions := []grpc.ServerOption{
-		grpc.MaxRecvMsgSize(s.cfg.Server.MaxRecvMsgSize),
-		grpc.MaxSendMsgSize(s.cfg.Server.MaxRecvMsgSize),
-		grpc.ChainUnaryInterceptor(grpc_recovery.UnaryServerInterceptor(opts...)),
-		grpc.ChainStreamInterceptor(grpc_recovery.StreamServerInterceptor(opts...)),
-	}
-	s.serv = grpc.NewServer(serverOptions...)
+	s.serv = trace_util.NewGrpcTracerServer([]grpc.UnaryServerInterceptor{trace_util.LoggingUnaryGRPC()}, []grpc.StreamServerInterceptor{trace_util.LoggingStreamGRPC()})
 
 	healthcheck := health.NewServer()
 	healthpb.RegisterHealthServer(s.serv, healthcheck)
 
 	// register service
 	operate_service.RegisterOperateServiceServer(s.serv, s.operate)
+	operate_service.RegisterNoticeServiceServer(s.serv, s.notice)
 
 	// listen
 	lis, err := net.Listen("tcp", s.cfg.Server.GrpcEndpoint)

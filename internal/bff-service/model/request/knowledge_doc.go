@@ -9,10 +9,19 @@ import (
 const (
 	DocAnalyzerOCR       = "ocr"
 	DocAnalyzerPdfParser = "model"
+	DocAnalyzerASR       = "asr"
+	DocAnalyzerMulti     = "multimodal"
 	CommonSplitMethod    = "0" //通用分段
 	ParentSplitMethod    = "1" //父子分段
-	UrlFileUpload        = 2   //url文件上传
+	FileUpload           = 0   //文件上传
+	UrlUpload            = 1   //单条url上传（已下架）
+	UrlFileUpload        = 2   //url文件上传（已下架）
 )
+
+type DocKnowledgeDetailReq struct {
+	KnowledgeId string `json:"knowledgeId" form:"knowledgeId" validate:"required"`
+	CommonCheck
+}
 
 type DocConfigReq struct {
 	KnowledgeId string `json:"knowledgeId" form:"knowledgeId" validate:"required"`
@@ -21,12 +30,15 @@ type DocConfigReq struct {
 }
 
 type DocListReq struct {
-	KnowledgeId string   `json:"knowledgeId" form:"knowledgeId" validate:"required"`
-	DocName     string   `json:"docName" form:"docName"`
-	Status      []int32  `json:"status" form:"status"` // 文档状态：-1-全部， 0-待处理， 1- 处理完成， 2-正在审核中，3-正在解析中，4-审核未通过，5-解析失败
-	MetaValue   string   `json:"metaValue" form:"metaValue"`
-	GraphStatus []int32  `json:"graphStatus" form:"graphStatus"` // 图谱状态：-1.全部 0.待处理 1.解析中 2.解析成功 3.解析失败
-	DocIdList   []string `json:"docIdList" form:"docIdList"`     // 文档id列表，只用于返回所选文档的集合，该值不为空时，其他筛选条件将被忽略
+	KnowledgeId   string   `json:"knowledgeId" form:"knowledgeId" validate:"required"`
+	DocName       string   `json:"docName" form:"docName"`
+	Status        []int32  `json:"status" form:"status"`               // 文档状态：-1-全部， 0-待处理， 1- 处理完成， 2-正在审核中，3-正在解析中，4-审核未通过，5-解析失败
+	MetaType      string   `json:"metaType" form:"metaType"`           // 元数据类型：string/number/time，为空时按旧逻辑(metaValue 模糊匹配，排除 time)
+	MetaValue     string   `json:"metaValue" form:"metaValue"`         // 元数据值，metaType 为 string/number 时使用
+	MetaStartTime string   `json:"metaStartTime" form:"metaStartTime"` // metaType=time 时的起始时间戳(毫秒，字符串)
+	MetaEndTime   string   `json:"metaEndTime" form:"metaEndTime"`     // metaType=time 时的结束时间戳(毫秒，字符串)
+	GraphStatus   []int32  `json:"graphStatus" form:"graphStatus"`     // 图谱状态：-1.全部 0.待处理 1.解析中 2.解析成功 3.解析失败
+	DocIdList     []string `json:"docIdList" form:"docIdList"`         // 文档id列表，只用于返回所选文档的集合，该值不为空时，其他筛选条件将被忽略
 	PageSearch
 	CommonCheck
 }
@@ -65,12 +77,6 @@ type DocMetaDataReq struct {
 	KnowledgeId  string         `json:"knowledgeId" validate:"required"`
 	DocId        string         `json:"docId"`
 	MetaDataList []*DocMetaData `json:"metaDataList"` //文档元数据
-}
-
-type BatchDocMetaDataReq struct {
-	KnowledgeId  string         `json:"knowledgeId"`
-	MetaDataList []*DocMetaData `json:"metaDataList"` //文档元数据
-	CreateMeta   bool           `json:"createMeta"`   //文档没设置过对应key则创建元数据
 }
 
 type DocInfo struct {
@@ -112,8 +118,8 @@ type DocSegmentListReq struct {
 type UpdateDocSegmentStatusReq struct {
 	DocId         string `json:"docId" validate:"required"`
 	ContentId     string `json:"contentId"`
-	ContentStatus string `json:"contentStatus" validate:"required"`
-	ALL           bool   `json:"all" ` // all 代表全部启用，此时将忽略contentId
+	ContentStatus string `json:"contentStatus" validate:"required"` //"true"代表打开，"false"代表关闭
+	ALL           bool   `json:"all" `                              // all 代表全部启用，此时将忽略contentId
 	CommonCheck
 }
 
@@ -161,6 +167,11 @@ type DocChildListReq struct {
 	CommonCheck
 }
 
+type UploadDocSegmentImageReq struct {
+	KnowledgeId string `json:"knowledgeId" form:"knowledgeId" validate:"required"` // 知识库id（仅多模态知识库可上传图片）
+	CommonCheck
+}
+
 type CreateDocChildSegmentReq struct {
 	DocId    string   `json:"docId"  validate:"required"`    // 文档id
 	ParentId string   `json:"parentId"  validate:"required"` // 父分段id
@@ -185,7 +196,7 @@ type DeleteDocChildSegmentReq struct {
 	DocId            string  `json:"docId"  validate:"required"`            // 文档id
 	ParentId         string  `json:"parentId"  validate:"required"`         // 父分段id
 	ParentChunkNo    int32   `json:"parentChunkNo"`                         // 父分段序列号
-	ChildChunkNoList []int32 `json:"ChildChunkNoList"  validate:"required"` // 子分段序列号列表
+	ChildChunkNoList []int32 `json:"childChunkNoList"  validate:"required"` // 子分段序列号列表
 	CommonCheck
 }
 
@@ -209,6 +220,12 @@ func (c *DocImportReq) Check() error {
 				if c.ParserModelId == "" {
 					return errors.New("parserModelId can not be empty")
 				}
+			}
+			if v == DocAnalyzerASR && c.AsrModelId == "" {
+				return errors.New("asrModelId can not be empty")
+			}
+			if v == DocAnalyzerMulti && c.MultimodalModelId == "" {
+				return errors.New("multimodalModelId can not be empty")
 			}
 		}
 	}
@@ -251,9 +268,26 @@ func (c *DocImportReq) Check() error {
 			return errors.New("subMaxSplitter error")
 		}
 	}
-	if c.DocImportType == UrlFileUpload {
-		if len(c.DocInfo) > 1 {
-			return errors.New("url文件仅可上传一个")
+	if c.DocImportType != FileUpload {
+		return errors.New("docImportType only supports 0 (file upload)")
+	}
+	// if c.DocImportType == UrlFileUpload {
+	// 	if len(c.DocInfo) == 0 {
+	// 		return errors.New("url文件不能为空")
+	// 	}
+	// 	if len(c.DocInfo) > 1 {
+	// 		return errors.New("url文件仅可上传一个")
+	// 	}
+	// 	if !strings.HasSuffix(c.DocInfo[0].DocId, ".xlsx") {
+	// 		return errors.New("url文件格式错误,只能上传.xlsx文件")
+	// 	}
+	// }
+
+	if len(c.DocInfo) > 0 {
+		for _, doc := range c.DocInfo {
+			if IsMaliciousFilename(doc.DocName) {
+				return errors.New("文件名非法，请不要包含|等特殊字符")
+			}
 		}
 	}
 	return nil
@@ -277,25 +311,6 @@ func (c *DocMetaDataReq) Check() error {
 					}
 				}
 			}
-		}
-	}
-	return nil
-}
-
-func (c *BatchDocMetaDataReq) Check() error {
-	if len(c.KnowledgeId) == 0 {
-		return errors.New("knowledgeId can not all empty")
-	}
-	if len(c.MetaDataList) > 0 {
-		keyMap := make(map[string]bool)
-		for _, meta := range c.MetaDataList {
-			if meta.MetaKey == "" || meta.MetaValueType == "" {
-				return errors.New("key or value type can not be empty")
-			}
-			if keyMap[meta.MetaKey] {
-				return errors.New("key can not be repeated")
-			}
-			keyMap[meta.MetaKey] = true
 		}
 	}
 	return nil

@@ -26,15 +26,21 @@ type CustomSkill struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	SkillId    string `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
-	Name       string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Avatar     string `protobuf:"bytes,3,opt,name=avatar,proto3" json:"avatar,omitempty"`
-	Author     string `protobuf:"bytes,4,opt,name=author,proto3" json:"author,omitempty"`
-	Desc       string `protobuf:"bytes,5,opt,name=desc,proto3" json:"desc,omitempty"`
-	ObjectPath string `protobuf:"bytes,6,opt,name=objectPath,proto3" json:"objectPath,omitempty"`
-	Markdown   string `protobuf:"bytes,9,opt,name=markdown,proto3" json:"markdown,omitempty"`
-	CreatedAt  int64  `protobuf:"varint,7,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
-	UpdatedAt  int64  `protobuf:"varint,8,opt,name=updatedAt,proto3" json:"updatedAt,omitempty"`
+	SkillId         string    `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
+	Name            string    `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Avatar          string    `protobuf:"bytes,3,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	Author          string    `protobuf:"bytes,4,opt,name=author,proto3" json:"author,omitempty"`
+	Desc            string    `protobuf:"bytes,5,opt,name=desc,proto3" json:"desc,omitempty"`
+	ObjectPath      string    `protobuf:"bytes,6,opt,name=objectPath,proto3" json:"objectPath,omitempty"` // 老数据兼容
+	WgaThreadId     string    `protobuf:"bytes,7,opt,name=wgaThreadId,proto3" json:"wgaThreadId,omitempty"`
+	PreviewThreadId string    `protobuf:"bytes,8,opt,name=previewThreadId,proto3" json:"previewThreadId,omitempty"`
+	Identity        *Identity `protobuf:"bytes,9,opt,name=identity,proto3" json:"identity,omitempty"`
+	CreatedAt       int64     `protobuf:"varint,10,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
+	UpdatedAt       int64     `protobuf:"varint,11,opt,name=updatedAt,proto3" json:"updatedAt,omitempty"`
+	DownloadCount   int32     `protobuf:"varint,12,opt,name=downloadCount,proto3" json:"downloadCount,omitempty"`
+	AcquiredCount   int32     `protobuf:"varint,13,opt,name=acquiredCount,proto3" json:"acquiredCount,omitempty"`
+	UserId          string    `protobuf:"bytes,14,opt,name=userId,proto3" json:"userId,omitempty"`
+	OrgId           string    `protobuf:"bytes,15,opt,name=orgId,proto3" json:"orgId,omitempty"`
 }
 
 func (x *CustomSkill) Reset() {
@@ -111,11 +117,25 @@ func (x *CustomSkill) GetObjectPath() string {
 	return ""
 }
 
-func (x *CustomSkill) GetMarkdown() string {
+func (x *CustomSkill) GetWgaThreadId() string {
 	if x != nil {
-		return x.Markdown
+		return x.WgaThreadId
 	}
 	return ""
+}
+
+func (x *CustomSkill) GetPreviewThreadId() string {
+	if x != nil {
+		return x.PreviewThreadId
+	}
+	return ""
+}
+
+func (x *CustomSkill) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
 }
 
 func (x *CustomSkill) GetCreatedAt() int64 {
@@ -132,26 +152,147 @@ func (x *CustomSkill) GetUpdatedAt() int64 {
 	return 0
 }
 
+func (x *CustomSkill) GetDownloadCount() int32 {
+	if x != nil {
+		return x.DownloadCount
+	}
+	return 0
+}
+
+func (x *CustomSkill) GetAcquiredCount() int32 {
+	if x != nil {
+		return x.AcquiredCount
+	}
+	return 0
+}
+
+func (x *CustomSkill) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *CustomSkill) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
+}
+
+type PublishCustomSkill struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Skill       *CustomSkill `protobuf:"bytes,1,opt,name=skill,proto3" json:"skill,omitempty"`
+	ObjectPath  string       `protobuf:"bytes,2,opt,name=objectPath,proto3" json:"objectPath,omitempty"`
+	Markdown    string       `protobuf:"bytes,3,opt,name=markdown,proto3" json:"markdown,omitempty"`
+	Version     string       `protobuf:"bytes,4,opt,name=version,proto3" json:"version,omitempty"`
+	VersionDesc string       `protobuf:"bytes,5,opt,name=versionDesc,proto3" json:"versionDesc,omitempty"`
+	CreatedAt   int64        `protobuf:"varint,6,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
+	UpdatedAt   int64        `protobuf:"varint,7,opt,name=updatedAt,proto3" json:"updatedAt,omitempty"`
+}
+
+func (x *PublishCustomSkill) Reset() {
+	*x = PublishCustomSkill{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PublishCustomSkill) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishCustomSkill) ProtoMessage() {}
+
+func (x *PublishCustomSkill) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishCustomSkill.ProtoReflect.Descriptor instead.
+func (*PublishCustomSkill) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *PublishCustomSkill) GetSkill() *CustomSkill {
+	if x != nil {
+		return x.Skill
+	}
+	return nil
+}
+
+func (x *PublishCustomSkill) GetObjectPath() string {
+	if x != nil {
+		return x.ObjectPath
+	}
+	return ""
+}
+
+func (x *PublishCustomSkill) GetMarkdown() string {
+	if x != nil {
+		return x.Markdown
+	}
+	return ""
+}
+
+func (x *PublishCustomSkill) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *PublishCustomSkill) GetVersionDesc() string {
+	if x != nil {
+		return x.VersionDesc
+	}
+	return ""
+}
+
+func (x *PublishCustomSkill) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *PublishCustomSkill) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
 type CustomSkillCreateReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name       string    `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Avatar     string    `protobuf:"bytes,2,opt,name=avatar,proto3" json:"avatar,omitempty"`
-	Author     string    `protobuf:"bytes,3,opt,name=author,proto3" json:"author,omitempty"`
-	Desc       string    `protobuf:"bytes,4,opt,name=desc,proto3" json:"desc,omitempty"`
-	ObjectPath string    `protobuf:"bytes,5,opt,name=objectPath,proto3" json:"objectPath,omitempty"`
-	SaveId     string    `protobuf:"bytes,6,opt,name=saveId,proto3" json:"saveId,omitempty"`
-	SourceType string    `protobuf:"bytes,7,opt,name=sourceType,proto3" json:"sourceType,omitempty"`
-	Identity   *Identity `protobuf:"bytes,8,opt,name=identity,proto3" json:"identity,omitempty"`
-	Markdown   string    `protobuf:"bytes,9,opt,name=markdown,proto3" json:"markdown,omitempty"`
+	Name            string    `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Avatar          string    `protobuf:"bytes,2,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	Author          string    `protobuf:"bytes,3,opt,name=author,proto3" json:"author,omitempty"`
+	Desc            string    `protobuf:"bytes,4,opt,name=desc,proto3" json:"desc,omitempty"`
+	WgaThreadId     string    `protobuf:"bytes,5,opt,name=wgaThreadId,proto3" json:"wgaThreadId,omitempty"`
+	PreviewThreadId string    `protobuf:"bytes,6,opt,name=previewThreadId,proto3" json:"previewThreadId,omitempty"`
+	Identity        *Identity `protobuf:"bytes,7,opt,name=identity,proto3" json:"identity,omitempty"`
 }
 
 func (x *CustomSkillCreateReq) Reset() {
 	*x = CustomSkillCreateReq{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[1]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -164,7 +305,7 @@ func (x *CustomSkillCreateReq) String() string {
 func (*CustomSkillCreateReq) ProtoMessage() {}
 
 func (x *CustomSkillCreateReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[1]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -177,7 +318,7 @@ func (x *CustomSkillCreateReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CustomSkillCreateReq.ProtoReflect.Descriptor instead.
 func (*CustomSkillCreateReq) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{1}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *CustomSkillCreateReq) GetName() string {
@@ -208,23 +349,16 @@ func (x *CustomSkillCreateReq) GetDesc() string {
 	return ""
 }
 
-func (x *CustomSkillCreateReq) GetObjectPath() string {
+func (x *CustomSkillCreateReq) GetWgaThreadId() string {
 	if x != nil {
-		return x.ObjectPath
+		return x.WgaThreadId
 	}
 	return ""
 }
 
-func (x *CustomSkillCreateReq) GetSaveId() string {
+func (x *CustomSkillCreateReq) GetPreviewThreadId() string {
 	if x != nil {
-		return x.SaveId
-	}
-	return ""
-}
-
-func (x *CustomSkillCreateReq) GetSourceType() string {
-	if x != nil {
-		return x.SourceType
+		return x.PreviewThreadId
 	}
 	return ""
 }
@@ -234,13 +368,6 @@ func (x *CustomSkillCreateReq) GetIdentity() *Identity {
 		return x.Identity
 	}
 	return nil
-}
-
-func (x *CustomSkillCreateReq) GetMarkdown() string {
-	if x != nil {
-		return x.Markdown
-	}
-	return ""
 }
 
 type CustomSkillCreateResp struct {
@@ -254,7 +381,7 @@ type CustomSkillCreateResp struct {
 func (x *CustomSkillCreateResp) Reset() {
 	*x = CustomSkillCreateResp{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[2]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -267,7 +394,7 @@ func (x *CustomSkillCreateResp) String() string {
 func (*CustomSkillCreateResp) ProtoMessage() {}
 
 func (x *CustomSkillCreateResp) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[2]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -280,7 +407,7 @@ func (x *CustomSkillCreateResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CustomSkillCreateResp.ProtoReflect.Descriptor instead.
 func (*CustomSkillCreateResp) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{2}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CustomSkillCreateResp) GetSkillId() string {
@@ -295,13 +422,14 @@ type CustomSkillDeleteReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	SkillId string `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
+	SkillId  string    `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
+	Identity *Identity `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
 }
 
 func (x *CustomSkillDeleteReq) Reset() {
 	*x = CustomSkillDeleteReq{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[3]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -314,7 +442,7 @@ func (x *CustomSkillDeleteReq) String() string {
 func (*CustomSkillDeleteReq) ProtoMessage() {}
 
 func (x *CustomSkillDeleteReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[3]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -327,7 +455,7 @@ func (x *CustomSkillDeleteReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CustomSkillDeleteReq.ProtoReflect.Descriptor instead.
 func (*CustomSkillDeleteReq) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{3}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CustomSkillDeleteReq) GetSkillId() string {
@@ -337,19 +465,25 @@ func (x *CustomSkillDeleteReq) GetSkillId() string {
 	return ""
 }
 
+func (x *CustomSkillDeleteReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
 type CustomSkillGetReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	SkillId  string    `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
-	Identity *Identity `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
+	SkillId string `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
 }
 
 func (x *CustomSkillGetReq) Reset() {
 	*x = CustomSkillGetReq{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[4]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -362,7 +496,7 @@ func (x *CustomSkillGetReq) String() string {
 func (*CustomSkillGetReq) ProtoMessage() {}
 
 func (x *CustomSkillGetReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[4]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -375,7 +509,7 @@ func (x *CustomSkillGetReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CustomSkillGetReq.ProtoReflect.Descriptor instead.
 func (*CustomSkillGetReq) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{4}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CustomSkillGetReq) GetSkillId() string {
@@ -385,9 +519,249 @@ func (x *CustomSkillGetReq) GetSkillId() string {
 	return ""
 }
 
-func (x *CustomSkillGetReq) GetIdentity() *Identity {
+// 按 previewThreadId 查找 custom skill；未命中时 skillId 为空。非数据库错误不返回 RPC 错误。
+type GetCustomSkillByPreviewIDReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PreviewThreadId string `protobuf:"bytes,1,opt,name=previewThreadId,proto3" json:"previewThreadId,omitempty"`
+}
+
+func (x *GetCustomSkillByPreviewIDReq) Reset() {
+	*x = GetCustomSkillByPreviewIDReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetCustomSkillByPreviewIDReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCustomSkillByPreviewIDReq) ProtoMessage() {}
+
+func (x *GetCustomSkillByPreviewIDReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCustomSkillByPreviewIDReq.ProtoReflect.Descriptor instead.
+func (*GetCustomSkillByPreviewIDReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetCustomSkillByPreviewIDReq) GetPreviewThreadId() string {
+	if x != nil {
+		return x.PreviewThreadId
+	}
+	return ""
+}
+
+type GetCustomSkillByPreviewIDResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Skill *CustomSkill `protobuf:"bytes,1,opt,name=skill,proto3" json:"skill,omitempty"`
+}
+
+func (x *GetCustomSkillByPreviewIDResp) Reset() {
+	*x = GetCustomSkillByPreviewIDResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetCustomSkillByPreviewIDResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCustomSkillByPreviewIDResp) ProtoMessage() {}
+
+func (x *GetCustomSkillByPreviewIDResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCustomSkillByPreviewIDResp.ProtoReflect.Descriptor instead.
+func (*GetCustomSkillByPreviewIDResp) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetCustomSkillByPreviewIDResp) GetSkill() *CustomSkill {
+	if x != nil {
+		return x.Skill
+	}
+	return nil
+}
+
+// 按 wgaThreadId 查找 custom skill；未命中时 skillId 为空。非数据库错误不返回 RPC 错误。
+type GetCustomSkillByThreadIDReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	WgaThreadId string `protobuf:"bytes,1,opt,name=wgaThreadId,proto3" json:"wgaThreadId,omitempty"`
+}
+
+func (x *GetCustomSkillByThreadIDReq) Reset() {
+	*x = GetCustomSkillByThreadIDReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetCustomSkillByThreadIDReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCustomSkillByThreadIDReq) ProtoMessage() {}
+
+func (x *GetCustomSkillByThreadIDReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCustomSkillByThreadIDReq.ProtoReflect.Descriptor instead.
+func (*GetCustomSkillByThreadIDReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetCustomSkillByThreadIDReq) GetWgaThreadId() string {
+	if x != nil {
+		return x.WgaThreadId
+	}
+	return ""
+}
+
+type GetCustomSkillByThreadIDResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Skill *CustomSkill `protobuf:"bytes,1,opt,name=skill,proto3" json:"skill,omitempty"`
+}
+
+func (x *GetCustomSkillByThreadIDResp) Reset() {
+	*x = GetCustomSkillByThreadIDResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetCustomSkillByThreadIDResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCustomSkillByThreadIDResp) ProtoMessage() {}
+
+func (x *GetCustomSkillByThreadIDResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCustomSkillByThreadIDResp.ProtoReflect.Descriptor instead.
+func (*GetCustomSkillByThreadIDResp) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetCustomSkillByThreadIDResp) GetSkill() *CustomSkill {
+	if x != nil {
+		return x.Skill
+	}
+	return nil
+}
+
+// 按 wgaThreadIdList 批量查找 custom skill，返回 CustomSkillGetListResp（PublishCustomSkill：草稿 + 可选最新发布）。
+// 未命中的 threadId 仍占一条：仅 wgaThreadId 有值、skillId 为空，与 GetCustomSkillByThreadID 未命中语义一致。非数据库错误不返回 RPC 错误。
+type GetCustomSkillListByThreadIDListReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Identity        *Identity `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
+	WgaThreadIdList []string  `protobuf:"bytes,2,rep,name=wgaThreadIdList,proto3" json:"wgaThreadIdList,omitempty"`
+}
+
+func (x *GetCustomSkillListByThreadIDListReq) Reset() {
+	*x = GetCustomSkillListByThreadIDListReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetCustomSkillListByThreadIDListReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCustomSkillListByThreadIDListReq) ProtoMessage() {}
+
+func (x *GetCustomSkillListByThreadIDListReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCustomSkillListByThreadIDListReq.ProtoReflect.Descriptor instead.
+func (*GetCustomSkillListByThreadIDListReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetCustomSkillListByThreadIDListReq) GetIdentity() *Identity {
 	if x != nil {
 		return x.Identity
+	}
+	return nil
+}
+
+func (x *GetCustomSkillListByThreadIDListReq) GetWgaThreadIdList() []string {
+	if x != nil {
+		return x.WgaThreadIdList
 	}
 	return nil
 }
@@ -398,15 +772,13 @@ type CustomSkillGetListReq struct {
 	unknownFields protoimpl.UnknownFields
 
 	Name     string    `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Page     int32     `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize int32     `protobuf:"varint,3,opt,name=pageSize,proto3" json:"pageSize,omitempty"`
-	Identity *Identity `protobuf:"bytes,4,opt,name=identity,proto3" json:"identity,omitempty"`
+	Identity *Identity `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
 }
 
 func (x *CustomSkillGetListReq) Reset() {
 	*x = CustomSkillGetListReq{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[5]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -419,7 +791,7 @@ func (x *CustomSkillGetListReq) String() string {
 func (*CustomSkillGetListReq) ProtoMessage() {}
 
 func (x *CustomSkillGetListReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[5]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -432,7 +804,7 @@ func (x *CustomSkillGetListReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CustomSkillGetListReq.ProtoReflect.Descriptor instead.
 func (*CustomSkillGetListReq) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{5}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CustomSkillGetListReq) GetName() string {
@@ -440,20 +812,6 @@ func (x *CustomSkillGetListReq) GetName() string {
 		return x.Name
 	}
 	return ""
-}
-
-func (x *CustomSkillGetListReq) GetPage() int32 {
-	if x != nil {
-		return x.Page
-	}
-	return 0
-}
-
-func (x *CustomSkillGetListReq) GetPageSize() int32 {
-	if x != nil {
-		return x.PageSize
-	}
-	return 0
 }
 
 func (x *CustomSkillGetListReq) GetIdentity() *Identity {
@@ -468,14 +826,14 @@ type CustomSkillGetListResp struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	List  []*CustomSkill `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
-	Total int64          `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	List  []*PublishCustomSkill `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	Total int64                 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
 }
 
 func (x *CustomSkillGetListResp) Reset() {
 	*x = CustomSkillGetListResp{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[6]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -488,7 +846,7 @@ func (x *CustomSkillGetListResp) String() string {
 func (*CustomSkillGetListResp) ProtoMessage() {}
 
 func (x *CustomSkillGetListResp) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[6]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -501,10 +859,10 @@ func (x *CustomSkillGetListResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CustomSkillGetListResp.ProtoReflect.Descriptor instead.
 func (*CustomSkillGetListResp) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{6}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *CustomSkillGetListResp) GetList() []*CustomSkill {
+func (x *CustomSkillGetListResp) GetList() []*PublishCustomSkill {
 	if x != nil {
 		return x.List
 	}
@@ -518,31 +876,36 @@ func (x *CustomSkillGetListResp) GetTotal() int64 {
 	return 0
 }
 
-type CustomSkillGetBySaveIdsReq struct {
+// 管理员中心 skill 全局分页列表 请求
+type AdminCustomSkillPageListReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	SaveIds []string `protobuf:"bytes,1,rep,name=saveIds,proto3" json:"saveIds,omitempty"`
+	Name     string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`          // skill 名称，支持模糊搜索
+	UserId   []string `protobuf:"bytes,2,rep,name=userId,proto3" json:"userId,omitempty"`      // 拥有者用户id列表
+	OrgId    []string `protobuf:"bytes,3,rep,name=orgId,proto3" json:"orgId,omitempty"`        // 拥有者组织id列表
+	PageNum  int32    `protobuf:"varint,4,opt,name=pageNum,proto3" json:"pageNum,omitempty"`   // 页码，从1开始
+	PageSize int32    `protobuf:"varint,5,opt,name=pageSize,proto3" json:"pageSize,omitempty"` // 每页数量
 }
 
-func (x *CustomSkillGetBySaveIdsReq) Reset() {
-	*x = CustomSkillGetBySaveIdsReq{}
+func (x *AdminCustomSkillPageListReq) Reset() {
+	*x = AdminCustomSkillPageListReq{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[7]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *CustomSkillGetBySaveIdsReq) String() string {
+func (x *AdminCustomSkillPageListReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CustomSkillGetBySaveIdsReq) ProtoMessage() {}
+func (*AdminCustomSkillPageListReq) ProtoMessage() {}
 
-func (x *CustomSkillGetBySaveIdsReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[7]
+func (x *AdminCustomSkillPageListReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -553,63 +916,44 @@ func (x *CustomSkillGetBySaveIdsReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CustomSkillGetBySaveIdsReq.ProtoReflect.Descriptor instead.
-func (*CustomSkillGetBySaveIdsReq) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{7}
+// Deprecated: Use AdminCustomSkillPageListReq.ProtoReflect.Descriptor instead.
+func (*AdminCustomSkillPageListReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *CustomSkillGetBySaveIdsReq) GetSaveIds() []string {
+func (x *AdminCustomSkillPageListReq) GetName() string {
 	if x != nil {
-		return x.SaveIds
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AdminCustomSkillPageListReq) GetUserId() []string {
+	if x != nil {
+		return x.UserId
 	}
 	return nil
 }
 
-type CustomSkillSaveIdsResp struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	SaveIds []string `protobuf:"bytes,1,rep,name=saveIds,proto3" json:"saveIds,omitempty"`
-}
-
-func (x *CustomSkillSaveIdsResp) Reset() {
-	*x = CustomSkillSaveIdsResp{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[8]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *CustomSkillSaveIdsResp) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CustomSkillSaveIdsResp) ProtoMessage() {}
-
-func (x *CustomSkillSaveIdsResp) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[8]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CustomSkillSaveIdsResp.ProtoReflect.Descriptor instead.
-func (*CustomSkillSaveIdsResp) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *CustomSkillSaveIdsResp) GetSaveIds() []string {
+func (x *AdminCustomSkillPageListReq) GetOrgId() []string {
 	if x != nil {
-		return x.SaveIds
+		return x.OrgId
 	}
 	return nil
+}
+
+func (x *AdminCustomSkillPageListReq) GetPageNum() int32 {
+	if x != nil {
+		return x.PageNum
+	}
+	return 0
+}
+
+func (x *AdminCustomSkillPageListReq) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
 }
 
 type CustomSkillDetailByIdListReq struct {
@@ -623,7 +967,7 @@ type CustomSkillDetailByIdListReq struct {
 func (x *CustomSkillDetailByIdListReq) Reset() {
 	*x = CustomSkillDetailByIdListReq{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[9]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -636,7 +980,7 @@ func (x *CustomSkillDetailByIdListReq) String() string {
 func (*CustomSkillDetailByIdListReq) ProtoMessage() {}
 
 func (x *CustomSkillDetailByIdListReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[9]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -649,7 +993,7 @@ func (x *CustomSkillDetailByIdListReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CustomSkillDetailByIdListReq.ProtoReflect.Descriptor instead.
 func (*CustomSkillDetailByIdListReq) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{9}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CustomSkillDetailByIdListReq) GetSkillIds() []string {
@@ -670,7 +1014,7 @@ type CustomSkillDetailByIdListResp struct {
 func (x *CustomSkillDetailByIdListResp) Reset() {
 	*x = CustomSkillDetailByIdListResp{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[10]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -683,7 +1027,7 @@ func (x *CustomSkillDetailByIdListResp) String() string {
 func (*CustomSkillDetailByIdListResp) ProtoMessage() {}
 
 func (x *CustomSkillDetailByIdListResp) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[10]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -696,12 +1040,1011 @@ func (x *CustomSkillDetailByIdListResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CustomSkillDetailByIdListResp.ProtoReflect.Descriptor instead.
 func (*CustomSkillDetailByIdListResp) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{10}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CustomSkillDetailByIdListResp) GetSkillDetails() []*CustomSkill {
 	if x != nil {
 		return x.SkillDetails
+	}
+	return nil
+}
+
+type UpdateCustomSkillBasicMetaReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId string `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"` // 必填
+	Name    string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Desc    string `protobuf:"bytes,3,opt,name=desc,proto3" json:"desc,omitempty"`
+}
+
+func (x *UpdateCustomSkillBasicMetaReq) Reset() {
+	*x = UpdateCustomSkillBasicMetaReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[16]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateCustomSkillBasicMetaReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCustomSkillBasicMetaReq) ProtoMessage() {}
+
+func (x *UpdateCustomSkillBasicMetaReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[16]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCustomSkillBasicMetaReq.ProtoReflect.Descriptor instead.
+func (*UpdateCustomSkillBasicMetaReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *UpdateCustomSkillBasicMetaReq) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+func (x *UpdateCustomSkillBasicMetaReq) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateCustomSkillBasicMetaReq) GetDesc() string {
+	if x != nil {
+		return x.Desc
+	}
+	return ""
+}
+
+type UpdateCustomSkillThreadMetaReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId         string `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"` // 必填
+	WgaThreadId     string `protobuf:"bytes,2,opt,name=wgaThreadId,proto3" json:"wgaThreadId,omitempty"`
+	PreviewThreadId string `protobuf:"bytes,3,opt,name=previewThreadId,proto3" json:"previewThreadId,omitempty"`
+}
+
+func (x *UpdateCustomSkillThreadMetaReq) Reset() {
+	*x = UpdateCustomSkillThreadMetaReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[17]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateCustomSkillThreadMetaReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCustomSkillThreadMetaReq) ProtoMessage() {}
+
+func (x *UpdateCustomSkillThreadMetaReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[17]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCustomSkillThreadMetaReq.ProtoReflect.Descriptor instead.
+func (*UpdateCustomSkillThreadMetaReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *UpdateCustomSkillThreadMetaReq) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+func (x *UpdateCustomSkillThreadMetaReq) GetWgaThreadId() string {
+	if x != nil {
+		return x.WgaThreadId
+	}
+	return ""
+}
+
+func (x *UpdateCustomSkillThreadMetaReq) GetPreviewThreadId() string {
+	if x != nil {
+		return x.PreviewThreadId
+	}
+	return ""
+}
+
+type CreateCustomSkillVarReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId  string    `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
+	Variable *Variable `protobuf:"bytes,2,opt,name=variable,proto3" json:"variable,omitempty"`
+}
+
+func (x *CreateCustomSkillVarReq) Reset() {
+	*x = CreateCustomSkillVarReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[18]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateCustomSkillVarReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateCustomSkillVarReq) ProtoMessage() {}
+
+func (x *CreateCustomSkillVarReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[18]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateCustomSkillVarReq.ProtoReflect.Descriptor instead.
+func (*CreateCustomSkillVarReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *CreateCustomSkillVarReq) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+func (x *CreateCustomSkillVarReq) GetVariable() *Variable {
+	if x != nil {
+		return x.Variable
+	}
+	return nil
+}
+
+type SkillVariableCreateResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *SkillVariableCreateResp) Reset() {
+	*x = SkillVariableCreateResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[19]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SkillVariableCreateResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SkillVariableCreateResp) ProtoMessage() {}
+
+func (x *SkillVariableCreateResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[19]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SkillVariableCreateResp.ProtoReflect.Descriptor instead.
+func (*SkillVariableCreateResp) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *SkillVariableCreateResp) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type UpdateCustomSkillVarReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id       string    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Variable *Variable `protobuf:"bytes,2,opt,name=variable,proto3" json:"variable,omitempty"`
+	Identity *Identity `protobuf:"bytes,3,opt,name=identity,proto3" json:"identity,omitempty"`
+}
+
+func (x *UpdateCustomSkillVarReq) Reset() {
+	*x = UpdateCustomSkillVarReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[20]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateCustomSkillVarReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateCustomSkillVarReq) ProtoMessage() {}
+
+func (x *UpdateCustomSkillVarReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[20]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateCustomSkillVarReq.ProtoReflect.Descriptor instead.
+func (*UpdateCustomSkillVarReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *UpdateCustomSkillVarReq) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateCustomSkillVarReq) GetVariable() *Variable {
+	if x != nil {
+		return x.Variable
+	}
+	return nil
+}
+
+func (x *UpdateCustomSkillVarReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+type DeleteCustomSkillVarReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id       string    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Identity *Identity `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
+}
+
+func (x *DeleteCustomSkillVarReq) Reset() {
+	*x = DeleteCustomSkillVarReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[21]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteCustomSkillVarReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCustomSkillVarReq) ProtoMessage() {}
+
+func (x *DeleteCustomSkillVarReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[21]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCustomSkillVarReq.ProtoReflect.Descriptor instead.
+func (*DeleteCustomSkillVarReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *DeleteCustomSkillVarReq) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *DeleteCustomSkillVarReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+type GetCustomSkillVarsReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId string `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
+}
+
+func (x *GetCustomSkillVarsReq) Reset() {
+	*x = GetCustomSkillVarsReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[22]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetCustomSkillVarsReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCustomSkillVarsReq) ProtoMessage() {}
+
+func (x *GetCustomSkillVarsReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[22]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCustomSkillVarsReq.ProtoReflect.Descriptor instead.
+func (*GetCustomSkillVarsReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *GetCustomSkillVarsReq) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+type CustomSkillVars struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId   string      `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
+	Variables []*Variable `protobuf:"bytes,2,rep,name=variables,proto3" json:"variables,omitempty"`
+	Total     int64       `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+}
+
+func (x *CustomSkillVars) Reset() {
+	*x = CustomSkillVars{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[23]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CustomSkillVars) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CustomSkillVars) ProtoMessage() {}
+
+func (x *CustomSkillVars) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[23]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CustomSkillVars.ProtoReflect.Descriptor instead.
+func (*CustomSkillVars) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CustomSkillVars) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+func (x *CustomSkillVars) GetVariables() []*Variable {
+	if x != nil {
+		return x.Variables
+	}
+	return nil
+}
+
+func (x *CustomSkillVars) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+// --- custom skill publish ---
+type PublishCustomSkillReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId     string    `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
+	Version     string    `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	VersionDesc string    `protobuf:"bytes,3,opt,name=versionDesc,proto3" json:"versionDesc,omitempty"`
+	Identity    *Identity `protobuf:"bytes,4,opt,name=identity,proto3" json:"identity,omitempty"`
+	ObjectPath  string    `protobuf:"bytes,5,opt,name=objectPath,proto3" json:"objectPath,omitempty"`
+	Markdown    string    `protobuf:"bytes,6,opt,name=markdown,proto3" json:"markdown,omitempty"`
+}
+
+func (x *PublishCustomSkillReq) Reset() {
+	*x = PublishCustomSkillReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[24]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PublishCustomSkillReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishCustomSkillReq) ProtoMessage() {}
+
+func (x *PublishCustomSkillReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[24]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishCustomSkillReq.ProtoReflect.Descriptor instead.
+func (*PublishCustomSkillReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *PublishCustomSkillReq) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+func (x *PublishCustomSkillReq) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *PublishCustomSkillReq) GetVersionDesc() string {
+	if x != nil {
+		return x.VersionDesc
+	}
+	return ""
+}
+
+func (x *PublishCustomSkillReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+func (x *PublishCustomSkillReq) GetObjectPath() string {
+	if x != nil {
+		return x.ObjectPath
+	}
+	return ""
+}
+
+func (x *PublishCustomSkillReq) GetMarkdown() string {
+	if x != nil {
+		return x.Markdown
+	}
+	return ""
+}
+
+type UpdatePublishCustomSkillReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId     string `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
+	VersionDesc string `protobuf:"bytes,2,opt,name=versionDesc,proto3" json:"versionDesc,omitempty"`
+}
+
+func (x *UpdatePublishCustomSkillReq) Reset() {
+	*x = UpdatePublishCustomSkillReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[25]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdatePublishCustomSkillReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePublishCustomSkillReq) ProtoMessage() {}
+
+func (x *UpdatePublishCustomSkillReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[25]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePublishCustomSkillReq.ProtoReflect.Descriptor instead.
+func (*UpdatePublishCustomSkillReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *UpdatePublishCustomSkillReq) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+func (x *UpdatePublishCustomSkillReq) GetVersionDesc() string {
+	if x != nil {
+		return x.VersionDesc
+	}
+	return ""
+}
+
+type GetPublishCustomSkillHistoryListReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId string `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
+}
+
+func (x *GetPublishCustomSkillHistoryListReq) Reset() {
+	*x = GetPublishCustomSkillHistoryListReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[26]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetPublishCustomSkillHistoryListReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublishCustomSkillHistoryListReq) ProtoMessage() {}
+
+func (x *GetPublishCustomSkillHistoryListReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[26]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublishCustomSkillHistoryListReq.ProtoReflect.Descriptor instead.
+func (*GetPublishCustomSkillHistoryListReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *GetPublishCustomSkillHistoryListReq) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+type PublishCustomSkillHistoryListResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	HistoryList []*PublishCustomSkill `protobuf:"bytes,1,rep,name=historyList,proto3" json:"historyList,omitempty"`
+	Total       int64                 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+}
+
+func (x *PublishCustomSkillHistoryListResp) Reset() {
+	*x = PublishCustomSkillHistoryListResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[27]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PublishCustomSkillHistoryListResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishCustomSkillHistoryListResp) ProtoMessage() {}
+
+func (x *PublishCustomSkillHistoryListResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[27]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishCustomSkillHistoryListResp.ProtoReflect.Descriptor instead.
+func (*PublishCustomSkillHistoryListResp) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *PublishCustomSkillHistoryListResp) GetHistoryList() []*PublishCustomSkill {
+	if x != nil {
+		return x.HistoryList
+	}
+	return nil
+}
+
+func (x *PublishCustomSkillHistoryListResp) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type GetPublishCustomSkillByLatestReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId string `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
+}
+
+func (x *GetPublishCustomSkillByLatestReq) Reset() {
+	*x = GetPublishCustomSkillByLatestReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[28]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetPublishCustomSkillByLatestReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublishCustomSkillByLatestReq) ProtoMessage() {}
+
+func (x *GetPublishCustomSkillByLatestReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[28]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublishCustomSkillByLatestReq.ProtoReflect.Descriptor instead.
+func (*GetPublishCustomSkillByLatestReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *GetPublishCustomSkillByLatestReq) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+type GetPublishCustomSkillByVersionReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId string `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"`
+	Version string `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+}
+
+func (x *GetPublishCustomSkillByVersionReq) Reset() {
+	*x = GetPublishCustomSkillByVersionReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[29]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetPublishCustomSkillByVersionReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublishCustomSkillByVersionReq) ProtoMessage() {}
+
+func (x *GetPublishCustomSkillByVersionReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[29]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublishCustomSkillByVersionReq.ProtoReflect.Descriptor instead.
+func (*GetPublishCustomSkillByVersionReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *GetPublishCustomSkillByVersionReq) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+func (x *GetPublishCustomSkillByVersionReq) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+type GetPublishCustomSkillListReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Identity *Identity `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
+	Name     string    `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (x *GetPublishCustomSkillListReq) Reset() {
+	*x = GetPublishCustomSkillListReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[30]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetPublishCustomSkillListReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublishCustomSkillListReq) ProtoMessage() {}
+
+func (x *GetPublishCustomSkillListReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[30]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublishCustomSkillListReq.ProtoReflect.Descriptor instead.
+func (*GetPublishCustomSkillListReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *GetPublishCustomSkillListReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+func (x *GetPublishCustomSkillListReq) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetPublishCustomSkillListResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	List []*PublishCustomSkill `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+}
+
+func (x *GetPublishCustomSkillListResp) Reset() {
+	*x = GetPublishCustomSkillListResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[31]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetPublishCustomSkillListResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublishCustomSkillListResp) ProtoMessage() {}
+
+func (x *GetPublishCustomSkillListResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[31]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublishCustomSkillListResp.ProtoReflect.Descriptor instead.
+func (*GetPublishCustomSkillListResp) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *GetPublishCustomSkillListResp) GetList() []*PublishCustomSkill {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+type GetPublishCustomSkillByIDListReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillIdList []string `protobuf:"bytes,1,rep,name=skillIdList,proto3" json:"skillIdList,omitempty"`
+}
+
+func (x *GetPublishCustomSkillByIDListReq) Reset() {
+	*x = GetPublishCustomSkillByIDListReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[32]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetPublishCustomSkillByIDListReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublishCustomSkillByIDListReq) ProtoMessage() {}
+
+func (x *GetPublishCustomSkillByIDListReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[32]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublishCustomSkillByIDListReq.ProtoReflect.Descriptor instead.
+func (*GetPublishCustomSkillByIDListReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *GetPublishCustomSkillByIDListReq) GetSkillIdList() []string {
+	if x != nil {
+		return x.SkillIdList
+	}
+	return nil
+}
+
+type GetPublishCustomSkillByIDListResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	List []*PublishCustomSkill `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+}
+
+func (x *GetPublishCustomSkillByIDListResp) Reset() {
+	*x = GetPublishCustomSkillByIDListResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[33]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetPublishCustomSkillByIDListResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPublishCustomSkillByIDListResp) ProtoMessage() {}
+
+func (x *GetPublishCustomSkillByIDListResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[33]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPublishCustomSkillByIDListResp.ProtoReflect.Descriptor instead.
+func (*GetPublishCustomSkillByIDListResp) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *GetPublishCustomSkillByIDListResp) GetList() []*PublishCustomSkill {
+	if x != nil {
+		return x.List
 	}
 	return nil
 }
@@ -712,26 +2055,18 @@ type AcquiredSkill struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	AcquiredSkillId    string `protobuf:"bytes,1,opt,name=acquiredSkillId,proto3" json:"acquiredSkillId,omitempty"`
-	SquareSkillId      string `protobuf:"bytes,2,opt,name=squareSkillId,proto3" json:"squareSkillId,omitempty"`
-	Name               string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Avatar             string `protobuf:"bytes,4,opt,name=avatar,proto3" json:"avatar,omitempty"`
-	Author             string `protobuf:"bytes,5,opt,name=author,proto3" json:"author,omitempty"`
-	AuthorId           string `protobuf:"bytes,6,opt,name=authorId,proto3" json:"authorId,omitempty"`
-	Desc               string `protobuf:"bytes,7,opt,name=desc,proto3" json:"desc,omitempty"`
-	ObjectPath         string `protobuf:"bytes,8,opt,name=objectPath,proto3" json:"objectPath,omitempty"`
-	Markdown           string `protobuf:"bytes,9,opt,name=markdown,proto3" json:"markdown,omitempty"`
-	AcquiredType       string `protobuf:"bytes,10,opt,name=acquiredType,proto3" json:"acquiredType,omitempty"` //builtin/custom
-	Version            string `protobuf:"bytes,11,opt,name=version,proto3" json:"version,omitempty"`
-	VersionDescription string `protobuf:"bytes,12,opt,name=versionDescription,proto3" json:"versionDescription,omitempty"`
-	CreatedAt          int64  `protobuf:"varint,13,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
-	UpdatedAt          int64  `protobuf:"varint,14,opt,name=updatedAt,proto3" json:"updatedAt,omitempty"`
+	AcquiredSkillId string              `protobuf:"bytes,1,opt,name=acquiredSkillId,proto3" json:"acquiredSkillId,omitempty"`
+	Skill           *PublishCustomSkill `protobuf:"bytes,2,opt,name=skill,proto3" json:"skill,omitempty"`
+	CreatedAt       int64               `protobuf:"varint,4,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
+	UpdatedAt       int64               `protobuf:"varint,5,opt,name=updatedAt,proto3" json:"updatedAt,omitempty"`
+	UserId          string              `protobuf:"bytes,6,opt,name=userId,proto3" json:"userId,omitempty"`
+	OrgId           string              `protobuf:"bytes,7,opt,name=orgId,proto3" json:"orgId,omitempty"`
 }
 
 func (x *AcquiredSkill) Reset() {
 	*x = AcquiredSkill{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[11]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -744,7 +2079,7 @@ func (x *AcquiredSkill) String() string {
 func (*AcquiredSkill) ProtoMessage() {}
 
 func (x *AcquiredSkill) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[11]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -757,7 +2092,7 @@ func (x *AcquiredSkill) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcquiredSkill.ProtoReflect.Descriptor instead.
 func (*AcquiredSkill) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{11}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *AcquiredSkill) GetAcquiredSkillId() string {
@@ -767,81 +2102,11 @@ func (x *AcquiredSkill) GetAcquiredSkillId() string {
 	return ""
 }
 
-func (x *AcquiredSkill) GetSquareSkillId() string {
+func (x *AcquiredSkill) GetSkill() *PublishCustomSkill {
 	if x != nil {
-		return x.SquareSkillId
+		return x.Skill
 	}
-	return ""
-}
-
-func (x *AcquiredSkill) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *AcquiredSkill) GetAvatar() string {
-	if x != nil {
-		return x.Avatar
-	}
-	return ""
-}
-
-func (x *AcquiredSkill) GetAuthor() string {
-	if x != nil {
-		return x.Author
-	}
-	return ""
-}
-
-func (x *AcquiredSkill) GetAuthorId() string {
-	if x != nil {
-		return x.AuthorId
-	}
-	return ""
-}
-
-func (x *AcquiredSkill) GetDesc() string {
-	if x != nil {
-		return x.Desc
-	}
-	return ""
-}
-
-func (x *AcquiredSkill) GetObjectPath() string {
-	if x != nil {
-		return x.ObjectPath
-	}
-	return ""
-}
-
-func (x *AcquiredSkill) GetMarkdown() string {
-	if x != nil {
-		return x.Markdown
-	}
-	return ""
-}
-
-func (x *AcquiredSkill) GetAcquiredType() string {
-	if x != nil {
-		return x.AcquiredType
-	}
-	return ""
-}
-
-func (x *AcquiredSkill) GetVersion() string {
-	if x != nil {
-		return x.Version
-	}
-	return ""
-}
-
-func (x *AcquiredSkill) GetVersionDescription() string {
-	if x != nil {
-		return x.VersionDescription
-	}
-	return ""
+	return nil
 }
 
 func (x *AcquiredSkill) GetCreatedAt() int64 {
@@ -858,29 +2123,33 @@ func (x *AcquiredSkill) GetUpdatedAt() int64 {
 	return 0
 }
 
+func (x *AcquiredSkill) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *AcquiredSkill) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
+}
+
 type AcquiredSkillCreateReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Identity           *Identity `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
-	Name               string    `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Avatar             string    `protobuf:"bytes,3,opt,name=avatar,proto3" json:"avatar,omitempty"`
-	SquareSkillId      string    `protobuf:"bytes,4,opt,name=squareSkillId,proto3" json:"squareSkillId,omitempty"`
-	Author             string    `protobuf:"bytes,5,opt,name=author,proto3" json:"author,omitempty"`
-	AuthorId           string    `protobuf:"bytes,6,opt,name=authorId,proto3" json:"authorId,omitempty"`
-	Desc               string    `protobuf:"bytes,7,opt,name=desc,proto3" json:"desc,omitempty"`
-	ObjectPath         string    `protobuf:"bytes,8,opt,name=objectPath,proto3" json:"objectPath,omitempty"`
-	AcquiredType       string    `protobuf:"bytes,9,opt,name=acquiredType,proto3" json:"acquiredType,omitempty"` //builtin/custom
-	Markdown           string    `protobuf:"bytes,10,opt,name=markdown,proto3" json:"markdown,omitempty"`
-	Version            string    `protobuf:"bytes,11,opt,name=version,proto3" json:"version,omitempty"`
-	VersionDescription string    `protobuf:"bytes,12,opt,name=versionDescription,proto3" json:"versionDescription,omitempty"`
+	Identity      *Identity `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
+	CustomSkillId string    `protobuf:"bytes,2,opt,name=customSkillId,proto3" json:"customSkillId,omitempty"`
 }
 
 func (x *AcquiredSkillCreateReq) Reset() {
 	*x = AcquiredSkillCreateReq{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[12]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -893,7 +2162,7 @@ func (x *AcquiredSkillCreateReq) String() string {
 func (*AcquiredSkillCreateReq) ProtoMessage() {}
 
 func (x *AcquiredSkillCreateReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[12]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -906,7 +2175,7 @@ func (x *AcquiredSkillCreateReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcquiredSkillCreateReq.ProtoReflect.Descriptor instead.
 func (*AcquiredSkillCreateReq) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{12}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *AcquiredSkillCreateReq) GetIdentity() *Identity {
@@ -916,79 +2185,9 @@ func (x *AcquiredSkillCreateReq) GetIdentity() *Identity {
 	return nil
 }
 
-func (x *AcquiredSkillCreateReq) GetName() string {
+func (x *AcquiredSkillCreateReq) GetCustomSkillId() string {
 	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *AcquiredSkillCreateReq) GetAvatar() string {
-	if x != nil {
-		return x.Avatar
-	}
-	return ""
-}
-
-func (x *AcquiredSkillCreateReq) GetSquareSkillId() string {
-	if x != nil {
-		return x.SquareSkillId
-	}
-	return ""
-}
-
-func (x *AcquiredSkillCreateReq) GetAuthor() string {
-	if x != nil {
-		return x.Author
-	}
-	return ""
-}
-
-func (x *AcquiredSkillCreateReq) GetAuthorId() string {
-	if x != nil {
-		return x.AuthorId
-	}
-	return ""
-}
-
-func (x *AcquiredSkillCreateReq) GetDesc() string {
-	if x != nil {
-		return x.Desc
-	}
-	return ""
-}
-
-func (x *AcquiredSkillCreateReq) GetObjectPath() string {
-	if x != nil {
-		return x.ObjectPath
-	}
-	return ""
-}
-
-func (x *AcquiredSkillCreateReq) GetAcquiredType() string {
-	if x != nil {
-		return x.AcquiredType
-	}
-	return ""
-}
-
-func (x *AcquiredSkillCreateReq) GetMarkdown() string {
-	if x != nil {
-		return x.Markdown
-	}
-	return ""
-}
-
-func (x *AcquiredSkillCreateReq) GetVersion() string {
-	if x != nil {
-		return x.Version
-	}
-	return ""
-}
-
-func (x *AcquiredSkillCreateReq) GetVersionDescription() string {
-	if x != nil {
-		return x.VersionDescription
+		return x.CustomSkillId
 	}
 	return ""
 }
@@ -1004,7 +2203,7 @@ type AcquiredSkillCreateResp struct {
 func (x *AcquiredSkillCreateResp) Reset() {
 	*x = AcquiredSkillCreateResp{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[13]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1017,7 +2216,7 @@ func (x *AcquiredSkillCreateResp) String() string {
 func (*AcquiredSkillCreateResp) ProtoMessage() {}
 
 func (x *AcquiredSkillCreateResp) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[13]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1030,7 +2229,7 @@ func (x *AcquiredSkillCreateResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcquiredSkillCreateResp.ProtoReflect.Descriptor instead.
 func (*AcquiredSkillCreateResp) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{13}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *AcquiredSkillCreateResp) GetAcquiredSkillId() string {
@@ -1045,13 +2244,14 @@ type AcquiredSkillDeleteReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	AcquiredSkillId string `protobuf:"bytes,1,opt,name=acquiredSkillId,proto3" json:"acquiredSkillId,omitempty"`
+	AcquiredSkillId string    `protobuf:"bytes,1,opt,name=acquiredSkillId,proto3" json:"acquiredSkillId,omitempty"`
+	Identity        *Identity `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
 }
 
 func (x *AcquiredSkillDeleteReq) Reset() {
 	*x = AcquiredSkillDeleteReq{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[14]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1064,7 +2264,7 @@ func (x *AcquiredSkillDeleteReq) String() string {
 func (*AcquiredSkillDeleteReq) ProtoMessage() {}
 
 func (x *AcquiredSkillDeleteReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[14]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1077,7 +2277,7 @@ func (x *AcquiredSkillDeleteReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcquiredSkillDeleteReq.ProtoReflect.Descriptor instead.
 func (*AcquiredSkillDeleteReq) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{14}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *AcquiredSkillDeleteReq) GetAcquiredSkillId() string {
@@ -1085,6 +2285,13 @@ func (x *AcquiredSkillDeleteReq) GetAcquiredSkillId() string {
 		return x.AcquiredSkillId
 	}
 	return ""
+}
+
+func (x *AcquiredSkillDeleteReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
 }
 
 type AcquiredSkillGetReq struct {
@@ -1098,7 +2305,7 @@ type AcquiredSkillGetReq struct {
 func (x *AcquiredSkillGetReq) Reset() {
 	*x = AcquiredSkillGetReq{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[15]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1111,7 +2318,7 @@ func (x *AcquiredSkillGetReq) String() string {
 func (*AcquiredSkillGetReq) ProtoMessage() {}
 
 func (x *AcquiredSkillGetReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[15]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1124,7 +2331,7 @@ func (x *AcquiredSkillGetReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcquiredSkillGetReq.ProtoReflect.Descriptor instead.
 func (*AcquiredSkillGetReq) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{15}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *AcquiredSkillGetReq) GetAcquiredSkillId() string {
@@ -1146,7 +2353,7 @@ type AcquiredSkillGetListReq struct {
 func (x *AcquiredSkillGetListReq) Reset() {
 	*x = AcquiredSkillGetListReq{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[16]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1159,7 +2366,7 @@ func (x *AcquiredSkillGetListReq) String() string {
 func (*AcquiredSkillGetListReq) ProtoMessage() {}
 
 func (x *AcquiredSkillGetListReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[16]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1172,7 +2379,7 @@ func (x *AcquiredSkillGetListReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcquiredSkillGetListReq.ProtoReflect.Descriptor instead.
 func (*AcquiredSkillGetListReq) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{16}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *AcquiredSkillGetListReq) GetIdentity() *Identity {
@@ -1201,7 +2408,7 @@ type AcquiredSkillGetListResp struct {
 func (x *AcquiredSkillGetListResp) Reset() {
 	*x = AcquiredSkillGetListResp{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[17]
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1214,7 +2421,7 @@ func (x *AcquiredSkillGetListResp) String() string {
 func (*AcquiredSkillGetListResp) ProtoMessage() {}
 
 func (x *AcquiredSkillGetListResp) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[17]
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1227,7 +2434,7 @@ func (x *AcquiredSkillGetListResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcquiredSkillGetListResp.ProtoReflect.Descriptor instead.
 func (*AcquiredSkillGetListResp) Descriptor() ([]byte, []int) {
-	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{17}
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *AcquiredSkillGetListResp) GetList() []*AcquiredSkill {
@@ -1244,6 +2451,1079 @@ func (x *AcquiredSkillGetListResp) GetTotal() int64 {
 	return 0
 }
 
+type AcquiredSkillGetByIDListReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AcquiredSkillIdList []string `protobuf:"bytes,1,rep,name=acquiredSkillIdList,proto3" json:"acquiredSkillIdList,omitempty"`
+}
+
+func (x *AcquiredSkillGetByIDListReq) Reset() {
+	*x = AcquiredSkillGetByIDListReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[41]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AcquiredSkillGetByIDListReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AcquiredSkillGetByIDListReq) ProtoMessage() {}
+
+func (x *AcquiredSkillGetByIDListReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[41]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AcquiredSkillGetByIDListReq.ProtoReflect.Descriptor instead.
+func (*AcquiredSkillGetByIDListReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *AcquiredSkillGetByIDListReq) GetAcquiredSkillIdList() []string {
+	if x != nil {
+		return x.AcquiredSkillIdList
+	}
+	return nil
+}
+
+type AcquiredSkillGetByIDListResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	List  []*AcquiredSkill `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	Total int64            `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+}
+
+func (x *AcquiredSkillGetByIDListResp) Reset() {
+	*x = AcquiredSkillGetByIDListResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[42]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AcquiredSkillGetByIDListResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AcquiredSkillGetByIDListResp) ProtoMessage() {}
+
+func (x *AcquiredSkillGetByIDListResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[42]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AcquiredSkillGetByIDListResp.ProtoReflect.Descriptor instead.
+func (*AcquiredSkillGetByIDListResp) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *AcquiredSkillGetByIDListResp) GetList() []*AcquiredSkill {
+	if x != nil {
+		return x.List
+	}
+	return nil
+}
+
+func (x *AcquiredSkillGetByIDListResp) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type AcquiredSkillGetHistoryListReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AcquiredSkillId string `protobuf:"bytes,1,opt,name=acquiredSkillId,proto3" json:"acquiredSkillId,omitempty"`
+}
+
+func (x *AcquiredSkillGetHistoryListReq) Reset() {
+	*x = AcquiredSkillGetHistoryListReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[43]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AcquiredSkillGetHistoryListReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AcquiredSkillGetHistoryListReq) ProtoMessage() {}
+
+func (x *AcquiredSkillGetHistoryListReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[43]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AcquiredSkillGetHistoryListReq.ProtoReflect.Descriptor instead.
+func (*AcquiredSkillGetHistoryListReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *AcquiredSkillGetHistoryListReq) GetAcquiredSkillId() string {
+	if x != nil {
+		return x.AcquiredSkillId
+	}
+	return ""
+}
+
+type AcquiredSkillHistoryListResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	HistoryList []*PublishCustomSkill `protobuf:"bytes,1,rep,name=historyList,proto3" json:"historyList,omitempty"`
+	Total       int64                 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+}
+
+func (x *AcquiredSkillHistoryListResp) Reset() {
+	*x = AcquiredSkillHistoryListResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[44]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AcquiredSkillHistoryListResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AcquiredSkillHistoryListResp) ProtoMessage() {}
+
+func (x *AcquiredSkillHistoryListResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[44]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AcquiredSkillHistoryListResp.ProtoReflect.Descriptor instead.
+func (*AcquiredSkillHistoryListResp) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *AcquiredSkillHistoryListResp) GetHistoryList() []*PublishCustomSkill {
+	if x != nil {
+		return x.HistoryList
+	}
+	return nil
+}
+
+func (x *AcquiredSkillHistoryListResp) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type CheckAcquiredSkillReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillIds []string  `protobuf:"bytes,1,rep,name=skillIds,proto3" json:"skillIds,omitempty"`
+	Identity *Identity `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
+}
+
+func (x *CheckAcquiredSkillReq) Reset() {
+	*x = CheckAcquiredSkillReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[45]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CheckAcquiredSkillReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckAcquiredSkillReq) ProtoMessage() {}
+
+func (x *CheckAcquiredSkillReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[45]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckAcquiredSkillReq.ProtoReflect.Descriptor instead.
+func (*CheckAcquiredSkillReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *CheckAcquiredSkillReq) GetSkillIds() []string {
+	if x != nil {
+		return x.SkillIds
+	}
+	return nil
+}
+
+func (x *CheckAcquiredSkillReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+type CheckAcquiredSkillResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AcquiredMap map[string]bool `protobuf:"bytes,1,rep,name=acquiredMap,proto3" json:"acquiredMap,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
+}
+
+func (x *CheckAcquiredSkillResp) Reset() {
+	*x = CheckAcquiredSkillResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[46]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CheckAcquiredSkillResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckAcquiredSkillResp) ProtoMessage() {}
+
+func (x *CheckAcquiredSkillResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[46]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckAcquiredSkillResp.ProtoReflect.Descriptor instead.
+func (*CheckAcquiredSkillResp) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *CheckAcquiredSkillResp) GetAcquiredMap() map[string]bool {
+	if x != nil {
+		return x.AcquiredMap
+	}
+	return nil
+}
+
+type CreateAcquiredSkillVarReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AcquiredSkillId string    `protobuf:"bytes,1,opt,name=acquiredSkillId,proto3" json:"acquiredSkillId,omitempty"`
+	Variable        *Variable `protobuf:"bytes,2,opt,name=variable,proto3" json:"variable,omitempty"`
+}
+
+func (x *CreateAcquiredSkillVarReq) Reset() {
+	*x = CreateAcquiredSkillVarReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[47]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateAcquiredSkillVarReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAcquiredSkillVarReq) ProtoMessage() {}
+
+func (x *CreateAcquiredSkillVarReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[47]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAcquiredSkillVarReq.ProtoReflect.Descriptor instead.
+func (*CreateAcquiredSkillVarReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *CreateAcquiredSkillVarReq) GetAcquiredSkillId() string {
+	if x != nil {
+		return x.AcquiredSkillId
+	}
+	return ""
+}
+
+func (x *CreateAcquiredSkillVarReq) GetVariable() *Variable {
+	if x != nil {
+		return x.Variable
+	}
+	return nil
+}
+
+type UpdateAcquiredSkillVarReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id       string    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Variable *Variable `protobuf:"bytes,2,opt,name=variable,proto3" json:"variable,omitempty"`
+	Identity *Identity `protobuf:"bytes,3,opt,name=identity,proto3" json:"identity,omitempty"`
+}
+
+func (x *UpdateAcquiredSkillVarReq) Reset() {
+	*x = UpdateAcquiredSkillVarReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[48]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateAcquiredSkillVarReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateAcquiredSkillVarReq) ProtoMessage() {}
+
+func (x *UpdateAcquiredSkillVarReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[48]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateAcquiredSkillVarReq.ProtoReflect.Descriptor instead.
+func (*UpdateAcquiredSkillVarReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *UpdateAcquiredSkillVarReq) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateAcquiredSkillVarReq) GetVariable() *Variable {
+	if x != nil {
+		return x.Variable
+	}
+	return nil
+}
+
+func (x *UpdateAcquiredSkillVarReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+type DeleteAcquiredSkillVarReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id       string    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Identity *Identity `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
+}
+
+func (x *DeleteAcquiredSkillVarReq) Reset() {
+	*x = DeleteAcquiredSkillVarReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[49]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteAcquiredSkillVarReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAcquiredSkillVarReq) ProtoMessage() {}
+
+func (x *DeleteAcquiredSkillVarReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[49]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAcquiredSkillVarReq.ProtoReflect.Descriptor instead.
+func (*DeleteAcquiredSkillVarReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *DeleteAcquiredSkillVarReq) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *DeleteAcquiredSkillVarReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+type GetAcquiredSkillVarsReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AcquiredSkillId string `protobuf:"bytes,1,opt,name=acquiredSkillId,proto3" json:"acquiredSkillId,omitempty"`
+}
+
+func (x *GetAcquiredSkillVarsReq) Reset() {
+	*x = GetAcquiredSkillVarsReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[50]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetAcquiredSkillVarsReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAcquiredSkillVarsReq) ProtoMessage() {}
+
+func (x *GetAcquiredSkillVarsReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[50]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAcquiredSkillVarsReq.ProtoReflect.Descriptor instead.
+func (*GetAcquiredSkillVarsReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *GetAcquiredSkillVarsReq) GetAcquiredSkillId() string {
+	if x != nil {
+		return x.AcquiredSkillId
+	}
+	return ""
+}
+
+type AcquiredSkillVars struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AcquiredSkillId string      `protobuf:"bytes,1,opt,name=acquiredSkillId,proto3" json:"acquiredSkillId,omitempty"`
+	Variables       []*Variable `protobuf:"bytes,2,rep,name=variables,proto3" json:"variables,omitempty"`
+	Total           int64       `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+}
+
+func (x *AcquiredSkillVars) Reset() {
+	*x = AcquiredSkillVars{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[51]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AcquiredSkillVars) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AcquiredSkillVars) ProtoMessage() {}
+
+func (x *AcquiredSkillVars) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[51]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AcquiredSkillVars.ProtoReflect.Descriptor instead.
+func (*AcquiredSkillVars) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *AcquiredSkillVars) GetAcquiredSkillId() string {
+	if x != nil {
+		return x.AcquiredSkillId
+	}
+	return ""
+}
+
+func (x *AcquiredSkillVars) GetVariables() []*Variable {
+	if x != nil {
+		return x.Variables
+	}
+	return nil
+}
+
+func (x *AcquiredSkillVars) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+// --- builtin skill config ---
+// skillId 为内置技能的业务字符串标识（如 pdf、excel），与 custom skill 表主键数字转成的 skillId 不同；禁止按 int 解析。
+type CreateBuiltinSkillVarReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId  string    `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"` // 内置 skill 业务 ID，任意合法字符串
+	Variable *Variable `protobuf:"bytes,2,opt,name=variable,proto3" json:"variable,omitempty"`
+	Identity *Identity `protobuf:"bytes,3,opt,name=identity,proto3" json:"identity,omitempty"`
+}
+
+func (x *CreateBuiltinSkillVarReq) Reset() {
+	*x = CreateBuiltinSkillVarReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[52]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateBuiltinSkillVarReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateBuiltinSkillVarReq) ProtoMessage() {}
+
+func (x *CreateBuiltinSkillVarReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[52]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateBuiltinSkillVarReq.ProtoReflect.Descriptor instead.
+func (*CreateBuiltinSkillVarReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *CreateBuiltinSkillVarReq) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+func (x *CreateBuiltinSkillVarReq) GetVariable() *Variable {
+	if x != nil {
+		return x.Variable
+	}
+	return nil
+}
+
+func (x *CreateBuiltinSkillVarReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+type DeleteBuiltinSkillVarReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id       string    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Identity *Identity `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
+}
+
+func (x *DeleteBuiltinSkillVarReq) Reset() {
+	*x = DeleteBuiltinSkillVarReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[53]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteBuiltinSkillVarReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteBuiltinSkillVarReq) ProtoMessage() {}
+
+func (x *DeleteBuiltinSkillVarReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[53]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteBuiltinSkillVarReq.ProtoReflect.Descriptor instead.
+func (*DeleteBuiltinSkillVarReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *DeleteBuiltinSkillVarReq) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *DeleteBuiltinSkillVarReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+// 查询单个 builtin skill（skillId）在当前 identity 下的全部配置变量。
+type GetBuiltinSkillVarsReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId  string    `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"` // 同上
+	Identity *Identity `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
+}
+
+func (x *GetBuiltinSkillVarsReq) Reset() {
+	*x = GetBuiltinSkillVarsReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[54]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetBuiltinSkillVarsReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBuiltinSkillVarsReq) ProtoMessage() {}
+
+func (x *GetBuiltinSkillVarsReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[54]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBuiltinSkillVarsReq.ProtoReflect.Descriptor instead.
+func (*GetBuiltinSkillVarsReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *GetBuiltinSkillVarsReq) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+func (x *GetBuiltinSkillVarsReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+type GetBuiltinSkillsVarsReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Identity *Identity `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
+	SkillIds []string  `protobuf:"bytes,2,rep,name=skillIds,proto3" json:"skillIds,omitempty"`
+}
+
+func (x *GetBuiltinSkillsVarsReq) Reset() {
+	*x = GetBuiltinSkillsVarsReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[55]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetBuiltinSkillsVarsReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBuiltinSkillsVarsReq) ProtoMessage() {}
+
+func (x *GetBuiltinSkillsVarsReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[55]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBuiltinSkillsVarsReq.ProtoReflect.Descriptor instead.
+func (*GetBuiltinSkillsVarsReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *GetBuiltinSkillsVarsReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+func (x *GetBuiltinSkillsVarsReq) GetSkillIds() []string {
+	if x != nil {
+		return x.SkillIds
+	}
+	return nil
+}
+
+type GetBuiltinSkillsVarsResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Skills []*BuiltinSkillVars `protobuf:"bytes,1,rep,name=skills,proto3" json:"skills,omitempty"`
+}
+
+func (x *GetBuiltinSkillsVarsResp) Reset() {
+	*x = GetBuiltinSkillsVarsResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[56]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetBuiltinSkillsVarsResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBuiltinSkillsVarsResp) ProtoMessage() {}
+
+func (x *GetBuiltinSkillsVarsResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[56]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBuiltinSkillsVarsResp.ProtoReflect.Descriptor instead.
+func (*GetBuiltinSkillsVarsResp) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *GetBuiltinSkillsVarsResp) GetSkills() []*BuiltinSkillVars {
+	if x != nil {
+		return x.Skills
+	}
+	return nil
+}
+
+// 单个 skill 下的变量列表；total 与 variables 条数一致（全量、无分页）。
+type BuiltinSkillVars struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SkillId   string      `protobuf:"bytes,1,opt,name=skillId,proto3" json:"skillId,omitempty"` // 同上
+	Variables []*Variable `protobuf:"bytes,2,rep,name=variables,proto3" json:"variables,omitempty"`
+	Total     int64       `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+}
+
+func (x *BuiltinSkillVars) Reset() {
+	*x = BuiltinSkillVars{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[57]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BuiltinSkillVars) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BuiltinSkillVars) ProtoMessage() {}
+
+func (x *BuiltinSkillVars) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[57]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BuiltinSkillVars.ProtoReflect.Descriptor instead.
+func (*BuiltinSkillVars) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *BuiltinSkillVars) GetSkillId() string {
+	if x != nil {
+		return x.SkillId
+	}
+	return ""
+}
+
+func (x *BuiltinSkillVars) GetVariables() []*Variable {
+	if x != nil {
+		return x.Variables
+	}
+	return nil
+}
+
+func (x *BuiltinSkillVars) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type UpdateBuiltinSkillVarReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id       string    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Variable *Variable `protobuf:"bytes,2,opt,name=variable,proto3" json:"variable,omitempty"`
+	Identity *Identity `protobuf:"bytes,3,opt,name=identity,proto3" json:"identity,omitempty"`
+}
+
+func (x *UpdateBuiltinSkillVarReq) Reset() {
+	*x = UpdateBuiltinSkillVarReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[58]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UpdateBuiltinSkillVarReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateBuiltinSkillVarReq) ProtoMessage() {}
+
+func (x *UpdateBuiltinSkillVarReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[58]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateBuiltinSkillVarReq.ProtoReflect.Descriptor instead.
+func (*UpdateBuiltinSkillVarReq) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *UpdateBuiltinSkillVarReq) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateBuiltinSkillVarReq) GetVariable() *Variable {
+	if x != nil {
+		return x.Variable
+	}
+	return nil
+}
+
+func (x *UpdateBuiltinSkillVarReq) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+type Variable struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Desc          string `protobuf:"bytes,3,opt,name=desc,proto3" json:"desc,omitempty"`
+	VariableKey   string `protobuf:"bytes,4,opt,name=variableKey,proto3" json:"variableKey,omitempty"`
+	VariableValue string `protobuf:"bytes,5,opt,name=variableValue,proto3" json:"variableValue,omitempty"`
+}
+
+func (x *Variable) Reset() {
+	*x = Variable{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_mcp_service_skill_service_proto_msgTypes[59]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Variable) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Variable) ProtoMessage() {}
+
+func (x *Variable) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_mcp_service_skill_service_proto_msgTypes[59]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Variable.ProtoReflect.Descriptor instead.
+func (*Variable) Descriptor() ([]byte, []int) {
+	return file_proto_mcp_service_skill_service_proto_rawDescGZIP(), []int{59}
+}
+
+func (x *Variable) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Variable) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Variable) GetDesc() string {
+	if x != nil {
+		return x.Desc
+	}
+	return ""
+}
+
+func (x *Variable) GetVariableKey() string {
+	if x != nil {
+		return x.VariableKey
+	}
+	return ""
+}
+
+func (x *Variable) GetVariableValue() string {
+	if x != nil {
+		return x.VariableValue
+	}
+	return ""
+}
+
 var File_proto_mcp_service_skill_service_proto protoreflect.FileDescriptor
 
 var file_proto_mcp_service_skill_service_proto_rawDesc = []byte{
@@ -1252,7 +3532,7 @@ var file_proto_mcp_service_skill_service_proto_rawDesc = []byte{
 	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0b, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72,
 	0x76, 0x69, 0x63, 0x65, 0x1a, 0x1e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x6d, 0x63, 0x70, 0x2d,
 	0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x22, 0xf7, 0x01, 0x0a, 0x0b, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53,
+	0x72, 0x6f, 0x74, 0x6f, 0x22, 0xd4, 0x03, 0x0a, 0x0b, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53,
 	0x6b, 0x69, 0x6c, 0x6c, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x12,
 	0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61,
@@ -1262,155 +3542,430 @@ var file_proto_mcp_service_skill_service_proto_rawDesc = []byte{
 	0x6f, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x65, 0x73, 0x63, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09,
 	0x52, 0x04, 0x64, 0x65, 0x73, 0x63, 0x12, 0x1e, 0x0a, 0x0a, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74,
 	0x50, 0x61, 0x74, 0x68, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x6f, 0x62, 0x6a, 0x65,
-	0x63, 0x74, 0x50, 0x61, 0x74, 0x68, 0x12, 0x1a, 0x0a, 0x08, 0x6d, 0x61, 0x72, 0x6b, 0x64, 0x6f,
-	0x77, 0x6e, 0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x6d, 0x61, 0x72, 0x6b, 0x64, 0x6f,
-	0x77, 0x6e, 0x12, 0x1c, 0x0a, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x18,
-	0x07, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74,
-	0x12, 0x1c, 0x0a, 0x09, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x18, 0x08, 0x20,
-	0x01, 0x28, 0x03, 0x52, 0x09, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x22, 0x95,
-	0x02, 0x0a, 0x14, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x43, 0x72,
-	0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x61,
-	0x76, 0x61, 0x74, 0x61, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x61, 0x76, 0x61,
-	0x74, 0x61, 0x72, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x18, 0x03, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x06, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x64,
-	0x65, 0x73, 0x63, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x65, 0x73, 0x63, 0x12,
-	0x1e, 0x0a, 0x0a, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x50, 0x61, 0x74, 0x68, 0x18, 0x05, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x0a, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x50, 0x61, 0x74, 0x68, 0x12,
-	0x16, 0x0a, 0x06, 0x73, 0x61, 0x76, 0x65, 0x49, 0x64, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x06, 0x73, 0x61, 0x76, 0x65, 0x49, 0x64, 0x12, 0x1e, 0x0a, 0x0a, 0x73, 0x6f, 0x75, 0x72, 0x63,
-	0x65, 0x54, 0x79, 0x70, 0x65, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x73, 0x6f, 0x75,
-	0x72, 0x63, 0x65, 0x54, 0x79, 0x70, 0x65, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74,
-	0x69, 0x74, 0x79, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f,
-	0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79,
-	0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x12, 0x1a, 0x0a, 0x08, 0x6d, 0x61,
-	0x72, 0x6b, 0x64, 0x6f, 0x77, 0x6e, 0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x6d, 0x61,
-	0x72, 0x6b, 0x64, 0x6f, 0x77, 0x6e, 0x22, 0x31, 0x0a, 0x15, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d,
+	0x63, 0x74, 0x50, 0x61, 0x74, 0x68, 0x12, 0x20, 0x0a, 0x0b, 0x77, 0x67, 0x61, 0x54, 0x68, 0x72,
+	0x65, 0x61, 0x64, 0x49, 0x64, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x77, 0x67, 0x61,
+	0x54, 0x68, 0x72, 0x65, 0x61, 0x64, 0x49, 0x64, 0x12, 0x28, 0x0a, 0x0f, 0x70, 0x72, 0x65, 0x76,
+	0x69, 0x65, 0x77, 0x54, 0x68, 0x72, 0x65, 0x61, 0x64, 0x49, 0x64, 0x18, 0x08, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x0f, 0x70, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x54, 0x68, 0x72, 0x65, 0x61, 0x64,
+	0x49, 0x64, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x09,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69,
+	0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65,
+	0x6e, 0x74, 0x69, 0x74, 0x79, 0x12, 0x1c, 0x0a, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64,
+	0x41, 0x74, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65,
+	0x64, 0x41, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74,
+	0x18, 0x0b, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41,
+	0x74, 0x12, 0x24, 0x0a, 0x0d, 0x64, 0x6f, 0x77, 0x6e, 0x6c, 0x6f, 0x61, 0x64, 0x43, 0x6f, 0x75,
+	0x6e, 0x74, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0d, 0x64, 0x6f, 0x77, 0x6e, 0x6c, 0x6f,
+	0x61, 0x64, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x24, 0x0a, 0x0d, 0x61, 0x63, 0x71, 0x75, 0x69,
+	0x72, 0x65, 0x64, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x0d, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0d,
+	0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x16, 0x0a,
+	0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x18, 0x0e, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x75,
+	0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x6f, 0x72, 0x67, 0x49, 0x64, 0x18, 0x0f,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6f, 0x72, 0x67, 0x49, 0x64, 0x22, 0xf8, 0x01, 0x0a, 0x12,
+	0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69,
+	0x6c, 0x6c, 0x12, 0x2e, 0x0a, 0x05, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x18, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e,
+	0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x05, 0x73, 0x6b, 0x69,
+	0x6c, 0x6c, 0x12, 0x1e, 0x0a, 0x0a, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x50, 0x61, 0x74, 0x68,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x50, 0x61,
+	0x74, 0x68, 0x12, 0x1a, 0x0a, 0x08, 0x6d, 0x61, 0x72, 0x6b, 0x64, 0x6f, 0x77, 0x6e, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x6d, 0x61, 0x72, 0x6b, 0x64, 0x6f, 0x77, 0x6e, 0x12, 0x18,
+	0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x20, 0x0a, 0x0b, 0x76, 0x65, 0x72, 0x73,
+	0x69, 0x6f, 0x6e, 0x44, 0x65, 0x73, 0x63, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x76,
+	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x65, 0x73, 0x63, 0x12, 0x1c, 0x0a, 0x09, 0x63, 0x72,
+	0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x18, 0x06, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x63,
+	0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x75, 0x70, 0x64, 0x61,
+	0x74, 0x65, 0x64, 0x41, 0x74, 0x18, 0x07, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x75, 0x70, 0x64,
+	0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x22, 0xed, 0x01, 0x0a, 0x14, 0x43, 0x75, 0x73, 0x74, 0x6f,
+	0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x12,
+	0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x76, 0x61, 0x74, 0x61, 0x72, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x06, 0x61, 0x76, 0x61, 0x74, 0x61, 0x72, 0x12, 0x16, 0x0a, 0x06, 0x61,
+	0x75, 0x74, 0x68, 0x6f, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x61, 0x75, 0x74,
+	0x68, 0x6f, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x65, 0x73, 0x63, 0x18, 0x04, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x64, 0x65, 0x73, 0x63, 0x12, 0x20, 0x0a, 0x0b, 0x77, 0x67, 0x61, 0x54, 0x68,
+	0x72, 0x65, 0x61, 0x64, 0x49, 0x64, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x77, 0x67,
+	0x61, 0x54, 0x68, 0x72, 0x65, 0x61, 0x64, 0x49, 0x64, 0x12, 0x28, 0x0a, 0x0f, 0x70, 0x72, 0x65,
+	0x76, 0x69, 0x65, 0x77, 0x54, 0x68, 0x72, 0x65, 0x61, 0x64, 0x49, 0x64, 0x18, 0x06, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x0f, 0x70, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x54, 0x68, 0x72, 0x65, 0x61,
+	0x64, 0x49, 0x64, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18,
+	0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76,
+	0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64,
+	0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22, 0x31, 0x0a, 0x15, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d,
 	0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x12,
 	0x18, 0x0a, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x30, 0x0a, 0x14, 0x43, 0x75, 0x73,
+	0x52, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x63, 0x0a, 0x14, 0x43, 0x75, 0x73,
 	0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65,
 	0x71, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x60, 0x0a, 0x11, 0x43,
-	0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71,
-	0x12, 0x18, 0x0a, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64,
-	0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d,
-	0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74,
-	0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22, 0x8e, 0x01,
+	0x28, 0x09, 0x52, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x31, 0x0a, 0x08, 0x69,
+	0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e,
+	0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e,
+	0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22, 0x2d,
+	0x0a, 0x11, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47, 0x65, 0x74,
+	0x52, 0x65, 0x71, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x48, 0x0a,
+	0x1c, 0x47, 0x65, 0x74, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x42,
+	0x79, 0x50, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x49, 0x44, 0x52, 0x65, 0x71, 0x12, 0x28, 0x0a,
+	0x0f, 0x70, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x54, 0x68, 0x72, 0x65, 0x61, 0x64, 0x49, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x70, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x54,
+	0x68, 0x72, 0x65, 0x61, 0x64, 0x49, 0x64, 0x22, 0x4f, 0x0a, 0x1d, 0x47, 0x65, 0x74, 0x43, 0x75,
+	0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x42, 0x79, 0x50, 0x72, 0x65, 0x76, 0x69,
+	0x65, 0x77, 0x49, 0x44, 0x52, 0x65, 0x73, 0x70, 0x12, 0x2e, 0x0a, 0x05, 0x73, 0x6b, 0x69, 0x6c,
+	0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65,
+	0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c,
+	0x6c, 0x52, 0x05, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x22, 0x3f, 0x0a, 0x1b, 0x47, 0x65, 0x74, 0x43,
+	0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x42, 0x79, 0x54, 0x68, 0x72, 0x65,
+	0x61, 0x64, 0x49, 0x44, 0x52, 0x65, 0x71, 0x12, 0x20, 0x0a, 0x0b, 0x77, 0x67, 0x61, 0x54, 0x68,
+	0x72, 0x65, 0x61, 0x64, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x77, 0x67,
+	0x61, 0x54, 0x68, 0x72, 0x65, 0x61, 0x64, 0x49, 0x64, 0x22, 0x4e, 0x0a, 0x1c, 0x47, 0x65, 0x74,
+	0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x42, 0x79, 0x54, 0x68, 0x72,
+	0x65, 0x61, 0x64, 0x49, 0x44, 0x52, 0x65, 0x73, 0x70, 0x12, 0x2e, 0x0a, 0x05, 0x73, 0x6b, 0x69,
+	0x6c, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73,
+	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69,
+	0x6c, 0x6c, 0x52, 0x05, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x22, 0x82, 0x01, 0x0a, 0x23, 0x47, 0x65,
+	0x74, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x4c, 0x69, 0x73, 0x74,
+	0x42, 0x79, 0x54, 0x68, 0x72, 0x65, 0x61, 0x64, 0x49, 0x44, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65,
+	0x71, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e,
+	0x74, 0x69, 0x74, 0x79, 0x12, 0x28, 0x0a, 0x0f, 0x77, 0x67, 0x61, 0x54, 0x68, 0x72, 0x65, 0x61,
+	0x64, 0x49, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0f, 0x77,
+	0x67, 0x61, 0x54, 0x68, 0x72, 0x65, 0x61, 0x64, 0x49, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x22, 0x5e,
 	0x0a, 0x15, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47, 0x65, 0x74,
 	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x70,
-	0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x70, 0x61, 0x67, 0x65, 0x12,
-	0x1a, 0x0a, 0x08, 0x70, 0x61, 0x67, 0x65, 0x53, 0x69, 0x7a, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x05, 0x52, 0x08, 0x70, 0x61, 0x67, 0x65, 0x53, 0x69, 0x7a, 0x65, 0x12, 0x31, 0x0a, 0x08, 0x69,
-	0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x31, 0x0a, 0x08, 0x69,
+	0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e,
 	0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e,
-	0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22, 0x5c,
+	0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22, 0x63,
 	0x0a, 0x16, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47, 0x65, 0x74,
-	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x12, 0x2c, 0x0a, 0x04, 0x6c, 0x69, 0x73, 0x74,
-	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72,
-	0x76, 0x69, 0x63, 0x65, 0x2e, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c,
-	0x52, 0x04, 0x6c, 0x69, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x22, 0x36, 0x0a, 0x1a,
-	0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47, 0x65, 0x74, 0x42, 0x79,
-	0x53, 0x61, 0x76, 0x65, 0x49, 0x64, 0x73, 0x52, 0x65, 0x71, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x61,
-	0x76, 0x65, 0x49, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x07, 0x73, 0x61, 0x76,
-	0x65, 0x49, 0x64, 0x73, 0x22, 0x32, 0x0a, 0x16, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b,
-	0x69, 0x6c, 0x6c, 0x53, 0x61, 0x76, 0x65, 0x49, 0x64, 0x73, 0x52, 0x65, 0x73, 0x70, 0x12, 0x18,
-	0x0a, 0x07, 0x73, 0x61, 0x76, 0x65, 0x49, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52,
-	0x07, 0x73, 0x61, 0x76, 0x65, 0x49, 0x64, 0x73, 0x22, 0x3a, 0x0a, 0x1c, 0x43, 0x75, 0x73, 0x74,
-	0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x42, 0x79, 0x49,
-	0x64, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x12, 0x1a, 0x0a, 0x08, 0x73, 0x6b, 0x69, 0x6c,
-	0x6c, 0x49, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x08, 0x73, 0x6b, 0x69, 0x6c,
-	0x6c, 0x49, 0x64, 0x73, 0x22, 0x5d, 0x0a, 0x1d, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b,
-	0x69, 0x6c, 0x6c, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x42, 0x79, 0x49, 0x64, 0x4c, 0x69, 0x73,
-	0x74, 0x52, 0x65, 0x73, 0x70, 0x12, 0x3c, 0x0a, 0x0c, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x44, 0x65,
-	0x74, 0x61, 0x69, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x6d, 0x63,
-	0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d,
-	0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x0c, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x44, 0x65, 0x74, 0x61,
-	0x69, 0x6c, 0x73, 0x22, 0xb9, 0x03, 0x0a, 0x0d, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64,
-	0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x12, 0x28, 0x0a, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65,
-	0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f,
-	0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12,
-	0x24, 0x0a, 0x0d, 0x73, 0x71, 0x75, 0x61, 0x72, 0x65, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x73, 0x71, 0x75, 0x61, 0x72, 0x65, 0x53, 0x6b,
-	0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x76, 0x61,
-	0x74, 0x61, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x61, 0x76, 0x61, 0x74, 0x61,
-	0x72, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x18, 0x05, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x06, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x12, 0x1a, 0x0a, 0x08, 0x61, 0x75, 0x74,
-	0x68, 0x6f, 0x72, 0x49, 0x64, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x61, 0x75, 0x74,
-	0x68, 0x6f, 0x72, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x65, 0x73, 0x63, 0x18, 0x07, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x65, 0x73, 0x63, 0x12, 0x1e, 0x0a, 0x0a, 0x6f, 0x62, 0x6a,
-	0x65, 0x63, 0x74, 0x50, 0x61, 0x74, 0x68, 0x18, 0x08, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x6f,
-	0x62, 0x6a, 0x65, 0x63, 0x74, 0x50, 0x61, 0x74, 0x68, 0x12, 0x1a, 0x0a, 0x08, 0x6d, 0x61, 0x72,
-	0x6b, 0x64, 0x6f, 0x77, 0x6e, 0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x6d, 0x61, 0x72,
-	0x6b, 0x64, 0x6f, 0x77, 0x6e, 0x12, 0x22, 0x0a, 0x0c, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65,
-	0x64, 0x54, 0x79, 0x70, 0x65, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x61, 0x63, 0x71,
-	0x75, 0x69, 0x72, 0x65, 0x64, 0x54, 0x79, 0x70, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72,
-	0x73, 0x69, 0x6f, 0x6e, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73,
-	0x69, 0x6f, 0x6e, 0x12, 0x2e, 0x0a, 0x12, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x65,
-	0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x12, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74,
-	0x69, 0x6f, 0x6e, 0x12, 0x1c, 0x0a, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74,
-	0x18, 0x0d, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41,
-	0x74, 0x12, 0x1c, 0x0a, 0x09, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x18, 0x0e,
-	0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x22,
-	0x8f, 0x03, 0x0a, 0x16, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c,
-	0x6c, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64,
-	0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d,
-	0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74,
-	0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x12, 0x12, 0x0a,
-	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d,
-	0x65, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x76, 0x61, 0x74, 0x61, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x06, 0x61, 0x76, 0x61, 0x74, 0x61, 0x72, 0x12, 0x24, 0x0a, 0x0d, 0x73, 0x71, 0x75,
-	0x61, 0x72, 0x65, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x0d, 0x73, 0x71, 0x75, 0x61, 0x72, 0x65, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12,
-	0x16, 0x0a, 0x06, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x06, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x12, 0x1a, 0x0a, 0x08, 0x61, 0x75, 0x74, 0x68, 0x6f,
-	0x72, 0x49, 0x64, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x61, 0x75, 0x74, 0x68, 0x6f,
-	0x72, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x65, 0x73, 0x63, 0x18, 0x07, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x04, 0x64, 0x65, 0x73, 0x63, 0x12, 0x1e, 0x0a, 0x0a, 0x6f, 0x62, 0x6a, 0x65, 0x63,
-	0x74, 0x50, 0x61, 0x74, 0x68, 0x18, 0x08, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x6f, 0x62, 0x6a,
-	0x65, 0x63, 0x74, 0x50, 0x61, 0x74, 0x68, 0x12, 0x22, 0x0a, 0x0c, 0x61, 0x63, 0x71, 0x75, 0x69,
-	0x72, 0x65, 0x64, 0x54, 0x79, 0x70, 0x65, 0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x61,
-	0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x54, 0x79, 0x70, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x6d,
-	0x61, 0x72, 0x6b, 0x64, 0x6f, 0x77, 0x6e, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x6d,
-	0x61, 0x72, 0x6b, 0x64, 0x6f, 0x77, 0x6e, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69,
-	0x6f, 0x6e, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f,
-	0x6e, 0x12, 0x2e, 0x0a, 0x12, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x65, 0x73, 0x63,
-	0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x09, 0x52, 0x12, 0x76,
-	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f,
-	0x6e, 0x22, 0x43, 0x0a, 0x17, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69,
-	0x6c, 0x6c, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x12, 0x28, 0x0a, 0x0f,
+	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x12, 0x33, 0x0a, 0x04, 0x6c, 0x69, 0x73, 0x74,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x2e, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74,
+	0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x04, 0x6c, 0x69, 0x73, 0x74, 0x12, 0x14, 0x0a,
+	0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x74, 0x6f,
+	0x74, 0x61, 0x6c, 0x22, 0x95, 0x01, 0x0a, 0x1b, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x43, 0x75, 0x73,
+	0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x50, 0x61, 0x67, 0x65, 0x4c, 0x69, 0x73, 0x74,
+	0x52, 0x65, 0x71, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49,
+	0x64, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12,
+	0x14, 0x0a, 0x05, 0x6f, 0x72, 0x67, 0x49, 0x64, 0x18, 0x03, 0x20, 0x03, 0x28, 0x09, 0x52, 0x05,
+	0x6f, 0x72, 0x67, 0x49, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x70, 0x61, 0x67, 0x65, 0x4e, 0x75, 0x6d,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x70, 0x61, 0x67, 0x65, 0x4e, 0x75, 0x6d, 0x12,
+	0x1a, 0x0a, 0x08, 0x70, 0x61, 0x67, 0x65, 0x53, 0x69, 0x7a, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28,
+	0x05, 0x52, 0x08, 0x70, 0x61, 0x67, 0x65, 0x53, 0x69, 0x7a, 0x65, 0x22, 0x3a, 0x0a, 0x1c, 0x43,
+	0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c,
+	0x42, 0x79, 0x49, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x12, 0x1a, 0x0a, 0x08, 0x73,
+	0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x08, 0x73,
+	0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x73, 0x22, 0x5d, 0x0a, 0x1d, 0x43, 0x75, 0x73, 0x74, 0x6f,
+	0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x42, 0x79, 0x49, 0x64,
+	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x12, 0x3c, 0x0a, 0x0c, 0x73, 0x6b, 0x69, 0x6c,
+	0x6c, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x18,
+	0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x43, 0x75, 0x73,
+	0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x0c, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x44,
+	0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x22, 0x61, 0x0a, 0x1d, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
+	0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x42, 0x61, 0x73, 0x69, 0x63,
+	0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x71, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c,
+	0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49,
+	0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x65, 0x73, 0x63, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x65, 0x73, 0x63, 0x22, 0x86, 0x01, 0x0a, 0x1e, 0x55, 0x70,
+	0x64, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x54,
+	0x68, 0x72, 0x65, 0x61, 0x64, 0x4d, 0x65, 0x74, 0x61, 0x52, 0x65, 0x71, 0x12, 0x18, 0x0a, 0x07,
+	0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73,
+	0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x20, 0x0a, 0x0b, 0x77, 0x67, 0x61, 0x54, 0x68, 0x72,
+	0x65, 0x61, 0x64, 0x49, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x77, 0x67, 0x61,
+	0x54, 0x68, 0x72, 0x65, 0x61, 0x64, 0x49, 0x64, 0x12, 0x28, 0x0a, 0x0f, 0x70, 0x72, 0x65, 0x76,
+	0x69, 0x65, 0x77, 0x54, 0x68, 0x72, 0x65, 0x61, 0x64, 0x49, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x0f, 0x70, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x54, 0x68, 0x72, 0x65, 0x61, 0x64,
+	0x49, 0x64, 0x22, 0x66, 0x0a, 0x17, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74,
+	0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x52, 0x65, 0x71, 0x12, 0x18, 0x0a,
+	0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
+	0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x31, 0x0a, 0x08, 0x76, 0x61, 0x72, 0x69, 0x61,
+	0x62, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f,
+	0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65,
+	0x52, 0x08, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x22, 0x29, 0x0a, 0x17, 0x53, 0x6b,
+	0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x43, 0x72, 0x65, 0x61, 0x74,
+	0x65, 0x52, 0x65, 0x73, 0x70, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x8f, 0x01, 0x0a, 0x17, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
+	0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x52, 0x65,
+	0x71, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69,
+	0x64, 0x12, 0x31, 0x0a, 0x08, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x2e, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x52, 0x08, 0x76, 0x61, 0x72, 0x69,
+	0x61, 0x62, 0x6c, 0x65, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69,
+	0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22, 0x5c, 0x0a, 0x17, 0x44, 0x65, 0x6c, 0x65, 0x74,
+	0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x52,
+	0x65, 0x71, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02,
+	0x69, 0x64, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69,
+	0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65,
+	0x6e, 0x74, 0x69, 0x74, 0x79, 0x22, 0x31, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x43, 0x75, 0x73, 0x74,
+	0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x73, 0x52, 0x65, 0x71, 0x12, 0x18,
+	0x0a, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x76, 0x0a, 0x0f, 0x43, 0x75, 0x73, 0x74,
+	0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x73,
+	0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x6b,
+	0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x33, 0x0a, 0x09, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c,
+	0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73,
+	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x52,
+	0x09, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f,
+	0x74, 0x61, 0x6c, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c,
+	0x22, 0xdc, 0x01, 0x0a, 0x15, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74,
+	0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x6b,
+	0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x6b, 0x69,
+	0x6c, 0x6c, 0x49, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x20,
+	0x0a, 0x0b, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x65, 0x73, 0x63, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0b, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x65, 0x73, 0x63,
+	0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74,
+	0x69, 0x74, 0x79, 0x12, 0x1e, 0x0a, 0x0a, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x50, 0x61, 0x74,
+	0x68, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x50,
+	0x61, 0x74, 0x68, 0x12, 0x1a, 0x0a, 0x08, 0x6d, 0x61, 0x72, 0x6b, 0x64, 0x6f, 0x77, 0x6e, 0x18,
+	0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x6d, 0x61, 0x72, 0x6b, 0x64, 0x6f, 0x77, 0x6e, 0x22,
+	0x59, 0x0a, 0x1b, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68,
+	0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x12, 0x18,
+	0x0a, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x20, 0x0a, 0x0b, 0x76, 0x65, 0x72, 0x73,
+	0x69, 0x6f, 0x6e, 0x44, 0x65, 0x73, 0x63, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x76,
+	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x44, 0x65, 0x73, 0x63, 0x22, 0x3f, 0x0a, 0x23, 0x47, 0x65,
+	0x74, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b,
+	0x69, 0x6c, 0x6c, 0x48, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65,
+	0x71, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x7c, 0x0a, 0x21, 0x50,
+	0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c,
+	0x6c, 0x48, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70,
+	0x12, 0x41, 0x0a, 0x0b, 0x68, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x4c, 0x69, 0x73, 0x74, 0x18,
+	0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76,
+	0x69, 0x63, 0x65, 0x2e, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74, 0x6f,
+	0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x0b, 0x68, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x4c,
+	0x69, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x03, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x22, 0x3c, 0x0a, 0x20, 0x47, 0x65, 0x74,
+	0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69,
+	0x6c, 0x6c, 0x42, 0x79, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x52, 0x65, 0x71, 0x12, 0x18, 0x0a,
+	0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
+	0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x57, 0x0a, 0x21, 0x47, 0x65, 0x74, 0x50, 0x75,
+	0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c,
+	0x42, 0x79, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x12, 0x18, 0x0a, 0x07,
+	0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73,
+	0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f,
+	0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e,
+	0x22, 0x65, 0x0a, 0x1c, 0x47, 0x65, 0x74, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75,
+	0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71,
+	0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74,
+	0x69, 0x74, 0x79, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x54, 0x0a, 0x1d, 0x47, 0x65, 0x74, 0x50, 0x75,
+	0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c,
+	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x12, 0x33, 0x0a, 0x04, 0x6c, 0x69, 0x73, 0x74,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x2e, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74,
+	0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x04, 0x6c, 0x69, 0x73, 0x74, 0x22, 0x44, 0x0a,
+	0x20, 0x47, 0x65, 0x74, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74, 0x6f,
+	0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x42, 0x79, 0x49, 0x44, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65,
+	0x71, 0x12, 0x20, 0x0a, 0x0b, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x4c, 0x69, 0x73, 0x74,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0b, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x4c,
+	0x69, 0x73, 0x74, 0x22, 0x58, 0x0a, 0x21, 0x47, 0x65, 0x74, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x73,
+	0x68, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x42, 0x79, 0x49, 0x44,
+	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x12, 0x33, 0x0a, 0x04, 0x6c, 0x69, 0x73, 0x74,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x2e, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74,
+	0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x04, 0x6c, 0x69, 0x73, 0x74, 0x22, 0xda, 0x01,
+	0x0a, 0x0d, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x12,
+	0x28, 0x0a, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c,
+	0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72,
+	0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x35, 0x0a, 0x05, 0x73, 0x6b, 0x69,
+	0x6c, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73,
+	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75,
+	0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x05, 0x73, 0x6b, 0x69, 0x6c, 0x6c,
+	0x12, 0x1c, 0x0a, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x18, 0x04, 0x20,
+	0x01, 0x28, 0x03, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12, 0x1c,
+	0x0a, 0x09, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x18, 0x05, 0x20, 0x01, 0x28,
+	0x03, 0x52, 0x09, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12, 0x16, 0x0a, 0x06,
+	0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x75, 0x73,
+	0x65, 0x72, 0x49, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x6f, 0x72, 0x67, 0x49, 0x64, 0x18, 0x07, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x05, 0x6f, 0x72, 0x67, 0x49, 0x64, 0x22, 0x71, 0x0a, 0x16, 0x41, 0x63,
+	0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x43, 0x72, 0x65, 0x61, 0x74,
+	0x65, 0x52, 0x65, 0x71, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69,
+	0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x12, 0x24, 0x0a, 0x0d, 0x63, 0x75, 0x73, 0x74, 0x6f,
+	0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d,
+	0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x43, 0x0a,
+	0x17, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x43, 0x72,
+	0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x12, 0x28, 0x0a, 0x0f, 0x61, 0x63, 0x71, 0x75,
+	0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c,
+	0x49, 0x64, 0x22, 0x75, 0x0a, 0x16, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b,
+	0x69, 0x6c, 0x6c, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x71, 0x12, 0x28, 0x0a, 0x0f,
 	0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53,
-	0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x42, 0x0a, 0x16, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72,
-	0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x71,
+	0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69,
+	0x74, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73,
+	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52,
+	0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22, 0x3f, 0x0a, 0x13, 0x41, 0x63, 0x71,
+	0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71,
 	0x12, 0x28, 0x0a, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c,
 	0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69,
-	0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x3f, 0x0a, 0x13, 0x41, 0x63,
-	0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47, 0x65, 0x74, 0x52, 0x65,
-	0x71, 0x12, 0x28, 0x0a, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69,
-	0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x61, 0x63, 0x71, 0x75,
-	0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x60, 0x0a, 0x17, 0x41,
-	0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47, 0x65, 0x74, 0x4c,
-	0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69,
-	0x74, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73,
-	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52,
-	0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d,
-	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x60, 0x0a,
-	0x18, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47, 0x65,
-	0x74, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x12, 0x2e, 0x0a, 0x04, 0x6c, 0x69, 0x73,
-	0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65,
-	0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b,
-	0x69, 0x6c, 0x6c, 0x52, 0x04, 0x6c, 0x69, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74,
-	0x61, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x42,
-	0x31, 0x5a, 0x2f, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x55, 0x6e,
-	0x69, 0x63, 0x6f, 0x6d, 0x41, 0x49, 0x2f, 0x77, 0x61, 0x6e, 0x77, 0x75, 0x2f, 0x61, 0x70, 0x69,
-	0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x6d, 0x63, 0x70, 0x2d, 0x73, 0x65, 0x72, 0x76, 0x69,
-	0x63, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x60, 0x0a, 0x17, 0x41, 0x63,
+	0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47, 0x65, 0x74, 0x4c, 0x69,
+	0x73, 0x74, 0x52, 0x65, 0x71, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74,
+	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65,
+	0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08,
+	0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x60, 0x0a, 0x18,
+	0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47, 0x65, 0x74,
+	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x12, 0x2e, 0x0a, 0x04, 0x6c, 0x69, 0x73, 0x74,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x2e, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69,
+	0x6c, 0x6c, 0x52, 0x04, 0x6c, 0x69, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61,
+	0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x22, 0x4f,
+	0x0a, 0x1b, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47,
+	0x65, 0x74, 0x42, 0x79, 0x49, 0x44, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x12, 0x30, 0x0a,
+	0x13, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64,
+	0x4c, 0x69, 0x73, 0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x13, 0x61, 0x63, 0x71, 0x75,
+	0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x22,
+	0x64, 0x0a, 0x1c, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c,
+	0x47, 0x65, 0x74, 0x42, 0x79, 0x49, 0x44, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x12,
+	0x2e, 0x0a, 0x04, 0x6c, 0x69, 0x73, 0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a, 0x2e,
+	0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x41, 0x63, 0x71, 0x75,
+	0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x04, 0x6c, 0x69, 0x73, 0x74, 0x12,
+	0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05,
+	0x74, 0x6f, 0x74, 0x61, 0x6c, 0x22, 0x4a, 0x0a, 0x1e, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65,
+	0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x47, 0x65, 0x74, 0x48, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79,
+	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x12, 0x28, 0x0a, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69,
+	0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49,
+	0x64, 0x22, 0x77, 0x0a, 0x1c, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69,
+	0x6c, 0x6c, 0x48, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73,
+	0x70, 0x12, 0x41, 0x0a, 0x0b, 0x68, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x4c, 0x69, 0x73, 0x74,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x2e, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x43, 0x75, 0x73, 0x74,
+	0x6f, 0x6d, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x0b, 0x68, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79,
+	0x4c, 0x69, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x03, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x22, 0x66, 0x0a, 0x15, 0x43, 0x68,
+	0x65, 0x63, 0x6b, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c,
+	0x52, 0x65, 0x71, 0x12, 0x1a, 0x0a, 0x08, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x73, 0x18,
+	0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x08, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x73, 0x12,
+	0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e,
+	0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69,
+	0x74, 0x79, 0x22, 0xb0, 0x01, 0x0a, 0x16, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x41, 0x63, 0x71, 0x75,
+	0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x12, 0x56, 0x0a,
+	0x0b, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x4d, 0x61, 0x70, 0x18, 0x01, 0x20, 0x03,
+	0x28, 0x0b, 0x32, 0x34, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b,
+	0x69, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64,
+	0x4d, 0x61, 0x70, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x0b, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72,
+	0x65, 0x64, 0x4d, 0x61, 0x70, 0x1a, 0x3e, 0x0a, 0x10, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65,
+	0x64, 0x4d, 0x61, 0x70, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76,
+	0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x78, 0x0a, 0x19, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x41,
+	0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x52,
+	0x65, 0x71, 0x12, 0x28, 0x0a, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b,
+	0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x61, 0x63, 0x71,
+	0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x31, 0x0a, 0x08,
+	0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15,
+	0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x56, 0x61, 0x72,
+	0x69, 0x61, 0x62, 0x6c, 0x65, 0x52, 0x08, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x22,
+	0x91, 0x01, 0x0a, 0x19, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72,
+	0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x52, 0x65, 0x71, 0x12, 0x0e, 0x0a,
+	0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x31, 0x0a,
+	0x08, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x56, 0x61,
+	0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x52, 0x08, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65,
+	0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74,
+	0x69, 0x74, 0x79, 0x22, 0x5e, 0x0a, 0x19, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x41, 0x63, 0x71,
+	0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x52, 0x65, 0x71,
+	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64,
+	0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74,
+	0x69, 0x74, 0x79, 0x22, 0x43, 0x0a, 0x17, 0x47, 0x65, 0x74, 0x41, 0x63, 0x71, 0x75, 0x69, 0x72,
+	0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x73, 0x52, 0x65, 0x71, 0x12, 0x28,
+	0x0a, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65,
+	0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x22, 0x88, 0x01, 0x0a, 0x11, 0x41, 0x63, 0x71,
+	0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x73, 0x12, 0x28,
+	0x0a, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x61, 0x63, 0x71, 0x75, 0x69, 0x72, 0x65,
+	0x64, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x33, 0x0a, 0x09, 0x76, 0x61, 0x72, 0x69,
+	0x61, 0x62, 0x6c, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63,
+	0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62,
+	0x6c, 0x65, 0x52, 0x09, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x12, 0x14, 0x0a,
+	0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x74, 0x6f,
+	0x74, 0x61, 0x6c, 0x22, 0x9a, 0x01, 0x0a, 0x18, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x42, 0x75,
+	0x69, 0x6c, 0x74, 0x69, 0x6e, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x52, 0x65, 0x71,
+	0x12, 0x18, 0x0a, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x12, 0x31, 0x0a, 0x08, 0x76, 0x61,
+	0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d,
+	0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x56, 0x61, 0x72, 0x69, 0x61,
+	0x62, 0x6c, 0x65, 0x52, 0x08, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x12, 0x31, 0x0a,
+	0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64,
+	0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79,
+	0x22, 0x5d, 0x0a, 0x18, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x74, 0x69,
+	0x6e, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x52, 0x65, 0x71, 0x12, 0x0e, 0x0a, 0x02,
+	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x31, 0x0a, 0x08,
+	0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15,
+	0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65,
+	0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22,
+	0x65, 0x0a, 0x16, 0x47, 0x65, 0x74, 0x42, 0x75, 0x69, 0x6c, 0x74, 0x69, 0x6e, 0x53, 0x6b, 0x69,
+	0x6c, 0x6c, 0x56, 0x61, 0x72, 0x73, 0x52, 0x65, 0x71, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x6b, 0x69,
+	0x6c, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x6b, 0x69, 0x6c,
+	0x6c, 0x49, 0x64, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76,
+	0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64,
+	0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22, 0x68, 0x0a, 0x17, 0x47, 0x65, 0x74, 0x42, 0x75, 0x69,
+	0x6c, 0x74, 0x69, 0x6e, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x73, 0x56, 0x61, 0x72, 0x73, 0x52, 0x65,
+	0x71, 0x12, 0x31, 0x0a, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e,
+	0x74, 0x69, 0x74, 0x79, 0x12, 0x1a, 0x0a, 0x08, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x73,
+	0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x08, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49, 0x64, 0x73,
+	0x22, 0x51, 0x0a, 0x18, 0x47, 0x65, 0x74, 0x42, 0x75, 0x69, 0x6c, 0x74, 0x69, 0x6e, 0x53, 0x6b,
+	0x69, 0x6c, 0x6c, 0x73, 0x56, 0x61, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x12, 0x35, 0x0a, 0x06,
+	0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x6d,
+	0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x42, 0x75, 0x69, 0x6c, 0x74,
+	0x69, 0x6e, 0x53, 0x6b, 0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x73, 0x52, 0x06, 0x73, 0x6b, 0x69,
+	0x6c, 0x6c, 0x73, 0x22, 0x77, 0x0a, 0x10, 0x42, 0x75, 0x69, 0x6c, 0x74, 0x69, 0x6e, 0x53, 0x6b,
+	0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c,
+	0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x6b, 0x69, 0x6c, 0x6c, 0x49,
+	0x64, 0x12, 0x33, 0x0a, 0x09, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x18, 0x02,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69,
+	0x63, 0x65, 0x2e, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x52, 0x09, 0x76, 0x61, 0x72,
+	0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x22, 0x90, 0x01, 0x0a,
+	0x18, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x75, 0x69, 0x6c, 0x74, 0x69, 0x6e, 0x53, 0x6b,
+	0x69, 0x6c, 0x6c, 0x56, 0x61, 0x72, 0x52, 0x65, 0x71, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x31, 0x0a, 0x08, 0x76, 0x61, 0x72,
+	0x69, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d, 0x63,
+	0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62,
+	0x6c, 0x65, 0x52, 0x08, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x12, 0x31, 0x0a, 0x08,
+	0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15,
+	0x2e, 0x6d, 0x63, 0x70, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x49, 0x64, 0x65,
+	0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x22,
+	0x8a, 0x01, 0x0a, 0x08, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x12, 0x0e, 0x0a, 0x02,
+	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04,
+	0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65,
+	0x12, 0x12, 0x0a, 0x04, 0x64, 0x65, 0x73, 0x63, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04,
+	0x64, 0x65, 0x73, 0x63, 0x12, 0x20, 0x0a, 0x0b, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65,
+	0x4b, 0x65, 0x79, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x76, 0x61, 0x72, 0x69, 0x61,
+	0x62, 0x6c, 0x65, 0x4b, 0x65, 0x79, 0x12, 0x24, 0x0a, 0x0d, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62,
+	0x6c, 0x65, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x76,
+	0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x42, 0x31, 0x5a, 0x2f,
+	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x55, 0x6e, 0x69, 0x63, 0x6f,
+	0x6d, 0x41, 0x49, 0x2f, 0x77, 0x61, 0x6e, 0x77, 0x75, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x2f, 0x6d, 0x63, 0x70, 0x2d, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1425,42 +3980,120 @@ func file_proto_mcp_service_skill_service_proto_rawDescGZIP() []byte {
 	return file_proto_mcp_service_skill_service_proto_rawDescData
 }
 
-var file_proto_mcp_service_skill_service_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_proto_mcp_service_skill_service_proto_msgTypes = make([]protoimpl.MessageInfo, 61)
 var file_proto_mcp_service_skill_service_proto_goTypes = []interface{}{
-	(*CustomSkill)(nil),                   // 0: mcp_service.CustomSkill
-	(*CustomSkillCreateReq)(nil),          // 1: mcp_service.CustomSkillCreateReq
-	(*CustomSkillCreateResp)(nil),         // 2: mcp_service.CustomSkillCreateResp
-	(*CustomSkillDeleteReq)(nil),          // 3: mcp_service.CustomSkillDeleteReq
-	(*CustomSkillGetReq)(nil),             // 4: mcp_service.CustomSkillGetReq
-	(*CustomSkillGetListReq)(nil),         // 5: mcp_service.CustomSkillGetListReq
-	(*CustomSkillGetListResp)(nil),        // 6: mcp_service.CustomSkillGetListResp
-	(*CustomSkillGetBySaveIdsReq)(nil),    // 7: mcp_service.CustomSkillGetBySaveIdsReq
-	(*CustomSkillSaveIdsResp)(nil),        // 8: mcp_service.CustomSkillSaveIdsResp
-	(*CustomSkillDetailByIdListReq)(nil),  // 9: mcp_service.CustomSkillDetailByIdListReq
-	(*CustomSkillDetailByIdListResp)(nil), // 10: mcp_service.CustomSkillDetailByIdListResp
-	(*AcquiredSkill)(nil),                 // 11: mcp_service.AcquiredSkill
-	(*AcquiredSkillCreateReq)(nil),        // 12: mcp_service.AcquiredSkillCreateReq
-	(*AcquiredSkillCreateResp)(nil),       // 13: mcp_service.AcquiredSkillCreateResp
-	(*AcquiredSkillDeleteReq)(nil),        // 14: mcp_service.AcquiredSkillDeleteReq
-	(*AcquiredSkillGetReq)(nil),           // 15: mcp_service.AcquiredSkillGetReq
-	(*AcquiredSkillGetListReq)(nil),       // 16: mcp_service.AcquiredSkillGetListReq
-	(*AcquiredSkillGetListResp)(nil),      // 17: mcp_service.AcquiredSkillGetListResp
-	(*Identity)(nil),                      // 18: mcp_service.Identity
+	(*CustomSkill)(nil),                         // 0: mcp_service.CustomSkill
+	(*PublishCustomSkill)(nil),                  // 1: mcp_service.PublishCustomSkill
+	(*CustomSkillCreateReq)(nil),                // 2: mcp_service.CustomSkillCreateReq
+	(*CustomSkillCreateResp)(nil),               // 3: mcp_service.CustomSkillCreateResp
+	(*CustomSkillDeleteReq)(nil),                // 4: mcp_service.CustomSkillDeleteReq
+	(*CustomSkillGetReq)(nil),                   // 5: mcp_service.CustomSkillGetReq
+	(*GetCustomSkillByPreviewIDReq)(nil),        // 6: mcp_service.GetCustomSkillByPreviewIDReq
+	(*GetCustomSkillByPreviewIDResp)(nil),       // 7: mcp_service.GetCustomSkillByPreviewIDResp
+	(*GetCustomSkillByThreadIDReq)(nil),         // 8: mcp_service.GetCustomSkillByThreadIDReq
+	(*GetCustomSkillByThreadIDResp)(nil),        // 9: mcp_service.GetCustomSkillByThreadIDResp
+	(*GetCustomSkillListByThreadIDListReq)(nil), // 10: mcp_service.GetCustomSkillListByThreadIDListReq
+	(*CustomSkillGetListReq)(nil),               // 11: mcp_service.CustomSkillGetListReq
+	(*CustomSkillGetListResp)(nil),              // 12: mcp_service.CustomSkillGetListResp
+	(*AdminCustomSkillPageListReq)(nil),         // 13: mcp_service.AdminCustomSkillPageListReq
+	(*CustomSkillDetailByIdListReq)(nil),        // 14: mcp_service.CustomSkillDetailByIdListReq
+	(*CustomSkillDetailByIdListResp)(nil),       // 15: mcp_service.CustomSkillDetailByIdListResp
+	(*UpdateCustomSkillBasicMetaReq)(nil),       // 16: mcp_service.UpdateCustomSkillBasicMetaReq
+	(*UpdateCustomSkillThreadMetaReq)(nil),      // 17: mcp_service.UpdateCustomSkillThreadMetaReq
+	(*CreateCustomSkillVarReq)(nil),             // 18: mcp_service.CreateCustomSkillVarReq
+	(*SkillVariableCreateResp)(nil),             // 19: mcp_service.SkillVariableCreateResp
+	(*UpdateCustomSkillVarReq)(nil),             // 20: mcp_service.UpdateCustomSkillVarReq
+	(*DeleteCustomSkillVarReq)(nil),             // 21: mcp_service.DeleteCustomSkillVarReq
+	(*GetCustomSkillVarsReq)(nil),               // 22: mcp_service.GetCustomSkillVarsReq
+	(*CustomSkillVars)(nil),                     // 23: mcp_service.CustomSkillVars
+	(*PublishCustomSkillReq)(nil),               // 24: mcp_service.PublishCustomSkillReq
+	(*UpdatePublishCustomSkillReq)(nil),         // 25: mcp_service.UpdatePublishCustomSkillReq
+	(*GetPublishCustomSkillHistoryListReq)(nil), // 26: mcp_service.GetPublishCustomSkillHistoryListReq
+	(*PublishCustomSkillHistoryListResp)(nil),   // 27: mcp_service.PublishCustomSkillHistoryListResp
+	(*GetPublishCustomSkillByLatestReq)(nil),    // 28: mcp_service.GetPublishCustomSkillByLatestReq
+	(*GetPublishCustomSkillByVersionReq)(nil),   // 29: mcp_service.GetPublishCustomSkillByVersionReq
+	(*GetPublishCustomSkillListReq)(nil),        // 30: mcp_service.GetPublishCustomSkillListReq
+	(*GetPublishCustomSkillListResp)(nil),       // 31: mcp_service.GetPublishCustomSkillListResp
+	(*GetPublishCustomSkillByIDListReq)(nil),    // 32: mcp_service.GetPublishCustomSkillByIDListReq
+	(*GetPublishCustomSkillByIDListResp)(nil),   // 33: mcp_service.GetPublishCustomSkillByIDListResp
+	(*AcquiredSkill)(nil),                       // 34: mcp_service.AcquiredSkill
+	(*AcquiredSkillCreateReq)(nil),              // 35: mcp_service.AcquiredSkillCreateReq
+	(*AcquiredSkillCreateResp)(nil),             // 36: mcp_service.AcquiredSkillCreateResp
+	(*AcquiredSkillDeleteReq)(nil),              // 37: mcp_service.AcquiredSkillDeleteReq
+	(*AcquiredSkillGetReq)(nil),                 // 38: mcp_service.AcquiredSkillGetReq
+	(*AcquiredSkillGetListReq)(nil),             // 39: mcp_service.AcquiredSkillGetListReq
+	(*AcquiredSkillGetListResp)(nil),            // 40: mcp_service.AcquiredSkillGetListResp
+	(*AcquiredSkillGetByIDListReq)(nil),         // 41: mcp_service.AcquiredSkillGetByIDListReq
+	(*AcquiredSkillGetByIDListResp)(nil),        // 42: mcp_service.AcquiredSkillGetByIDListResp
+	(*AcquiredSkillGetHistoryListReq)(nil),      // 43: mcp_service.AcquiredSkillGetHistoryListReq
+	(*AcquiredSkillHistoryListResp)(nil),        // 44: mcp_service.AcquiredSkillHistoryListResp
+	(*CheckAcquiredSkillReq)(nil),               // 45: mcp_service.CheckAcquiredSkillReq
+	(*CheckAcquiredSkillResp)(nil),              // 46: mcp_service.CheckAcquiredSkillResp
+	(*CreateAcquiredSkillVarReq)(nil),           // 47: mcp_service.CreateAcquiredSkillVarReq
+	(*UpdateAcquiredSkillVarReq)(nil),           // 48: mcp_service.UpdateAcquiredSkillVarReq
+	(*DeleteAcquiredSkillVarReq)(nil),           // 49: mcp_service.DeleteAcquiredSkillVarReq
+	(*GetAcquiredSkillVarsReq)(nil),             // 50: mcp_service.GetAcquiredSkillVarsReq
+	(*AcquiredSkillVars)(nil),                   // 51: mcp_service.AcquiredSkillVars
+	(*CreateBuiltinSkillVarReq)(nil),            // 52: mcp_service.CreateBuiltinSkillVarReq
+	(*DeleteBuiltinSkillVarReq)(nil),            // 53: mcp_service.DeleteBuiltinSkillVarReq
+	(*GetBuiltinSkillVarsReq)(nil),              // 54: mcp_service.GetBuiltinSkillVarsReq
+	(*GetBuiltinSkillsVarsReq)(nil),             // 55: mcp_service.GetBuiltinSkillsVarsReq
+	(*GetBuiltinSkillsVarsResp)(nil),            // 56: mcp_service.GetBuiltinSkillsVarsResp
+	(*BuiltinSkillVars)(nil),                    // 57: mcp_service.BuiltinSkillVars
+	(*UpdateBuiltinSkillVarReq)(nil),            // 58: mcp_service.UpdateBuiltinSkillVarReq
+	(*Variable)(nil),                            // 59: mcp_service.Variable
+	nil,                                         // 60: mcp_service.CheckAcquiredSkillResp.AcquiredMapEntry
+	(*Identity)(nil),                            // 61: mcp_service.Identity
 }
 var file_proto_mcp_service_skill_service_proto_depIdxs = []int32{
-	18, // 0: mcp_service.CustomSkillCreateReq.identity:type_name -> mcp_service.Identity
-	18, // 1: mcp_service.CustomSkillGetReq.identity:type_name -> mcp_service.Identity
-	18, // 2: mcp_service.CustomSkillGetListReq.identity:type_name -> mcp_service.Identity
-	0,  // 3: mcp_service.CustomSkillGetListResp.list:type_name -> mcp_service.CustomSkill
-	0,  // 4: mcp_service.CustomSkillDetailByIdListResp.skillDetails:type_name -> mcp_service.CustomSkill
-	18, // 5: mcp_service.AcquiredSkillCreateReq.identity:type_name -> mcp_service.Identity
-	18, // 6: mcp_service.AcquiredSkillGetListReq.identity:type_name -> mcp_service.Identity
-	11, // 7: mcp_service.AcquiredSkillGetListResp.list:type_name -> mcp_service.AcquiredSkill
-	8,  // [8:8] is the sub-list for method output_type
-	8,  // [8:8] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	61, // 0: mcp_service.CustomSkill.identity:type_name -> mcp_service.Identity
+	0,  // 1: mcp_service.PublishCustomSkill.skill:type_name -> mcp_service.CustomSkill
+	61, // 2: mcp_service.CustomSkillCreateReq.identity:type_name -> mcp_service.Identity
+	61, // 3: mcp_service.CustomSkillDeleteReq.identity:type_name -> mcp_service.Identity
+	0,  // 4: mcp_service.GetCustomSkillByPreviewIDResp.skill:type_name -> mcp_service.CustomSkill
+	0,  // 5: mcp_service.GetCustomSkillByThreadIDResp.skill:type_name -> mcp_service.CustomSkill
+	61, // 6: mcp_service.GetCustomSkillListByThreadIDListReq.identity:type_name -> mcp_service.Identity
+	61, // 7: mcp_service.CustomSkillGetListReq.identity:type_name -> mcp_service.Identity
+	1,  // 8: mcp_service.CustomSkillGetListResp.list:type_name -> mcp_service.PublishCustomSkill
+	0,  // 9: mcp_service.CustomSkillDetailByIdListResp.skillDetails:type_name -> mcp_service.CustomSkill
+	59, // 10: mcp_service.CreateCustomSkillVarReq.variable:type_name -> mcp_service.Variable
+	59, // 11: mcp_service.UpdateCustomSkillVarReq.variable:type_name -> mcp_service.Variable
+	61, // 12: mcp_service.UpdateCustomSkillVarReq.identity:type_name -> mcp_service.Identity
+	61, // 13: mcp_service.DeleteCustomSkillVarReq.identity:type_name -> mcp_service.Identity
+	59, // 14: mcp_service.CustomSkillVars.variables:type_name -> mcp_service.Variable
+	61, // 15: mcp_service.PublishCustomSkillReq.identity:type_name -> mcp_service.Identity
+	1,  // 16: mcp_service.PublishCustomSkillHistoryListResp.historyList:type_name -> mcp_service.PublishCustomSkill
+	61, // 17: mcp_service.GetPublishCustomSkillListReq.identity:type_name -> mcp_service.Identity
+	1,  // 18: mcp_service.GetPublishCustomSkillListResp.list:type_name -> mcp_service.PublishCustomSkill
+	1,  // 19: mcp_service.GetPublishCustomSkillByIDListResp.list:type_name -> mcp_service.PublishCustomSkill
+	1,  // 20: mcp_service.AcquiredSkill.skill:type_name -> mcp_service.PublishCustomSkill
+	61, // 21: mcp_service.AcquiredSkillCreateReq.identity:type_name -> mcp_service.Identity
+	61, // 22: mcp_service.AcquiredSkillDeleteReq.identity:type_name -> mcp_service.Identity
+	61, // 23: mcp_service.AcquiredSkillGetListReq.identity:type_name -> mcp_service.Identity
+	34, // 24: mcp_service.AcquiredSkillGetListResp.list:type_name -> mcp_service.AcquiredSkill
+	34, // 25: mcp_service.AcquiredSkillGetByIDListResp.list:type_name -> mcp_service.AcquiredSkill
+	1,  // 26: mcp_service.AcquiredSkillHistoryListResp.historyList:type_name -> mcp_service.PublishCustomSkill
+	61, // 27: mcp_service.CheckAcquiredSkillReq.identity:type_name -> mcp_service.Identity
+	60, // 28: mcp_service.CheckAcquiredSkillResp.acquiredMap:type_name -> mcp_service.CheckAcquiredSkillResp.AcquiredMapEntry
+	59, // 29: mcp_service.CreateAcquiredSkillVarReq.variable:type_name -> mcp_service.Variable
+	59, // 30: mcp_service.UpdateAcquiredSkillVarReq.variable:type_name -> mcp_service.Variable
+	61, // 31: mcp_service.UpdateAcquiredSkillVarReq.identity:type_name -> mcp_service.Identity
+	61, // 32: mcp_service.DeleteAcquiredSkillVarReq.identity:type_name -> mcp_service.Identity
+	59, // 33: mcp_service.AcquiredSkillVars.variables:type_name -> mcp_service.Variable
+	59, // 34: mcp_service.CreateBuiltinSkillVarReq.variable:type_name -> mcp_service.Variable
+	61, // 35: mcp_service.CreateBuiltinSkillVarReq.identity:type_name -> mcp_service.Identity
+	61, // 36: mcp_service.DeleteBuiltinSkillVarReq.identity:type_name -> mcp_service.Identity
+	61, // 37: mcp_service.GetBuiltinSkillVarsReq.identity:type_name -> mcp_service.Identity
+	61, // 38: mcp_service.GetBuiltinSkillsVarsReq.identity:type_name -> mcp_service.Identity
+	57, // 39: mcp_service.GetBuiltinSkillsVarsResp.skills:type_name -> mcp_service.BuiltinSkillVars
+	59, // 40: mcp_service.BuiltinSkillVars.variables:type_name -> mcp_service.Variable
+	59, // 41: mcp_service.UpdateBuiltinSkillVarReq.variable:type_name -> mcp_service.Variable
+	61, // 42: mcp_service.UpdateBuiltinSkillVarReq.identity:type_name -> mcp_service.Identity
+	43, // [43:43] is the sub-list for method output_type
+	43, // [43:43] is the sub-list for method input_type
+	43, // [43:43] is the sub-list for extension type_name
+	43, // [43:43] is the sub-list for extension extendee
+	0,  // [0:43] is the sub-list for field type_name
 }
 
 func init() { file_proto_mcp_service_skill_service_proto_init() }
@@ -1483,7 +4116,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CustomSkillCreateReq); i {
+			switch v := v.(*PublishCustomSkill); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1495,7 +4128,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CustomSkillCreateResp); i {
+			switch v := v.(*CustomSkillCreateReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1507,7 +4140,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CustomSkillDeleteReq); i {
+			switch v := v.(*CustomSkillCreateResp); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1519,7 +4152,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CustomSkillGetReq); i {
+			switch v := v.(*CustomSkillDeleteReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1531,7 +4164,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CustomSkillGetListReq); i {
+			switch v := v.(*CustomSkillGetReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1543,7 +4176,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CustomSkillGetListResp); i {
+			switch v := v.(*GetCustomSkillByPreviewIDReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1555,7 +4188,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CustomSkillGetBySaveIdsReq); i {
+			switch v := v.(*GetCustomSkillByPreviewIDResp); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1567,7 +4200,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CustomSkillSaveIdsResp); i {
+			switch v := v.(*GetCustomSkillByThreadIDReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1579,7 +4212,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CustomSkillDetailByIdListReq); i {
+			switch v := v.(*GetCustomSkillByThreadIDResp); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1591,7 +4224,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CustomSkillDetailByIdListResp); i {
+			switch v := v.(*GetCustomSkillListByThreadIDListReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1603,7 +4236,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AcquiredSkill); i {
+			switch v := v.(*CustomSkillGetListReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1615,7 +4248,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AcquiredSkillCreateReq); i {
+			switch v := v.(*CustomSkillGetListResp); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1627,7 +4260,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AcquiredSkillCreateResp); i {
+			switch v := v.(*AdminCustomSkillPageListReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1639,7 +4272,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AcquiredSkillDeleteReq); i {
+			switch v := v.(*CustomSkillDetailByIdListReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1651,7 +4284,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AcquiredSkillGetReq); i {
+			switch v := v.(*CustomSkillDetailByIdListResp); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1663,7 +4296,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AcquiredSkillGetListReq); i {
+			switch v := v.(*UpdateCustomSkillBasicMetaReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1675,7 +4308,511 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			}
 		}
 		file_proto_mcp_service_skill_service_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateCustomSkillThreadMetaReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateCustomSkillVarReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SkillVariableCreateResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateCustomSkillVarReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteCustomSkillVarReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetCustomSkillVarsReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CustomSkillVars); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PublishCustomSkillReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdatePublishCustomSkillReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetPublishCustomSkillHistoryListReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PublishCustomSkillHistoryListResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetPublishCustomSkillByLatestReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetPublishCustomSkillByVersionReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetPublishCustomSkillListReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetPublishCustomSkillListResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetPublishCustomSkillByIDListReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetPublishCustomSkillByIDListResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AcquiredSkill); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AcquiredSkillCreateReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AcquiredSkillCreateResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AcquiredSkillDeleteReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AcquiredSkillGetReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AcquiredSkillGetListReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AcquiredSkillGetListResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AcquiredSkillGetByIDListReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AcquiredSkillGetByIDListResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AcquiredSkillGetHistoryListReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AcquiredSkillHistoryListResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CheckAcquiredSkillReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CheckAcquiredSkillResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateAcquiredSkillVarReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateAcquiredSkillVarReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteAcquiredSkillVarReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetAcquiredSkillVarsReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AcquiredSkillVars); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateBuiltinSkillVarReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteBuiltinSkillVarReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetBuiltinSkillVarsReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetBuiltinSkillsVarsReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetBuiltinSkillsVarsResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*BuiltinSkillVars); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UpdateBuiltinSkillVarReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_mcp_service_skill_service_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Variable); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1693,7 +4830,7 @@ func file_proto_mcp_service_skill_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_proto_mcp_service_skill_service_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   61,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

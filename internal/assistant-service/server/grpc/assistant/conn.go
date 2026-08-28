@@ -7,13 +7,8 @@ import (
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/config"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-)
-
-const (
-	maxMsgSize            = 1024 * 1024 * 4 // 4M
-	headlessServiceSchema = "dns:///"
 )
 
 var (
@@ -42,15 +37,5 @@ func StartService() error {
 }
 
 func newConn(host string) (*grpc.ClientConn, error) {
-	conn, err := grpc.NewClient(headlessServiceSchema+host,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
-		grpc.WithDefaultCallOptions(
-			grpc.MaxCallRecvMsgSize(maxMsgSize),
-			grpc.MaxCallSendMsgSize(maxMsgSize)),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return conn, err
+	return trace_util.NewGrpcTracerConn(host, nil)
 }

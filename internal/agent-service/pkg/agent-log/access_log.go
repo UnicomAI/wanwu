@@ -8,6 +8,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/agent-service/pkg"
 	"github.com/UnicomAI/wanwu/internal/agent-service/pkg/config"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"go.uber.org/zap"
 )
 
@@ -53,6 +54,7 @@ func LogAccessPB(ctx context.Context, business string, method string, params int
 			fmt.Println(err1)
 		}
 	}()
+	requestId := trace_util.GetTraceID(ctx)
 	var success = 1
 	if err != nil {
 		success = 0
@@ -62,5 +64,5 @@ func LogAccessPB(ctx context.Context, business string, method string, params int
 		errMsg = err.Error()
 	}
 
-	accessSLog.Infof("%s|%s|%d|%d|%+v|%+v|%s", business, method, success, time.Now().UnixMilli()-starTimestamp, params, result, errMsg)
+	accessSLog.Infof("%s|%s|%s|%d|%d|%+v|%+v|%s", requestId, business, method, success, time.Now().UnixMilli()-starTimestamp, params, result, errMsg)
 }

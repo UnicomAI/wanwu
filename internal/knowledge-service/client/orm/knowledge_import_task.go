@@ -10,6 +10,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/db"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/util"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"gorm.io/gorm"
 )
 
@@ -81,6 +82,10 @@ func CreateKnowledgeImportTask(ctx context.Context, importTask *model.KnowledgeI
 		//2.通知rag更新知识库
 		return async_task.SubmitTask(ctx, async_task.DocImportTaskType, &async_task.DocImportTaskParams{
 			TaskId: importTask.ImportId,
+			TaskTraceParams: async_task.TaskTraceParams{
+				TraceID: trace_util.GetTraceID(ctx),
+				SpanID:  trace_util.GetSpanID(ctx),
+			},
 		})
 	})
 }
@@ -102,6 +107,10 @@ func CreateKnowledgeReImportTask(ctx context.Context, importTask *model.Knowledg
 		return async_task.SubmitTask(ctx, async_task.DocReImportTaskType, &async_task.DocReImportTaskParams{
 			TaskId: importTask.ImportId,
 			DocId:  knowledgeDoc.DocId,
+			TaskTraceParams: async_task.TaskTraceParams{
+				TraceID: trace_util.GetTraceID(ctx),
+				SpanID:  trace_util.GetSpanID(ctx),
+			},
 		})
 	})
 }

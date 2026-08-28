@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"mime/multipart"
 	"time"
@@ -26,6 +27,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var ragBiz = &RagBiz{}
+
+type RagBiz struct{}
+
+func init() {
+	InitBizService(ragBiz)
+}
+
+func (*RagBiz) BizType() string {
+	return constant.BizModuleAppRag
+}
+
+func (*RagBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	resp, err := rag.GetRagDetail(ctx, &rag_service.RagDetailReq{
+		RagId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if resp.Identity == nil {
+		return "", "", errors.New("rag not found")
+	}
+	return resp.Identity.UserId, resp.Identity.OrgId, nil
+}
+
+func (*RagBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	return nil, nil
+}
+
 func CreateRag(ctx *gin.Context, userId, orgId string, req request.AppBriefConfig) (*request.RagReq, error) {
 	resp, err := rag.CreateRag(ctx.Request.Context(), &rag_service.CreateRagReq{
 		AppBrief: appBriefConfigModel2Proto(req),
@@ -42,8 +72,18 @@ func CreateRag(ctx *gin.Context, userId, orgId string, req request.AppBriefConfi
 	}, err
 }
 
-func UpdateRag(ctx *gin.Context, req request.RagBrief, userId, orgId string) error {
-	_, err := rag.UpdateRag(ctx.Request.Context(), &rag_service.UpdateRagReq{
+func UpdateRag(ctx *gin.Context, req request.RagUpdateReq, userId, orgId string) error {
+	existingRag, err := rag.GetRagDetail(ctx.Request.Context(), &rag_service.RagDetailReq{
+		RagId:    req.RagID,
+		Identity: &rag_service.Identity{UserId: userId, OrgId: orgId},
+	})
+	if err != nil {
+		return err
+	}
+	if err := util.ValidateBriefUpdate(&req.Name, existingRag.BriefConfig.Name, &req.Desc, existingRag.BriefConfig.Desc, util.SubjectRag); err != nil {
+		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
+	}
+	_, err = rag.UpdateRag(ctx.Request.Context(), &rag_service.UpdateRagReq{
 		RagId:    req.RagID,
 		AppBrief: appBriefConfigModel2Proto(req.AppBriefConfig),
 		Identity: &rag_service.Identity{
@@ -54,7 +94,7 @@ func UpdateRag(ctx *gin.Context, req request.RagBrief, userId, orgId string) err
 	return err
 }
 
-func UpdateRagConfig(ctx *gin.Context, req request.RagConfig) error {
+func UpdateRagConfig(ctx *gin.Context, userId, orgId string, req request.RagConfig) error {
 	var modelConfig *common.AppModelConfig
 	var err error
 	if req.ModelConfig != nil {
@@ -122,6 +162,8 @@ func UpdateRagConfig(ctx *gin.Context, req request.RagConfig) error {
 		QAknowledgeBaseConfig: qaKnowledgeBaseConfig,
 		SensitiveConfig:       sensitiveConfig,
 		VisionConfig:          visionConfig,
+		RecommendQuestion:     req.RecommendQuestion,
+		Identity:              &rag_service.Identity{UserId: userId, OrgId: orgId},
 	})
 	return err
 }
@@ -365,27 +407,60 @@ func buildRagQAGlobalConfig(kbConfig request.AppQAKnowledgebaseParams) *rag_serv
 	}
 }
 
-func DeleteRag(ctx *gin.Context, req request.RagReq) error {
-	_, err := rag.DeleteRag(ctx.Request.Context(), &rag_service.RagDeleteReq{
-		RagId: req.RagID,
+// publishRag 发布知识问答：先按调试态口径校验配置，再校验版本号递增，最后落发布快照
+func publishRag(ctx *gin.Context, userId, orgId, ragId, version, desc string) error {
+	if err := CheckRagPublishReady(ctx, userId, orgId, ragId); err != nil {
+		return err
+	}
+	identity := &rag_service.Identity{UserId: userId, OrgId: orgId}
+	resp, _ := rag.GetPublishRagDesc(ctx.Request.Context(), &rag_service.GetPublishRagDescReq{
+		RagId:    ragId,
+		Identity: identity,
+	})
+	if resp != nil {
+		if err := util.IsVersionGreaterThan(version, resp.Version); err != nil {
+			return grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_app_publish_version", resp.Version, version, err.Error())
+		}
+	}
+	_, err := rag.PublishRag(ctx.Request.Context(), &rag_service.PublishRagReq{
+		RagId:    ragId,
+		Version:  version,
+		Desc:     desc,
+		Identity: identity,
 	})
 	return err
 }
 
-func GetRag(ctx *gin.Context, req request.RagReq, needPublished bool) (*response.RagInfo, error) {
+func DeleteRag(ctx *gin.Context, userId, orgId string, req request.RagReq) error {
+	_, err := rag.DeleteRag(ctx.Request.Context(), &rag_service.RagDeleteReq{
+		RagId:    req.RagID,
+		Identity: &rag_service.Identity{UserId: userId, OrgId: orgId},
+	})
+	return err
+}
+
+// GetRag userId/orgId 均为空表示不做校验（管理员中心跨用户查看详情）
+// 草稿按用户本人过滤
+// 发布后校验由中间件 AuthAppPublish 负责
+func GetRag(ctx *gin.Context, userId, orgId string, req request.RagReq, needPublished bool) (*response.RagInfo, error) {
+	var identity *rag_service.Identity
+	if !needPublished {
+		identity = &rag_service.Identity{UserId: userId, OrgId: orgId}
+	}
 	resp, err := rag.GetRagDetail(ctx.Request.Context(), &rag_service.RagDetailReq{
-		RagId:   req.RagID,
-		Publish: util.IfElse(needPublished, int32(1), int32(0)),
-		Version: req.Version,
+		RagId:    req.RagID,
+		Publish:  util.IfElse(needPublished, int32(1), int32(0)),
+		Version:  req.Version,
+		Identity: identity,
 	})
 	if err != nil {
 		return nil, err
 	}
+	appInfo, _ := app.GetAppInfo(ctx.Request.Context(), &app_service.GetAppInfoReq{AppId: req.RagID, AppType: constant.AppTypeRag})
 	modelConfig, rerankConfig, qaRerankConfig, err := appModelRerankProto2Model(ctx, resp)
 	if err != nil {
 		log.Errorf("ragId: %v gets config fail: %v", req.RagID, err.Error())
 	}
-	appInfo, _ := app.GetAppInfo(ctx, &app_service.GetAppInfoReq{AppId: req.RagID, AppType: constant.AppTypeRag})
 	ragInfo := &response.RagInfo{
 		RagID:                 resp.RagId,
 		AppBriefConfig:        appBriefConfigProto2Model(ctx, resp.BriefConfig, constant.AppTypeRag),
@@ -397,6 +472,9 @@ func GetRag(ctx *gin.Context, req request.RagReq, needPublished bool) (*response
 		SafetyConfig:          ragSafetyConfigProto2Model(ctx, resp.SensitiveConfig),
 		AppPublishConfig:      request.AppPublishConfig{PublishType: appInfo.GetPublishType()},
 		VisionConfig:          ragVisionConfigProto2Model(resp.VisionConfig),
+		RecommendQuestion:     resp.RecommendQuestion,
+		CreatedAt:             util.Time2Str(resp.CreateTime),
+		UpdatedAt:             util.Time2Str(resp.UpdateTime),
 	}
 
 	return ragInfo, nil
@@ -442,7 +520,7 @@ func ragSafetyConfigProto2Model(ctx *gin.Context, sensitiveCfg *rag_service.RagS
 	tableIds := sensitiveCfg.GetTableIds()
 
 	if len(tableIds) != 0 {
-		sensitiveWordTable, _ := safety.GetSensitiveWordTableListByIDs(ctx, &safety_service.GetSensitiveWordTableListByIDsReq{TableIds: tableIds})
+		sensitiveWordTable, _ := safety.GetSensitiveWordTableListByIDs(ctx.Request.Context(), &safety_service.GetSensitiveWordTableListByIDsReq{TableIds: tableIds})
 
 		if sensitiveWordTable != nil {
 			for _, table := range sensitiveWordTable.List {
@@ -485,7 +563,7 @@ func ragKBConfigProto2Model(ctx *gin.Context, kbConfig *rag_service.RagKnowledge
 
 	// 转换每个知识库的单独配置
 	for _, perConfig := range kbConfig.PerKnowledgeConfigs {
-		kbInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx, &knowledgeBase_service.KnowledgeDetailSelectReq{
+		kbInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx.Request.Context(), &knowledgeBase_service.KnowledgeDetailSelectReq{
 			KnowledgeId: perConfig.KnowledgeId,
 		})
 		if err != nil {
@@ -496,7 +574,7 @@ func ragKBConfigProto2Model(ctx *gin.Context, kbConfig *rag_service.RagKnowledge
 		share := kbInfo.ShareCount > 1
 		var orgName string
 		if share {
-			orgInfo, err := iam.GetOrgInfo(ctx, &iam_service.GetOrgInfoReq{OrgId: kbInfo.CreateOrgId})
+			orgInfo, err := iam.GetOrgInfo(ctx.Request.Context(), &iam_service.GetOrgInfoReq{OrgId: kbInfo.CreateOrgId})
 			if err != nil {
 				log.Errorf("get org info error: %v", err)
 			} else {
@@ -512,6 +590,7 @@ func ragKBConfigProto2Model(ctx *gin.Context, kbConfig *rag_service.RagKnowledge
 			OrgName:     orgName,
 			Share:       share,
 			Avatar:      cacheKnowledgeAvatar(ctx, kbInfo.AvatarPath, kbInfo.Category),
+			Description: kbInfo.Description,
 		}
 		// 转换元数据过滤配置
 		metaFilter := perConfig.RagMetaFilter
@@ -552,7 +631,7 @@ func ragKBQAConfigProto2Model(ctx *gin.Context, kbConfig *rag_service.RagQAKnowl
 
 	// 转换每个问答库的单独配置
 	for _, perConfig := range kbConfig.PerKnowledgeConfigs {
-		kbInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx, &knowledgeBase_service.KnowledgeDetailSelectReq{
+		kbInfo, err := knowledgeBase.SelectKnowledgeDetailById(ctx.Request.Context(), &knowledgeBase_service.KnowledgeDetailSelectReq{
 			KnowledgeId: perConfig.KnowledgeId,
 		})
 		if err != nil {
@@ -563,7 +642,7 @@ func ragKBQAConfigProto2Model(ctx *gin.Context, kbConfig *rag_service.RagQAKnowl
 		share := kbInfo.ShareCount > 1
 		var orgName string
 		if share {
-			orgInfo, err := iam.GetOrgInfo(ctx, &iam_service.GetOrgInfoReq{OrgId: kbInfo.CreateOrgId})
+			orgInfo, err := iam.GetOrgInfo(ctx.Request.Context(), &iam_service.GetOrgInfoReq{OrgId: kbInfo.CreateOrgId})
 			if err != nil {
 				log.Errorf("get org info error: %v", err)
 			} else {
@@ -571,12 +650,13 @@ func ragKBQAConfigProto2Model(ctx *gin.Context, kbConfig *rag_service.RagQAKnowl
 			}
 		}
 		knowledge := request.AppQAKnowledgeBase{
-			ID:       perConfig.KnowledgeId,
-			Name:     kbInfo.Name,
-			Category: kbInfo.Category,
-			OrgName:  orgName,
-			Share:    share,
-			Avatar:   cacheKnowledgeAvatar(ctx, kbInfo.AvatarPath, kbInfo.Category),
+			ID:          perConfig.KnowledgeId,
+			Name:        kbInfo.Name,
+			Category:    kbInfo.Category,
+			OrgName:     orgName,
+			Share:       share,
+			Avatar:      cacheKnowledgeAvatar(ctx, kbInfo.AvatarPath, kbInfo.Category),
+			Description: kbInfo.Description,
 		}
 		// 转换元数据过滤配置
 		metaFilter := perConfig.RagMetaFilter

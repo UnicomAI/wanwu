@@ -1,20 +1,15 @@
 import concurrent.futures
 import io
 import json
-import logging
 import os
 import posixpath
-import textwrap
 
 import requests
-from docx import Document
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import mm
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
 
 from callback.services import minio as minio_service
+from callback.services.doc_parser import download_to_tempfile, parse_file
+from callback.services.doc_parser.factory import ParserFactory
+from callback.utils.doc_converter import markdown_to_html, markdown_to_docx, markdown_to_pdf
 from configs.config import config
 from extensions.minio import minio_client
 from utils.build_prompt import build_docqa_prompt_from_search_list
@@ -64,8 +59,6 @@ def process_documents(query, file_urls):
 
 def generate_file_to_minio(formatted_markdown, filename, to_format="txt"):
 
-    pdfmetrics.registerFont(TTFont("SimHei", "callback/static/simhei.ttf"))
-
     with io.BytesIO() as file_buffer:
         # 1. 初始化变量
         full_filename = filename + ".txt"
@@ -73,41 +66,22 @@ def generate_file_to_minio(formatted_markdown, filename, to_format="txt"):
         # 2. 根据格式生成文件内容
         if to_format == "pdf":
             full_filename = filename + ".pdf"
-
-            c = canvas.Canvas(file_buffer, pagesize=A4)
-            width, height = A4
-            margin = 20 * mm
-            line_height = 18
-            max_width = width - 2 * margin
-
-            c.setFont("SimHei", 12)
-            y = height - margin
-
-            # 简单的换行估算
-            max_chars_per_line = int(
-                max_width // 6
-            )  # 粗略修正：中文字符宽，除以12可能太宽，视具体字号调整
-
-            wrapped_lines = []
-            for paragraph in formatted_markdown.splitlines():
-                wrapped_lines.extend(textwrap.wrap(paragraph, width=max_chars_per_line))
-                wrapped_lines.append("")
-
-            for line in wrapped_lines:
-                if y < margin:
-                    c.showPage()
-                    c.setFont("SimHei", 12)
-                    y = height - margin
-                c.drawString(margin, y, line)
-                y -= line_height
-
-            c.save()
+            pdf_bytes = markdown_to_pdf(formatted_markdown)
+            file_buffer.write(pdf_bytes)
 
         elif to_format == "docx":
             full_filename = filename + ".docx"
-            doc = Document()
-            doc.add_paragraph(formatted_markdown)
+            doc = markdown_to_docx(formatted_markdown)
             doc.save(file_buffer)
+
+        elif to_format == "md":
+            full_filename = filename + ".md"
+            file_buffer.write(formatted_markdown.encode("utf-8"))
+
+        elif to_format == "html":
+            full_filename = filename + ".html"
+            html_content = markdown_to_html(formatted_markdown)
+            file_buffer.write(html_content.encode("utf-8"))
 
         elif to_format == "txt":
             full_filename = filename + ".txt"
@@ -128,71 +102,125 @@ def parse_doc(file_url):
     """
     解析单个文档
 
+    本地工厂支持的格式直接解析；不支持的格式(如 .wps/.ofd)回退到 rag 的
+    /rag/doc_parser 接口，并将返回的 chunks 拼接为整篇全文。
+
     参数:
-    file_url (str): 文件URL
-    sentence_size (int): 句子大小
-    overlap_size (float): 重叠比例
-    user_token (str, optional): 用户token
+    file_url (str): 文档URL
 
     返回:
-    list: 解析后的文档片段列表
+    list: 解析后的文档片段列表，每项 {"text": ..., "metadata": {"file_name": ...}}
     """
+    file_name = _url_filename(file_url)
 
-    url = config.callback_cfg["URL"]["RAG_DOC_PARSER"]
-    sentence_size = int(config.callback_cfg["DOC"]["CHUNK_SIZE"])
-    overlap_size = float(config.callback_cfg["DOC"]["OVERLAP_RATIO"])
-    payload = json.dumps(
-        {
-            "url": file_url,
-            "sentence_size": sentence_size,
-            "overlap_size": overlap_size,
-            "separators": [
-                "\n\n",
-                "\n",
-                " ",
-                ",",
-                "\u200b",  # 零宽空格
-                "\uff0c",  # 全角逗号
-                "\u3001",  # 顿号
-                "\uff0e",  # 全角句号
-                "\u3002",  # 句号
-                ".",
-            ],
-        }
-    )
-    headers = {"Content-Type": "application/json;charset=utf-8"}
-    response = requests.post(url, headers=headers, data=payload, verify=False)
-    docs = response.json().get("docs", [])
-    return docs
+    if not _rag_only_enabled() and ParserFactory.is_supported(file_name):
+        file_path, _ = download_to_tempfile(file_url)
+        try:
+            text = parse_file(file_path, max_tokens=0)
+        finally:
+            _safe_unlink(file_path)
+    else:
+        if _rag_only_enabled():
+            logger.info(f"RAG_ONLY 已开启，强制走 rag 解析: {file_url}")
+        else:
+            logger.info(f"本地不支持 {file_name}，回退 rag 解析: {file_url}")
+        text = _parse_via_rag(file_url, max_tokens=0)
+
+    if not text:
+        raise BizError("No document content parsed.")
+
+    return [{"text": text, "metadata": {"file_name": file_name}}]
 
 
-def parse_doc_only(file_url):
+def parse_doc_only(file_url, max_token):
     """
-    解析单个文档，不进行切分
+    解析单个文档，不进行切分，按 max_token 截断返回完整文本
+
+    本地工厂支持的格式直接解析；不支持的格式回退到 rag 接口并拼接全文后截断。
 
     参数:
     file_url (str): 文件URL
+    max_token (int): 返回文本的最大token数；<=0 时使用默认上限
 
     返回:
-    str: 解析后的完整文档内容
+    str: 解析后(并按需截断)的文档内容
     """
+    limit_max_token = int(config.callback_cfg["DOC"]["DEFAULT_LIMIT_MAX_TOKEN"])
+    if max_token <= 0:
+        max_token = limit_max_token
+
+    file_name = _url_filename(file_url)
+
+    if not _rag_only_enabled() and ParserFactory.is_supported(file_name):
+        file_path, _ = download_to_tempfile(file_url)
+        try:
+            text = parse_file(file_path, max_tokens=max_token)
+        finally:
+            _safe_unlink(file_path)
+    else:
+        if _rag_only_enabled():
+            logger.info(f"RAG_ONLY 已开启，强制走 rag 解析: {file_url}")
+        else:
+            logger.info(f"本地不支持 {file_name}，回退 rag 解析: {file_url}")
+        text = _parse_via_rag(file_url, max_tokens=max_token)
+
+    if not text:
+        raise BizError("No document content parsed.")
+
+    return text
+
+
+def _parse_via_rag(file_url, max_tokens=0):
+    """回退到 rag 的 /rag/doc_parser 接口解析文档。
+
+    rag 接口为切分语义，这里传 separators=[]、较大的 sentence_size 以尽量减少切分，
+    再把返回的 chunks 拼接为整篇全文，与本地解析器的"只读文本"语义对齐。
+    最后按 max_tokens 截断。verify=False 与原 parse_doc 行为一致，适配内网自签证书。
+    """
+    from callback.services.doc_parser.base import DocumentParser
+
     url = config.callback_cfg["URL"]["RAG_DOC_PARSER"]
-    sentence_size = int(config.callback_cfg["DOC"]["CHUNK_SIZE"])
-    overlap_size = float(config.callback_cfg["DOC"]["OVERLAP_RATIO"])
+    if not url:
+        raise BizError("本地不支持该文件类型，且未配置 RAG_DOC_PARSER 兜底地址")
+
     payload = json.dumps(
         {
             "url": file_url,
-            "sentence_size": sentence_size,
-            "overlap_size": overlap_size,
+            # sentence_size 给一个较大值，配合 separators=[] 让 rag 尽量不切分
+            "sentence_size": 100000,
+            "overlap_size": 0,
             "separators": [],
         }
     )
     headers = {"Content-Type": "application/json;charset=utf-8"}
-    response = requests.post(url, headers=headers, data=payload, verify=False)
+    response = requests.post(url, headers=headers, data=payload, verify=False, timeout=300)
     docs = response.json().get("docs", [])
 
-    if not docs:
-        raise BizError("No document content parsed.")
+    full_text = "\n".join(doc.get("text", "") for doc in docs)
+    return DocumentParser.truncate(full_text, max_tokens)
 
-    full_text = "\n".join([doc.get("text", "") for doc in docs])
-    return full_text
+
+def _rag_only_enabled() -> bool:
+    """是否强制只走 rag 兜底解析。
+
+    读 ``[DOC] RAG_ONLY``：``1``/``true`` 表示强制只走 rag（本地支持格式也跳过本地解析），
+    ``0``/未配置走正常逻辑（本地支持走本地，不支持回退 rag）。
+    """
+    raw = (config.callback_cfg["DOC"].get("RAG_ONLY", "") or "").strip().lower()
+    return raw in ("1", "true")
+
+
+def _url_filename(file_url):
+    """从 URL 中提取解码后的文件名（含后缀），用于后缀预判。"""
+    import urllib.parse
+
+    parsed = urllib.parse.urlparse(file_url)
+    return urllib.parse.unquote(parsed.path.split("/")[-1]) or "download"
+
+
+def _safe_unlink(path: str) -> None:
+    """删除临时文件，忽略不存在等错误。"""
+    try:
+        os.unlink(path)
+    except OSError:
+        pass

@@ -1,0 +1,182 @@
+{
+  "schema": {
+    "structure": "doc",
+    "children": [
+      {
+        "structure": "Abstract",
+        "required": true,
+        "multiple": false,
+        "children": [
+          {
+            "structure": "AbstractTitle",
+            "description": "摘要标题",
+            "pattern": "^摘要$",
+            "required": true,
+            "multiple": false
+          },
+          {
+            "structure": "AbstractContent",
+            "description": "摘要内容",
+            "required": true,
+            "multiple": false
+          },
+          {
+            "structure": "Keywords",
+            "description": "关键词",
+            "pattern": "^关键词[:：].*",
+            "required": true,
+            "multiple": false
+          }
+        ]
+      },
+      {
+        "structure": "EnAbstract",
+        "required": false,
+        "multiple": false,
+        "children": [
+          {
+            "structure": "EnAbstractTitle",
+            "description": "英文摘要标题",
+            "pattern": "^Abstract$",
+            "required": true,
+            "multiple": false
+          },
+          {
+            "structure": "EnAbstractContent",
+            "description": "英文摘要内容",
+            "required": true,
+            "multiple": true
+          },
+          {
+            "structure": "EnKeywords",
+            "description": "英文关键词正文",
+            "pattern": "^Keywords:.*",
+            "required": true,
+            "multiple": false
+          }
+        ]
+      },
+      {
+        "structure": "Toc",
+        "required": false,
+        "multiple": false,
+        "children": [
+          {
+            "structure": "TocTitle",
+            "required": true,
+            "multiple": false,
+            "description": "目录标题",
+            "pattern": "^目录$"
+          }
+        ]
+      },
+      {
+        "structure": "Content",
+        "required": false,
+        "multiple": false,
+        "children": [
+          {
+            "structure": "Heading1",
+            "description": "一级标题",
+            "required": false,
+            "multiple": true
+          },
+          {
+            "structure": "Heading2",
+            "description": "二级标题",
+            "required": false,
+            "multiple": true
+          },
+          {
+            "structure": "Heading3",
+            "description": "三级标题",
+            "required": false,
+            "multiple": true
+          },
+          {
+            "structure": "Heading4",
+            "description": "四级标题",
+            "required": false,
+            "multiple": true
+          },
+          {
+            "structure": "Heading5",
+            "description": "五级标题",
+            "required": false,
+            "multiple": true
+          },
+          {
+            "structure": "Heading6",
+            "description": "六级标题",
+            "required": false,
+            "multiple": true
+          },
+          {
+            "structure": "Heading7",
+            "description": "七级标题",
+            "required": false,
+            "multiple": true
+          },
+          {
+            "structure": "Heading8",
+            "description": "八级标题",
+            "required": false,
+            "multiple": true
+          },
+          {
+            "structure": "Heading9",
+            "description": "九级标题",
+            "required": false,
+            "multiple": true
+          },
+          {
+            "structure": "Text",
+            "description": "正文内容",
+            "required": false,
+            "multiple": true
+          }
+        ]
+      },
+      {
+        "structure": "Reference",
+        "required": true,
+        "multiple": false,
+        "children": [
+          {
+            "structure": "ReferenceTitle",
+            "description": "参考文献标题",
+            "pattern": "^参考文献$",
+            "required": true,
+            "multiple": false
+          },
+          {
+            "structure": "ReferenceContent",
+            "description": "参考文献条目",
+            "required": false,
+            "multiple": true
+          }
+        ]
+      },
+      {
+        "structure": "Acknowledgement",
+        "required": false,
+        "multiple": false,
+        "children": [
+          {
+            "structure": "AcknowledgementTitle",
+            "description": "致谢标题",
+            "pattern": "^致谢$",
+            "required": true,
+            "multiple": false
+          },
+          {
+            "structure": "AcknowledgementContent",
+            "description": "致谢内容",
+            "required": false,
+            "multiple": true
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -5,6 +5,28 @@ import logging
 import sys
 from logging.handlers import RotatingFileHandler
 
+
+class TraceIdFilter(logging.Filter):
+    """从 Flask g 注入 trace_id / span_id 到每条 LogRecord。
+
+    脱离 Flask 请求上下文（如 __main__、后台任务）时兜底为 "-"。
+    """
+
+    def filter(self, record):
+        try:
+            from flask import g, has_request_context
+            if has_request_context():
+                record.trace_id = g.get("trace_id", "-")
+                record.span_id = g.get("span_id", "-")
+            else:
+                record.trace_id = "-"
+                record.span_id = "-"
+        except Exception:
+            record.trace_id = "-"
+            record.span_id = "-"
+        return True
+
+
 # 全局变量定义
 LOG_DIRECTORY = os.path.abspath(os.path.join(os.path.dirname(__file__), 'logs'))
 LOG_LEVEL = logging.INFO
@@ -73,13 +95,20 @@ def setup_logging(app_name, logger_name):
     console_handler = logging.StreamHandler()  
     console_handler.setLevel(logging.INFO)
 
-    # 定义handler的输出格式  
-    formatter = logging.Formatter('%(asctime)s - %(filename)s:%(funcName)s:%(lineno)d - %(levelname)s - %(message)s',  datefmt='%Y-%m-%d %H:%M:%S')  
+    # 定义handler的输出格式
+    formatter = logging.Formatter(
+        '%(asctime)s - %(filename)s:%(funcName)s:%(lineno)d - %(levelname)s - trace_id=%(trace_id)s span_id=%(span_id)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
     # 设置时区为本地时间
     formatter.converter = time.localtime  # 使用本地时区（默认）
-    
-    file_handler.setFormatter(formatter)  
-    console_handler.setFormatter(formatter) 
+
+    trace_filter = TraceIdFilter()
+    file_handler.addFilter(trace_filter)
+    console_handler.addFilter(trace_filter)
+
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
     
     # 清除已存在的处理器，防止重复添加
     if logger.hasHandlers():

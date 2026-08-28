@@ -40,14 +40,15 @@ func (t *AgentMessageContent) Empty() bool {
 }
 
 type SubEventData struct {
-	Status    SubEventStatus `json:"status"`
-	Id        string         `json:"id"`
-	EventType int            `json:"eventType"`
-	Name      string         `json:"name"`
-	Profile   string         `json:"profile"`
-	TimeCost  string         `json:"timeCost"`
-	ParentId  string         `json:"parentId"`
-	Order     int            `json:"order"`
+	Status     SubEventStatus `json:"status"`
+	Id         string         `json:"id"`
+	EventType  int            `json:"eventType"`
+	Name       string         `json:"name"`
+	Profile    string         `json:"profile"`
+	TimeCost   string         `json:"timeCost"`
+	ParentId   string         `json:"parentId"`
+	Order      int            `json:"order"`
+	ErrMessage string         `json:"errMessage"` //错误信息
 }
 
 func (s *SubEventData) Copy() *SubEventData {

@@ -13,41 +13,36 @@ import (
 )
 
 var (
-	client  cozeloop.Client
-	handler callbacks.Handler
-	mu      sync.Mutex
-	initErr error
-	inited  bool
+	cozeloopHandler callbacks.Handler
+
+	cozeloopInitOnce sync.Once
+	cozeloopInitErr  error
 )
 
-// Init initializes the CozeLoop client and registers the global handler
-// Environment variables required:
-// - COZELOOP_WORKSPACE_ID: your workspace id
-// - COZELOOP_API_TOKEN: your token
-// - COZELOOP_ENABLED: set to "true" to enable (optional, default: false)
-// - COZELOOP_API_BASE_URL: API base URL for local deployment (optional, e.g., http://localhost:8082)
+// Init 初始化 CozeLoop 客户端并注册全局回调 handler。
+// 多次调用安全：仅首次生效，后续调用直接返回首次结果。
+// 环境变量：
+//   - COZELOOP_ENABLED:      "true" 启用（缺省禁用，直接 no-op）
+//   - COZELOOP_WORKSPACE_ID: workspace id
+//   - COZELOOP_API_TOKEN:    access token
+//   - COZELOOP_API_BASE_URL: 自部署场景的 API base URL（可选）
 func Init() error {
-	mu.Lock()
-	defer mu.Unlock()
+	cozeloopInitOnce.Do(func() {
+		cozeloopInitErr = setupCozeloop()
+	})
+	return cozeloopInitErr
+}
 
-	if inited {
-		return initErr
-	}
-
-	enabled := os.Getenv("COZELOOP_ENABLED")
-	if enabled != "true" {
-		log.Println("[CozeLoop] CozeLoop is disabled (set COZELOOP_ENABLED=true to enable)")
-		inited = true
+func setupCozeloop() error {
+	if os.Getenv("COZELOOP_ENABLED") != "true" {
+		log.Println("[CozeLoop] disabled (set COZELOOP_ENABLED=true to enable)")
 		return nil
 	}
 
 	workspaceID := os.Getenv("COZELOOP_WORKSPACE_ID")
 	apiToken := os.Getenv("COZELOOP_API_TOKEN")
-	apiBaseURL := os.Getenv("COZELOOP_API_BASE_URL")
-
 	if workspaceID == "" || apiToken == "" {
-		log.Println("[CozeLoop] Warning: COZELOOP_WORKSPACE_ID or COZELOOP_API_TOKEN not set, skipping initialization")
-		inited = true
+		log.Println("[CozeLoop] COZELOOP_WORKSPACE_ID or COZELOOP_API_TOKEN not set, skipping initialization")
 		return nil
 	}
 
@@ -55,27 +50,20 @@ func Init() error {
 		cozeloop.WithWorkspaceID(workspaceID),
 		cozeloop.WithAPIToken(apiToken),
 	}
-
-	// Add API base URL for local deployment if specified
-	if apiBaseURL != "" {
+	if apiBaseURL := os.Getenv("COZELOOP_API_BASE_URL"); apiBaseURL != "" {
 		opts = append(opts, cozeloop.WithAPIBaseURL(apiBaseURL))
-		log.Printf("[CozeLoop] Using custom API base URL: %s", shared.SanitizeForLog(apiBaseURL))
+		log.Printf("[CozeLoop] using custom API base URL: %s", shared.SanitizeForLog(apiBaseURL))
 	}
 
-	var err error
-	client, err = cozeloop.NewClient(opts...)
+	client, err := cozeloop.NewClient(opts...)
 	if err != nil {
-		log.Printf("[CozeLoop] Failed to create cozeloop client: %v", err)
-		initErr = err
-		inited = true
+		log.Printf("[CozeLoop] create client failed: %v", err)
 		return err
 	}
 
-	handler = ccb.NewLoopHandler(client)
-	callbacks.AppendGlobalHandlers(handler)
+	cozeloopHandler = ccb.NewLoopHandler(client)
+	callbacks.AppendGlobalHandlers(cozeloopHandler)
 
-	inited = true
-	log.Println("[CozeLoop] CozeLoop initialized successfully")
-
+	log.Println("[CozeLoop] initialized successfully")
 	return nil
 }

@@ -12,6 +12,7 @@ import (
 	async_task_pkg "github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/async-task"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	async "github.com/gromitlee/go-async"
 	"github.com/gromitlee/go-async/pkg/async/async_task"
@@ -120,6 +121,7 @@ func reImportDoc(ctx context.Context, taskCtx string) Result {
 		log.Errorf("unmarshal json err: %s", err)
 		return Result{Error: err}
 	}
+	ctx = trace_util.InjectContext(ctx, docReImportTaskParams.TraceID, docReImportTaskParams.SpanID)
 	importTask, err := orm.SelectKnowledgeImportTaskById(ctx, docReImportTaskParams.TaskId)
 	if err != nil {
 		log.Errorf("select knowledge import task err: %s", err)

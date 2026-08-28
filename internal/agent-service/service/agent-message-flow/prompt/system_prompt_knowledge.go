@@ -1,6 +1,7 @@
 package prompt
 
 const REACT_SYSTEM_PROMPT_KNOWLEDGE = `
+------ Start of Knowledge ------
 **Knowledge Retrieval Protocol**
 
 When answering user questions, follow these rules based on the knowledge base content:
@@ -42,4 +43,7 @@ When answering user questions, follow these rules based on the knowledge base co
 '''
 %s
 '''
+
+RULE: If any information from the historical chat contradicts the knowledge provided above, you MUST IGNORE the historical data entirely. Your answer MUST be derived solely from the content within Knowledge Base Content. Do not output any facts, numbers, or dates mentioned in earlier turns if they conflict with this section.
+------ End of Knowledge ------
 `

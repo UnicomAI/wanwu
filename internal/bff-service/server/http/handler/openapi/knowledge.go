@@ -138,7 +138,7 @@ func GetDocConfig(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.DocListReq	true	"文档列表查询请求参数"
-//	@Success		200		{object}	response.Response{data=response.DocPageResult}
+//	@Success		200		{object}	response.PageResult{list=response.ListDocResp}
 //	@Router			/knowledge/doc/list [post]
 func GetDocList(ctx *gin.Context) {
 	userId, orgId := getUserID(ctx), getOrgID(ctx)
@@ -316,4 +316,341 @@ func KnowledgeHit(ctx *gin.Context) {
 	}
 	resp, err := service.KnowledgeHitOpenapi(ctx, userId, orgId, &req)
 	gin_util.Response(ctx, resp, err)
+}
+
+// GetDocSegmentList
+//
+//	@Tags			openapi
+//	@Summary		获取文档切分结果
+//	@Description	获取文档切分结果
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	query		request.DocSegmentListReq	true	"获取文档切分结果请求参数"
+//	@Success		200		{object}	response.Response{data=response.DocSegmentResp}
+//	@Router			/knowledge/doc/segment/list [get]
+func GetDocSegmentList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.DocSegmentListReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	resp, err := service.GetDocSegmentList(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetDocChildSegmentList
+//
+//	@Tags			openapi
+//	@Summary		获取子分段列表
+//	@Description	获取子分段列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	query		request.DocChildListReq	true	"获取子分段列表查询请求参数"
+//	@Success		200		{object}	response.Response{data=response.DocChildSegmentResp}
+//	@Router			/knowledge/doc/segment/child/list [get]
+func GetDocChildSegmentList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.DocChildListReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	resp, err := service.GetDocChildSegmentList(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// UpdateDocSegmentStatus
+//
+//	@Tags			openapi
+//	@Summary		更新文档切片启用状态
+//	@Description	更新文档切片启用状态
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.UpdateDocSegmentStatusReq	true	"更新文档切片启用状态请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/status/update [post]
+func UpdateDocSegmentStatus(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.UpdateDocSegmentStatusReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateDocSegmentStatus(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// CreateDocSegment
+//
+//	@Tags			openapi
+//	@Summary		新增文档切片
+//	@Description	新增单条文档切片；多模态知识库的切片内容可包含图片markdown，普通知识库不允许
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.CreateDocSegmentReq	true	"新增文档切片请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/create [post]
+func CreateDocSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.CreateDocSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.CreateDocSegmentOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// BatchCreateDocSegment
+//
+//	@Tags			openapi
+//	@Summary		批量新增文档切片
+//	@Description	通过csv文件批量新增文档切片
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.BatchCreateDocSegmentReq	true	"批量新增文档切片请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/batch/create [post]
+func BatchCreateDocSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.BatchCreateDocSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.BatchCreateDocSegment(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// UpdateDocSegment
+//
+//	@Tags			openapi
+//	@Summary		更新文档切片
+//	@Description	更新文档切片；多模态知识库的切片内容可包含图片markdown，普通知识库不允许
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.UpdateDocSegmentReq	true	"更新文档切片请求参数"
+//	@Success		200		{object}	response.Response{data=response.UpdateDocSegmentResp}
+//	@Router			/knowledge/doc/segment/update [post]
+func UpdateDocSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.UpdateDocSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	data, err := service.UpdateDocSegmentOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, data, err)
+}
+
+// DeleteDocSegment
+//
+//	@Tags			openapi
+//	@Summary		删除文档切片
+//	@Description	删除文档切片
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.DeleteDocSegmentReq	true	"删除文档切片请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/delete [delete]
+func DeleteDocSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.DeleteDocSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.DeleteDocSegment(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// UpdateDocSegmentLabels
+//
+//	@Tags			openapi
+//	@Summary		更新文档切片标签
+//	@Description	更新文档切片标签
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.DocSegmentLabelsReq	true	"更新文档切片标签请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/labels [post]
+func UpdateDocSegmentLabels(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.DocSegmentLabelsReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateDocSegmentLabels(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// CreateDocChildSegment
+//
+//	@Tags			openapi
+//	@Summary		新增子分段
+//	@Description	新增文档子分段；多模态知识库的分段内容可包含图片markdown，普通知识库不允许
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.CreateDocChildSegmentReq	true	"新增子分段请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/child/create [post]
+func CreateDocChildSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.CreateDocChildSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.CreateDocChildSegmentOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// UpdateDocChildSegment
+//
+//	@Tags			openapi
+//	@Summary		更新子分段
+//	@Description	更新文档子分段；多模态知识库的分段内容可包含图片markdown，普通知识库不允许
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.UpdateDocChildSegmentReq	true	"更新子分段请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/child/update [post]
+func UpdateDocChildSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.UpdateDocChildSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateDocChildSegmentOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// DeleteDocChildSegment
+//
+//	@Tags			openapi
+//	@Summary		删除子分段
+//	@Description	删除文档子分段
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.DeleteDocChildSegmentReq	true	"删除子分段请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/child/delete [delete]
+func DeleteDocChildSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.DeleteDocChildSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.DeleteDocChildSegment(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// UploadDocSegmentImage
+//
+//	@Tags			openapi
+//	@Summary		分段图片上传
+//	@Description	上传分段图片并返回markdown格式url，仅多模态知识库可用；返回的url可拼接进切片content中
+//	@Security		JWT
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			knowledgeId	formData	string	true	"知识库id"
+//	@Param			files		formData	file	true	"图片文件(png/jpg/jpeg)"
+//	@Success		200			{object}	response.Response{data=response.RagUploadResponse}
+//	@Router			/knowledge/doc/segment/image/upload [post]
+func UploadDocSegmentImage(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.UploadDocSegmentImageReq
+	if !gin_util.BindForm(ctx, &req) {
+		return
+	}
+	resp, err := service.UploadDocSegmentImageOpenapi(ctx, userId, orgId, req.KnowledgeId)
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetKnowledgeMetaKeyList
+//
+//	@Tags			openapi
+//	@Summary		获取知识库元数据key列表
+//	@Description	获取知识库已定义的元数据key列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	query		request.GetKnowledgeMetaSelectReq	true	"获取知识库元数据key列表请求参数"
+//	@Success		200		{object}	response.Response{data=response.GetKnowledgeMetaSelectResp}
+//	@Router			/knowledge/meta/list [get]
+func GetKnowledgeMetaKeyList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.GetKnowledgeMetaSelectReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	resp, err := service.GetKnowledgeMetaSelect(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// UpdateKnowledgeMetaKey
+//
+//	@Tags			openapi
+//	@Summary		定义知识库元数据key
+//	@Description	新增/修改/删除知识库的元数据key定义；文档元数据值的读写见 /knowledge/doc/meta/list 与 /knowledge/doc/meta/update
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.KnowledgeMetaKeyOpenapiReq	true	"定义知识库元数据key请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/meta/update [post]
+func UpdateKnowledgeMetaKey(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.KnowledgeMetaKeyOpenapiReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateKnowledgeMetaKeyOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// GetKnowledgeDocMetaValueList
+//
+//	@Tags			openapi
+//	@Summary		获取文档元数据值列表
+//	@Description	按文档id列表查询各文档的元数据值
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.KnowledgeMetaValueListReq	true	"获取文档元数据值列表请求参数"
+//	@Success		200		{object}	response.Response{data=response.KnowledgeMetaValueListResp}
+//	@Router			/knowledge/doc/meta/list [post]
+func GetKnowledgeDocMetaValueList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.KnowledgeMetaValueListReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.GetKnowledgeDocMetaValueListOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
+// UpdateKnowledgeDocMetaValue
+//
+//	@Tags			openapi
+//	@Summary		更新文档元数据值
+//	@Description	批量更新文档的元数据值；key需已在知识库元数据中定义，option为add时不存在则新增、已存在则覆盖，update仅在已存在时更新
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.KnowledgeDocMetaValueOpenapiReq	true	"更新文档元数据值请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/meta/update [post]
+func UpdateKnowledgeDocMetaValue(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.KnowledgeDocMetaValueOpenapiReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateKnowledgeDocMetaValueOpenapi(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
 }

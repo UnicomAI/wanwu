@@ -118,6 +118,9 @@ func ValidateLLMModel(ctx *gin.Context, modelInfo *model_service.ModelInfo) erro
 		if len(openAIRespTool.Choices) == 0 || openAIRespTool.Choices[0].Message.ToolCalls == nil {
 			return fmt.Errorf("model does not support toolcall functionality")
 		}
+		if openAIRespTool.Choices[0].FinishReason != "tool_calls" {
+			return fmt.Errorf("model does not support toolcall functionality: finish_reason is %s, expected tool_calls", openAIRespTool.Choices[0].FinishReason)
+		}
 		// 打印工具调用日志
 		data, _ := json.MarshalIndent(openAIRespTool.Choices[0].Message.ToolCalls, "", "  ")
 		log.Debugf("tool call: %v", string(data))
@@ -152,14 +155,32 @@ func ValidateLLMModel(ctx *gin.Context, modelInfo *model_service.ModelInfo) erro
 			Stream: &stream,
 		}
 		// 执行视觉支持校验
-		llmReqVision, err := iLLM.NewReq(reqVision)
+		llmReq, err := iLLM.NewReq(reqVision)
 		if err != nil {
 			return err
 		}
-		_, _, err = iLLM.ChatCompletions(ctx.Request.Context(), llmReqVision)
+
+		resp, _, err := iLLM.ChatCompletions(ctx.Request.Context(), llmReq)
 		if err != nil {
 			return fmt.Errorf("vision validation failed: %v, maybe model does not support vision functionality", err)
 		}
+
+		openAIResp, ok := resp.ConvertResp()
+		if !ok {
+			return fmt.Errorf("vision validation: invalid response format")
+		}
+
+		if len(openAIResp.Choices) == 0 || openAIResp.Choices[0].Message == nil {
+			return fmt.Errorf("vision validation: empty response")
+		}
+
+		content := openAIResp.Choices[0].Message.Content
+		// 检查响应内容是否包含 "GPU"，确认模型能识别图片中的文字内容
+		if content == "" || !strings.Contains(content, "GPU") {
+			return fmt.Errorf("model does not support vision functionality: response indicates image was not processed")
+		}
+
+		return nil
 	}
 
 	if !toolCallFlag && !visionSupportFlag {
@@ -354,41 +375,19 @@ func ValidateOcrModel(ctx *gin.Context, modelInfo *model_service.ModelInfo) erro
 	if !ok {
 		return fmt.Errorf("invalid provider")
 	}
-	// mock  request
-
-	file, err := os.Open(config.Cfg().Model.PngTestFilePath)
+	// mock request：读取测试文件转 base64
+	fileData, err := os.ReadFile(config.Cfg().Model.PngTestFilePath)
 	if err != nil {
-		return fmt.Errorf("open file failed: %v", err)
+		return fmt.Errorf("read test file failed: %v", err)
 	}
-	defer func() { _ = file.Close() }()
-
-	// 创建内存缓冲区
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	// 创建表单文件字段
-	part, err := writer.CreateFormFile("file", file.Name())
+	_, base64StrWithPrefix, err := util.FileData2Base64(fileData, "")
 	if err != nil {
-		return fmt.Errorf("create form file failed: %v", err)
-	}
-
-	// 复制文件内容
-	if _, err := io.Copy(part, file); err != nil {
-		return fmt.Errorf("copy file content failed: %v", err)
-	}
-	_ = writer.Close()
-
-	// 模拟HTTP请求
-	mockReq, _ := http.NewRequest("POST", "", body)
-	mockReq.Header.Set("Content-Type", writer.FormDataContentType())
-	ctx.Request = mockReq
-	// 获取FileHeader对象
-	_, fileH, err := ctx.Request.FormFile("file")
-	if err != nil {
-		return fmt.Errorf("get file header failed: %v", err)
+		return fmt.Errorf("file to base64 failed: %v", err)
 	}
 	req := &mp_common.OcrReq{
-		Files: fileH,
+		FileData: &base64StrWithPrefix,
+		FileName: "test.png",
+		Model:    &modelInfo.Model,
 	}
 	ocrReq, err := iOcr.NewReq(req)
 	if err != nil {

@@ -1,7 +1,7 @@
 ARG WANWU_ARCH
 
 # 使用 rag-base 镜像作为基础镜像
-FROM --platform=linux/$WANWU_ARCH crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/rag-base:v1.2.0-20260205
+FROM --platform=linux/$WANWU_ARCH crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/rag-base:v1.2.1-20260612
 
 # 设置工作目录
 WORKDIR /model_extend

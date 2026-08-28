@@ -2,72 +2,12 @@ package v1
 
 import (
 	"fmt"
-	"net/http"
-	"net/url"
 
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	"github.com/gin-gonic/gin"
 )
-
-// GetAgentSkillList
-//
-//	@Tags			resource.skill
-//	@Summary		获取skill模板列表
-//	@Description	获取skill模板列表
-//	@Security		JWT
-//	@Accept			json
-//	@Produce		json
-//	@Param			name	query		string	false	"skill模板名称"
-//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.SkillDetail}}
-//	@Router			/agent/skill/list [get]
-func GetAgentSkillList(ctx *gin.Context) {
-	resp, err := service.GetAgentSkillList(ctx, ctx.Query("name"))
-	gin_util.Response(ctx, resp, err)
-}
-
-// GetAgentSkillDetail
-//
-//	@Tags			resource.skill
-//	@Summary		获取skill模板详情
-//	@Description	获取skill模板详情
-//	@Security		JWT
-//	@Accept			json
-//	@Produce		json
-//	@Param			skillId	query		string	true	"skill模板ID"
-//	@Success		200		{object}	response.Response{data=response.SkillDetail}
-//	@Router			/agent/skill/detail [get]
-func GetAgentSkillDetail(ctx *gin.Context) {
-	resp, err := service.GetAgentSkillDetail(ctx, ctx.Query("skillId"))
-	gin_util.Response(ctx, resp, err)
-}
-
-// DownloadAgentSkill
-//
-//	@Tags			resource.skill
-//	@Summary		下载skill模板
-//	@Description	下载skill模板
-//	@Security		JWT
-//	@Accept			json
-//	@Produce		application/octet-stream
-//	@Param			skillId	query		string	true	"skill模板ID"
-//	@Success		200		{object}	response.Response
-//	@Router			/agent/skill/download [get]
-func DownloadAgentSkill(ctx *gin.Context) {
-	fileName := fmt.Sprintf("%s.zip", ctx.Query("skillId"))
-	resp, err := service.DownloadAgentSkill(ctx, ctx.Query("skillId"))
-	if err != nil {
-		gin_util.Response(ctx, nil, err)
-		return
-	}
-	// 设置响应头
-	ctx.Header("Content-Disposition", "attachment; filename*=utf-8''"+url.QueryEscape(fileName))
-	ctx.Header("Content-Type", "application/octet-stream")
-	ctx.Header("Access-Control-Expose-Headers", "Content-Disposition")
-	// 直接写入字节数据
-	ctx.Data(http.StatusOK, "application/octet-stream", resp)
-}
 
 // GetCustomSkillList
 //
@@ -78,7 +18,7 @@ func DownloadAgentSkill(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			name	query		string	false	"skill名称"
-//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.CustomSkillDetail}}
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.PublishedSkillInfo}}
 //	@Router			/agent/skill/custom/list [get]
 func GetCustomSkillList(ctx *gin.Context) {
 	resp, err := service.GetCustomSkillList(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("name"))
@@ -94,30 +34,10 @@ func GetCustomSkillList(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			skillId	query		string	true	"skill ID"
-//	@Success		200		{object}	response.Response{data=response.CustomSkillDetail}
+//	@Success		200		{object}	response.Response{data=response.PublishedSkillDetail}
 //	@Router			/agent/skill/custom/detail [get]
 func GetCustomSkillDetail(ctx *gin.Context) {
 	resp, err := service.GetCustomSkill(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("skillId"))
-	gin_util.Response(ctx, resp, err)
-}
-
-// CreateCustomSkill
-//
-//	@Tags			resource.skill
-//	@Summary		创建自定义skill
-//	@Description	创建自定义skill
-//	@Security		JWT
-//	@Accept			json
-//	@Produce		json
-//	@Param			data	body		request.CreateCustomSkillReq	true	"自定义skill信息"
-//	@Success		200		{object}	response.Response{data=response.CustomSkillIDResp}
-//	@Router			/agent/skill/custom [post]
-func CreateCustomSkill(ctx *gin.Context) {
-	var req request.CreateCustomSkillReq
-	if !gin_util.Bind(ctx, &req) {
-		return
-	}
-	resp, err := service.CreateCustomSkill(ctx, getUserID(ctx), getOrgID(ctx), req.Avatar.Key, req.Author, req.ZipUrl, "", "skill_import")
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -137,7 +57,92 @@ func DeleteCustomSkill(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.DeleteCustomSkill(ctx, req.SkillId)
+	err := service.DeleteCustomSkill(ctx, getUserID(ctx), getOrgID(ctx), req.SkillId)
+	gin_util.Response(ctx, nil, err)
+}
+
+// DownloadCustomSkillVersion
+//
+//	@Tags			resource.skill
+//	@Summary		下载自定义skill指定版本
+//	@Description	下载我创建的自定义skill指定版本ZIP包
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		application/octet-stream
+//	@Param			data	query		request.CustomSkillVersionDownloadReq	true	"skill版本"
+//	@Success		200		{object}	response.Response
+//	@Router			/agent/skill/custom/version/download [get]
+func DownloadCustomSkillVersion(ctx *gin.Context) {
+	var req request.CustomSkillVersionDownloadReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	fileName := fmt.Sprintf("%s-%s.zip", req.SkillId, req.Version)
+	resp, err := service.DownloadCustomSkillVersion(ctx, getUserID(ctx), getOrgID(ctx), req.SkillId, req.Version)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	gin_util.ResponseAttachment(ctx, fileName, resp)
+}
+
+// CreateCustomSkillConfig
+//
+//	@Tags			resource.skill
+//	@Summary		新增自定义skill配置
+//	@Description	新增自定义skill变量配置
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.SkillConfigReq	true	"skill配置"
+//	@Success		200		{object}	response.Response
+//	@Router			/agent/skill/custom/config [post]
+func CreateCustomSkillConfig(ctx *gin.Context) {
+	var req request.SkillConfigReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.CreateCustomSkillConfig(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// UpdateCustomSkillConfig
+//
+//	@Tags			resource.skill
+//	@Summary		编辑自定义skill配置
+//	@Description	编辑自定义skill变量配置
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.UpdateSkillConfigReq	true	"skill配置"
+//	@Success		200		{object}	response.Response
+//	@Router			/agent/skill/custom/config [put]
+func UpdateCustomSkillConfig(ctx *gin.Context) {
+	var req request.UpdateSkillConfigReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateCustomSkillConfig(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// DeleteCustomSkillConfig
+//
+//	@Tags			resource.skill
+//	@Summary		删除自定义skill配置
+//	@Description	删除自定义skill变量配置
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.DeleteSkillConfigReq	true	"skill配置"
+//	@Success		200		{object}	response.Response
+//	@Router			/agent/skill/custom/config [delete]
+func DeleteCustomSkillConfig(ctx *gin.Context) {
+	var req request.DeleteSkillConfigReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.DeleteCustomSkillConfig(ctx, getUserID(ctx), getOrgID(ctx), req)
 	gin_util.Response(ctx, nil, err)
 }
 
@@ -170,10 +175,124 @@ func CheckCustomSkill(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			name		query		string	false	"skill名称"
-//	@Param			skillType	query		string	false	"skill类型(builtin/custom)"
+//	@Param			skillType	query		string	false	"skill类型(builtin/custom/acquired)"
 //	@Success		200			{object}	response.Response{data=response.ListResult{list=[]response.SkillInfo}}
 //	@Router			/agent/skill/select [get]
 func GetSkillSelect(ctx *gin.Context) {
-	resp, err := service.GetSkillSelect(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("name"), ctx.Query("skillType"))
+	resp, err := service.GetSkillSelect(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("name"), ctx.Query("skillType"), false)
 	gin_util.Response(ctx, resp, err)
+}
+
+// GetBuiltinSkillList
+//
+//	@Tags			resource.skill
+//	@Summary		获取内置skill列表
+//	@Description	获取资源库内置skill列表
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	query		string	false	"skill名称"
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.BuiltinSkillInfo}}
+//	@Router			/agent/skill/builtin/list [get]
+func GetBuiltinSkillList(ctx *gin.Context) {
+	resp, err := service.GetBuiltinSkillList(ctx, ctx.Query("name"))
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetBuiltinSkillDetail
+//
+//	@Tags			resource.skill
+//	@Summary		获取内置skill详情
+//	@Description	获取资源库内置skill详情
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			skillId	query		string	true	"skill ID"
+//	@Success		200		{object}	response.Response{data=response.BuiltinSkillDetail}
+//	@Router			/agent/skill/builtin/detail [get]
+func GetBuiltinSkillDetail(ctx *gin.Context) {
+	resp, err := service.GetBuiltinSkillDetail(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("skillId"))
+	gin_util.Response(ctx, resp, err)
+}
+
+// DownloadBuiltinSkill
+//
+//	@Tags			resource.skill
+//	@Summary		下载内置skill
+//	@Description	下载内置skill ZIP包
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		application/octet-stream
+//	@Param			skillId	query		string	true	"skill ID"
+//	@Success		200		{object}	response.Response
+//	@Router			/builtin/skill/download [get]
+func DownloadBuiltinSkill(ctx *gin.Context) {
+	skillId := ctx.Query("skillId")
+	fileName := fmt.Sprintf("%s.zip", skillId)
+	resp, err := service.DownloadBuiltinSkill(ctx, skillId)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	gin_util.ResponseAttachment(ctx, fileName, resp)
+}
+
+// CreateBuiltinSkillConfig
+//
+//	@Tags			resource.skill
+//	@Summary		新增内置skill配置
+//	@Description	新增内置skill变量配置
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.SkillConfigReq	true	"skill配置"
+//	@Success		200		{object}	response.Response
+//	@Router			/agent/skill/builtin/config [post]
+func CreateBuiltinSkillConfig(ctx *gin.Context) {
+	var req request.SkillConfigReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.CreateBuiltinSkillConfig(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// UpdateBuiltinSkillConfig
+//
+//	@Tags			resource.skill
+//	@Summary		编辑内置skill配置
+//	@Description	编辑内置skill变量配置
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.UpdateSkillConfigReq	true	"skill配置"
+//	@Success		200		{object}	response.Response
+//	@Router			/agent/skill/builtin/config [put]
+func UpdateBuiltinSkillConfig(ctx *gin.Context) {
+	var req request.UpdateSkillConfigReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateBuiltinSkillConfig(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// DeleteBuiltinSkillConfig
+//
+//	@Tags			resource.skill
+//	@Summary		删除内置skill配置
+//	@Description	删除内置skill变量配置
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.DeleteSkillConfigReq	true	"skill配置"
+//	@Success		200		{object}	response.Response
+//	@Router			/agent/skill/builtin/config [delete]
+func DeleteBuiltinSkillConfig(ctx *gin.Context) {
+	var req request.DeleteSkillConfigReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.DeleteBuiltinSkillConfig(ctx, getUserID(ctx), getOrgID(ctx), req)
+	gin_util.Response(ctx, nil, err)
 }

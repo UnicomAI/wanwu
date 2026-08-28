@@ -11,8 +11,17 @@ func Register(apiV1 *gin.RouterGroup) {
 	// common
 	registerCommon(apiV1)
 
+	// notice 消息中心
+	registerNotice(apiV1)
+
 	// callback
 	registerV1Callback(apiV1)
+
+	// wga
+	registerWGA(apiV1)
+
+	// ontology
+	registerOntology(apiV1)
 
 	// model
 	registerModel(apiV1)
@@ -26,11 +35,11 @@ func Register(apiV1 *gin.RouterGroup) {
 	// tool
 	registerTool(apiV1)
 
-	// safety
-	registerSafety(apiV1)
-
 	// skill
 	registerAgentSkill(apiV1)
+
+	// safety
+	registerSafety(apiV1)
 
 	// rag
 	registerRag(apiV1)
@@ -40,9 +49,6 @@ func Register(apiV1 *gin.RouterGroup) {
 
 	// assistant
 	registerAssistant(apiV1)
-
-	// wga
-	registerWGA(apiV1)
 
 	// exploration
 	registerExploration(apiV1)
@@ -56,12 +62,9 @@ func Register(apiV1 *gin.RouterGroup) {
 	// api_key
 	registerAPIKey(apiV1)
 
-	// permission
-	registerPermission(apiV1)
+	// channel
+	registerChannel(apiV1)
 
-	// setting
-	registerSetting(apiV1)
-
-	// oauth
-	registerOauth(apiV1)
+	// admin_center
+	registerAdminCenter(apiV1)
 }

@@ -67,6 +67,24 @@ func WithOrgID(orgID string) SQLOption {
 	})
 }
 
+func WithUserIDs(userIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(userIDs) > 0 {
+			return db.Where("user_id IN ?", userIDs)
+		}
+		return db
+	})
+}
+
+func WithOrgIDs(orgIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgIDs) > 0 {
+			return db.Where("org_id IN ?", orgIDs)
+		}
+		return db
+	})
+}
+
 func WithUserID(userID string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if userID != "" {
@@ -116,7 +134,19 @@ func WithScopeType(scopeType uint32) SQLOption {
 
 func WithModelTypes(modelTypes []string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
-		return db.Where("model_type IN ?", modelTypes)
+		if len(modelTypes) > 0 {
+			return db.Where("model_type IN ?", modelTypes)
+		}
+		return db
+	})
+}
+
+func WithScopeTypes(scopeTypes []uint32) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(scopeTypes) > 0 {
+			return db.Where("scope_type IN ?", scopeTypes)
+		}
+		return db
 	})
 }
 

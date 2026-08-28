@@ -6,6 +6,7 @@ const (
 	DefaultPriority   = 1
 	AsyncTaskPriority = 2
 	DBPriority        = 3
+	TracePriority     = 4
 )
 
 type LoaderService interface {

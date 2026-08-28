@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
@@ -52,6 +53,14 @@ func ValidateDoc(ctx context.Context, doc *openapi3.T) error {
 		for method, operation := range pathItem.Operations() {
 			if operation.OperationID == "" {
 				return fmt.Errorf("schema path(%v) method(%v) operationId empty", path, method)
+			}
+		}
+	}
+	// validate server URLs for SSRF protection
+	for _, server := range doc.Servers {
+		if server.URL != "" {
+			if err := url_util.ValidateURL(server.URL); err != nil {
+				return fmt.Errorf("invalid server URL %q: %w", server.URL, err)
 			}
 		}
 	}

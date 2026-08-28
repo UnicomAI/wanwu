@@ -13,7 +13,6 @@ const (
 	AgentTypeSequential AgentType = "sequential" // 顺序执行
 	AgentTypeLoop       AgentType = "loop"       // 循环执行
 	AgentTypeParallel   AgentType = "parallel"   // 并行执行
-	AgentTypeDeep       AgentType = "deep"       // 深度思考
 	AgentTypeSupervisor AgentType = "supervisor" // 监督者模式
 )
 

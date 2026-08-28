@@ -9,6 +9,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/config"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"go.uber.org/zap"
 )
 
@@ -64,8 +65,8 @@ func LogRpcJson(ctx context.Context, business string, method string, params inte
 	}
 	var paramsStr = Convert2LogString(params)
 	var resultStr = Convert2LogString(result)
-	//traceId := GetTraceId(ctx)
-	rpcSLog.Infof("%s|%s|%d|%d|%+v|%+v", business, method, success, time.Now().UnixMilli()-starTimestamp, paramsStr, resultStr)
+	requestId := trace_util.GetTraceID(ctx)
+	rpcSLog.Infof("%s|%s|%s|%d|%d|%+v|%+v", requestId, business, method, success, time.Now().UnixMilli()-starTimestamp, paramsStr, resultStr)
 }
 
 func Convert2LogString(object interface{}) string {

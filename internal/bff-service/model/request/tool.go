@@ -11,7 +11,12 @@ type CustomToolCreate struct {
 	PrivacyPolicy string                 `json:"privacyPolicy"`                   // 隐私政策
 }
 
-func (req *CustomToolCreate) Check() error { return nil }
+func (req *CustomToolCreate) Check() error {
+	if err := util.ValidateName(&req.Name, util.SubjectCustomTool); err != nil {
+		return err
+	}
+	return util.ValidateDesc(&req.Description, util.SubjectCustomTool)
+}
 
 type CustomToolUpdateReq struct {
 	Avatar        Avatar                 `json:"avatar"`                           // 图标

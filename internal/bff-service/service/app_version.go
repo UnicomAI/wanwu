@@ -6,6 +6,7 @@ import (
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
+	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
 	rag_service "github.com/UnicomAI/wanwu/api/proto/rag-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	"github.com/UnicomAI/wanwu/pkg/constant"
@@ -67,6 +68,20 @@ func GetAppVersionList(ctx *gin.Context, userID, orgID, appType, appID string) (
 				CreatedAt: util.Time2Str(history.CreateAt),
 			})
 		}
+	case constant.AppTypeSkill:
+		resp, err := mcp.GetPublishCustomSkillHistoryList(ctx.Request.Context(), &mcp_service.GetPublishCustomSkillHistoryListReq{
+			SkillId: appID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, history := range resp.HistoryList {
+			list = append(list, response.AppVersionInfo{
+				Version:   history.Version,
+				Desc:      history.VersionDesc,
+				CreatedAt: util.Time2Str(history.CreatedAt),
+			})
+		}
 	default:
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFAppType)
 	}
@@ -80,7 +95,7 @@ func GetAppVersionList(ctx *gin.Context, userID, orgID, appType, appID string) (
 	}, nil
 }
 
-func UpdateAppVersion(ctx *gin.Context, userID, orgID, appType, appID, description, publishType string) error {
+func UpdateAppVersion(ctx *gin.Context, userID, orgID, appType, appID, description, publishType, extra string) error {
 	switch appType {
 	case constant.AppTypeWorkflow, constant.AppTypeChatflow:
 		if err := UpdateWorkflowVersionDesc(ctx, appID, description); err != nil {
@@ -90,6 +105,7 @@ func UpdateAppVersion(ctx *gin.Context, userID, orgID, appType, appID, descripti
 		_, err := assistant.AssistantSnapshotUpdate(ctx.Request.Context(), &assistant_service.AssistantSnapshotUpdateReq{
 			AssistantId: appID,
 			Desc:        description,
+			Extra:       extra,
 			Identity: &assistant_service.Identity{
 				UserId: userID,
 				OrgId:  orgID,
@@ -110,6 +126,14 @@ func UpdateAppVersion(ctx *gin.Context, userID, orgID, appType, appID, descripti
 		if err != nil {
 			return err
 		}
+	case constant.AppTypeSkill:
+		_, err := mcp.UpdatePublishCustomSkill(ctx.Request.Context(), &mcp_service.UpdatePublishCustomSkillReq{
+			SkillId:     appID,
+			VersionDesc: description,
+		})
+		if err != nil {
+			return err
+		}
 	default:
 		return grpc_util.ErrorStatus(errs.Code_BFFAppType)
 	}
@@ -120,7 +144,10 @@ func UpdateAppVersion(ctx *gin.Context, userID, orgID, appType, appID, descripti
 		UserId:      userID,
 		OrgId:       orgID,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func RollbackAppVersion(ctx *gin.Context, userID, orgID, appType, appID, version string) error {
@@ -144,8 +171,14 @@ func RollbackAppVersion(ctx *gin.Context, userID, orgID, appType, appID, version
 		_, err := rag.OverwriteRagDraft(ctx.Request.Context(), &rag_service.OverwriteRagDraftReq{
 			RagId:   appID,
 			Version: version,
+			Identity: &rag_service.Identity{
+				UserId: userID,
+				OrgId:  orgID,
+			},
 		})
 		return err
+	case constant.AppTypeSkill:
+		return rollbackCustomSkillWorkspace(ctx, appID, version)
 	default:
 		return grpc_util.ErrorStatus(errs.Code_BFFAppType)
 	}
@@ -175,6 +208,7 @@ func GetAppLatestVersion(ctx *gin.Context, userID, orgID, appType, appID string)
 		}
 		ret.Version = resp.Version
 		ret.Desc = resp.Desc
+		ret.Extra = resp.Extra
 
 	case constant.AppTypeRag:
 		resp, err := rag.GetPublishRagDesc(ctx.Request.Context(), &rag_service.GetPublishRagDescReq{
@@ -190,11 +224,20 @@ func GetAppLatestVersion(ctx *gin.Context, userID, orgID, appType, appID string)
 		ret.Version = resp.Version
 		ret.Desc = resp.Desc
 
+	case constant.AppTypeSkill:
+		resp, err := mcp.GetPublishCustomSkillByLatest(ctx.Request.Context(), &mcp_service.GetPublishCustomSkillByLatestReq{SkillId: appID})
+		if err != nil {
+			return nil, err
+		}
+		ret.Version = resp.GetVersion()
+		ret.Desc = resp.GetVersionDesc()
+		ret.CreatedAt = util.Time2Str(resp.GetCreatedAt())
+
 	default:
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFAppType)
 	}
 
-	appInfo, _ := app.GetAppInfo(ctx, &app_service.GetAppInfoReq{
+	appInfo, _ := app.GetAppInfo(ctx.Request.Context(), &app_service.GetAppInfoReq{
 		AppId:   appID,
 		AppType: appType,
 	}) // 可能没有发布过，不返回错误

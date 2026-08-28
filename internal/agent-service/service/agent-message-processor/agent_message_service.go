@@ -13,7 +13,7 @@ import (
 
 // AgentMessage 智能体消息处理
 func AgentMessage(ctx *gin.Context, iter *adk.AsyncIterator[*adk.AgentEvent], req *request.AgentChatContext) (*response.AgentChatRespContext, error) {
-	respContext := response.NewAgentChatRespContext(false, req.AgentChatReq.AgentBaseParams.Name, req.Order)
+	respContext := response.NewAgentChatRespContext(false, req.Order, req.AgentChatReq)
 	//1.读取enio结果
 	rawCh := safe_go_util.SafeChannelReceiveByIter(ctx, EnioAgentEventIteratorReader(iter, respContext, req))
 	//2.流式返回结果

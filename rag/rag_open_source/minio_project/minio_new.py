@@ -15,7 +15,7 @@ MINIO_ADDRESS = os.getenv("MINIO_ADDRESS")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
 if MINIO_ADDRESS is None or MINIO_ACCESS_KEY is None or MINIO_SECRET_KEY is None:
-    MINIO_ADDRESS = "172.18.0.1:9000"
+    MINIO_ADDRESS = "minio-wanwu:9000"
     MINIO_ACCESS_KEY = "root"
     MINIO_SECRET_KEY = "A2pp123456"
 # ======= 从环境变量中获取mimio配置信息 =======
@@ -27,12 +27,9 @@ minio_client = Minio(
     secure=False
 )
 default_bucket_name = "rag-public"
-REPLACE_MINIO_DOWNLOAD_URL = os.getenv("PUBLIC_MINIO_DOWNLOAD_URL")
-if REPLACE_MINIO_DOWNLOAD_URL is None:
-    response = requests.get('http://bff-service:6668/v1/api/deploy/info')
-    response_data = response.json()
-    REPLACE_MINIO_DOWNLOAD_URL = response_data['data']['webBaseUrl']
-
+REPLACE_MINIO_DOWNLOAD_URL = os.getenv("REPLACE_MINIO_DOWNLOAD_URL")
+if not REPLACE_MINIO_DOWNLOAD_URL:
+    raise ValueError("REPLACE_MINIO_DOWNLOAD_URL 环境变量未设置或为空，请检查部署配置")
 
 def upload_file_to_minio(file_stream, original_filename, bucket_name=default_bucket_name, overwrite_file_name=None):
     try:

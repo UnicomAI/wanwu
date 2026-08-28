@@ -17,6 +17,7 @@ import time
 import fitz
 from pathlib import Path
 from utils import minio_utils
+from settings import MINIO_ADDRESS, REPLACE_MINIO_DOWNLOAD_URL
 
 logger = logging.getLogger(__name__)
 
@@ -54,25 +55,46 @@ def get_page_data(page_num, add_file_path, ocr_model_id):
         new_pdf.save(output_pdf_path)
         new_pdf.close()
 
-        files = {"file": (page_pdf_path, open(output_pdf_path, 'rb'))}
-
-        data = {
-            "file_name": page_pdf_path,
-            "extract_image": 1,
-            "extract_image_content": 1
-        }
-
         if ocr_model_id == "":
             logger.error("ocr_model_id为空")
+            if os.path.exists(output_pdf_path):
+                os.remove(output_pdf_path)
             return None, page_num
+
+        # ocr_model_id 有效后再上传 MinIO
+        upload_result = minio_utils.upload_local_file(output_pdf_path)
+        if upload_result['code'] != 0:
+            logger.error(f"页 {page_num} 上传 MinIO 失败")
+            if os.path.exists(output_pdf_path):
+                os.remove(output_pdf_path)
+            return None, page_num
+
+        minio_url = upload_result['download_link']
+        # 与 ASR 保持一致：将公开代理 URL 替换为内网 MinIO 地址
+        if not minio_url.startswith(f"http://{MINIO_ADDRESS}") and REPLACE_MINIO_DOWNLOAD_URL in minio_url:
+            suffix = minio_url.replace(REPLACE_MINIO_DOWNLOAD_URL, "").lstrip("/")
+            minio_url = f"http://{MINIO_ADDRESS}/{suffix}"
+        object_name = minio_url.split('/')[-1]
 
         model_config = get_model_configure(ocr_model_id)
         wanwu_ocr_url = ""
         api_key = ""
+        model_name = ""
         if isinstance(model_config, OcrModelConfig):
-            wanwu_ocr_url = model_config.endpoint_url + "/pdf-parser"
+            wanwu_ocr_url = model_config.endpoint_url + "/ocr"
             api_key = model_config.api_key
-        headers = {"Authorization": f"Bearer {api_key}"}
+            model_name = getattr(model_config, "model_name", "") or ""
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+
+        data = {
+            "extract_image": 1,
+            "extract_image_content": 1,
+            "url": minio_url,
+            "fileName": full_file_name,
+        }
 
         rate_limit_backoff = [10, 20, 40, 60]  # 限流退避
         other_error_max_retries = 2  # 其他错误最多重试2次
@@ -82,18 +104,17 @@ def get_page_data(page_num, add_file_path, ocr_model_id):
         while attempt < max(len(rate_limit_backoff), other_error_max_retries) + 1:
             try:
 
-                r = requests.post(wanwu_ocr_url, files=files, headers=headers, data=data, timeout=60)
+                r = requests.post(wanwu_ocr_url, headers=headers, json=data, timeout=60)
                 logger.info("====>wanwu_ocr_url=%s,data=%s" % (wanwu_ocr_url, json.dumps(data, ensure_ascii=False)))
                 ret_json = r.json()
                 # logger.info(f"model_parser_utils.get_page_data result: {ret_json}")
                 r.raise_for_status()  # 触发HTTP错误状态码的异常
-                if ret_json.get("code") == "200":
-                    text = ret_json["content"]
-                    # logger.info(f"get_paged_data page:%s, result:%s" % (page_num, text))
-                    version = ret_json["version"]
-                    if version != "private":
-                        image_url_prefix = ret_json["prefix_image_url"]
-                        text, replace_info = minio_utils.replace_minio_url(text, version, image_url_prefix)
+                if ret_json.get("code") == 0:
+                    data_obj = ret_json.get("data", {}) or {}
+                    text = data_obj.get("fullContent", "")
+                    image_url_prefix = ret_json.get("prefixImageUrl", "")
+                    if image_url_prefix:
+                        text, replace_info = minio_utils.replace_minio_url(text, image_url_prefix)
                         logger.info(f"get_page_data replace url info: {replace_info}")
                     return text, page_num
 
@@ -157,7 +178,7 @@ def get_page_data(page_num, add_file_path, ocr_model_id):
                 logger.error(f"页 {page_num} 未预期错误 (attempt {attempt + 1}): {error_details}")
                 break
             finally:
-                # 清理临时文件
+                # 只清理本地临时文件，MinIO 文件保留供重试或运维独立清理
                 if os.path.exists(output_pdf_path):
                     os.remove(output_pdf_path)
                 time.sleep(0.1)
@@ -268,4 +289,71 @@ def model_parser_file(add_file_path, ocr_model_id):
     return output_file_path
 
 
+def model_parser_image(image_file_path, ocr_model_id):
+    """
+    调用文档解析模型处理图片文件
+    :param image_file_path: 图片文件路径（.jpg/.jpeg/.png）
+    :param ocr_model_id: 文档解析模型ID
+    :return: 解析后的文本描述（Markdown 格式）
+
+    说明：改造前图片在 "ocr" 模式下由 ocr_utils 提取文字。改造后 "ocr" 被删除，
+          图片需改由 /pdf-parser（文档解析模型）端点处理，否则 model 模式下图片无文字提取能力。
+          此函数上传图片到 MinIO，通过 URL 请求调用 /pdf-parser 端点，解析后清理 MinIO 临时文件。
+    """
+    if ocr_model_id == "":
+        logger.error("ocr_model_id为空")
+        return ""
+
+    model_config = get_model_configure(ocr_model_id)
+    wanwu_ocr_url = ""
+    api_key = ""
+    if isinstance(model_config, OcrModelConfig):
+        wanwu_ocr_url = model_config.endpoint_url + "/ocr"
+        api_key = model_config.api_key
+
+    file_name = os.path.split(image_file_path)[-1]
+
+    # 上传本地图片到 MinIO
+    upload_result = minio_utils.upload_local_file(image_file_path)
+    if upload_result['code'] != 0:
+        logger.error(f"图片 {file_name} 上传 MinIO 失败")
+        return ""
+
+    minio_url = upload_result['download_link']
+    # 与 ASR 保持一致：将公开代理 URL 替换为内网 MinIO 地址
+    if not minio_url.startswith(f"http://{MINIO_ADDRESS}") and REPLACE_MINIO_DOWNLOAD_URL in minio_url:
+        suffix = minio_url.replace(REPLACE_MINIO_DOWNLOAD_URL, "").lstrip("/")
+        minio_url = f"http://{MINIO_ADDRESS}/{suffix}"
+    object_name = minio_url.split('/')[-1]
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "extract_image": 1,
+        "extract_image_content": 1,
+        "url": minio_url,
+        "fileName": file_name,
+    }
+
+    try:
+        r = requests.post(wanwu_ocr_url, headers=headers, json=data, timeout=60)
+        r.raise_for_status()
+        ret_json = r.json()
+        if ret_json.get("code") == 0:
+            data_obj = ret_json.get("data", {}) or {}
+            text = data_obj.get("fullContent", "")
+            image_url_prefix = ret_json.get("prefixImageUrl", "")
+            if image_url_prefix:
+                text, replace_info = minio_utils.replace_minio_url(text, image_url_prefix)
+            return text
+        else:
+            logger.error(f"图片模型解析失败：{ret_json.get('message', '未知错误')}")
+    except Exception as e:
+        logger.error(f"图片模型解析异常：{e}")
+    finally:
+        # MinIO 文件保留供运维独立清理
+        pass
+    return ""
 

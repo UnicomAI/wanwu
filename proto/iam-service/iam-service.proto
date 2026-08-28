@@ -20,9 +20,9 @@ service IAMService {
   // 获取用户
   rpc GetUserInfo(GetUserInfoReq) returns (UserInfo) {}
   // 创建用户
-  rpc CreateUser(CreateUserReq) returns (IDName) {}
+  rpc CreateUser(CreateUserReq) returns (IDNameWithAvatar) {}
   // 批量导入用户
-  rpc CreateUsers(CreateUsersReq) returns (google.protobuf.Empty) {}
+  rpc CreateUsers(CreateUsersReq) returns (CreateUsersResp) {}
   // 编辑用户
   rpc UpdateUser(UpdateUserReq) returns (google.protobuf.Empty) {}
   // 删除用户
@@ -39,23 +39,39 @@ service IAMService {
   rpc ChangeUserLanguage(ChangeUserLanguageReq) returns (google.protobuf.Empty){}
   // 上传用户头像
   rpc UpdateUserAvatar(UpdateUserAvatarReq) returns (google.protobuf.Empty){}
+  // 查询用户在系统中是否存在任一组织的管理员角色
+  rpc IsUserOrgAdmin(IsUserOrgAdminReq) returns (IsUserOrgAdminResp){}
+  // 查询用户对指定组织是否拥有管理员权限（含祖先组织继承）
+  rpc IsAdminInOrgs(IsAdminInOrgsReq) returns (IsAdminInOrgsResp){}
 
   // --- org ---
 
   // 获取组织列表（用于下拉选择）
-  rpc GetOrgSelect(GetOrgSelectReq) returns (Select) {}
+  rpc GetOrgSelect(GetOrgSelectReq) returns (OrgSelectResp) {}
   // 获取组织列表
   rpc GetOrgList(GetOrgListReq) returns (GetOrgListResp) {}
   // 获取组织
   rpc GetOrgInfo(GetOrgInfoReq) returns (OrgInfo) {}
   // 通过orgIds获取组织信息
   rpc GetOrgByOrgIDs(GetOrgByOrgIDsReq) returns (GetOrgByOrgIDsResp) {}
+  // 通过多个orgId获取用户列表（去重、不过滤禁用状态）
+  rpc GetUsersByOrgIDs(GetUsersByOrgIDsReq) returns (GetUsersByOrgIDsResp) {}
+  // 校验用户-组织二元组有效性（去重 + 过滤禁用账号/禁用成员 + 数量上限）
+  rpc ValidateUserOrgPairs(ValidateUserOrgPairsReq) returns (ValidateUserOrgPairsResp) {}
+  // 查询单用户在指定组织的成员关系（加入时间 + 状态）
+  rpc GetUserOrgMembership(GetUserOrgMembershipReq) returns (GetUserOrgMembershipResp) {}
   // 获取子组织信息
   rpc GetOrgAndSubOrgSelectByUser(GetOrgAndSubOrgSelectByUserReq) returns (GetOrgAndSubOrgSelectByUserResp) {}
   // 获取组织树
   rpc GetFirstClassOrgAndSubs(GetFirstClassOrgAndSubsReq) returns (GetFirstClassOrgAndSubsResp) {}
+  // 获取管理员组织及下级组织列表（用于下拉选择）
+  rpc GetAdminOrgSelect(GetAdminOrgSelectReq) returns (OrgSelectResp) {}
+  // 获取管理员组织及下级组织树
+  rpc GetAdminOrgSubTree(GetAdminOrgSubTreeReq) returns (AdminOrgSubTreeResp) {}
+  // 获取用户有权限的组织ID列表（登录用户的管理员组织及其所有下级组织）
+  rpc GetAdminOrgIDs(GetAdminOrgIDsReq) returns (GetAdminOrgIDsResp) {}
   // 创建组织
-  rpc CreateOrg(CreateOrgReq) returns (IDName) {}
+  rpc CreateOrg(CreateOrgReq) returns (IDNameWithAvatar) {}
   // 编辑组织
   rpc UpdateOrg(UpdateOrgReq) returns (google.protobuf.Empty) {}
   // 删除组织
@@ -67,11 +83,19 @@ service IAMService {
   rpc AddOrgUser(AddOrgUserReq) returns (google.protobuf.Empty) {}
   // 移除组织用户
   rpc RemoveOrgUser(RemoveOrgUserReq) returns (google.protobuf.Empty) {}
+  // 批量移除组织用户
+  rpc BatchRemoveOrgUser(BatchRemoveOrgUserReq) returns (google.protobuf.Empty) {}
+  // 批量删除用户（从系统删除）
+  rpc BatchDeleteUser(BatchDeleteUserReq) returns (google.protobuf.Empty) {}
 
   // --- role ---
 
   // 获取角色列表（用于下拉选择）
   rpc GetRoleSelect(GetRoleSelectReq) returns (GetRoleSelectResp) {}
+  // 获取全局角色列表（用于下拉选择）
+  rpc GetGlobalRoleSelect(GetGlobalRoleSelectReq) returns (GetGlobalRoleSelectResp) {}
+  // 获取全局角色列表
+  rpc GetGlobalRoleList(GetGlobalRoleListReq) returns (GetGlobalRoleListResp) {}
   // 获取角色列表
   rpc GetRoleList(GetRoleListReq) returns (GetRoleListResp) {}
   // 获取角色
@@ -84,6 +108,10 @@ service IAMService {
   rpc DeleteRole(DeleteRoleReq) returns (google.protobuf.Empty) {}
   // 修改角色状态
   rpc ChangeRoleStatus(ChangeRoleStatusReq) returns (google.protobuf.Empty) {}
+  // 获取角色关联用户列表
+  rpc GetRoleUsers(GetRoleUsersReq) returns (GetRoleUsersResp) {}
+  // 移除角色关联用户
+  rpc RemoveRoleUser(RemoveRoleUserReq) returns (google.protobuf.Empty) {}
 
   // --- login ---
   
@@ -131,14 +159,27 @@ message Perm {
   string perm = 1;
 }
 
-message IDName {
+message IDNameWithAvatar {
   string id = 1;
   string name = 2;
   err_code.Status nameStatus = 3;
+  string avatarPath = 4;
+}
+
+message IDFullName {
+  string id = 1;
+  string name = 2;
+  string fullName = 3;
+  string avatarPath = 4;
+  err_code.Status nameStatus = 5;
 }
 
 message Select {
-  repeated IDName selects = 1;
+  repeated IDNameWithAvatar selects = 1;
+}
+
+message OrgSelectResp {
+  repeated IDNameWithAvatar selects = 1;
 }
 
 // --- user ---
@@ -154,14 +195,14 @@ message UserInfo {
   string company = 8;
   string remark = 9;
   int64 createdAt = 10;
-  IDName creator = 11;
+  IDNameWithAvatar creator = 11;
   repeated UserOrg orgs = 12;
   string language = 13;
   string avatarPath = 14;
 }
 
 message UserOrg {
-  IDName org = 1;
+  IDNameWithAvatar org = 1;
   repeated RoleIDName roles = 2;
 }
 
@@ -179,6 +220,8 @@ message GetUserListReq {
   string userName = 2;
   int32 pageNo = 3;
   int32 pageSize = 4;
+  string email = 5;
+  repeated string roleIds = 6;
 }
 
 message GetUserListResp {
@@ -204,6 +247,8 @@ message CreateUserReq {
   string remark = 8;
   string password = 9;
   repeated string roleIds = 10;
+  string email = 11;
+  string avatarPath = 12;
 }
 
 message CreateUsersInfo {
@@ -213,6 +258,7 @@ message CreateUsersInfo {
   string remark = 4;
   string password = 5;
   string roleName = 6;
+  string email = 7;
 }
 
 message CreateUsersReq {
@@ -221,16 +267,26 @@ message CreateUsersReq {
   repeated CreateUsersInfo users = 3;
 }
 
+message CreateUsersResp {
+  int32 total = 1;                       // 总数
+  int32 success = 2;                     // 成功数
+  int32 failed = 3;                      // 失败数
+  repeated CreateUsersError errors = 4;  // 失败详情
+}
+
+message CreateUsersError {
+  int32 index = 1;   // 数据索引（在请求users数组中的索引）
+  string reason = 2; // 失败原因
+}
+
 message UpdateUserReq {
   string userId = 1;
   string orgId = 2;
   string userName = 3;
-  string nickName = 4;
-  string gender = 5;
-  string phone = 6;
-  string company = 7;
-  string remark = 8;
-  repeated string roleIds = 9;
+  string phone = 4;
+  string email = 5;
+  string remark = 6;
+  repeated string roleIds = 7;
 }
 
 message DeleteUserReq {
@@ -260,12 +316,13 @@ message GetUserPermissionReq {
 }
 
 message UserPermission {
-  bool isAdmin = 1;
-  bool isSystem = 2;
-  IDName org = 3;
-  repeated RoleIDName roles = 4;
-  repeated Perm perms = 5;
-  int64 lastUpdatePasswordAt = 6;
+  string userId = 1;
+  bool isAdmin = 2;
+  bool isSystem = 3;
+  IDNameWithAvatar org = 4;
+  repeated RoleIDName roles = 5;
+  repeated Perm perms = 6;
+  int64 lastUpdatePasswordAt = 7;
 }
 
 message ChangeUserLanguageReq{
@@ -278,6 +335,23 @@ message  UpdateUserAvatarReq{
   string avatarPath = 2;
 }
 
+message IsUserOrgAdminReq {
+  string userId = 1;
+}
+
+message IsUserOrgAdminResp {
+  bool isOrgAdmin = 1; // 用户在系统中是否存在任一组织的管理员角色
+}
+
+message IsAdminInOrgsReq {
+  string userId = 1;
+  repeated string orgIds = 3; // 组织ID列表，校验用户对这些组织是否都拥有管理员权限（含祖先组织继承）
+}
+
+message IsAdminInOrgsResp {
+  bool isAdmin = 1; // 用户对指定组织是否拥有管理员权限（含祖先组织继承）
+}
+
 // --- org ---
 
 message OrgInfo {
@@ -286,7 +360,10 @@ message OrgInfo {
   string remark = 3;
   bool status = 4;
   int64 createdAt = 5;
-  IDName creator = 6;
+  IDNameWithAvatar creator = 6;
+  int64 userCount = 7;
+  string avatarPath = 8;
+  repeated string admins = 9;
 }
 
 message GetOrgByOrgIDsReq {
@@ -294,7 +371,44 @@ message GetOrgByOrgIDsReq {
 }
 
 message GetOrgByOrgIDsResp {
-  repeated IDName orgs = 1;
+  repeated IDFullName orgs = 1;
+}
+
+message GetUsersByOrgIDsReq {
+  repeated string orgIds = 1;
+  bool isAllOrg = 2;     // 是否查询全部组织（用户有权限的组织）
+  string userId = 3;     // 用户ID，isAllOrg=true 时必填
+}
+
+message GetUsersByOrgIDsResp {
+  repeated IDNameWithAvatar users = 1; // 去重后的用户列表
+}
+
+message UserOrgPair {
+  string userId = 1;
+  string orgId = 2;
+}
+
+message ValidateUserOrgPairsReq {
+  repeated UserOrgPair pairs = 1;
+  int32 limit = 2; // 0=不限；超限时返回 exceeded=true 且 pairs 为空
+}
+
+message ValidateUserOrgPairsResp {
+  repeated UserOrgPair pairs = 1; // 去重、过滤后的合法二元组
+  bool exceeded = 2;              // 超过 limit
+  int32 filteredCount = 3;        // 被过滤掉的数量（打点用）
+}
+
+message GetUserOrgMembershipReq {
+  string userId = 1;
+  string orgId = 2;
+}
+
+message GetUserOrgMembershipResp {
+  bool exists = 1;   // org_users 有行
+  int64 joinedAt = 2; // org_users.created_at（毫秒）
+  bool active = 3;    // org_users.status != 'disable' 且 users.status = true
 }
 
 message GetOrgAndSubOrgSelectByUserReq {
@@ -303,7 +417,7 @@ message GetOrgAndSubOrgSelectByUserReq {
 }
 
 message GetOrgAndSubOrgSelectByUserResp {
-  repeated IDName orgs = 1;
+  repeated IDNameWithAvatar orgs = 1;
 }
 
 message GetFirstClassOrgAndSubsReq {
@@ -312,7 +426,35 @@ message GetFirstClassOrgAndSubsReq {
 }
 
 message GetFirstClassOrgAndSubsResp {
- repeated IDName orgs = 1;
+ repeated IDNameWithAvatar orgs = 1;
+}
+
+message GetAdminOrgSubTreeReq {
+  string userId = 1;
+}
+
+message GetAdminOrgSelectReq {
+  string userId = 1;
+}
+
+message GetAdminOrgIDsReq {
+  string userId = 1;
+}
+
+message GetAdminOrgIDsResp {
+  repeated string orgIds = 1; // 用户有权限的组织ID列表
+}
+
+message AdminOrgTreeNode {
+  string orgId = 1;
+  string name = 2;
+  string avatarPath = 3;
+  repeated AdminOrgTreeNode children = 4;
+  bool hasPerm = 5; // 当前用户是否对该组织有管理权限
+}
+
+message AdminOrgSubTreeResp {
+  repeated AdminOrgTreeNode orgs = 1;
 }
 
 message GetOrgSelectReq {
@@ -343,13 +485,14 @@ message CreateOrgReq {
   string creatorId = 2;
   string name = 3;
   string remark = 4;
+  string avatarPath = 5;
 }
 
 message UpdateOrgReq {
-  string parentId = 1;
-  string orgId = 2;
-  string name = 3;
-  string remark = 4;
+  string orgId = 1;
+  string name = 2;
+  string remark = 3;
+  string avatarPath = 4;
 }
 
 message DeleteOrgReq {
@@ -376,13 +519,24 @@ message RemoveOrgUserReq {
   string userId = 3;
 }
 
+message BatchRemoveOrgUserReq {
+  string orgId = 1;
+  repeated string userIds = 2;
+}
+
+message BatchDeleteUserReq {
+  repeated string userIds = 1;
+}
+
 // --- role ---
 
 message RoleIDName {
   string id = 1;
   string name = 2;
-  bool isAdmin = 3;
-  bool isSystem = 4;
+  string avatarPath = 3;
+  bool isAdmin = 4;
+  bool isSystem = 5;
+  bool isGlobal = 6;
 }
 
 message RoleInfo {
@@ -393,8 +547,12 @@ message RoleInfo {
   bool isSystem = 5;
   bool status = 6;
   int64 createdAt = 7;
-  IDName creator = 8;
+  IDNameWithAvatar creator = 8;
   repeated Perm perms = 9;
+  bool isGlobal = 10;
+  string orgName = 11;
+  int32 userCount = 12;
+  string avatarPath = 13;
 }
 
 message GetRoleSelectReq {
@@ -430,6 +588,8 @@ message CreateRoleReq {
   string name = 3;
   string remark = 4;
   repeated Perm perms = 5;
+  bool isGlobal = 6;
+  string avatarPath = 7;
 }
 
 message UpdateRoleReq {
@@ -438,6 +598,7 @@ message UpdateRoleReq {
   string name = 3;
   string remark = 4;
   repeated Perm perms = 5;
+  string avatarPath = 6;
 }
 
 message DeleteRoleReq {
@@ -449,6 +610,60 @@ message ChangeRoleStatusReq {
   string orgId = 1;
   string roleId = 2;
   bool status = 3;
+}
+
+// --- global role ---
+
+message GetGlobalRoleSelectReq {}
+
+message GetGlobalRoleSelectResp {
+  repeated RoleIDName roles = 1;
+}
+
+message GetGlobalRoleListReq {
+  string name = 1;
+  int32 pageNo = 2;
+  int32 pageSize = 3;
+  string orgId = 4;
+}
+
+message GetGlobalRoleListResp {
+  repeated RoleInfo roles = 1;
+  int64 total = 2;
+  int32 pageNo = 3;
+  int32 pageSize = 4;
+}
+
+// --- role users ---
+
+message GetRoleUsersReq {
+  string roleId = 1;
+  string orgId = 2;
+  string name = 3;
+  int32 pageNo = 4;
+  int32 pageSize = 5;
+}
+
+message RoleUser {
+  string userId = 1;
+  string userName = 2;
+  string phone = 3;
+  string email = 6;
+  repeated IDNameWithAvatar orgs = 7;
+  string avatarPath = 8; // 用户头像
+}
+
+message GetRoleUsersResp {
+  repeated RoleUser users = 1;
+  int64 total = 2;
+  int32 pageNo = 3;
+  int32 pageSize = 4;
+}
+
+message RemoveRoleUserReq {
+  string roleId = 1;
+  string userId = 2;
+  string orgId = 3;
 }
 
 // --- login ---

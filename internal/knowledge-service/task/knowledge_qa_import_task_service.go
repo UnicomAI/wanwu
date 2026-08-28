@@ -175,7 +175,10 @@ func doKnowledgeQAPairImport(ctx context.Context, knowledgeBase *model.Knowledge
 			status = model.KnowledgeQAPairImportFail
 			errMsg = err.Error()
 		}
-		if successCount == 0 {
+		if lineCount == 0 {
+			status = model.KnowledgeQAPairImportFail
+			errMsg = "文件为空，无数据导入"
+		} else if successCount == 0 {
 			status = model.KnowledgeQAPairImportFail
 			errMsg = "文件所有行全部处理失败"
 		}
@@ -231,6 +234,7 @@ func processCsvFileBatchLine(ctx context.Context, docInfo *model.DocInfo,
 			return 0, 0, nil
 		}
 		log.Errorf("read header line err: %v", err)
+		return 0, 0, err
 	}
 
 	var lineCount int64
@@ -245,7 +249,7 @@ func processCsvFileBatchLine(ctx context.Context, docInfo *model.DocInfo,
 		if err != nil {
 			// 可以选择记录错误并继续，或者直接返回错误
 			log.Errorf("解析CSV行时出错: %v, lineCount %d", err, lineCount)
-			continue
+			break
 		}
 		lineCount++
 		if lineCount > lineLimit {
@@ -289,11 +293,16 @@ func buildQAPairBatchProcessor(knowledgeBase *model.KnowledgeBase, importTask *m
 		var chunks []*service.RagQAPairItem
 		var QAPairs []*model.KnowledgeQAPair
 		var successCount int64 = 0
+		questionMd5Map := map[string]struct{}{}
 		for _, lineData := range batchData {
 			qaPairId := util.NewID()
 			question := strings.Trim(lineData[0], " ")
 			answer := strings.Trim(lineData[1], " ")
 			questionMD5 := util.MD5([]byte(question))
+			if _, ok := questionMd5Map[questionMD5]; ok {
+				continue
+			}
+			questionMd5Map[questionMD5] = struct{}{}
 			err := orm.CheckKnowledgeQAPairQuestion(ctx, "", knowledgeBase.KnowledgeId, questionMD5)
 			if err != nil {
 				continue

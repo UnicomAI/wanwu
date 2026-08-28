@@ -27,17 +27,14 @@ if ES_HOSTS is None or ES_USER is None or ES_PASSWORD is None:
 if ES_VERIFY_CERTS is None:
     ES_VERIFY_CERTS = config.getboolean('ES', 'Verify_certs')
 DELETE_BACTH_SIZE = config.getint('ES', 'DELETE_BACTH_SIZE')
-GET_KB_ID_URL = os.getenv("GET_KB_ID_URL")
-if GET_KB_ID_URL is None:
-    GET_KB_ID_URL = config.get('ES', 'GET_KB_ID_URL')
 
 # minio
 MINIO_ADDRESS = os.getenv("MINIO_ADDRESS")
 if MINIO_ADDRESS is None:
     MINIO_ADDRESS = config.getstr('MINIO', 'MINIO_ADDRESS')
 REPLACE_MINIO_DOWNLOAD_URL = os.getenv("REPLACE_MINIO_DOWNLOAD_URL")
-if REPLACE_MINIO_DOWNLOAD_URL is None:
-    REPLACE_MINIO_DOWNLOAD_URL = config.getstr('MINIO', 'REPLACE_MINIO_DOWNLOAD_URL')
+if not REPLACE_MINIO_DOWNLOAD_URL:
+    raise ValueError("REPLACE_MINIO_DOWNLOAD_URL 环境变量未设置或为空，请检查部署配置")
 
 #model
 MODEL_PROVIDER_URL = os.getenv("MODEL_PROVIDER_URL")

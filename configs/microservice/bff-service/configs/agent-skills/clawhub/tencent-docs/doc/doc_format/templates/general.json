@@ -1,0 +1,79 @@
+{
+  "schema": {
+    "structure": "doc",
+    "children": [
+      {
+        "structure": "Title",
+        "description": "文档主标题，概括全文核心内容的短语或短句，通常5-20字，不含完整句子结构。",
+        "required": false,
+        "multiple": false
+      },
+      {
+        "structure": "Subtitle",
+        "description": "副标题，补充说明主标题的短语或短句，通常5-20字，不含完整句子结构。",
+        "required": false,
+        "multiple": false
+      },
+      {
+        "structure": "Heading1",
+        "description": "一级标题，概括章节主题的短语，通常3-15字，不含完整句子结构。",
+        "required": false,
+        "multiple": true
+      },
+      {
+        "structure": "Heading2",
+        "description": "二级标题，概括小节主题的短语，通常3-15字，不含完整句子结构。",
+        "required": false,
+        "multiple": true
+      },
+      {
+        "structure": "Heading3",
+        "description": "三级标题，概括段落主题的短语，通常3-15字，不含完整句子结构。",
+        "required": false,
+        "multiple": true
+      },
+      {
+        "structure": "Heading4",
+        "description": "四级标题，概括细分内容的短语，通常3-15字，不含完整句子结构。",
+        "required": false,
+        "multiple": true
+      },
+      {
+        "structure": "Heading5",
+        "description": "五级标题，概括细分内容的短语，通常3-15字，不含完整句子结构。",
+        "required": false,
+        "multiple": true
+      },
+      {
+        "structure": "Heading6",
+        "description": "六级标题，概括细分内容的短语，通常3-15字，不含完整句子结构。",
+        "required": false,
+        "multiple": true
+      },
+      {
+        "structure": "Heading7",
+        "description": "七级标题，概括细分内容的短语，通常3-15字，不含完整句子结构。",
+        "required": false,
+        "multiple": true
+      },
+      {
+        "structure": "Heading8",
+        "description": "八级标题，概括细分内容的短语，通常3-15字，不含完整句子结构。",
+        "required": false,
+        "multiple": true
+      },
+      {
+        "structure": "Heading9",
+        "description": "九级标题，概括细分内容的短语，通常3-15字，不含完整句子结构。",
+        "required": false,
+        "multiple": true
+      },
+      {
+        "structure": "Text",
+        "description": "正文内容，包含完整句子的叙述性段落，通常超过15字，由一个或多个完整句子组成。",
+        "required": false,
+        "multiple": true
+      }
+    ]
+  }
+}

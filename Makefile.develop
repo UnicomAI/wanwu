@@ -222,6 +222,19 @@ stop-workflow:
 		--env-file .env \
 		down workflow
 
+# --- channel-service ---
+run-channel:
+	docker compose -f docker-compose-develop.yaml \
+		--env-file .env.image.${WANWU_ARCH} \
+		--env-file .env \
+		up -d channel-service
+
+stop-channel:
+	docker compose -f docker-compose-develop.yaml \
+		--env-file .env.image.${WANWU_ARCH} \
+		--env-file .env \
+		down channel-service
+
 # --- rag-wanwu ---
 run-rag-wanwu:
 	docker compose -f docker-compose-develop.yaml \

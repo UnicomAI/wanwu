@@ -9,6 +9,8 @@ option go_package = "gitlab.ai-yuanjing.cn/ai-platform-private/backend-used-bff/
 service KnowledgeBaseDocService {
   // 获取文档列表
   rpc GetDocList(GetDocListReq) returns (GetDocListResp) {}
+  // 根据文档id列表获取文档列表
+  rpc GetDocListByDocIdList(GetDocListByDocIdListReq) returns (GetDocListResp) {}
   // 获取文档详情
   rpc GetDocDetail(GetDocDetailReq) returns (DocInfo) {}
   // 上传文档
@@ -23,8 +25,6 @@ service KnowledgeBaseDocService {
   rpc UpdateDocStatus(UpdateDocStatusReq) returns (google.protobuf.Empty) {}
   // 更新文档元数据
   rpc UpdateDocMetaData(UpdateDocMetaDataReq) returns (google.protobuf.Empty) {}
-  // 批量更新文档元数据
-  rpc BatchUpdateDocMetaData(BatchUpdateDocMetaDataReq) returns (google.protobuf.Empty) {}
   // 初始化文档状态
   rpc InitDocStatus(InitDocStatusReq) returns (google.protobuf.Empty) {}
   // 删除文档
@@ -46,7 +46,7 @@ service KnowledgeBaseDocService {
   // 删除文档分片
   rpc DeleteDocSegment(DeleteDocSegmentReq) returns (google.protobuf.Empty) {}
   // 更新文档分片
-  rpc UpdateDocSegment(UpdateDocSegmentReq) returns (google.protobuf.Empty) {}
+  rpc UpdateDocSegment(UpdateDocSegmentReq) returns (UpdateDocSegmentResp) {}
   // 获取文档子分段列表
   rpc GetDocChildSegmentList(GetDocChildSegmentListReq) returns (GetDocChildSegmentListResp){}
   // 新增文档子分片
@@ -68,9 +68,12 @@ message GetDocListReq{
   string userId = 6;
   string orgId = 7;
   string docTag = 8; //文档标签
-  string metaValue = 9;
+  string metaValue = 9; // 元数据值过滤(string/number 类型)
   repeated int32 graphStatus = 10; //图谱状态
   repeated string docIdList = 11; // 文档id列表，只用于返回所选文档的集合，该值不为空时，其他筛选条件将被忽略
+  string metaType = 12; // 元数据类型: string/number/time，为空时按旧逻辑(metaValue 模糊匹配，排除 time 类型)
+  string metaStartTime = 13; // metaType=time 时的起始时间戳(毫秒，字符串，与 metaValue 一致)
+  string metaEndTime = 14; // metaType=time 时的结束时间戳(毫秒，字符串，与 metaValue 一致)
 }
 
 message GetDocDetailReq{
@@ -80,25 +83,17 @@ message GetDocDetailReq{
   bool needConfig = 4;
 }
 
+message GetDocListByDocIdListReq{
+  repeated string docIdList = 1;
+  string userId = 2;
+  string orgId = 3;
+}
+
 message GetDocListResp {
   repeated DocInfo docs = 1;
   int64 total = 2;
   int32 pageNum = 3;
   int32 pageSize = 4;
-  KnowledgeInfo knowledgeInfo = 5;
-}
-
-message KnowledgeInfo {
-  string knowledgeId = 1;//知识库id
-  string knowledgeName = 2;//知识库名称
-  int32 graphSwitch = 3; //知识库图谱开关
-  bool showGraphReport = 4; //是否展示知识图谱和社区报告
-  string description = 5; // 知识库描述
-  string embeddingModelId = 6; // emb模型id
-  repeated KeywordsInfo keywords = 7; // 关键词列表
-  string llmModelId = 8; // llm模型id（知识图谱）
-  int32 category = 9; // 知识库分类 0：知识库，1：问答库 2: 多模态知识库
-  string avatarPath = 10; // 知识库头像
 }
 
 message KeywordsInfo {
@@ -167,15 +162,6 @@ message UpdateDocMetaDataReq {
   string knowledgeId = 5;//知识库id
 }
 
-message BatchUpdateDocMetaDataReq {
-  string orgId = 1;
-  string userId = 2;
-  string docId = 3; //文档id
-  repeated MetaData metaDataList = 4;//文档元数据信息
-  string knowledgeId = 5;//知识库id
-  bool createMeta = 6;//文档没设置过对应key则创建元数据
-}
-
 message MetaData {
   string metaId = 1; // 元数据id
   string key = 2; // key
@@ -194,6 +180,7 @@ message DeleteDocReq{
   repeated string ids = 1;
   string userId = 2;
   string orgId = 3;
+  string knowledgeId = 4;
 }
 
 
@@ -244,6 +231,10 @@ message DocSegmentListResp{
   string asrModelId = 13;// ASR模型ID
   string multimodalModelId = 14;// 图文问答模型ID
   string parserModelId = 15;// OCR/模型解析 模型ID
+  string downloadUrl = 16;// 文档对外下载地址(RAG 返回的可用链接)
+  bool canPreview = 17; // 是否可预览
+  string previewFailReason = 18; // 不可预览原因
+  int64 docSize = 19; // 文档大小，单位字节(Byte)
 }
 
 message SegmentContent{
@@ -272,6 +263,8 @@ message DocInfo{
   string graphErrMsg = 12;//错误信息
   DocConfigInfo docConfigInfo = 13;//文档配置信息,只有detail接口参数needConfig为true才会返回
   bool isMultimodal = 14; // 是否为多模态文件
+  int32 docProgress = 15;//文档解析进度百分比 (0-100)
+  int32 graphProgress = 16;//图谱解析进度百分比 (0-100)
 }
 
 message DocConfigInfo {
@@ -355,6 +348,11 @@ message UpdateDocSegmentReq{
   string docId = 3;
   string contentId = 4;
   string content = 5;
+}
+
+message UpdateDocSegmentResp{
+  // 更新后的分段id，rag 按内容重新计算，内容变化时与请求传入的 contentId 不同
+  string contentId = 1;
 }
 
 message GetDocChildSegmentListReq{

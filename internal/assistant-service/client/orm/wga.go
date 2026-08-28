@@ -3,6 +3,7 @@ package orm
 import (
 	"context"
 	"errors"
+	"time"
 
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
@@ -31,18 +32,18 @@ func (c *Client) UpdateWgaConversationConfig(ctx context.Context, config *model.
 	).Apply(c.db.WithContext(ctx)).First(&existing).Error
 
 	if err == nil {
-		updates := map[string]interface{}{}
+		updates := map[string]interface{}{
+			"updated_at": time.Now().UnixMilli(),
+		}
 		if config.ModelConfig != "" {
 			updates["model_config"] = config.ModelConfig
 		}
 		if config.Title != "" {
 			updates["title"] = config.Title
 		}
-		if len(updates) > 0 {
-			result := c.db.WithContext(ctx).Model(&existing).Updates(updates)
-			if result.Error != nil {
-				return toErrStatus("wga_config_update", result.Error.Error())
-			}
+		result := c.db.WithContext(ctx).Model(&existing).Updates(updates)
+		if result.Error != nil {
+			return toErrStatus("wga_config_update", result.Error.Error())
 		}
 		return nil
 	}
@@ -64,25 +65,36 @@ func (c *Client) CreateWgaConversationConfig(ctx context.Context, config *model.
 	return nil
 }
 
-func (c *Client) DeleteWgaConversationConfig(ctx context.Context, threadId string) *err_code.Status {
-	if err := sqlopt.WithThreadID(threadId).Apply(c.db.WithContext(ctx)).Delete(&model.WgaConversationConfig{}).Error; err != nil {
+func (c *Client) DeleteWgaConversationConfig(ctx context.Context, threadId string, userId, orgId string) *err_code.Status {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithThreadID(threadId),
+		sqlopt.WithUserID(userId),
+		sqlopt.WithOrgID(orgId),
+	).Apply(c.db.WithContext(ctx)).Delete(&model.WgaConversationConfig{}).Error; err != nil {
 		return toErrStatus("wga_conversation_delete", err.Error())
 	}
 	return nil
 }
 
-func (c *Client) GetWgaConversationConfigList(ctx context.Context, userID, orgID string, offset, limit int32) ([]*model.WgaConversationConfig, int64, *err_code.Status) {
+func (c *Client) GetWgaConversationConfigList(ctx context.Context, userID, orgID, searchText string, offset, limit int32) ([]*model.WgaConversationConfig, int64, *err_code.Status) {
 	var configs []*model.WgaConversationConfig
 	var count int64
 
-	if err := sqlopt.SQLOptions(
+	db := sqlopt.SQLOptions(
 		sqlopt.WithUserID(userID),
 		sqlopt.WithOrgID(orgID),
-	).Apply(c.db.WithContext(ctx).Model(&model.WgaConversationConfig{})).Offset(int(offset)).Limit(int(limit)).Order("created_at DESC").Find(&configs).Error; err != nil {
-		return configs, count, toErrStatus("wga_conversation_list", err.Error())
+		sqlopt.WithTitleLike(searchText),
+	).Apply(c.db.WithContext(ctx).Model(&model.WgaConversationConfig{}))
+
+	if err := db.Count(&count).Error; err != nil {
+		return nil, 0, toErrStatus("wga_conversation_list", err.Error())
 	}
 
-	return configs, int64(len(configs)), nil
+	if err := db.Offset(int(offset)).Limit(int(limit)).Order("updated_at DESC").Find(&configs).Error; err != nil {
+		return nil, 0, toErrStatus("wga_conversation_list", err.Error())
+	}
+
+	return configs, count, nil
 }
 
 func (c *Client) WgaConversationConfigExists(ctx context.Context, threadId, userID, orgID string) (bool, *err_code.Status) {
@@ -123,11 +135,13 @@ func (c *Client) UpdateWgaConfig(ctx context.Context, config *model.WgaConfig) *
 
 	if err == nil {
 		result := c.db.WithContext(ctx).Model(&existing).Updates(map[string]interface{}{
-			"assistant_list": config.AssistantList,
-			"tool_list":      config.ToolList,
-			"mcp_list":       config.McpList,
-			"workflow_list":  config.WorkflowList,
-			"skill_list":     config.SkillList,
+			"tool_list":               config.ToolList,
+			"mcp_list":                config.McpList,
+			"workflow_list":           config.WorkflowList,
+			"skill_list":              config.SkillList,
+			"assistant_list":          config.AssistantList,
+			"knowledge_list":          config.KnowledgeList,
+			"ontology_knowledge_list": config.OntologyKnowledgeList,
 		})
 		if result.Error != nil {
 			return toErrStatus("general_agent_tool_config_update", result.Error.Error())

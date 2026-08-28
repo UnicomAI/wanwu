@@ -1,0 +1,490 @@
+---
+title: 电商平台会员积分系统产品需求文档（PRD）
+icon: 🪙
+cover: # 根据文档主题通过网络搜索合适图片，下载后调用 upload_image 上传，将返回的 image_id 填入此处
+---
+
+# 需求概述
+
+<Callout icon="📝" blockColor="light_purple" borderColor="purple">
+    本项目旨在构建一套完整的电商平台会员积分体系，通过数字化激励手段提升用户活跃度、促进复购转化，并建立清晰的用户成长链路。核心功能涵盖积分获取逻辑、多样化消耗方式、自动化会员等级升降及积分商城，致力于实现用户资产价值化与平台精细化运营。
+</Callout>
+
+# 一、 需求背景与目标
+
+<Heading level="2">
+    1.1 需求背景
+</Heading>
+
+随着平台用户规模的增长，存量用户的活跃度保持与忠诚度提升成为核心业务目标。目前缺乏统一的激励机制，导致用户复购率偏低，用户流失风险增加。建立会员积分体系旨在通过数字化激励手段，构建完整的用户成长链路。
+
+<Heading level="2">
+    1.2 核心目标
+</Heading>
+
+<BulletedList>
+    <Mark bold>提升用户活跃度</Mark>：通过签到、分享等日常任务，增加用户访问频次。
+</BulletedList>
+<BulletedList>
+    <Mark bold>促进业务转化</Mark>：引导用户完成下单、评价等核心转化行为。
+</BulletedList>
+<BulletedList>
+    <Mark bold>构建用户分层</Mark>：基于积分累计形成会员等级，实现精细化运营。
+</BulletedList>
+<BulletedList>
+    <Mark bold>降低营销成本</Mark>：通过积分抵扣代替直接优惠券发放，提升资金利用率。
+</BulletedList>
+
+---
+
+# 二、 用户场景分析
+
+<Table>
+    <TableRow>
+        <TableCell>
+            <Mark bold>用户角色</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>核心场景</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>痛点/需求</Mark>
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            普通用户
+        </TableCell>
+        <TableCell>
+            浏览商品、下单支付
+        </TableCell>
+        <TableCell>
+            希望购物能有额外回馈，降低后续消费成本。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            高频忠实用户
+        </TableCell>
+        <TableCell>
+            高频复购、参与活动
+        </TableCell>
+        <TableCell>
+            希望能体现身份差异化，享受更高等级的特权。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            运营人员
+        </TableCell>
+        <TableCell>
+            配置活动、管控风险
+        </TableCell>
+        <TableCell>
+            需要灵活配置积分规则，并能有效监控积分发放与消耗情况。
+        </TableCell>
+    </TableRow>
+</Table>
+
+---
+
+# 三、 功能范围与优先级
+
+<Table>
+    <TableRow>
+        <TableCell>
+            <Mark bold>模块</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>功能点</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>说明</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>优先级</Mark>
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            积分获取
+        </TableCell>
+        <TableCell>
+            基础获取逻辑
+        </TableCell>
+        <TableCell>
+            购物、评价、签到获取积分
+        </TableCell>
+        <TableCell>
+            P0
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            积分消耗
+        </TableCell>
+        <TableCell>
+            积分抵扣/兑换
+        </TableCell>
+        <TableCell>
+            下单抵扣现金或兑换优惠券
+        </TableCell>
+        <TableCell>
+            P0
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            会员体系
+        </TableCell>
+        <TableCell>
+            等级自动升降
+        </TableCell>
+        <TableCell>
+            基于成长值自动触发等级变更
+        </TableCell>
+        <TableCell>
+            P1
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            积分商城
+        </TableCell>
+        <TableCell>
+            商品展示与兑换
+        </TableCell>
+        <TableCell>
+            纯积分或积分+现金兑换商品
+        </TableCell>
+        <TableCell>
+            P2
+        </TableCell>
+    </TableRow>
+</Table>
+
+---
+
+# 四、 核心功能详细描述
+
+<Heading level="2">
+    4.1 积分获取规则
+</Heading>
+
+<Table>
+    <TableRow>
+        <TableCell>
+            <Mark bold>行为类型</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>具体行为</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>积分奖励</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>发放时机</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>限制条件</Mark>
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            交易类
+        </TableCell>
+        <TableCell>
+            购物消费
+        </TableCell>
+        <TableCell>
+            1元=1积分
+        </TableCell>
+        <TableCell>
+            确认收货后
+        </TableCell>
+        <TableCell>
+            退款扣回相应积分
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            活跃类
+        </TableCell>
+        <TableCell>
+            每日签到
+        </TableCell>
+        <TableCell>
+            5-20积分递增
+        </TableCell>
+        <TableCell>
+            点击签到即时
+        </TableCell>
+        <TableCell>
+            每日限1次
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            传播类
+        </TableCell>
+        <TableCell>
+            分享商品
+        </TableCell>
+        <TableCell>
+            10积分/次
+        </TableCell>
+        <TableCell>
+            分享成功后
+        </TableCell>
+        <TableCell>
+            每日上限3次
+        </TableCell>
+    </TableRow>
+</Table>
+
+<Heading level="2">
+    4.2 积分消耗方式
+</Heading>
+
+<BulletedList>
+    <Mark bold>积分抵现</Mark>：下单时可选择积分抵扣，规则为 100积分 = 1元，最高抵扣订单总额的 20%。
+</BulletedList>
+<BulletedList>
+    <Mark bold>优惠券兑换</Mark>：在积分中心可消耗固定积分兑换不同面额的平台券/店铺券。
+</BulletedList>
+<BulletedList>
+    <Mark bold>积分抽奖</Mark>：消耗积分参与大转盘、开宝箱等营销活动。
+</BulletedList>
+
+<Heading level="2">
+    4.3 会员等级体系
+</Heading>
+
+<Table>
+    <TableRow>
+        <TableCell>
+            <Mark bold>等级</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>名称</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>门槛（成长值）</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>核心权益</Mark>
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            L1
+        </TableCell>
+        <TableCell>
+            普通会员
+        </TableCell>
+        <TableCell>
+            0
+        </TableCell>
+        <TableCell>
+            购物积分奖励
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            L2
+        </TableCell>
+        <TableCell>
+            黄金会员
+        </TableCell>
+        <TableCell>
+            1,000
+        </TableCell>
+        <TableCell>
+            1.1倍积分系数、生日礼券
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            L3
+        </TableCell>
+        <TableCell>
+            钻石会员
+        </TableCell>
+        <TableCell>
+            5,000
+        </TableCell>
+        <TableCell>
+            1.5倍积分系数、专属客服、优先发货
+        </TableCell>
+    </TableRow>
+</Table>
+
+<Heading level="2">
+    4.4 积分商城
+</Heading>
+
+积分商城作为独立的流量入口，提供以下核心功能：
+<NumberedList>
+    <Mark bold>商品分类管理</Mark>：按虚拟券、实物商品、礼包等进行分类。
+</NumberedList>
+<NumberedList>
+    <Mark bold>兑换链路</Mark>：支持“纯积分”和“积分+现金”两种兑换模式。
+</NumberedList>
+<NumberedList>
+    <Mark bold>库存实时扣减</Mark>：兑换成功后即时扣减库存，防止超卖。
+</NumberedList>
+
+---
+
+# 五、 业务流程图说明
+
+<Callout icon="🔄" blockColor="light_blue" borderColor="blue">
+    <Mark bold>核心：积分获取与使用闭环流程</Mark>
+</Callout>
+
+<NumberedList>
+    用户在平台产生特定行为（如购物确认收货）。
+</NumberedList>
+<NumberedList>
+    系统识别行为并计算应发积分（结合会员等级倍数）。
+</NumberedList>
+<NumberedList>
+    调用积分账户服务，更新用户账户余额，并记录流水。
+</NumberedList>
+<NumberedList>
+    用户进入积分中心或在支付页勾选使用积分。
+</NumberedList>
+<NumberedList>
+    系统预扣积分，下单失败或取消订单时执行积分回滚。
+</NumberedList>
+
+---
+
+# 六、 数据埋点需求
+
+<Table>
+    <TableRow>
+        <TableCell>
+            <Mark bold>事件名称</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>埋点位置</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>核心参数</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>埋点目的</Mark>
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            point_center_view
+        </TableCell>
+        <TableCell>
+            积分中心页
+        </TableCell>
+        <TableCell>
+            user_id, level
+        </TableCell>
+        <TableCell>
+            统计功能入口热度
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            point_task_click
+        </TableCell>
+        <TableCell>
+            积分任务列表
+        </TableCell>
+        <TableCell>
+            task_type, task_id
+        </TableCell>
+        <TableCell>
+            分析任务参与转化率
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            point_use_apply
+        </TableCell>
+        <TableCell>
+            收银台/兑换页
+        </TableCell>
+        <TableCell>
+            order_id, points_amount
+        </TableCell>
+        <TableCell>
+            监控积分消耗规模
+        </TableCell>
+    </TableRow>
+</Table>
+
+---
+
+# 七、 非功能性需求
+
+<BulletedList>
+    <Mark bold>高性能</Mark>：积分账户查询接口响应时间须在 100ms 以内，支持 5,000 QPS 峰值并发。
+</BulletedList>
+<BulletedList>
+    <Mark bold>数据一致性</Mark>：积分发放与消耗必须满足分布式事务一致性，严禁出现负余额或重复发放。
+</BulletedList>
+<BulletedList>
+    <Mark bold>安全性</Mark>：对积分变更接口进行加密签名，防止恶意刷分。
+</BulletedList>
+<BulletedList>
+    <Mark bold>可扩展性</Mark>：积分规则引擎需解耦，支持未来快速增加新的积分获取任务。
+</BulletedList>
+
+---
+
+# 八、 版本迭代规划
+
+<Table>
+    <TableRow>
+        <TableCell>
+            <Mark bold>阶段</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>核心目标</Mark>
+        </TableCell>
+        <TableCell>
+            <Mark bold>主要内容</Mark>
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            V1.0 (基础版)
+        </TableCell>
+        <TableCell>
+            跑通闭环
+        </TableCell>
+        <TableCell>
+            上线购物积分、签到积分；支持下单抵扣功能。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            V1.1 (成长版)
+        </TableCell>
+        <TableCell>
+            完善等级
+        </TableCell>
+        <TableCell>
+            上线 L1-L3 会员等级体系，推出权益差异化分层。
+        </TableCell>
+    </TableRow>
+    <TableRow>
+        <TableCell>
+            V2.0 (生态版)
+        </TableCell>
+        <TableCell>
+            场景拓展
+        </TableCell>
+        <TableCell>
+            上线完整积分商城，支持第三方权益兑换及外部合作。
+        </TableCell>
+    </TableRow>
+</Table>

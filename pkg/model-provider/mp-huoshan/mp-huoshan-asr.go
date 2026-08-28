@@ -10,15 +10,16 @@ import (
 
 	"github.com/UnicomAI/wanwu/pkg/log"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
-	"github.com/go-resty/resty/v2"
 )
 
 // 需要额外修改config的配置
 type SyncAsr struct {
-	AppKey      string `json:"appKey"` // AppKey
-	AccessKey   string `json:"accessKey"`
-	EndpointUrl string `json:"endpointUrl"` // 推理url
+	AppKey         string `json:"appKey"` // AppKey
+	AccessKey      string `json:"accessKey"`
+	EndpointUrl    string `json:"endpointUrl"` // 推理url
+	MaxAsrFileSize *int64 `json:"maxAsrFileSize"`
 }
 
 func (cfg *SyncAsr) Tags() []mp_common.Tag {
@@ -83,7 +84,7 @@ func syncAsr(ctx context.Context, provider, apiKey, url string, req map[string]i
 	}
 	reqjson, _ := json.Marshal(req)
 	log.Debugf("huoshan sync_asr req: %v", string(reqjson))
-	request := resty.New().
+	request := trace_util.NewResty(ctx).
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验
 		SetTimeout(0).                                             // 关闭请求超时
 		R().

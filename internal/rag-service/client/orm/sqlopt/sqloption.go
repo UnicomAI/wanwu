@@ -51,10 +51,55 @@ func WithUserID(userID string) SQLOption {
 	})
 }
 
+func WithOrgIDs(orgIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(orgIDs) > 0 {
+			return db.Where("org_id IN ?", orgIDs)
+		}
+		return db
+	})
+}
+
+func WithUserIDs(userIDs []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(userIDs) > 0 {
+			return db.Where("user_id IN ?", userIDs)
+		}
+		return db
+	})
+}
+
 func WithRagID(ragID string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		if ragID != "" {
 			return db.Where("rag_id = ?", ragID)
+		}
+		return db
+	})
+}
+
+func WithConversationID(conversationID string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if conversationID != "" {
+			return db.Where("conversation_id = ?", conversationID)
+		}
+		return db
+	})
+}
+
+func WithConversationType(conversationType string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if conversationType != "" {
+			return db.Where("conversation_type = ?", conversationType)
+		}
+		return db
+	})
+}
+
+func LikeTitle(title string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if title != "" {
+			return db.Where("title LIKE ?", "%"+title+"%")
 		}
 		return db
 	})

@@ -82,6 +82,7 @@ type RagImportUrlDocParams struct {
 	SplitType         string               `json:"split_type"` //parent_child|common
 	UserId            string               `json:"userId"`
 	KnowledgeBaseName string               `json:"knowledgeBase"`
+	KnowledgeBaseId   string               `json:"kb_id"`
 	IsEnhanced        bool                 `json:"is_enhanced"`
 	Separators        []string             `json:"separators"`
 	TaskId            string               `json:"task_id"`
@@ -91,16 +92,18 @@ type RagImportUrlDocParams struct {
 }
 
 type RagDeleteDocParams struct {
-	UserId        string `json:"userId"`
-	KnowledgeBase string `json:"knowledgeBase"`
-	FileName      string `json:"fileName"`
+	UserId          string `json:"userId"`
+	KnowledgeBase   string `json:"knowledgeBase"`
+	KnowledgeBaseId string `json:"kb_id"`
+	FileName        string `json:"fileName"`
 }
 
 type RagDocMetaParams struct {
-	UserId        string      `json:"userId"`
-	KnowledgeBase string      `json:"knowledgeBase"`
-	FileName      string      `json:"fileName"`
-	MetaList      []*MetaData `json:"tags"`
+	UserId          string      `json:"userId"`
+	KnowledgeBase   string      `json:"knowledgeBase"`
+	KnowledgeBaseId string      `json:"kb_id"`
+	FileName        string      `json:"fileName"`
+	MetaList        []*MetaData `json:"tags"`
 }
 
 type BatchRagDocMetaParams struct {
@@ -213,7 +216,7 @@ func (sa *DocUrlRespSafeArray) Len() int {
 
 // RagImportDoc 导入具体文档
 func RagImportDoc(ctx context.Context, ragImportDocParams *RagImportDocParams) error {
-	return mq.SendMessage(&RagOperationParams{
+	return mq.SendMessage(ctx, &RagOperationParams{
 		Operation: "add",
 		Type:      "doc",
 		Doc:       ragImportDocParams,
@@ -222,7 +225,7 @@ func RagImportDoc(ctx context.Context, ragImportDocParams *RagImportDocParams) e
 
 // RagBuildKnowledgeGraph 构建知识库图谱
 func RagBuildKnowledgeGraph(ctx context.Context, ragImportDocParams *RagImportDocParams) error {
-	return mq.SendMessage(&RagOperationParams{
+	return mq.SendMessage(ctx, &RagOperationParams{
 		Operation: "add",
 		Type:      "doc",
 		Doc:       ragImportDocParams,

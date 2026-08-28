@@ -20,11 +20,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	KnowledgeBaseKeywordsService_GetKnowledgeKeywordsList_FullMethodName   = "/knowledgebase_keywords_service.KnowledgeBaseKeywordsService/GetKnowledgeKeywordsList"
-	KnowledgeBaseKeywordsService_GetKnowledgeKeywordsDetail_FullMethodName = "/knowledgebase_keywords_service.KnowledgeBaseKeywordsService/GetKnowledgeKeywordsDetail"
-	KnowledgeBaseKeywordsService_CreateKnowledgeKeywords_FullMethodName    = "/knowledgebase_keywords_service.KnowledgeBaseKeywordsService/CreateKnowledgeKeywords"
-	KnowledgeBaseKeywordsService_UpdateKnowledgeKeywords_FullMethodName    = "/knowledgebase_keywords_service.KnowledgeBaseKeywordsService/UpdateKnowledgeKeywords"
-	KnowledgeBaseKeywordsService_DeleteKnowledgeKeywords_FullMethodName    = "/knowledgebase_keywords_service.KnowledgeBaseKeywordsService/DeleteKnowledgeKeywords"
+	KnowledgeBaseKeywordsService_GetKnowledgeKeywordsList_FullMethodName              = "/knowledgebase_keywords_service.KnowledgeBaseKeywordsService/GetKnowledgeKeywordsList"
+	KnowledgeBaseKeywordsService_GetKnowledgeKeywordsDetail_FullMethodName            = "/knowledgebase_keywords_service.KnowledgeBaseKeywordsService/GetKnowledgeKeywordsDetail"
+	KnowledgeBaseKeywordsService_CreateKnowledgeKeywords_FullMethodName               = "/knowledgebase_keywords_service.KnowledgeBaseKeywordsService/CreateKnowledgeKeywords"
+	KnowledgeBaseKeywordsService_UpdateKnowledgeKeywords_FullMethodName               = "/knowledgebase_keywords_service.KnowledgeBaseKeywordsService/UpdateKnowledgeKeywords"
+	KnowledgeBaseKeywordsService_DeleteKnowledgeKeywords_FullMethodName               = "/knowledgebase_keywords_service.KnowledgeBaseKeywordsService/DeleteKnowledgeKeywords"
+	KnowledgeBaseKeywordsService_GetKnowledgeKeywordsListByKnowledgeId_FullMethodName = "/knowledgebase_keywords_service.KnowledgeBaseKeywordsService/GetKnowledgeKeywordsListByKnowledgeId"
 )
 
 // KnowledgeBaseKeywordsServiceClient is the client API for KnowledgeBaseKeywordsService service.
@@ -41,6 +42,8 @@ type KnowledgeBaseKeywordsServiceClient interface {
 	UpdateKnowledgeKeywords(ctx context.Context, in *UpdateKnowledgeKeywordsReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 删除知识库关键词
 	DeleteKnowledgeKeywords(ctx context.Context, in *DeleteKnowledgeKeywordsReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 查询知识库下的关键词列表
+	GetKnowledgeKeywordsListByKnowledgeId(ctx context.Context, in *GetKnowledgeKeywordsListByKnowledgeIdReq, opts ...grpc.CallOption) (*GetKnowledgeKeywordsListByKnowledgeIdResp, error)
 }
 
 type knowledgeBaseKeywordsServiceClient struct {
@@ -101,6 +104,16 @@ func (c *knowledgeBaseKeywordsServiceClient) DeleteKnowledgeKeywords(ctx context
 	return out, nil
 }
 
+func (c *knowledgeBaseKeywordsServiceClient) GetKnowledgeKeywordsListByKnowledgeId(ctx context.Context, in *GetKnowledgeKeywordsListByKnowledgeIdReq, opts ...grpc.CallOption) (*GetKnowledgeKeywordsListByKnowledgeIdResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetKnowledgeKeywordsListByKnowledgeIdResp)
+	err := c.cc.Invoke(ctx, KnowledgeBaseKeywordsService_GetKnowledgeKeywordsListByKnowledgeId_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // KnowledgeBaseKeywordsServiceServer is the server API for KnowledgeBaseKeywordsService service.
 // All implementations must embed UnimplementedKnowledgeBaseKeywordsServiceServer
 // for forward compatibility.
@@ -115,6 +128,8 @@ type KnowledgeBaseKeywordsServiceServer interface {
 	UpdateKnowledgeKeywords(context.Context, *UpdateKnowledgeKeywordsReq) (*emptypb.Empty, error)
 	// 删除知识库关键词
 	DeleteKnowledgeKeywords(context.Context, *DeleteKnowledgeKeywordsReq) (*emptypb.Empty, error)
+	// 查询知识库下的关键词列表
+	GetKnowledgeKeywordsListByKnowledgeId(context.Context, *GetKnowledgeKeywordsListByKnowledgeIdReq) (*GetKnowledgeKeywordsListByKnowledgeIdResp, error)
 	mustEmbedUnimplementedKnowledgeBaseKeywordsServiceServer()
 }
 
@@ -139,6 +154,9 @@ func (UnimplementedKnowledgeBaseKeywordsServiceServer) UpdateKnowledgeKeywords(c
 }
 func (UnimplementedKnowledgeBaseKeywordsServiceServer) DeleteKnowledgeKeywords(context.Context, *DeleteKnowledgeKeywordsReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteKnowledgeKeywords not implemented")
+}
+func (UnimplementedKnowledgeBaseKeywordsServiceServer) GetKnowledgeKeywordsListByKnowledgeId(context.Context, *GetKnowledgeKeywordsListByKnowledgeIdReq) (*GetKnowledgeKeywordsListByKnowledgeIdResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetKnowledgeKeywordsListByKnowledgeId not implemented")
 }
 func (UnimplementedKnowledgeBaseKeywordsServiceServer) mustEmbedUnimplementedKnowledgeBaseKeywordsServiceServer() {
 }
@@ -252,6 +270,24 @@ func _KnowledgeBaseKeywordsService_DeleteKnowledgeKeywords_Handler(srv interface
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KnowledgeBaseKeywordsService_GetKnowledgeKeywordsListByKnowledgeId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKnowledgeKeywordsListByKnowledgeIdReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KnowledgeBaseKeywordsServiceServer).GetKnowledgeKeywordsListByKnowledgeId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KnowledgeBaseKeywordsService_GetKnowledgeKeywordsListByKnowledgeId_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KnowledgeBaseKeywordsServiceServer).GetKnowledgeKeywordsListByKnowledgeId(ctx, req.(*GetKnowledgeKeywordsListByKnowledgeIdReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // KnowledgeBaseKeywordsService_ServiceDesc is the grpc.ServiceDesc for KnowledgeBaseKeywordsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -278,6 +314,10 @@ var KnowledgeBaseKeywordsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteKnowledgeKeywords",
 			Handler:    _KnowledgeBaseKeywordsService_DeleteKnowledgeKeywords_Handler,
+		},
+		{
+			MethodName: "GetKnowledgeKeywordsListByKnowledgeId",
+			Handler:    _KnowledgeBaseKeywordsService_GetKnowledgeKeywordsListByKnowledgeId_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

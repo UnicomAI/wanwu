@@ -2,24 +2,26 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"sort"
 	"strings"
 
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
-	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
-	knowledgeBase_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-service"
+	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
-	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 	safety_service "github.com/UnicomAI/wanwu/api/proto/safety-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	bff_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/util"
 	"github.com/UnicomAI/wanwu/pkg/constant"
+	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
+	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/status"
 )
 
 func AssistantCreate(ctx *gin.Context, userId, orgId string, req request.AssistantCreateReq) (*response.AssistantCreateResp, error) {
@@ -39,8 +41,18 @@ func AssistantCreate(ctx *gin.Context, userId, orgId string, req request.Assista
 	}, nil
 }
 
-func AssistantUpdate(ctx *gin.Context, userId, orgId string, req request.AssistantBrief) (interface{}, error) {
-	_, err := assistant.AssistantUpdate(ctx.Request.Context(), &assistant_service.AssistantUpdateReq{
+func AssistantUpdate(ctx *gin.Context, userId, orgId string, req request.AssistantUpdateReq) (interface{}, error) {
+	existingAssistant, err := assistant.GetAssistantInfo(ctx.Request.Context(), &assistant_service.GetAssistantInfoReq{
+		AssistantId: req.AssistantId,
+		Identity:    &assistant_service.Identity{UserId: userId, OrgId: orgId},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if err := util.ValidateBriefUpdate(&req.Name, existingAssistant.AssistantBrief.Name, &req.Desc, existingAssistant.AssistantBrief.Desc, util.SubjectAssistant); err != nil {
+		return nil, grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
+	}
+	_, err = assistant.AssistantUpdate(ctx.Request.Context(), &assistant_service.AssistantUpdateReq{
 		AssistantId:    req.AssistantId,
 		AssistantBrief: appBriefConfigModel2Proto(req.AppBriefConfig),
 		Identity: &assistant_service.Identity{
@@ -154,15 +166,15 @@ func GetAssistantInfo(ctx *gin.Context, userId, orgId string, req request.Assist
 	return transAssistantResp2Model(ctx, resp)
 }
 
-func GetAssistantIdByUuid(ctx *gin.Context, uuid string) (string, error) {
-	resp, err := assistant.GetAssistantIdByUuid(ctx.Request.Context(), &assistant_service.GetAssistantIdByUuidReq{
-		Uuid: uuid,
-	})
-	if err != nil {
-		return "", err
-	}
-	return resp.AssistantId, nil
-}
+// func GetAssistantIdByUuid(ctx *gin.Context, uuid string) (string, error) {
+// 	resp, err := assistant.GetAssistantIdByUuid(ctx.Request.Context(), &assistant_service.GetAssistantIdByUuidReq{
+// 		Uuid: uuid,
+// 	})
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return resp.AssistantId, nil
+// }
 
 func AssistantCopy(ctx *gin.Context, userId, orgId string, req request.AssistantIdRequest) (*response.AssistantCreateResp, error) {
 	resp, err := assistant.AssistantCopy(ctx.Request.Context(), &assistant_service.AssistantCopyReq{
@@ -403,6 +415,14 @@ func MultiAgentConfigUpdate(ctx *gin.Context, userId, orgId string, req request.
 }
 
 func GetAssistantSelect(ctx *gin.Context, userId, orgId string, req request.GetExplorationAppListRequest) (*response.ListResult, error) {
+	return getAssistantSelect(ctx, userId, orgId, req, false)
+}
+
+func GetAssistantSelectSingle(ctx *gin.Context, userId, orgId string, req request.GetExplorationAppListRequest) (*response.ListResult, error) {
+	return getAssistantSelect(ctx, userId, orgId, req, true)
+}
+
+func getAssistantSelect(ctx *gin.Context, userId, orgId string, req request.GetExplorationAppListRequest, singleOnly bool) (*response.ListResult, error) {
 	wlist, err := GetExplorationAppList(ctx, userId, orgId, request.GetExplorationAppListRequest{
 		Name:       req.Name,
 		AppType:    constant.AppTypeAgent,
@@ -415,6 +435,9 @@ func GetAssistantSelect(ctx *gin.Context, userId, orgId string, req request.GetE
 	if wlistSlice, ok := wlist.List.([]*response.ExplorationAppInfo); ok {
 		for _, w := range wlistSlice {
 			if w.User.UserId == userId {
+				if singleOnly && w.Category == constant.AgentCategoryMulti {
+					continue
+				}
 				appList = append(appList, w)
 			}
 		}
@@ -423,48 +446,6 @@ func GetAssistantSelect(ctx *gin.Context, userId, orgId string, req request.GetE
 		List:  appList,
 		Total: int64(len(appList)),
 	}, nil
-}
-
-func assistantModelConvert(ctx *gin.Context, modelConfigInfo *common.AppModelConfig) (modelConfig request.AppModelConfig, err error) {
-	if modelConfigInfo != nil && modelConfigInfo.ModelId != "" {
-		log.Debugf("检测到模型配置，模型ID: %s", modelConfigInfo.ModelId)
-		modelInfo, err := model.GetModel(ctx.Request.Context(), &model_service.GetModelReq{ModelId: modelConfigInfo.ModelId})
-		if err != nil {
-			log.Errorf("获取模型信息失败，模型ID: %s, 错误: %v", modelConfigInfo.ModelId, err)
-		}
-		if modelInfo != nil {
-			modelConfig, err = appModelConfigProto2Model(modelConfigInfo, modelInfo.DisplayName)
-			if err != nil {
-				log.Errorf("模型配置Proto转换到模型失败，模型ID: %s, 错误: %v", modelConfigInfo.ModelId, err)
-				return modelConfig, err
-			}
-			log.Debugf("模型配置转换成功: %+v", modelConfig)
-		}
-	} else {
-		log.Debugf("模型配置为空或模型ID为空")
-	}
-	return modelConfig, nil
-}
-
-func assistantRerankConvert(ctx *gin.Context, rerankConfigInfo *common.AppModelConfig) (request.AppModelConfig, error) {
-	var rerankConfig request.AppModelConfig
-	if rerankConfigInfo != nil && rerankConfigInfo.ModelId != "" {
-		log.Debugf("检测到Rerank配置，模型ID: %s", rerankConfigInfo.ModelId)
-		modelInfo, err := model.GetModel(ctx.Request.Context(), &model_service.GetModelReq{ModelId: rerankConfigInfo.ModelId})
-		if err != nil {
-			log.Errorf("获取Rerank模型信息失败，模型ID: %s, 错误: %v", rerankConfigInfo.ModelId, err)
-		} else {
-			rerankConfig, err = appModelConfigProto2Model(rerankConfigInfo, modelInfo.DisplayName)
-			if err != nil {
-				log.Errorf("Rerank配置Proto转换到模型失败，模型ID: %s, 错误: %v", rerankConfigInfo.ModelId, err)
-				return rerankConfig, err
-			}
-			log.Debugf("Rerank配置转换成功: %+v", rerankConfig)
-		}
-	} else {
-		log.Debugf("Rerank配置为空或模型ID为空")
-	}
-	return rerankConfig, nil
 }
 
 func assistantWorkFlowConvert(ctx *gin.Context, workFlowInfos []*assistant_service.AssistantWorkFlowInfos) ([]*response.AssistantWorkFlowInfo, error) {
@@ -552,6 +533,7 @@ func assistantMCPConvert(ctx *gin.Context, assistantMCPInfos []*assistant_servic
 		var exists bool
 		var mcpName string
 		var avatar request.Avatar
+		var desc string
 
 		switch info.McpType {
 		case constant.MCPTypeMCP:
@@ -559,25 +541,28 @@ func assistantMCPConvert(ctx *gin.Context, assistantMCPInfos []*assistant_servic
 				exists = true
 				mcpName = item.Info.Name
 				avatar = cacheMCPAvatar(ctx, item.Info.AvatarPath, item.AvatarPath)
+				desc = item.GetInfo().GetDesc()
 			}
 		case constant.MCPTypeMCPServer:
 			if item, ok := mcpserverDetailMap[info.McpId]; ok {
 				exists = true
 				mcpName = item.Name
 				avatar = cacheMCPServerAvatar(ctx, item.AvatarPath)
+				desc = item.GetDesc()
 			}
 		}
 
 		if exists {
 			retMCPInfos = append(retMCPInfos, &response.AssistantMCPInfo{
-				UniqueId:   bff_util.ConcatAssistantToolUniqueId(info.McpType, info.McpId),
-				MCPId:      info.McpId,
-				MCPType:    info.McpType,
-				MCPName:    mcpName,
-				ActionName: info.ActionName,
-				Enable:     info.Enable,
-				Valid:      true,
-				Avatar:     avatar,
+				UniqueId:    bff_util.ConcatAssistantToolUniqueId(info.McpType, info.McpId),
+				MCPId:       info.McpId,
+				MCPType:     info.McpType,
+				MCPName:     mcpName,
+				ActionName:  info.ActionName,
+				Enable:      info.Enable,
+				Valid:       true,
+				Avatar:      avatar,
+				Description: desc,
 			})
 		}
 	}
@@ -628,6 +613,7 @@ func assistantToolsConvert(ctx *gin.Context, assistantToolInfos []*assistant_ser
 		var exists bool
 		var toolName string
 		var avatar request.Avatar
+		var desc string
 
 		switch info.ToolType {
 		case constant.ToolTypeCustom:
@@ -635,12 +621,14 @@ func assistantToolsConvert(ctx *gin.Context, assistantToolInfos []*assistant_ser
 				exists = true
 				toolName = item.Name
 				avatar = cacheToolAvatar(ctx, constant.ToolTypeCustom, item.AvatarPath)
+				desc = item.GetDescription()
 			}
 		case constant.ToolTypeBuiltIn:
 			if item, ok := builtinToolMap[info.ToolId]; ok {
 				exists = true
 				toolName = item.Name
 				avatar = cacheToolAvatar(ctx, constant.ToolTypeBuiltIn, item.AvatarPath)
+				desc = item.GetDesc()
 			}
 		}
 
@@ -652,15 +640,16 @@ func assistantToolsConvert(ctx *gin.Context, assistantToolInfos []*assistant_ser
 				}
 			}
 			retToolInfos = append(retToolInfos, &response.AssistantToolInfo{
-				UniqueId:   bff_util.ConcatAssistantToolUniqueId(info.ToolType, info.ToolId),
-				ToolId:     info.ToolId,
-				ToolType:   info.ToolType,
-				ToolName:   toolName,
-				ActionName: info.ActionName,
-				Enable:     info.Enable,
-				Valid:      true,
-				ToolConfig: toolConfig,
-				Avatar:     avatar,
+				UniqueId:    bff_util.ConcatAssistantToolUniqueId(info.ToolType, info.ToolId),
+				ToolId:      info.ToolId,
+				ToolType:    info.ToolType,
+				ToolName:    toolName,
+				ActionName:  info.ActionName,
+				Enable:      info.Enable,
+				Valid:       true,
+				ToolConfig:  toolConfig,
+				Avatar:      avatar,
+				Description: desc,
 			})
 		}
 	}
@@ -674,20 +663,57 @@ func assistantSkillConvert(ctx *gin.Context, assistantSkillInfos []*assistant_se
 	}
 
 	var customSkillIds []string
+	var acquiredSkillIds []string
 	for _, skill := range assistantSkillInfos {
-		if skill.SkillType == constant.SkillTypeCustom {
+		if skill.SkillId == "" {
+			continue
+		}
+		switch skill.SkillType {
+		case constant.SkillTypeCustom:
 			customSkillIds = append(customSkillIds, skill.SkillId)
+		case constant.SkillTypeAcquired:
+			acquiredSkillIds = append(acquiredSkillIds, skill.SkillId)
 		}
 	}
 
-	// 获取自定义技能
-	customSkillResp, err := mcp.GetCustomSkillDetailByIdList(ctx.Request.Context(), &mcp_service.CustomSkillDetailByIdListReq{
-		SkillIds: customSkillIds,
-	})
-	customSkillMap := make(map[string]*mcp_service.CustomSkill)
-	if err == nil && customSkillResp != nil {
-		for _, item := range customSkillResp.SkillDetails {
-			customSkillMap[item.SkillId] = item
+	// 获取自定义技能（只获取已发布的）
+	customSkillMap := make(map[string]*mcp_service.PublishCustomSkill)
+	if len(customSkillIds) > 0 {
+		var err error
+		customSkillMap, err = getCustomSkillPublishMap(ctx, customSkillIds)
+		if err != nil {
+			log.Warnf("获取自定义 skill 详情失败，err: %v", err)
+			customSkillMap = make(map[string]*mcp_service.PublishCustomSkill)
+		}
+	}
+
+	acquiredSkillMap := make(map[string]*mcp_service.AcquiredSkill)
+	if len(acquiredSkillIds) > 0 {
+		var err error
+		acquiredSkillMap, err = getAcquiredSkillByIDMap(ctx, acquiredSkillIds)
+		if err != nil {
+			log.Warnf("获取我添加的 skill 详情失败，err: %v", err)
+			acquiredSkillMap = make(map[string]*mcp_service.AcquiredSkill)
+		}
+	}
+
+	// 批量获取 acquired skill 源发布信息用于权限校验
+	var acquiredAppInfoMap map[string][]*app_service.AppInfo
+	if len(acquiredSkillMap) > 0 {
+		sourceSkillIds := make([]string, 0, len(acquiredSkillMap))
+		for _, acquired := range acquiredSkillMap {
+			if acquired == nil {
+				continue
+			}
+			if sourceSkillId := acquired.GetSkill().GetSkill().GetSkillId(); sourceSkillId != "" {
+				sourceSkillIds = append(sourceSkillIds, sourceSkillId)
+			}
+		}
+		var err error
+		acquiredAppInfoMap, err = getSourceSkillAppInfoMap(ctx, sourceSkillIds)
+		if err != nil {
+			log.Warnf("获取我添加的 skill 源发布信息失败，err: %v", err)
+			acquiredAppInfoMap = make(map[string][]*app_service.AppInfo)
 		}
 	}
 
@@ -696,14 +722,38 @@ func assistantSkillConvert(ctx *gin.Context, assistantSkillInfos []*assistant_se
 		var exists bool
 		var skillName, author string
 		var avatar request.Avatar
+		var desc string
 
 		switch info.SkillType {
 		case constant.SkillTypeCustom:
-			if item, ok := customSkillMap[info.SkillId]; ok {
-				exists = true
-				skillName = item.Name
-				author = item.Author
-				avatar = cacheSkillAvatar(ctx, item.Avatar)
+			if publish, ok := customSkillMap[info.SkillId]; ok {
+				// 只返回已发布的 custom skill
+				if strings.TrimSpace(publish.GetVersion()) == "" {
+					continue
+				}
+				customSkill := publish.GetSkill()
+				if customSkill != nil {
+					exists = true
+					skillName = customSkill.GetName()
+					author = customSkill.GetAuthor()
+					avatar = cacheSkillAvatar(ctx, customSkill.GetAvatar())
+					desc = customSkill.GetDesc()
+				}
+			}
+		case constant.SkillTypeAcquired:
+			if item, ok := acquiredSkillMap[info.SkillId]; ok {
+				// 过滤无权限访问的 acquired skill
+				if !isAcquiredSkillAccessible(ctx, item, acquiredAppInfoMap) {
+					continue
+				}
+				customSkill := item.GetSkill().GetSkill()
+				if customSkill != nil {
+					exists = true
+					skillName = customSkill.GetName()
+					author = customSkill.GetAuthor()
+					avatar = cacheSkillAvatar(ctx, customSkill.GetAvatar())
+					desc = customSkill.GetDesc()
+				}
 			}
 		case constant.SkillTypeBuiltIn:
 			skillDetail, err := GetAgentSkillDetail(ctx, info.SkillId)
@@ -712,18 +762,20 @@ func assistantSkillConvert(ctx *gin.Context, assistantSkillInfos []*assistant_se
 				skillName = skillDetail.Name
 				author = skillDetail.Author
 				avatar = skillDetail.Avatar
+				desc = skillDetail.Desc
 			}
 		}
 
 		if exists {
 			retSkillInfos = append(retSkillInfos, &response.AssistantSkillInfo{
-				SkillId:   info.SkillId,
-				SkillType: info.SkillType,
-				SkillName: skillName,
-				Author:    author,
-				Enable:    info.Enable,
-				Valid:     true,
-				Avatar:    avatar,
+				SkillId:     info.SkillId,
+				SkillType:   info.SkillType,
+				SkillName:   skillName,
+				Author:      author,
+				Enable:      info.Enable,
+				Valid:       true,
+				Avatar:      avatar,
+				Description: desc,
 			})
 		}
 	}
@@ -740,7 +792,7 @@ func assistantSafetyConvert(ctx *gin.Context, resp *assistant_service.AssistantS
 		for _, table := range resp.GetSensitiveTable() {
 			tableIds = append(tableIds, table.TableId)
 		}
-		sensitiveWordTable, err := safety.GetSensitiveWordTableListByIDs(ctx, &safety_service.GetSensitiveWordTableListByIDsReq{TableIds: tableIds})
+		sensitiveWordTable, err := safety.GetSensitiveWordTableListByIDs(ctx.Request.Context(), &safety_service.GetSensitiveWordTableListByIDsReq{TableIds: tableIds})
 
 		if err == nil && sensitiveWordTable != nil {
 			exists = true
@@ -800,6 +852,27 @@ func ConversationDelete(ctx *gin.Context, userId, orgId string, req request.Conv
 	return nil, nil
 }
 
+// MessageFeedback 智能体消息点赞/点踩
+func MessageFeedback(ctx *gin.Context, userId, orgId string, req *request.MessageFeedbackRequest) (*response.MessageFeedbackResp, error) {
+	resp, err := assistant.MessageFeedback(ctx.Request.Context(), &assistant_service.MessageFeedbackReq{
+		AssistantId:     req.AssistantId,
+		ConversationId:  req.ConversationId,
+		DetailId:        req.DetailId,
+		FeedbackType:    req.FeedbackType,
+		FeedbackContent: req.FeedbackContent,
+		Identity: &assistant_service.Identity{
+			UserId: userId,
+			OrgId:  orgId,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &response.MessageFeedbackResp{
+		FeedbackType: resp.FeedbackType,
+	}, nil
+}
+
 func ClearPublishedConversationES(ctx *gin.Context, userId, orgId string, req request.ConversationIdRequest) (interface{}, error) {
 	// 清空已发布智能体的对话ES数据（不删除会话ID）
 	_, err := assistant.ClearConversationES(ctx.Request.Context(), &assistant_service.ClearConversationESReq{
@@ -827,11 +900,37 @@ func GetDraftConversationIdByAssistantID(ctx *gin.Context, userId, orgId string,
 		},
 	})
 	if err != nil {
+		// 空状态（草稿态尚未发起过对话）vs 系统级故障
+		if isRecordNotFoundErr(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &response.ConversationIdResp{
 		ConversationId: resp.ConversationId,
 	}, nil
+}
+
+// isRecordNotFoundErr 判定 gRPC 错误是否由 gorm.ErrRecordNotFound 引起
+func isRecordNotFoundErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	st, ok := status.FromError(err)
+	if !ok {
+		// 非 gRPC status error，兜底字符串匹配
+		return strings.Contains(err.Error(), "record not found")
+	}
+	for _, detail := range st.Details() {
+		if s, ok := detail.(*err_code.Status); ok {
+			for _, arg := range s.Args {
+				if strings.Contains(arg, "record not found") {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 func DraftConversationDeleteByAssistantID(ctx *gin.Context, userId, orgId string, req request.ConversationDeleteRequest) (interface{}, error) {
@@ -845,8 +944,15 @@ func DraftConversationDeleteByAssistantID(ctx *gin.Context, userId, orgId string
 		},
 	})
 
-	if conversationIdResp == nil || err != nil {
+	if err != nil {
+		// 草稿对话尚未创建：删除请求幂等成功，不向调用方抛 5xx。其它错误原样上抛。
+		if isRecordNotFoundErr(err) {
+			return nil, nil
+		}
 		return nil, err
+	}
+	if conversationIdResp == nil {
+		return nil, nil
 	}
 
 	if req.DetailId != "" {
@@ -882,14 +988,26 @@ func GetConversationList(ctx *gin.Context, userId, orgId string, req request.Con
 		ConversationType: constant.ConversationTypePublished,
 		PageSize:         int32(req.PageSize),
 		PageNo:           int32(req.PageNo),
+		SearchText:       strings.TrimSpace(req.SearchText),
 		Identity: &assistant_service.Identity{
 			UserId: userId,
+			OrgId:  orgId,
 		},
 	})
 	if err != nil {
 		return response.PageResult{}, err
 	}
-	return response.PageResult{Total: resp.Total, List: resp.Data}, nil
+	var list []response.ConversationInfo
+	for _, item := range resp.Data {
+		list = append(list, response.ConversationInfo{
+			ConversationId: item.ConversationId,
+			AssistantId:    item.AssistantId,
+			Title:          item.Title,
+			CreatedAt:      util.Time2Str(item.CreatedAt),
+			UpdatedAt:      util.Time2Str(item.UpdatedAt),
+		})
+	}
+	return response.PageResult{Total: resp.Total, List: list}, nil
 }
 
 func GetConversationDetailList(ctx *gin.Context, userId, orgId string, req request.ConversationGetDetailListRequest) (response.PageResult, error) {
@@ -901,6 +1019,7 @@ func GetConversationDetailList(ctx *gin.Context, userId, orgId string, req reque
 			UserId: userId,
 			OrgId:  orgId,
 		},
+		ExcludeDeleted: true,
 	})
 	if err != nil {
 		return response.PageResult{}, err
@@ -926,6 +1045,8 @@ func GetConversationDetailList(ctx *gin.Context, userId, orgId string, req reque
 			FileName:            item.FileName,
 			SubConversationList: buildSubConversationList(item.SubConversationList),
 			ResponseFiles:       transResponseFiles(item.ResponseFiles),
+			Feedback:            item.Feedback,
+			FeedbackContent:     item.FeedbackContent,
 		}
 
 		// 将SearchList从string转换为interface{}
@@ -950,8 +1071,10 @@ func buildResponseList(conversationResponse []*assistant_service.ConversationRes
 	var retList []*response.ConversationResponse
 	for _, resp := range conversationResponse {
 		retList = append(retList, &response.ConversationResponse{
-			Response: resp.Response,
-			Order:    resp.Order,
+			Response:    resp.Response,
+			Order:       resp.Order,
+			ErrMessage:  resp.ErrMessage,
+			ErrResponse: resp.ErrResponse,
 		})
 	}
 	return retList
@@ -988,17 +1111,21 @@ func buildSubConversationList(conversationList []*assistant_service.SubConversat
 			ConversationType: conversation.ConversationType,
 			Order:            conversation.Order,
 			ParentId:         conversation.ParentId,
+			ErrMessage:       conversation.ErrMessage,
 		})
 	}
 	return subConversationList
 }
 
 func transKnowledgebases2Proto(kbConfig request.AppKnowledgebaseConfig) *assistant_service.AssistantKnowledgeBaseConfig {
+	validKbs := make([]request.AppKnowledgeBase, 0, len(kbConfig.Knowledgebases))
 	var knowIds []string
-	if len(kbConfig.Knowledgebases) > 0 {
-		for _, v := range kbConfig.Knowledgebases {
-			knowIds = append(knowIds, v.ID)
+	for _, v := range kbConfig.Knowledgebases {
+		if v.ID == "" {
+			continue
 		}
+		validKbs = append(validKbs, v)
+		knowIds = append(knowIds, v.ID)
 	}
 	return &assistant_service.AssistantKnowledgeBaseConfig{
 		KnowledgeBaseIds:     knowIds,
@@ -1012,7 +1139,7 @@ func transKnowledgebases2Proto(kbConfig request.AppKnowledgebaseConfig) *assista
 		TermWeight:           kbConfig.Config.TermWeight,
 		TermWeightEnable:     kbConfig.Config.TermWeightEnable,
 		UseGraph:             kbConfig.Config.UseGraph,
-		AppKnowledgeBaseList: transKnowledgeParams(kbConfig.Knowledgebases),
+		AppKnowledgeBaseList: transKnowledgeParams(validKbs),
 	}
 }
 
@@ -1080,274 +1207,58 @@ func transAssistantResp2Model(ctx *gin.Context, resp *assistant_service.Assistan
 		log.Debugf("Assistant响应为空，返回空Assistant模型")
 		return nil, nil
 	}
-
-	// 获取app发布信息，可能没有发布过，不返回错误
-	appInfo, _ := app.GetAppInfo(ctx, &app_service.GetAppInfoReq{AppId: resp.AssistantId, AppType: constant.AppTypeAgent})
-
-	// 转换Model配置
-	modelConfig, err := assistantModelConvert(ctx, resp.ModelConfig)
+	//构造智能体数据
+	assistantModel := buildAssistant(ctx, resp)
+	//并发填充各个智能体数据
+	err := ConcurrentConverter(ctx, resp, assistantModel)
 	if err != nil {
+		log.Errorf("Assistant响应到模型转换失败: %v", err)
 		return nil, err
 	}
+	log.Debugf("Assistant响应到模型转换完成，结果: %+v", *assistantModel)
+	return assistantModel, nil
+}
 
-	// 转换Workflow配置
-	assistantWorkFlowInfos, err := assistantWorkFlowConvert(ctx, resp.WorkFlowInfos)
-	if err != nil {
-		return nil, err
+// 构建Assistant模型
+func buildAssistant(ctx *gin.Context, resp *assistant_service.AssistantInfo) *response.Assistant {
+	assistantModel := response.Assistant{
+		AssistantId:       resp.AssistantId,
+		UUID:              resp.Uuid,
+		AppBriefConfig:    appBriefConfigProto2Model(ctx, resp.AssistantBrief, constant.AppTypeAgent),
+		Prologue:          resp.Prologue,
+		Instructions:      resp.Instructions,
+		RecommendQuestion: resp.RecommendQuestion,
+		Scope:             resp.Scope,
+		CreatedAt:         util.Time2Str(resp.CreatTime),
+		UpdatedAt:         util.Time2Str(resp.UpdateTime),
+		NewAgent:          true,
+		Category:          resp.Category,
+		MemoryConfig: request.MemoryConfig{
+			MaxHistoryLength: resp.MemoryConfig.MaxHistoryLength,
+		},
 	}
-
-	// 查询该用户所有权限的所有 MCP
-	assistantMCPInfos, err := assistantMCPConvert(ctx, resp.McpInfos)
-	if err != nil {
-		return nil, err
-	}
-
-	// 查询该用户所有权限的 custom、builtin 工具
-	assistantToolInfos, err := assistantToolsConvert(ctx, resp.ToolInfos)
-	if err != nil {
-		return nil, err
-	}
-
-	// 转换Skill配置
-	assistantSkillInfos, err := assistantSkillConvert(ctx, resp.SkillInfos)
-	if err != nil {
-		return nil, err
-	}
-
-	// 转换Safety配置
-	safetyConfig, err := assistantSafetyConvert(ctx, resp.SafetyConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	// 转换KnowledgeBase配置
-	knowledgeBaseConfig, err := transKnowledgeBases2Model(ctx, resp.KnowledgeBaseConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	// 转换Rerank配置
-	rerankConfig := request.AppModelConfig{}
-	if len(knowledgeBaseConfig.Knowledgebases) > 0 {
-		rerankConfig, err = assistantRerankConvert(ctx, resp.RerankConfig)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	// 转换Vision配置
-	var visionConfig response.VisionConfig
 	if resp.VisionConfig != nil {
-		visionConfig = response.VisionConfig{
+		assistantModel.VisionConfig = response.VisionConfig{
 			MaxPicNum: resp.VisionConfig.MaxPicNum,
 			PicNum:    resp.VisionConfig.PicNum,
 		}
 	}
-
-	// 转换Memory配置
-	memoryConfig := request.MemoryConfig{
-		MaxHistoryLength: resp.MemoryConfig.MaxHistoryLength,
+	// 从 Identity 字段解析 OwnerUserId 和 OwnerOrgId
+	if resp.Identity != nil {
+		assistantModel.OwnerUserId = resp.Identity.UserId
+		assistantModel.OwnerOrgId = resp.Identity.OrgId
 	}
-
-	// 转换Recommend配置
-	recommendConfig, err := assistantRecommendConvert(ctx, resp)
-	if err != nil {
-		return nil, err
-	}
-
-	// 转换MultiAgent配置
-	assistantMultiAgents := assistantMultiAgentConvert(ctx, resp)
-
-	assistantModel := response.Assistant{
-		AssistantId:         resp.AssistantId,
-		UUID:                resp.Uuid,
-		AppBriefConfig:      appBriefConfigProto2Model(ctx, resp.AssistantBrief, constant.AppTypeAgent),
-		Prologue:            resp.Prologue,
-		Instructions:        resp.Instructions,
-		RecommendQuestion:   resp.RecommendQuestion,
-		KnowledgeBaseConfig: knowledgeBaseConfig,
-		ModelConfig:         modelConfig,
-		RerankConfig:        rerankConfig,
-		SafetyConfig:        safetyConfig,
-		VisionConfig:        visionConfig,
-		MemoryConfig:        memoryConfig,
-		RecommendConfig:     recommendConfig,
-		Scope:               resp.Scope,
-		WorkFlowInfos:       assistantWorkFlowInfos,
-		MCPInfos:            assistantMCPInfos,
-		ToolInfos:           assistantToolInfos,
-		SkillInfos:          assistantSkillInfos,
-		MultiAgentInfos:     assistantMultiAgents,
-		CreatedAt:           util.Time2Str(resp.CreatTime),
-		UpdatedAt:           util.Time2Str(resp.UpdateTime),
-		NewAgent:            true,
-		PublishType:         appInfo.GetPublishType(),
-		Category:            resp.Category,
-	}
-
-	log.Debugf("Assistant响应到模型转换完成，结果: %+v", assistantModel)
-	return &assistantModel, nil
-}
-
-func assistantMultiAgentConvert(ctx *gin.Context, resp *assistant_service.AssistantInfo) []*response.AssistantAgentInfo {
-	assistantMultiAgents := make([]*response.AssistantAgentInfo, 0)
-	for _, agent := range resp.MultiAgentInfos {
-		multiAgent := &response.AssistantAgentInfo{
-			AgentId: agent.AgentId,
-			Name:    agent.Name,
-			Desc:    agent.Desc,
-			Avatar:  cacheAppAvatar(ctx, agent.AvatarPath, constant.AppTypeAgent),
-			Enable:  agent.Enable,
+	// 从 extra 字段解析 hideKnowledge
+	if resp.Extra != "" {
+		var extra struct {
+			HideKnowledge int32 `json:"hideKnowledge"`
 		}
-		assistantMultiAgents = append(assistantMultiAgents, multiAgent)
-	}
-	return assistantMultiAgents
-
-}
-
-func assistantRecommendConvert(ctx *gin.Context, resp *assistant_service.AssistantInfo) (recommendConfig response.RecommendConfig, err error) {
-	if resp.RecommendConfig != nil {
-		modelConfig, err := assistantModelConvert(ctx, resp.RecommendConfig.ModelConfig)
-		if err != nil {
-			recommendConfig.ModelConfig = modelConfig
-			return recommendConfig, err
-		}
-		recommendConfig = response.RecommendConfig{
-			ModelConfig:     modelConfig,
-			MaxHistory:      resp.RecommendConfig.MaxHistory,
-			RecommendEnable: resp.RecommendConfig.RecommendEnable,
-			Prompt:          resp.RecommendConfig.SystemPrompt,
-			PromptEnable:    resp.RecommendConfig.PromptEnable,
+		if json.Unmarshal([]byte(resp.Extra), &extra) == nil {
+			assistantModel.HideKnowledge = extra.HideKnowledge
 		}
 	}
-	return recommendConfig, nil
-}
-
-func transKnowledgeBases2Model(ctx *gin.Context, kbConfig *assistant_service.AssistantKnowledgeBaseConfig) (request.AppKnowledgebaseConfig, error) {
-	if kbConfig == nil {
-		log.Debugf("知识库配置为空")
-		return request.AppKnowledgebaseConfig{
-			Knowledgebases: make([]request.AppKnowledgeBase, 0),
-		}, nil
-	}
-	if len(kbConfig.KnowledgeBaseIds) == 0 {
-		log.Debugf("知识库配置为空")
-		return request.AppKnowledgebaseConfig{
-			Knowledgebases: make([]request.AppKnowledgeBase, 0),
-		}, nil
-	}
-
-	// 获取知识库详情列表
-	kbInfoList, err := knowledgeBase.SelectKnowledgeDetailByIdList(ctx, &knowledgeBase_service.KnowledgeDetailSelectListReq{
-		KnowledgeIds: kbConfig.KnowledgeBaseIds,
-	})
-
-	if err != nil || kbInfoList == nil || len(kbInfoList.List) == 0 {
-		return request.AppKnowledgebaseConfig{
-			Knowledgebases: make([]request.AppKnowledgeBase, 0),
-		}, err
-	}
-
-	knowledgeBases := buildKnowledgeBases(ctx, kbInfoList, kbConfig.KnowledgeBaseIds, kbConfig.AppKnowledgeBaseList)
-
-	return request.AppKnowledgebaseConfig{
-		Knowledgebases: knowledgeBases,
-		Config: request.AppKnowledgebaseParams{
-			MaxHistory:        kbConfig.MaxHistory,
-			Threshold:         kbConfig.Threshold,
-			TopK:              kbConfig.TopK,
-			MatchType:         kbConfig.MatchType,
-			PriorityMatch:     kbConfig.PriorityMatch,
-			SemanticsPriority: kbConfig.SemanticsPriority,
-			KeywordPriority:   kbConfig.KeywordPriority,
-			TermWeight:        kbConfig.TermWeight,
-			TermWeightEnable:  kbConfig.TermWeightEnable,
-			UseGraph:          kbConfig.UseGraph,
-		},
-	}, nil
-
-}
-
-func buildKnowledgeBases(ctx *gin.Context, kbInfoList *knowledgeBase_service.KnowledgeDetailSelectListResp, kbIdList []string, kbConfigList []*assistant_service.AppKnowledgeBase) []request.AppKnowledgeBase {
-	if len(kbInfoList.List) == 0 {
-		return make([]request.AppKnowledgeBase, 0)
-	}
-	var knowledgeMap = make(map[string]*knowledgeBase_service.KnowledgeInfo)
-	for _, kbInfo := range kbInfoList.List {
-		knowledgeMap[kbInfo.KnowledgeId] = kbInfo
-	}
-	var knowledgeBases = make([]request.AppKnowledgeBase, 0)
-	if len(kbConfigList) > 0 {
-		for _, kbConfig := range kbConfigList {
-			info := knowledgeMap[kbConfig.KnowledgeBaseId]
-			if info == nil {
-				continue
-			}
-			share := info.ShareCount > 1
-			var orgName string
-			if share {
-				orgInfo, err := iam.GetOrgInfo(ctx, &iam_service.GetOrgInfoReq{OrgId: info.CreateOrgId})
-				if err != nil {
-					log.Errorf("get org info error: %v", err)
-				} else {
-					orgName = buildShareOrgName(share, orgInfo.Name)
-				}
-			}
-			params := buildAssistantMetaDataFilterParams(kbConfig)
-			knowledgeBases = append(knowledgeBases, request.AppKnowledgeBase{
-				ID:                   kbConfig.KnowledgeBaseId,
-				Name:                 info.Name,
-				GraphSwitch:          info.GraphSwitch,
-				External:             info.External,
-				Category:             info.Category,
-				Share:                share,
-				OrgName:              orgName,
-				MetaDataFilterParams: params,
-				Avatar:               cacheKnowledgeAvatar(ctx, info.AvatarPath, info.Category),
-			})
-		}
-	} else {
-		for _, kbId := range kbIdList {
-			info := knowledgeMap[kbId]
-			if info == nil {
-				continue
-			}
-			knowledgeBases = append(knowledgeBases, request.AppKnowledgeBase{
-				ID:   kbId,
-				Name: info.Name,
-			})
-		}
-	}
-
-	return knowledgeBases
-}
-
-func buildAssistantMetaDataFilterParams(kbConfig *assistant_service.AppKnowledgeBase) *request.MetaDataFilterParams {
-	params := kbConfig.MetaDataFilterParams
-	if params == nil {
-		return nil
-	}
-	return &request.MetaDataFilterParams{
-		FilterEnable:     params.FilterEnable,
-		FilterLogicType:  params.FilterLogicType,
-		MetaFilterParams: buildAssistantMetaFilterParams(params.MetaFilterParams),
-	}
-}
-
-func buildAssistantMetaFilterParams(metaFilterList []*assistant_service.MetaFilterParams) []*request.MetaFilterParams {
-	if metaFilterList == nil {
-		return nil
-	}
-	var metaList []*request.MetaFilterParams
-	for _, m := range metaFilterList {
-		metaList = append(metaList, &request.MetaFilterParams{
-			Condition: m.Condition,
-			Key:       m.Key,
-			Type:      m.Type,
-			Value:     m.Value,
-		})
-	}
-	return metaList
+	return &assistantModel
 }
 
 func transRequestFiles(files []*assistant_service.RequestFile) []response.AssistantRequestFile {
@@ -1414,4 +1325,46 @@ func recommendConfigModel2Proto(recommendConfig request.RecommendConfig) (ret *a
 	}
 
 	return ret, nil
+}
+
+var assistantBizImpl = &AssistantBiz{}
+
+type AssistantBiz struct{}
+
+func init() {
+	InitBizService(assistantBizImpl)
+}
+
+func (*AssistantBiz) BizType() string {
+	return constant.BizModuleAppAgent
+}
+
+func (*AssistantBiz) SearchBizOwner(ctx *gin.Context, bizId string) (userId, orgId string, err error) {
+	resp, err := assistant.GetAssistantInfo(ctx, &assistant_service.GetAssistantInfoReq{
+		AssistantId: bizId,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if resp.Identity != nil {
+		return resp.Identity.UserId, resp.Identity.OrgId, nil
+	}
+	return "", "", errors.New("assistant not found")
+}
+
+func (*AssistantBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string) (*common.ConversationLog, error) {
+	// openurl 等匿名链路写 detail 用的是 xCid + appUrlInfo.OrgId，与 getUserID/getOrgID 不一致，
+	// 故由对应 handler 通过 CONVERSATION_LOG_USER_ID/CONVERSATION_LOG_ORG_ID 写入真实身份，这里优先采用。
+	orgID, userID := getOrgID(ctx), getUserID(ctx)
+	if logUserID := ctx.GetString(gin_util.CONVERSATION_LOG_USER_ID); logUserID != "" {
+		userID = logUserID
+	}
+	if logOrgID := ctx.GetString(gin_util.CONVERSATION_LOG_ORG_ID); logOrgID != "" {
+		orgID = logOrgID
+	}
+	return assistant.GetConversationLog(ctx, &assistant_service.ConversationLogReq{ConversationId: bizId, SourceFrom: sourceFrom,
+		Identity: &assistant_service.Identity{
+			OrgId:  orgID,
+			UserId: userID,
+		}})
 }

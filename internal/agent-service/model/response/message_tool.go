@@ -18,6 +18,10 @@ func CreateMessageTool(chatMessage *schema.Message, respContext *AgentChatRespCo
 	}
 }
 
+func (m *MessageTool) ToolMessage() bool {
+	return m.ToolStart() || m.ToolParamsEnd() || m.ToolEnd()
+}
+
 func (m *MessageTool) ToolStart() bool {
 	return len(m.ChatMessage.ToolCalls) > 0
 }

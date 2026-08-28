@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/UnicomAI/wanwu/internal/agent-service/model/request"
+	agent_util "github.com/UnicomAI/wanwu/internal/agent-service/pkg/util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/cloudwego/eino/schema"
 	"github.com/google/uuid"
@@ -16,6 +17,9 @@ const (
 	agentFailCode    = 1
 	finish           = 1
 	notFinish        = 0
+	// 两种实现方案1：堆积所有总结到内存，最后统一正则识别url（空间换时间），2.每个流式事件校验一下，正则识别url（时间换空间）
+	//目前采用第二种实现,这个值越大内存消耗越多，cpu消耗越少，反之亦然
+	defaultContentQueueSize = 1000
 )
 
 type AgentInfo struct {
@@ -54,9 +58,11 @@ func (c *AgentChatRespContext) ResetTool() {
 
 func (c *AgentChatRespContext) IncreaseOrder() {
 	c.Order = c.Order + 1
+	c.DownloadContext.ClearContent()
 }
 
-func NewAgentChatRespContext(multiAgent bool, mainAgentName string, order int) *AgentChatRespContext {
+func NewAgentChatRespContext(multiAgent bool, order int, reqParams *request.AgentChatParams) *AgentChatRespContext {
+	var mainAgentName = reqParams.AgentBaseParams.Name
 	return &AgentChatRespContext{
 		MultiAgent:        multiAgent,
 		Order:             order,
@@ -106,9 +112,6 @@ func BuildAgentChatResp(req *request.AgentChatContext, chatMessage *schema.Messa
 
 func AgentChatSuccessResp(req *request.AgentChatContext, chatMessage *schema.Message, subAgentEventData *SubEventData, content string, notStop bool, respContext *AgentChatRespContext) *AgentChatResp {
 	agentFinish := buildFinish(chatMessage, notStop)
-	if agentFinish == finish {
-		log.Infof("finish agent: %v", respContext.DownloadContext.DownloadList)
-	}
 	return &AgentChatResp{
 		Code:          agentSuccessCode,
 		Message:       "success",
@@ -123,14 +126,15 @@ func AgentChatSuccessResp(req *request.AgentChatContext, chatMessage *schema.Mes
 		ResponseFiles: respContext.DownloadContext.ResponseFiles(agentFinish),
 	}
 }
-func AgentChatFailResp(detailId string, err error) string {
-	errMsg := buildErrMsg(err)
+func AgentChatFailResp(detailId string, err error, respContext *AgentChatRespContext) string {
+	resp, errMsg := buildErrMsg(err)
 	var agentChatResp = &AgentChatResp{
 		Code:     agentFailCode,
 		Message:  errMsg,
-		Response: errMsg,
+		Response: resp,
 		DetailId: detailId,
 		Finish:   finish,
+		Order:    respContext.Order,
 	}
 	respString, err := buildRespString(agentChatResp)
 	if err != nil {
@@ -140,15 +144,15 @@ func AgentChatFailResp(detailId string, err error) string {
 	return respString
 }
 
-func buildErrMsg(err error) string {
+func buildErrMsg(err error) (string, string) {
 	errMsg := err.Error()
 	if strings.Contains(errMsg, "[direct]") { // 判断是否为直接返回错误
-		return strings.ReplaceAll(errMsg, "[direct]", "")
+		return strings.ReplaceAll(errMsg, "[direct]", ""), ""
 	}
 	if strings.Contains(errMsg, "chat completions err") { // 判断是否为墨子模型错误
-		return "模型调用异常，请检查后重试"
+		return "模型调用异常，请检查后重试", errMsg
 	}
-	return "智能体处理异常，请稍后重试"
+	return "智能体处理异常，请稍后重试", errMsg
 }
 
 func buildRespString(agentChatResp *AgentChatResp) (string, error) {
@@ -166,7 +170,7 @@ func buildFinish(chatMessage *schema.Message, notStop bool) int {
 	if notStop {
 		return notFinish
 	}
-	if chatMessage.ResponseMeta != nil && chatMessage.ResponseMeta.FinishReason == "stop" {
+	if agent_util.StopMessage(chatMessage) {
 		return finish
 	}
 	if chatMessage.Role == schema.Tool && chatMessage.ToolName == "exit" {
@@ -203,7 +207,7 @@ func buildSubAgentSearchList(subAgentEventData *SubEventData, req *request.Agent
 }
 
 func buildSearchList(req *request.AgentChatContext) []interface{} {
-	if req.KnowledgeHitData == nil {
+	if req.KnowledgeHitData == nil || !req.KnowledgeHitData.AutoCitation {
 		return []interface{}{}
 	}
 	list := req.KnowledgeHitData.SearchList

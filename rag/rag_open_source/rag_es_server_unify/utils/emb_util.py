@@ -5,11 +5,15 @@ from typing import List
 
 import numpy as np
 
-from openai import OpenAI
 from model.model_manager import get_model_configure
-from settings import MINIO_ADDRESS, REPLACE_MINIO_DOWNLOAD_URL
+from settings import MINIO_ADDRESS, REPLACE_MINIO_DOWNLOAD_URL, EMBEDDING_BATCH_SIZE
 
 from log.logger import logger
+
+
+def batch_list(lst: list, batch_size=32):
+    for i in range(0, len(lst), batch_size):
+        yield lst[i:i + batch_size]
 
 def _execute_embedding(request_func, log_prefix="Embedding"):
     rate_limit_backoff = [10, 20, 40, 60]
@@ -92,7 +96,11 @@ def _execute_embedding(request_func, log_prefix="Embedding"):
 
 
 def get_embs(texts: list, embedding_model_id=""):
-    """ 先使用 openai embedding协议获取 文本向量"""
+    """ 使用 openai embedding 协议（HTTP）获取文本向量。
+
+    走 raw requests.post 以让 RequestsInstrumentor 自动注入 W3C traceparent，
+    打通到上游 embedding 服务的 trace 链路（OpenAI SDK 底层 httpx 不在覆盖范围内）。
+    """
     emb_info = get_model_configure(embedding_model_id)
     logger.info(f"Starting embedding request for {len(texts)} texts, model: {emb_info.model_name}")
 
@@ -100,14 +108,23 @@ def get_embs(texts: list, embedding_model_id=""):
     # 安全记录API Key（仅显示部分）
     masked_key = api_key[:4] + "****" + api_key[-4:] if len(api_key) > 8 else "****"
 
-    client = OpenAI(
-        api_key=api_key,
-        base_url=emb_info.endpoint_url,
-    )
+    emb_model_url = emb_info.endpoint_url
+    if not emb_model_url.endswith("/embeddings"):
+        emb_model_url = emb_model_url.rstrip("/") + "/embeddings"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+    }
+    payload = {
+        "model": emb_info.model_name,
+        "input": texts,
+        "encoding_format": "float",
+    }
 
     # 安全的请求日志
     request_details = {
-        "url": emb_info.endpoint_url,
+        "url": emb_model_url,
         "model": emb_info.model_name,
         "api_key": masked_key,  # 使用脱敏后的key
         "text_count": len(texts),
@@ -116,14 +133,10 @@ def get_embs(texts: list, embedding_model_id=""):
     logger.info(f"Sending embedding request: {json.dumps(request_details, ensure_ascii=False)}")
 
     def request_func():
-        completion = client.embeddings.create(
-            model=emb_info.model_name,
-            input=texts,
-            encoding_format="float"
-        )
-        response_json = json.loads(completion.model_dump_json())
-
-        return response_json
+        response = requests.post(emb_model_url, headers=headers, json=payload, timeout=120)
+        if response.status_code != 200:
+            raise Exception(f"HTTP {response.status_code}: {response.text}")
+        return response.json()
 
     return _execute_embedding(request_func, log_prefix="Embedding")
 
@@ -250,12 +263,19 @@ def calculate_cosine(query, contents, embedding_model_id="") -> list[float]:
     query_vector_scores = []
     emb_info = get_model_configure(embedding_model_id)
 
+    contents_vector = []
     if emb_info.is_multimodal:
         query_vector = get_multimodal_embs([{"text": query}], embedding_model_id=embedding_model_id)["result"][0]["dense_vec"]
-        contents_vector = get_multimodal_embs([{"text": item} for item in contents], embedding_model_id=embedding_model_id)["result"]
+        for batch_doc in batch_list(contents, batch_size=EMBEDDING_BATCH_SIZE):
+            contents_vector.extend(
+                get_multimodal_embs([{"text": item} for item in batch_doc], embedding_model_id=embedding_model_id)["result"]
+            )
     else:
         query_vector = get_embs([query], embedding_model_id=embedding_model_id)["result"][0]["dense_vec"]
-        contents_vector = get_embs(contents, embedding_model_id=embedding_model_id)["result"]
+        for batch_doc in batch_list(contents, batch_size=EMBEDDING_BATCH_SIZE):
+            contents_vector.extend(
+                get_embs(batch_doc, embedding_model_id=embedding_model_id)["result"]
+            )
 
     for item in contents_vector:
         vec1 = np.array(query_vector)

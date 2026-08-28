@@ -18,6 +18,11 @@ const (
 	KnowledgeDocExportTaskType    = 11 // 知识库导出
 )
 
+type TaskTraceParams struct {
+	TraceID string `json:"traceID"`
+	SpanID  string `json:"spanID"`
+}
+
 type KnowledgeDeleteParams struct {
 	KnowledgeId string `json:"knowledgeId"`
 }
@@ -48,11 +53,13 @@ type QAPairDeleteParams struct {
 
 type DocImportTaskParams struct {
 	TaskId string `json:"taskId"`
+	TaskTraceParams
 }
 
 type DocReImportTaskParams struct {
 	TaskId string `json:"taskId"`
 	DocId  string `json:"docId"`
+	TaskTraceParams
 }
 
 type DocSegmentImportTaskParams struct {

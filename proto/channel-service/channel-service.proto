@@ -1,0 +1,285 @@
+syntax = "proto3";
+
+package channel_service;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/UnicomAI/wanwu/api/proto/channel-service";
+
+// ============================================================
+// Channel Service — 通道服务
+// 对接钉钉/微信/飞书，将已发布智能体接入第三方平台
+// ============================================================
+
+service ChannelService {
+  // --- 万悟平台代理 ---
+  // 获取万悟智能体列表（前端下拉选择用）
+  rpc ListWanwuAgents(ListWanwuAgentsReq) returns (ListWanwuAgentsResp) {}
+  // 获取万悟 API Key 列表（前端下拉选择用）
+  rpc ListWanwuApiKeys(ListWanwuApiKeysReq) returns (ListWanwuApiKeysResp) {}
+
+  // --- 扫码登录 ---
+  // 发起扫码登录
+  rpc CreateQRLogin(CreateQRLoginReq) returns (CreateQRLoginResp) {}
+  // 查询扫码状态
+  rpc GetQRLoginStatus(GetQRLoginStatusReq) returns (QRLoginStatus) {}
+  // 取消扫码登录
+  rpc CancelQRLogin(CancelQRLoginReq) returns (google.protobuf.Empty) {}
+  // 完成扫码登录（扫码成功后创建通道）
+  rpc CompleteQRLogin(CompleteQRLoginReq) returns (Channel) {}
+
+  // --- 通道管理 ---
+  // 创建通道
+  rpc CreateChannel(CreateChannelReq) returns (Channel) {}
+  // 获取通道列表
+  rpc ListChannels(ListChannelsReq) returns (ListChannelsResp) {}
+  // 获取通道详情
+  rpc GetChannel(GetChannelReq) returns (Channel) {}
+  // 更新通道
+  rpc UpdateChannel(UpdateChannelReq) returns (Channel) {}
+  // 启用/停用通道
+  rpc UpdateChannelStatus(UpdateChannelStatusReq) returns (Channel) {}
+  // 删除通道
+  rpc DeleteChannel(DeleteChannelReq) returns (google.protobuf.Empty) {}
+  // 断开通道连接
+  rpc DisconnectChannel(DisconnectChannelReq) returns (google.protobuf.Empty) {}
+
+  // --- 通道连通性 / 测试消息 ---
+  // 发送测试消息：给指定通道的收件人发一条消息，验证通道出站可用并预置会话映射。
+  // 既用于建通道后自检连通性，也用于"建通道后给通道发消息"的首次投递。
+  rpc SendTestMessage(SendTestMessageReq) returns (SendTestMessageResp) {}
+  // 查询通道实时连通状态（从适配器内存读，非 DB 快照），供前端展示 / 推送前自检。
+  rpc GetChannelConnectivity(GetChannelConnectivityReq) returns (Connectivity) {}
+
+  // --- 内部服务发消息 ---
+  // 供内部服务（经 bff callback）给指定通道发消息。无权限校验、不预置会话映射，
+  // 仅做出站投递。user_id 不传时自动取该通道最近互动过的 IM 用户作为收件人。
+  // msg_type 支持 text/markdown/file：file 时传 file_url（minio 下载地址）+ file_name，
+  // channel-service 下载字节后经适配器 SendFile 投递（钉钉/微信支持，飞书不支持返回错误）。
+  rpc SendMessage(SendMessageReq) returns (SendMessageResp) {}
+}
+
+// ============================================================
+// 万悟平台代理
+// ============================================================
+
+message ListWanwuAgentsReq {
+  string api_key = 1;   // 用户选择的 API Key，用于鉴权
+  string name = 2;       // 按名称模糊筛选
+  string user_id = 3;   // 内部：用户 ID（从 JWT 获取）
+  string org_id = 4;    // 内部：组织 ID
+}
+
+message WanwuAgentBrief {
+  string app_id = 1;     // 智能体 UUID
+  string name = 2;
+  string desc = 3;
+  string avatar_url = 4;
+  string publish_type = 5;  // public/organization/private
+  string version = 6;
+}
+
+message ListWanwuAgentsResp {
+  repeated WanwuAgentBrief list = 1;
+}
+
+message ListWanwuApiKeysReq {
+  string user_id = 1;
+  string org_id = 2;
+}
+
+message WanwuApiKeyBrief {
+  string key_id = 1;
+  string name = 2;
+  string desc = 3;
+  string key = 4;        // 完整 API Key 值（仅此接口返回）
+  bool status = 5;       // 是否启用
+  int64 expired_at = 6;  // 过期时间
+}
+
+message ListWanwuApiKeysResp {
+  repeated WanwuApiKeyBrief list = 1;
+  int32 total = 2;
+}
+
+// ============================================================
+// 扫码登录
+// ============================================================
+
+message CreateQRLoginReq {
+  string channel_type = 1;  // wechat/dingtalk/feishu
+  string user_id = 2;
+  string org_id = 3;
+}
+
+message CreateQRLoginResp {
+  string session_id = 1;    // 扫码会话 ID
+  string qr_url = 3;        // 二维码 URL（所有平台通用，前端用此字段生成/展示二维码）
+  int64 expire_at = 4;      // 过期时间 Unix 时间戳
+  int64 expire_time = 5;    // 过期时长（秒）
+}
+
+message GetQRLoginStatusReq {
+  string channel_type = 1;
+  string session_id = 2;
+}
+
+message QRLoginStatus {
+  string status = 1;        // waiting/scanned/confirmed/success/expired/error
+  map<string, string> credentials = 2;  // 登录成功时返回的平台凭据
+  string error = 3;
+}
+
+message CancelQRLoginReq {
+  string channel_type = 1;
+  string session_id = 2;
+}
+
+message CompleteQRLoginReq {
+  string channel_type = 1;
+  string session_id = 2;
+  string user_id = 3;
+  string org_id = 4;
+}
+
+// ============================================================
+// 通道管理
+// ============================================================
+
+message CreateChannelReq {
+  string name = 1;
+  string channel_type = 2;  // wechat/dingtalk/feishu
+  string app_type = 3;      // agent（默认）/ wga（通用智能体）
+  string app_id = 4;        // 智能体 UUID
+  string api_key_id = 5;    // API Key ID
+  string api_key = 6;       // API Key 完整值（创建时传入）
+  map<string, string> config = 7;  // 平台特定配置
+  string user_id = 8;
+  string org_id = 9;
+  string model_uuid = 10;   // WGA 通道使用的模型 UUID
+  string app_name = 11;     // 智能体名称（由 BFF 层查询填充）
+  string agent_id = 12;     // WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）
+}
+
+message ListChannelsReq {
+  string user_id = 1;
+  string org_id = 2;
+  int32 page_no = 3;
+  int32 page_size = 4;
+  string name = 5;  // 按渠道名称模糊搜索
+}
+
+message GetChannelReq {
+  string channel_id = 1;
+}
+
+message UpdateChannelReq {
+  string channel_id = 1;
+  string name = 2;
+  optional string app_id = 3;       // optional 以支持更新时清空（如 WGA 选「无」子智能体时 app_id 置空）；未传保留旧值
+  string api_key_id = 4;
+  string api_key = 5;       // 更新 API Key 时传入
+  map<string, string> config = 6;
+  string user_id = 7;
+  string org_id = 8;
+  string model_uuid = 9;   // WGA 通道使用的模型 UUID
+  optional string app_name = 10;    // optional 以支持更新时清空；未传保留旧值
+  optional string agent_id = 11;    // WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）；optional 以支持更新时清空（置空走 Supervisor 默认）
+}
+
+message UpdateChannelStatusReq {
+  string channel_id = 1;
+  bool enabled = 2;
+  string user_id = 3;
+  string org_id = 4;
+}
+
+message DeleteChannelReq {
+  string channel_id = 1;
+  string user_id = 2;
+  string org_id = 3;
+}
+
+message DisconnectChannelReq {
+  string channel_id = 1;
+}
+
+// ============================================================
+// 通道连通性 / 测试消息
+// ============================================================
+
+// Connectivity 通道连通状态（结构化）。
+// state 取值：connected / connecting / auth_failed / waiting_login / offline。
+message Connectivity {
+  string state = 1;     // 连通状态枚举字符串
+  string detail = 2;    // 人类可读补充（失败原因 / 登录提示）
+  bool ok = 3;          // 是否可用（state==connected 即 true，便于前端判断）
+  int64 checked = 4;    // 最近一次状态采集时间（Unix 毫秒）
+}
+
+message SendTestMessageReq {
+  string channel_id = 1;  // 目标通道 ID
+  string user_id = 2;     // IM 平台收件人 ID（钉钉 staffId / 微信 wxid）。可选：不传时微信用机器人自身账号自测，钉钉/飞书仅做连通性自检
+  string content = 3;     // 测试消息内容（空则用默认"通道连通测试"）
+  string operator_id = 4; // 操作者万悟用户 ID（用于权限校验，从 JWT 获取）
+  string org_id = 5;      // 组织 ID
+}
+
+message SendTestMessageResp {
+  Connectivity connectivity = 1;  // 发送后的连通状态
+  bool message_sent = 2;          // 消息是否成功投递
+  string error = 3;               // 失败原因（message_sent=false 时填）
+}
+
+message SendMessageReq {
+  string channel_id = 1;  // 目标通道 ID（必填）
+  string content = 2;     // 消息内容（text/markdown 必填；file 场景可空，作为文件附带文案）
+  string user_id = 3;     // IM 平台收件人 ID（钉钉 staffId / 微信 wxid）。可选：不传时自动取该通道最近互动过的 IM 用户
+  string msg_type = 4;    // 消息类型：text（默认，纯文本）/ markdown（钉钉渲染为 md 卡片，微信降级纯文本）/ file（发送文件附件）
+  string title = 5;       // markdown 消息标题（钉钉 sampleMarkdown 卡片必填）。msg_type=markdown 且为空时由 gRPC 层从 content 自动生成
+  string file_url = 6;    // 文件下载 URL（万悟 minio 文件地址，msg_type=file 必填）。channel-service 下载字节后经适配器 SendFile 投递，不占 gRPC 消息体
+  string file_name = 7;   // 文件名（含扩展名，msg_type=file 必填）。用于 IM 端展示与类型识别
+  string file_mime_type = 8;  // 文件 MIME 类型（msg_type=file 可选，留空则按 file_name 扩展名推断）
+}
+
+message SendMessageResp {
+  bool ok = 1;            // 消息是否成功投递
+  string user_id = 2;     // 实际使用的收件人（自动取历史互动用户时回填）
+  string error = 3;       // 失败原因（ok=false 时填）
+}
+
+message GetChannelConnectivityReq {
+  string channel_id = 1;
+}
+
+// Channel 通道完整信息
+message Channel {
+  string id = 1;            // 通道 ID (UUID)
+  string name = 2;
+  string channel_type = 3;  // wechat/dingtalk/feishu
+  string status = 4;        // loggedIn/offline（DB 快照，建通道时写，心跳异常回写）
+  string account_id = 5;
+  string nickname = 6;
+  string avatar = 7;
+  bool enabled = 8;
+  string app_type = 9;
+  string app_id = 10;
+  string app_name = 11;
+  string api_key_id = 12;
+  string api_key_name = 13;
+  bool has_api_key = 14;
+  map<string, string> config = 15;  // 平台配置（敏感字段脱敏）
+  string created_at = 16;
+  string updated_at = 17;
+  string user_id = 18;
+  string org_id = 19;
+  string model_uuid = 20;   // WGA 通道使用的模型 UUID
+  string agent_id = 21;     // WGA 通道绑定的子智能体 ID（直连该子智能体，跳过 Supervisor）
+  Connectivity connectivity = 22;  // 实时连通状态（从适配器内存读，非 DB 快照）
+}
+
+message ListChannelsResp {
+  repeated Channel list = 1;
+  int32 total = 2;
+}
+

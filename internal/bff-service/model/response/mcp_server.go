@@ -22,6 +22,7 @@ type MCPServerDetail struct {
 	StreamableURL     string              `json:"streamableUrl"`     // streamable http url
 	StreamableExample string              `json:"streamableExample"` // streamable http 连接示例
 	Tools             []MCPServerToolInfo `json:"tools"`             // 绑定工具列表
+	Transport         string              `json:"transport"`         // sse/streamable
 }
 
 // MCPServerToolInfo MCP Server 绑定工具信息

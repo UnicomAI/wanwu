@@ -32,15 +32,16 @@ def get_weighted_rerank(query, weights, search_list, top_k):
         if "content_type" in item and item["content_type"] == "image":
             continue
         base_name = item["kb_name"]
+        base_id = item.get("kb_id")
         user_id = item["user_id"]
 
         if user_id not in search_list_infos:
             search_list_infos[user_id] = {
-                "base_names": [],
+                "base_infos": [],
                 "search_list": []
             }
 
-        search_list_infos[user_id]["base_names"].append(base_name)
+        search_list_infos[user_id]["base_infos"].append({"kb_name": base_name, "kb_id": base_id})
         search_list_infos[user_id]["search_list"].append(item)
 
     return es_utils.kb_rescore(query, weights, search_list_infos, top_k)

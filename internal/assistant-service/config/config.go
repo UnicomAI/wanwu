@@ -13,17 +13,25 @@ var (
 )
 
 type Config struct {
-	Server    ServerConfig `json:"server" mapstructure:"server"`
-	Log       LogConfig    `json:"log" mapstructure:"log"`
-	DB        db.Config    `json:"db" mapstructure:"db"`
-	Redis     redis.Config `json:"redis" mapstructure:"redis"`
-	ES        es.Config    `json:"es" mapstructure:"es"`
-	Assistant Assistant    `json:"assistant" mapstructure:"assistant"`
-	Minio     *MinioConfig `mapstructure:"minio" json:"minio"`
-	Knowledge Knowledge    `mapstructure:"knowledge" json:"knowledge" yaml:"knowledge"`
-	MCP       Mcp          `mapstructure:"mcp" json:"mcp"`
-	Workflow  Workflow     `mapstructure:"workflow" json:"workflow"`
-	Skill     Skill        `mapstructure:"skill" json:"skill"`
+	Server       ServerConfig  `json:"server" mapstructure:"server"`
+	Log          LogConfig     `json:"log" mapstructure:"log"`
+	DB           db.Config     `json:"db" mapstructure:"db"`
+	Redis        redis.Config  `json:"redis" mapstructure:"redis"`
+	ES           es.Config     `json:"es" mapstructure:"es"`
+	Assistant    Assistant     `json:"assistant" mapstructure:"assistant"`
+	Minio        *MinioConfig  `mapstructure:"minio" json:"minio"`
+	Knowledge    Knowledge     `mapstructure:"knowledge" json:"knowledge" yaml:"knowledge"`
+	MCP          Mcp           `mapstructure:"mcp" json:"mcp"`
+	Workflow     Workflow      `mapstructure:"workflow" json:"workflow"`
+	Skill        Skill         `mapstructure:"skill" json:"skill"`
+	BuiltinTools []BuiltinTool `mapstructure:"builtin_tools" json:"builtin_tools" yaml:"builtin_tools"`
+}
+
+// BuiltinTool 创建智能体时自动绑定的内置工具配置
+type BuiltinTool struct {
+	ToolId     string `mapstructure:"tool_id" json:"tool_id" yaml:"tool_id"`
+	ToolType   string `mapstructure:"tool_type" json:"tool_type" yaml:"tool_type"`
+	ActionName string `mapstructure:"action_name" json:"action_name" yaml:"action_name"`
 }
 
 type Knowledge struct {
@@ -40,8 +48,10 @@ type Workflow struct {
 }
 
 type Skill struct {
-	Endpoint            string `mapstructure:"endpoint" json:"endpoint" yaml:"endpoint"`
-	BuiltInSkillListUri string `mapstructure:"builtin_skill_list_uri" json:"builtin_skill_list_uri" yaml:"builtin_skill_list_uri"`
+	Endpoint             string `mapstructure:"endpoint" json:"endpoint" yaml:"endpoint"`
+	BuiltInSkillListUri  string `mapstructure:"builtin_skill_list_uri" json:"builtin_skill_list_uri" yaml:"builtin_skill_list_uri"`
+	CustomSkillListUri   string `mapstructure:"custom_skill_list_uri" json:"custom_skill_list_uri" yaml:"custom_skill_list_uri"`
+	AcquiredSkillListUri string `mapstructure:"acquired_skill_list_uri" json:"acquired_skill_list_uri" yaml:"acquired_skill_list_uri"`
 }
 
 type ServerConfig struct {
@@ -68,10 +78,11 @@ type Assistant struct {
 }
 
 type MinioConfig struct {
-	EndPoint string `json:"endpoint" mapstructure:"endpoint"`
-	User     string `mapstructure:"user" json:"user"`
-	Password string `mapstructure:"password" json:"password"`
-	Bucket   string `mapstructure:"bucket" json:"bucket"`
+	EndPoint    string `json:"endpoint" mapstructure:"endpoint"`
+	User        string `mapstructure:"user" json:"user"`
+	Password    string `mapstructure:"password" json:"password"`
+	DownloadURL string `json:"download_url" mapstructure:"download_url"`
+	Bucket      string `mapstructure:"bucket" json:"bucket"`
 }
 
 func LoadConfig(in string) error {

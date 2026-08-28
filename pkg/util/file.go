@@ -15,7 +15,9 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/google/uuid"
@@ -27,7 +29,7 @@ const (
 	MaxScanTokenSize = 1024 * 1024 // Set the maximum token size to 1 MB
 )
 
-var specialFileExtList = []string{".tar.gz"}
+var specialFileExtList = []string{".tar.gz", ".tar.bz2"}
 
 type FileInfo struct {
 	IsDir    bool
@@ -49,8 +51,9 @@ func FileExt(filePath string) string {
 	if len(filePath) == 0 {
 		return ""
 	}
+	lower := strings.ToLower(filePath)
 	for _, ext := range specialFileExtList {
-		if strings.HasSuffix(filePath, ext) {
+		if strings.HasSuffix(lower, ext) {
 			return ext
 		}
 	}
@@ -612,4 +615,107 @@ func validateUnixPath(path string) error {
 	}
 
 	return nil
+}
+
+// WriteFileAtomic 通过临时文件+rename 原子写入文件内容，失败时清理临时文件。
+func WriteFileAtomic(filePath string, data []byte) error {
+	dir := filepath.Dir(filePath)
+	tmp, err := os.CreateTemp(dir, ".tmp-*")
+	if err != nil {
+		return err
+	}
+	tmpName := tmp.Name()
+	defer func() { _ = os.Remove(tmpName) }()
+
+	if _, err := tmp.Write(data); err != nil {
+		_ = tmp.Close()
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		return err
+	}
+	if err := os.Chmod(tmpName, 0644); err != nil {
+		return err
+	}
+	if err := os.Rename(tmpName, filePath); err != nil {
+		if removeErr := os.Remove(filePath); removeErr != nil && !os.IsNotExist(removeErr) {
+			return err
+		}
+		if renameErr := os.Rename(tmpName, filePath); renameErr != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// binaryDetectHeadBytes 是二进制启发式判断读取的头部字节数。
+const binaryDetectHeadBytes = 8192
+
+// IsLikelyBinaryFile 通过读取文件头部 8KB 是否含 NUL 字节，启发式判断是否为二进制文件。
+func IsLikelyBinaryFile(path string) (bool, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return false, err
+	}
+	defer func() { _ = file.Close() }()
+
+	buf := make([]byte, binaryDetectHeadBytes)
+	n, err := file.Read(buf)
+	if err != nil && err != io.EOF {
+		return false, err
+	}
+	return IsLikelyBinaryData(buf[:n]), nil
+}
+
+// IsLikelyBinaryData 按与 IsLikelyBinaryFile 相同的规则判断内存中的字节是否为二进制内容，
+// 供已经读入内存（如从 git 对象库取出）的数据复用。
+func IsLikelyBinaryData(data []byte) bool {
+	if len(data) > binaryDetectHeadBytes {
+		data = data[:binaryDetectHeadBytes]
+	}
+	return slices.Contains(data, 0)
+}
+
+// TruncateUTF8 按字节上限安全截断 UTF-8 字符串，保证不切坏多字节序列。
+func TruncateUTF8(s string, maxBytes int) string {
+	if maxBytes <= 0 {
+		return ""
+	}
+	if len(s) <= maxBytes {
+		return s
+	}
+	truncated := s[:maxBytes]
+	for len(truncated) > 0 && !utf8.ValidString(truncated) {
+		truncated = truncated[:len(truncated)-1]
+	}
+	return truncated
+}
+
+// MatchGlobPatterns 检查路径是否匹配以逗号分隔的多个 glob 模式（任一命中即返回 true）。
+// 同时尝试匹配整段路径与 basename，行为与 ripgrep --glob 类似。
+func MatchGlobPatterns(relPath, pattern string) bool {
+	if pattern == "" {
+		return true
+	}
+	for _, p := range strings.Split(pattern, ",") {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		if matched, err := path.Match(p, filepath.Base(relPath)); err == nil && matched {
+			return true
+		}
+		if matched, err := path.Match(p, relPath); err == nil && matched {
+			return true
+		}
+	}
+	return false
+}
+
+// RecreateDir 删除已存在的目录然后重新创建，权限 0755。
+func RecreateDir(dir string) error {
+	if err := os.RemoveAll(dir); err != nil {
+		return err
+	}
+	return os.MkdirAll(dir, 0755)
 }

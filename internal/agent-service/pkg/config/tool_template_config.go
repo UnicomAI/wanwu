@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/UnicomAI/wanwu/internal/agent-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/agent-service/pkg"
@@ -24,17 +25,27 @@ type ToolTemplateMeta struct {
 
 // ToolTemplateConfigData tool-template 配置数据
 type ToolTemplateConfigData struct {
-	Tools []*ToolTemplateMeta `mapstructure:"tools" json:"tools"` // 工具列表
+	SpecialToolModel  []*ToolModel        `mapstructure:"special-tool-model" json:"special-tool-model"`   // 需要特殊处理的模型工具，比如不能使用英文的
+	DeepSeekReasoning []*ToolModel        `mapstructure:"deep-seek-reasoning" json:"deep-seek-reasoning"` // deepseek系列要求，使用reasoning同时使用tool时，要回传reasoning-content
+	Tools             []*ToolTemplateMeta `mapstructure:"tools" json:"tools"`                             // 工具列表
 }
 
+type ToolModel struct {
+	Provider  string   `mapstructure:"provider" json:"provider"`     // 工具ID
+	ModelName []string `mapstructure:"model-name" json:"model-name"` // 配置文件路径
+}
 type ToolTemplateConfig struct {
 	ConfigPluginToolList   []*request.PluginToolInfo
 	toolTemplateMap        map[string]*request.PluginToolInfo // 按ID索引的工具配置
+	specialToolModelMap    map[string]map[string]bool         // 特殊工具模型
+	deepSeekReasoningMap   map[string]map[string]bool         // 需要deepseek推理的model
 	ToolTemplateConfigData *ToolTemplateConfigData            // 原始配置数据
 }
 
 var toolTemplateConfig = ToolTemplateConfig{
-	toolTemplateMap: make(map[string]*request.PluginToolInfo),
+	toolTemplateMap:      make(map[string]*request.PluginToolInfo),
+	deepSeekReasoningMap: make(map[string]map[string]bool),
+	specialToolModelMap:  make(map[string]map[string]bool),
 }
 
 func init() {
@@ -60,6 +71,9 @@ func (c ToolTemplateConfig) Load() error {
 	if templateMeta == nil || len(templateMeta.Tools) == 0 {
 		return fmt.Errorf("tool-template config not found or empty")
 	}
+
+	fillToolMap(templateMeta.SpecialToolModel, c.specialToolModelMap)
+	fillToolMap(templateMeta.DeepSeekReasoning, c.deepSeekReasoningMap)
 
 	c.ToolTemplateConfigData = templateMeta
 
@@ -140,12 +154,50 @@ func (c ToolTemplateConfig) GetToolMetaList() []*ToolTemplateMeta {
 	return c.ToolTemplateConfigData.Tools
 }
 
+// DeepSeekReasoning 需要deepSeek推理
+func (c ToolTemplateConfig) DeepSeekReasoning(provider string, modelName string) bool {
+	if len(c.deepSeekReasoningMap) == 0 {
+		return false
+	}
+	provider = strings.ToLower(provider)
+	modelName = strings.ToLower(modelName)
+	modelMap := c.deepSeekReasoningMap[provider]
+	return len(modelMap) > 0 && modelMap[modelName]
+}
+
+// SpecialToolModel 需要需要特殊处理名称
+func (c ToolTemplateConfig) SpecialToolModel(provider string, modelName string) bool {
+	if len(c.specialToolModelMap) == 0 {
+		return false
+	}
+	provider = strings.ToLower(provider)
+	modelName = strings.ToLower(modelName)
+	modelMap := c.specialToolModelMap[provider]
+	return len(modelMap) > 0 && modelMap[modelName]
+}
+
 func (c ToolTemplateConfig) StopPriority() int {
 	return pkg.DefaultPriority
 }
 
 func (c ToolTemplateConfig) Stop() error {
 	return nil
+}
+
+func fillToolMap(toolModelList []*ToolModel, retMap map[string]map[string]bool) {
+	if len(toolModelList) == 0 {
+		return
+	}
+	for _, model := range toolModelList {
+		providerData := retMap[model.Provider]
+		if len(providerData) == 0 {
+			providerData = make(map[string]bool)
+			retMap[model.Provider] = providerData
+		}
+		for _, modelName := range model.ModelName {
+			providerData[modelName] = true
+		}
+	}
 }
 
 // readFile 兼容性包装函数

@@ -1,0 +1,4 @@
+interface:
+  display_name: "微信公众号发布助手"
+  short_description: "将 Markdown 或网页链接自动发布到微信公众号草稿并支持模板"
+  default_prompt: "Use $wechat-article-publisher to publish this Markdown file or URL to WeChat Official Account."

@@ -7,13 +7,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"strconv"
 
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	wga_sandbox "github.com/UnicomAI/wanwu/pkg/wga-sandbox"
+	wga_sandbox_option "github.com/UnicomAI/wanwu/pkg/wga-sandbox/wga-sandbox-option"
 	"github.com/UnicomAI/wanwu/pkg/wga/internal/config"
 	"github.com/UnicomAI/wanwu/pkg/wga/internal/factory"
 	"github.com/UnicomAI/wanwu/pkg/wga/internal/option"
 	wga_option "github.com/UnicomAI/wanwu/pkg/wga/wga-option"
 	"github.com/cloudwego/eino/adk"
+	"go.opentelemetry.io/otel/codes"
 )
 
 var (
@@ -33,6 +38,13 @@ func Init(ctx context.Context, configPath string) error {
 		return err
 	}
 	_agents = agents
+
+	// 注册 WGA agent 级别 trace 回调处理器（受 JAEGER_ENABLE 环境变量控制）
+	jaegerEnabled, _ := strconv.ParseBool(os.Getenv(trace_util.TraceJaegerEnable))
+	if jaegerEnabled {
+		trace_util.WgaGlobalTracing()
+	}
+
 	return nil
 }
 
@@ -91,16 +103,52 @@ func Run(ctx context.Context, id string, opts ...option.Option) (wga_option.RunS
 	// 		return wga_option.RunSession{}, nil, fmt.Errorf("tool category (%s) condition (%s) not meet", tc.Category, tc.Condition)
 	// 	}
 	// }
+
+	// 注入 WGA trace 元数据到 context，供 Eino 回调处理器读取
+	wgaCtx := &trace_util.WgaTraceContext{
+		AgentID:   agentCfg.ID,
+		AgentType: string(agentCfg.Type),
+		AgentName: agentCfg.Name,
+		ThreadID:  options.RunSession.ThreadID,
+		RunID:     options.RunSession.RunID,
+		Model:     options.Model.Model,
+	}
+	ctx = trace_util.SetWgaTraceContext(ctx, wgaCtx)
+
+	// 创建顶层 agent 执行 span
+	ctx, agentSpan := trace_util.StartAgentSpan(ctx, string(agentCfg.Type), agentCfg.Name, agentCfg.ID)
+
 	agent, err := factory.NewAgent(ctx, agentCfg, options)
 	if err != nil {
+		agentSpan.RecordError(err)
+		agentSpan.SetStatus(codes.Error, err.Error())
+		agentSpan.End()
 		return wga_option.RunSession{}, nil, err
 	}
-	return options.RunSession, agent.Run(ctx, &adk.AgentInput{Messages: options.Messages, EnableStreaming: true}), nil
+
+	iter := agent.Run(ctx, &adk.AgentInput{Messages: options.Messages, EnableStreaming: true})
+
+	// 包装迭代器：在迭代结束时自动结束 agent span
+	wrappedIter := trace_util.WrapIteratorWithSpan(iter, agentSpan)
+
+	return options.RunSession, wrappedIter, nil
 }
 
 // Cleanup 清理指定 runID 的沙箱工作目录。
 func Cleanup(ctx context.Context, runID string) error {
 	return wga_sandbox.Cleanup(ctx, runID)
+}
+
+// ReplyQuestion 回答问题（Human-in-the-Loop）。
+// 仅支持 Reuse 模式。
+func ReplyQuestion(ctx context.Context, sandboxCfg wga_sandbox_option.SandboxConfig, runID string, questionID string, answers [][]string) error {
+	return wga_sandbox.ReplyQuestion(ctx, sandboxCfg, runID, questionID, answers)
+}
+
+// RejectQuestion 拒绝问题（Human-in-the-Loop）。
+// 仅支持 Reuse 模式。
+func RejectQuestion(ctx context.Context, sandboxCfg wga_sandbox_option.SandboxConfig, runID string, questionID string) error {
+	return wga_sandbox.RejectQuestion(ctx, sandboxCfg, runID, questionID)
 }
 
 // --- internal ---

@@ -10,6 +10,7 @@ import (
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/orm/sqlopt"
+	pkg_db "github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"gorm.io/gorm"
 )
@@ -47,9 +48,13 @@ func (c *Client) CreateCustomPrompt(ctx context.Context, avatarPath, name, desc,
 	return strconv.Itoa(int(customPrompt.ID)), nil
 }
 
-func (c *Client) DeleteCustomPrompt(ctx context.Context, customPromptID uint32) *err_code.Status {
+func (c *Client) DeleteCustomPrompt(ctx context.Context, customPromptID uint32, userId, orgId string) *err_code.Status {
 	// 删除记录
-	if err := sqlopt.WithID(customPromptID).Apply(c.db.WithContext(ctx)).Delete(&model.CustomPrompt{}).Error; err != nil {
+	if err := sqlopt.SQLOptions(
+		sqlopt.WithID(customPromptID),
+		sqlopt.WithUserID(userId),
+		sqlopt.WithOrgID(orgId),
+	).Apply(c.db.WithContext(ctx)).Delete(&model.CustomPrompt{}).Error; err != nil {
 		return toErrStatus("assistant_custom_prompt_delete", err.Error())
 	}
 	return nil
@@ -120,6 +125,31 @@ func (c *Client) GetCustomPromptList(ctx context.Context, userID, orgID string, 
 		return nil, 0, toErrStatus("assistant_custom_prompt_get_list_err", err.Error())
 	}
 	return customPrompts, int64(len(customPrompts)), nil
+}
+
+// GetCustomPromptListAdmin 管理员中心跨组织查询自定义提示词列表（SQL分页）。
+// orgIDs / userIDs 为空表示不按该维度过滤。pageNo 从1开始，pageSize<=0 不分页。
+// 返回当前页数据与总条数。
+func (c *Client) GetCustomPromptListAdmin(ctx context.Context, orgIDs, userIDs []string, name string, pageNo, pageSize int) ([]*model.CustomPrompt, int64, *err_code.Status) {
+	db := sqlopt.SQLOptions(
+		sqlopt.WithOrgIDs(orgIDs),
+		sqlopt.WithUserIDs(userIDs),
+		sqlopt.WithCustomPromptLikeName(pkg_db.EscapeLike(name)),
+	).Apply(c.db).WithContext(ctx).Model(&model.CustomPrompt{})
+	// 总条数
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, toErrStatus("assistant_custom_prompt_get_list_err", err.Error())
+	}
+	// 分页查询
+	var customPrompts []*model.CustomPrompt
+	if err := db.Limit(pageSize).
+		Offset((pageNo - 1) * pageSize).
+		Order("updated_at DESC").
+		Find(&customPrompts).Error; err != nil {
+		return nil, 0, toErrStatus("assistant_custom_prompt_get_list_err", err.Error())
+	}
+	return customPrompts, total, nil
 }
 
 func (c *Client) CopyCustomPrompt(ctx context.Context, customPromptID uint32, userId, orgID string) (string, *err_code.Status) {

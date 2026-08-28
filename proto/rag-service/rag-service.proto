@@ -22,6 +22,8 @@ service RagService {
   rpc GetRagDetail(RagDetailReq) returns (RagInfo) {}
   // 获取 rag 列表
   rpc ListRag(RagListReq) returns (RagListResp) {}
+  // 管理员中心知识问答全局分页列表（跨用户/组织）
+  rpc AdminRagPageList(AdminRagPageListReq) returns (AdminRagPageListResp) {}
   // 根据 ragIds 获取 rag 列表
   rpc GetRagByIds(GetRagByIdsReq) returns (AppBriefList) {}
   // 复制 rag
@@ -38,6 +40,27 @@ service RagService {
   rpc GetPublishRagDesc(GetPublishRagDescReq) returns (GetPublishRagDescResp) {}
   // 批量返回最新版本描述
   rpc GetPublishRagDescBatch(GetPublishRagDescBatchReq) returns (GetPublishRagDescBatchResp) {}
+
+  // --- 会话 ---
+  // 创建会话
+  rpc CreateRagConversation(CreateRagConversationReq) returns (CreateRagConversationResp) {}
+  // 删除会话，连带清除该会话下的问答明细
+  rpc DeleteRagConversation(DeleteRagConversationReq) returns (google.protobuf.Empty) {}
+  // 会话列表
+  rpc ListRagConversation(ListRagConversationReq) returns (ListRagConversationResp) {}
+  // 会话下的问答明细列表
+  rpc ListRagConversationDetail(ListRagConversationDetailReq) returns (ListRagConversationDetailResp) {}
+  // 清除问答明细但保留会话，detailId 传值则只删单条
+  rpc ClearRagConversationDetail(ClearRagConversationDetailReq) returns (google.protobuf.Empty) {}
+  // 取草稿会话id，草稿态每个知识问答仅维护一条会话
+  rpc GetRagDraftConversation(GetRagDraftConversationReq) returns (GetRagDraftConversationResp) {}
+  // 取会话归属信息，供 bff 中间件校验（明细在 ES，bff 查不到，一并在这里判）
+  rpc GetRagConversationOwner(GetRagConversationOwnerReq) returns (GetRagConversationOwnerResp) {}
+  // 问答明细点赞/点踩
+  rpc RagMessageFeedback(RagMessageFeedbackReq) returns (RagMessageFeedbackResp) {}
+
+  // --- 会话日志 ---
+  rpc GetConversationLog(ConversationLogReq) returns (common.ConversationLog) {}
 }
 message Identity {
   string userId = 1;
@@ -48,9 +71,11 @@ message ChatRagReq {
   string ragId = 1;
   string question = 2;
   Identity identity = 3;
-  repeated HistoryItem history = 4;
+  repeated HistoryItem history = 4; // 传了 conversationId 时忽略，改由服务端从历史明细回填
   int32 publish = 5; // 0: 草稿 1: 已发布
   repeated FileInfo fileInfoList = 6; //上传文档列表
+  string conversationId = 7;
+  string detailId = 8;
 }
 
 message FileInfo {
@@ -84,6 +109,8 @@ message UpdateRagConfigReq{
   RagQAKnowledgeBaseConfig QAknowledgeBaseConfig = 6; // 问答库配置
   RagSensitiveConfig sensitiveConfig = 7;                 // 安全护栏
   RagVisionConfig visionConfig = 8; // 视觉配置
+  repeated string recommendQuestion = 9; // 推荐问题
+  Identity identity = 10; // 归属过滤，为空表示不过滤
 }
 
 message RagVisionConfig{
@@ -110,16 +137,21 @@ message RagInfo {
   RagSensitiveConfig sensitiveConfig = 8; // 安全护栏
   RagVisionConfig visionConfig = 9; // 视觉配置
   Identity identity = 10;
+  repeated string recommendQuestion = 11; // 推荐问题
+  int64 createTime = 12;
+  int64 updateTime = 13;
 }
 
 message RagDeleteReq {
   string ragId = 1;
+  Identity identity = 2; // 归属过滤，为空表示不过滤（管理员中心）
 }
 
 message RagDetailReq {
   string ragId = 1;
   int32 publish = 2; // 0: 草稿 1: 已发布
   string version = 3; // 已发布版本
+  Identity identity = 4; // 归属过滤，为空表示不过滤（管理员中心、公开应用问答）
 }
 
 message RagKnowledgeBaseConfig {
@@ -195,6 +227,19 @@ message RagListResp {
   int64 total = 2;
 }
 
+message AdminRagPageListReq {
+  string name = 1;              // 知识问答名称，支持模糊搜索
+  repeated string userId = 2;   // 拥有者用户id列表
+  repeated string orgId = 3;    // 拥有者组织id列表
+  int32 pageNum = 4;            // 页码，从1开始；pageSize<=0 时忽略
+  int32 pageSize = 5;           // 每页数量；<=0 表示不分页，返回全部
+}
+
+message AdminRagPageListResp {
+  int64 total = 1;
+  repeated common.AppBrief ragInfos = 2;
+}
+
 message GetRagByIdsReq{
   repeated string ragIdList = 1;
 }
@@ -241,6 +286,7 @@ message PublishRagHistory{
 message OverwriteRagDraftReq{
   string ragId = 1;
   string version = 2;
+  Identity identity = 3; // 归属过滤，为空表示不过滤
 }
 
 message GetPublishRagDescReq{
@@ -262,4 +308,138 @@ message GetPublishRagDescBatchReq{
 
 message GetPublishRagDescBatchResp{
   repeated GetPublishRagDescResp list = 1;
+}
+
+// --- 会话 ---
+
+message CreateRagConversationReq {
+  string ragId = 1;
+  string prompt = 2; // 首次提问，用作会话标题
+  string conversationType = 3; // 会话来源，published(已发布)/draft(草稿)
+  Identity identity = 4;
+}
+
+message CreateRagConversationResp {
+  string conversationId = 1;
+}
+
+message DeleteRagConversationReq {
+  string conversationId = 1;
+  Identity identity = 2;
+  string ragId = 3; // 会话归属过滤，与 conversationId 同时命中才操作
+}
+
+message ClearRagConversationDetailReq {
+  string conversationId = 1;
+  string detailId = 2; // 可选，传值则只删单条明细，不传则清空该会话下所有明细
+  Identity identity = 3;
+  string ragId = 4; // 会话归属过滤，与 conversationId 同时命中才操作
+}
+
+message ListRagConversationReq {
+  string ragId = 1;
+  string conversationType = 2;
+  int32 pageSize = 3;
+  int32 pageNo = 4;
+  string searchText = 5; // 标题关键词，模糊匹配，空则不过滤
+  Identity identity = 6;
+}
+
+message ListRagConversationResp {
+  repeated RagConversationInfo data = 1;
+  int64 total = 2;
+  int32 pageSize = 3;
+  int32 pageNo = 4;
+}
+
+message RagConversationInfo {
+  string conversationId = 1;
+  string ragId = 2;
+  string title = 3;
+  int64 createdAt = 4;
+  int64 updatedAt = 5;
+}
+
+message GetRagDraftConversationReq {
+  string ragId = 1;
+  Identity identity = 2;
+}
+
+message GetRagDraftConversationResp {
+  string conversationId = 1;
+}
+
+message GetRagConversationOwnerReq {
+  string conversationId = 1;
+}
+
+message GetRagConversationOwnerResp {
+  string ragId = 1;
+  string userId = 2;
+  string orgId = 3;
+}
+
+message RagMessageFeedbackReq {
+  string conversationId = 1;
+  string detailId = 2; // 问答明细id
+  int32 feedbackType = 3; // 反馈类型: 0=取消 1=点赞 2=点踩
+  string feedbackContent = 4; // 反馈文本内容
+  Identity identity = 5;
+  string ragId = 6; // 会话归属过滤，与 conversationId 同时命中才操作
+}
+
+message RagMessageFeedbackResp {
+  int32 feedbackType = 1; // 当前反馈状态: 0=无 1=点赞 2=点踩
+}
+
+message ConversationLogReq {
+  string conversationId = 1; //会话ID
+  string sourceFrom = 2; // 请求来源
+  Identity identity = 3; //用户信息
+}
+
+message ListRagConversationDetailReq {
+  string conversationId = 1;
+  int32 pageSize = 2;
+  int32 pageNo = 3;
+  Identity identity = 4;
+  string ragId = 5; // 会话归属过滤，与 conversationId 同时命中才返回
+}
+
+message ListRagConversationDetailResp {
+  repeated RagConversationDetailInfo data = 1;
+  int64 total = 2;
+  int32 pageSize = 3;
+  int32 pageNo = 4;
+}
+
+message RagConversationDetailInfo {
+  string detailId = 1;
+  string ragId = 2;
+  string conversationId = 3;
+  string prompt = 4;
+  string response = 5;
+  // reasoningContent/searchList/qaSearchList 三个 optional 同一规则：
+  // 不返回=该阶段未发生（前端整个不渲染那张卡片）、空串=发生过但没产出、非空=内容
+  optional string reasoningContent = 6;
+  optional string searchList = 7;
+  string errMessage = 8;
+  repeated FileInfo fileInfoList = 9;
+  int64 createdAt = 10;
+  optional string qaSearchList = 11;
+  RagTimeCost reasoningTimeCost = 12;
+  RagTimeCost searchListTimeCost = 13;
+  RagTimeCost qaSearchListTimeCost = 14;
+  string qaErrMessage = 15; // 问答库检索失败原因，非空表示该轮问答库检索报错后转的知识库
+  string traceId = 16; // 本轮问答的链路id，与应用/模型统计明细同值
+  int32 feedback = 17; // 当前反馈状态: 0=无 1=点赞 2=点踩
+  string feedbackContent = 18; // 反馈文本内容
+}
+
+
+
+// RagTimeCost 一个阶段的起止时刻(毫秒)，两个字段均为0表示该阶段未发生
+message RagTimeCost {
+  int64 start = 1;
+  int64 end = 2;
 }

@@ -86,6 +86,14 @@ func (c *client) Cli() *redis.Client {
 
 // --- Generic ---
 
+func (c *client) SetEx(ctx context.Context, key string, value interface{}, expire time.Duration) (string, error) {
+	return c.cli.SetEx(ctx, key, value, expire).Result()
+}
+
+func (c *client) Get(ctx context.Context, key string) (string, error) {
+	return c.cli.Get(ctx, key).Result()
+}
+
 func (c *client) Del(ctx context.Context, key string) error {
 	return c.cli.Del(ctx, key).Err()
 }
@@ -96,6 +104,21 @@ func (c *client) Eval(ctx context.Context, script string, keys []string, args ..
 
 func (c *client) Expire(ctx context.Context, key string, expire time.Duration) error {
 	return c.cli.Expire(ctx, key, expire).Err()
+}
+
+// IncrWithExpire 原子自增并设置过期时间
+func (c *client) IncrWithExpire(ctx context.Context, key string, expire time.Duration) (int64, error) {
+	luaScript := `
+		local count = redis.call("INCR", KEYS[1])
+		redis.call("EXPIRE", KEYS[1], ARGV[1])
+		return count
+	`
+	return c.cli.Eval(ctx, luaScript, []string{key}, int(expire.Seconds())).Int64()
+}
+
+// RedisTTL 获取key的剩余过期时间
+func (c *client) RedisTTL(ctx context.Context, key string) (time.Duration, error) {
+	return c.cli.TTL(ctx, key).Result()
 }
 
 // --- Hash ---

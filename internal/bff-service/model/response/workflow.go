@@ -29,12 +29,23 @@ type CozeWorkflowListData struct {
 }
 
 type CozeWorkflowListDataWorkflow struct {
-	WorkflowId string `json:"workflow_id"`
-	Name       string `json:"name"`
-	Desc       string `json:"desc"`
-	URL        string `json:"url"`
-	CreateTime int64  `json:"create_time"`
-	UpdateTime int64  `json:"update_time"`
+	WorkflowId string           `json:"workflow_id"`
+	Name       string           `json:"name"`
+	Desc       string           `json:"desc"`
+	URL        string           `json:"url"`
+	IconURI    string           `json:"icon_uri"`
+	CreateTime int64            `json:"create_time"`
+	UpdateTime int64            `json:"update_time"`
+	FlowMode   int64            `json:"flow_mode"`
+	SpaceID    string           `json:"space_id"`
+	Creator    *WorkflowCreator `json:"creator"`
+}
+
+// WorkflowCreator 工作流创建者
+type WorkflowCreator struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	AvatarURL string `json:"avatar_url"`
 }
 
 type CozeWorkflowIDResp struct {

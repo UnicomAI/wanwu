@@ -1,10 +1,10 @@
 import os
 import posixpath
+import uuid
 
 from configs.config import config
 from extensions.minio import minio_client
 from utils.log import logger
-from utils.time import get_current_cst_time
 
 
 def upload_file_to_minio(
@@ -24,9 +24,7 @@ def upload_file_to_minio(
     if overwrite_filename:
         _, file_extension = os.path.splitext(original_filename)
         filename = overwrite_filename + file_extension
-    object_name = posixpath.join(
-        get_current_cst_time(time_format="%Y%m%d%H%M%S"), filename
-    )
+    object_name = posixpath.join(uuid.uuid4().hex[:16], filename)
     minio_client.create_public_bucket_if_not_exist(bucket_name)
     minio_client.put_object_from_stream(bucket_name, object_name, file_stream)
     object_path = posixpath.join(bucket_name, object_name)

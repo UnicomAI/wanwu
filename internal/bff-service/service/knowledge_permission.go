@@ -1,15 +1,16 @@
 package service
 
 import (
-	"sync"
+	"fmt"
 
 	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
 	knowledgebase_permission_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-permission-service"
+	operate_service "github.com/UnicomAI/wanwu/api/proto/operate-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	"github.com/UnicomAI/wanwu/pkg/log"
-	"github.com/UnicomAI/wanwu/pkg/util"
+	safe_go_util "github.com/UnicomAI/wanwu/pkg/safe-go-util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -96,7 +97,20 @@ func AddKnowledgeUser(ctx *gin.Context, userId, orgId string, req *request.Knowl
 		UserId:            userId,
 		OrgId:             orgId,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	// 共享知识库：名单内每个人收「已共享给你」（best-effort）。
+	// 请求体的 knowledgeUserList 天然就是 gained，无需差分。
+	gained := make([]*operate_service.NoticeUserOrgPair, 0, len(req.KnowledgeUserList))
+	for _, info := range req.KnowledgeUserList {
+		gained = append(gained, &operate_service.NoticeUserOrgPair{UserId: info.UserId, OrgId: info.OrgId})
+	}
+	notifyKnowledgeDelta(ctx, userId, orgId, req.KnowledgeId,
+		resolveKnowledgeName(ctx, userId, orgId, req.KnowledgeId),
+		gained, nil, nil, noticeVariantShared, "",
+		fmt.Sprintf("knowledge:%v:shared:%v", req.KnowledgeId, len(gained)))
+	return nil
 }
 
 // EditKnowledgeUser 修改知识库用户
@@ -107,22 +121,52 @@ func EditKnowledgeUser(ctx *gin.Context, userId, orgId string, req *request.Know
 		UserId:        userId,
 		OrgId:         orgId,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	// 改权限级别：可见性没变、只是权限级别变——独立文案，非 online/offline
+	changed := []*operate_service.NoticeUserOrgPair{{
+		UserId: req.KnowledgeUser.UserId,
+		OrgId:  req.KnowledgeUser.OrgId,
+	}}
+	notifyKnowledgeDelta(ctx, userId, orgId, req.KnowledgeId,
+		resolveKnowledgeName(ctx, userId, orgId, req.KnowledgeId),
+		nil, nil, changed,
+		noticeVariantPermChanged, knowledgePermissionLabel(int32(req.KnowledgeUser.PermissionType)),
+		fmt.Sprintf("knowledge:%v:perm:%v:%v", req.KnowledgeId, req.KnowledgeUser.UserId, req.KnowledgeUser.PermissionType))
+	return nil
 }
 
 // DeleteKnowledgeUser 删除知识库用户
 func DeleteKnowledgeUser(ctx *gin.Context, userId, orgId string, req *request.KnowledgeUserDeleteReq) error {
+	// 取消共享：请求体只带 permissionId，必须在删除前反查被移除者的 (userId, orgId)
+	lostUser := findKnowledgePermissionUser(ctx, userId, orgId, req.KnowledgeId, req.PermissionId)
+	knowledgeName := resolveKnowledgeName(ctx, userId, orgId, req.KnowledgeId)
+
 	_, err := knowledgeBasePermission.DeleteKnowledgeUser(ctx.Request.Context(), &knowledgebase_permission_service.DeleteKnowledgeUserReq{
 		KnowledgeId:  req.KnowledgeId,
 		PermissionId: req.PermissionId,
 		UserId:       userId,
 		OrgId:        orgId,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	if lostUser != nil {
+		notifyKnowledgeDelta(ctx, userId, orgId, req.KnowledgeId, knowledgeName,
+			nil, []*operate_service.NoticeUserOrgPair{lostUser}, nil,
+			noticeVariantUnshared, "",
+			fmt.Sprintf("knowledge:%v:unshared:%v", req.KnowledgeId, req.PermissionId))
+	}
+	return nil
 }
 
 // TransferKnowledgeAdminUser 转让知识库管理员权限
 func TransferKnowledgeAdminUser(ctx *gin.Context, userId, orgId string, req *request.KnowledgeTransferUserAdminReq) error {
+	// 转让后原管理员的权限记录会变，先把双方快照下来
+	oldAdmin := findKnowledgePermissionUser(ctx, userId, orgId, req.KnowledgeId, req.PermissionId)
+	knowledgeName := resolveKnowledgeName(ctx, userId, orgId, req.KnowledgeId)
+
 	_, err := knowledgeBasePermission.TransferKnowledgeAdminUser(ctx.Request.Context(), &knowledgebase_permission_service.TransferKnowledgeAdminUserReq{
 		KnowledgeId:  req.KnowledgeId,
 		PermissionId: req.PermissionId,
@@ -133,7 +177,23 @@ func TransferKnowledgeAdminUser(ctx *gin.Context, userId, orgId string, req *req
 		UserId: userId,
 		OrgId:  orgId,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	// 转让管理员：双方可见性没变但权限级别变了，走"权限已变更"文案。
+	// 新管理员必发；原管理员是操作者本人时会被消息域按二元组剔除。
+	changed := []*operate_service.NoticeUserOrgPair{{
+		UserId: req.KnowledgeUser.UserId,
+		OrgId:  req.KnowledgeUser.OrgId,
+	}}
+	if oldAdmin != nil {
+		changed = append(changed, oldAdmin)
+	}
+	notifyKnowledgeDelta(ctx, userId, orgId, req.KnowledgeId, knowledgeName,
+		nil, nil, changed,
+		noticeVariantPermChanged, knowledgePermissionLabel(SystemPermission),
+		fmt.Sprintf("knowledge:%v:transfer:%v", req.KnowledgeId, req.KnowledgeUser.UserId))
+	return nil
 }
 
 func buildKnowOrgInfo(orgInfo *iam_service.GetFirstClassOrgAndSubsResp) *response.KnowOrgInfoResp {
@@ -232,7 +292,7 @@ func buildUserTransfer(userInfo *knowledgebase_permission_service.KnowledgeUserI
 }
 
 // 并发查询用户详情和组织详情
-func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool) (map[string]*iam_service.IDName, map[string]*iam_service.IDName) {
+func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool) (map[string]*iam_service.IDNameWithAvatar, map[string]*iam_service.IDFullName) {
 	var userIdList, orgIdList []string
 	for userId := range userIdMap {
 		userIdList = append(userIdList, userId)
@@ -240,18 +300,20 @@ func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool)
 	for orgId := range orgIdMap {
 		orgIdList = append(orgIdList, orgId)
 	}
-	var wg = &sync.WaitGroup{}
-	wg.Add(2)
-	orgInfoMap := make(map[string]*iam_service.IDName)
-	userInfoMap := make(map[string]*iam_service.IDName)
-	//查询user详情信息
-	go func() {
-		defer func() {
-			wg.Done()
-		}()
-		defer util.PrintPanicStack()
+	orgInfoMap := make(map[string]*iam_service.IDFullName)
+	userInfoMap := make(map[string]*iam_service.IDNameWithAvatar)
+	//并发查询
+	safe_go_util.SageGoWaitGroup(searchUser(ctx, userIdList, userInfoMap), searchOrg(ctx, orgIdList, orgInfoMap))
+	return userInfoMap, orgInfoMap
+}
 
-		userInfoList, err := iam.GetUserSelectByUserIDs(ctx, &iam_service.GetUserSelectByUserIDsReq{
+// 查询用户信息
+func searchUser(ctx *gin.Context, userIdList []string, userInfoMap map[string]*iam_service.IDNameWithAvatar) func() {
+	return func() {
+		if len(userIdList) == 0 {
+			return
+		}
+		userInfoList, err := iam.GetUserSelectByUserIDs(ctx.Request.Context(), &iam_service.GetUserSelectByUserIDsReq{
 			UserIds: userIdList,
 		})
 		if err != nil {
@@ -260,24 +322,23 @@ func searchUserAndOrgInfo(ctx *gin.Context, userIdMap, orgIdMap map[string]bool)
 		for _, info := range userInfoList.Selects {
 			userInfoMap[info.Id] = info
 		}
-	}()
-	//查询组织详情信息
-	go func() {
-		defer func() {
-			wg.Done()
-		}()
-		defer util.PrintPanicStack()
+	}
+}
 
-		userInfoList, err := iam.GetOrgByOrgIDs(ctx, &iam_service.GetOrgByOrgIDsReq{
+// 查询组织信息
+func searchOrg(ctx *gin.Context, orgIdList []string, orgInfoMap map[string]*iam_service.IDFullName) func() {
+	return func() {
+		if len(orgIdList) == 0 {
+			return
+		}
+		orgInfoList, err := iam.GetOrgByOrgIDs(ctx.Request.Context(), &iam_service.GetOrgByOrgIDsReq{
 			OrgIds: orgIdList,
 		})
 		if err != nil {
 			return
 		}
-		for _, info := range userInfoList.Orgs {
+		for _, info := range orgInfoList.Orgs {
 			orgInfoMap[info.Id] = info
 		}
-	}()
-	wg.Wait()
-	return userInfoMap, orgInfoMap
+	}
 }

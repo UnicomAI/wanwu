@@ -137,7 +137,7 @@ func (s *Service) BatchCreateDocSegment(ctx context.Context, req *knowledgebase_
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) UpdateDocSegment(ctx context.Context, req *knowledgebase_doc_service.UpdateDocSegmentReq) (*emptypb.Empty, error) {
+func (s *Service) UpdateDocSegment(ctx context.Context, req *knowledgebase_doc_service.UpdateDocSegmentReq) (*knowledgebase_doc_service.UpdateDocSegmentResp, error) {
 	//1.查询文档详情
 	docList, err := orm.SelectDocByDocIdList(ctx, []string{req.DocId}, "", "")
 	if err != nil {
@@ -181,7 +181,7 @@ func (s *Service) UpdateDocSegment(ctx context.Context, req *knowledgebase_doc_s
 		return nil, err1
 	}
 	//8.发送rag请求
-	err = service.RagUpdateDocSegment(ctx, &service.RagUpdateDocSegmentParams{
+	newContentId, err := service.RagUpdateDocSegment(ctx, &service.RagUpdateDocSegmentParams{
 		UserId:          knowledge.UserId,
 		KnowledgeBase:   knowledge.RagName,
 		KnowledgeId:     knowledge.KnowledgeId,
@@ -199,7 +199,11 @@ func (s *Service) UpdateDocSegment(ctx context.Context, req *knowledgebase_doc_s
 		log.Errorf("docId %v update doc segment fail %v", req.DocId, err)
 		return nil, util.ErrCode(errs.Code_KnowledgeDocSegmentUpdateFailed)
 	}
-	return &emptypb.Empty{}, nil
+	//9.rag 内容未变或旧版本 rag 不返回新id时，回落到请求传入的分段id
+	if newContentId == "" {
+		newContentId = req.ContentId
+	}
+	return &knowledgebase_doc_service.UpdateDocSegmentResp{ContentId: newContentId}, nil
 }
 
 func (s *Service) DeleteDocSegment(ctx context.Context, req *knowledgebase_doc_service.DeleteDocSegmentReq) (*emptypb.Empty, error) {
@@ -500,20 +504,22 @@ func buildDocUpdateSegmentStatusParams(req *knowledgebase_doc_service.UpdateDocS
 	if req.All {
 		return &service.DocSegmentStatusUpdateAllParams{
 			DocSegmentStatusUpdateParams: service.DocSegmentStatusUpdateParams{
-				UserId:        knowledge.UserId,
-				KnowledgeName: knowledge.RagName,
-				FileName:      service.RebuildFileName(docInfo.DocId, docInfo.FileType, docInfo.Name),
-				ContentId:     req.ContentId,
+				UserId:          knowledge.UserId,
+				KnowledgeBaseId: knowledge.KnowledgeId,
+				KnowledgeName:   knowledge.RagName,
+				FileName:        service.RebuildFileName(docInfo.DocId, docInfo.FileType, docInfo.Name),
+				ContentId:       req.ContentId,
 			},
 			All: status,
 		}
 	} else {
 		return &service.DocSegmentStatusUpdateParams{
-			UserId:        knowledge.UserId,
-			KnowledgeName: knowledge.RagName,
-			FileName:      service.RebuildFileName(docInfo.DocId, docInfo.FileType, docInfo.Name),
-			ContentId:     req.ContentId,
-			Status:        status,
+			UserId:          knowledge.UserId,
+			KnowledgeBaseId: knowledge.KnowledgeId,
+			KnowledgeName:   knowledge.RagName,
+			FileName:        service.RebuildFileName(docInfo.DocId, docInfo.FileType, docInfo.Name),
+			ContentId:       req.ContentId,
+			Status:          status,
 		}
 	}
 }

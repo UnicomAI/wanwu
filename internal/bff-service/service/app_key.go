@@ -42,9 +42,11 @@ func GenAppKey(ctx *gin.Context, userId, orgId string, req request.GenAppKeyRequ
 	}, nil
 }
 
-func DelAppKey(ctx *gin.Context, req request.DelAppKeyRequest) error {
+func DelAppKey(ctx *gin.Context, userId, orgId string, req request.DelAppKeyRequest) error {
 	_, err := app.DelAppKey(ctx.Request.Context(), &app_service.DelAppKeyReq{
 		AppKeyId: req.ApiId,
+		UserId:   userId,
+		OrgId:    orgId,
 	})
 	if err != nil {
 		return err

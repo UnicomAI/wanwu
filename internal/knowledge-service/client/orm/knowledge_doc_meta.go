@@ -56,13 +56,32 @@ func SelectMetaByKnowledgeId(ctx context.Context, userId, orgId string, knowledg
 }
 
 // SelectDocIdListByMetaValue 根据元数据值去筛选单个知识库的文档列表
-func SelectDocIdListByMetaValue(ctx context.Context, userId, orgId, knowledgeId, metaValue string) ([]string, error) {
+//   - metaType=time：按 [startTime, endTime] 时间区间过滤 time 类型元数据
+//   - metaType=string/number：按该类型 + metaValue 模糊匹配过滤
+//   - metaType 为空(旧逻辑)：metaValue 模糊匹配，排除 time 类型
+func SelectDocIdListByMetaValue(ctx context.Context, userId, orgId, knowledgeId, metaType, metaValue, startTime, endTime string) ([]string, error) {
 	var docMetaList []*model.KnowledgeDocMeta
 	docIdList := make([]string, 0)
-	if metaValue == "" {
-		return docIdList, nil
+	opts := sqlopt.SqlOptions{sqlopt.WithKnowledgeID(knowledgeId), sqlopt.WithPermit(orgId, userId)}
+	switch metaType {
+	case model.MetaTypeTime:
+		if startTime == "" && endTime == "" {
+			return docIdList, nil
+		}
+		opts = append(opts, sqlopt.WithValueType(model.MetaTypeTime), sqlopt.BetweenMetaValueTime(startTime, endTime))
+	case model.MetaTypeString, model.MetaTypeNumber:
+		if metaValue == "" {
+			return docIdList, nil
+		}
+		opts = append(opts, sqlopt.WithValueType(metaType), sqlopt.LikeMetaValue(metaValue))
+	default:
+		// metaValue 模糊匹配，排除 time 类型
+		if metaValue == "" {
+			return docIdList, nil
+		}
+		opts = append(opts, sqlopt.LikeMetaValue(metaValue), sqlopt.WithNonType(model.MetaTypeTime))
 	}
-	err := sqlopt.SQLOptions(sqlopt.WithKnowledgeID(knowledgeId), sqlopt.WithPermit(orgId, userId), sqlopt.LikeMetaValue(metaValue), sqlopt.WithNonType(model.MetaTypeTime)).
+	err := opts.
 		Apply(db.GetHandle(ctx), &model.KnowledgeDocMeta{}).
 		Order("create_at desc").
 		Find(&docMetaList).

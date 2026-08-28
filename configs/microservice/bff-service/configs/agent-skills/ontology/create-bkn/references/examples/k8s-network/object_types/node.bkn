@@ -1,0 +1,38 @@
+---
+type: object_type
+id: node
+name: Node节点
+tags: [拓扑架构, 基础设施, Kubernetes]
+---
+
+## ObjectType: Node节点
+
+Kubernetes 集群中的工作节点，承载 Pod 运行。
+
+### Data Properties
+
+| Name | Display Name | Type | Description | Mapped Field |
+|------|--------------|------|-------------|--------------|
+| id | ID | integer | 主键ID | id |
+| node_name | 节点名称 | string | 节点名称 | node_name |
+| node_status | 节点状态 | string | 节点状态 (Ready/NotReady) | node_status |
+| node_cpu_capacity | CPU容量 | string | CPU总容量（核心数） | node_cpu_capacity |
+| node_memory_capacity | 内存容量 | string | 内存总容量 | node_memory_capacity |
+| node_cpu_allocatable | 可分配CPU | string | 可分配的CPU（核心数） | node_cpu_allocatable |
+| node_memory_allocatable | 可分配内存 | string | 可分配的内存 | node_memory_allocatable |
+| node_kubelet_version | Kubelet版本 | string | Kubelet版本 | node_kubelet_version |
+| node_os_image | 操作系统 | string | 操作系统镜像 | node_os_image |
+
+### Keys
+
+Primary Keys: id
+Display Key: node_name
+Incremental Key:
+
+### Logic Properties
+
+### Data Source
+
+| Type | ID | Name |
+|------|-----|------|
+| data_view | d2mio43q6gt6p380disg | node_info_view |

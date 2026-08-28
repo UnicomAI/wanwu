@@ -1,6 +1,6 @@
 server:
   grpc_endpoint: 0.0.0.0:9797
-  max_recv_msg_size: 4194304 # 1024 * 1024 * 4 = 4M
+  max_recv_msg_size: 4294967296 # 1024 * 1024 * 1024 * 4 = 4G
 
 log:
   std: true
@@ -53,3 +53,16 @@ db:
     max_open_conns: 16
     max_idle_conns: 16
     log_mode: true
+
+# --- microservice ---
+# 消息中心的受众计算与读侧可见性以 iam 的 org_users + 启用状态为数据源
+iam:
+  host: iam-service:8888
+
+# 消息中心 actions 清洗：agent 老 id → uuid 依赖 assistant
+assistant:
+  host: assistant-service:8890
+
+# --- 消息中心 ---
+notice:
+  max_audience_size: 500  # 特定用户名单 S 上限；超限拒绝生成该事件消息（打点告警），不阻塞业务

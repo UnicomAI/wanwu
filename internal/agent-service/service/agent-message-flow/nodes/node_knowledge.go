@@ -41,10 +41,13 @@ func (k *KnowledgeRetriever) Retrieve(ctx context.Context, reqContext *request.A
 	}
 	req.KnowledgeParams.AttachmentFiles = make([]*request.RagKnowledgeAttachment, 0)
 	req.KnowledgeParams.ReturnMeta = true
+
+	var citation = req.KnowledgeParams.AutoCitation
+
 	toolId := uuid.New().String()
-	sendKnowledgeMessage(reqContext.Generator, false, nil, toolId)
+	sendKnowledgeMessage(reqContext.Generator, false, nil, toolId, citation)
 	defer func() {
-		sendKnowledgeMessage(reqContext.Generator, true, reqContext.KnowledgeHitData, toolId)
+		sendKnowledgeMessage(reqContext.Generator, true, reqContext.KnowledgeHitData, toolId, citation)
 	}()
 	fileList := reqContext.AgentChatReq.UploadFile
 	if len(fileList) > 0 {
@@ -68,12 +71,23 @@ func (k *KnowledgeRetriever) Retrieve(ctx context.Context, reqContext *request.A
 			continue
 		}
 		number := idx + 1
-		docLine := fmt.Sprintf("---\nrecall slice %d: 【%d】%s\n", number, number, doc.Snippet)
+		var docLine string
+		if citation {
+			docLine = fmt.Sprintf("---\nrecall slice %d: 【%d^】%s\n", number, number, doc.Snippet)
+		} else {
+			docLine = fmt.Sprintf("---\nrecall slice %d: %s\n", number, doc.Snippet)
+		}
+
 		packedRes.WriteString(docLine)
 	}
 	if packedRes.Len() > 0 {
 		sliceCount := len(hit.Data.SearchList)
-		knowledgeData := fmt.Sprintf(prompt.REACT_SYSTEM_PROMPT_KNOWLEDGE, sliceCount, packedRes.String())
+		var knowledgeData string
+		if citation {
+			knowledgeData = fmt.Sprintf(prompt.REACT_SYSTEM_PROMPT_KNOWLEDGE, sliceCount, packedRes.String())
+		} else {
+			knowledgeData = fmt.Sprintf(prompt.REACT_SYSTEM_PROMPT_NO_CITATION_KNOWLEDGE, packedRes.String())
+		}
 		return knowledgeData, nil
 	}
 	//如果没有知识库时，尽量减少输入token大小
@@ -120,6 +134,13 @@ func ragKnowledgeHit(ctx context.Context, knowledgeHitParams *request.KnowledgeP
 				list.MetaData.DownloadLink = uploadUrlMap[buildMinioPath(list.MetaData)]
 			}
 		}
+		//以score列表的数据填充对应的数据
+		hitData := resp.Data
+		if len(hitData.SearchList) == len(hitData.Score) {
+			for index, data := range hitData.SearchList {
+				data.Score = hitData.Score[index]
+			}
+		}
 		return &resp, nil
 	}
 	return &resp, nil
@@ -151,9 +172,9 @@ func copyFile(urlMap map[string]bool) map[string]string {
 }
 
 // sendKnowledgeMessage 发送知识库消息
-func sendKnowledgeMessage(generator *adk.AsyncGenerator[*adk.AgentEvent], finish bool, hitData *model.KnowledgeHitData, toolId string) {
+func sendKnowledgeMessage(generator *adk.AsyncGenerator[*adk.AgentEvent], finish bool, hitData *model.KnowledgeHitData, toolId string, autoCitation bool) {
 	if generator != nil {
-		message := buildKnowledgeMessage(finish, hitData, toolId)
+		message := buildKnowledgeMessage(finish, hitData, toolId, autoCitation)
 		generator.Send(&adk.AgentEvent{
 			Output: &adk.AgentOutput{
 				MessageOutput: &adk.MessageVariant{
@@ -167,9 +188,9 @@ func sendKnowledgeMessage(generator *adk.AsyncGenerator[*adk.AgentEvent], finish
 }
 
 // buildKnowledgeMessage 构建知识库消息
-func buildKnowledgeMessage(finish bool, hitData *model.KnowledgeHitData, toolId string) *schema.Message {
+func buildKnowledgeMessage(finish bool, hitData *model.KnowledgeHitData, toolId string, autoCitation bool) *schema.Message {
 	if finish {
-		return buildFinishMessage(hitData, toolId)
+		return buildFinishMessage(hitData, toolId, autoCitation)
 	}
 	return buildStartMessage(toolId)
 }
@@ -197,7 +218,10 @@ func buildStartMessage(toolId string) *schema.Message {
 }
 
 // buildFinishMessage 构建结束消息
-func buildFinishMessage(hitData *model.KnowledgeHitData, toolId string) *schema.Message {
+func buildFinishMessage(hitData *model.KnowledgeHitData, toolId string, autoCitation bool) *schema.Message {
+	if hitData != nil {
+		hitData.AutoCitation = autoCitation
+	}
 	marshal, err := json.Marshal(hitData)
 	var message = ""
 	if err == nil {

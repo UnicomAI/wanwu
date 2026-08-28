@@ -25,6 +25,11 @@ const (
 	OpencodeEventTypeSubtask    OpencodeEventType = opencode.OpencodeEventTypeSubtask
 	OpencodeEventTypeCompaction OpencodeEventType = opencode.OpencodeEventTypeCompaction
 	OpencodeEventTypeError      OpencodeEventType = opencode.OpencodeEventTypeError
+
+	// Question 事件类型（Human-in-the-Loop）
+	OpencodeEventTypeQuestionAsked    OpencodeEventType = opencode.OpencodeEventTypeQuestionAsked
+	OpencodeEventTypeQuestionReplied  OpencodeEventType = opencode.OpencodeEventTypeQuestionReplied
+	OpencodeEventTypeQuestionRejected OpencodeEventType = opencode.OpencodeEventTypeQuestionRejected
 )
 
 // OpencodeEvent opencode 事件结构。
@@ -132,6 +137,15 @@ func ParseOpencodePartRetryPart(data []byte) (*sdk.PartRetryPart, error) {
 // ParseOpencodeErrorPart 解析错误类型事件内容。
 func ParseOpencodeErrorPart(data []byte) (*opencode.ErrorPart, error) {
 	var part opencode.ErrorPart
+	if err := json.Unmarshal(data, &part); err != nil {
+		return nil, err
+	}
+	return &part, nil
+}
+
+// ParseOpencodeQuestionPart 解析问题类型事件内容。
+func ParseOpencodeQuestionPart(data []byte) (*opencode.QuestionPart, error) {
+	var part opencode.QuestionPart
 	if err := json.Unmarshal(data, &part); err != nil {
 		return nil, err
 	}

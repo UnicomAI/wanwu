@@ -9,5 +9,6 @@ type ModelExperienceDialogRecord struct {
 	HandledContent    string `gorm:"column:handled_content;type:longtext;comment:处理后内容"`
 	ReasoningContent  string `gorm:"column:reasoning_content;type:longtext;comment:思考过程"`
 	Role              string `gorm:"column:role;type:varchar(100);comment:角色"`
+	FileInfo          string `gorm:"column:file_info;type:longtext;comment:文件信息JSON"`
 	PublicModel
 }

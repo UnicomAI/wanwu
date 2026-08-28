@@ -8,14 +8,9 @@ import (
 
 	"github.com/UnicomAI/wanwu/internal/agent-service/pkg"
 	agent_log "github.com/UnicomAI/wanwu/internal/agent-service/pkg/agent-log"
+	_ "github.com/UnicomAI/wanwu/internal/agent-service/pkg/tracer"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
-)
-
-const (
-	maxMsgSize            = 1024 * 1024 * 4 // 4M
-	headlessServiceSchema = "dns:///"
 )
 
 var grpcConsumer = GrpcConsumer{}
@@ -47,21 +42,6 @@ func (c GrpcConsumer) Stop() error {
 	return nil
 }
 
-func newConn(config *GrpcConsumerConfig) (*grpc.ClientConn, error) {
-	conn, err := grpc.NewClient(headlessServiceSchema+config.Host,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
-		grpc.WithDefaultCallOptions(
-			grpc.MaxCallRecvMsgSize(maxMsgSize),
-			grpc.MaxCallSendMsgSize(maxMsgSize)),
-		grpc.WithChainUnaryInterceptor(UnaryClientInterceptor()),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return conn, err
-}
-
 func UnaryClientInterceptor() grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{},
 		cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
@@ -70,6 +50,7 @@ func UnaryClientInterceptor() grpc.UnaryClientInterceptor {
 		// 获取正在运行程序的操作系统
 		cos := runtime.GOOS
 		// 将操作系统信息附加到传出请求
+
 		ctx = metadata.AppendToOutgoingContext(ctx, "client-os", cos)
 
 		// 可以看做是当前 RPC 方法，一般在拦截器中调用 invoker 能达到调用 RPC 方法的效果，当然底层也是 gRPC 在处理。

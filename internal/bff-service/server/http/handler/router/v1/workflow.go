@@ -9,8 +9,8 @@ import (
 )
 
 func registerWorkflow(apiV1 *gin.RouterGroup) {
-	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow/list", http.MethodGet, v1.GetAppSpaceAppList, "获取工作流/对话流应用列表")
-	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow", http.MethodPost, v1.CreateWorkflow, "创建workflow")
+	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow/list", http.MethodGet, v1.GetWorkflowAndChatflowList, "获取工作流/对话流应用列表")
+	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow", http.MethodPost, v1.CreateWorkflow, "创建工作流或对话流")
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow/convert", http.MethodPost, v1.WorkflowConvert, "workflow转为chatflow")
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow/copy/draft", http.MethodPost, v1.CopyWorkflowDraft, "拷贝workflow草稿")
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow/model/select/llm", http.MethodGet, v1.ListLlmModelsByWorkflow, "llm模型列表（用于workflow）")
@@ -20,12 +20,12 @@ func registerWorkflow(apiV1 *gin.RouterGroup) {
 
 	mid.Sub("app.workflow").Reg(apiV1, "/workflow/tool/action", http.MethodGet, v1.GetWorkflowToolDetail, "获取Tool具体action")
 	mid.Sub("app.workflow").Reg(apiV1, "/workflow/tool/select", http.MethodGet, v1.GetWorkflowToolSelect, "获取Tool列表")
+	mid.Sub("app.workflow").Reg(apiV1, "/workflow/tool/box", http.MethodGet, v1.GetWorkflowToolBoxDetail, "工具箱明细查询（只用于适配本体智能体）")
 
 	mid.Sub("app.workflow").Reg(apiV1, "/workflow/select", http.MethodGet, v1.GetWorkflowSelect, "智能体工作流下拉列表接口")
 
 	mid.Sub("app.workflow").Reg(apiV1, "/workflow/template", http.MethodPost, v1.CreateWorkflowByTemplate, "复制工作流模板")
 	// --- chatflow ---
-	mid.Sub("app.workflow").Reg(apiV1, "/appspace/chatflow", http.MethodPost, v1.CreateChatflow, "创建chatflow")
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/chatflow/convert", http.MethodPost, v1.ChatflowConvert, "chatflow转为workflow")
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/chatflow/copy/draft", http.MethodPost, v1.CopyChatflowDraft, "拷贝chatflow草稿")
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/chatflow/import", http.MethodPost, v1.ImportChatflow, "导入chatflow")

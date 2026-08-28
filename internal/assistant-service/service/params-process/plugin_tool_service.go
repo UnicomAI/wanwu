@@ -39,7 +39,7 @@ func (k *PluginToolProcess) Prepare(agent *AgentInfo, prepareParams *AgentPrepar
 		return nil
 	}
 	// 获取工具详情
-	toolResp, err := clientInfo.MCP.GetToolDetailByIdList(context.Background(), &mcp_service.GetToolByToolIdListReq{
+	toolResp, err := clientInfo.MCP.GetToolDetailByIdList(userQueryParams.Ctx, &mcp_service.GetToolByToolIdListReq{
 		BuiltInToolIdList: builtInToolIdList,
 		CustomToolIdList:  customToolIdList,
 		Identity: &mcp_service.Identity{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/UnicomAI/wanwu/internal/agent-service/pkg/config"
@@ -36,6 +37,9 @@ func SearchModel(ctx context.Context, modelId string) (*service_model.ModelInfo,
 		return nil, err
 	}
 	if resp.Code != successCode {
+		if strings.Contains(resp.Msg, "模型查询异常:record not found") {
+			return nil, errors.New("智能体模型查询失败，请检查模型是否已下线，重新选择模型。")
+		}
 		return nil, errors.New(resp.Msg)
 	}
 	return resp.Data, nil

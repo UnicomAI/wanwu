@@ -121,6 +121,18 @@ func GetDocListByKnowledgeId(ctx context.Context, userId, orgId string, knowledg
 	return docList, nil
 }
 
+// KnowledgeGraphSuccess 知识库图谱是否成功
+func KnowledgeGraphSuccess(ctx context.Context, userId, orgId string, knowledgeId string) (bool, error) {
+	var count int64
+	err := sqlopt.SQLOptions(sqlopt.WithPermit(orgId, userId), sqlopt.WithKnowledgeID(knowledgeId),
+		sqlopt.WithDelete(0), sqlopt.WithGraphStatusList([]int{int(model.GraphSuccess)})).
+		Apply(db.GetHandle(ctx), &model.KnowledgeDoc{}).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 // GetDocListByKnowledgeIdAndFileTypeFilter 根据知识库id查询知识库文件列表
 func GetDocListByKnowledgeIdAndFileTypeFilter(ctx context.Context, userId, orgId string, knowledgeId string, fileType string) ([]*model.KnowledgeDoc, error) {
 	var docList []*model.KnowledgeDoc
@@ -439,12 +451,17 @@ func CopyDocAndRemoveRag(ctx context.Context, knowledge *model.KnowledgeBase, do
 			log.Errorf("UpdateDocInfo %s", err)
 			return err
 		}
-		//2.rag删除
+		//2.rag删除（导入前校验失败的文档从未推送到 RAG，无需调用 RAG 删除，否则会因非法文件名等触发 RAG 报错）
+		if util.IsPreImportCheckFailErr(knowledgeDoc.ErrorMsg) {
+			log.Infof("导入前校验失败文件未推送rag，重导入时跳过rag删除，id: %s， name: %s, errMsg: %s", knowledgeDoc.DocId, knowledgeDoc.Name, knowledgeDoc.ErrorMsg)
+			return nil
+		}
 		var fileName = service.RebuildFileName(knowledgeDoc.DocId, knowledgeDoc.FileType, knowledgeDoc.Name)
 		err = service.RagDeleteDoc(ctx, &service.RagDeleteDocParams{
-			UserId:        knowledge.UserId,
-			KnowledgeBase: knowledge.RagName,
-			FileName:      fileName,
+			UserId:          knowledge.UserId,
+			KnowledgeBaseId: knowledge.KnowledgeId,
+			KnowledgeBase:   knowledge.RagName,
+			FileName:        fileName,
 		})
 		if err != nil {
 			return processError(status, err)
@@ -638,7 +655,7 @@ func convertMetaValue(meta *model.KnowledgeDocMeta) (interface{}, error) {
 
 // CreateKnowledgeUrlDoc 创建知识库url文件
 func CreateKnowledgeUrlDoc(ctx context.Context, doc *model.KnowledgeDoc, importTask *model.KnowledgeImportTask) error {
-	knowledge, err := SelectKnowledgeById(ctx, doc.KnowledgeId, doc.UserId, doc.OrgId)
+	knowledge, err := SelectKnowledgeById(ctx, doc.KnowledgeId, "", "")
 	if err != nil {
 		return err
 	}
@@ -679,13 +696,14 @@ func CreateKnowledgeUrlDoc(ctx context.Context, doc *model.KnowledgeDoc, importT
 			TaskId:            doc.DocId,
 			FileName:          doc.Name,
 			Url:               url.QueryEscape(doc.FilePath),
-			UserId:            doc.UserId,
+			UserId:            knowledge.UserId,
 			Overlap:           config.Overlap,
 			SegmentSize:       config.MaxSplitter,
 			SegmentType:       service.RebuildSegmentType(config.SegmentType, config.SegmentMethod),
 			SplitType:         service.RebuildSplitType(config.SegmentMethod),
 			Separators:        config.Splitter,
 			KnowledgeBaseName: knowledge.RagName,
+			KnowledgeBaseId:   knowledge.KnowledgeId,
 			OcrModelId:        importTask.OcrModelId,
 			PreProcess:        preProcess.PreProcessList,
 			RagMetaDataParams: ragMetaList,
@@ -701,7 +719,7 @@ func CreateKnowledgeUrlDoc(ctx context.Context, doc *model.KnowledgeDoc, importT
 			DocId:                 doc.DocId,
 			KnowledgeName:         knowledge.RagName,
 			CategoryId:            knowledge.KnowledgeId,
-			UserId:                doc.UserId,
+			UserId:                knowledge.UserId,
 			Overlap:               config.Overlap,
 			SegmentSize:           config.MaxSplitter,
 			SegmentType:           service.RebuildSegmentType(config.SegmentType, config.SegmentMethod),
@@ -763,33 +781,34 @@ func InitDocStatus(ctx context.Context, userId, orgId string) error {
 }
 
 // DeleteDocByIdList 删除文档
-func DeleteDocByIdList(ctx context.Context, idList []uint32, resultDocList []*model.KnowledgeDoc) error {
-	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
-		//1.逻辑删除数据
-		err := logicDeleteDocByIdList(tx, idList)
+func DeleteDocByIdList(ctx context.Context, knowledge *model.KnowledgeBase, resultDocList []*model.KnowledgeDoc) error {
+	//删除 rag 文档,从性能上考虑,不应该循环里加事务，但是，底层不提供批量删除接口，为了用户更好的效果，只能这么处理
+	//考虑到删除并不是一个高频操作，先这么处理
+	var successDocIdList []uint32
+	var deleteFail = false
+	for _, doc := range resultDocList {
+		err := deleteDocAndRag(ctx, knowledge, doc)
 		if err != nil {
-			return err
+			log.Errorf("delete doc fail %v", err)
+			deleteFail = true
+			break
 		}
-		err = DeleteKnowledgeFileInfo(tx, resultDocList[0].KnowledgeId, buildDocInfoList(resultDocList))
-		//2.更新知识库条数
-		if err != nil {
-			return err
-		}
-		//3.异步执行删除数据
-		return async_task.SubmitTask(ctx, async_task.DocDeleteTaskType, &async_task.DocDeleteParams{
-			DocIdList: idList,
-		})
-	})
-}
-
-func buildDocInfoList(docList []*model.KnowledgeDoc) []*model.DocInfo {
-	var retList []*model.DocInfo
-	for _, doc := range docList {
-		retList = append(retList, &model.DocInfo{
-			DocSize: doc.FileSize,
+		successDocIdList = append(successDocIdList, doc.Id)
+	}
+	if len(successDocIdList) > 0 {
+		//异步执行删除数据
+		_ = async_task.SubmitTask(ctx, async_task.DocDeleteTaskType, &async_task.DocDeleteParams{
+			DocIdList: successDocIdList,
 		})
 	}
-	return retList
+	//删除失败，处理失败消息
+	if deleteFail {
+		if len(successDocIdList) > 0 {
+			return util.ErrCode(errs.Code_KnowledgeDocDeletePartFailed)
+		}
+		return util.ErrCode(errs.Code_KnowledgeDocDeleteFailed)
+	}
+	return nil
 }
 
 // ExecuteDeleteDocByIdList 执行删除
@@ -797,12 +816,37 @@ func ExecuteDeleteDocByIdList(tx *gorm.DB, idList []uint32) error {
 	return tx.Unscoped().Where("id IN ?", idList).Delete(&model.KnowledgeDoc{}).Error
 }
 
-// logicDeleteDocByIdList 逻辑删除
-func logicDeleteDocByIdList(tx *gorm.DB, idList []uint32) error {
-	var updateParams = map[string]interface{}{
-		"deleted": 1,
-	}
-	return tx.Model(&model.KnowledgeDoc{}).Where("id IN ?", idList).Updates(updateParams).Error
+func deleteDocAndRag(ctx context.Context, knowledge *model.KnowledgeBase, knowledgeDoc *model.KnowledgeDoc) error {
+	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
+		//1.逻辑删除数据
+		var updateParams = map[string]interface{}{
+			"deleted": 1,
+		}
+		err := tx.Model(&model.KnowledgeDoc{}).Where("id = ?", knowledgeDoc.Id).Updates(updateParams).Error
+		if err != nil {
+			return err
+		}
+		err = DeleteKnowledgeFileInfo(tx, knowledge.KnowledgeId, []*model.DocInfo{{
+			DocSize: knowledgeDoc.FileSize,
+		}})
+		//2.更新知识库条数
+		if err != nil {
+			return err
+		}
+		if util.IsPreImportCheckFailErr(knowledgeDoc.ErrorMsg) {
+			log.Infof("导入前校验失败文件未推送rag，删除时跳过rag删除，id: %s， name: %s, errMsg: %s", knowledgeDoc.DocId, knowledgeDoc.Name, knowledgeDoc.ErrorMsg)
+			return nil
+		}
+		//3.删除 rag 文档
+		var fileName = service.RebuildFileName(knowledgeDoc.DocId, knowledgeDoc.FileType, knowledgeDoc.Name)
+		err = service.RagDeleteDoc(context.Background(), &service.RagDeleteDocParams{
+			UserId:          knowledge.UserId,
+			KnowledgeBaseId: knowledge.KnowledgeId,
+			KnowledgeBase:   knowledge.RagName,
+			FileName:        fileName,
+		})
+		return err
+	})
 }
 
 // createKnowledgeDoc 插入数据
@@ -840,7 +884,14 @@ func stopDocGraphProcess(tx *gorm.DB) error {
 		"graph_status": model.GraphInterruptFail,
 	}
 	//会锁表风险极高
-	return tx.Model(&model.KnowledgeDoc{}).Where("graph_status = ?", model.GraphProcessing).Updates(updateDoc).Error
+	processingStatusList := []model.GraphStatus{
+		model.GraphProcessing,
+		model.GraphSchemaSuccess,
+		model.GraphChunkSuccess,
+		model.GraphExtractSuccess,
+		model.GraphStoreSuccess,
+	}
+	return tx.Model(&model.KnowledgeDoc{}).Where("graph_status IN ?", processingStatusList).Updates(updateDoc).Error
 }
 
 func stopKnowledgeReport(tx *gorm.DB) error {

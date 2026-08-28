@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	KnowledgeBaseDocService_GetDocList_FullMethodName              = "/knowledgebase_doc_service.KnowledgeBaseDocService/GetDocList"
+	KnowledgeBaseDocService_GetDocListByDocIdList_FullMethodName   = "/knowledgebase_doc_service.KnowledgeBaseDocService/GetDocListByDocIdList"
 	KnowledgeBaseDocService_GetDocDetail_FullMethodName            = "/knowledgebase_doc_service.KnowledgeBaseDocService/GetDocDetail"
 	KnowledgeBaseDocService_ImportDoc_FullMethodName               = "/knowledgebase_doc_service.KnowledgeBaseDocService/ImportDoc"
 	KnowledgeBaseDocService_ReImportDoc_FullMethodName             = "/knowledgebase_doc_service.KnowledgeBaseDocService/ReImportDoc"
@@ -28,7 +29,6 @@ const (
 	KnowledgeBaseDocService_ExportDoc_FullMethodName               = "/knowledgebase_doc_service.KnowledgeBaseDocService/ExportDoc"
 	KnowledgeBaseDocService_UpdateDocStatus_FullMethodName         = "/knowledgebase_doc_service.KnowledgeBaseDocService/UpdateDocStatus"
 	KnowledgeBaseDocService_UpdateDocMetaData_FullMethodName       = "/knowledgebase_doc_service.KnowledgeBaseDocService/UpdateDocMetaData"
-	KnowledgeBaseDocService_BatchUpdateDocMetaData_FullMethodName  = "/knowledgebase_doc_service.KnowledgeBaseDocService/BatchUpdateDocMetaData"
 	KnowledgeBaseDocService_InitDocStatus_FullMethodName           = "/knowledgebase_doc_service.KnowledgeBaseDocService/InitDocStatus"
 	KnowledgeBaseDocService_DeleteDoc_FullMethodName               = "/knowledgebase_doc_service.KnowledgeBaseDocService/DeleteDoc"
 	KnowledgeBaseDocService_GetDocCategoryUploadTip_FullMethodName = "/knowledgebase_doc_service.KnowledgeBaseDocService/GetDocCategoryUploadTip"
@@ -53,6 +53,8 @@ const (
 type KnowledgeBaseDocServiceClient interface {
 	// 获取文档列表
 	GetDocList(ctx context.Context, in *GetDocListReq, opts ...grpc.CallOption) (*GetDocListResp, error)
+	// 根据文档id列表获取文档列表
+	GetDocListByDocIdList(ctx context.Context, in *GetDocListByDocIdListReq, opts ...grpc.CallOption) (*GetDocListResp, error)
 	// 获取文档详情
 	GetDocDetail(ctx context.Context, in *GetDocDetailReq, opts ...grpc.CallOption) (*DocInfo, error)
 	// 上传文档
@@ -67,8 +69,6 @@ type KnowledgeBaseDocServiceClient interface {
 	UpdateDocStatus(ctx context.Context, in *UpdateDocStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 更新文档元数据
 	UpdateDocMetaData(ctx context.Context, in *UpdateDocMetaDataReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 批量更新文档元数据
-	BatchUpdateDocMetaData(ctx context.Context, in *BatchUpdateDocMetaDataReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 初始化文档状态
 	InitDocStatus(ctx context.Context, in *InitDocStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 删除文档
@@ -90,7 +90,7 @@ type KnowledgeBaseDocServiceClient interface {
 	// 删除文档分片
 	DeleteDocSegment(ctx context.Context, in *DeleteDocSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 更新文档分片
-	UpdateDocSegment(ctx context.Context, in *UpdateDocSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	UpdateDocSegment(ctx context.Context, in *UpdateDocSegmentReq, opts ...grpc.CallOption) (*UpdateDocSegmentResp, error)
 	// 获取文档子分段列表
 	GetDocChildSegmentList(ctx context.Context, in *GetDocChildSegmentListReq, opts ...grpc.CallOption) (*GetDocChildSegmentListResp, error)
 	// 新增文档子分片
@@ -115,6 +115,16 @@ func (c *knowledgeBaseDocServiceClient) GetDocList(ctx context.Context, in *GetD
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetDocListResp)
 	err := c.cc.Invoke(ctx, KnowledgeBaseDocService_GetDocList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *knowledgeBaseDocServiceClient) GetDocListByDocIdList(ctx context.Context, in *GetDocListByDocIdListReq, opts ...grpc.CallOption) (*GetDocListResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDocListResp)
+	err := c.cc.Invoke(ctx, KnowledgeBaseDocService_GetDocListByDocIdList_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -185,16 +195,6 @@ func (c *knowledgeBaseDocServiceClient) UpdateDocMetaData(ctx context.Context, i
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, KnowledgeBaseDocService_UpdateDocMetaData_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *knowledgeBaseDocServiceClient) BatchUpdateDocMetaData(ctx context.Context, in *BatchUpdateDocMetaDataReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, KnowledgeBaseDocService_BatchUpdateDocMetaData_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -301,9 +301,9 @@ func (c *knowledgeBaseDocServiceClient) DeleteDocSegment(ctx context.Context, in
 	return out, nil
 }
 
-func (c *knowledgeBaseDocServiceClient) UpdateDocSegment(ctx context.Context, in *UpdateDocSegmentReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *knowledgeBaseDocServiceClient) UpdateDocSegment(ctx context.Context, in *UpdateDocSegmentReq, opts ...grpc.CallOption) (*UpdateDocSegmentResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
+	out := new(UpdateDocSegmentResp)
 	err := c.cc.Invoke(ctx, KnowledgeBaseDocService_UpdateDocSegment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -367,6 +367,8 @@ func (c *knowledgeBaseDocServiceClient) GetDocUploadLimit(ctx context.Context, i
 type KnowledgeBaseDocServiceServer interface {
 	// 获取文档列表
 	GetDocList(context.Context, *GetDocListReq) (*GetDocListResp, error)
+	// 根据文档id列表获取文档列表
+	GetDocListByDocIdList(context.Context, *GetDocListByDocIdListReq) (*GetDocListResp, error)
 	// 获取文档详情
 	GetDocDetail(context.Context, *GetDocDetailReq) (*DocInfo, error)
 	// 上传文档
@@ -381,8 +383,6 @@ type KnowledgeBaseDocServiceServer interface {
 	UpdateDocStatus(context.Context, *UpdateDocStatusReq) (*emptypb.Empty, error)
 	// 更新文档元数据
 	UpdateDocMetaData(context.Context, *UpdateDocMetaDataReq) (*emptypb.Empty, error)
-	// 批量更新文档元数据
-	BatchUpdateDocMetaData(context.Context, *BatchUpdateDocMetaDataReq) (*emptypb.Empty, error)
 	// 初始化文档状态
 	InitDocStatus(context.Context, *InitDocStatusReq) (*emptypb.Empty, error)
 	// 删除文档
@@ -404,7 +404,7 @@ type KnowledgeBaseDocServiceServer interface {
 	// 删除文档分片
 	DeleteDocSegment(context.Context, *DeleteDocSegmentReq) (*emptypb.Empty, error)
 	// 更新文档分片
-	UpdateDocSegment(context.Context, *UpdateDocSegmentReq) (*emptypb.Empty, error)
+	UpdateDocSegment(context.Context, *UpdateDocSegmentReq) (*UpdateDocSegmentResp, error)
 	// 获取文档子分段列表
 	GetDocChildSegmentList(context.Context, *GetDocChildSegmentListReq) (*GetDocChildSegmentListResp, error)
 	// 新增文档子分片
@@ -428,6 +428,9 @@ type UnimplementedKnowledgeBaseDocServiceServer struct{}
 func (UnimplementedKnowledgeBaseDocServiceServer) GetDocList(context.Context, *GetDocListReq) (*GetDocListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDocList not implemented")
 }
+func (UnimplementedKnowledgeBaseDocServiceServer) GetDocListByDocIdList(context.Context, *GetDocListByDocIdListReq) (*GetDocListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDocListByDocIdList not implemented")
+}
 func (UnimplementedKnowledgeBaseDocServiceServer) GetDocDetail(context.Context, *GetDocDetailReq) (*DocInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDocDetail not implemented")
 }
@@ -448,9 +451,6 @@ func (UnimplementedKnowledgeBaseDocServiceServer) UpdateDocStatus(context.Contex
 }
 func (UnimplementedKnowledgeBaseDocServiceServer) UpdateDocMetaData(context.Context, *UpdateDocMetaDataReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDocMetaData not implemented")
-}
-func (UnimplementedKnowledgeBaseDocServiceServer) BatchUpdateDocMetaData(context.Context, *BatchUpdateDocMetaDataReq) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BatchUpdateDocMetaData not implemented")
 }
 func (UnimplementedKnowledgeBaseDocServiceServer) InitDocStatus(context.Context, *InitDocStatusReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InitDocStatus not implemented")
@@ -482,7 +482,7 @@ func (UnimplementedKnowledgeBaseDocServiceServer) BatchCreateDocSegment(context.
 func (UnimplementedKnowledgeBaseDocServiceServer) DeleteDocSegment(context.Context, *DeleteDocSegmentReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDocSegment not implemented")
 }
-func (UnimplementedKnowledgeBaseDocServiceServer) UpdateDocSegment(context.Context, *UpdateDocSegmentReq) (*emptypb.Empty, error) {
+func (UnimplementedKnowledgeBaseDocServiceServer) UpdateDocSegment(context.Context, *UpdateDocSegmentReq) (*UpdateDocSegmentResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDocSegment not implemented")
 }
 func (UnimplementedKnowledgeBaseDocServiceServer) GetDocChildSegmentList(context.Context, *GetDocChildSegmentListReq) (*GetDocChildSegmentListResp, error) {
@@ -536,6 +536,24 @@ func _KnowledgeBaseDocService_GetDocList_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KnowledgeBaseDocServiceServer).GetDocList(ctx, req.(*GetDocListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KnowledgeBaseDocService_GetDocListByDocIdList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDocListByDocIdListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KnowledgeBaseDocServiceServer).GetDocListByDocIdList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KnowledgeBaseDocService_GetDocListByDocIdList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KnowledgeBaseDocServiceServer).GetDocListByDocIdList(ctx, req.(*GetDocListByDocIdListReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -662,24 +680,6 @@ func _KnowledgeBaseDocService_UpdateDocMetaData_Handler(srv interface{}, ctx con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KnowledgeBaseDocServiceServer).UpdateDocMetaData(ctx, req.(*UpdateDocMetaDataReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KnowledgeBaseDocService_BatchUpdateDocMetaData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchUpdateDocMetaDataReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KnowledgeBaseDocServiceServer).BatchUpdateDocMetaData(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: KnowledgeBaseDocService_BatchUpdateDocMetaData_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KnowledgeBaseDocServiceServer).BatchUpdateDocMetaData(ctx, req.(*BatchUpdateDocMetaDataReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -984,6 +984,10 @@ var KnowledgeBaseDocService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _KnowledgeBaseDocService_GetDocList_Handler,
 		},
 		{
+			MethodName: "GetDocListByDocIdList",
+			Handler:    _KnowledgeBaseDocService_GetDocListByDocIdList_Handler,
+		},
+		{
 			MethodName: "GetDocDetail",
 			Handler:    _KnowledgeBaseDocService_GetDocDetail_Handler,
 		},
@@ -1010,10 +1014,6 @@ var KnowledgeBaseDocService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateDocMetaData",
 			Handler:    _KnowledgeBaseDocService_UpdateDocMetaData_Handler,
-		},
-		{
-			MethodName: "BatchUpdateDocMetaData",
-			Handler:    _KnowledgeBaseDocService_BatchUpdateDocMetaData_Handler,
 		},
 		{
 			MethodName: "InitDocStatus",

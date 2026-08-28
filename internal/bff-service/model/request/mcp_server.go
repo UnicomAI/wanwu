@@ -8,7 +8,12 @@ type MCPServerCreateReq struct {
 	Desc   string `json:"desc" validate:"required"` // 描述
 }
 
-func (req *MCPServerCreateReq) Check() error { return nil }
+func (req *MCPServerCreateReq) Check() error {
+	if err := util.ValidateName(&req.Name, util.SubjectMCPServer); err != nil {
+		return err
+	}
+	return util.ValidateDesc(&req.Desc, util.SubjectMCPServer)
+}
 
 type MCPServerUpdateReq struct {
 	MCPServerID string `json:"mcpServerId" validate:"required"` // mcp server Id

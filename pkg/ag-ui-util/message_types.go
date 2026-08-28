@@ -19,6 +19,7 @@ const (
 const (
 	ActivityTypeSubAgent  = "sub_agent"
 	ActivityTypeWorkspace = "workspace"
+	ActivityTypeQuestion  = "question"
 )
 
 const (
@@ -87,6 +88,32 @@ type WorkspaceActivityContent struct {
 	FileCount int    `json:"fileCount"`
 	TotalSize int64  `json:"totalSize"`
 	Timestamp int64  `json:"timestamp"`
+}
+
+// QuestionActivityContent 问题活动内容（Human-in-the-Loop）。
+type QuestionActivityContent struct {
+	QuestionID string         `json:"questionId"`
+	RunID      string         `json:"runId"`
+	ThreadID   string         `json:"threadId"`
+	Status     string         `json:"status"` // "pending", "answered", "rejected"
+	Questions  []QuestionItem `json:"questions"`
+	Answers    [][]string     `json:"answers,omitempty"` // 用户答案（status="answered" 时）
+	Timestamp  int64          `json:"timestamp"`
+}
+
+// QuestionItem 问题项。
+type QuestionItem struct {
+	Question string   `json:"question"`
+	Header   string   `json:"header"`
+	Options  []Option `json:"options"`
+	Multiple bool     `json:"multiple"`
+	Custom   bool     `json:"custom"`
+}
+
+// Option 问题选项。
+type Option struct {
+	Label       string `json:"label"`
+	Description string `json:"description"`
 }
 
 // ============================================================================

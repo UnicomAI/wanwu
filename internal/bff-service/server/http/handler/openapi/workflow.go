@@ -1,11 +1,11 @@
 package openapi
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	"github.com/gin-gonic/gin"
 )
@@ -27,12 +27,14 @@ func WorkflowRun(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
-	jsonBytes, err := json.Marshal(req.Parameters)
-	if err != nil {
+
+	// OpenAPI 权限检查：仅允许调用自己创建的已发布应用
+	if err := service.CheckOpenAPIAccess(ctx, req.UUID, constant.AppTypeWorkflow, userID, orgID); err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	resp, err := service.OpenAPIWorkflowRun(ctx, userID, orgID, req.UUID, jsonBytes)
+
+	resp, err := service.OpenAPIWorkflowRun(ctx, userID, orgID, req)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
@@ -99,6 +101,58 @@ func GetConversationMessageList(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, nil)
 }
 
+// DeleteChatflowConversation
+//
+//	@Tags			openapi
+//	@Summary		对话流删除会话OpenAPI
+//	@Description	对话流删除会话OpenAPI
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.OpenAPIChatflowDeleteConversationRequest	true	"请求参数"
+//	@Success		200		{object}	response.Response{}
+//	@Router			/chatflow/conversation [delete]
+func DeleteChatflowConversation(ctx *gin.Context) {
+	var req request.OpenAPIChatflowDeleteConversationRequest
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	userID := getUserID(ctx)
+	orgID := getOrgID(ctx)
+
+	err := service.DeleteChatflowConversationByConversationId(ctx, userID, orgID, req.UUID, req.ConversationId)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	gin_util.Response(ctx, nil, nil)
+}
+
+// GetChatflowConversationList
+//
+//	@Tags			openapi
+//	@Summary		对话流获取会话列表OpenAPI
+//	@Description	对话流获取会话列表OpenAPI
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.OpenAPIChatflowGetConversationListRequest	true	"请求参数"
+//	@Success		200		{object}	response.Response{data=response.OpenAPIChatflowConversationListResponse}
+//	@Router			/chatflow/conversation/list [post]
+func GetChatflowConversationList(ctx *gin.Context) {
+	var req request.OpenAPIChatflowGetConversationListRequest
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	userID := getUserID(ctx)
+	orgID := getOrgID(ctx)
+
+	resp, err := service.GetChatflowConversationList(ctx, userID, orgID, req.UUID)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	gin_util.Response(ctx, resp, nil)
+}
+
 // ChatflowChat
 //
 //	@Tags			openapi
@@ -117,8 +171,14 @@ func ChatflowChat(ctx *gin.Context) {
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
 
+	// OpenAPI 权限检查：仅允许调用自己创建的已发布应用
+	if err := service.CheckOpenAPIAccess(ctx, req.UUID, constant.AppTypeChatflow, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+
 	// 流式处理 - 直接操作响应流
-	err := service.ChatflowChat(ctx, userID, orgID, req.UUID, req.ConversationId, req.Query, req.Parameters)
+	err := service.ChatflowChat(ctx, userID, orgID, req)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return

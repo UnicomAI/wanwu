@@ -4,7 +4,6 @@ import json
 import requests
 import re
 
-from openai import OpenAI
 from dotenv import load_dotenv
 
 from graph.utils.logger import logger
@@ -26,7 +25,6 @@ class LLMCompletionCall:
             raise ValueError("LLM API key not provided")
         self.llm_timeout = int(os.getenv("LLM_TIMEOUT", "300"))
         self.llm_max_retries = int(os.getenv("LLM_MAX_RETRIES", "3"))
-        # self.client = OpenAI(base_url=self.llm_base_url, api_key=self.llm_api_key)
 
     def call_api(self, content: str) -> str:
         """

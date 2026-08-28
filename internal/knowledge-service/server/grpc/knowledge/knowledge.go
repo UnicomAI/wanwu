@@ -58,8 +58,8 @@ func (s *Service) SelectKnowledgeList(ctx context.Context, req *knowledgebase_se
 	return buildKnowledgeListResp(list, tagMap, permissionMap), nil
 }
 
-func (s *Service) SelectKnowledgeListByIdList(ctx context.Context, req *knowledgebase_service.BatchKnowledgeSelectReq) (*knowledgebase_service.KnowledgeSelectListResp, error) {
-	list, permissionMap, err := orm.SelectKnowledgeByIdList(ctx, req.KnowledgeIdList, req.UserId, req.OrgId)
+func (s *Service) SelectKnowledgeListByUserList(ctx context.Context, req *knowledgebase_service.KnowledgeSelectUserListReq) (*knowledgebase_service.KnowledgeSelectListResp, error) {
+	list, permissionMap, err := orm.SelectKnowledgeListByOrgList(ctx, req.UserId, req.OrgId, req.Name, buildCategoryList(req.Category), int(req.External))
 	if err != nil {
 		log.Errorf(fmt.Sprintf("获取知识库列表失败(%v)  参数(%v)", err, req))
 		return nil, util.ErrCode(errs.Code_KnowledgeBaseSelectFailed)
@@ -67,13 +67,57 @@ func (s *Service) SelectKnowledgeListByIdList(ctx context.Context, req *knowledg
 	return buildKnowledgeListResp(list, nil, permissionMap), nil
 }
 
+func (s *Service) SelectKnowledgeListByIdList(ctx context.Context, req *knowledgebase_service.BatchKnowledgeSelectReq) (*knowledgebase_service.KnowledgeSelectListResp, error) {
+	list, permissionMap, err := orm.SelectKnowledgeByIdListPermission(ctx, req.KnowledgeIdList, req.UserId, req.OrgId, req.NoPermission)
+	if err != nil {
+		log.Errorf(fmt.Sprintf("获取知识库列表失败(%v)  参数(%v)", err, req))
+		return nil, util.ErrCode(errs.Code_KnowledgeBaseSelectFailed)
+	}
+	return buildKnowledgeListResp(list, nil, permissionMap), nil
+}
+
+// AdminKnowledgePageList 管理员中心知识库全局分页列表（跨用户，按系统权限过滤）
+func (s *Service) AdminKnowledgePageList(ctx context.Context, req *knowledgebase_service.AdminKnowledgePageListReq) (*knowledgebase_service.AdminKnowledgePageListResp, error) {
+	list, total, err := orm.SelectKnowledgePageList(ctx, orm.NewKnowledgePageParams(req))
+	if err != nil {
+		log.Errorf(fmt.Sprintf("管理员中心获取知识库分页列表失败(%v)  参数(%v)", err, req))
+		return nil, util.ErrCode(errs.Code_KnowledgeBaseSelectFailed)
+	}
+	return &knowledgebase_service.AdminKnowledgePageListResp{
+		Total:         total,
+		KnowledgeList: buildKnowledgeOwnerInfoList(list),
+	}, nil
+}
+
 func (s *Service) SelectKnowledgeDetailById(ctx context.Context, req *knowledgebase_service.KnowledgeDetailSelectReq) (*knowledgebase_service.KnowledgeInfo, error) {
-	knowledgeInfo, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, req.UserId, req.OrgId)
+	knowledgeInfo, err := orm.SelectKnowledgeById(ctx, req.KnowledgeId, "", "")
 	if err != nil {
 		log.Errorf(fmt.Sprintf("获取知识库详情(%v)  参数(%v)", err, req))
 		return nil, err
 	}
-	return buildKnowledgeInfo(knowledgeInfo), nil
+	var knowledgeResult = buildKnowledgeInfo(knowledgeInfo)
+	if req.NeedOwner {
+		knowledgePermissionList, _ := orm.SelectUserKnowledgePermissionList(ctx, req.KnowledgeId, model.PermissionTypeSystem)
+		if len(knowledgePermissionList) > 0 {
+			//知识库的拥有者只能有一个
+			permission := knowledgePermissionList[0]
+			knowledgeResult.OwnerUserId = permission.UserId
+			knowledgeResult.OwnerOrgId = permission.OrgId
+		}
+	}
+	if req.NeedGraph {
+		showGraphReport, _ := orm.KnowledgeGraphSuccess(ctx, "", "", req.KnowledgeId)
+		knowledgeResult.ShowGraphReport = showGraphReport
+	}
+	if req.NeedPermission {
+		// 查询当前用户对该知识库的权限类型，无记录时默认查看权限(0)
+		permissionType := int32(model.PermissionTypeView)
+		if permission, perErr := orm.SelectUserKnowledgePermission(ctx, req.UserId, req.OrgId, req.KnowledgeId); perErr == nil {
+			permissionType = int32(permission.PermissionType)
+		}
+		knowledgeResult.PermissionType = permissionType
+	}
+	return knowledgeResult, nil
 }
 
 func (s *Service) SelectKnowledgeDetailByName(ctx context.Context, req *knowledgebase_service.KnowledgeDetailSelectReq) (*knowledgebase_service.KnowledgeInfo, error) {
@@ -190,9 +234,15 @@ func (s *Service) KnowledgeHit(ctx context.Context, req *knowledgebase_service.K
 	for _, k := range req.KnowledgeList {
 		knowledgeIdList = append(knowledgeIdList, k.KnowledgeId)
 	}
-	list, _, err := orm.SelectKnowledgeByIdList(ctx, knowledgeIdList, "", "")
+	//命中测试这里需要校验权限
+	list, _, err := orm.SelectKnowledgeByIdList(ctx, knowledgeIdList, req.UserId, req.OrgId)
 	if err != nil {
 		return nil, err
+	}
+	if len(list) == 0 {
+		marshal, _ := json.Marshal(knowledgeIdList)
+		log.Errorf("knowledge hit error no permission userId %s orgId %s knowledgeID %s", req.UserId, req.OrgId, string(marshal))
+		return nil, util.ErrCode(errs.Code_KnowledgeBaseHitFailed)
 	}
 	knowledgeIDToName := make(map[string]string)
 	for _, k := range list {
@@ -203,7 +253,7 @@ func (s *Service) KnowledgeHit(ctx context.Context, req *knowledgebase_service.K
 	// 2.RAG请求
 	ragHitParams, err := buildRagHitParams(req, list, knowledgeIDToName)
 	if err != nil {
-		return nil, util.ErrCode(errs.Code_KnowledgeBaseHitFailed)
+		return nil, grpc_util.ErrorStatus(errs.Code_KnowledgeBaseHitFailed, err.Error())
 	}
 	hitResp, err := knowledge_service.RagKnowledgeHit(ctx, ragHitParams)
 	if err != nil {
@@ -365,11 +415,11 @@ func (s *Service) GetKnowledgeGraph(ctx context.Context, req *knowledgebase_serv
 	var processCount, successCount, failCount int32
 	for _, info := range docInfo {
 		switch info.GraphStatus {
-		case model.GraphProcessing:
+		case model.GraphProcessing, model.GraphSchemaSuccess, model.GraphChunkSuccess, model.GraphExtractSuccess, model.GraphStoreSuccess:
 			processCount++
 		case model.GraphSuccess:
 			successCount++
-		case model.GraphChunkFail, model.GraphExtractFail, model.GraphStoreFail:
+		case model.GraphChunkFail, model.GraphExtractFail, model.GraphStoreFail, model.GraphSchemaFail:
 			failCount++
 		}
 	}
@@ -430,9 +480,12 @@ func (s *Service) DeleteExportRecord(ctx context.Context, req *knowledgebase_ser
 
 // buildCategoryList 构造分类列表
 func buildCategoryList(category int32) []int {
-	if int(category) == model.CategoryQA {
+	switch category {
+	case model.CategoryALL:
+		return make([]int, 0)
+	case model.CategoryQA:
 		return []int{model.CategoryQA}
-	} else {
+	default:
 		return []int{model.CategoryKnowledge, model.CategoryMultimodal}
 	}
 }
@@ -859,7 +912,7 @@ func buildRagHitMetaItems(knowledgeID string, params []*knowledgebase_service.Me
 			return nil, err
 		}
 		// 转换参数值
-		ragValue, err := buildValueData(param.Type, param.Value)
+		ragValue, err := BuildValueData(param.Type, param.Value)
 		if err != nil {
 			log.Errorf("kbId: %s, convert value failed: %v", knowledgeID, err)
 			return nil, fmt.Errorf("convert value for key %s: %s", param.Key, err.Error())
@@ -908,10 +961,12 @@ func isValidFilterParams(params *knowledgebase_service.MetaDataFilterParams) boo
 		len(params.MetaFilterParams) > 0
 }
 
-func buildValueData(valueType string, value string) (interface{}, error) {
+func BuildValueData(valueType string, value string) (interface{}, error) {
+	if value == "" {
+		return value, nil
+	}
 	switch valueType {
-	case model.MetaTypeNumber:
-	case model.MetaTypeTime:
+	case model.MetaTypeNumber, model.MetaTypeTime:
 		return strconv.ParseInt(value, 10, 64)
 	}
 	return value, nil
@@ -999,6 +1054,9 @@ func buildKnowledgeTagList(knowledgeId string, knowledgeTagMap map[string][]*orm
 }
 
 func buildKnowledgePermission(knowledgeId string, permissionMap map[string]int) int32 {
+	if len(permissionMap) == 0 {
+		return 0
+	}
 	return int32(permissionMap[knowledgeId])
 }
 
@@ -1022,6 +1080,7 @@ func buildKnowledgeInfo(knowledge *model.KnowledgeBase) *knowledgebase_service.K
 	if docCount < 0 {
 		docCount = 0
 	}
+
 	return &knowledgebase_service.KnowledgeInfo{
 		KnowledgeId:           knowledge.KnowledgeId,
 		Name:                  knowledge.Name,
@@ -1054,6 +1113,18 @@ func buildKnowledgeInfoList(knowledgeList []*model.KnowledgeBase) *knowledgebase
 		List:  retList,
 		Total: int32(len(retList)),
 	}
+}
+
+// buildKnowledgeOwnerInfoList 构造带拥有者信息的知识库列表（管理员中心分页用）
+func buildKnowledgeOwnerInfoList(knowledgeList []*model.KnowledgeBaseOwner) []*knowledgebase_service.KnowledgeInfo {
+	var retList []*knowledgebase_service.KnowledgeInfo
+	for _, v := range knowledgeList {
+		info := buildKnowledgeInfo(&v.KnowledgeBase)
+		info.OwnerUserId = v.OwnerUserId
+		info.OwnerOrgId = v.OwnerOrgId
+		retList = append(retList, info)
+	}
+	return retList
 }
 
 // buildKnowledgeBaseModel 构造知识库模型
@@ -1148,6 +1219,13 @@ func buildKnowledgeBaseHitResp(ragKnowledgeHitResp *knowledge_service.RagKnowled
 			for _, score := range search.ChildScore {
 				childScore = append(childScore, float32(score))
 			}
+			// meta_data 原样透传 rag 返回，序列化成 JSON 串跨 grpc 传递
+			var metaData string
+			if search.MetaData != nil {
+				if b, err := json.Marshal(search.MetaData); err == nil {
+					metaData = string(b)
+				}
+			}
 			//todo knowledgeName 替换
 			searchList = append(searchList, &knowledgebase_service.KnowledgeSearchInfo{
 				Title:            search.Title,
@@ -1158,6 +1236,7 @@ func buildKnowledgeBaseHitResp(ragKnowledgeHitResp *knowledge_service.RagKnowled
 				ContentType:      search.ContentType,
 				Score:            float32(search.Score),
 				RerankInfo:       buildRerankInfo(search.RerankInfo),
+				MetaData:         metaData,
 			})
 		}
 	}

@@ -11,6 +11,7 @@ service OperateService {
     rpc CreateSystemCustomTab(CreateSystemCustomTabReq) returns (google.protobuf.Empty) {}
     rpc CreateSystemCustomLogin(CreateSystemCustomLoginReq) returns (google.protobuf.Empty) {}
     rpc CreateSystemCustomHome(CreateSystemCustomHomeReq) returns (google.protobuf.Empty) {}
+    rpc CreateSystemCustomGeneralAgent(CreateSystemCustomGeneralAgentReq) returns (google.protobuf.Empty) {}
     rpc GetSystemCustom(GetSystemCustomReq) returns (SystemCustom) {}
 
     rpc AddClientRecord(AddClientRecordReq) returns (google.protobuf.Empty) {}
@@ -38,6 +39,13 @@ message CreateSystemCustomHomeReq {
     Home home = 4; // 标题
 }
 
+message CreateSystemCustomGeneralAgentReq {
+    string orgId = 1; // 租户ID
+    string userId = 2; // 用户ID
+    string mode = 3; // 模式
+    GeneralAgent generalAgent = 4; // 通用智能体配置
+}
+
 message GetSystemCustomReq {
     string mode = 1; // 模式
 }
@@ -46,6 +54,13 @@ message SystemCustom {
     Login login = 1; // 登录页
     Tab tab = 2; // logo
     Home home = 3; // 标题
+    GeneralAgent generalAgent = 4; // 通用智能体配置
+}
+
+message GeneralAgent {
+    string generalAgentIcon = 1; // 通用智能体图标路径
+    string generalAgentWelcome = 2; // 通用智能体欢迎语
+    string generalAgentMenuName = 3; // 通用智能体菜单名称
 }
 
 message Tab {

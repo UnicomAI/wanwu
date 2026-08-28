@@ -79,110 +79,6 @@ definitions:
         - $ref: '#/definitions/mp_common.LLMParams'
         description: 大语言模型配置
     type: object
-  mp.ProviderModelByDeepSeek:
-    properties:
-      llm:
-        $ref: '#/definitions/mp_deepseek.LLM'
-    type: object
-  mp.ProviderModelByHuoShan:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_huoshan.Embedding'
-      llm:
-        $ref: '#/definitions/mp_huoshan.LLM'
-    type: object
-  mp.ProviderModelByInfini:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_infini.Embedding'
-      llm:
-        $ref: '#/definitions/mp_infini.LLM'
-      rerank:
-        $ref: '#/definitions/mp_infini.Rerank'
-    type: object
-  mp.ProviderModelByOllama:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_ollama.Embedding'
-      llm:
-        $ref: '#/definitions/mp_ollama.LLM'
-    type: object
-  mp.ProviderModelByOpenAICompatible:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_openai_compatible.Embedding'
-      llm:
-        $ref: '#/definitions/mp_openai_compatible.LLM'
-      rerank:
-        $ref: '#/definitions/mp_openai_compatible.Rerank'
-    type: object
-  mp.ProviderModelByQianFan:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_qianfan.Embedding'
-      llm:
-        $ref: '#/definitions/mp_qianfan.LLM'
-      rerank:
-        $ref: '#/definitions/mp_qianfan.Rerank'
-    type: object
-  mp.ProviderModelByQwen:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_qwen.Embedding'
-      llm:
-        $ref: '#/definitions/mp_qwen.LLM'
-      multiModalEmbedding:
-        $ref: '#/definitions/mp_qwen.MultiModalEmbedding'
-      multiModalRerank:
-        $ref: '#/definitions/mp_qwen.MultiModalRerank'
-      rerank:
-        $ref: '#/definitions/mp_qwen.Rerank'
-    type: object
-  mp.ProviderModelByYuanjing:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_yuanjing.Embedding'
-      gui:
-        $ref: '#/definitions/mp_yuanjing.Gui'
-      llm:
-        $ref: '#/definitions/mp_yuanjing.LLM'
-      ocr:
-        $ref: '#/definitions/mp_yuanjing.Ocr'
-      pdf-parser:
-        $ref: '#/definitions/mp_yuanjing.PdfParser'
-      rerank:
-        $ref: '#/definitions/mp_yuanjing.Rerank'
-    type: object
-  mp.ProviderModelByZhipu:
-    properties:
-      embedding:
-        $ref: '#/definitions/mp_zhipu.Embedding'
-      llm:
-        $ref: '#/definitions/mp_zhipu.LLM'
-      rerank:
-        $ref: '#/definitions/mp_zhipu.Rerank'
-    type: object
-  mp.ProviderModelConfig:
-    properties:
-      providerDeepSeek:
-        $ref: '#/definitions/mp.ProviderModelByDeepSeek'
-      providerHuoShan:
-        $ref: '#/definitions/mp.ProviderModelByHuoShan'
-      providerInfini:
-        $ref: '#/definitions/mp.ProviderModelByInfini'
-      providerOllama:
-        $ref: '#/definitions/mp.ProviderModelByOllama'
-      providerOpenAICompatible:
-        $ref: '#/definitions/mp.ProviderModelByOpenAICompatible'
-      providerQianFan:
-        $ref: '#/definitions/mp.ProviderModelByQianFan'
-      providerQwen:
-        $ref: '#/definitions/mp.ProviderModelByQwen'
-      providerYuanJing:
-        $ref: '#/definitions/mp.ProviderModelByYuanjing'
-      providerZhipu:
-        $ref: '#/definitions/mp.ProviderModelByZhipu'
-    type: object
   mp_common.LLMParams:
     properties:
       frequencyPenalty:
@@ -224,554 +120,6 @@ definitions:
       text:
         type: string
     type: object
-  mp_deepseek.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_huoshan.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_huoshan.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_infini.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_infini.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_infini.Rerank:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_ollama.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_ollama.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_openai_compatible.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_openai_compatible.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_openai_compatible.Rerank:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_qianfan.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_qianfan.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_qianfan.Rerank:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_qwen.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_qwen.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_qwen.MultiModalEmbedding:
-    properties:
-      apiKey:
-        type: string
-      contextSize:
-        type: integer
-      endpointUrl:
-        type: string
-      maxImageSize:
-        type: integer
-      maxTextLength:
-        type: integer
-      maxVideoClipSize:
-        type: integer
-      supportFileTypes:
-        items:
-          type: string
-        type: array
-    type: object
-  mp_qwen.MultiModalRerank:
-    properties:
-      apiKey:
-        type: string
-      contextSize:
-        type: integer
-      endpointUrl:
-        type: string
-      maxImageSize:
-        type: integer
-      maxTextLength:
-        type: integer
-      maxVideoClipSize:
-        type: integer
-      supportFileTypes:
-        items:
-          type: string
-        type: array
-      supportImageInQuery:
-        type: boolean
-    type: object
-  mp_qwen.Rerank:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_yuanjing.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_yuanjing.Gui:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_yuanjing.LLM:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-      functionCalling:
-        description: 函数调用是否支持
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        description: 最大图片大小限制
-        type: integer
-      maxTokens:
-        description: 模型回答最大tokens
-        type: integer
-      thinkingSupport:
-        description: 深度思考是否支持
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        description: 视觉支持
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_yuanjing.Ocr:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_yuanjing.PdfParser:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_yuanjing.Rerank:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_zhipu.Embedding:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
-  mp_zhipu.LLM:
-    properties:
-      apiKey:
-        type: string
-      contextSize:
-        type: integer
-      endpointUrl:
-        type: string
-      functionCalling:
-        enum:
-        - noSupport
-        - toolCall
-        type: string
-      maxImageSize:
-        type: integer
-      maxTokens:
-        type: integer
-      thinkingSupport:
-        enum:
-        - noSupport
-        - support
-        type: string
-      visionSupport:
-        enum:
-        - noSupport
-        - support
-        type: string
-    type: object
-  mp_zhipu.Rerank:
-    properties:
-      apiKey:
-        description: ApiKey
-        type: string
-      contextSize:
-        description: 上下文长度
-        type: integer
-      endpointUrl:
-        description: 推理url
-        type: string
-    type: object
   oauth2_util.JWK:
     properties:
       alg:
@@ -796,6 +144,9 @@ definitions:
       category:
         description: 知识库类别 0-知识库，1-问答库，2-多模态知识库
         type: integer
+      description:
+        description: 知识库描述
+        type: string
       external:
         description: 外部数据库标识
         type: integer
@@ -887,6 +238,75 @@ definitions:
         description: 模型供应商
         type: string
     type: object
+  request.AppPublishConfig:
+    properties:
+      publishType:
+        type: string
+    type: object
+  request.AppQAKnowledgeBase:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 头像
+      category:
+        description: 知识库类别 0-知识库，1-问答库，2-多模态知识库
+        type: integer
+      description:
+        description: 描述
+        type: string
+      id:
+        description: 知识库id
+        type: string
+      metaDataFilterParams:
+        $ref: '#/definitions/request.MetaDataFilterParams'
+      name:
+        type: string
+      orgName:
+        description: 知识库所属名称
+        type: string
+      share:
+        description: 是分享，还是私有
+        type: boolean
+    required:
+    - id
+    type: object
+  request.AppQAKnowledgebaseConfig:
+    properties:
+      config:
+        allOf:
+        - $ref: '#/definitions/request.AppQAKnowledgebaseParams'
+        description: 问答库参数
+      knowledgebases:
+        description: 问答库id、名字
+        items:
+          $ref: '#/definitions/request.AppQAKnowledgeBase'
+        type: array
+    type: object
+  request.AppQAKnowledgebaseParams:
+    properties:
+      keywordPriority:
+        description: 关键词权重
+        type: number
+      matchType:
+        description: matchType：vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
+        type: string
+      maxHistory:
+        description: 最长上下文
+        type: integer
+      priorityMatch:
+        description: 权重匹配，只有在混合检索模式下，选择权重设置后，这个才设置为1
+        type: integer
+      semanticsPriority:
+        description: 语义权重
+        type: number
+      threshold:
+        description: 过滤阈值
+        type: number
+      topK:
+        description: 知识条数
+        type: integer
+    type: object
   request.AppSafetyConfig:
     properties:
       enable:
@@ -911,6 +331,27 @@ definitions:
         description: 前端请求地址，例如：/v1/static/avatar/abc/def.png (请求非必填)
         type: string
     type: object
+  request.BatchCreateDocSegmentReq:
+    properties:
+      docId:
+        description: 文档id
+        type: string
+      fileUploadId:
+        description: fileUploadId
+        type: string
+    required:
+    - docId
+    - fileUploadId
+    type: object
+  request.ChildChunk:
+    properties:
+      chunkNo:
+        description: 子分段序列号
+        type: integer
+      content:
+        description: 子分段内容
+        type: string
+    type: object
   request.ConversionStreamFile:
     properties:
       fileName:
@@ -919,6 +360,42 @@ definitions:
         type: integer
       fileUrl:
         type: string
+    type: object
+  request.CreateDocChildSegmentReq:
+    properties:
+      content:
+        description: 分段内容
+        items:
+          type: string
+        type: array
+      docId:
+        description: 文档id
+        type: string
+      parentId:
+        description: 父分段id
+        type: string
+    required:
+    - content
+    - docId
+    - parentId
+    type: object
+  request.CreateDocSegmentReq:
+    properties:
+      content:
+        description: 分段内容
+        type: string
+      docId:
+        description: 文档id
+        type: string
+      labels:
+        description: 关键词列表
+        items:
+          type: string
+        type: array
+    required:
+    - content
+    - docId
+    - labels
     type: object
   request.CreateKnowledgeReq:
     properties:
@@ -941,6 +418,27 @@ definitions:
     - embeddingModelInfo
     - name
     type: object
+  request.DeleteDocChildSegmentReq:
+    properties:
+      childChunkNoList:
+        description: 子分段序列号列表
+        items:
+          type: integer
+        type: array
+      docId:
+        description: 文档id
+        type: string
+      parentChunkNo:
+        description: 父分段序列号
+        type: integer
+      parentId:
+        description: 父分段id
+        type: string
+    required:
+    - childChunkNoList
+    - docId
+    - parentId
+    type: object
   request.DeleteDocReq:
     properties:
       docIdList:
@@ -952,6 +450,25 @@ definitions:
     required:
     - docIdList
     - knowledgeId
+    type: object
+  request.DeleteDocSegmentReq:
+    properties:
+      contentId:
+        type: string
+      docId:
+        description: 文档id
+        type: string
+    required:
+    - contentId
+    - docId
+    type: object
+  request.DeleteGeneralAgentConversationReq:
+    properties:
+      threadId:
+        description: 对话ID
+        type: string
+    required:
+    - threadId
     type: object
   request.DeleteKnowledge:
     properties:
@@ -1100,7 +617,17 @@ definitions:
         type: array
       knowledgeId:
         type: string
+      metaEndTime:
+        description: metaType=time 时的结束时间戳(毫秒，字符串)
+        type: string
+      metaStartTime:
+        description: metaType=time 时的起始时间戳(毫秒，字符串)
+        type: string
+      metaType:
+        description: 元数据类型：string/number/time，为空时按旧逻辑(metaValue 模糊匹配，排除 time)
+        type: string
       metaValue:
+        description: 元数据值，metaType 为 string/number 时使用
         type: string
       pageNo:
         type: integer
@@ -1167,6 +694,21 @@ definitions:
     required:
     - segmentMethod
     type: object
+  request.DocSegmentLabelsReq:
+    properties:
+      contentId:
+        type: string
+      docId:
+        type: string
+      labels:
+        items:
+          type: string
+        type: array
+    required:
+    - contentId
+    - docId
+    - labels
+    type: object
   request.EmbeddingModel:
     properties:
       modelId:
@@ -1174,14 +716,19 @@ definitions:
     required:
     - modelId
     type: object
-  request.History:
+  request.GeneralAgentConversationMessage:
     properties:
-      needHistory:
-        type: boolean
-      query:
+      content:
+        description: 内容 string 或者 [{"type":"text","text":"这张图片是什么？"},{"type":"binary","mimeType":"image/png","url":"https://..."}]
+      id:
+        description: 消息id
         type: string
-      response:
+      role:
+        description: 角色 user
         type: string
+    required:
+    - content
+    - role
     type: object
   request.KnowledgeDocExportReq:
     properties:
@@ -1195,6 +742,25 @@ definitions:
         type: string
     required:
     - knowledgeId
+    type: object
+  request.KnowledgeDocMetaValueOpenapiReq:
+    properties:
+      docIdList:
+        description: 文档id列表
+        items:
+          type: string
+        type: array
+      knowledgeId:
+        description: 知识库id
+        type: string
+      metaValueList:
+        items:
+          $ref: '#/definitions/request.KnowledgeMetaValueItem'
+        type: array
+    required:
+    - docIdList
+    - knowledgeId
+    - metaValueList
     type: object
   request.KnowledgeGraph:
     properties:
@@ -1260,6 +826,67 @@ definitions:
         type: boolean
     required:
     - matchType
+    type: object
+  request.KnowledgeMetaKeyItem:
+    properties:
+      metaId:
+        description: 元数据id，option 为 update/delete 时必填
+        type: string
+      metaKey:
+        description: key，只能包含小写字母、数字和下划线，且以小写字母开头，option 为 add/update 时必填
+        type: string
+      metaValueType:
+        description: 值类型：string/number/time，option 为 add/update 时必填
+        type: string
+      option:
+        description: 操作类型：add(新增)、update(修改)、delete(删除)
+        type: string
+    required:
+    - option
+    type: object
+  request.KnowledgeMetaKeyOpenapiReq:
+    properties:
+      knowledgeId:
+        description: 知识库id
+        type: string
+      metaKeyList:
+        description: 元数据key操作列表
+        items:
+          $ref: '#/definitions/request.KnowledgeMetaKeyItem'
+        type: array
+    required:
+    - knowledgeId
+    - metaKeyList
+    type: object
+  request.KnowledgeMetaValueItem:
+    properties:
+      metaKey:
+        description: key，需已在知识库元数据中定义
+        type: string
+      metaValue:
+        description: 值，option 为 delete 时可不填
+        type: string
+      metaValueType:
+        description: 值类型：string/number/time，需与key的定义一致
+        type: string
+      option:
+        description: 操作类型：add(不存在则新增、已有则覆盖)、update(仅已存在时更新)、delete(删除)
+        type: string
+    required:
+    - metaKey
+    - option
+    type: object
+  request.KnowledgeMetaValueListReq:
+    properties:
+      docIdList:
+        items:
+          type: string
+        type: array
+      knowledgeId:
+        type: string
+    required:
+    - docIdList
+    - knowledgeId
     type: object
   request.KnowledgeSelectReq:
     properties:
@@ -1373,10 +1000,12 @@ definitions:
   request.OpenAPIAgentCreateConversationRequest:
     properties:
       title:
+        description: 作为会话标题落库，为空会导致会话列表显示空白
         type: string
       uuid:
         type: string
     required:
+    - title
     - uuid
     type: object
   request.OpenAPIAgentDraftChatRequest:
@@ -1437,6 +1066,23 @@ definitions:
     required:
     - uuid
     type: object
+  request.OpenAPIChatflowDeleteConversationRequest:
+    properties:
+      conversation_id:
+        type: string
+      uuid:
+        type: string
+    required:
+    - conversation_id
+    - uuid
+    type: object
+  request.OpenAPIChatflowGetConversationListRequest:
+    properties:
+      uuid:
+        type: string
+    required:
+    - uuid
+    type: object
   request.OpenAPIChatflowGetConversationMessageListRequest:
     properties:
       conversation_id:
@@ -1467,11 +1113,99 @@ definitions:
     required:
     - name
     type: object
+  request.OpenAPICreateRagRequest:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+    required:
+    - name
+    type: object
   request.OpenAPIRagChatRequest:
     properties:
-      history:
+      conversation_id:
+        description: 由创建会话接口获取，口径与页面侧一致：已发布问答必须先建会话
+        type: string
+      file_info:
+        description: 随问题携带的文件，当前仅支持 1 张图片(png/jpg/jpeg)
         items:
-          $ref: '#/definitions/request.History'
+          $ref: '#/definitions/request.ConversionStreamFile'
+        type: array
+      query:
+        type: string
+      stream:
+        type: boolean
+      uuid:
+        type: string
+    required:
+    - conversation_id
+    - query
+    - uuid
+    type: object
+  request.OpenAPIRagConfigUpdateRequest:
+    properties:
+      knowledgeBaseConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppKnowledgebaseConfig'
+        description: 知识库
+      modelConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 对话模型，modelId 传模型UUID
+      qaKnowledgeBaseConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppQAKnowledgebaseConfig'
+        description: 问答库
+      qaRerankConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 问答库Rerank模型，modelId 传模型UUID
+      recommendQuestion:
+        description: 推荐问题
+        items:
+          type: string
+        type: array
+      rerankConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 知识库Rerank模型，modelId 传模型UUID
+      safetyConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppSafetyConfig'
+        description: 安全护栏
+      uuid:
+        type: string
+      visionConfig:
+        allOf:
+        - $ref: '#/definitions/request.VisionConfig'
+        description: 视觉开关
+    required:
+    - uuid
+    type: object
+  request.OpenAPIRagCreateConversationRequest:
+    properties:
+      title:
+        description: 会话标题，一般取首个问题
+        type: string
+      uuid:
+        type: string
+    required:
+    - title
+    - uuid
+    type: object
+  request.OpenAPIRagDraftChatRequest:
+    properties:
+      file_info:
+        description: 随问题携带的文件，当前仅支持 1 张图片(png/jpg/jpeg)
+        items:
+          $ref: '#/definitions/request.ConversionStreamFile'
         type: array
       query:
         type: string
@@ -1482,6 +1216,93 @@ definitions:
     required:
     - query
     - uuid
+    type: object
+  request.OpenAPIRagPublishRequest:
+    properties:
+      desc:
+        type: string
+      publishType:
+        description: public:系统公开发布 organization:组织公开发布 private:私密发布
+        type: string
+      uuid:
+        type: string
+      version:
+        type: string
+    required:
+    - desc
+    - publishType
+    - uuid
+    - version
+    type: object
+  request.OpenAPIUpdateAgentRequest:
+    properties:
+      assistantUuid:
+        description: 智能体UUID
+        type: string
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+    required:
+    - assistantUuid
+    - name
+    type: object
+  request.OpenAPIUpdateRagRequest:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      uuid:
+        description: 知识问答UUID
+        type: string
+    required:
+    - name
+    - uuid
+    type: object
+  request.OpenAPIWgaConversationChatReq:
+    properties:
+      agentId:
+        description: 智能体ID，可选，为空时使用默认Supervisor
+        type: string
+      messages:
+        description: 消息列表
+        items:
+          $ref: '#/definitions/request.GeneralAgentConversationMessage'
+        type: array
+      modelUuid:
+        description: 模型UUID，可选
+        type: string
+      threadId:
+        description: 对话ID
+        type: string
+    required:
+    - messages
+    - threadId
+    type: object
+  request.OpenAPIWgaCreateConversationReq:
+    properties:
+      modelUuid:
+        description: 模型UUID，必填
+        type: string
+      title:
+        description: 标题
+        type: string
+    required:
+    - modelUuid
+    - title
     type: object
   request.OpenAPIWorkflowRunReq:
     properties:
@@ -1523,6 +1344,55 @@ definitions:
     required:
     - tableId
     type: object
+  request.UpdateDocChildSegmentReq:
+    properties:
+      childChunk:
+        allOf:
+        - $ref: '#/definitions/request.ChildChunk'
+        description: 子分段序列号列表
+      docId:
+        description: 文档id
+        type: string
+      parentChunkNo:
+        description: 父分段序列号
+        type: integer
+      parentId:
+        description: 父分段id
+        type: string
+    required:
+    - childChunk
+    - docId
+    - parentId
+    type: object
+  request.UpdateDocSegmentReq:
+    properties:
+      content:
+        type: string
+      contentId:
+        type: string
+      docId:
+        type: string
+    required:
+    - content
+    - contentId
+    - docId
+    type: object
+  request.UpdateDocSegmentStatusReq:
+    properties:
+      all:
+        description: all 代表全部启用，此时将忽略contentId
+        type: boolean
+      contentId:
+        type: string
+      contentStatus:
+        description: '"true"代表打开，"false"代表关闭'
+        type: string
+      docId:
+        type: string
+    required:
+    - contentStatus
+    - docId
+    type: object
   request.UpdateKnowledgeReq:
     properties:
       avatar:
@@ -1545,6 +1415,30 @@ definitions:
         description: 视觉配置图片数量
         type: integer
     type: object
+  response.AgentFileMeta:
+    properties:
+      createAt:
+        type: string
+      desc:
+        type: string
+      name:
+        type: string
+    type: object
+  response.AgentResponseFile:
+    properties:
+      fileType:
+        type: string
+      fileUrl:
+        type: string
+      metadata:
+        allOf:
+        - $ref: '#/definitions/response.AgentFileMeta'
+        description: 扩展信息：
+      name:
+        type: string
+      size:
+        type: integer
+    type: object
   response.Assistant:
     properties:
       assistantId:
@@ -1562,6 +1456,9 @@ definitions:
       desc:
         description: 描述
         type: string
+      hideKnowledge:
+        description: 是否隐藏知识库
+        type: integer
       instructions:
         description: 系统提示词
         type: string
@@ -1593,6 +1490,12 @@ definitions:
       newAgent:
         description: 是否是新版本智能体
         type: boolean
+      ownerOrgId:
+        description: 拥有者组织id
+        type: string
+      ownerUserId:
+        description: 拥有者用户id
+        type: string
       prologue:
         description: 开场白
         type: string
@@ -1666,6 +1569,8 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      description:
+        type: string
       enable:
         type: boolean
       mcpId:
@@ -1684,12 +1589,23 @@ definitions:
     required:
     - mcpType
     type: object
+  response.AssistantRequestFile:
+    properties:
+      fileUrl:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+    type: object
   response.AssistantSkillInfo:
     properties:
       author:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      description:
+        type: string
       enable:
         type: boolean
       skillId:
@@ -1700,6 +1616,7 @@ definitions:
         enum:
         - builtin
         - custom
+        - acquired
         type: string
       valid:
         type: boolean
@@ -1712,6 +1629,8 @@ definitions:
         type: string
       avatar:
         $ref: '#/definitions/request.Avatar'
+      description:
+        type: string
       enable:
         type: boolean
       toolConfig:
@@ -1756,6 +1675,21 @@ definitions:
       score:
         type: number
     type: object
+  response.ChildSegmentInfo:
+    properties:
+      childId:
+        description: 子分段id
+        type: string
+      childNum:
+        description: 子分段序号
+        type: integer
+      content:
+        description: 内容
+        type: string
+      parentId:
+        description: 父分段id
+        type: string
+    type: object
   response.ChunkSearchList:
     properties:
       childContentList:
@@ -1771,6 +1705,9 @@ definitions:
         type: string
       knowledgeName:
         type: string
+      metaData:
+        description: MetaData 命中片段元信息，对象内容原样透传 rag 返回（rag 侧字段名为 meta_data），如 file_name/download_link/page_num/chunk_total_num
+          等
       rerankInfo:
         items:
           $ref: '#/definitions/response.RerankInfo'
@@ -1782,10 +1719,109 @@ definitions:
       title:
         type: string
     type: object
+  response.ConversationDetailInfo:
+    properties:
+      assistantId:
+        type: string
+      conversationId:
+        type: string
+      createdAt:
+        type: integer
+      createdBy:
+        type: string
+      feedback:
+        description: '当前反馈状态: 0=无 1=点赞 2=点踩'
+        type: integer
+      feedbackContent:
+        description: 反馈文本内容
+        type: string
+      fileName:
+        type: string
+      fileSize:
+        type: integer
+      id:
+        type: string
+      prompt:
+        type: string
+      qa_type:
+        type: integer
+      requestFiles:
+        items:
+          $ref: '#/definitions/response.AssistantRequestFile'
+        type: array
+      response:
+        type: string
+      responseFiles:
+        items:
+          $ref: '#/definitions/response.AgentResponseFile'
+        type: array
+      responseList:
+        items:
+          $ref: '#/definitions/response.ConversationResponse'
+        type: array
+      searchList: {}
+      subConversationList:
+        items:
+          $ref: '#/definitions/response.SubConversation'
+        type: array
+      sysPrompt:
+        type: string
+      updatedAt:
+        type: integer
+    type: object
+  response.ConversationInfo:
+    properties:
+      assistantId:
+        type: string
+      conversationId:
+        type: string
+      createdAt:
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  response.ConversationResponse:
+    properties:
+      errMessage:
+        type: string
+      errResponse:
+        type: string
+      order:
+        type: integer
+      response:
+        type: string
+    type: object
+  response.CreateGeneralAgentConversationResp:
+    properties:
+      threadId:
+        description: 对话ID
+        type: string
+    type: object
   response.CreateKnowledgeResp:
     properties:
       knowledgeId:
         type: string
+    type: object
+  response.DocAnalyzerTextInfo:
+    properties:
+      displayName:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/mp_common.Tag'
+        type: array
+      text:
+        type: string
+    type: object
+  response.DocChildSegmentResp:
+    properties:
+      contentList:
+        description: 内容
+        items:
+          $ref: '#/definitions/response.ChildSegmentInfo'
+        type: array
     type: object
   response.DocConfigResult:
     properties:
@@ -1816,48 +1852,23 @@ definitions:
         description: ocr模型id
         type: string
     type: object
-  response.DocKnowledgeInfo:
+  response.DocMetaData:
     properties:
-      avatar:
-        allOf:
-        - $ref: '#/definitions/request.Avatar'
-        description: 头像
-      category:
-        description: '0: 知识库 1: 问答库 2: 多模态知识库'
-        type: integer
-      description:
+      metaId:
+        description: 元数据id
         type: string
-      embeddingModel:
-        $ref: '#/definitions/response.ModelInfo'
-      graphSwitch:
-        type: integer
-      keywords:
-        items:
-          $ref: '#/definitions/response.KeywordsInfo'
-        type: array
-      knowledgeId:
+      metaKey:
+        description: key
         type: string
-      knowledgeName:
+      metaRule:
+        description: 正则表达式
         type: string
-      llmModelId:
+      metaValue:
+        description: 确定值
         type: string
-      showGraphReport:
-        type: boolean
-    type: object
-  response.DocPageResult:
-    properties:
-      docKnowledgeInfo:
-        $ref: '#/definitions/response.DocKnowledgeInfo'
-      list:
-        items:
-          $ref: '#/definitions/response.ListDocResp'
-        type: array
-      pageNo:
-        type: integer
-      pageSize:
-        type: integer
-      total:
-        type: integer
+      metaValueType:
+        description: number，time, string
+        type: string
     type: object
   response.DocSegment:
     properties:
@@ -1889,29 +1900,148 @@ definitions:
     required:
     - segmentMethod
     type: object
+  response.DocSegmentResp:
+    properties:
+      canPreview:
+        description: 是否可预览
+        type: boolean
+      contentList:
+        description: 内容
+        items:
+          $ref: '#/definitions/response.SegmentContent'
+        type: array
+      docAnalyzerText:
+        description: 文档解析类型 文字提取 / OCR解析  / 模型解析
+        items:
+          $ref: '#/definitions/response.DocAnalyzerTextInfo'
+        type: array
+      downloadUrl:
+        description: 文档对外下载地址
+        type: string
+      fileName:
+        description: 名称
+        type: string
+      fileSize:
+        description: 文件大小，单位字节(Byte)
+        type: integer
+      fileSizeStr:
+        description: 文件大小的人眼友好展示
+        type: string
+      maxSegmentSize:
+        description: 设置最大长度
+        type: integer
+      metaDataList:
+        description: 文档元数据
+        items:
+          $ref: '#/definitions/response.DocMetaData'
+        type: array
+      pageTotal:
+        description: 总页数
+        type: integer
+      previewFailReason:
+        description: 不可预览原因
+        type: string
+      segmentImportStatus:
+        description: 分段导入状态描述
+        type: string
+      segmentMethod:
+        description: 分段方式 父子分段/通用分段
+        type: string
+      segmentTotalNum:
+        description: 分段数量
+        type: integer
+      segmentType:
+        description: 分段方式 0自动分段 1自定义分段
+        type: string
+      splitter:
+        description: 分隔符（只有自定义分段必填）
+        type: string
+      uploadTime:
+        description: 上传时间
+        type: string
+    type: object
   response.EmbeddingModelInfo:
     properties:
       modelId:
         type: string
     type: object
-  response.KeywordsInfo:
+  response.GeneralAgentConversationDetailInfo:
     properties:
-      alias:
-        type: string
-      id:
+      createdAt:
         type: integer
-      knowledgeBaseIds:
-        items:
-          type: string
+      events:
+        items: {}
         type: array
-      knowledgeBaseNames:
-        items:
-          type: string
-        type: array
-      name:
+      runId:
+        type: string
+      threadId:
+        type: string
+    type: object
+  response.GeneralAgentConversationInfo:
+    properties:
+      createdAt:
+        description: 创建时间
+        type: string
+      isSkillConversation:
+        description: 是否为skill对话
+        type: boolean
+      previewId:
+        description: skill preview conversation ID
+        type: string
+      skillId:
+        description: custom skill ID
+        type: string
+      threadId:
+        description: 对话ID
+        type: string
+      title:
+        description: 对话标题
         type: string
       updatedAt:
+        description: 更新时间
         type: string
+    type: object
+  response.GeneralAgentFileNode:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/response.GeneralAgentFileNode'
+        type: array
+      mimeType:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+      type:
+        description: '"file" or "directory"'
+        type: string
+    type: object
+  response.GeneralAgentWorkspaceResp:
+    properties:
+      fileCount:
+        type: integer
+      files:
+        items:
+          $ref: '#/definitions/response.GeneralAgentFileNode'
+        type: array
+      isDisplay:
+        type: boolean
+      path:
+        type: string
+      runId:
+        type: string
+      threadId:
+        type: string
+      totalSize:
+        type: integer
+    type: object
+  response.GetKnowledgeMetaSelectResp:
+    properties:
+      knowledgeMetaList:
+        items:
+          $ref: '#/definitions/response.KnowledgeMetaItem'
+        type: array
     type: object
   response.KnowledgeExportRecordPageResult:
     properties:
@@ -2034,6 +2164,39 @@ definitions:
           $ref: '#/definitions/response.KnowledgeInfo'
         type: array
     type: object
+  response.KnowledgeMetaItem:
+    properties:
+      metaId:
+        type: string
+      metaKey:
+        type: string
+      metaValue:
+        description: 确定值
+        type: string
+      metaValueType:
+        type: string
+    type: object
+  response.KnowledgeMetaValueListResp:
+    properties:
+      knowledgeMetaValues:
+        items:
+          $ref: '#/definitions/response.KnowledgeMetaValues'
+        type: array
+    type: object
+  response.KnowledgeMetaValues:
+    properties:
+      metaId:
+        type: string
+      metaKey:
+        type: string
+      metaValue:
+        description: 确定值
+        items:
+          type: string
+        type: array
+      metaValueType:
+        type: string
+    type: object
   response.KnowledgeTag:
     properties:
       selected:
@@ -2056,6 +2219,9 @@ definitions:
       docName:
         description: 文档名称
         type: string
+      docProgress:
+        description: 文档解析进度百分比 (0-100)
+        type: integer
       docType:
         description: 文档类型
         type: string
@@ -2065,9 +2231,15 @@ definitions:
       fileSize:
         description: 文件大小，单位字节(Byte)
         type: integer
+      fileSizeStr:
+        description: 文件大小的人眼友好展示
+        type: string
       graphErrMsg:
         description: 图谱错误信息
         type: string
+      graphProgress:
+        description: 图谱解析进度百分比 (0-100)
+        type: integer
       graphStatus:
         description: 图谱状态 0:待处理，1.解析中，2.解析成功，3.解析失败 -1. 当文档状态为解析失败时，显示 -
         type: integer
@@ -2115,72 +2287,6 @@ definitions:
       list: {}
       total:
         type: integer
-    type: object
-  response.ModelInfo:
-    properties:
-      allowEdit:
-        description: '是否允许前端编辑（true: 允许编辑，false: 隐藏编辑按钮）'
-        type: boolean
-      avatar:
-        allOf:
-        - $ref: '#/definitions/request.Avatar'
-        description: 模型图标路径
-      config: {}
-      createdAt:
-        type: string
-      displayName:
-        description: 模型显示名称
-        type: string
-      examples:
-        allOf:
-        - $ref: '#/definitions/mp.ProviderModelConfig'
-        description: 仅用于swagger展示；模型对应供应商中的对应llm、embedding或rerank结构是config实际的参数
-      importSource:
-        description: 模型导入来源(builtin=平台内置,external=外部URL)
-        type: string
-      isActive:
-        description: '启用状态（true: 启用，false: 禁用）'
-        type: boolean
-      model:
-        description: 模型名称
-        type: string
-      modelDesc:
-        type: string
-      modelId:
-        type: string
-      modelType:
-        enum:
-        - llm
-        - embedding
-        - rerank
-        type: string
-      orgId:
-        type: string
-      provider:
-        description: 模型供应商
-        enum:
-        - OpenAI-API-compatible
-        - YuanJing
-        type: string
-      publishDate:
-        description: 模型发布时间
-        type: string
-      scopeType:
-        type: string
-      tags:
-        items:
-          $ref: '#/definitions/mp_common.Tag'
-        type: array
-      updatedAt:
-        type: string
-      userId:
-        type: string
-      uuid:
-        type: string
-    required:
-    - model
-    - modelType
-    - provider
     type: object
   response.OAuthConfig:
     properties:
@@ -2289,9 +2395,43 @@ definitions:
     properties:
       kb_name:
         type: string
+      meta_data:
+        description: MetaData 知识库命中片段的元信息，原样透传 rag 返回（与流式一致），如 file_name/download_link/page_num/chunk_total_num
+          等
       snippet:
         type: string
       title:
+        type: string
+    type: object
+  response.OpenAPIAgentBriefInfo:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 头像信息
+      category:
+        description: 1:单智能体 2:多智能体
+        type: integer
+      createdAt:
+        description: 创建时间
+        type: string
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      publishType:
+        description: public/organization/private，空字符串表示未发布（草稿）
+        type: string
+      updatedAt:
+        description: 最后更新时间
+        type: string
+      uuid:
+        description: 智能体唯一标识，供后续接口使用
+        type: string
+      version:
+        description: 已发布版本号，未发布时为空
         type: string
     type: object
   response.OpenAPIAgentChatFile:
@@ -2315,6 +2455,10 @@ definitions:
         type: array
       message:
         type: string
+      recommend_questions:
+        items:
+          type: string
+        type: array
       response:
         type: string
       search_list:
@@ -2337,6 +2481,27 @@ definitions:
     properties:
       conversation_id:
         type: string
+    type: object
+  response.OpenAPIAgentListResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/response.OpenAPIAgentBriefInfo'
+        type: array
+    type: object
+  response.OpenAPIChatflowConversationItem:
+    properties:
+      conversation_id:
+        type: string
+      conversation_name:
+        type: string
+    type: object
+  response.OpenAPIChatflowConversationListResponse:
+    properties:
+      conversations:
+        items:
+          $ref: '#/definitions/response.OpenAPIChatflowConversationItem'
+        type: array
     type: object
   response.OpenAPIChatflowCreateConversationResponse:
     properties:
@@ -2361,6 +2526,11 @@ definitions:
       uuid:
         type: string
     type: object
+  response.OpenAPICreateRagResponse:
+    properties:
+      uuid:
+        type: string
+    type: object
   response.OpenAPIModelListItem:
     properties:
       displayName:
@@ -2374,6 +2544,34 @@ definitions:
       scopeType:
         type: string
       uuid:
+        type: string
+    type: object
+  response.OpenAPIRagBriefInfo:
+    properties:
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 头像信息
+      createdAt:
+        description: 创建时间
+        type: string
+      desc:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      publishType:
+        description: public/organization/private，空字符串表示未发布（草稿）
+        type: string
+      updatedAt:
+        description: 最后更新时间
+        type: string
+      uuid:
+        description: 知识问答唯一标识，供后续接口使用
+        type: string
+      version:
+        description: 已发布版本号，未发布时为空
         type: string
     type: object
   response.OpenAPIRagChatData:
@@ -2401,6 +2599,18 @@ definitions:
         type: string
       msg_id:
         type: string
+    type: object
+  response.OpenAPIRagCreateConversationResponse:
+    properties:
+      conversation_id:
+        type: string
+    type: object
+  response.OpenAPIRagListResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/response.OpenAPIRagBriefInfo'
+        type: array
     type: object
   response.OpenMessageApi:
     properties:
@@ -2436,6 +2646,179 @@ definitions:
         type: string
       updated_at:
         type: integer
+    type: object
+  response.PageResult:
+    properties:
+      list: {}
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  response.RagConversationDetailInfo:
+    properties:
+      conversationId:
+        type: string
+      createdAt:
+        type: integer
+      detailId:
+        type: string
+      errMessage:
+        type: string
+      feedback:
+        description: '当前反馈状态: 0=无 1=点赞 2=点踩'
+        type: integer
+      feedbackContent:
+        description: 反馈文本内容
+        type: string
+      prompt:
+        type: string
+      qaErrMessage:
+        description: 问答库检索失败原因，非空表示这轮是问答库报错后转的知识库
+        type: string
+      qaSearchList:
+        description: 问答库命中结果，与 searchList 互斥；null=没走问答库检索，""=检索未命中
+        type: string
+      qaSearchListTimeCost:
+        allOf:
+        - $ref: '#/definitions/response.RagTimeCost'
+        description: 问答库检索起止
+      ragId:
+        type: string
+      reasoningContent:
+        description: 深度思考过程；null=整轮没思考，""=思考过但无内容
+        type: string
+      reasoningTimeCost:
+        allOf:
+        - $ref: '#/definitions/response.RagTimeCost'
+        description: 深度思考起止
+      requestFiles:
+        items:
+          $ref: '#/definitions/response.RagRequestFile'
+        type: array
+      response:
+        type: string
+      searchList:
+        description: 知识库引用段落；null=没走知识库检索，""=检索无召回
+        type: string
+      searchListTimeCost:
+        allOf:
+        - $ref: '#/definitions/response.RagTimeCost'
+        description: 知识库检索起止
+      traceId:
+        description: 本轮问答的链路id，可据此关联应用/模型统计明细
+        type: string
+    type: object
+  response.RagConversationInfo:
+    properties:
+      conversationId:
+        type: string
+      createdAt:
+        type: string
+      ragId:
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  response.RagInfo:
+    properties:
+      appPublishConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppPublishConfig'
+        description: 发布配置
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      createdAt:
+        description: 创建时间
+        type: string
+      desc:
+        description: 描述
+        type: string
+      knowledgeBaseConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppKnowledgebaseConfig'
+        description: 知识库
+      modelConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 模型
+      name:
+        description: 名称
+        type: string
+      qaKnowledgeBaseConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppQAKnowledgebaseConfig'
+        description: 问答库
+      qaRerankConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: 问答库Rerank模型
+      ragId:
+        type: string
+      recommendQuestion:
+        description: 推荐问题
+        items:
+          type: string
+        type: array
+      rerankConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppModelConfig'
+        description: Rerank模型
+      safetyConfig:
+        allOf:
+        - $ref: '#/definitions/request.AppSafetyConfig'
+        description: 敏感词表配置
+      updatedAt:
+        description: 更新时间
+        type: string
+      visionConfig:
+        allOf:
+        - $ref: '#/definitions/request.VisionConfig'
+        description: 视觉开关
+    required:
+    - knowledgeBaseConfig
+    - modelConfig
+    - name
+    - qaKnowledgeBaseConfig
+    - qaRerankConfig
+    - ragId
+    - rerankConfig
+    type: object
+  response.RagRequestFile:
+    properties:
+      fileName:
+        type: string
+      fileSize:
+        type: integer
+      fileUrl:
+        type: string
+    type: object
+  response.RagTimeCost:
+    properties:
+      end:
+        type: integer
+      start:
+        type: integer
+    type: object
+  response.RagUploadFile:
+    properties:
+      fileIndex:
+        type: integer
+      fileUrl:
+        type: string
+    type: object
+  response.RagUploadResponse:
+    properties:
+      fileList:
+        items:
+          $ref: '#/definitions/response.RagUploadFile'
+        type: array
     type: object
   response.RecommendConfig:
     properties:
@@ -2473,6 +2856,65 @@ definitions:
       msg:
         type: string
     type: object
+  response.SegmentContent:
+    properties:
+      available:
+        type: boolean
+      childNum:
+        description: 子分段数量
+        type: integer
+      content:
+        type: string
+      contentId:
+        type: string
+      contentNum:
+        type: integer
+      isParent:
+        description: 父子分段/通用分段 true是父分段，false是通用分段
+        type: boolean
+      labels:
+        items:
+          type: string
+        type: array
+    type: object
+  response.SubConversation:
+    properties:
+      conversationType:
+        description: subAgent：子智能体；agentTool：主智能体工具；subAgentTool：子智能体工具
+        type: string
+      errMessage:
+        description: 错误信息
+        type: string
+      id:
+        description: 事件id
+        type: string
+      name:
+        description: 事件名称
+        type: string
+      order:
+        type: integer
+      parentId:
+        description: 事件挂载id
+        type: string
+      profile:
+        description: 事件头像
+        type: string
+      response:
+        type: string
+      searchList: {}
+      status:
+        description: 1:成功，2：失败
+        type: integer
+      timeCost:
+        description: 耗时
+        type: string
+    type: object
+  response.UpdateDocSegmentResp:
+    properties:
+      contentId:
+        description: 更新后的分段id，内容变化时与请求传入的contentId不同
+        type: string
+    type: object
   response.UploadFileResp:
     properties:
       status:
@@ -2507,6 +2949,24 @@ paths:
       tags:
       - openapi.OIDC
   /agent:
+    delete:
+      description: 删除指定智能体，同时删除其已发布版本。删除后不可恢复，请谨慎操作。
+      parameters:
+      - description: 智能体UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除智能体OpenAPI
+      tags:
+      - openapi
     post:
       consumes:
       - application/json
@@ -2531,6 +2991,28 @@ paths:
                   $ref: '#/definitions/response.OpenAPICreateAgentResponse'
               type: object
       summary: 创建智能体OpenAPI
+      tags:
+      - openapi
+    put:
+      consumes:
+      - application/json
+      description: 修改智能体的名称、描述、图标等基本信息（不涉及开场白、大模型等高级配置，后者请使用 /agent/config）。通过 assistantUuid
+        定位智能体。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIUpdateAgentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新智能体基本信息OpenAPI
       tags:
       - openapi
   /agent/chat:
@@ -2563,7 +3045,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: 智能体草稿态对话OpenAPI，基于草稿配置进行问答，不要求智能体已发布，不计入统计
+      description: 智能体草稿态对话OpenAPI，基于草稿配置进行问答，不要求智能体已发布，计入统计
       parameters:
       - description: 请求参数
         in: body
@@ -2589,7 +3071,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: 更新智能体配置OpenAPI
+      description: 更新开场白、提示词、模型、知识库等配置。除 assistantUuid 外均为可选，只传要改的字段，未传的沿用当前草稿配置；模型
+        id 传模型UUID。
       parameters:
       - description: 请求参数
         in: body
@@ -2608,6 +3091,24 @@ paths:
       tags:
       - openapi
   /agent/conversation:
+    delete:
+      description: 删除整个对话（含 conversation 主体及所有历史消息）。如需按条删除消息或仅清空消息保留对话 ID，请使用 /agent/conversation/clear。
+      parameters:
+      - description: 对话ID
+        in: query
+        name: conversation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除智能体对话OpenAPI
+      tags:
+      - openapi
     post:
       consumes:
       - application/json
@@ -2632,6 +3133,176 @@ paths:
                   $ref: '#/definitions/response.OpenAPIAgentCreateConversationResponse'
               type: object
       summary: 智能体创建对话OpenAPI
+      tags:
+      - openapi
+  /agent/conversation/clear:
+    delete:
+      description: 对指定对话的消息（ES 数据）进行清理：传入 detail_id 则仅删除该条消息；不传则清空整个对话的全部消息。两种情况下
+        conversation_id 均保留，可继续发起新的问答。
+      parameters:
+      - description: 对话ID
+        in: query
+        name: conversation_id
+        required: true
+        type: string
+      - description: 消息ID（不传则清空整个对话的全部消息）
+        in: query
+        name: detail_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 清空/按条删除智能体对话消息OpenAPI
+      tags:
+      - openapi
+  /agent/conversation/detail:
+    get:
+      description: 获取指定对话的历史消息列表（问答明细），分页返回。
+      parameters:
+      - description: 对话ID（由创建对话接口返回）
+        in: query
+        name: conversation_id
+        required: true
+        type: string
+      - description: 页码，从 1 开始
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数，从 1 开始
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ConversationDetailInfo'
+                        type: array
+                    type: object
+              type: object
+      summary: 智能体对话历史消息OpenAPI
+      tags:
+      - openapi
+  /agent/conversation/draft:
+    delete:
+      description: 删除草稿智能体对话历史。传入 detail_id 则只删除该条消息，不传则清空全部历史（会话 ID 保留）。
+      parameters:
+      - description: 智能体UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 消息ID（不传则清空全部）
+        in: query
+        name: detail_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除草稿态智能体对话历史OpenAPI
+      tags:
+      - openapi
+  /agent/conversation/draft/detail:
+    get:
+      description: 获取指定草稿智能体的对话历史消息。草稿态每个智能体只维护一条会话，通过 uuid 定位后分页返回消息列表。
+      parameters:
+      - description: 智能体UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 页码，从 1 开始
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数，从 1 开始
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ConversationDetailInfo'
+                        type: array
+                    type: object
+              type: object
+      summary: 草稿态智能体对话历史消息OpenAPI
+      tags:
+      - openapi
+  /agent/conversation/list:
+    get:
+      description: 获取指定智能体的已发布对话列表，按创建时间降序排列。
+      parameters:
+      - description: 智能体UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 页码，从 1 开始
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数，从 1 开始
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ConversationInfo'
+                        type: array
+                    type: object
+              type: object
+      summary: 智能体对话列表OpenAPI
       tags:
       - openapi
   /agent/info:
@@ -2662,6 +3333,29 @@ paths:
                   $ref: '#/definitions/response.Assistant'
               type: object
       summary: 获取智能体详情OpenAPI
+      tags:
+      - openapi
+  /agent/list:
+    get:
+      description: 获取当前 API Key 所属用户下的全部智能体（含草稿与已发布），可按名称模糊筛选。返回的 uuid 字段可用于其他智能体接口。
+      parameters:
+      - description: 按名称模糊筛选（可选）
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.OpenAPIAgentListResponse'
+              type: object
+      summary: 智能体列表OpenAPI
       tags:
       - openapi
   /agent/publish:
@@ -2709,6 +3403,27 @@ paths:
       tags:
       - openapi
   /chatflow/conversation:
+    delete:
+      consumes:
+      - application/json
+      description: 对话流删除会话OpenAPI
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIChatflowDeleteConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 对话流删除会话OpenAPI
+      tags:
+      - openapi
     post:
       consumes:
       - application/json
@@ -2733,6 +3448,33 @@ paths:
                   $ref: '#/definitions/response.OpenAPIChatflowCreateConversationResponse'
               type: object
       summary: 对话流创建对话OpenAPI
+      tags:
+      - openapi
+  /chatflow/conversation/list:
+    post:
+      consumes:
+      - application/json
+      description: 对话流获取会话列表OpenAPI
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIChatflowGetConversationListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.OpenAPIChatflowConversationListResponse'
+              type: object
+      summary: 对话流获取会话列表OpenAPI
       tags:
       - openapi
   /chatflow/conversation/message/list:
@@ -3032,14 +3774,389 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/response.Response'
+            - $ref: '#/definitions/response.PageResult'
             - properties:
-                data:
-                  $ref: '#/definitions/response.DocPageResult'
+                list:
+                  $ref: '#/definitions/response.ListDocResp'
               type: object
       security:
       - JWT: []
       summary: 获取文档列表
+      tags:
+      - openapi
+  /knowledge/doc/meta/list:
+    post:
+      consumes:
+      - application/json
+      description: 按文档id列表查询各文档的元数据值
+      parameters:
+      - description: 获取文档元数据值列表请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeMetaValueListReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.KnowledgeMetaValueListResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取文档元数据值列表
+      tags:
+      - openapi
+  /knowledge/doc/meta/update:
+    post:
+      consumes:
+      - application/json
+      description: 批量更新文档的元数据值；key需已在知识库元数据中定义，option为add时不存在则新增、已存在则覆盖，update仅在已存在时更新
+      parameters:
+      - description: 更新文档元数据值请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeDocMetaValueOpenapiReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 更新文档元数据值
+      tags:
+      - openapi
+  /knowledge/doc/segment/batch/create:
+    post:
+      consumes:
+      - application/json
+      description: 通过csv文件批量新增文档切片
+      parameters:
+      - description: 批量新增文档切片请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.BatchCreateDocSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 批量新增文档切片
+      tags:
+      - openapi
+  /knowledge/doc/segment/child/create:
+    post:
+      consumes:
+      - application/json
+      description: 新增文档子分段；多模态知识库的分段内容可包含图片markdown，普通知识库不允许
+      parameters:
+      - description: 新增子分段请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateDocChildSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 新增子分段
+      tags:
+      - openapi
+  /knowledge/doc/segment/child/delete:
+    delete:
+      consumes:
+      - application/json
+      description: 删除文档子分段
+      parameters:
+      - description: 删除子分段请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteDocChildSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 删除子分段
+      tags:
+      - openapi
+  /knowledge/doc/segment/child/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取子分段列表
+      parameters:
+      - in: query
+        name: contentId
+        required: true
+        type: string
+      - in: query
+        name: docId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.DocChildSegmentResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取子分段列表
+      tags:
+      - openapi
+  /knowledge/doc/segment/child/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新文档子分段；多模态知识库的分段内容可包含图片markdown，普通知识库不允许
+      parameters:
+      - description: 更新子分段请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateDocChildSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 更新子分段
+      tags:
+      - openapi
+  /knowledge/doc/segment/create:
+    post:
+      consumes:
+      - application/json
+      description: 新增单条文档切片；多模态知识库的切片内容可包含图片markdown，普通知识库不允许
+      parameters:
+      - description: 新增文档切片请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateDocSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 新增文档切片
+      tags:
+      - openapi
+  /knowledge/doc/segment/delete:
+    delete:
+      consumes:
+      - application/json
+      description: 删除文档切片
+      parameters:
+      - description: 删除文档切片请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteDocSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 删除文档切片
+      tags:
+      - openapi
+  /knowledge/doc/segment/image/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传分段图片并返回markdown格式url，仅多模态知识库可用；返回的url可拼接进切片content中
+      parameters:
+      - description: 知识库id
+        in: formData
+        name: knowledgeId
+        required: true
+        type: string
+      - description: 图片文件(png/jpg/jpeg)
+        in: formData
+        name: files
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.RagUploadResponse'
+              type: object
+      security:
+      - JWT: []
+      summary: 分段图片上传
+      tags:
+      - openapi
+  /knowledge/doc/segment/labels:
+    post:
+      consumes:
+      - application/json
+      description: 更新文档切片标签
+      parameters:
+      - description: 更新文档切片标签请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DocSegmentLabelsReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 更新文档切片标签
+      tags:
+      - openapi
+  /knowledge/doc/segment/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取文档切分结果
+      parameters:
+      - in: query
+        name: docId
+        required: true
+        type: string
+      - in: query
+        name: keyword
+        type: string
+      - in: query
+        name: pageNo
+        type: integer
+      - in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.DocSegmentResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取文档切分结果
+      tags:
+      - openapi
+  /knowledge/doc/segment/status/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新文档切片启用状态
+      parameters:
+      - description: 更新文档切片启用状态请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateDocSegmentStatusReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 更新文档切片启用状态
+      tags:
+      - openapi
+  /knowledge/doc/segment/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新文档切片；多模态知识库的切片内容可包含图片markdown，普通知识库不允许
+      parameters:
+      - description: 更新文档切片请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateDocSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.UpdateDocSegmentResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 更新文档切片
       tags:
       - openapi
   /knowledge/doc/update/config:
@@ -3152,6 +4269,57 @@ paths:
       security:
       - JWT: []
       summary: 知识库命中测试
+      tags:
+      - openapi
+  /knowledge/meta/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取知识库已定义的元数据key列表
+      parameters:
+      - in: query
+        name: knowledgeId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GetKnowledgeMetaSelectResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取知识库元数据key列表
+      tags:
+      - openapi
+  /knowledge/meta/update:
+    post:
+      consumes:
+      - application/json
+      description: 新增/修改/删除知识库的元数据key定义；文档元数据值的读写见 /knowledge/doc/meta/list 与 /knowledge/doc/meta/update
+      parameters:
+      - description: 定义知识库元数据key请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.KnowledgeMetaKeyOpenapiReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 定义知识库元数据key
       tags:
       - openapi
   /knowledge/select:
@@ -3464,6 +4632,72 @@ paths:
       summary: OAuth获取用户信息
       tags:
       - openapi.OIDC
+  /rag:
+    delete:
+      description: 删除指定知识问答，同时删除其已发布版本。删除后不可恢复，请谨慎操作。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除知识问答OpenAPI
+      tags:
+      - openapi
+    post:
+      consumes:
+      - application/json
+      description: 创建一个知识问答应用（草稿态）。返回的 uuid 用于后续配置、发布与问答接口。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPICreateRagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.OpenAPICreateRagResponse'
+              type: object
+      summary: 创建知识问答OpenAPI
+      tags:
+      - openapi
+    put:
+      consumes:
+      - application/json
+      description: 修改名称、描述、图标等基本信息（模型、知识库等高级配置请使用 /rag/config）。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIUpdateRagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新知识问答基本信息OpenAPI
+      tags:
+      - openapi
   /rag/chat:
     post:
       consumes:
@@ -3488,6 +4722,570 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: 文本问答OpenAPI
+      tags:
+      - openapi
+  /rag/chat/draft:
+    post:
+      consumes:
+      - application/json
+      description: 基于草稿配置问答，不要求已发布，计入统计。响应格式与 /rag/chat 一致（stream=true 为 SSE，否则为一次性
+        JSON）。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIRagDraftChatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.OpenAPIRagChatResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 知识问答草稿态问答OpenAPI
+      tags:
+      - openapi
+  /rag/config:
+    put:
+      consumes:
+      - application/json
+      description: 更新模型、知识库、问答库、安全护栏等配置。除 uuid 外均为可选，只传要改的字段，未传的沿用当前草稿配置；模型 id 传模型UUID。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIRagConfigUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新知识问答配置OpenAPI
+      tags:
+      - openapi
+  /rag/conversation:
+    delete:
+      description: 删除整条会话（含全部历史消息）。只想清空消息、保留会话ID请用 /rag/conversation/clear。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 会话ID
+        in: query
+        name: conversation_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除知识问答会话OpenAPI
+      tags:
+      - openapi
+    post:
+      consumes:
+      - application/json
+      description: 创建一条会话，返回的 conversation_id 用于 /rag/chat 携带上下文。不传 conversation_id
+        的问答不落历史。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIRagCreateConversationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.OpenAPIRagCreateConversationResponse'
+              type: object
+      summary: 知识问答创建会话OpenAPI
+      tags:
+      - openapi
+  /rag/conversation/clear:
+    delete:
+      description: 传 detail_id 只删该条问答，不传则清空整条会话的全部消息。两种情况会话ID都保留，可继续提问。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 会话ID
+        in: query
+        name: conversation_id
+        required: true
+        type: string
+      - description: 问答明细ID（不传则清空全部）
+        in: query
+        name: detail_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 清空/按条删除知识问答会话消息OpenAPI
+      tags:
+      - openapi
+  /rag/conversation/detail:
+    get:
+      description: 获取指定会话的历史问答明细，分页返回，含检索命中列表与耗时。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 会话ID（由创建会话接口返回）
+        in: query
+        name: conversation_id
+        required: true
+        type: string
+      - description: 页码，从 1 开始
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数，从 1 开始
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.RagConversationDetailInfo'
+                        type: array
+                    type: object
+              type: object
+      summary: 知识问答会话历史消息OpenAPI
+      tags:
+      - openapi
+  /rag/conversation/draft:
+    delete:
+      description: 传 detail_id 只删该条问答，不传则删除整条草稿会话。草稿会话尚未创建时直接返回成功。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 问答明细ID（不传则删除整条草稿会话）
+        in: query
+        name: detail_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除草稿知识问答会话消息OpenAPI
+      tags:
+      - openapi
+  /rag/conversation/draft/detail:
+    get:
+      description: 草稿态每个知识问答只维护一条会话，按 uuid 定位后分页返回问答明细。尚未发起过对话时返回空列表。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 页码，从 1 开始
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数，从 1 开始
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.RagConversationDetailInfo'
+                        type: array
+                    type: object
+              type: object
+      summary: 草稿知识问答会话历史消息OpenAPI
+      tags:
+      - openapi
+  /rag/conversation/list:
+    get:
+      description: 获取指定知识问答下的会话列表，按创建时间降序排列。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: 页码，从 1 开始
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数，从 1 开始
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.RagConversationInfo'
+                        type: array
+                    type: object
+              type: object
+      summary: 知识问答会话列表OpenAPI
+      tags:
+      - openapi
+  /rag/info:
+    get:
+      description: 获取知识问答详情，通过 published 参数控制返回草稿态或已发布态配置。返回中的模型 id 均为模型UUID。
+      parameters:
+      - description: 知识问答UUID
+        in: query
+        name: uuid
+        required: true
+        type: string
+      - description: true=已发布态，false=草稿态（默认）
+        in: query
+        name: published
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.RagInfo'
+              type: object
+      summary: 获取知识问答详情OpenAPI
+      tags:
+      - openapi
+  /rag/list:
+    get:
+      description: 获取当前 API Key 所属用户下的全部知识问答（含草稿与已发布），可按名称模糊筛选。返回的 uuid 可用于其他知识问答接口。
+      parameters:
+      - description: 按名称模糊筛选（可选）
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.OpenAPIRagListResponse'
+              type: object
+      summary: 知识问答列表OpenAPI
+      tags:
+      - openapi
+  /rag/publish:
+    post:
+      consumes:
+      - application/json
+      description: 发布知识问答，发布后可通过 /rag/chat 进行正式问答。发布前需先配置对话模型。
+      parameters:
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIRagPublishRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 发布知识问答OpenAPI
+      tags:
+      - openapi
+  /wga/conversation:
+    delete:
+      consumes:
+      - application/json
+      description: 删除通用智能体对话
+      parameters:
+      - description: 删除对话请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteGeneralAgentConversationReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OpenAPIKey: []
+      summary: 删除WGA对话
+      tags:
+      - openapi
+    post:
+      consumes:
+      - application/json
+      description: 创建通用智能体对话（通过 modelUuid 指定模型）
+      parameters:
+      - description: 创建对话请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIWgaCreateConversationReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.CreateGeneralAgentConversationResp'
+              type: object
+      security:
+      - OpenAPIKey: []
+      summary: 创建WGA对话
+      tags:
+      - openapi
+  /wga/conversation/chat:
+    post:
+      consumes:
+      - application/json
+      description: 发送消息并接收AG-UI SSE事件流（modelUuid 必填）
+      parameters:
+      - description: 对话流请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.OpenAPIWgaConversationChatReq'
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: SSE流式返回
+          schema:
+            type: string
+      security:
+      - OpenAPIKey: []
+      summary: WGA对话流
+      tags:
+      - openapi
+  /wga/conversation/detail:
+    get:
+      description: 获取指定会话的对话详情，包含AG-UI事件流历史
+      parameters:
+      - description: 对话ID
+        in: query
+        name: threadId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.GeneralAgentConversationDetailInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - OpenAPIKey: []
+      summary: WGA对话详情
+      tags:
+      - openapi
+  /wga/conversation/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取通用智能体对话历史列表
+      parameters:
+      - description: 页码，从1开始
+        in: query
+        name: pageNo
+        required: true
+        type: integer
+      - description: 每页条数
+        in: query
+        name: pageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.GeneralAgentConversationInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - OpenAPIKey: []
+      summary: WGA对话列表
+      tags:
+      - openapi
+  /wga/conversation/workspace:
+    get:
+      consumes:
+      - application/json
+      description: 获取工作区目录结构和文件列表
+      parameters:
+      - description: 对话ID
+        in: query
+        name: threadId
+        required: true
+        type: string
+      - description: 运行ID
+        in: query
+        name: runId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GeneralAgentWorkspaceResp'
+              type: object
+      security:
+      - OpenAPIKey: []
+      summary: WGA工作区目录树
+      tags:
+      - openapi
+  /wga/conversation/workspace/download:
+    get:
+      consumes:
+      - application/json
+      description: 下载工作区中的文件
+      parameters:
+      - description: 对话ID
+        in: query
+        name: threadId
+        required: true
+        type: string
+      - description: 运行ID
+        in: query
+        name: runId
+        type: string
+      - description: 文件路径
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - OpenAPIKey: []
+      summary: WGA工作区文件下载
       tags:
       - openapi
   /workflow/file/upload:

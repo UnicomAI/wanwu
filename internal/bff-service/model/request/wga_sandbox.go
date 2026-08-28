@@ -1,5 +1,7 @@
 package request
 
+import "github.com/UnicomAI/wanwu/pkg/util"
+
 type WgaSandboxRunReq struct {
 	ThreadID       string              `json:"threadId"`
 	RunID          string              `json:"runId"`
@@ -9,6 +11,7 @@ type WgaSandboxRunReq struct {
 	Messages       []WgaSandboxMessage `json:"messages"`
 	Tools          []WgaSandboxTool    `json:"tools"`
 	Skills         []WgaSandboxSkill   `json:"skills"`
+	MCPs           []WgaSandboxMCP     `json:"mcps"`
 	InputDir       string              `json:"inputDir"`
 	OutputDir      string              `json:"outputDir"`
 	EnableThinking bool                `json:"enableThinking"`
@@ -22,11 +25,27 @@ type WgaSandboxMessage struct {
 }
 
 type WgaSandboxTool struct {
-	// TODO: 待定义
+	Schema       string                  `json:"schema" validate:"required"` // OpenAPI 3.0 schema JSON 字符串
+	OperationIDs []string                `json:"operationIds"`               // 允许的 operations，空=全部允许
+	ApiAuth      *util.ApiAuthWebRequest `json:"apiAuth"`                    // API 认证配置
+}
+
+type WgaSandboxSkillVariable struct {
+	Name          string `json:"name" validate:"required"`
+	Description   string `json:"description"`
+	VariableKey   string `json:"variableKey" validate:"required"`
+	VariableValue string `json:"variableValue" validate:"required"`
 }
 
 type WgaSandboxSkill struct {
-	Dir string `json:"dir" validate:"required"`
+	Dir       string                    `json:"dir" validate:"required"`
+	Variables []WgaSandboxSkillVariable `json:"variables"`
+}
+
+type WgaSandboxMCP struct {
+	Name        string `json:"name" validate:"required"`
+	URL         string `json:"url" validate:"required"`
+	Description string `json:"description"`
 }
 
 func (r *WgaSandboxRunReq) Check() error {

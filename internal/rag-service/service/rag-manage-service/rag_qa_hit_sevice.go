@@ -11,7 +11,7 @@ import (
 	rag_service "github.com/UnicomAI/wanwu/api/proto/rag-service"
 	"github.com/UnicomAI/wanwu/internal/rag-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/rag-service/config"
-	http_client "github.com/UnicomAI/wanwu/internal/rag-service/pkg/http-client"
+	http_client "github.com/UnicomAI/wanwu/pkg/http-client"
 	"github.com/UnicomAI/wanwu/pkg/log"
 )
 
@@ -107,7 +107,7 @@ func RagQASearch(ctx context.Context, knowledgeHitParams *QAHitParams) (*RagKnow
 		return nil, err
 	}
 	url := fmt.Sprintf("%s%s", config.Cfg().RagServer.ChatEndpoint, config.Cfg().RagServer.QASearchUrl)
-	result, err := http_client.GetClient().PostJson(ctx, &http_client.HttpRequestParams{
+	result, err := http_client.Default().PostJson(ctx, &http_client.HttpRequestParams{
 		Url:        url,
 		Body:       paramsByte,
 		Timeout:    time.Duration(1) * time.Minute,

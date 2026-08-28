@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/UnicomAI/wanwu/internal/agent-service/model/request"
-	"github.com/UnicomAI/wanwu/internal/agent-service/pkg/config"
 	agent_message_flow "github.com/UnicomAI/wanwu/internal/agent-service/service/agent-message-flow"
+	message_compact "github.com/UnicomAI/wanwu/internal/agent-service/service/agent-message-flow/message-compact"
 	service_model "github.com/UnicomAI/wanwu/internal/agent-service/service/service-model"
+	tokenizer_service "github.com/UnicomAI/wanwu/internal/agent-service/service/tokenizer-service"
 	"github.com/cloudwego/eino/adk"
 	"github.com/cloudwego/eino/components/model"
 	"github.com/cloudwego/eino/compose"
@@ -18,7 +19,9 @@ type ChatAgent struct {
 }
 
 func (a *ChatAgent) CreateChatModel(ctx context.Context, req *request.AgentChatParams, agentChatInfo *service_model.AgentChatInfo) (model.ToolCallingChatModel, error) {
-	fillInternalToolConfig(req, agentChatInfo)
+	if !agentChatInfo.FunctionCalling { //不支持function的模型不填充工具
+		req.ToolParams = nil
+	}
 	return CreateChatModel(ctx, agentChatInfo, req)
 }
 
@@ -38,11 +41,14 @@ func (a *ChatAgent) BuildAgentInput(ctx context.Context, req *request.AgentChatP
 	if err != nil {
 		return nil, err
 	}
-	createMessages = append(createMessages, messages...)
-	//3.知识库信息记录
+	//3.压缩合并历史消息
+	var multi = req.MultiAgent || req.MultiSubAgent
+	createMessages = message_compact.Compact(multi, createMessages, messages, tokenizer_service.TokenLimit(agentChatInfo))
+	//4.知识库信息记录
 	if a.ChatContext != nil {
 		a.ChatContext.KnowledgeHitData = agentChatContext.KnowledgeHitData
 	}
+
 	return &adk.AgentInput{
 		Messages:        createMessages,
 		EnableStreaming: agentInput.EnableStreaming,
@@ -69,28 +75,4 @@ func splitUserInput(req *request.AgentChatParams, messages []*schema.Message) (s
 func createMessageBuilder(ctx context.Context, req *request.AgentChatContext) (compose.Runnable[*request.AgentChatContext, []*schema.Message], error) {
 	graph := agent_message_flow.NewAgentMessageFlow(req.AgentChatReq.MultiAgent)
 	return graph.Compile(ctx)
-}
-
-// fillInternalToolConfig 配置内置文件工具
-func fillInternalToolConfig(req *request.AgentChatParams, agentChatInfo *service_model.AgentChatInfo) {
-	if !agentChatInfo.FunctionCalling {
-		req.ToolParams = nil
-	}
-	//如果用户使用的不是多模态模型，但是又上传了文件，则通过工具对文件进行解析，
-	//但是目前只支持一个文件，具体处理逻在node_prompt_variables.go
-	if !agentChatInfo.VisionSupport {
-		templateConfig := config.GetToolTemplateConfig()
-		chatDoc, _ := templateConfig.GetToolByID(config.DocParser)
-		if chatDoc != nil && agentChatInfo.UploadUrl {
-			params := req.ToolParams
-			if params != nil {
-				params.PluginToolList = append(params.PluginToolList, chatDoc)
-			} else {
-				params = &request.ToolParams{
-					PluginToolList: []*request.PluginToolInfo{chatDoc},
-				}
-			}
-			req.ToolParams = params
-		}
-	}
 }

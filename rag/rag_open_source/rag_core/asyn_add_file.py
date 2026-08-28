@@ -12,6 +12,7 @@ from utils import knowledge_base_utils
 from utils.file_utils import SplitConfig
 from utils import schema_utils
 from utils import redis_utils
+from utils.otel import init_tracer
 import subprocess
 from kafka import KafkaConsumer, TopicPartition, OffsetAndMetadata
 import json
@@ -20,6 +21,22 @@ from datetime import datetime
 import re
 from settings import *
 from utils.constant import CONVERT_DIR, USER_DATA_PATH
+
+# 初始化 OpenTelemetry，并自动 instrument requests / kafka 客户端
+init_tracer("rag-wanwu-add-file")
+from opentelemetry import trace as otel_trace
+from opentelemetry.propagate import extract
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+from opentelemetry.instrumentation.kafka import KafkaInstrumentor
+
+RequestsInstrumentor().instrument()
+KafkaInstrumentor().instrument()
+
+# KafkaInstrumentor 对 kafka-python 的 consumer 自动 span 只在 __next__ 那一瞬有效，
+# for 循环体内业务代码会失去 active span。手动用 extract + start_as_current_span
+# 重建 consumer span，让整段处理（含业务日志和出向 HTTP）都能挂在同一条 trace 上。
+tracer = otel_trace.get_tracer(__name__)
+
 graph_redis_client = redis_utils.get_redis_connection()
 
 # 定义路径
@@ -64,86 +81,104 @@ def kafkal():
                                      # max_poll_interval_ms=8000000,  # 设置最大轮询间隔为120分钟
                                      value_deserializer=lambda x: x.decode('utf-8'))
         for message in consumer:
-            # 初始化用户知识库路径
-            print('收到新kafka消息：' + repr(message.value))
-            logger.info('收到新kafka消息：' + repr(message.value))
-            try:
-                message_value = json.loads(message.value)
-                doc = message_value.get("doc", {})
-            except (json.JSONDecodeError, AttributeError) as e:
-                logger.error(f"Failed to parse message: {e}")
-                continue
+            # 从 Kafka 消息 headers 抽出上游 producer 注入的 traceparent
+            headers_dict = {}
+            if message.headers:
+                for hk, hv in message.headers:
+                    key = hk.decode() if isinstance(hk, (bytes, bytearray)) else hk
+                    val = hv.decode() if isinstance(hv, (bytes, bytearray)) else hv
+                    headers_dict[key] = val
+            parent_ctx = extract(headers_dict)
+
+            with tracer.start_as_current_span(
+                "kafka.consume",
+                context=parent_ctx,
+                kind=otel_trace.SpanKind.CONSUMER,
+            ):
+                # 初始化用户知识库路径
+                print('收到新kafka消息：' + repr(message.value))
+                logger.info('收到新kafka消息：' + repr(message.value))
+                try:
+                    message_value = json.loads(message.value)
+                    doc = message_value.get("doc", {})
+                except (json.JSONDecodeError, AttributeError) as e:
+                    logger.error(f"Failed to parse message: {e}")
+                    continue
 
 
-            file_id = doc.get("id")
-            user_id = doc.get("userId")
-            kb_id = doc.get("kb_id", "")
-            kb_name = doc.get("categoryId")
-            filename = doc.get("originalName")
-            object_name = doc.get("objectName")
+                file_id = doc.get("id")
+                user_id = doc.get("userId")
+                kb_id = doc.get("kb_id")
+                if not kb_id:
+                    logger.error(f"kafka 消息缺少 kb_id, doc: {doc}")
+                    continue
+                kb_name = doc.get("categoryId")
+                filename = doc.get("originalName")
+                object_name = doc.get("objectName")
 
-            # 分块与解析配置
-            sentence_size = doc.get("chunk_size")
-            overlap_size = doc.get("overlap")
-            split_type = doc.get("split_type", "common")
-            chunk_type = doc.get("chunk_type", "default")
-            separators = doc.get("separators", ['。'])
+                # 分块与解析配置
+                sentence_size = doc.get("chunk_size")
+                overlap_size = doc.get("overlap")
+                split_type = doc.get("split_type", "common")
+                chunk_type = doc.get("chunk_type", "default")
+                separators = doc.get("separators", ['。'])
 
-            # 状态开关（建议处理成布尔值或统一格式）
-            is_enhanced = doc.get("is_enhanced", "false")
-            enable_knowledge_graph = doc.get("enable_knowledge_graph", "false")
+                # 状态开关（建议处理成布尔值或统一格式）
+                is_enhanced = doc.get("is_enhanced", "false")
+                enable_knowledge_graph = doc.get("enable_knowledge_graph", "false")
 
-            # 文件导入时选择解析方式，默认勾选文字提取，可选光学识别ocr当多选时此参数默认为["text"],当勾选ocr时传：["text","ocr"]
-            parser_choices = doc.get("parser_choices", ["text"])
-            asr_model_id = doc.get("asr_model_id", "")
-            multimodal_model_id = doc.get("multimodal_model_id", "")
-            ocr_model_id = doc.get("ocr_model_id", "")
-            pre_process = doc.get("pre_process", [])
-            meta_data_rules = doc.get("meta_data", [])
-            child_chunk_config = doc.get("child_chunk_config")
+                # 文件导入时选择解析方式，默认勾选文字提取。可选模型解析(model)，当多选时此参数默认为["text"]，当勾选model时传：["text","model"]
+                parser_choices = doc.get("parser_choices", ["text"])
+                asr_model_id = doc.get("asr_model_id", "")
+                multimodal_model_id = doc.get("multimodal_model_id", "")
+                ocr_model_id = doc.get("ocr_model_id", "")
+                pre_process = doc.get("pre_process", [])
+                meta_data_rules = doc.get("meta_data", [])
+                child_chunk_config = doc.get("child_chunk_config")
 
-            split_config = SplitConfig(
-                sentence_size=sentence_size,
-                overlap_size=overlap_size,
-                chunk_type=chunk_type,
-                separators=separators,
-                parser_choices=parser_choices,
-                ocr_model_id=ocr_model_id,
-                asr_model_id=asr_model_id,
-                multimodal_model_id=multimodal_model_id,
-                split_type=split_type,
-                child_chunk_config=child_chunk_config
-            )
+                split_config = SplitConfig(
+                    sentence_size=sentence_size,
+                    overlap_size=overlap_size,
+                    chunk_type=chunk_type,
+                    separators=separators,
+                    parser_choices=parser_choices,
+                    ocr_model_id=ocr_model_id,
+                    asr_model_id=asr_model_id,
+                    multimodal_model_id=multimodal_model_id,
+                    split_type=split_type,
+                    child_chunk_config=child_chunk_config
+                )
 
-            try:
-                if not KAFKA_ENABLE_AUTO_COMMIT:
-                    # 提交当前消息的偏移量
-                    tp = TopicPartition(KAFKA_TOPICS, message.partition)
-                    offset_and_metadata = OffsetAndMetadata(offset=message.offset + 1, metadata="")
-                    offsets = {tp: offset_and_metadata}
-                    # consumer.commit(offsets=offsets)  # 不需要使用这个提交
-                    consumer.commit()
-                    logger.info('kafka异步消费完成 ===== 已提交 offset：' + str(message.offset) + '===== kafka消息：' + repr(message.value))
-                    logger.info('consumer.commit offset：' + repr(offsets))
+                try:
+                    if not KAFKA_ENABLE_AUTO_COMMIT:
+                        # 提交当前消息的偏移量
+                        tp = TopicPartition(KAFKA_TOPICS, message.partition)
+                        offset_and_metadata = OffsetAndMetadata(offset=message.offset + 1, metadata="")
+                        offsets = {tp: offset_and_metadata}
+                        # consumer.commit(offsets=offsets)  # 不需要使用这个提交
+                        consumer.commit()
+                        logger.info('kafka异步消费完成 ===== 已提交 offset：' + str(message.offset) + '===== kafka消息：' + repr(message.value))
+                        logger.info('consumer.commit offset：' + repr(offsets))
 
-                if KAFKA_USE_ASYN_ADD:
-                    # ============ 异步添加 =============
-                    lock = threading.Lock()
-                    thread = threading.Thread(target=add_files, args=(
-                    user_id, kb_name, filename, object_name, file_id, is_enhanced, enable_knowledge_graph, pre_process, meta_data_rules, split_config))
-                    lock.acquire()
-                    thread.start()
-                    lock.release()
-                    # ============ 异步添加 =============
-                else:
-                    # ============ 顺序添加 =============
-                    add_files(user_id, kb_name, filename, object_name, file_id, is_enhanced, enable_knowledge_graph, pre_process, meta_data_rules, split_config, kb_id=kb_id)
-                    # ============ 顺序添加 =============
-                logger.info('----->kafka异步消费完成：user_id=%s,kb_name=%s,filename=%s,file_id=%s,process finished' % (user_id, kb_name,filename,file_id))
+                    kb_info = {"kb_name": kb_name, "kb_id": kb_id}
+                    if KAFKA_USE_ASYN_ADD:
+                        # ============ 异步添加 =============
+                        lock = threading.Lock()
+                        thread = threading.Thread(target=add_files, args=(
+                        user_id, kb_info, filename, object_name, file_id, is_enhanced, enable_knowledge_graph, pre_process, meta_data_rules, split_config))
+                        lock.acquire()
+                        thread.start()
+                        lock.release()
+                        # ============ 异步添加 =============
+                    else:
+                        # ============ 顺序添加 =============
+                        add_files(user_id, kb_info, filename, object_name, file_id, is_enhanced, enable_knowledge_graph, pre_process, meta_data_rules, split_config)
+                        # ============ 顺序添加 =============
+                    logger.info('----->kafka异步消费完成：user_id=%s,kb_name=%s,filename=%s,file_id=%s,process finished' % (user_id, kb_name,filename,file_id))
 
-            except Exception as e:
-                logger.error("kafka处理异常：" + repr(e))
-                continue
+                except Exception as e:
+                    logger.error("kafka处理异常：" + repr(e))
+                    continue
 
 
 
@@ -279,12 +314,15 @@ def parse_meta_data(docs, parse_rules):
     return retype_meta_datas(result)
 
 
-def add_files(user_id, kb_name, file_name, object_name, file_id,
-              is_enhanced, enable_knowledge_graph, pre_process_rules, meta_data_rules, split_config: SplitConfig, kb_id=""):
+def add_files(user_id, kb_info, file_name, object_name, file_id,
+              is_enhanced, enable_knowledge_graph, pre_process_rules, meta_data_rules, split_config: SplitConfig):
     response_info = {'code': 0, "message": "成功"}
     user_data_path = USER_DATA_PATH
     convert_dir = CONVERT_DIR
     res_filename = ""
+    kb_name = kb_info["kb_name"]
+    # 收到 kafka 消息，开始解析
+    mq_rel_utils.update_doc_status(file_id, status=20)
     if not is_safe_filename(file_name):
         logger.error('文件名不合法')
         mq_rel_utils.update_doc_status(file_id, status=53)
@@ -297,7 +335,7 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
         else:
             logger.info('filepath=%s 已存在' % filepath)
         logger.info('文档查重开始')
-        files_in_milvus = milvus_utils.list_knowledge_file(user_id, kb_name, kb_id=kb_id)
+        files_in_milvus = milvus_utils.list_knowledge_file(user_id, kb_info)
         logger.info('向量库已有文档查询结果：' + repr(files_in_milvus))
 
         if files_in_milvus['code'] != 0:
@@ -449,7 +487,7 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
             return
     try:
         logger.info('添加文档meta开始' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
-        add_file_result = es_utils.add_file(user_id, kb_name, file_name, file_meta, kb_id=kb_id)
+        add_file_result = es_utils.add_file(user_id, kb_info, file_name, file_meta)
         logger.info(repr(file_name) + '添加文档meta结果：' + repr(add_file_result))
         if add_file_result['code'] != 0:
             # 回调
@@ -466,7 +504,7 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
 
     try:
         logger.info('文档插入milvus开始' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
-        insert_milvus_result = milvus_utils.add_milvus(user_id, kb_name, sub_chunk, file_name, add_file_path, kb_id=kb_id)
+        insert_milvus_result = milvus_utils.add_milvus(user_id, kb_info, sub_chunk, file_name, add_file_path)
         logger.info(repr(file_name) + '添加milvus结果：' + repr(insert_milvus_result))
         if insert_milvus_result['code'] != 0:
             logger.error('文档插入milvus失败'+ "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))
@@ -482,7 +520,7 @@ def add_files(user_id, kb_name, file_name, object_name, file_id,
 
     try:
         logger.info('文档插入es开始')
-        insert_es_result = es_utils.add_es(user_id, kb_name, chunks, file_name, kb_id=kb_id)
+        insert_es_result = es_utils.add_es(user_id, kb_info, chunks, file_name)
         logger.info(repr(file_name) + '添加es结果：' + repr(insert_es_result))
         if insert_es_result['code'] != 0:
             logger.error('文档插入es失败' + "user_id=%s,kb_name=%s,file_name=%s" % (user_id, kb_name, file_name))

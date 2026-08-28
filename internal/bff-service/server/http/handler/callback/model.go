@@ -12,8 +12,10 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
+	"github.com/UnicomAI/wanwu/pkg/log"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
@@ -56,6 +58,28 @@ func GetModelById(ctx *gin.Context) {
 		resp.Config = cfg
 	}
 	gin_util.Response(ctx, resp, err)
+}
+
+// ModelChatCompletionsWithTrace 处理带 trace 上下文的模型代理请求。
+//
+// URL 中的 :traceId 和 :spanId 由 sandbox 内 opencode/eino-agent 调用时填入。
+// TraceFromURLMiddleware 已在 otelgin 之前将此信息提取到 traceparent Header，
+// 因此 otelgin 已创建了正确父子关系的 span，本 handler 只需直接委托。
+//
+//	@Tags		callback
+//	@Summary	Model Chat Completions with Trace
+//	@Accept		json
+//	@Produce	json
+//	@Param		modelId	path		string				true	"模型ID"
+//	@Param		traceId	path		string				true	"Trace ID"
+//	@Param		spanId	path		string				true	"Span ID"
+//	@Param		data	body		mp_common.LLMReq{}	true	"请求参数"
+//	@Success	200		{object}	mp_common.LLMResp{}
+//	@Router		/model/{modelId}/trace/{traceId}/span/{spanId}/chat/completions [post]
+func ModelChatCompletionsWithTrace(ctx *gin.Context) {
+	// trace 上下文的提取和 span 父子关系由 TraceFromURLMiddleware + otelgin 完成，
+	// 此处不需要再做任何 trace 操作，直接委托给现有逻辑即可。
+	ModelChatCompletions(ctx)
 }
 
 // ModelChatCompletions
@@ -107,6 +131,10 @@ func ModelChatCompletions(ctx *gin.Context) {
 					var base64StrWithPrefix string
 					for urlK, urlV := range url {
 						if urlK == "url" {
+							if err := url_util.ValidateURL(urlV); err != nil {
+								log.Errorf("ModelChatCompletions invalid image URL: %v", err)
+								continue
+							}
 							resp, err := http.Get(urlV)
 							if err != nil {
 								continue
@@ -276,16 +304,26 @@ func ModelMultiModalRerank(ctx *gin.Context) {
 //
 //	@Tags		callback
 //	@Summary	Model Ocr
-//	@Accept		multipart/form-data
+//	@Accept		json
 //	@Produce	json
-//	@Param		modelId	path		string	true	"模型ID"
-//	@Param		file	formData	file	true	"文件"
+//	@Param		modelId	path		string				true	"模型ID"
+//	@Param		data	body		mp_common.OcrReq{}	true	"请求参数"
 //	@Success	200		{object}	mp_common.OcrResp{}
 //	@Router		/model/{modelId}/ocr [post]
 func ModelOcr(ctx *gin.Context) {
 	var data mp_common.OcrReq
-	if !gin_util.BindForm(ctx, &data) {
+	if !gin_util.Bind(ctx, &data) {
 		return
+	}
+	// url 转 base64（支持 minio URL）
+	if data.Url != nil && *data.Url != "" {
+		_, base64StrWithPrefix, err := minio_util.MinioUrlToBase64(ctx.Request.Context(), *data.Url)
+		if err != nil {
+			gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model ocr url to base64 err: %v", err)))
+			return
+		}
+		data.FileData = &base64StrWithPrefix
+		data.Url = nil
 	}
 	service.ModelOcr(ctx, ctx.Param("modelId"), &data)
 }

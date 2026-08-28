@@ -2,11 +2,12 @@ package middleware
 
 import (
 	"encoding/json"
-	"strconv"
 	"time"
 
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -61,13 +62,8 @@ func APIKeyRecord(StreamType string) gin.HandlerFunc {
 		// 计算耗时
 		var streamCosts, nonStreamCosts int64
 		if isStream {
-			// 流式请求：从 ctx 获取首 token 时延
-			if firstTokenLatency := ctx.GetInt64(gin_util.FIRST_RESP_LATENCY); firstTokenLatency > 0 {
-				streamCosts = firstTokenLatency
-			} else {
-				// 兜底：如果没有设置，使用总耗时
-				streamCosts = time.Since(startTime).Milliseconds()
-			}
+			// 流式请求：从 ctx 获取首 token 时延；未设置则保持 0（不用总耗时冒充 TTFT）
+			streamCosts = ctx.GetInt64(gin_util.FIRST_RESP_LATENCY)
 		} else {
 			nonStreamCosts = time.Since(startTime).Milliseconds()
 		}
@@ -81,20 +77,24 @@ func APIKeyRecord(StreamType string) gin.HandlerFunc {
 		// 构建方法路径
 		methodPath := ctx.Request.Method + "-" + ctx.Request.URL.Path
 
-		// 记录调用
-		service.RecordAPIKeyCall(ctx,
-			ctx.GetString(gin_util.USER_ID),
-			ctx.GetString(gin_util.X_ORG_ID),
-			apiKeyID,
-			methodPath,
-			startTime.UnixMilli(),
-			strconv.Itoa(httpStatus),
-			isStream,
-			streamCosts,
-			nonStreamCosts,
-			reqBody,
-			responseBody,
-		)
+		// 记录调用（使用 DetachContext 防止客户端断开后 context 被取消导致统计丢失）
+		detachedCtx := trace_util.DetachContext(ctx.Request.Context())
+		go func() {
+			defer util.PrintPanicStack()
+			service.RecordAPIKeyCall(detachedCtx,
+				ctx.GetString(gin_util.USER_ID),
+				ctx.GetString(gin_util.X_ORG_ID),
+				apiKeyID,
+				methodPath,
+				startTime.UnixMilli(),
+				int64(httpStatus),
+				isStream,
+				streamCosts,
+				nonStreamCosts,
+				reqBody,
+				responseBody,
+			)
+		}()
 	}
 }
 

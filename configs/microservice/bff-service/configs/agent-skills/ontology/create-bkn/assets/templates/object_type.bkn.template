@@ -1,0 +1,50 @@
+---
+type: object_type
+id: {object_id}
+name: {对象名称}
+tags: [{标签1}, {标签2}]
+---
+
+## ObjectType: {对象名称}
+
+{详细描述}
+
+### Data Properties
+
+| Name | Display Name | Type | Description | Mapped Field |
+|------|--------------|------|-------------|--------------|
+| {name} | {显示名} | string | {说明} | {mapped_field} |
+| {name} | {显示名} | integer | {说明} | {mapped_field} |
+
+### Keys
+
+Primary Keys: {primary_key}
+Display Key: {display_key}
+Incremental Key:
+
+### Logic Properties
+
+<!-- 可选：无逻辑属性时保留空标题即可。有内容时按以下格式添加子章节：
+
+#### {logic_property_name}
+
+- **Display**: {显示名}
+- **Type**: metric 或 operator
+- **Source**: {source_id} (metric) 或 {source_id} (operator)
+- **Description**: {描述}
+
+| Parameter | Type | Source | Binding | Description |
+|-----------|------|--------|---------|-------------|
+| {param} | string | property | {property_name} | {说明} |
+| {param} | array | input | - | {说明} |
+| {param} | number | const | {value} | {说明} |
+
+-->
+
+<!-- 可选：无数据视图绑定时省略整个 Data Source 节 -->
+
+### Data Source
+
+| Type | ID | Name |
+|------|-----|------|
+| data_view | {view_id} | {view_name} |

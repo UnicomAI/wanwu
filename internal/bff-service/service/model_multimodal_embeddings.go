@@ -11,10 +11,13 @@ import (
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
 
 func ModelMultiModalEmbeddings(ctx *gin.Context, modelID string, req *mp_common.MultiModalEmbeddingReq) {
+	detachedCtx := trace_util.DetachContext(ctx.Request.Context())
 	// modelInfo by modelID
 	modelInfo, err := model.GetModel(ctx.Request.Context(), &model_service.GetModelReq{ModelId: modelID})
 	if err != nil {
@@ -47,10 +50,15 @@ func ModelMultiModalEmbeddings(ctx *gin.Context, modelID string, req *mp_common.
 		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v multimodal-embeddings NewReq err: %v", modelInfo.ModelId, err)))
 		return
 	}
+	requestBody := MarshalStatisticBody(req)
 	startTime := time.Now()
 	resp, err := iMultiModalEmbedding.MultiModalEmbeddings(ctx.Request.Context(), multiModalEmbeddingReq)
 	if err != nil {
-		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v multimodal-embeddings err: %v", modelInfo.ModelId, err)))
+		go func() {
+			defer util.PrintPanicStack()
+			recordModelStatisticV2Failure(detachedCtx, modelInfo, false, requestBody, err)
+		}()
+		gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error()))
 		return
 	}
 	if data, ok := resp.ConvertResp(); ok {
@@ -62,10 +70,19 @@ func ModelMultiModalEmbeddings(ctx *gin.Context, modelID string, req *mp_common.
 		//ctx.Set(config.RESULT, resp.String())
 		ctx.JSON(status, data)
 		costs := int(time.Since(startTime).Milliseconds())
-		recordModelStatistic(ctx, modelInfo, true,
-			data.Usage.PromptTokens, data.Usage.CompletionTokens, data.Usage.TotalTokens, costs, 0, false)
+		responseBody := MarshalStatisticBody(data)
+		go func() {
+			defer util.PrintPanicStack()
+			recordModelStatisticV2(detachedCtx, modelInfo,
+				data.Usage.PromptTokens, data.Usage.CompletionTokens, data.Usage.TotalTokens, costs, 0, false,
+				http.StatusOK, requestBody, responseBody, "", "")
+		}()
 		return
 	}
-	recordModelStatistic(ctx, modelInfo, false, 0, 0, 0, 0, 0, false)
-	gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Sprintf("model %v multimodal-embeddings err: invalid resp", modelInfo.ModelId)))
+	errMsg := fmt.Sprintf("model %v multimodal-embeddings err: invalid resp", modelInfo.ModelId)
+	go func() {
+		defer util.PrintPanicStack()
+		recordModelStatisticV2Failure(detachedCtx, modelInfo, false, requestBody, fmt.Errorf("%s", errMsg))
+	}()
+	gin_util.Response(ctx, nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, errMsg))
 }

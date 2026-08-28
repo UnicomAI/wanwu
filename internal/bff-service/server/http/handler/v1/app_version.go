@@ -45,7 +45,7 @@ func UpdateAppVersion(ctx *gin.Context) {
 		return
 	}
 
-	err := service.UpdateAppVersion(ctx, getUserID(ctx), getOrgID(ctx), req.AppType, req.AppId, req.Desc, req.PublishType)
+	err := service.UpdateAppVersion(ctx, getUserID(ctx), getOrgID(ctx), req.AppType, req.AppId, req.Desc, req.PublishType, req.Extra)
 	gin_util.Response(ctx, nil, err)
 }
 

@@ -4,6 +4,8 @@ from urllib.parse import urlparse, urlunparse
 import subprocess
 import os
 import shutil
+import signal
+import tempfile
 import argparse
 import logging
 import datetime
@@ -15,7 +17,7 @@ import re
 import uuid
 import copy
 import traceback
-
+import threading
 from easyofd.ofd import OFD
 from ofdparser import OfdParser
 import base64
@@ -56,8 +58,7 @@ def is_safe_filename(name: str) -> bool:
 # -----------------
 # 初始化知识库
 def init_knowledge_base(user_id: str,
-                        kb_name: str,
-                        kb_id: str = "",
+                        kb_info: dict,
                         embedding_model_id: str = "",
                         enable_knowledge_graph: bool = False,
                         is_multimodal: bool = False) -> dict:
@@ -65,13 +66,13 @@ def init_knowledge_base(user_id: str,
     初始化知识库
 
     :param user_id: 用户ID
-    :param kb_name: 知识库名称
-    :param kb_id: 知识库ID (可选)
+    :param kb_info: {"kb_name": "...", "kb_id": "..."}
     :param embedding_model_id: 嵌入模型ID (可选)
     :param enable_knowledge_graph: 是否启用知识图谱 (默认 False)
     :param is_multimodal: 是否多模态知识库 (默认 False)
     :return: 操作结果字典，包含 'code' 和 'message'
     """
+    kb_name = kb_info["kb_name"]
     response_info = {'code': 0, "message": "成功"}
     try:
         # ----------------0、参数校验
@@ -88,8 +89,7 @@ def init_knowledge_base(user_id: str,
         if kb_name in milvus_data['data']['knowledge_base_names']:
             raise ValueError('已存在相同名字的向量知识库')
         # ----------------2、建立向量库
-        milvus_init_result = milvus_utils.init_knowledge_base(user_id, kb_name,
-                                                              kb_id = kb_id,
+        milvus_init_result = milvus_utils.init_knowledge_base(user_id, kb_info,
                                                               embedding_model_id = embedding_model_id,
                                                               enable_knowledge_graph = enable_knowledge_graph,
                                                               is_multimodal=is_multimodal)
@@ -126,15 +126,15 @@ def list_knowledge_base(user_id):
 
 # -----------------
 # 查询所有文档
-def list_knowledge_file(user_id, kb_name, kb_id=""):
-    milvus_list_file_result = milvus_utils.list_knowledge_file(user_id, kb_name, kb_id=kb_id)
+def list_knowledge_file(user_id, kb_info):
+    milvus_list_file_result = milvus_utils.list_knowledge_file(user_id, kb_info)
     logger.info('用户知识库文档查询结果：' + repr(milvus_list_file_result))
     return milvus_list_file_result
 
 
-def list_knowledge_file_download_link(user_id, kb_name, kb_id=""):
+def list_knowledge_file_download_link(user_id, kb_info):
     """ 获取知识库里所有文档的下载链接 """
-    milvus_list_file_result = milvus_utils.list_knowledge_file_download_link(user_id, kb_name, kb_id=kb_id)
+    milvus_list_file_result = milvus_utils.list_knowledge_file_download_link(user_id, kb_info)
     logger.info('获取知识库里所有文档的下载链接结果：' + repr(milvus_list_file_result))
     if milvus_list_file_result['code'] == 0:  # 替换好 minio下载链接
         file_download_links = []
@@ -149,7 +149,8 @@ def list_knowledge_file_download_link(user_id, kb_name, kb_id=""):
 
 # -----------------
 # 校验知识库是否存在
-def check_knowledge_base(user_id, kb_name, kb_id=""):
+def check_knowledge_base(user_id, kb_info):
+    kb_name = kb_info["kb_name"]
     response_info = {'code': 0, "message": "成功", "data": {"kb_exists": True}}
     milvus_list_kb_result = milvus_utils.list_knowledge_base(user_id)
     logger.info('用户知识库查询结果：' + repr(milvus_list_kb_result))
@@ -168,7 +169,9 @@ def check_knowledge_base(user_id, kb_name, kb_id=""):
 
 
 # -----------------删除知识库
-def del_konwledge_base(user_id, kb_name, kb_id=""):
+def del_konwledge_base(user_id, kb_info):
+    kb_name = kb_info["kb_name"]
+    kb_id = kb_info["kb_id"]
     kb_path = os.path.join(user_data_path, user_id, kb_name)
     response_info = {'code': 0, "message": "成功"}
     # ====== check 知识库是否存在 ===
@@ -179,19 +182,18 @@ def del_konwledge_base(user_id, kb_name, kb_id=""):
         return response_info
 
      #删除 知识图谱
-    kb_info = milvus_utils.get_kb_info(user_id, kb_name)
-    if "enable_knowledge_graph" in kb_info and kb_info["enable_knowledge_graph"]:
+    kb_meta = milvus_utils.get_kb_info(user_id, kb_name)
+    if "enable_knowledge_graph" in kb_meta and kb_meta["enable_knowledge_graph"]:
         try:
             graph_utils.delete_kb_graph(user_id, kb_name)
             logger.info(f"知识图谱删除成功, kb_name:{kb_name}")
             graph_redis_client = redis_utils.get_redis_connection()
-            kb_id = kb_info["id"]
             redis_utils.delete_graph_vocabulary_set(graph_redis_client, kb_id)
         except Exception as e:
             logger.error(f"知识图谱删除失败, error: {repr(e)}")
 
     # --------------1、删除es库 (必须先删除es库，否则会报错)
-    del_es_result = es_utils.del_es_kb(user_id, kb_name, kb_id=kb_id)
+    del_es_result = es_utils.del_es_kb(user_id, kb_info)
     logger.info('用户es库删除结果：' + repr(del_es_result))
     if del_es_result['code'] != 0:
         response_info['code'] = 1
@@ -201,7 +203,7 @@ def del_konwledge_base(user_id, kb_name, kb_id=""):
         return response_info
 
     # --------------2、删除向量库
-    del_milvus_result = milvus_utils.del_milvus_kbs(user_id, kb_name, kb_id=kb_id)
+    del_milvus_result = milvus_utils.del_milvus_kbs(user_id, kb_info)
     logger.info('用户milvus库删除结果：' + repr(del_milvus_result))
     if del_milvus_result['code'] != 0:
         response_info['code'] = 1
@@ -218,7 +220,8 @@ def del_konwledge_base(user_id, kb_name, kb_id=""):
 
 
 # -----------------删除多个文档
-def del_knowledge_base_files(user_id, kb_name, file_names, kb_id=""):
+def del_knowledge_base_files(user_id, kb_info, file_names):
+    kb_name = kb_info["kb_name"]
     filepath = os.path.join(user_data_path, user_id, kb_name)
     response_info = {'code': 0, "message": "成功"}
     # --------------1、check file_names
@@ -236,7 +239,7 @@ def del_knowledge_base_files(user_id, kb_name, file_names, kb_id=""):
     failed_files = []
     for file_name in file_names:
         # 删除milvus
-        del_milvus_result = milvus_utils.del_milvus_files(user_id, kb_name, [file_name], kb_id=kb_id)
+        del_milvus_result = milvus_utils.del_milvus_files(user_id, kb_info, [file_name])
         logger.info('向量库文档删除结果：' + repr(del_milvus_result))
 
         if del_milvus_result['code'] != 0:
@@ -245,7 +248,7 @@ def del_knowledge_base_files(user_id, kb_name, file_names, kb_id=""):
         else:
             success_files.append(file_name)
         # 删除es
-        del_es_result = es_utils.del_es_file(user_id, kb_name, file_name, kb_id=kb_id)
+        del_es_result = es_utils.del_es_file(user_id, kb_info, file_name)
         logger.info('es库文档删除结果：' + repr(del_es_result))
 
         if del_es_result['code'] != 0:
@@ -255,8 +258,8 @@ def del_knowledge_base_files(user_id, kb_name, file_names, kb_id=""):
             success_files.append(file_name)
 
      #删除 知识图谱
-    kb_info = milvus_utils.get_kb_info(user_id, kb_name)
-    if "enable_knowledge_graph" in kb_info and kb_info["enable_knowledge_graph"]:
+    kb_meta = milvus_utils.get_kb_info(user_id, kb_name)
+    if "enable_knowledge_graph" in kb_meta and kb_meta["enable_knowledge_graph"]:
         try:
             for file_name in success_files:
                 graph_utils.delete_file_from_graph(user_id, kb_name, file_name)
@@ -287,159 +290,27 @@ def del_knowledge_base_files(user_id, kb_name, file_names, kb_id=""):
         return response_info
 
 
-def add_files(user_id, kb_name, files, sentence_size, overlap_size, chunk_type, separators, is_enhanced,
-              parser_choices, ocr_model_id, pre_process, meta_data_rules):
-    response_info = {'code': 0, "message": "成功"}
-    filepath = os.path.join(user_data_path, user_id, kb_name)
-    if not os.path.exists(filepath): os.makedirs(filepath)
-
-    duplicate_files = []
-    unique_files = []
-    add_files = []
-    failed_files = []
-    success_files = []
-
-    # --------------1、check milvus
-    files_in_milvus = list_knowledge_file(user_id, kb_name)
-    logger.info('向量库已有文档查询结果：' + repr(files_in_milvus))
-
-    if files_in_milvus['code'] != 0:
-        response_info['code'] = 1
-        response_info['message'] = '文档向量库重复查询校验失败'
-        return response_info
-    filenames_in_milvus = files_in_milvus['data']['knowledge_file_names']
-    # filenames_in_milvus=[]
-    for f in files:
-        if not is_safe_filename(f.filename):
-            raise ValueError(f"文件名 {f.filename} 不安全")
-        if f.filename in filenames_in_milvus:
-            duplicate_files.append(f.filename)
-        else:
-            unique_files.append(f.filename)
-
-    # --------------2、save
-
-    for f in files:
-        if f.filename not in unique_files: continue
-
-        # --------------2.1、save to local
-        add_file_path = os.path.join(filepath, f.filename)
-        f.save(add_file_path)
-        logger.info('文件路径是：' + (add_file_path))
-        # 检查文件是否存在
-        if os.path.exists(add_file_path):
-            logger.info('文件已成功保存存在本地, 文件路径是：' + (add_file_path))
-        else:
-            logger.info(add_file_path + ",文件在本地不存在，未保存成功")
-
-        # --------------2.2、save to minio
-        start_time = int(round(time.time() * 1000))
-        minio_result = minio_utils.upload_local_file(add_file_path)
-        cost1 = int(round(time.time() * 1000)) - start_time
-
-        logger.info(repr(f.filename) + '上传minio花费时间：' + repr(cost1))
-        logger.info(repr(f.filename) + '上传minio结果：' + repr(minio_result))
-
-        if minio_result['code'] != 0:
-            failed_files.append([f.filename, '上传minio失败'])
-            if os.path.exists(add_file_path): os.remove(add_file_path)
-            continue
-        else:
-            download_link = minio_result['download_link']
-            add_files.append([f.filename, download_link])
-
-    # --------------3、split chunk
-    for pairs in add_files:
-
-        add_file_name = pairs[0]
-        download_link = pairs[1]
-
-        add_file_path = os.path.join(filepath, add_file_name)
-        split_config = file_utils.SplitConfig(
-            sentence_size=sentence_size,
-            overlap_size=overlap_size,
-            chunk_type=chunk_type,
-            separators=separators,
-            parser_choices=parser_choices,
-            ocr_model_id=ocr_model_id,
-            asr_model_id = "",
-            multimodal_model_id = ""
-        )
-        sub_chunk, chunks = file_utils.split_text_file(add_file_path, download_link, split_config)
-
-        if is_enhanced == 'true' and len(chunks) > 0:
-            logger.info(f'is_enhanced:{is_enhanced}')
-
-        logger.info(repr(add_file_name) + '文档切分长度：' + repr(len(chunks)))
-        logger.info(repr(add_file_name) + '文档递归切分长度：' + repr(len(sub_chunk)))
-
-        if len(chunks) == 0:
-            failed_files.append([add_file_name, '文档切分失败'])
-            continue
-        if len(sub_chunk) == 0:
-            failed_files.append([add_file_name, '文档递归切分失败'])
-            continue
-        with open("./data/%s_chunk.txt" % add_file_name, 'w', encoding='utf-8') as chunks_file:
-            for item in chunks:
-                chunks_file.write(json.dumps(item, ensure_ascii=False))
-                chunks_file.write("\n")
-        with open("./data/%s_subchunk.txt" % add_file_name, 'w', encoding='utf-8') as sub_chunk_file:
-            for item in sub_chunk:
-                sub_chunk_file.write(json.dumps(item, ensure_ascii=False))
-                sub_chunk_file.write("\n")
-
-        # --------------4、insert milvus
-        insert_milvus_result = milvus_utils.add_milvus(user_id, kb_name, sub_chunk, add_file_name, add_file_path)
-        logger.info(repr(add_file_name) + '添加milvus结果：' + repr(insert_milvus_result))
-        if insert_milvus_result['code'] != 0:
-            failed_files.append([add_file_name, insert_milvus_result['message']])
-            continue
-
-        # --------------5、insert es
-        insert_es_result = es_utils.add_es(user_id, kb_name, chunks, add_file_name)
-        logger.info(repr(add_file_name) + '添加es结果：' + repr(insert_es_result))
-
-        if insert_es_result['code'] != 0:
-            failed_files.append([add_file_name, insert_es_result['message']])
-            continue
-    # --------------6、后处理
-    if len(duplicate_files) == 0 and len(failed_files) == 0:
-        return response_info
-    else:
-        for ff in failed_files:
-            del_failed_name = ff[0]
-            del_file_path = os.path.join(filepath, del_failed_name)
-            if os.path.isfile(del_file_path):
-                os.remove(del_file_path)
-        m1 = ''
-        if len(duplicate_files) > 0: m1 = ','.join(duplicate_files) + '上传文件重复。'
-        m2 = ''
-        if len(failed_files) > 0:
-            m2 = '。'.join([i[0] + '上传失败，' + i[1] for i in failed_files])
-        response_info = {'code': 1, "message": m1 + m2}
-        return response_info
-
-
-def get_file_content_list(user_id: str, kb_name: str, file_name: str, page_size: int, search_after: int, kb_id=""):
+def get_file_content_list(user_id: str, kb_info: dict, file_name: str, page_size: int, search_after: int,
+                          query_text: str = None):
     """
     获取知识库文件片段列表,用于分页展示
     """
-    logger.info(f"get_file_content_list start: {user_id}, kb_name: {kb_name}, kb_id: {kb_id}, file_name: {file_name}, "
-                f"page_size:{page_size}, search_after:{search_after}")
-    response_info = milvus_utils.get_milvus_file_content_list(user_id, kb_name, file_name, page_size,
-                                                              search_after, kb_id=kb_id)
-    logger.info(f"get_file_content_list end: {user_id}, kb_name: {kb_name}, kb_id: {kb_id}, file_name: {file_name}, "
-                f"page_size:{page_size}, search_after:{search_after}, response: {response_info}")
+    logger.info(f"get_file_content_list start: {user_id}, kb_info: {kb_info}, file_name: {file_name}, "
+                f"page_size:{page_size}, search_after:{search_after}, query_text:{query_text}")
+    response_info = milvus_utils.get_milvus_file_content_list(user_id, kb_info, file_name, page_size,
+                                                              search_after, query_text=query_text)
+    logger.info(f"get_file_content_list end: {user_id}, kb_info: {kb_info}, file_name: {file_name}, "
+                f"page_size:{page_size}, search_after:{search_after}, query_text:{query_text}, response: {response_info}")
     return response_info
 
-def get_file_child_content_list(user_id: str, kb_name: str, file_name: str, chunk_id: int, kb_id=""):
+def get_file_child_content_list(user_id: str, kb_info: dict, file_name: str, chunk_id: int):
     """
     获取知识库文件子片段列表
     """
-    logger.info(f"get_file_child_content_list start: {user_id}, kb_name: {kb_name}, kb_id: {kb_id}, "
+    logger.info(f"get_file_child_content_list start: {user_id}, kb_info: {kb_info}, "
                 f"file_name: {file_name}, chunk_id:{chunk_id}")
-    response_info = milvus_utils.get_milvus_file_child_content_list(user_id, kb_name, file_name, chunk_id, kb_id=kb_id)
-    logger.info(f"get_file_child_content_list end: {user_id}, kb_name: {kb_name}, kb_id: {kb_id}, "
+    response_info = milvus_utils.get_milvus_file_child_content_list(user_id, kb_info, file_name, chunk_id)
+    logger.info(f"get_file_child_content_list end: {user_id}, kb_info: {kb_info}"
                 f"file_name: {file_name}, chunk_id:{chunk_id}, response: {response_info}")
     return response_info
 
@@ -451,7 +322,7 @@ class MetadataOperation(Enum):
     DELETE_KEYS = "delete_keys"
     RENAME_KEYS = "rename_keys"
 
-def manage_kb_metadata(user_id: str, kb_name: str, operation: MetadataOperation, data: dict, kb_id=""):
+def manage_kb_metadata(user_id: str, kb_info: dict, operation: MetadataOperation, data: dict):
     """
     知识库元数据操作
     """
@@ -459,8 +330,8 @@ def manage_kb_metadata(user_id: str, kb_name: str, operation: MetadataOperation,
         logger.warning("未提供操作数据")
         return {'code': 1, 'message': '未提供操作数据'}
 
-    logger.info(f"metadata operation start, user_id: {user_id}, kb_name:{kb_name}, "
-                f"kb_id:{kb_id}, operation: {operation.value}, data: {data}")
+    logger.info(f"metadata operation start, user_id: {user_id}, kb_info: {kb_info}, "
+                f"operation: {operation.value}, data: {data}")
 
     if operation == MetadataOperation.UPDATE_METAS:
         if 'metas' not in data or not data['metas']:
@@ -487,36 +358,26 @@ def manage_kb_metadata(user_id: str, kb_name: str, operation: MetadataOperation,
         return {'code': 1, 'message': f'不支持的操作类型: {operation.value}'}
 
     data["operation"] = operation.value
-    response_info = milvus_utils.update_file_metas(user_id, kb_name, data, kb_id=kb_id)
-    logger.info(f"metadata operation end, user_id: {user_id}, kb_name:{kb_name}, "
-                f"kb_id:{kb_id}, operation: {operation.value}, data: {data}, response: {response_info}")
+    response_info = milvus_utils.update_file_metas(user_id, kb_info, data)
+    logger.info(f"metadata operation end, user_id: {user_id}, kb_info: {kb_info}, "
+                f"operation: {operation.value}, data: {data}, response: {response_info}")
 
     return response_info
 
 
-def update_content_status(user_id: str, kb_name: str, file_name: str, content_id: str, status: bool,
-                          on_off_switch=None, kb_id=""):
+def update_content_status(user_id: str, kb_info: dict, file_name: str, content_id: str, status: bool,
+                          on_off_switch=None):
     """
     根据content_id更新知识库文件片段状态
     """
-    logger.info('========= update_content_status start：' + repr(user_id) + '，' + repr(kb_name) + '，' + repr(kb_id) +
+    logger.info('========= update_content_status start：' + repr(user_id) + '，' + repr(kb_info) +
                 '，' + repr(file_name) + '，' + repr(content_id) + '，' + repr(status) + '，' + repr(on_off_switch))
-    response_info = milvus_utils.update_milvus_content_status(user_id, kb_name, file_name, content_id, status,
-                                                              on_off_switch, kb_id=kb_id)
-    logger.info('========= update_content_status end：' + repr(user_id) + '，' + repr(kb_name) + '，' + repr(kb_id) +
+    response_info = milvus_utils.update_milvus_content_status(user_id, kb_info, file_name, content_id, status,
+                                                              on_off_switch)
+    logger.info('========= update_content_status end：' + repr(user_id) + '，' + repr(kb_info) +
                 '，' + repr(file_name) + '，' + repr(content_id) + '，' + repr(status) + '，' + repr(on_off_switch) +
                 ' ====== response:' + repr(
         response_info))
-    return response_info
-
-
-def get_kb_name_id(user_id: str, kb_name: str):
-    """
-    获取某个知识库映射的 kb_id接口
-    """
-    logger.info('========= get_kb_name_id start：' + repr(user_id) + '，' + repr(kb_name))
-    response_info = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)
-    logger.info('========= get_kb_name_id end：' + repr(user_id) + '，' + repr(kb_name) + ' ====== response:' + repr(response_info))
     return response_info
 
 
@@ -560,9 +421,10 @@ def get_knowledge_based_answer(knowledge_base_info, question, rate, top_k, chunk
             user_search_list = []
             kb_names = [kb_info["kb_name"] for kb_info in base_info_list]
             kb_ids = [kb_info["kb_id"] for kb_info in base_info_list]
+            kb_infos = [{"kb_name": n, "kb_id": i} for n, i in zip(kb_names, kb_ids)]
             if retrieve_method in {"semantic_search", "hybrid_search"}:
-                search_result = milvus_utils.search_milvus(user_id, kb_names, top_k, question, threshold=rate,
-                                                           search_field=search_field, kb_ids=kb_ids,
+                search_result = milvus_utils.search_milvus(user_id, kb_infos, top_k, question, threshold=rate,
+                                                           search_field=search_field,
                                                            filter_file_name_list=filter_file_name_list,
                                                            metadata_filtering_conditions = metadata_filtering_conditions,
                                                            enable_vision=enable_vision, attachment_files=attachment_files)
@@ -580,6 +442,7 @@ def get_knowledge_based_answer(knowledge_base_info, question, rate, top_k, chunk
                         "title": item["file_name"],
                         "snippet": item["content"],
                         "kb_name": item["kb_name"],
+                        "kb_id": item["kb_id"],
                         "content_id": item["content_id"],
                         "meta_data": item["meta_data"],
                         "user_id": user_id
@@ -600,7 +463,7 @@ def get_knowledge_based_answer(knowledge_base_info, question, rate, top_k, chunk
 
             if retrieve_method in {"full_text_search", "hybrid_search"} and question and len(str(question).strip()) > 0:
                 # es召回
-                es_search_list = es_utils.search_es(user_id, kb_names, question, top_k, kb_ids=[],
+                es_search_list = es_utils.search_es(user_id, kb_infos, question, top_k,
                                                     filter_file_name_list=filter_file_name_list,
                                                     metadata_filtering_conditions=metadata_filtering_conditions)
                 logger.info(repr(user_id) + repr(kb_names) + repr(question) + '问题es库查询结果：' + json.dumps(repr(es_search_list), ensure_ascii=False))
@@ -612,8 +475,7 @@ def get_knowledge_based_answer(knowledge_base_info, question, rate, top_k, chunk
 
             # ========== 标签召回通道判断及调用==========
             unique_labels = set()   # 获取到所有的chunk标签
-            for kb_name in kb_names:
-                kb_id = get_kb_name_id(user_id, kb_name)  # 获取kb_id
+            for kb_id in kb_ids:
                 unique_labels.update(redis_utils.get_all_chunk_labels(chunk_label_redis_client, kb_id))
             unique_labels_list = list(unique_labels)
             # 初始化一个字典来存储每个标签词的出现次数
@@ -626,7 +488,7 @@ def get_knowledge_based_answer(knowledge_base_info, question, rate, top_k, chunk
             # 开始调用标签召回
             label_search_list = []
             if label_counts:
-                label_search_list = es_utils.search_keyword(user_id, kb_names, label_counts, top_k,
+                label_search_list = es_utils.search_keyword(user_id, kb_infos, label_counts, top_k,
                                                             metadata_filtering_conditions=metadata_filtering_conditions)
 
             # 后过滤 status
@@ -641,8 +503,10 @@ def get_knowledge_based_answer(knowledge_base_info, question, rate, top_k, chunk
                         content_status_json[i["kb_name"]] = content_status_json.get(i["kb_name"], [])
                         if i['content_id'] not in content_status_json[i["kb_name"]]:
                             content_status_json[i["kb_name"]].append(i['content_id'])
+                kb_name_to_kb_id = {n: i for n, i in zip(kb_names, kb_ids)}
                 for kb_name in content_status_json:  # 多个kb_names时，需要做区分
-                    useful_content_id_list = milvus_utils.get_milvus_content_status(user_id, kb_name, content_status_json[kb_name])
+                    cur_kb_info = {"kb_name": kb_name, "kb_id": kb_name_to_kb_id[kb_name]}
+                    useful_content_id_list = milvus_utils.get_milvus_content_status(user_id, cur_kb_info, content_status_json[kb_name])
                     logger.info(
                         repr(user_id) + repr(kb_name) + repr(content_status_json[kb_name]) + '======== get_milvus_content_status：' + repr(
                             useful_content_id_list))
@@ -671,8 +535,8 @@ def get_knowledge_based_answer(knowledge_base_info, question, rate, top_k, chunk
             # ========= 图谱召回---增强关联片段以及三元组以及社区报告 start =========
             if use_graph:  # 如果使用图检索
                 # ======== 将graph检索的结果 和 两路检索的结果进行融合，并重新再过一遍rerank ========
-                temp_graph_search_list, temp_graph_dat_list = graph_utils.get_graph_search_list(user_id, kb_names, question, top_k,
-                                                                             kb_ids=[], threshold=rate,
+                temp_graph_search_list, temp_graph_dat_list = graph_utils.get_graph_search_list(user_id, kb_infos, question, top_k,
+                                                                             threshold=rate,
                                                                              filter_file_name_list=filter_file_name_list)
                 graph_data_list.extend(temp_graph_dat_list)  # 社区报告等直接放进去先
                 # 根据 duplicate_set 去重，将图谱关联出来的chunk 再加入 vector_text_search_list
@@ -778,10 +642,10 @@ def get_knowledge_based_answer(knowledge_base_info, question, rate, top_k, chunk
             sorted_search_list = new_search_list[:top_k]
             sorted_scores = new_scores[:top_k]
 
+        replace_minio_ip(sorted_search_list)
         response_info = rerank_utils.assemble_search_result(question, sorted_scores, sorted_search_list, rate, return_meta,
                                                             prompt_template, default_answer, auto_citation)
 
-        response_info = replace_minio_ip(response_info)
         logger.info('重排结果：' + repr(response_info))
 
         if response_info['code'] != 0:
@@ -848,8 +712,9 @@ def aggregate_chunks(sorted_scores, sorted_search_list):
         if content_id not in parent_items:
             # 获取父片段信息
             kb_name = children["search_list"][0]["kb_name"]
+            kb_id = children["search_list"][0].get("kb_id", "")
             user_id = children["search_list"][0]["user_id"]
-            content_response = milvus_utils.get_content_by_ids(user_id, kb_name, [content_id])
+            content_response = milvus_utils.get_content_by_ids(user_id, {"kb_name": kb_name, "kb_id": kb_id}, [content_id])
             logger.info(f"获取父分段 content_id: {content_id}, 结果: {content_response}")
             if content_response['code'] != 0:
                 logger.error(f"获取分段信息失败， user_id: {user_id},kb_name: {kb_name}, content_id: {content_id}")
@@ -905,41 +770,96 @@ def is_valid_string(s):
     return re.match(pattern, s) is not None
 
 
-def replace_minio_ip(rerank_result):
-    if 'data' not in rerank_result:
-        return rerank_result
-    if 'prompt' in rerank_result['data']:
-        # prompt 中的 minio url 更新替换
-        text = rerank_result['data']['prompt']
-        # 正则表达式匹配 https://ip:port/minio/download/api/ 部分
-        pattern = r'http?://[^/]+/minio/download/api/'
-        # 替换文本中的URL
-        replaced_text = re.sub(pattern, REPLACE_MINIO_DOWNLOAD_URL, text)
-        rerank_result['data']['prompt'] = replaced_text
-    if 'searchList' not in rerank_result['data']:
-        return rerank_result
-    for i in range(len(rerank_result['data']['searchList'])):
-        # content中的 minio url 更新替换
-        text = rerank_result['data']['searchList'][i]['snippet']
-        # 正则表达式匹配 https://ip:port/minio/download/api/ 部分
-        pattern = r'http?://[^/]+/minio/download/api/'
-        # 替换文本中的URL
-        replaced_text = re.sub(pattern, REPLACE_MINIO_DOWNLOAD_URL, text)
-        rerank_result['data']['searchList'][i]['snippet'] = replaced_text
-
-        if 'meta_data' not in rerank_result['data']['searchList'][i]:
-            continue
-        if ('bucket_name' not in rerank_result['data']['searchList'][i]['meta_data'] or
-                'object_name' not in rerank_result['data']['searchList'][i]['meta_data']):
-            continue
-        # 获取原始的 bucket_name 和 object_name 去拿取预签名下载链接
-        bucket_name = rerank_result['data']['searchList'][i]['meta_data']['bucket_name']
-        object_name = rerank_result['data']['searchList'][i]['meta_data']['object_name']
-        new_url = minio_utils.craete_download_url(bucket_name, object_name, expire=timedelta(days=1))
-        rerank_result['data']['searchList'][i]['meta_data']['download_link'] = new_url
+def _parse_minio_url(url):
+    """从 MinIO 下载 URL 中解析出 (bucket_name, object_name)，失败返回 (None, None)。"""
+    prefix = REPLACE_MINIO_DOWNLOAD_URL.rstrip('/') + '/'
+    if url.startswith(prefix):
+        # lstrip('/') 处理 api// 双斜杠的情况
+        path = url[len(prefix):].lstrip('/').split('?')[0]
+        parts = path.split('/', 1)
+        if len(parts) == 2 and parts[0]:
+            return parts[0], parts[1]
+    # 兜底：匹配内网 IP 格式，/* 兼容双斜杠
+    m = re.match(r'https?://[^/]+/minio/download/api//*([^/]+)/(.+?)(?:\?.*)?$', url)
+    if m:
+        return m.group(1), m.group(2)
+    return None, None
 
 
-    return rerank_result
+def replace_minio_ip(search_list, only_meta=False):
+    """将 search_list 中所有 MinIO URL 替换为预签名 URL（原地修改）。
+    相同的原始 URL 只调用一次 create_download_url，其余复用缓存结果。
+    应在 assemble_search_result 之前调用，使 prompt 中的 URL 也随 snippet 一并处理。
+    """
+    # 匹配含 /minio/download/api/ 的 URL（内网 IP 或外网地址均可），/* 兼容双斜杠
+    minio_url_re = re.compile(r'https?://[^\s\)"\'>\]]+/minio/download/api//*[^\s\)"\'>\]]*')
+    url_presigned_cache = {}
+
+    def get_presigned(url):
+        if url in url_presigned_cache:
+            return url_presigned_cache[url]
+        bucket, obj = _parse_minio_url(url)
+        if not bucket:
+            url_presigned_cache[url] = url
+            return url
+        new_url = minio_utils.create_download_url(bucket, obj, expire=timedelta(days=1))
+        result = new_url if new_url else url
+        url_presigned_cache[url] = result
+        return result
+
+    for item in search_list:
+        # meta_data download_link：用规范化 key 走同一缓存
+        meta = item.get('meta_data', {})
+        if 'bucket_name' in meta and 'object_name' in meta:
+            raw = f"{REPLACE_MINIO_DOWNLOAD_URL.rstrip('/')}/{meta['bucket_name']}/{meta['object_name']}"
+            meta['download_link'] = get_presigned(raw)
+
+        if only_meta: continue
+
+        # snippet：替换文本内嵌的所有 MinIO URL 为预签名 URL
+        item['snippet'] = minio_url_re.sub(lambda m: get_presigned(m.group(0)), item['snippet'])
+
+        # rerank_info 里 type==image 的 file_url / type==text 的 content
+        for rerank_item in item.get('rerank_info', []):
+            if rerank_item.get('type') == 'image' and 'file_url' in rerank_item:
+                rerank_item['file_url'] = get_presigned(rerank_item['file_url'])
+            elif rerank_item.get('type') == 'text' and 'content' in rerank_item:
+                rerank_item['content'] = minio_url_re.sub(lambda m: get_presigned(m.group(0)), rerank_item['content'])
+
+
+def _kill_process_tree(proc):
+    """杀掉整个进程组，避免僵尸 soffice 子进程残留。"""
+    if proc is None:
+        return
+    try:
+        pgid = os.getpgid(proc.pid)
+    except ProcessLookupError:
+        return
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        try:
+            os.killpg(pgid, sig)
+        except Exception:
+            pass
+        time.sleep(1)
+        if proc.poll() is not None:
+            break
+
+
+def _cleanup_profile_locks(profile_dir):
+    """清理 soffice profile 目录中的残留锁文件。"""
+    if not profile_dir or not os.path.isdir(profile_dir):
+        return
+    for root, dirs, files in os.walk(profile_dir, topdown=False):
+        for name in files:
+            if name.startswith(".~lock") or name == ".lock" or name == "lock":
+                try:
+                    os.remove(os.path.join(root, name))
+                except Exception:
+                    pass
+
+
+# 模块级锁：串行化 soffice 调用，作为单实例锁冲突的双保险
+_soffice_lock = threading.Lock()
 
 
 def convert_office_file(file_path, target_dir, target_format):
@@ -985,17 +905,79 @@ def convert_office_file(file_path, target_dir, target_format):
             # print(e)
             logger.info(f"Error ofd2pdf: {e}")
     else:  # 使用 soffice 转换
-        # 构造命令
-        command = f"/usr/bin/soffice --headless --convert-to {target_format} {temp_file_path} --outdir {target_dir}"
-        # 执行命令并等待完成
-        try:
-            # 设置命令运行超时时间
-            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True, timeout=300)
-        except subprocess.TimeoutExpired:
-            logger.info(f"{command}命令超时，已尝试终止进程。")
-        except subprocess.CalledProcessError as e:
-            logger.info(f"Error during command execution: {e}")
+        # 每次调用使用独立的 UserInstallation profile，规避单实例锁冲突
+        profile_dir = os.path.join(target_dir, f"profile_{temp_file_name}")
+        # 用 list 形式传参，去掉 shell=True，避免参数注入与僵尸子进程
+        command = [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--norestore",
+            "--nolockcheck",  # 忽略残留锁，配合独立 profile 双保险
+            f"-env:UserInstallation=file://{profile_dir}",
+            "--convert-to", target_format,
+            temp_file_path,
+            "--outdir", target_dir,
+        ]
+        logger.info(f"soffice command: {' '.join(command)}")
+
+        max_retries = 2
+        converted = False
+        with _soffice_lock:  # 串行化，避免同时启动多个 soffice
+            for attempt in range(max_retries + 1):
+                proc = None
+                try:
+                    # start_new_session=True 起独立进程组，超时可 killpg 整组
+                    proc = subprocess.Popen(
+                        command,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        start_new_session=True,
+                    )
+                    stdout, stderr = proc.communicate(timeout=300)
+                    if proc.returncode == 0:
+                        converted = True
+                        logger.info(
+                            f"soffice convert success, attempt={attempt}, "
+                            f"file={file_path}, stdout={stdout.strip()}"
+                        )
+                        break
+                    else:
+                        logger.warning(
+                            f"soffice returncode={proc.returncode}, attempt={attempt}, "
+                            f"file={file_path}, stderr={stderr.strip()}"
+                        )
+                except subprocess.TimeoutExpired:
+                    logger.warning(
+                        f"soffice 超时，杀掉进程组, attempt={attempt}, file={file_path}"
+                    )
+                    _kill_process_tree(proc)
+                    try:
+                        proc.communicate(timeout=5)
+                    except Exception:
+                        pass
+                except Exception as e:
+                    logger.warning(
+                        f"soffice 执行异常: {e}, attempt={attempt}, file={file_path}"
+                    )
+                finally:
+                    _cleanup_profile_locks(profile_dir)
+
+                if attempt < max_retries:
+                    time.sleep(2)  # 短退避后重试
+
+        if not converted:
+            logger.error(f"soffice 转换失败（已重试 {max_retries} 次）: {file_path}")
     res_filename = os.path.join(target_dir, f"{temp_file_name}.{target_format}")
+
+    # 清理临时源文件（不影响结果判断）
+    # try:
+    #     if os.path.exists(temp_file_path):
+    #         os.remove(temp_file_path)
+    # except Exception:
+    #     pass
+
     # 检查文件是否存在
     if os.path.exists(res_filename):
         logger.info(f"{file_path} convert_office_file successfully => {res_filename}")

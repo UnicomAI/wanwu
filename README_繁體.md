@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/6ceb4269-a861-4545-84db-bad322592156" style="width:45%; height:auto;" />
+  <img src="https://github.com/user-attachments/assets/4788ed8f-eefc-4c19-aa77-7ec776743f3d" style="width:45%; height:auto;" />
 <p>
   <a href="#🚩 核心功能模組">核心功能模組</a> •
   <a href="#x1F3AF; 典型應用場景">典型應用場景</a> •
@@ -22,10 +22,9 @@
     繁體中文
 </p>
 </div>
+元景萬悟智慧體平台是一款面向企業級場景的**一站式、商用授權友善**的智慧體開發平台。我們以「技術開放、生態共建」為核心理念，致力於為企業提供**安全、高效、合規**的 AI 解決方案。
 
-
-
-&emsp;&emsp;**元景萬悟智能體平台**是一款面向**企業級**場景的**一站式**、**商用license友好**的**智能體開發平台**，致力於為企業提供安全、高效、合規的一站式AI解決方案。我們以「技術開放、生態共建」為核心理念，透過整合大型語言模型、業務流程自動化等前沿技術，構建了覆蓋模型全生命週期管理、MCP、聯網檢索、**通用智能體與Skills編排**、企業知識庫建設、複雜工作流編排等完整功能體系的AI工程化平台。平台現已全面躍升為**「通用智能體+垂直場景Skills」的雙引擎開發平台**，在確保企業數據安全和隱私保護的同時，大幅降低了AI技術的應用門檻，助力企業加速數位化轉型進程，實現降本增效和業務創新。
+萬悟致力於提供 FDE（現場交付工程師）所需的所有工具能力，打造**全站 FDE 工具鏈**！我們不僅能力覆蓋企業核心資產，更以客戶為中心，將能力真正嵌入客戶系統，大幅降低 AI 專案交付門檻，打通從「建構」到「現場」的最後一公里，讓每一次商業決策更簡單，讓每一位 FDE 更強大！
 
 ------
 
@@ -38,24 +37,95 @@
 
 ------
 
-### 📢 生態開放
-- [外部知識庫相容](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93/%E8%BF%9E%E6%8E%A5%E5%A4%96%E6%8E%A5%E7%9F%A5%E8%AF%86%E5%BA%93.md)：支援以 API 匯入在 Dify 中建立的知識庫，並可在智能體、文字問答、工作流中進行檢索召回。
-- [MCP 廣場](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/2.%E8%B5%84%E6%BA%90%E5%BA%93%2FMCP%E6%9C%8D%E5%8A%A1.md)：支援匯入並使用不同服務商的 MCP 協定。
-- [Skills](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/2.%E8%B5%84%E6%BA%90%E5%BA%93%2FSkills.md)：支持一句話創建 Skills 並下載，可無縫對接 OpenClaw。
-- [OpenClaw沙箱](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/8.%E9%80%9A%E7%94%A8%E6%99%BA%E8%83%BD%E4%BD%93%2F%E6%9C%BA%E5%99%A8%E4%BA%BA%E5%8A%A9%E6%89%8B-OPENCLAW%2F%E5%A6%82%E4%BD%95%E5%9C%A8%E4%B8%87%E6%82%9F%E4%B8%AD%E6%8E%A5%E5%85%A5OpenClaw%E6%9C%BA%E5%99%A8%E4%BA%BA.md)：我們為每一個「龍蝦機器人」都提供了獨立Docker容器部署的選項。您可在元景萬悟中直接存取您本機部署的OpenClaw機器人。
+### 🌟全站 FDE 工具鏈：5 大能力對症下藥
+
+面對企業複雜的商業場景，萬悟提供 5 大核心智慧體能力，對症下藥解決各類交付痛點，讓 AI 不僅「想得到」，更「做得到」：
+
+#### 1️⃣ RAG / 知識庫智慧體：搞定分散文件，讓 AI 有可靠記憶
+
+<p align="center">
+  <img width="900" alt="rag" src="https://github.com/user-attachments/assets/7bbc16b2-e7d0-49cb-89e3-5c395416c028" />
+</p>
+
+針對企業海量分散的文件與制度，提供全流程知識管理能力，建構高精準度、具備記憶的知識大腦，讓 AI 不再胡說八道。
+
+- **高精準解析與檢索：**支援 12 種檔案格式及 URL 擷取；支援 OCR 與 MinerU 模型私有化解析；整合多模態檢索、級聯 / 自適應切分與智慧精排，支援圖文並茂生成與出處引用。
+- **知識圖譜增強（GraphRAG）：**內建 UniAI‑GraphRAG，結合領域本體建模，顯著提升跨多文件總結與多跳關係推理的完整性與邏輯性，F1 值業界領先。
+- **外部知識庫相容：**支援 API 匯入 Dify 內建立的知識庫，並在智慧體、文字問答、工作流中進行檢索召回。
+
+#### 2️⃣ 本體智慧體：搞定結構化資料，實現多步推理與決策
+
+<p align="center">
+  <img width="900" alt="ontology" src="https://github.com/user-attachments/assets/7a582447-9edc-4cce-ace4-29291b5ad2ac" />
+</p>
+
+打破大模型僅懂文字的侷限，應對複雜的結構化商業資料。
+
+- **深度推理與決策：**基於企業資料與文件自動建構商業知識網路，賦予 AI 深度推理與閉環行動能力，讓大模型真正懂業務、會決策，從「知識問答」躍升為「商業分析大腦」。
+
+#### 3️⃣ 工作流智慧體：搞定複雜流程，讓 AI 照規矩辦事
+
+<p align="center">
+  <img width="900" alt="workflow" src="https://github.com/user-attachments/assets/8064a56a-63b2-493c-9dea-e0987c3cc64d" />
+</p>
+
+針對合約審核、報銷審批等複雜業務，透過低程式碼方式規範 AI 的執行路徑，確保交付穩定可靠。
+
+- **視覺化編排：**低程式碼拖曳畫布，內建條件分支、API、大模型、知識庫、程式碼、MCP 等豐富節點，支援端到端流程除錯與效能分析，讓 AI 嚴格按照商業規矩辦事。
+- **零程式碼編排閉環：**業界首創支援在智慧體開發中零程式碼呼叫 Skill，從「意圖辨識」到「技能執行」完美閉環；彈性呼叫內建工具、MCP、工作流等，秒讀百頁文件，統一工作區展示成果。
+
+#### 4️⃣ GUI 智慧體：搞定各類應用系統，無 API 也能直接操作 ([客戶端下載地址](https://pan.baidu.com/s/1xqQcjwAbrd1YVS2XHG81rw?pwd=ae86))
+
+<p align="center">
+  <img width="900" alt="gui" src="https://github.com/user-attachments/assets/0576488a-9f55-49fa-8b21-b7810ac3faac" />
+</p>
+
+面對舊系統或無 API 場景，賦予 AI「看」與「點」的能力，徹底消除系統整合壁壘。
+
+- **介面級互動：**無須對接底層 API，AI 直接操作應用介面完成任務。
+- **沙箱支援：**為每一個「機器人」提供獨立 Docker 容器部署選項，安全執行介面操作。
+
+#### 5️⃣通用智慧體 + Skill 開發：搞定互動系統，一句話串起所有能力
+
+<p align="center">
+  <img width="900" alt="wga" src="https://github.com/user-attachments/assets/340c131c-11ed-4547-a395-250f40770160" />
+</p>
+
+業界首創「通用智慧體 + 垂直場景 Skills」雙引擎，打造既「博學」又「專業」的超級智慧體，一站式滿足複雜互動需求。
+
+- **全能大腦與極簡建構：**具備專業分析師等級的多步推理能力；支援「一句話建立 Skill」，以自然語言即可將商業經驗沉澱為專屬「工具箱」；也支援將平台內的應用一鍵轉換為 Skill。
 
 ---
-### &#x1F525; 採用寬鬆友好的 Apache 2.0 License，支援開發者自由擴展與二次開發
+### 🚀3 大落地方式：直達商業現場，降低交付門檻
 
-✔ **企業級工程化**：提供從模型納管到應用落地的完整工具鏈，解決LLM技術落地「最後一公里」問題  
+能力建置完成後，萬悟更以客戶為中心提供 3 大落地方式，確保從平台直達商業現場，大幅降低 FDE 的交付難度：
 
-✔ **開放開源生態**：採用寬鬆友好的 **Apache 2.0 License**，支援開發者自由擴展與二次開發  
+#### 📦 方式一：萬悟平台開箱即用
 
-✔ **全棧技術支援**：配備專業團隊為生態夥伴提供 **架構諮詢、性能優化** 全週期賦能  
+直接提供萬悟平台，業務人員無須任何程式碼開發，即可透過視覺化介面建立與使用智慧體、工作流與知識問答，零門檻將 AI 轉化為生產力，快速完成現場驗證與交付。
 
-✔ **多租戶架構**：提供多租戶帳號體系，滿足用戶成本控制、數據安全隔離、業務彈性擴展、行業定制化、快速上線及生態協同等核心需求
+#### 🔗 方式二：API无缝嵌入现有系统
 
-✔ **信創適配**：**產品已獲得《信創人工智能軟硬件系統檢驗證書》**，硬體層面支援華為鯤鵬CPU，軟體層面相容歐拉、CULinux、麒麟等國產作業系統，以及TiDB平凱資料庫、OceanBase等國產資料庫。
+提供 RESTful API（BaaS 後端即服務），支援將萬悟的智慧能力無縫嵌入客戶現有的 OA、CRM、ERP 等系統，搭配細緻權限管控，在不改變使用者習慣的前提下，實現 AI 能力的深度整合與平穩交付。
+
+#### 🖥️ 方式三：Skill + UniClaw专有客户端执行
+
+針對需要高權限操作的場景（如控制本機電腦、傳送釘釘訊息等），FDE 可透過萬悟開發 Skill，搭配 UniClaw 專屬用戶端執行，輕鬆搞定跨系統的高權限現場操作，真正實現「想得到，做得到」，攻克交付最後一道壁壘。
+
+UniClaw 下載位址：https://maas.ai-yuanjing.com/app/uniclaw/uniclaw-official.html
+
+------
+
+### 🛠️ 基座與生態：強悍底層，開放開源
+
+萬悟的全站工具鏈仰賴強大的底層基座支撐：
+
+- 🔥 寬鬆友善的 Apache 2.0 授權：支援開發者自由擴充與二次開發，商用無虞。
+- ✔ 模型納管：支援數百種專屬 / 開源大模型統一接入，深度相容 OpenAI API 標準及聯通元景生態，提供多推理後端支援。
+- ✔ Skill 廣場：內建 100 + 產業 Skill 即選即用，連接外部能力無須單獨開發轉接器。
+- ✔ 聯網檢索：具備即時資訊取得、多源資料整合與智慧檢索策略，提升回答時效性。
+- ✔ 多租戶架構：提供多租戶帳號體系，滿足成本控制、資料安全隔離與業務彈性擴展。
+- ✔ 信創適配：已取得《信創人工智慧軟硬體系統檢驗證書》，硬體層面支援華為鯤鵬 CPU，軟體層面相容歐拉、CULinux、麒麟等國產作業系統，以及 TiDB 平凱資料庫、OceanBase 等國產資料庫。
 
 ------
 
@@ -109,7 +179,11 @@
 
 ▸ **基礎開發範式**：依然支援基於 **函數調用** 的傳統Agent建構，支援私域知識庫關聯與多輪線上除錯
 
-#### **7. 後端即服務（BaaS）**
+#### 7.萬悟本體智能體
+
+▸ 基於企業數據與文件自動構建業務知識網絡，賦予AI深度推理與閉環行動能力，讓大模型真正懂業務、會決策。
+
+#### **8. 後端即服務（BaaS）**
 ▸ 提供 **RESTful API** ，支援與企業現有系統（OA/CRM/ERP等）深度整合
 
 ▸ 提供 **細粒度權限控制**，保障生產環境穩定運行
@@ -124,6 +198,7 @@
 |        RAG引擎         |         ✅          |          ✅          |       ✅        |         ✅          |         ✅          |
 |    多智能體編排開發    |          ✅         |          ❌          |         ✅       |         ✅          |         ❌          |
 |    知識圖譜GraphRAG    |         ✅          |          ❌          |       ❌        |         ✅          |         ❌          |
+|        本體智能體         |         ✅          |          ❌          |       ❌        |         ❌          |         ❌          |
 | 通用智能體+Skills編排  |         ✅          |          ❌          |       ❌        |         ❌          |         ❌          |
 |         Agent          |         ✅          |          ✅          |       ✅        |         ✅          |         ✅          |
 |         工作流         |         ✅          |          ✅          |       ✅        |         ✅          |         ✅          |
@@ -132,7 +207,7 @@
 |        本地部署        |         ✅          |          ✅          |       ✅        |         ✅          |         ✅          |
 |         多租戶         |         ✅          |   ❌（商用有限制）   | ❌（商用有限制） |         ✅          | ✅（但用戶間不互通） |
 |      license友好       |         ✅          |   ❌（商用有限制）   | ❌（商用有限制） |     未完全開源      |         ✅          |
-> 截止2026年4月22日對比。
+> 截止2026年5月15日對比。
 
 ------
 
@@ -155,14 +230,22 @@
 
 - **建議配置：**
   - CPU：8核或16核；記憶體：32G；硬碟：200G以上；GPU：不需要
-  
+
+- **模型要求提示：**
+  - 使用 WanwuBot（通用智能體）或一句話創建 Skills 功能時，所選模型在導入時的上下文長度必須 >= 32000
+
+- **安全聲明：**
+  - 平台所涉及的各類中間件（MySQL、Redis、MinIO、Kafka、Elasticsearch 等）均支援在 `.env` 檔案中自訂密碼。
+  - 前後端使用者密碼傳輸場景下，採用 RSA 非對稱加密對密碼進行加密傳輸，密鑰對在服務首次啟動時自動生成；同時也支援透過 `.env` 中的 `WANWU_BFF_LOGIN_RSA_PATH` 配置自訂密鑰對。
+  - 強烈建議在生產環境部署前修改所有預設密碼並妥善保管，避免因使用預設憑證帶來的安全風險。
+
 - **Docker安裝（推薦）**
 
 1. 首次運行前
 
     1.1 拷貝環境變量文件
     ```bash
-    cp .env.bak .env
+    cp .env.example .env
     ```
 
     1.2 根據系統修改.env文件中的`WANWU_ARCH`、`WANWU_EXTERNAL_IP`變量
@@ -180,7 +263,25 @@
     WANWU_BFF_JWT_SIGNING_KEY=
     ```
 
-    1.4 創建docker運行網絡
+    1.4 拷貝【本體智能體】環境變量文件
+    ```bash
+    cp .env.ontology.example .env.ontology
+    ```
+
+    1.5（可選）生成【本體智能體】自訂 RSA 密鑰
+    > 不執行本步則使用鏡像內建的預設密鑰；如需在生產環境使用獨立密鑰，依下列步驟生成
+
+    - 1.5.1 生成 RSA 密鑰對
+      ```bash
+      ./configs/microservice/ontology/vega-server/generate-keys.sh configs/microservice/ontology/vega-server
+      ```
+
+    - 1.5.2 生成前端公鑰配置（跨平台，需要 Node 環境）
+      ```bash
+      node configs/microservice/ontology/vega-server/generate-public-key-js.js
+      ```
+    
+    1.6 創建docker運行網絡
     ```
     docker network create wanwu-net
     ```
@@ -188,9 +289,9 @@
 2. 啟動服務（首次運行會自動從Docker Hub拉取鏡像）
     ```bash
     # amd64系統執行:
-    docker compose --env-file .env --env-file .env.image.amd64 up -d
+    docker compose --env-file .env --env-file .env.ontology --env-file .env.image.amd64 up -d
     # arm64系統執行:
-    docker compose --env-file .env --env-file .env.image.arm64 up -d
+    docker compose --env-file .env --env-file .env.ontology --env-file .env.image.arm64 up -d
     ```
 
 3. 登錄系統：http://localhost:8081
@@ -202,9 +303,9 @@
 4. 關閉服務
     ```bash
     # amd64系統執行:
-    docker compose --env-file .env --env-file .env.image.amd64 down
+    docker compose --env-file .env --env-file .env.ontology --env-file .env.image.amd64 down
     # arm64系統執行:
-    docker compose --env-file .env --env-file .env.image.arm64 down
+    docker compose --env-file .env --env-file .env.ontology --env-file .env.image.arm64 down
     ```
 
 5. 拉取中介軟體等鏡像遇到困難？我們在網盤準備了一份鏡像備份，請依照其中的README操作：[萬悟鏡像備份](https://pan.baidu.com/e/1cupIcEP2RBwi_hOr4xQnFQ?pwd=ae86)
@@ -235,18 +336,6 @@
 
 ------
 
-### 📦 沙箱啟動
-
-萬悟沙箱可用於WanwuBot(通用智能體)、一句話創建 Skills 等功能，需要單獨啟動；注意，WanwuBot、創建 Skills 時選用的模型，在導入時必須指定模型上下文長度 >= 32000
-
-1. 基於上述 Docker 安裝步驟，完成首次運行前的配置
-
-2. 啟動沙箱（以 amd64 為例）
-
-   ```
-   docker compose --env-file .env --env-file .env.image.amd64 -f docker-compose.wga-sandbox.yaml up -d
-   ```
-
 ### ⬆️ 版本升級
 
 1. 基於上述Docker安裝步驟，將系統服務完整停止
@@ -266,7 +355,15 @@
     # 備份當前.env文件
     cp .env .env.old
     # 拷貝.env文件
-    cp .env.bak .env
+    cp .env.example .env
+    ```
+
+    2.3 拷貝【本體智能體】環境變量文件（如果有環境變量修改，請自行重新修改）
+    ```bash
+    # 備份當前.env.ontology文件
+    cp .env.ontology .env.ontology.old
+    # 拷貝.env.ontology文件
+    cp .env.ontology.example .env.ontology
     ```
 
 3. 基於上述Docker安裝步驟，將系統服務完整啟動
@@ -304,6 +401,7 @@
 |                             功能                             |                           詳細描述                           |
 | :----------------------------------------------------------: | :----------------------------------------------------------: |
 | [通用智能體](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/8.%e9%80%9a%e7%94%a8%e6%99%ba%e8%83%bd%e4%bd%93) | 平台深度整合了深度研究與數據分析等高級能力，實現從簡單問答到複雜業務處理的全面跨越，打造你的全能AI數位助理。 |
+| [本體智能體](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/10.%E6%9C%AC%E4%BD%93%E6%99%BA%E8%83%BD%E4%BD%93/%E6%95%B0%E6%8D%AE%E8%BF%9E%E6%8E%A5/%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86.md) | 基於企業數據與文件自動構建業務知識網絡，賦予AI深度推理與閉環行動能力，讓大模型真正懂業務、會決策。 |
 | [模型管理](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/1.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86.md) | 支援使用者匯入包括聯通元景、OpenAI-API-compatible、Ollama、通義千問、火山引擎等模型供應商的 LLM、Embedding、Rerank 模型。[ 模型匯入方式-詳細版](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/%E6%A8%A1%E5%9E%8B%E5%AF%BC%E5%85%A5%E6%96%B9%E5%BC%8F-%E8%AF%A6%E7%BB%86%E7%89%88.md) |
 | [知識庫](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93) | 在文件解析能力方面：支援12種文件類型的上傳，支援 URL 解析；文件解析方式支援 OCR 與[**MinerU 模型解析（適用於標題、表格、公式等場景）**](https://github.com/UnicomAI/DocParserServer/tree/main)的私有化部署與接入，文件分段設定支援通用分段和父子分段。在調優能力方面：支援知識圖譜、元數據管理及元數據過濾查詢，支援分段內容增刪改，支援對分段設定關鍵字標籤提升召回效果，支援分段啟停操作，支援命中測試等功能。在檢索能力方面：支援向量檢索、全文檢索、混合檢索等多種檢索模式；在問答能力方面：支援自動引用出處，支援圖文並茂的生成答案。 |
 | [資源庫](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/3.%E5%B7%A5%E5%85%B7%E5%B9%BF%E5%9C%BA.md) | 同時支援匯入自己的 MCP 服務或自訂工具，並在工作流和智能體中使用。 |
@@ -341,10 +439,11 @@
 
 - [x] 通用智能體
 - [x] Skills
+- [x] Trace追蹤
 - [ ] 支援資料庫導入知識庫
-- [ ] A2A協議
 - [ ] 智能體和模型測評
-- [ ] Trace追蹤
+- [ ] 長期記憶
+- [ ] A2A協議
 
 ------
 
@@ -393,13 +492,65 @@
 - [LangChain](https://github.com/langchain-ai/langchain)
 - [AIO Sandbox](https://github.com/agent-infra/sandbox)
 - [OpenCode](https://github.com/anomalyco/opencode)
+- [KWeaver Core](https://github.com/kweaver-ai/kweaver-core)
 
 ------
 
 ### ⚖️ 許可證
 元景萬悟智能體平台根據Apache License 2.0發布。
 
+------
+
+### ⚠️ 免責聲明與隱私協議
+
+使用元景萬悟智能體平台（以下簡稱"本平台"）即表示您已閱讀並同意以下條款。
+
+#### 1. 生成內容免責
+
+本平台提供的所有內容均由人工智能模型生成，僅供技術參考與學習交流。
+
+* **不構成建議：** 生成內容不代表本平台觀點，不構成任何形式的專業建議（包括但不限於法律、醫療、金融投資等）。
+* **風險自擔：** AI 可能存在信息滯後、邏輯偏差或幻覺風險。用戶需對生成內容進行獨立核實，因依賴生成內容做出的任何決策，後果由用戶自行承擔。
+
+#### 2. 隱私與數據安全
+
+**請勿在對話過程中輸入任何個人隱私、商業機密或國家秘密信息。**
+
+##### 🔴 交互記錄可見性規則
+
+本平台智能體由第三方開發者創建：
+
+* **第三方可見：** 為了優化智能體效果，**智能體創建者有權在其管理後台查看用戶與其智能體的完整對話記錄。**
+* **敏感信息警示：** 鑒於上述機制，您的對話內容對創建者可見。請務必確保對話中不包含手機號、身份證、密碼、公司內部文檔等敏感信息。
+* **平台責任：** 本平台已通過協議約束創建者合規使用數據，但無法完全控制第三方行為，因用戶自行輸入敏感信息導致的洩露風險由用戶自行承擔。
+
+#### 3. 用戶行為規範
+
+用戶承諾合法使用本平台，嚴禁利用本服務從事以下行為：
+
+* 生成違反法律法規、破壞公序良俗的內容；
+* 侵犯他人知識產權、肖像權、名譽權等合法權益；
+* 干擾平台正常運行或攻擊平台系統。
+
+#### 4. 知識產權
+
+* **用戶創作資產：** 用戶利用本平台工具創作、開發的智能體、工作流、相關配置內容等的知識產權歸用戶所有。
+* **平台資產：** 本平台的基礎架構、源代碼及官方文檔的知識產權歸平台所有。
+
+#### 5. 安全聲明
+
+- 平台所涉及的各類中間件（MySQL、Redis、MinIO、Kafka、Elasticsearch 等）均支持在 `.env` 文件中自定義密碼。
+- 前後端用戶密碼傳輸場景下，採用 RSA 非對稱加密對密碼進行加密傳輸，密鑰對在服務首次啟動時自動生成；同時也支持通過 `.env` 中的 `WANWU_BFF_LOGIN_RSA_PATH` 配置自定義密鑰對。
+- 強烈建議在生產環境部署前修改所有預設密碼並妥善保管，避免因使用預設憑據帶來的安全風險。因未修改預設憑據（包括但不限於預設帳號、密碼、密鑰等）而導致的安全風險、數據洩露或系統受損，均由部署方自行承擔，與本平台及開發團隊無關。
+
+#### 6. 服務變更
+
+本平台保留隨時修改、暫停或終止服務的權利，無需對用戶承擔違約責任。
+
+------
+
 ### &#x1F4E9; 聯繫我們
-| QQ 群1(已滿):490071123                                       | QQ 群2(已滿):1026898615                                            | QQ 群3:1019579243                                            |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/010f1d68-78e9-446d-baf1-0a7339efb48e" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/10796f69-5c18-4f21-adbb-b22b6ef88df2" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/9badde43-b421-48ce-a998-1fc2e33bdc55" /> |
+
+| QQ 群1(已滿):490071123                                       | QQ 群2(已滿):1026898615                                            | QQ 群3(已滿):1019579243                                            | QQ 群4:967463724                                            |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/f20bcff4-63e7-4e07-9909-bbeee4bc50f6" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/11755b2f-80f9-454e-aa4e-01706d40d729" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/c1be21bb-2a85-43cc-b856-270501a04a94" /> | <img width="183" height="258" alt="image" src="https://github.com/user-attachments/assets/f5aef62d-61ca-4bc1-9217-ba4a358a7d08" /> |

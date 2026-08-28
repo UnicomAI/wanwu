@@ -117,10 +117,12 @@ func (c *Client) GetAssistantToolList(ctx context.Context, assistantId uint32) (
 	return toolList, nil
 }
 
-func (c *Client) DeleteAssistantToolByToolId(ctx context.Context, toolId, toolType string) *err_code.Status {
+func (c *Client) DeleteAssistantToolByToolId(ctx context.Context, toolId, toolType string, userId, orgId string) *err_code.Status {
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithToolId(toolId),
 		sqlopt.WithToolType(toolType),
+		sqlopt.WithUserID(userId),
+		sqlopt.WithOrgID(orgId),
 	).Apply(c.db.WithContext(ctx)).Delete(&model.AssistantTool{}).Error; err != nil {
 		return toErrStatus("assistant_tool_delete", err.Error())
 	}

@@ -33,6 +33,14 @@ func (s *Service) CreateSystemCustomHome(ctx context.Context, req *operate_servi
 	return nil, nil
 }
 
+func (s *Service) CreateSystemCustomGeneralAgent(ctx context.Context, req *operate_service.CreateSystemCustomGeneralAgentReq) (*emptypb.Empty, error) {
+	err := s.cli.CreateSystemCustom(ctx, req.UserId, req.OrgId, orm.SystemCustomGeneralAgentKey, orm.SystemCustomMode(req.Mode), toSystemCustomGeneralAgent(req))
+	if err != nil {
+		return nil, errStatus(errs.Code_OperateCustom, err)
+	}
+	return nil, nil
+}
+
 func (s *Service) GetSystemCustom(ctx context.Context, req *operate_service.GetSystemCustomReq) (*operate_service.SystemCustom, error) {
 	systemCustom, err := s.cli.GetSystemCustom(ctx, orm.SystemCustomMode(req.Mode))
 	if err != nil {
@@ -56,6 +64,11 @@ func toProtoSystemCustom(system *orm.SystemCustom) *operate_service.SystemCustom
 			HomeLogoPath: system.Home.LogoPath,
 			HomeName:     system.Home.Name,
 			HomeBgColor:  system.Home.BgColor,
+		},
+		GeneralAgent: &operate_service.GeneralAgent{
+			GeneralAgentIcon:     system.GeneralAgent.GeneralAgentIconPath,
+			GeneralAgentWelcome:  system.GeneralAgent.GeneralAgentWelcome,
+			GeneralAgentMenuName: system.GeneralAgent.GeneralAgentMenuName,
 		},
 	}
 
@@ -87,6 +100,16 @@ func toSystemCustomHome(req *operate_service.CreateSystemCustomHomeReq) orm.Syst
 			LogoPath: req.Home.GetHomeLogoPath(),
 			Name:     req.Home.GetHomeName(),
 			BgColor:  req.Home.GetHomeBgColor(),
+		},
+	}
+}
+
+func toSystemCustomGeneralAgent(req *operate_service.CreateSystemCustomGeneralAgentReq) orm.SystemCustom {
+	return orm.SystemCustom{
+		GeneralAgent: orm.GeneralAgentConfig{
+			GeneralAgentIconPath: req.GeneralAgent.GetGeneralAgentIcon(),
+			GeneralAgentWelcome:  req.GeneralAgent.GetGeneralAgentWelcome(),
+			GeneralAgentMenuName: req.GeneralAgent.GetGeneralAgentMenuName(),
 		},
 	}
 }

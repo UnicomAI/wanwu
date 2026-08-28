@@ -43,6 +43,9 @@ func (s *Service) GetCustomToolInfo(ctx context.Context, req *mcp_service.GetCus
 	if req.CustomToolId == "" {
 		return nil, errStatus(errs.Code_MCPGetCustomToolInfoErr, toErrStatus("mcp_get_custom_tool_info_err", "customToolId is empty"))
 	}
+	if _, err := util.U32(req.CustomToolId); err != nil {
+		return nil, errStatus(errs.Code_MCPGetCustomToolInfoErr, toErrStatus("mcp_get_custom_tool_info_err", "customToolId parse error"))
+	}
 	info, err := s.cli.GetCustomTool(ctx, &model.CustomTool{
 		ID: util.MustU32(req.CustomToolId),
 	})
@@ -62,6 +65,12 @@ func (s *Service) GetCustomToolInfo(ctx context.Context, req *mcp_service.GetCus
 		Schema:        info.Schema,
 		PrivacyPolicy: info.PrivacyPolicy,
 		ApiAuth:       apiAuth,
+		UpdatedAt:     info.UpdatedAt,
+		CreatedAt:     info.CreatedAt,
+		Owner: &mcp_service.Identity{
+			UserId: info.UserID,
+			OrgId:  info.OrgID,
+		},
 	}, nil
 }
 
@@ -84,6 +93,32 @@ func (s *Service) GetCustomToolList(ctx context.Context, req *mcp_service.GetCus
 	}
 	return &mcp_service.GetCustomToolListResp{
 		List: list,
+	}, nil
+}
+
+// GetAdminCustomToolPageList 管理员中心跨组织查询自定义工具列表（SQL分页）
+func (s *Service) GetAdminCustomToolPageList(ctx context.Context, req *mcp_service.GetAdminCustomToolPageListReq) (*mcp_service.GetAdminCustomToolPageListResp, error) {
+	infos, total, err := s.cli.ListCustomToolsAdmin(ctx, req.OrgIdList, req.UserIdList, req.Name, int(req.PageNo), int(req.PageSize))
+	if err != nil {
+		return nil, errStatus(errs.Code_MCPGetCustomToolListErr, err)
+	}
+	list := make([]*mcp_service.AdminCustomToolItem, 0, len(infos))
+	for _, info := range infos {
+		list = append(list, &mcp_service.AdminCustomToolItem{
+			CustomToolId: util.Int2Str(info.ID),
+			Name:         info.Name,
+			Description:  info.Description,
+			AvatarPath:   info.AvatarPath,
+			Owner: &mcp_service.Identity{
+				UserId: info.UserID,
+				OrgId:  info.OrgID,
+			},
+			UpdatedAt: info.UpdatedAt,
+		})
+	}
+	return &mcp_service.GetAdminCustomToolPageListResp{
+		List:  list,
+		Total: total,
 	}, nil
 }
 
@@ -145,7 +180,12 @@ func (s *Service) DeleteCustomTool(ctx context.Context, req *mcp_service.DeleteC
 	if req.CustomToolId == "" {
 		return nil, errStatus(errs.Code_MCPDeleteCustomToolErr, toErrStatus("mcp_delete_custom_tool_err", "customToolId is empty"))
 	}
-	if err := s.cli.DeleteCustomTool(ctx, util.MustU32(req.CustomToolId)); err != nil {
+	if req.GetIdentity() == nil {
+		return nil, errStatus(errs.Code_MCPDeleteCustomToolErr, toErrStatus("mcp_delete_custom_tool_err", "identity is empty"))
+	}
+	userId := req.Identity.UserId
+	orgId := req.Identity.OrgId
+	if err := s.cli.DeleteCustomTool(ctx, util.MustU32(req.CustomToolId), userId, orgId); err != nil {
 		return nil, errStatus(errs.Code_MCPDeleteCustomToolErr, err)
 	}
 	return &emptypb.Empty{}, nil

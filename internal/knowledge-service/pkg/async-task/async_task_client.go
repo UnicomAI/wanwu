@@ -31,7 +31,7 @@ func (c AsyncTaskClient) Load() error {
 		async.WithPendingRunQueue(pendingRun),
 	}
 	// init
-	if err = async.Init(context.TODO(), db.GetClient().DB, options...); err != nil {
+	if err = async.Init(context.Background(), db.GetClient().DB, options...); err != nil {
 		return err
 	}
 	if err = InitAllService(); err != nil {

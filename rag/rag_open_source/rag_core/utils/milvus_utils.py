@@ -85,20 +85,19 @@ def generate_chunks_bacth(user_id: str, kb_name: str, chunks: list, batch_size=1
 
 
 def init_knowledge_base(user_id: str,
-                        kb_name: str,
-                        kb_id: str = "",
+                        kb_info: dict,
                         embedding_model_id: str = "",
                         enable_knowledge_graph: bool = False,
                         is_multimodal: bool = False):
+    """
+    :param kb_info: {"kb_name": "...", "kb_id": "..."} — kb_id 必须非空（由上游生成或前端提供）
+    """
     response_info = {'code': 0, "message": '成功'}
     url = MILVUS_BASE_URL + '/rag/kn/init_kb'
     headers = {'Content-Type': 'application/json'}
-    if not kb_id:
-        kb_id = str(uuid.uuid4())
     data = {
         "userId": user_id,
-        "kb_name": kb_name,
-        "kb_id": kb_id,
+        "kb_info": kb_info,
         "embedding_model_id": embedding_model_id,
         "enable_knowledge_graph": enable_knowledge_graph,
         "is_multimodal": is_multimodal
@@ -159,12 +158,12 @@ def list_knowledge_base(user_id):
         return response_info
 
 
-def list_knowledge_file(user_id, kb_name, kb_id=""):
+def list_knowledge_file(user_id, kb_info):
     response_info = {'code': 0, "message": "成功", "data": {"knowledge_file_names": []}}
     # url='http://localhost:6098/list_file_names'
     url = MILVUS_BASE_URL + '/rag/kn/list_file_names'
     headers = {'Content-Type': 'application/json', }
-    data = {'userId': user_id, 'kb_name': kb_name, 'kb_id': kb_id}
+    data = {'userId': user_id, 'kb_info': kb_info}
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'), timeout=TIME_OUT)
         if response.status_code != 200:
@@ -189,12 +188,12 @@ def list_knowledge_file(user_id, kb_name, kb_id=""):
         return response_info
 
 
-def list_knowledge_file_download_link(user_id, kb_name, kb_id=""):
+def list_knowledge_file_download_link(user_id, kb_info):
     response_info = {'code': 0, "message": "成功", "data": {"file_download_links": []}}
     # url='http://localhost:6098/list_file_names'
     url = MILVUS_BASE_URL + '/rag/kn/list_file_download_links'
     headers = {'Content-Type': 'application/json', }
-    data = {'userId': user_id, 'kb_name': kb_name, 'kb_id': kb_id}
+    data = {'userId': user_id, 'kb_info': kb_info}
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'), timeout=TIME_OUT)
         if response.status_code != 200:
@@ -221,20 +220,20 @@ def list_knowledge_file_download_link(user_id, kb_name, kb_id=""):
 
 KNN_SEARCH_URL = MILVUS_BASE_URL + '/rag/kn/search'
 KNN_COMMUNITY_SEARCH_URL = MILVUS_BASE_URL + '/rag/kn/search_community_reports'
-def search_milvus(user_id, kb_names, top_k, question, threshold, search_field, emb_model="bge", kb_ids=[],
+def search_milvus(user_id, kb_infos, top_k, question, threshold, search_field, emb_model="bge",
                   filter_file_name_list=[], metadata_filtering_conditions = [], milvus_url = KNN_SEARCH_URL,
                   enable_vision=False, attachment_files=[]):
     """
+    :param kb_infos: [{"kb_name": "...", "kb_id": "..."}, ...]
     :param emb_model:  "bge", "bce", "conna"
     """
     post_data = {}
     post_data["userId"] = user_id
-    post_data["kb_names"] = kb_names
+    post_data["kb_infos"] = kb_infos
     post_data["topk"] = top_k * 4
     post_data["question"] = question
     post_data["threshold"] = threshold
     post_data["emb_model"] = emb_model
-    post_data["kb_ids"] = kb_ids
     post_data["filter_file_name_list"] = filter_file_name_list
     post_data["metadata_filtering_conditions"] = metadata_filtering_conditions
     post_data["enable_vision"] = enable_vision
@@ -294,9 +293,10 @@ def search_milvus(user_id, kb_names, top_k, question, threshold, search_field, e
 ADD_URL = MILVUS_BASE_URL + '/rag/kn/add'
 ADD_COMMUNItY_REPORT_URL = MILVUS_BASE_URL + '/rag/kn/add_community_reports'
 
-def add_milvus(user_id, kb_name, sub_chunk, add_file_name, add_file_path, kb_id="", milvus_url = ADD_URL, extract_multimodal_file: bool = True):
+def add_milvus(user_id, kb_info, sub_chunk, add_file_name, add_file_path, milvus_url = ADD_URL, extract_multimodal_file: bool = True):
     batch_size = 200
     response_info = {'code': 0, "message": "成功"}
+    kb_name = kb_info["kb_name"]
     batch_count = 0
     success_count = 0
     fail_count = 0
@@ -306,8 +306,7 @@ def add_milvus(user_id, kb_name, sub_chunk, add_file_name, add_file_path, kb_id=
     for batch in chunk_gen:
         insert_data = {}
         insert_data['userId'] = user_id
-        insert_data['kb_name'] = kb_name
-        insert_data['kb_id'] = kb_id
+        insert_data['kb_info'] = kb_info
         chunks_data = []
         for chunk in batch:
             chunk_dict = {
@@ -387,11 +386,11 @@ def add_milvus(user_id, kb_name, sub_chunk, add_file_name, add_file_path, kb_id=
     return response_info
 
 
-def del_milvus_kbs(user_id, kb_name, kb_id):
+def del_milvus_kbs(user_id, kb_info):
     response_info = {'code': 0, "message": "成功"}
     url = MILVUS_BASE_URL + '/rag/kn/del_kb'
     headers = {'Content-Type': 'application/json', }
-    data = {'userId': user_id, 'kb_name': kb_name, 'kb_id': kb_id}
+    data = {'userId': user_id, 'kb_info': kb_info}
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'), timeout=TIME_OUT)
         if response.status_code != 200:
@@ -414,11 +413,11 @@ def del_milvus_kbs(user_id, kb_name, kb_id):
         return response_info
 
 
-def del_milvus_files(user_id, kb_name, file_names, kb_id=""):
+def del_milvus_files(user_id, kb_info, file_names):
     response_info = {'code': 0, "message": "成功"}
     url = MILVUS_BASE_URL + '/rag/kn/del_files'
     headers = {'Content-Type': 'application/json'}
-    data = {'userId': user_id, 'kb_name': kb_name, 'file_names': file_names, 'kb_id': kb_id}
+    data = {'userId': user_id, 'kb_info': kb_info, 'file_names': file_names}
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'), timeout=TIME_OUT)
         if response.status_code != 200:
@@ -441,44 +440,43 @@ def del_milvus_files(user_id, kb_name, file_names, kb_id=""):
         return response_info
 
 
-def get_milvus_file_content_list(user_id: str, kb_name: str, file_name: str, page_size: int,
-                                 search_after: int, kb_id="", content_type="text"):
+def get_milvus_file_content_list(user_id: str, kb_info: dict, file_name: str, page_size: int,
+                                 search_after: int, content_type="text", query_text: str = None):
     """
         获取知识库文件片段列表,用于分页展示
     """
     url = MILVUS_BASE_URL + '/rag/kn/get_content_list'
     data = {
         'userId': user_id,
-        'kb_name': kb_name,
+        'kb_info': kb_info,
         'file_name': file_name,
         'page_size': page_size,
         'search_after': search_after,
-        'kb_id': kb_id,
-        "content_type": content_type
+        "content_type": content_type,
+        'query_text': query_text
     }
 
     return make_request(url, data)
 
 
-def get_milvus_file_child_content_list(user_id: str, kb_name: str, file_name: str, chunk_id: int,
-                                       child_chunk_current_num:int=None, kb_id=""):
+def get_milvus_file_child_content_list(user_id: str, kb_info: dict, file_name: str, chunk_id: int,
+                                       child_chunk_current_num:int=None):
     """
         获取知识库文件子片段列表
     """
     url = MILVUS_BASE_URL + '/rag/kn/get_child_content_list'
     data = {
         'userId': user_id,
-        'kb_name': kb_name,
+        'kb_info': kb_info,
         'file_name': file_name,
         'chunk_id': chunk_id,
-        'kb_id': kb_id,
         'child_chunk_current_num': child_chunk_current_num
     }
 
     return make_request(url, data)
 
 
-def list_file_names_after_filtering(user_id, kb_name, filtering_conditions, kb_id=""):
+def list_file_names_after_filtering(user_id, kb_info, filtering_conditions):
     """
         根据file_name更新知识库文件元数据
     """
@@ -486,23 +484,23 @@ def list_file_names_after_filtering(user_id, kb_name, filtering_conditions, kb_i
 
     data = {
         'userId': user_id,
-        'kb_name': kb_name,
+        'kb_info': kb_info,
         'filtering_conditions': filtering_conditions,
-        'kb_id': kb_id
     }
 
     return make_request(url, data)
 
 
-def update_child_chunk(user_id, kb_name, file_name, chunk_id, chunk_current_num, child_chunk, kb_id=""):
+def update_child_chunk(user_id, kb_info, file_name, chunk_id, chunk_current_num, child_chunk):
     """
         更新知识库子段
     """
     url = MILVUS_BASE_URL + '/rag/kn/update_child_chunk'
+    kb_name = kb_info["kb_name"]
 
     data = {
         'userId': user_id,
-        'kb_name': kb_name,
+        'kb_info': kb_info,
         'chunk_id': chunk_id,
         'chunk_current_num': chunk_current_num,
         'child_chunk': child_chunk
@@ -511,10 +509,10 @@ def update_child_chunk(user_id, kb_name, file_name, chunk_id, chunk_current_num,
     response = make_request(url, data)
     if response['code'] == 0:
         is_multimodal = False
-        kb_info = get_kb_info(user_id, kb_name)
-        if kb_info and "is_multimodal" in kb_info and kb_info.get("is_multimodal"):
+        kb_meta = get_kb_info(user_id, kb_name)
+        if kb_meta and "is_multimodal" in kb_meta and kb_meta.get("is_multimodal"):
             is_multimodal = True
-        emb_model_id = kb_info.get("embedding_model_id")
+        emb_model_id = kb_meta.get("embedding_model_id")
 
         child_content = child_chunk["child_content"]
         child_chunk_current_num = child_chunk["child_chunk_current_num"]
@@ -533,7 +531,7 @@ def update_child_chunk(user_id, kb_name, file_name, chunk_id, chunk_current_num,
                         image_chunk = {"embedding_content": image_url, "content_type": "image"}
                         batch_data.append(image_chunk)
                 if batch_data:
-                    content_response = get_content_by_ids(user_id, kb_name, [chunk_id])
+                    content_response = get_content_by_ids(user_id, kb_info, [chunk_id])
                     logger.info(f"获取父分段 content_id: {chunk_id}, 结果: {content_response}")
                     if content_response['code'] != 0:
                         raise RuntimeError(
@@ -551,8 +549,8 @@ def update_child_chunk(user_id, kb_name, file_name, chunk_id, chunk_current_num,
                         item["meta_data"]["child_chunk_current_num"] = child_chunk_current_num
                         item["meta_data"]["child_chunk_total_num"] = child_chunk_total_num
 
-                    insert_result = add_milvus(user_id, kb_name, batch_data, file_name, "",
-                                               kb_id=kb_id, extract_multimodal_file=False)
+                    insert_result = add_milvus(user_id, kb_info, batch_data, file_name, "",
+                                               extract_multimodal_file=False)
                     logger.info(f"update_child_chunk添加image到milvus结果：{insert_result}")
                     if insert_result['code'] != 0:
                         raise RuntimeError(f"update_child_chunk添加image到milvus失败, insert_result: {insert_result}")
@@ -563,7 +561,7 @@ def update_child_chunk(user_id, kb_name, file_name, chunk_id, chunk_current_num,
     return response
 
 
-def update_file_metas(user_id, kb_name, update_datas, kb_id=""):
+def update_file_metas(user_id, kb_info, update_datas):
     """
         更新知识库元数据
     """
@@ -571,15 +569,14 @@ def update_file_metas(user_id, kb_name, update_datas, kb_id=""):
 
     data = {
         'userId': user_id,
-        'kb_name': kb_name,
+        'kb_info': kb_info,
         'update_datas': update_datas,
-        'kb_id': kb_id
     }
 
     return make_request(url, data)
 
 
-def update_chunk_labels(user_id, kb_name, file_name, chunk_id, labels, kb_id=""):
+def update_chunk_labels(user_id, kb_info, file_name, chunk_id, labels):
     """
         根据file_name和chunk_id更新标签
     """
@@ -587,17 +584,16 @@ def update_chunk_labels(user_id, kb_name, file_name, chunk_id, labels, kb_id="")
 
     data = {
         'userId': user_id,
-        'kb_name': kb_name,
+        'kb_info': kb_info,
         'file_name': file_name,
         'chunk_id': chunk_id,
         'labels': labels,
-        'kb_id': kb_id
     }
 
     return make_request(url, data)
 
 
-def get_content_by_ids(user_id, kb_name, content_ids, content_type= "text", kb_id=""):
+def get_content_by_ids(user_id, kb_info, content_ids, content_type= "text"):
     """
         根据file_name和chunk_id获取分段信息
     """
@@ -605,15 +601,14 @@ def get_content_by_ids(user_id, kb_name, content_ids, content_type= "text", kb_i
 
     data = {
         'userId': user_id,
-        'kb_name': kb_name,
+        'kb_info': kb_info,
         'content_ids': content_ids,
-        'kb_id': kb_id,
         "content_type": content_type
     }
 
     return make_request(url, data)
 
-def batch_delete_chunks(user_id, kb_name, file_name, chunk_ids, kb_id=""):
+def batch_delete_chunks(user_id, kb_info, file_name, chunk_ids):
     """
         根据file_name和chunk_ids删除分段
     """
@@ -621,17 +616,16 @@ def batch_delete_chunks(user_id, kb_name, file_name, chunk_ids, kb_id=""):
 
     data = {
         'userId': user_id,
-        'kb_name': kb_name,
+        'kb_info': kb_info,
         'file_name': file_name,
         'chunk_ids': chunk_ids,
-        'kb_id': kb_id
     }
 
     return make_request(url, data)
 
 
-def batch_delete_child_chunks(user_id, kb_name, file_name, chunk_id, chunk_current_num,
-                        child_chunk_current_nums, kb_id=""):
+def batch_delete_child_chunks(user_id, kb_info, file_name, chunk_id, chunk_current_num,
+                        child_chunk_current_nums):
     """
         根据chunk_id和child_chunk_current_nums删除子分段
     """
@@ -639,10 +633,9 @@ def batch_delete_child_chunks(user_id, kb_name, file_name, chunk_id, chunk_curre
 
     data = {
         'userId': user_id,
-        'kb_name': kb_name,
+        'kb_info': kb_info,
         'file_name': file_name,
         'chunk_id': chunk_id,
-        'kb_id': kb_id,
         "chunk_current_num": chunk_current_num,
         "child_chunk_current_nums": child_chunk_current_nums
     }
@@ -650,8 +643,8 @@ def batch_delete_child_chunks(user_id, kb_name, file_name, chunk_id, chunk_curre
     return make_request(url, data)
 
 
-def update_milvus_content_status(user_id: str, kb_name: str, file_name: str, content_id: str, status: bool,
-                                 on_off_switch=None, kb_id=""):
+def update_milvus_content_status(user_id: str, kb_info: dict, file_name: str, content_id: str, status: bool,
+                                 on_off_switch=None):
     """
         根据content_id更新知识库文件片段状态
     """
@@ -659,27 +652,25 @@ def update_milvus_content_status(user_id: str, kb_name: str, file_name: str, con
     if on_off_switch in [True, False]:  # 前端传递了 on_off_switch 参数
         data = {
             'userId': user_id,
-            'kb_name': kb_name,
+            'kb_info': kb_info,
             'file_name': file_name,
             'content_id': content_id,
             'status': status,
             'on_off_switch': on_off_switch,
-            'kb_id': kb_id
         }
     else:
         data = {
             'userId': user_id,
-            'kb_name': kb_name,
+            'kb_info': kb_info,
             'file_name': file_name,
             'content_id': content_id,
             'status': status,
-            'kb_id': kb_id
         }
 
     return make_request(url, data)
 
 
-def del_community_reports(user_id, kb_name, clear_reports=False, content_ids= [], kb_id=""):
+def del_community_reports(user_id, kb_info, clear_reports=False, content_ids= []):
     """
         根据chunk_id和child_chunk_current_nums删除子分段
     """
@@ -687,8 +678,7 @@ def del_community_reports(user_id, kb_name, clear_reports=False, content_ids= []
 
     data = {
         'userId': user_id,
-        'kb_name': kb_name,
-        'kb_id': kb_id,
+        'kb_info': kb_info,
         "clear_reports": clear_reports,
         "content_ids": content_ids
     }
@@ -724,15 +714,16 @@ def is_multimodal_kb(user_id: str,
     return False
 
 
-def get_milvus_content_status(user_id: str, kb_name: str, content_id_list: list):
+def get_milvus_content_status(user_id: str, kb_info: dict, content_id_list: list):
     """
         获取文本分块状态用于进行检索后过滤。
     """
     response_info = {'code': 0, "message": "成功"}
+    kb_name = kb_info["kb_name"]
     # url = "http://localhost:30041/rag/kn/get_useful_content_status"  # 临时地址
     url = MILVUS_BASE_URL + '/rag/kn/get_useful_content_status'
     headers = {'Content-Type': 'application/json'}
-    data = {'userId': user_id, 'kb_name': kb_name, 'content_id_list': content_id_list}
+    data = {'userId': user_id, 'kb_info': kb_info, 'content_id_list': content_id_list}
     try:
         response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'), timeout=TIME_OUT)
         if response.status_code != 200:  # 抛出报错
@@ -747,29 +738,6 @@ def get_milvus_content_status(user_id: str, kb_name: str, content_id_list: list)
                 f"{kb_name}-{content_id_list},Error get_milvus_content_status: {final_response}")
     except Exception as e:
         raise RuntimeError(f"{e}")
-
-
-def get_milvus_kb_name_id(user_id: str, kb_name: str):
-    """
-        获取某个知识库映射的 kb_id接口
-    """
-    url = MILVUS_BASE_URL + '/rag/kn/get_kb_id'
-    headers = {'Content-Type': 'application/json'}
-    data = {'userId': user_id, 'kb_name': kb_name}
-    try:
-        response = requests.post(url, headers=headers, data=json.dumps(data, ensure_ascii=False).encode('utf-8'), timeout=TIME_OUT)
-        if response.status_code != 200:  # 抛出报错
-            err = str(response.text)
-            raise RuntimeError(f"{kb_name}-,Error get_kb_name_id: {err}")
-        final_response = response.json()
-        if final_response['code'] == 0:  # 正常获取到了结果
-            kb_id = final_response['data']["kb_id"]
-            return kb_id
-        else:  # 抛出报错
-            raise RuntimeError(
-                f"{kb_name},Error get_kb_name_id: {final_response}")
-    except Exception as e:
-        raise RuntimeError(f"Error get_kb_name_id:{e}")
 
 
 def update_milvus_kb_name(user_id: str, old_kb_name: str, new_kb_name: str):
@@ -805,14 +773,14 @@ def extract_minio_markdown_images(text: str) -> List[str]:
     return res
 
 
-def get_extend_content_item(user_id, kb_name, knowledge_item, extend_num=1):
+def get_extend_content_item(user_id, kb_info, knowledge_item, extend_num=1):
     """
         获取扩展上下文接口
     """
     file_name = knowledge_item["meta_data"]["file_name"]
     search_after = max(knowledge_item["meta_data"]["chunk_current_num"] - extend_num - 1, 0)
     page_size = 2*extend_num + 1
-    res = get_milvus_file_content_list(user_id, kb_name, file_name, page_size, search_after)
+    res = get_milvus_file_content_list(user_id, kb_info, file_name, page_size, search_after)
     content_list = res["data"]["content_list"]
     extend_content = ""
     for item in content_list:
@@ -832,9 +800,11 @@ if __name__ == "__main__":
     sub_chunk.append(chunk)
     userId = "18ef6f66-b82b-43d8-b934-d46b10acbecb",
     knowledgeBase = "8155ef14-80d4-4600-9b7e-6359a1fac98b"
+    kb_id = "8155ef14-80d4-4600-9b7e-6359a1fac98b"
     add_file_name = "4-手册-SDS 21 空调 (2).pdf"
     add_file_path = "user_data/18ef6f66-b82b-43d8-b934-d46b10acbecb/8155ef14-80d4-4600-9b7e-6359a1fac98b/4-手册-SDS 21 空调 (2).pdf"
-    insert_milvus_result = add_milvus(userId, knowledgeBase, sub_chunk, add_file_name, add_file_path)
+    kb_info = {"kb_name": knowledgeBase, "kb_id": kb_id}
+    insert_milvus_result = add_milvus(userId, kb_info, sub_chunk, add_file_name, add_file_path)
 
     if insert_milvus_result['code'] != 0:
         print('失败')

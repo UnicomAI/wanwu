@@ -3,6 +3,8 @@ package request
 import (
 	"errors"
 	"strings"
+
+	"github.com/UnicomAI/wanwu/pkg/util"
 )
 
 type CustomPromptCreate struct {
@@ -13,8 +15,11 @@ type CustomPromptCreate struct {
 }
 
 func (c *CustomPromptCreate) Check() error {
-	if len(strings.TrimSpace(c.Name)) == 0 {
-		return errors.New("name is empty")
+	if err := util.ValidateName(&c.Name, util.SubjectPrompt); err != nil {
+		return err
+	}
+	if err := util.ValidateDesc(&c.Desc, util.SubjectPrompt); err != nil {
+		return err
 	}
 	if len(strings.TrimSpace(c.Prompt)) == 0 {
 		return errors.New("prompt is empty")
@@ -39,9 +44,7 @@ type UpdateCustomPrompt struct {
 }
 
 func (u *UpdateCustomPrompt) Check() error {
-	if len(strings.TrimSpace(u.Name)) == 0 {
-		return errors.New("name is empty")
-	}
+	// name/desc 校验在 service 层按"未改名跳过校验"处理
 	if len(strings.TrimSpace(u.Prompt)) == 0 {
 		return errors.New("prompt is empty")
 	}

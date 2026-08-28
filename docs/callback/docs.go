@@ -57,40 +57,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/category/info": {
-            "get": {
-                "description": "获取Maas平台知识库信息（模型扩展调用）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "callback"
-                ],
-                "summary": "获取Maas平台知识库信息（模型扩展调用）",
-                "parameters": [
-                    {
-                        "description": "根据知识库名称请求参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.SearchKnowledgeInfoReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/api/deploy/info": {
             "get": {
                 "description": "获取Maas平台部署信息（模型扩展调用）",
@@ -166,6 +132,49 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/key/user": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "callback"
+                ],
+                "summary": "通过apikey获取用户信息（内部接口）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "api key",
+                        "name": "apikey",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.UserInfoByApiKey"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -327,9 +336,43 @@ const docTemplate = `{
                 }
             }
         },
-        "/callback/v1/skill/builtin/list": {
+        "/callback/v1/channel/send-message": {
             "post": {
-                "description": "获取内置工具列表",
+                "description": "内部服务给指定通道发消息（无鉴权，callback 接口）。channelId 必填；userId 可选，缺省由 channel-service 自动取该通道最近互动过的 IM 用户作收件人。msgType 支持 text（默认）/markdown/file；file 类型需 fileUrl+fileName，channel-service 下载字节后投递。成功无返回体，失败透传 gRPC err_code。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "callback"
+                ],
+                "summary": "内部服务发消息",
+                "parameters": [
+                    {
+                        "description": "内部服务发消息请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SendMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/callback/v1/skill/acquired/list": {
+            "post": {
+                "description": "获取我添加skill详情列表",
                 "consumes": [
                     "application/json"
                 ],
@@ -339,7 +382,53 @@ const docTemplate = `{
                 "tags": [
                     "skill"
                 ],
-                "summary": "获取内置工具列表",
+                "summary": "获取我添加skill详情列表",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SearchAcquiredSkillListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.CallbackAcquiredSkillDetailListResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/callback/v1/skill/builtin/list": {
+            "post": {
+                "description": "获取内置skill详情列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "skill"
+                ],
+                "summary": "获取内置skill详情列表",
                 "parameters": [
                     {
                         "description": "请求参数",
@@ -373,6 +462,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/callback/v1/skill/custom/list": {
+            "post": {
+                "description": "获取自定义skill详情列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "skill"
+                ],
+                "summary": "获取自定义skill详情列表",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SearchCustomSkillListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.CustomSkillDetailListResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/callback/v1/skill/detail": {
             "get": {
                 "description": "根据skillId和skillType获取技能详情",
@@ -385,7 +520,7 @@ const docTemplate = `{
                 "tags": [
                     "skill"
                 ],
-                "summary": "获取技能详情（供workflow回调使用）",
+                "summary": "获取技能详情",
                 "parameters": [
                     {
                         "type": "string",
@@ -414,79 +549,11 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/response.SkillDetailForWorkflow"
+                                            "$ref": "#/definitions/response.CallbackSkillDetail"
                                         }
                                     }
                                 }
                             ]
-                        }
-                    }
-                }
-            }
-        },
-        "/callback/wga/sandbox/cleanup": {
-            "post": {
-                "description": "清理沙箱资源",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "wga-sandbox"
-                ],
-                "summary": "WGA沙箱清理",
-                "parameters": [
-                    {
-                        "description": "请求参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.WgaSandboxCleanupReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/callback/wga/sandbox/run": {
-            "post": {
-                "description": "在沙箱容器中执行智能体任务，SSE流式返回结果",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "text/event-stream"
-                ],
-                "tags": [
-                    "wga-sandbox"
-                ],
-                "summary": "WGA沙箱运行",
-                "parameters": [
-                    {
-                        "description": "请求参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.WgaSandboxRunReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "SSE流式返回",
-                        "schema": {
-                            "type": "string"
                         }
                     }
                 }
@@ -526,6 +593,118 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/digital-employee/publish/sync": {
+            "post": {
+                "description": "外部系统（ontology/vega）发布数字员工时回调本接口，登记 app 表 appType=digitalemployee 行（upsert，幂等）。万悟自拟格式：employeeId/publishType/userId/orgId。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "callback"
+                ],
+                "summary": "数字员工发布状态同步",
+                "parameters": [
+                    {
+                        "description": "发布状态同步请求",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DigitalEmployeePublishSyncReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "外部系统（ontology/vega）删除数字员工时回调本接口，删除 app 表 appType=digitalemployee 行（以 employeeId 为准，幂等，目标不存在也返回成功）。万悟自拟格式：employeeId/userId。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "callback"
+                ],
+                "summary": "数字员工删除/下架同步",
+                "parameters": [
+                    {
+                        "description": "删除/下架同步请求",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteDigitalEmployeePublishSyncReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/file/unarchive": {
+            "post": {
+                "description": "解压MinIO中的压缩包，将文件上传到MinIO并返回目录结构",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "callback"
+                ],
+                "summary": "解压压缩包",
+                "parameters": [
+                    {
+                        "description": "解压压缩包请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UnarchiveFileReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.UnarchiveFileResp"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -907,7 +1086,7 @@ const docTemplate = `{
         "/model/{modelId}/ocr": {
             "post": {
                 "consumes": [
-                    "multipart/form-data"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -925,11 +1104,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "file",
-                        "description": "文件",
-                        "name": "file",
-                        "in": "formData",
-                        "required": true
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/mp_common.OcrReq"
+                        }
                     }
                 ],
                 "responses": {
@@ -1022,6 +1203,60 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/mp_common.RerankResp"
+                        }
+                    }
+                }
+            }
+        },
+        "/model/{modelId}/trace/{traceId}/span/{spanId}/chat/completions": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "callback"
+                ],
+                "summary": "Model Chat Completions with Trace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "模型ID",
+                        "name": "modelId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Trace ID",
+                        "name": "traceId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Span ID",
+                        "name": "spanId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/mp_common.LLMReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/mp_common.LLMResp"
                         }
                     }
                 }
@@ -1124,6 +1359,175 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/list": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "callback"
+                ],
+                "summary": "根据userIds获取用户信息",
+                "parameters": [
+                    {
+                        "description": "根据userIds获取用户信息参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetUserListByUserIdsReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "List": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.IDNameWithAvatar"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/wga/rag/search-knowledge-base": {
+            "post": {
+                "description": "WGA专用知识库检索接口",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "callback"
+                ],
+                "summary": "WGA知识库检索",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "用户ID",
+                        "name": "X-uid",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "WGA知识库检索请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.WgaRagSearchKnowledgeBaseReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/wga/sandbox/cleanup": {
+            "post": {
+                "description": "清理沙箱资源",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wga-sandbox"
+                ],
+                "summary": "WGA沙箱清理",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.WgaSandboxCleanupReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/wga/sandbox/run": {
+            "post": {
+                "description": "在沙箱容器中执行智能体任务，SSE流式返回结果",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "wga-sandbox"
+                ],
+                "summary": "WGA沙箱运行",
+                "parameters": [
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.WgaSandboxRunReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE流式返回",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -1462,6 +1866,9 @@ const docTemplate = `{
         "mp.ProviderModelByOpenAICompatible": {
             "type": "object",
             "properties": {
+                "asr": {
+                    "$ref": "#/definitions/mp_openai_compatible.SyncAsr"
+                },
                 "embedding": {
                     "$ref": "#/definitions/mp_openai_compatible.Embedding"
                 },
@@ -1826,6 +2233,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "chat_template_kwargs": {
+                    "description": "控制模型是否开启深度思考模式（元景）",
                     "type": "object",
                     "additionalProperties": true
                 },
@@ -1834,6 +2242,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "enable_thinking": {
+                    "description": "控制模型是否开启深度思考模式。",
                     "type": "boolean"
                 },
                 "extra_body": {
@@ -1889,6 +2298,10 @@ const docTemplate = `{
                 "presence_penalty": {
                     "description": "控制模型生成文本时的内容重复度",
                     "type": "number"
+                },
+                "reasoning_effort": {
+                    "description": "控制模型的推理强度（Ds）Possible values: [high, max]",
+                    "type": "string"
                 },
                 "repetition_penalty": {
                     "description": "模型生成时连续序列中的重复度",
@@ -2187,66 +2600,153 @@ const docTemplate = `{
                 }
             }
         },
-        "mp_common.OcrData": {
+        "mp_common.OcrFileInfo": {
+            "type": "object",
+            "properties": {
+                "fileName": {
+                    "type": "string"
+                },
+                "fileType": {
+                    "type": "string"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "mp_common.OcrMeta": {
+            "type": "object",
+            "properties": {
+                "requestId": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "traceId": {
+                    "type": "string"
+                }
+            }
+        },
+        "mp_common.OcrReq": {
             "type": "object",
             "required": [
-                "page_num",
-                "type"
+                "fileName"
             ],
             "properties": {
-                "length": {
+                "data": {
+                    "type": "string"
+                },
+                "extract_image": {
                     "type": "integer"
                 },
-                "page_num": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
+                "extract_image_content": {
+                    "type": "integer"
                 },
-                "text": {
+                "fileName": {
                     "type": "string"
                 },
-                "type": {
+                "fileType": {
+                    "type": "integer"
+                },
+                "layoutNms": {
+                    "description": "版面 NMS 去重",
+                    "type": "boolean"
+                },
+                "maxPixels": {
+                    "description": "最大像素",
+                    "type": "integer"
+                },
+                "minPixels": {
+                    "description": "最小像素",
+                    "type": "integer"
+                },
+                "model": {
                     "type": "string"
+                },
+                "repetitionPenalty": {
+                    "description": "重复惩罚",
+                    "type": "number"
+                },
+                "temperature": {
+                    "description": "采样温度",
+                    "type": "number"
+                },
+                "topP": {
+                    "description": "top-p 采样",
+                    "type": "number"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "useChartRecognition": {
+                    "description": "以下为千帆 paddleocr 原生模型推理参数（仅 qianfan 使用）",
+                    "type": "boolean"
+                },
+                "useDocUnwarping": {
+                    "description": "文档矫正",
+                    "type": "boolean"
+                },
+                "useLayoutDetection": {
+                    "description": "版面检测",
+                    "type": "boolean"
+                },
+                "visualize": {
+                    "description": "输出可视化结果",
+                    "type": "boolean"
                 }
             }
         },
         "mp_common.OcrResp": {
             "type": "object",
-            "required": [
-                "data",
-                "message"
-            ],
             "properties": {
                 "code": {
                     "type": "integer"
                 },
                 "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/mp_common.OcrData"
-                    }
-                },
-                "filename": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
+                    "$ref": "#/definitions/mp_common.OcrRespData"
                 },
                 "message": {
                     "type": "string"
                 },
-                "sha1": {
-                    "type": "string"
+                "meta": {
+                    "$ref": "#/definitions/mp_common.OcrMeta"
                 },
-                "time_cost": {
-                    "type": "number"
-                },
-                "timestamp": {
+                "prefixImageUrl": {
                     "type": "string"
                 },
                 "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "mp_common.OcrRespData": {
+            "type": "object",
+            "properties": {
+                "fileInfo": {
+                    "$ref": "#/definitions/mp_common.OcrFileInfo"
+                },
+                "fullContent": {
+                    "type": "string"
+                },
+                "ocrResults": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mp_common.OcrResult"
+                    }
+                }
+            }
+        },
+        "mp_common.OcrResult": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "pageNumber": {
+                    "type": "integer"
+                },
+                "type": {
                     "type": "string"
                 }
             }
@@ -2276,6 +2776,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/mp_common.FunctionCall"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "reasoning": {
                     "type": "string"
                 },
                 "reasoning_content": {
@@ -2308,6 +2811,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/mp_common.FunctionCall"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "reasoning": {
                     "type": "string"
                 },
                 "reasoning_content": {
@@ -3092,6 +3598,22 @@ const docTemplate = `{
                 }
             }
         },
+        "mp_openai_compatible.SyncAsr": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "endpointUrl": {
+                    "description": "推理url（完整地址，含 /v1/chat/completions）",
+                    "type": "string"
+                },
+                "maxAsrFileSize": {
+                    "type": "integer"
+                }
+            }
+        },
         "mp_qianfan.Embedding": {
             "type": "object",
             "properties": {
@@ -3408,6 +3930,13 @@ const docTemplate = `{
                 "endpointUrl": {
                     "description": "推理url",
                     "type": "string"
+                },
+                "supportFileTypes": {
+                    "description": "支持的文件类型，由 bff-service 从 recommend_model_config.yaml 注入",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -3741,17 +4270,26 @@ const docTemplate = `{
         "request.AppRecordRequest": {
             "type": "object",
             "properties": {
+                "answer": {
+                    "description": "回复（精简）；始终落库；流式可空",
+                    "type": "string"
+                },
                 "appId": {
                     "type": "string"
                 },
                 "appType": {
                     "type": "string"
                 },
+                "failureReason": {
+                    "description": "FailureReason 失败原因；成功时传空。",
+                    "type": "string"
+                },
                 "isStream": {
                     "type": "boolean"
                 },
-                "isSuccess": {
-                    "type": "boolean"
+                "module": {
+                    "description": "板块 agent|rag|workflow|knowledge|...；空则按 appType 推断",
+                    "type": "string"
                 },
                 "nonStreamCosts": {
                     "type": "integer"
@@ -3759,8 +4297,24 @@ const docTemplate = `{
                 "orgId": {
                     "type": "string"
                 },
+                "question": {
+                    "description": "用户提问（精简）；始终落库",
+                    "type": "string"
+                },
+                "requestBody": {
+                    "description": "整体请求 JSON；受 statistic.record_body 控制",
+                    "type": "string"
+                },
+                "responseBody": {
+                    "description": "整体响应 JSON；流式忽略；受 statistic.record_body 控制",
+                    "type": "string"
+                },
                 "source": {
                     "type": "string"
+                },
+                "statusCode": {
+                    "description": "StatusCode 调用方透传的 HTTP 语义状态码；成功传 200，失败传对应码（如 500）。",
+                    "type": "integer"
                 },
                 "streamCosts": {
                     "type": "integer"
@@ -3830,6 +4384,50 @@ const docTemplate = `{
                 }
             }
         },
+        "request.DeleteDigitalEmployeePublishSyncReq": {
+            "type": "object",
+            "required": [
+                "employeeId",
+                "userId"
+            ],
+            "properties": {
+                "employeeId": {
+                    "description": "数字员工ID（即 app 表 appId）",
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "操作人用户ID（外部系统提供）",
+                    "type": "string"
+                }
+            }
+        },
+        "request.DigitalEmployeePublishSyncReq": {
+            "type": "object",
+            "required": [
+                "employeeId",
+                "orgId",
+                "publishType",
+                "userId"
+            ],
+            "properties": {
+                "employeeId": {
+                    "description": "数字员工ID（即 app 表 appId）",
+                    "type": "string"
+                },
+                "orgId": {
+                    "description": "发布者组织ID（外部系统提供）",
+                    "type": "string"
+                },
+                "publishType": {
+                    "description": "发布类型(public/organization/private)",
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "发布者用户ID（外部系统提供）",
+                    "type": "string"
+                }
+            }
+        },
         "request.FileUrlConvertBase64Req": {
             "type": "object",
             "required": [
@@ -3847,6 +4445,21 @@ const docTemplate = `{
                 "fileUrl": {
                     "description": "文件URL",
                     "type": "string"
+                }
+            }
+        },
+        "request.GetUserListByUserIdsReq": {
+            "type": "object",
+            "required": [
+                "userIds"
+            ],
+            "properties": {
+                "userIds": {
+                    "description": "用户ID列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -4238,34 +4851,109 @@ const docTemplate = `{
                 }
             }
         },
+        "request.SearchAcquiredSkillListReq": {
+            "type": "object",
+            "required": [
+                "skillIdList"
+            ],
+            "properties": {
+                "orgId": {
+                    "type": "string"
+                },
+                "skillIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "userId": {
+                    "description": "UserId/OrgId：同 SearchCustomSkillListReq 说明，应传智能体创建者身份，\n而非 HTTP 调用者身份。",
+                    "type": "string"
+                }
+            }
+        },
         "request.SearchBuiltinSkillListReq": {
             "type": "object",
             "required": [
                 "skillIdList"
             ],
             "properties": {
+                "orgId": {
+                    "type": "string"
+                },
                 "skillIdList": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
+                },
+                "userId": {
+                    "description": "UserId / OrgId 用于 mcp.GetBuiltinSkillVars 鉴权（builtin skill var 按 user 配）。\n老 caller 不传时回退为不带 vars 的行为，保持向后兼容。",
+                    "type": "string"
                 }
             }
         },
-        "request.SearchKnowledgeInfoReq": {
+        "request.SearchCustomSkillListReq": {
             "type": "object",
             "required": [
-                "categoryName",
-                "userId"
+                "skillIdList"
             ],
             "properties": {
-                "categoryName": {
-                    "type": "string"
-                },
                 "orgId": {
                     "type": "string"
                 },
+                "skillIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "userId": {
+                    "description": "UserId/OrgId：调用方期望\"以哪个用户身份\"查询这批 skill 的详情与变量。\ncallback 由 assistant-service 在处理智能体（Assistant）对话时内部回调过来，\n此处应传智能体在 assistant 表里的 user_id / org_id（智能体创建者），\n而不是发起 HTTP 请求的调用者——发布态智能体常被非创建者调用，\n用调用者身份会查不到创建者配置的 per-user skill 变量。",
+                    "type": "string"
+                }
+            }
+        },
+        "request.SendMessageRequest": {
+            "type": "object",
+            "required": [
+                "channelId"
+            ],
+            "properties": {
+                "channelId": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "fileMimeType": {
+                    "type": "string"
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "fileUrl": {
+                    "type": "string"
+                },
+                "msgType": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UnarchiveFileReq": {
+            "type": "object",
+            "required": [
+                "fileUrl"
+            ],
+            "properties": {
+                "fileUrl": {
+                    "description": "压缩包的MinIO URL",
                     "type": "string"
                 }
             }
@@ -4302,6 +4990,24 @@ const docTemplate = `{
                 }
             }
         },
+        "request.WgaRagSearchKnowledgeBaseReq": {
+            "type": "object",
+            "required": [
+                "knowledgeIdList",
+                "question"
+            ],
+            "properties": {
+                "knowledgeIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
         "request.WgaSandboxCleanupReq": {
             "type": "object",
             "required": [
@@ -4309,6 +5015,24 @@ const docTemplate = `{
             ],
             "properties": {
                 "runId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.WgaSandboxMCP": {
+            "type": "object",
+            "required": [
+                "name",
+                "url"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "url": {
                     "type": "string"
                 }
             }
@@ -4345,6 +5069,12 @@ const docTemplate = `{
                 },
                 "instruction": {
                     "type": "string"
+                },
+                "mcps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.WgaSandboxMCP"
+                    }
                 },
                 "messages": {
                     "type": "array",
@@ -4392,11 +5122,190 @@ const docTemplate = `{
             "properties": {
                 "dir": {
                     "type": "string"
+                },
+                "variables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.WgaSandboxSkillVariable"
+                    }
+                }
+            }
+        },
+        "request.WgaSandboxSkillVariable": {
+            "type": "object",
+            "required": [
+                "name",
+                "variableKey",
+                "variableValue"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "variableKey": {
+                    "type": "string"
+                },
+                "variableValue": {
+                    "type": "string"
                 }
             }
         },
         "request.WgaSandboxTool": {
-            "type": "object"
+            "type": "object",
+            "required": [
+                "schema"
+            ],
+            "properties": {
+                "apiAuth": {
+                    "description": "API 认证配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/util.ApiAuthWebRequest"
+                        }
+                    ]
+                },
+                "operationIds": {
+                    "description": "允许的 operations，空=全部允许",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "schema": {
+                    "description": "OpenAPI 3.0 schema JSON 字符串",
+                    "type": "string"
+                }
+            }
+        },
+        "response.CallbackAcquiredSkillDetail": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "$ref": "#/definitions/request.Avatar"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "objectPath": {
+                    "type": "string"
+                },
+                "orgId": {
+                    "type": "string"
+                },
+                "skillId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "variables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SkillVariable"
+                    }
+                }
+            }
+        },
+        "response.CallbackAcquiredSkillDetailListResp": {
+            "type": "object",
+            "properties": {
+                "skillList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.CallbackAcquiredSkillDetail"
+                    }
+                }
+            }
+        },
+        "response.CallbackSkillDetail": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "objectPath": {
+                    "type": "string"
+                },
+                "skillId": {
+                    "type": "string"
+                },
+                "skillType": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.CustomSkillDetailListResp": {
+            "type": "object",
+            "properties": {
+                "skillList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.CustomSkillListDetail"
+                    }
+                }
+            }
+        },
+        "response.CustomSkillListDetail": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "$ref": "#/definitions/request.Avatar"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "objectPath": {
+                    "type": "string"
+                },
+                "orgId": {
+                    "type": "string"
+                },
+                "skillId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "variables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SkillVariable"
+                    }
+                }
+            }
         },
         "response.CustomToolActionInfo": {
             "type": "object",
@@ -4463,9 +5372,40 @@ const docTemplate = `{
                 }
             }
         },
+        "response.IDNameWithAvatar": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "$ref": "#/definitions/request.Avatar"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ListResult": {
+            "type": "object",
+            "properties": {
+                "list": {},
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.MCPDetail": {
             "type": "object",
             "properties": {
+                "apiAuth": {
+                    "description": "api身份认证",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/util.ApiAuthWebRequest"
+                        }
+                    ]
+                },
                 "avatar": {
                     "description": "图标",
                     "allOf": [
@@ -4493,6 +5433,13 @@ const docTemplate = `{
                 "from": {
                     "description": "来源",
                     "type": "string"
+                },
+                "headers": {
+                    "description": "请求头",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "manual": {
                     "description": "使用说明",
@@ -4528,6 +5475,10 @@ const docTemplate = `{
                 },
                 "transport": {
                     "description": "传输协议: \"sse\" 或 \"streamable\"",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "type: mcp",
                     "type": "string"
                 }
             }
@@ -4577,6 +5528,10 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/response.MCPServerToolInfo"
                     }
+                },
+                "transport": {
+                    "description": "sse/streamable",
+                    "type": "string"
                 }
             }
         },
@@ -4687,6 +5642,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scopeType": {
+                    "description": "模型公开范围(1-私有 2-公开 3-组织)",
                     "type": "string"
                 },
                 "tags": {
@@ -4722,59 +5678,43 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "author": {
-                    "description": "作者",
                     "type": "string"
                 },
                 "avatar": {
-                    "description": "模板头像",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/request.Avatar"
-                        }
-                    ]
+                    "$ref": "#/definitions/request.Avatar"
+                },
+                "createdAt": {
+                    "type": "string"
                 },
                 "desc": {
-                    "description": "模板描述",
                     "type": "string"
                 },
                 "name": {
-                    "description": "模板名称",
+                    "type": "string"
+                },
+                "orgId": {
                     "type": "string"
                 },
                 "skillId": {
-                    "description": "模板ID",
                     "type": "string"
                 },
                 "skillMarkdown": {
-                    "description": "模板markdown预览",
                     "type": "string"
                 },
                 "skillPath": {
-                    "description": "markdown地址，内部使用，不要对外",
-                    "type": "string"
-                }
-            }
-        },
-        "response.SkillDetailForWorkflow": {
-            "type": "object",
-            "properties": {
-                "avatar": {
                     "type": "string"
                 },
-                "desc": {
+                "updatedAt": {
                     "type": "string"
                 },
-                "name": {
+                "userId": {
                     "type": "string"
                 },
-                "objectPath": {
-                    "type": "string"
-                },
-                "skillId": {
-                    "type": "string"
-                },
-                "skillType": {
-                    "type": "string"
+                "variables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SkillVariable"
+                    }
                 }
             }
         },
@@ -4786,6 +5726,26 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/response.SkillDetail"
                     }
+                }
+            }
+        },
+        "response.SkillVariable": {
+            "type": "object",
+            "properties": {
+                "desc": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "variableKey": {
+                    "type": "string"
+                },
+                "variableValue": {
+                    "type": "string"
                 }
             }
         },
@@ -4855,6 +5815,70 @@ const docTemplate = `{
                 }
             }
         },
+        "response.UnarchiveFileNode": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "description": "子节点（仅目录有）",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.UnarchiveFileNode"
+                    }
+                },
+                "downloadUrl": {
+                    "description": "外部下载地址（仅文件有值）",
+                    "type": "string"
+                },
+                "minioUrl": {
+                    "description": "MinIO内部访问地址（仅文件有值）",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "文件或目录名",
+                    "type": "string"
+                },
+                "objectPath": {
+                    "description": "MinIO对象路径（如 file-upload/file-expire/unarchive/xxx/src/main.go）",
+                    "type": "string"
+                },
+                "relativePath": {
+                    "description": "相对路径（如 src/main.go）",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "文件大小，字节（目录为0）",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "\"directory\" 或 \"file\"",
+                    "type": "string"
+                }
+            }
+        },
+        "response.UnarchiveFileResp": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "description": "目录树（从解压根目录的子节点开始）",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.UnarchiveFileNode"
+                    }
+                },
+                "objectPath": {
+                    "description": "MinIO顶层对象路径（如 file-upload/file-expire/unarchive/uuid）",
+                    "type": "string"
+                },
+                "totalFiles": {
+                    "description": "总文件数",
+                    "type": "integer"
+                },
+                "totalSize": {
+                    "description": "总文件大小（字节）",
+                    "type": "integer"
+                }
+            }
+        },
         "response.UploadFileByBase64Resp": {
             "type": "object",
             "properties": {
@@ -4862,6 +5886,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.UserInfoByApiKey": {
+            "type": "object",
+            "properties": {
+                "orgId": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
