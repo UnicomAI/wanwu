@@ -56,13 +56,13 @@ type BuiltinSkillDetail struct {
 // AcquiredSkillInfo 资源库-我添加的skill列表项
 type AcquiredSkillInfo struct {
 	SkillBasicInfo
-	CustomSkillId string `json:"customSkillId"`
-	DownloadCount int32  `json:"downloadCount"`
+	DownloadCount int32 `json:"downloadCount"`
 }
 
 // AcquiredSkillDetail 资源库-我添加的skill详情
 type AcquiredSkillDetail struct {
 	AcquiredSkillInfo
+	CustomSkillId string           `json:"customSkillId"`
 	SkillMarkdown string           `json:"skillMarkdown"`
 	Variables     []*SkillVariable `json:"variables,omitempty"`
 }
