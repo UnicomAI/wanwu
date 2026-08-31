@@ -56,7 +56,8 @@ type BuiltinSkillDetail struct {
 // AcquiredSkillInfo 资源库-我添加的skill列表项
 type AcquiredSkillInfo struct {
 	SkillBasicInfo
-	DownloadCount int32 `json:"downloadCount"`
+	CustomSkillId string `json:"customSkillId"`
+	DownloadCount int32  `json:"downloadCount"`
 }
 
 // AcquiredSkillDetail 资源库-我添加的skill详情

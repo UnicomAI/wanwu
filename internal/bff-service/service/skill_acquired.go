@@ -294,6 +294,7 @@ func toAcquiredSkillInfo(ctx *gin.Context, skill *mcp_service.AcquiredSkill) *re
 			Author:  customSkill.GetAuthor(),
 			Desc:    customSkill.GetDesc(),
 		},
+		CustomSkillId: customSkill.GetSkillId(),
 		DownloadCount: customSkill.GetDownloadCount(),
 	}
 }
