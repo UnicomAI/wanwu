@@ -8,6 +8,7 @@
     :visibleVariableConfig="true"
     :visibleHistory="visibleHistory"
     :historyList="historyList"
+    :useCustomOverview="showWorkspace"
     @init="initData"
     @back="handleBack"
     @download="handleDownload"
@@ -15,11 +16,19 @@
     @create-variable="handleCreateVariable"
     @update-variable="handleUpdateVariable"
     @delete-variable="handleDeleteVariable"
-  />
+  >
+    <template v-if="showWorkspace" #overview>
+      <SkillContentWorkspace
+        v-if="customSkillId"
+        :customSkillId="customSkillId"
+      />
+    </template>
+  </SkillDetail>
 </template>
 
 <script>
 import SkillDetail from '@/components/skills/skillDetail.vue';
+import SkillContentWorkspace from '@/views/adminCenter/components/SkillContentWorkspace.vue';
 import {
   createCustomSkillConfig,
   createResourceBuiltinSkillConfig,
@@ -49,6 +58,7 @@ export default {
   name: 'SkillDetailWrapper',
   components: {
     SkillDetail,
+    SkillContentWorkspace,
   },
   data() {
     return {
@@ -66,6 +76,12 @@ export default {
   computed: {
     visibleHistory() {
       return this.type === SKILLADDED;
+    },
+    showWorkspace() {
+      return [SKILL, SKILLADDED].includes(this.type);
+    },
+    customSkillId() {
+      return this.detail?.customSkillId || '';
     },
   },
   created() {
