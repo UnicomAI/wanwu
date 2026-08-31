@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
-	"github.com/UnicomAI/wanwu/internal/assistant-service/config"
-	"github.com/UnicomAI/wanwu/internal/assistant-service/service/service-model"
-	"github.com/UnicomAI/wanwu/pkg/es"
-	"github.com/UnicomAI/wanwu/pkg/log"
 	"os"
 	"strings"
+
+	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
+	"github.com/UnicomAI/wanwu/internal/assistant-service/config"
+	service_model "github.com/UnicomAI/wanwu/internal/assistant-service/service/service-model"
+	"github.com/UnicomAI/wanwu/pkg/es"
+	"github.com/UnicomAI/wanwu/pkg/log"
 )
 
 const (

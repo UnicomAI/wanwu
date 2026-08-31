@@ -144,5 +144,3 @@ func GetSkillContentFile(ctx *gin.Context, userId, orgId string, req request.Get
 		},
 	}, nil
 }
-
-

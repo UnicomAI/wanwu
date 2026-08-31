@@ -22,5 +22,3 @@ type SkillContentFileResp struct {
 	SkillContentMeta
 	SkillWorkspaceFileResp
 }
-
-

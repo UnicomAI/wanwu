@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-	"github.com/UnicomAI/wanwu/api/proto/common"
 
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	safety_service "github.com/UnicomAI/wanwu/api/proto/safety-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"

@@ -30,5 +30,3 @@ func (r *GetSkillContentFileReq) Check() error {
 	}
 	return checkRelPath(r.Path)
 }
-
-

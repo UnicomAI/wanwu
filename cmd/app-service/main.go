@@ -4,15 +4,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/UnicomAI/wanwu/internal/app-service/task"
 	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
 	"time"
 
+	"github.com/UnicomAI/wanwu/internal/app-service/task"
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
-
 	"github.com/UnicomAI/wanwu/internal/app-service/client/assistant"
 	"github.com/UnicomAI/wanwu/internal/app-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/app-service/config"

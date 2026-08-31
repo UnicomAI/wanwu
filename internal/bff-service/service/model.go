@@ -3,12 +3,11 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/UnicomAI/wanwu/api/proto/common"
 	"slices"
 	"strings"
 
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
-
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"

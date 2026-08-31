@@ -8,14 +8,12 @@ import (
 	"strings"
 
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
-	"github.com/UnicomAI/wanwu/internal/assistant-service/service/es-service"
-	"github.com/UnicomAI/wanwu/internal/assistant-service/service/service-model"
-
+	es_service "github.com/UnicomAI/wanwu/internal/assistant-service/service/es-service"
+	service_model "github.com/UnicomAI/wanwu/internal/assistant-service/service/service-model"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
 	minio_service "github.com/UnicomAI/wanwu/internal/assistant-service/service/minio-service"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	safe_go_util "github.com/UnicomAI/wanwu/pkg/safe-go-util"
-
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/config"
 	"github.com/UnicomAI/wanwu/pkg/es"

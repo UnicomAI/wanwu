@@ -13,10 +13,9 @@ import (
 	"time"
 
 	"github.com/UnicomAI/wanwu/api/proto/common"
-	"github.com/UnicomAI/wanwu/internal/assistant-service/service/es-service"
-	"github.com/UnicomAI/wanwu/internal/assistant-service/service/service-model"
+	es_service "github.com/UnicomAI/wanwu/internal/assistant-service/service/es-service"
+	service_model "github.com/UnicomAI/wanwu/internal/assistant-service/service/service-model"
 	"github.com/UnicomAI/wanwu/pkg/constant"
-
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"

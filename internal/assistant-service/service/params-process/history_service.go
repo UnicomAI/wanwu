@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/UnicomAI/wanwu/internal/assistant-service/service/es-service"
-	"github.com/UnicomAI/wanwu/internal/assistant-service/service/service-model"
-
+	es_service "github.com/UnicomAI/wanwu/internal/assistant-service/service/es-service"
+	service_model "github.com/UnicomAI/wanwu/internal/assistant-service/service/service-model"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/config"

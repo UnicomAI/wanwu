@@ -160,5 +160,3 @@ func readSkillTreeBlob(skillDir, version, relPath string) (git_util.BlobInfo, er
 func joinSkillTreePath(relPath string) string {
 	return generalAgentWorkspaceSkillDirName + "/" + relPath
 }
-
-

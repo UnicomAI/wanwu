@@ -3,12 +3,12 @@ package service
 import (
 	"bytes"
 	"fmt"
-	"github.com/UnicomAI/wanwu/api/proto/common"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"

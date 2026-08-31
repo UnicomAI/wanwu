@@ -5,21 +5,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/UnicomAI/wanwu/api/proto/common"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	mp_jina "github.com/UnicomAI/wanwu/pkg/model-provider/mp-jina"
 	utils "github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/google/uuid"
-
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
-
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
 	knowledgebase_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-service"

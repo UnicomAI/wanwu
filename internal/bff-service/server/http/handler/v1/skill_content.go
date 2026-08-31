@@ -49,5 +49,3 @@ func GetSkillContentFile(ctx *gin.Context) {
 	resp, err := service.GetSkillContentFile(ctx, userId, orgId, req)
 	gin_util.Response(ctx, resp, err)
 }
-
-
