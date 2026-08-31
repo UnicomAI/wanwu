@@ -246,6 +246,7 @@ func toAcquiredSkillDetail(ctx *gin.Context, skill *mcp_service.AcquiredSkill, i
 			},
 			DownloadCount: customSkill.GetDownloadCount(),
 		},
+		CustomSkillId: customSkill.GetSkillId(),
 		SkillMarkdown: config.FixFrontMatterFormat(publish.GetMarkdown()),
 	}
 	if includeVariables {
@@ -294,7 +295,6 @@ func toAcquiredSkillInfo(ctx *gin.Context, skill *mcp_service.AcquiredSkill) *re
 			Author:  customSkill.GetAuthor(),
 			Desc:    customSkill.GetDesc(),
 		},
-		CustomSkillId: customSkill.GetSkillId(),
 		DownloadCount: customSkill.GetDownloadCount(),
 	}
 }
