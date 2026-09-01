@@ -51,6 +51,22 @@ export const FAT_SON_BLOCK = [
     maxSplitterNum: 4000,
   },
 ];
+// 上传文档时的参数来源：套用知识库解析模板 或 手动配置
+export const PARSE_MODE_TEMPLATE = 'template';
+export const PARSE_MODE_CUSTOM = 'custom';
+export const PARSE_MODE_LIST = [
+  {
+    label: PARSE_MODE_TEMPLATE,
+    text: i18n.t('knowledgeManage.parseTemplate.useTemplate'),
+    desc: i18n.t('knowledgeManage.parseTemplate.useTemplateDesc'),
+  },
+  {
+    label: PARSE_MODE_CUSTOM,
+    text: i18n.t('knowledgeManage.parseTemplate.customParse'),
+    desc: i18n.t('knowledgeManage.parseTemplate.customParseDesc'),
+  },
+];
+
 export const SEGMENT_COMMON_LIST = [
   {
     label: SEGMENT_TYPE_AUTO,
