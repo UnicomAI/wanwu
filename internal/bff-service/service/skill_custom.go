@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/UnicomAI/wanwu/api/proto/common"
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
@@ -93,11 +93,8 @@ func GetCustomSkill(ctx *gin.Context, userId, orgId, skillId string) (*response.
 		publishType = appResp.Infos[0].PublishType
 	}
 
-	// 判断是否已发布
+	// 判断是否已发布：publishType 为空表示未发布
 	isPublished := publishType != "" || version != ""
-	if publishType == "" {
-		publishType = constant.AppPublishPrivate
-	}
 
 	detail := toPublishedSkillDetail(ctx, skill, variables, publish, isPublished, publishType, version)
 
@@ -416,9 +413,6 @@ func fillCustomSkillPublishInfo(ctx *gin.Context, skillList []*response.Publishe
 			version = publish.GetVersion()
 		}
 		skill.IsPublished = publishType != "" || version != ""
-		if publishType == "" {
-			publishType = constant.AppPublishPrivate
-		}
 		skill.PublishType = publishType
 		skill.Version = version
 	}
