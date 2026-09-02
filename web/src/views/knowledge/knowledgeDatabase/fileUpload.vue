@@ -255,12 +255,15 @@
                 <parseTemplateSelect
                   v-model="ruleForm.parseTemplate"
                   collapsible
-                />
-                <div class="template-footer">
-                  <el-checkbox v-model="ruleForm.overrideKnowledgeTemplate">
-                    {{ $t('knowledgeManage.parseTemplate.overrideKnowledge') }}
-                  </el-checkbox>
-                </div>
+                >
+                  <template #footer>
+                    <el-checkbox v-model="ruleForm.overrideKnowledgeTemplate">
+                      {{
+                        $t('knowledgeManage.parseTemplate.overrideKnowledge')
+                      }}
+                    </el-checkbox>
+                  </template>
+                </parseTemplateSelect>
               </el-form-item>
             </template>
             <parseConfigForm
@@ -1263,10 +1266,6 @@ export default {
 
 .parse-mode-list {
   margin-bottom: 10px;
-}
-
-.template-footer {
-  margin-top: 10px;
 }
 
 .params_form {

@@ -125,11 +125,27 @@ export default {
       template.builtIn = false;
       this.templateList.unshift(template);
     },
+    // 只发后端契约里的字段，别把列表返回的 builtIn/createdAt 带回去
+    templatePayload(template) {
+      return {
+        name: template.name,
+        docSegment: template.docSegment,
+        docAnalyzer: template.docAnalyzer,
+        docPreprocess: template.docPreprocess,
+        parserModelId: template.parserModelId,
+        asrModelId: template.asrModelId,
+        multimodalModelId: template.multimodalModelId,
+      };
+    },
     handleSave(template) {
       const unsaved = !template.templateId;
       const request = unsaved ? createParseTemplate : updateParseTemplate;
-      const data = { ...template, docType: this.docType };
-      if (unsaved) delete data.templateId;
+      const data = unsaved
+        ? { ...this.templatePayload(template), docType: this.docType }
+        : {
+            ...this.templatePayload(template),
+            templateId: template.templateId,
+          };
       request(data).then(res => {
         if (res.code === 0) {
           this.$message.success(this.$t('common.message.success'));

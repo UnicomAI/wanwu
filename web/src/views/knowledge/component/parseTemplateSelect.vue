@@ -61,8 +61,9 @@
           </el-select>
         </div>
       </div>
-      <div v-if="collapsible" class="grid-footer">
-        <el-button type="text" @click="expanded = false">
+      <div v-if="collapsible || $slots.footer" class="grid-footer">
+        <span class="footer-extra"><slot name="footer"></slot></span>
+        <el-button v-if="collapsible" type="text" @click="expanded = false">
           {{ $t('common.button.fold') }}
         </el-button>
       </div>
@@ -217,8 +218,11 @@ export default {
   }
 
   .grid-footer {
-    margin-top: 4px;
-    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 8px;
   }
 
   .template-grid {
