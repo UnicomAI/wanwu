@@ -10,17 +10,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/UnicomAI/wanwu/internal/app-service/task"
-	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/internal/app-service/client/assistant"
 	"github.com/UnicomAI/wanwu/internal/app-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/app-service/config"
 	async_task "github.com/UnicomAI/wanwu/internal/app-service/pkg/async-task"
 	"github.com/UnicomAI/wanwu/internal/app-service/server/grpc"
+	"github.com/UnicomAI/wanwu/internal/app-service/task"
 	"github.com/UnicomAI/wanwu/pkg/db"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/minio"
 	"github.com/UnicomAI/wanwu/pkg/redis"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 )
 

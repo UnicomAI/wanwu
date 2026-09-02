@@ -19,6 +19,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/service"
 	import_service "github.com/UnicomAI/wanwu/internal/knowledge-service/task/import-service"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	path_util "github.com/UnicomAI/wanwu/pkg/path-util"
 	pkgUtil "github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -1610,7 +1611,7 @@ func checkDocFile(ctx context.Context, req *knowledgebase_doc_service.ReImportDo
 			continue
 		}
 		//4.文件名合法性校验
-		if !import_service.IsSafeFileName(doc.Name) {
+		if path_util.ValidateBasename(doc.Name) != nil {
 			log.Errorf("文件 '%s' 文件名非法，不支持重导入", doc.Name)
 			continue
 		}

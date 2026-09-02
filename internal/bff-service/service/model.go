@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/UnicomAI/wanwu/api/proto/common"
-	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
 	err_code "github.com/UnicomAI/wanwu/api/proto/err-code"
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
@@ -16,6 +15,7 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
+	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )

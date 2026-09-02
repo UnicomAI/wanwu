@@ -10,9 +10,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/UnicomAI/wanwu/api/proto/common"
-	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
+	"github.com/UnicomAI/wanwu/api/proto/common"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
@@ -23,6 +22,7 @@ import (
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
 	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
+	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"

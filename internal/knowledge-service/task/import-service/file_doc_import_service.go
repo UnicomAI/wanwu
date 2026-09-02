@@ -14,6 +14,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/service"
 	file_extract "github.com/UnicomAI/wanwu/internal/knowledge-service/task/file-extract"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	path_util "github.com/UnicomAI/wanwu/pkg/path-util"
 	wanwu_util "github.com/UnicomAI/wanwu/pkg/util"
 )
 
@@ -108,8 +109,8 @@ func checkOneFile(ctx context.Context, importTask *model.KnowledgeImportTask, do
 		return false, util.KnowledgeImportFileSizeErr
 	}
 	//3.文件名合法性校验
-	if !IsSafeFileName(doc.DocName) {
-		log.Errorf("文件 '%s' 文件名非法", doc.DocName)
+	if err := path_util.ValidateBasename(doc.DocName); err != nil {
+		log.Errorf("文件 '%s' 文件名非法: %v", doc.DocName, err)
 		return false, util.KnowledgeImportInvalidNameErr
 	}
 	//3.1 文件名长度校验：RAG 落盘时以文档名为本地文件名，过长会触发系统"文件名过长"报错
@@ -124,18 +125,6 @@ func checkOneFile(ctx context.Context, importTask *model.KnowledgeImportTask, do
 		return false, util.KnowledgeImportSameNameErr
 	}
 	return true, ""
-}
-
-// IsSafeFileName 校验文件名是否合法
-// 文件名中不能包含斜杠 /、反斜杠 \、或连续两个点 ..
-func IsSafeFileName(name string) bool {
-	if strings.Contains(name, "/") || strings.Contains(name, "\\") {
-		return false
-	}
-	if strings.Contains(name, "..") {
-		return false
-	}
-	return true
 }
 
 // 校验单个文件大小限制

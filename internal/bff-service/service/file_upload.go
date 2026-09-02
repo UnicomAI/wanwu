@@ -24,6 +24,7 @@ import (
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/minio"
+	path_util "github.com/UnicomAI/wanwu/pkg/path-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
@@ -39,6 +40,9 @@ var (
 )
 
 func CheckFile(ctx *gin.Context, r *request.CheckFileReq) (*response.CheckFileResp, error) {
+	if err := path_util.ValidateBasename(r.FileName); err != nil {
+		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error())
+	}
 	exist, err := util.FileExist(BuildUploadFilePath(r.FileName, r.Sequence, r.ChunkName))
 	if err != nil {
 		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_file_upload_check", err.Error())
@@ -68,6 +72,11 @@ func CheckFileList(ctx *gin.Context, r *request.CheckFileListReq) (*response.Che
 }
 
 func UploadFile(ctx *gin.Context, r *request.UploadFileReq) (*response.UploadFileResp, error) {
+	// 校验必须先于下方 defer clearChunkFile 注册：
+	// 否则携带 "../" 的 fileName 会在失败清理分支触发任意文件删除。
+	if err := path_util.ValidateBasename(r.FileName); err != nil {
+		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error())
+	}
 	var err error
 	defer func() {
 		if err != nil {
@@ -97,6 +106,9 @@ func UploadFile(ctx *gin.Context, r *request.UploadFileReq) (*response.UploadFil
 }
 
 func MergeFile(ctx *gin.Context, r *request.MergeFileReq) (*response.MergeFileResp, error) {
+	if err := path_util.ValidateBasename(r.FileName); err != nil {
+		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error())
+	}
 	var err error
 	var mergeFilePath = BuildMergeFilePath(r.FileName, r.ChunkName)
 	defer func() {

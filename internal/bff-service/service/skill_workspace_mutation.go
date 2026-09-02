@@ -120,7 +120,7 @@ func CreateSkillWorkspaceFile(ctx *gin.Context, userID, orgID string, req reques
 	if err != nil {
 		return nil, workspaceMutationError("bff_skill_workspace_path_not_allowed")
 	}
-	if err := validateWorkspaceName(filepath.Base(clean)); err != nil {
+	if err := path_util.ValidateBasename(filepath.Base(clean)); err != nil {
 		return nil, workspaceMutationError("bff_skill_workspace_name_invalid")
 	}
 	mu := ws.repo.GetMutex()
@@ -177,7 +177,7 @@ func CreateSkillWorkspaceDirectory(ctx *gin.Context, userID, orgID string, req r
 	if err != nil {
 		return nil, workspaceMutationError("bff_skill_workspace_path_not_allowed")
 	}
-	if err := validateWorkspaceName(filepath.Base(clean)); err != nil || isWorkspaceMetadataPath(clean) {
+	if err := path_util.ValidateBasename(filepath.Base(clean)); err != nil || isWorkspaceMetadataPath(clean) {
 		return nil, workspaceMutationError("bff_skill_workspace_name_invalid")
 	}
 	mu := ws.repo.GetMutex()
@@ -211,7 +211,7 @@ func CreateSkillWorkspaceDirectory(ctx *gin.Context, userID, orgID string, req r
 // RenameSkillWorkspaceEntry 支持文件和目录。目标始终位于同级目录，
 // 因此调用方无法将条目移动到其他工作区。
 func RenameSkillWorkspaceEntry(ctx *gin.Context, userID, orgID string, req request.RenameSkillWorkspaceFileReq) (*response.RenameSkillWorkspaceEntryResp, error) {
-	if err := validateWorkspaceName(req.NewName); err != nil {
+	if err := path_util.ValidateBasename(req.NewName); err != nil {
 		return nil, workspaceMutationError("bff_skill_workspace_name_invalid")
 	}
 	ws, err := resolveAuthorizedWorkspace(ctx, userID, orgID, req.CustomSkillID)
@@ -274,7 +274,7 @@ func validateUploadHeader(header *multipart.FileHeader) error {
 	if strings.HasSuffix(header.Filename, "/") || strings.HasSuffix(header.Filename, "\\") {
 		return fmt.Errorf("directory upload is not allowed")
 	}
-	if err := validateWorkspaceName(header.Filename); err != nil {
+	if err := path_util.ValidateBasename(header.Filename); err != nil {
 		return err
 	}
 	if header.Size < 0 || header.Size > maxWorkspaceUploadFileBytes {

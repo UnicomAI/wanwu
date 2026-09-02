@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"strings"
 
-	es_service "github.com/UnicomAI/wanwu/internal/assistant-service/service/es-service"
-	service_model "github.com/UnicomAI/wanwu/internal/assistant-service/service/service-model"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/assistant-service/config"
+	es_service "github.com/UnicomAI/wanwu/internal/assistant-service/service/es-service"
+	service_model "github.com/UnicomAI/wanwu/internal/assistant-service/service/service-model"
 	"github.com/UnicomAI/wanwu/pkg/log"
 )
 

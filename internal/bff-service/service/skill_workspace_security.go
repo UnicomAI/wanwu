@@ -20,7 +20,6 @@ const (
 	// 限制标识符长度，因为 wga-persistent 会将其拼接到目录名中。当前 Skill
 	// 标识由 UUID 或命名空间/名称组成，因此这里的限制比通用文件名更严格。
 	maxSkillWorkspaceIDLength = 256
-	maxWorkspaceNameLength    = 255
 
 	maxWorkspaceUploadFiles       = 20
 	maxWorkspaceUploadFileBytes   = 50 << 20  // 50 MiB per file
@@ -130,41 +129,6 @@ func authorizeSkillWorkspaceEdit(ctx *gin.Context, userID, orgID, skillID string
 	// 防止伪造或过期的组织上下文跨租户访问，同时兼容不携带组织 ID 的内部调用方。
 	if ownerOrgID != "" && orgID != "" && ownerOrgID != orgID {
 		return workspaceNoPermissionError()
-	}
-	return nil
-}
-
-// validateWorkspaceName 校验单个文件或目录名称。创建、重命名和 multipart 上传
-// 共用此校验，且始终不接受路径。
-func validateWorkspaceName(name string) error {
-	if name == "" || name == "." || name == ".." {
-		return fmt.Errorf("name is required")
-	}
-	if len(name) > maxWorkspaceNameLength {
-		return fmt.Errorf("name too long")
-	}
-	if strings.ContainsAny(name, `/\\:`) || strings.ContainsRune(name, '\x00') {
-		return fmt.Errorf("name must be a basename")
-	}
-	if strings.HasSuffix(name, ".") || strings.HasSuffix(name, " ") {
-		return fmt.Errorf("name has an unsafe suffix")
-	}
-	for _, r := range name {
-		if unicode.IsControl(r) {
-			return fmt.Errorf("name contains invalid control characters")
-		}
-	}
-	if strings.HasPrefix(name, ".") || name == ".git" {
-		return fmt.Errorf("hidden workspace entries are not allowed")
-	}
-	// Windows 设备名即使在 Linux 服务上也不安全，因为工作区后续可能被复制到 Windows 主机。
-	base := strings.ToUpper(strings.TrimSuffix(name, "."))
-	if strings.Contains(base, ".") {
-		base = strings.SplitN(base, ".", 2)[0]
-	}
-	switch base {
-	case "CON", "PRN", "AUX", "NUL", "CLOCK$", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9":
-		return fmt.Errorf("reserved device name")
 	}
 	return nil
 }

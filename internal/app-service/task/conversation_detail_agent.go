@@ -6,11 +6,11 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/UnicomAI/wanwu/internal/app-service/client/model"
-	"github.com/UnicomAI/wanwu/pkg/util"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
+	"github.com/UnicomAI/wanwu/internal/app-service/client/model"
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	"github.com/UnicomAI/wanwu/pkg/util"
 )
 
 var agentHandler = &agentDetailHandler{}
