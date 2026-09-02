@@ -1,45 +1,72 @@
 <template>
   <div class="parse-template-select">
-    <div class="template-grid">
-      <div
-        class="template-item"
-        v-for="item in docTypeList"
-        :key="item.docType"
+    <!-- 收起态：只列已选模板，未选则提示走内置默认 -->
+    <div v-if="!isOpen" class="template-summary">
+      <el-tag
+        v-for="tag in customTags"
+        :key="tag.docType"
+        size="small"
+        color="#E6F0FF"
+        class="summary-tag"
       >
-        <p class="item-label">
-          <FileIcon class="item-icon" :type="item.icon" size="16px" />
-          <span class="item-name">{{ item.name }}</span>
-          <span
-            v-if="!disabled"
-            class="item-edit"
-            @click="openTemplatePage(item.docType)"
-          >
-            {{ $t('common.button.edit') }}
-          </span>
-        </p>
-        <el-select
-          :value="bind[item.docType] || builtInValue(item.docType)"
-          :disabled="disabled"
-          @change="handleChange(item.docType, $event)"
-        >
-          <el-option
-            :label="$t('knowledgeManage.parseTemplate.builtIn')"
-            :value="builtInValue(item.docType)"
-          ></el-option>
-          <el-option
-            v-for="template in customTemplates(item.docType)"
-            :key="template.templateId"
-            :label="template.name"
-            :value="template.templateId"
-          ></el-option>
-          <el-option
-            class="create-template-option"
-            :label="$t('knowledgeManage.parseTemplate.createTemplate')"
-            :value="CREATE_OPTION"
-          ></el-option>
-        </el-select>
-      </div>
+        {{ tag.docTypeName }}：{{ tag.templateName }}
+      </el-tag>
+      <span v-if="!customTags.length" class="summary-empty">
+        {{ $t('knowledgeManage.parseTemplate.noneSelected') }}
+      </span>
+      <i
+        v-if="!disabled"
+        class="el-icon-edit-outline summary-edit"
+        @click="expanded = true"
+      ></i>
     </div>
+    <template v-else>
+      <div class="template-grid">
+        <div
+          class="template-item"
+          v-for="item in docTypeList"
+          :key="item.docType"
+        >
+          <p class="item-label">
+            <FileIcon class="item-icon" :type="item.icon" size="16px" />
+            <span class="item-name">{{ item.name }}</span>
+            <span
+              v-if="!disabled"
+              class="item-edit"
+              @click="openTemplatePage(item.docType)"
+            >
+              {{ $t('common.button.edit') }}
+            </span>
+          </p>
+          <el-select
+            :value="bind[item.docType] || builtInValue(item.docType)"
+            :disabled="disabled"
+            @change="handleChange(item.docType, $event)"
+          >
+            <el-option
+              :label="$t('knowledgeManage.parseTemplate.builtIn')"
+              :value="builtInValue(item.docType)"
+            ></el-option>
+            <el-option
+              v-for="template in customTemplates(item.docType)"
+              :key="template.templateId"
+              :label="template.name"
+              :value="template.templateId"
+            ></el-option>
+            <el-option
+              class="create-template-option"
+              :label="$t('knowledgeManage.parseTemplate.createTemplate')"
+              :value="CREATE_OPTION"
+            ></el-option>
+          </el-select>
+        </div>
+      </div>
+      <div v-if="collapsible" class="grid-footer">
+        <el-button type="text" @click="expanded = false">
+          {{ $t('common.button.fold') }}
+        </el-button>
+      </div>
+    </template>
   </div>
 </template>
 <script>
@@ -56,15 +83,42 @@ export default {
     // 各文档类型选定的模板，格式 {docType: templateId}
     value: { type: Object, default: () => ({}) },
     disabled: { type: Boolean, default: false },
+    // 上传文件场景下十三项太占版面，默认折叠
+    collapsible: { type: Boolean, default: false },
   },
   data() {
     return {
       CREATE_OPTION,
+      expanded: false,
       docTypeList: DOC_TYPE_LIST,
       bind: { ...this.value },
       grouped: {},
       needRefresh: false,
     };
+  },
+  computed: {
+    isOpen() {
+      return !this.collapsible || this.expanded;
+    },
+    // 收起时只展示偏离内置（默认）的那几项
+    customTags() {
+      return this.docTypeList
+        .map(item => {
+          const templateId = this.bind[item.docType];
+          if (!templateId || templateId === this.builtInValue(item.docType)) {
+            return null;
+          }
+          const template = (this.grouped[item.docType] || []).find(
+            t => t.templateId === templateId,
+          );
+          return {
+            docType: item.docType,
+            docTypeName: item.name,
+            templateName: template ? template.name : templateId,
+          };
+        })
+        .filter(Boolean);
+    },
   },
   watch: {
     value(val) {
@@ -139,6 +193,34 @@ export default {
 </script>
 <style lang="scss" scoped>
 .parse-template-select {
+  .template-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+  }
+
+  .summary-tag {
+    border-color: transparent;
+  }
+
+  .summary-empty {
+    font-size: 13px;
+    color: #909399;
+  }
+
+  .summary-edit {
+    cursor: pointer;
+    font-size: 16px;
+    color: #5a6cf3;
+  }
+
+  .grid-footer {
+    margin-top: 4px;
+    text-align: right;
+  }
+
   .template-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

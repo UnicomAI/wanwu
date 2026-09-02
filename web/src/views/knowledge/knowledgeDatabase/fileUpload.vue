@@ -252,7 +252,10 @@
             </el-form-item>
             <template v-if="parseMode === PARSE_MODE_TEMPLATE">
               <el-form-item :label="$t('knowledgeManage.parseTemplate.title')">
-                <parseTemplateSelect v-model="ruleForm.parseTemplate" />
+                <parseTemplateSelect
+                  v-model="ruleForm.parseTemplate"
+                  collapsible
+                />
                 <div class="template-footer">
                   <el-checkbox v-model="ruleForm.overrideKnowledgeTemplate">
                     {{ $t('knowledgeManage.parseTemplate.overrideKnowledge') }}
