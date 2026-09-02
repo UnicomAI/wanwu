@@ -36,11 +36,15 @@ const (
 	IAMService_UpdateUserAvatar_FullMethodName            = "/iam_service.IAMService/UpdateUserAvatar"
 	IAMService_IsUserOrgAdmin_FullMethodName              = "/iam_service.IAMService/IsUserOrgAdmin"
 	IAMService_IsAdminInOrgs_FullMethodName               = "/iam_service.IAMService/IsAdminInOrgs"
+	IAMService_GetUsersByOrgIDs_FullMethodName            = "/iam_service.IAMService/GetUsersByOrgIDs"
 	IAMService_GetOrgSelect_FullMethodName                = "/iam_service.IAMService/GetOrgSelect"
 	IAMService_GetOrgList_FullMethodName                  = "/iam_service.IAMService/GetOrgList"
 	IAMService_GetOrgInfo_FullMethodName                  = "/iam_service.IAMService/GetOrgInfo"
 	IAMService_GetOrgByOrgIDs_FullMethodName              = "/iam_service.IAMService/GetOrgByOrgIDs"
-	IAMService_GetUsersByOrgIDs_FullMethodName            = "/iam_service.IAMService/GetUsersByOrgIDs"
+	IAMService_GetOrgParentList_FullMethodName            = "/iam_service.IAMService/GetOrgParentList"
+	IAMService_GetOrgParentIDList_FullMethodName          = "/iam_service.IAMService/GetOrgParentIDList"
+	IAMService_GetOrgUsersAndSubOrgs_FullMethodName       = "/iam_service.IAMService/GetOrgUsersAndSubOrgs"
+	IAMService_SearchOrgAndUser_FullMethodName            = "/iam_service.IAMService/SearchOrgAndUser"
 	IAMService_ValidateUserOrgPairs_FullMethodName        = "/iam_service.IAMService/ValidateUserOrgPairs"
 	IAMService_GetUserOrgMembership_FullMethodName        = "/iam_service.IAMService/GetUserOrgMembership"
 	IAMService_GetOrgAndSubOrgSelectByUser_FullMethodName = "/iam_service.IAMService/GetOrgAndSubOrgSelectByUser"
@@ -121,6 +125,8 @@ type IAMServiceClient interface {
 	IsUserOrgAdmin(ctx context.Context, in *IsUserOrgAdminReq, opts ...grpc.CallOption) (*IsUserOrgAdminResp, error)
 	// 查询用户对指定组织是否拥有管理员权限（含祖先组织继承）
 	IsAdminInOrgs(ctx context.Context, in *IsAdminInOrgsReq, opts ...grpc.CallOption) (*IsAdminInOrgsResp, error)
+	// 通过多个orgId获取用户列表（去重、不过滤禁用状态）
+	GetUsersByOrgIDs(ctx context.Context, in *GetUsersByOrgIDsReq, opts ...grpc.CallOption) (*GetUsersByOrgIDsResp, error)
 	// 获取组织列表（用于下拉选择）
 	GetOrgSelect(ctx context.Context, in *GetOrgSelectReq, opts ...grpc.CallOption) (*OrgSelectResp, error)
 	// 获取组织列表
@@ -129,8 +135,14 @@ type IAMServiceClient interface {
 	GetOrgInfo(ctx context.Context, in *GetOrgInfoReq, opts ...grpc.CallOption) (*OrgInfo, error)
 	// 通过orgIds获取组织信息
 	GetOrgByOrgIDs(ctx context.Context, in *GetOrgByOrgIDsReq, opts ...grpc.CallOption) (*GetOrgByOrgIDsResp, error)
-	// 通过多个orgId获取用户列表（去重、不过滤禁用状态）
-	GetUsersByOrgIDs(ctx context.Context, in *GetUsersByOrgIDsReq, opts ...grpc.CallOption) (*GetUsersByOrgIDsResp, error)
+	// 通过orgId获取完整父级组织列表（包含内部顶级组织，不包含当前组织）
+	GetOrgParentList(ctx context.Context, in *GetOrgParentReq, opts ...grpc.CallOption) (*OrgSelectResp, error)
+	// 通过orgId获取完整父级组织ID列表（包含内部顶级组织，不包含当前组织）
+	GetOrgParentIDList(ctx context.Context, in *GetOrgParentReq, opts ...grpc.CallOption) (*GetAdminOrgIDsResp, error)
+	// 获取指定组织下级组织和用户，并支持全系统模糊搜索
+	GetOrgUsersAndSubOrgs(ctx context.Context, in *GetOrgUsersAndSubOrgsReq, opts ...grpc.CallOption) (*GetOrgUsersAndSubOrgsResp, error)
+	// 全系统模糊搜索系统及用户
+	SearchOrgAndUser(ctx context.Context, in *SearchOrgAndUserReq, opts ...grpc.CallOption) (*SearchOrgAndUserResp, error)
 	// 校验用户-组织二元组有效性（去重 + 过滤禁用账号/禁用成员 + 数量上限）
 	ValidateUserOrgPairs(ctx context.Context, in *ValidateUserOrgPairsReq, opts ...grpc.CallOption) (*ValidateUserOrgPairsResp, error)
 	// 查询单用户在指定组织的成员关系（加入时间 + 状态）
@@ -388,6 +400,16 @@ func (c *iAMServiceClient) IsAdminInOrgs(ctx context.Context, in *IsAdminInOrgsR
 	return out, nil
 }
 
+func (c *iAMServiceClient) GetUsersByOrgIDs(ctx context.Context, in *GetUsersByOrgIDsReq, opts ...grpc.CallOption) (*GetUsersByOrgIDsResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUsersByOrgIDsResp)
+	err := c.cc.Invoke(ctx, IAMService_GetUsersByOrgIDs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *iAMServiceClient) GetOrgSelect(ctx context.Context, in *GetOrgSelectReq, opts ...grpc.CallOption) (*OrgSelectResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(OrgSelectResp)
@@ -428,10 +450,40 @@ func (c *iAMServiceClient) GetOrgByOrgIDs(ctx context.Context, in *GetOrgByOrgID
 	return out, nil
 }
 
-func (c *iAMServiceClient) GetUsersByOrgIDs(ctx context.Context, in *GetUsersByOrgIDsReq, opts ...grpc.CallOption) (*GetUsersByOrgIDsResp, error) {
+func (c *iAMServiceClient) GetOrgParentList(ctx context.Context, in *GetOrgParentReq, opts ...grpc.CallOption) (*OrgSelectResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetUsersByOrgIDsResp)
-	err := c.cc.Invoke(ctx, IAMService_GetUsersByOrgIDs_FullMethodName, in, out, cOpts...)
+	out := new(OrgSelectResp)
+	err := c.cc.Invoke(ctx, IAMService_GetOrgParentList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetOrgParentIDList(ctx context.Context, in *GetOrgParentReq, opts ...grpc.CallOption) (*GetAdminOrgIDsResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAdminOrgIDsResp)
+	err := c.cc.Invoke(ctx, IAMService_GetOrgParentIDList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetOrgUsersAndSubOrgs(ctx context.Context, in *GetOrgUsersAndSubOrgsReq, opts ...grpc.CallOption) (*GetOrgUsersAndSubOrgsResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetOrgUsersAndSubOrgsResp)
+	err := c.cc.Invoke(ctx, IAMService_GetOrgUsersAndSubOrgs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) SearchOrgAndUser(ctx context.Context, in *SearchOrgAndUserReq, opts ...grpc.CallOption) (*SearchOrgAndUserResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchOrgAndUserResp)
+	err := c.cc.Invoke(ctx, IAMService_SearchOrgAndUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -894,6 +946,8 @@ type IAMServiceServer interface {
 	IsUserOrgAdmin(context.Context, *IsUserOrgAdminReq) (*IsUserOrgAdminResp, error)
 	// 查询用户对指定组织是否拥有管理员权限（含祖先组织继承）
 	IsAdminInOrgs(context.Context, *IsAdminInOrgsReq) (*IsAdminInOrgsResp, error)
+	// 通过多个orgId获取用户列表（去重、不过滤禁用状态）
+	GetUsersByOrgIDs(context.Context, *GetUsersByOrgIDsReq) (*GetUsersByOrgIDsResp, error)
 	// 获取组织列表（用于下拉选择）
 	GetOrgSelect(context.Context, *GetOrgSelectReq) (*OrgSelectResp, error)
 	// 获取组织列表
@@ -902,8 +956,14 @@ type IAMServiceServer interface {
 	GetOrgInfo(context.Context, *GetOrgInfoReq) (*OrgInfo, error)
 	// 通过orgIds获取组织信息
 	GetOrgByOrgIDs(context.Context, *GetOrgByOrgIDsReq) (*GetOrgByOrgIDsResp, error)
-	// 通过多个orgId获取用户列表（去重、不过滤禁用状态）
-	GetUsersByOrgIDs(context.Context, *GetUsersByOrgIDsReq) (*GetUsersByOrgIDsResp, error)
+	// 通过orgId获取完整父级组织列表（包含内部顶级组织，不包含当前组织）
+	GetOrgParentList(context.Context, *GetOrgParentReq) (*OrgSelectResp, error)
+	// 通过orgId获取完整父级组织ID列表（包含内部顶级组织，不包含当前组织）
+	GetOrgParentIDList(context.Context, *GetOrgParentReq) (*GetAdminOrgIDsResp, error)
+	// 获取指定组织下级组织和用户，并支持全系统模糊搜索
+	GetOrgUsersAndSubOrgs(context.Context, *GetOrgUsersAndSubOrgsReq) (*GetOrgUsersAndSubOrgsResp, error)
+	// 全系统模糊搜索系统及用户
+	SearchOrgAndUser(context.Context, *SearchOrgAndUserReq) (*SearchOrgAndUserResp, error)
 	// 校验用户-组织二元组有效性（去重 + 过滤禁用账号/禁用成员 + 数量上限）
 	ValidateUserOrgPairs(context.Context, *ValidateUserOrgPairsReq) (*ValidateUserOrgPairsResp, error)
 	// 查询单用户在指定组织的成员关系（加入时间 + 状态）
@@ -1049,6 +1109,9 @@ func (UnimplementedIAMServiceServer) IsUserOrgAdmin(context.Context, *IsUserOrgA
 func (UnimplementedIAMServiceServer) IsAdminInOrgs(context.Context, *IsAdminInOrgsReq) (*IsAdminInOrgsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsAdminInOrgs not implemented")
 }
+func (UnimplementedIAMServiceServer) GetUsersByOrgIDs(context.Context, *GetUsersByOrgIDsReq) (*GetUsersByOrgIDsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUsersByOrgIDs not implemented")
+}
 func (UnimplementedIAMServiceServer) GetOrgSelect(context.Context, *GetOrgSelectReq) (*OrgSelectResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrgSelect not implemented")
 }
@@ -1061,8 +1124,17 @@ func (UnimplementedIAMServiceServer) GetOrgInfo(context.Context, *GetOrgInfoReq)
 func (UnimplementedIAMServiceServer) GetOrgByOrgIDs(context.Context, *GetOrgByOrgIDsReq) (*GetOrgByOrgIDsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrgByOrgIDs not implemented")
 }
-func (UnimplementedIAMServiceServer) GetUsersByOrgIDs(context.Context, *GetUsersByOrgIDsReq) (*GetUsersByOrgIDsResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUsersByOrgIDs not implemented")
+func (UnimplementedIAMServiceServer) GetOrgParentList(context.Context, *GetOrgParentReq) (*OrgSelectResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrgParentList not implemented")
+}
+func (UnimplementedIAMServiceServer) GetOrgParentIDList(context.Context, *GetOrgParentReq) (*GetAdminOrgIDsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrgParentIDList not implemented")
+}
+func (UnimplementedIAMServiceServer) GetOrgUsersAndSubOrgs(context.Context, *GetOrgUsersAndSubOrgsReq) (*GetOrgUsersAndSubOrgsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrgUsersAndSubOrgs not implemented")
+}
+func (UnimplementedIAMServiceServer) SearchOrgAndUser(context.Context, *SearchOrgAndUserReq) (*SearchOrgAndUserResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchOrgAndUser not implemented")
 }
 func (UnimplementedIAMServiceServer) ValidateUserOrgPairs(context.Context, *ValidateUserOrgPairsReq) (*ValidateUserOrgPairsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateUserOrgPairs not implemented")
@@ -1499,6 +1571,24 @@ func _IAMService_IsAdminInOrgs_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_GetUsersByOrgIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUsersByOrgIDsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetUsersByOrgIDs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetUsersByOrgIDs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetUsersByOrgIDs(ctx, req.(*GetUsersByOrgIDsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IAMService_GetOrgSelect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetOrgSelectReq)
 	if err := dec(in); err != nil {
@@ -1571,20 +1661,74 @@ func _IAMService_GetOrgByOrgIDs_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _IAMService_GetUsersByOrgIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetUsersByOrgIDsReq)
+func _IAMService_GetOrgParentList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrgParentReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(IAMServiceServer).GetUsersByOrgIDs(ctx, in)
+		return srv.(IAMServiceServer).GetOrgParentList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: IAMService_GetUsersByOrgIDs_FullMethodName,
+		FullMethod: IAMService_GetOrgParentList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(IAMServiceServer).GetUsersByOrgIDs(ctx, req.(*GetUsersByOrgIDsReq))
+		return srv.(IAMServiceServer).GetOrgParentList(ctx, req.(*GetOrgParentReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetOrgParentIDList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrgParentReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetOrgParentIDList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetOrgParentIDList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetOrgParentIDList(ctx, req.(*GetOrgParentReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetOrgUsersAndSubOrgs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrgUsersAndSubOrgsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetOrgUsersAndSubOrgs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetOrgUsersAndSubOrgs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetOrgUsersAndSubOrgs(ctx, req.(*GetOrgUsersAndSubOrgsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_SearchOrgAndUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchOrgAndUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).SearchOrgAndUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_SearchOrgAndUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).SearchOrgAndUser(ctx, req.(*SearchOrgAndUserReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2417,6 +2561,10 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMService_IsAdminInOrgs_Handler,
 		},
 		{
+			MethodName: "GetUsersByOrgIDs",
+			Handler:    _IAMService_GetUsersByOrgIDs_Handler,
+		},
+		{
 			MethodName: "GetOrgSelect",
 			Handler:    _IAMService_GetOrgSelect_Handler,
 		},
@@ -2433,8 +2581,20 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMService_GetOrgByOrgIDs_Handler,
 		},
 		{
-			MethodName: "GetUsersByOrgIDs",
-			Handler:    _IAMService_GetUsersByOrgIDs_Handler,
+			MethodName: "GetOrgParentList",
+			Handler:    _IAMService_GetOrgParentList_Handler,
+		},
+		{
+			MethodName: "GetOrgParentIDList",
+			Handler:    _IAMService_GetOrgParentIDList_Handler,
+		},
+		{
+			MethodName: "GetOrgUsersAndSubOrgs",
+			Handler:    _IAMService_GetOrgUsersAndSubOrgs_Handler,
+		},
+		{
+			MethodName: "SearchOrgAndUser",
+			Handler:    _IAMService_SearchOrgAndUser_Handler,
 		},
 		{
 			MethodName: "ValidateUserOrgPairs",

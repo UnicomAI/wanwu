@@ -21,6 +21,8 @@ type IClient interface {
 	SelectUsersNotInOrg(ctx context.Context, orgID uint32, name string) ([]orm.IDNameWithAvatar, *errs.Status)
 	SelectUsersByUserIDs(ctx context.Context, userIDs []uint32) ([]orm.IDNameWithAvatar, *errs.Status)
 	GetUsersByOrgIDs(ctx context.Context, orgIDs []uint32) ([]orm.IDNameWithAvatar, *errs.Status)
+	GetOrgUsersAndSubOrgs(ctx context.Context, orgID uint32) (*orm.OrgUsersResult, *errs.Status)
+	SearchOrgAndUser(ctx context.Context, name string) (*orm.OrgUsersResult, *errs.Status)
 
 	CreateUser(ctx context.Context, user *model.User, orgID uint32, roleIDs []uint32) (uint32, *errs.Status)
 	CreateUsers(ctx context.Context, users []*orm.UsersInfo, creatorID, orgID uint32) (*orm.CreateUsersResult, *errs.Status)
@@ -48,6 +50,7 @@ type IClient interface {
 	GetOrgs(ctx context.Context, parentID uint32, name string, offset, limit int32) ([]*orm.OrgInfo, int64, *errs.Status)
 	SelectOrgs(ctx context.Context, userID uint32) ([]orm.IDNameWithAvatar, *errs.Status)
 	GetOrgByOrgIDs(ctx context.Context, orgIDs []uint32) ([]orm.IDFullName, *errs.Status)
+	GetOrgParentPath(ctx context.Context, orgID uint32) ([]orm.IDNameWithAvatar, *errs.Status)
 	GetOrgAndSubOrgSelectByUser(ctx context.Context, userID, orgID uint32) ([]orm.IDNameWithAvatar, *errs.Status)
 	GetFirstClassOrgAndSubs(ctx context.Context, userID, orgID uint32) ([]orm.IDNameWithAvatar, *errs.Status)
 	GetAdminOrgSelect(ctx context.Context, userID uint32) ([]orm.IDNameWithAvatar, *errs.Status)

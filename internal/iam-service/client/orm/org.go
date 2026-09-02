@@ -104,6 +104,137 @@ func (c *Client) GetOrgByOrgIDs(ctx context.Context, orgIDs []uint32) ([]IDFullN
 	})
 }
 
+// GetOrgParentPath 返回从内部顶级组织到指定组织直属父组织的完整父级路径，不包含指定组织。
+func (c *Client) GetOrgParentPath(ctx context.Context, orgID uint32) ([]IDNameWithAvatar, *errs.Status) {
+	var ret []IDNameWithAvatar
+	return ret, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+		orgTree, err := getOrgTree(tx)
+		if err != nil {
+			return toErrStatus("iam_org_get", err.Error())
+		}
+		if orgTree.GetOrg(orgID) == nil {
+			return toErrStatus("iam_org_get", gorm.ErrRecordNotFound.Error())
+		}
+		for _, node := range orgTree.GetParentPath(orgID, true) {
+			ret = append(ret, IDNameWithAvatar{
+				ID:         node.GetOrgID(),
+				Name:       node.GetOrgName(node.GetOrgID()),
+				AvatarPath: node.GetAvatarPath(),
+			})
+		}
+		return nil
+	})
+}
+
+func (c *Client) GetOrgUsersAndSubOrgs(ctx context.Context, orgID uint32) (*OrgUsersResult, *errs.Status) {
+	if orgID == 0 {
+		ret := &OrgUsersResult{}
+		return ret, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+			orgTree, err := getOrgTree(tx)
+			if err != nil {
+				return toErrStatus("iam_org_users_get", err.Error())
+			}
+			node := orgTree.GetOrg(config.TopOrgID())
+			if node == nil {
+				return toErrStatus("iam_org_users_get", gorm.ErrRecordNotFound.Error())
+			}
+			ret.Orgs = append(ret.Orgs, IDNameWithAvatar{ID: node.GetOrgID(), Name: node.GetOrgName(node.GetOrgID()), AvatarPath: node.GetAvatarPath()})
+			return nil
+		})
+	}
+	return c.getOrgUsersAndSubOrgs(ctx, orgID)
+}
+
+func (c *Client) SearchOrgAndUser(ctx context.Context, name string) (*OrgUsersResult, *errs.Status) {
+	return c.queryOrgUsers(ctx, name)
+}
+
+// getOrgUsersAndSubOrgs 根据组织 ID 获取直属下级组织和当前组织用户。
+// 未传组织 ID 时仅返回系统顶级组织；系统顶级组织不返回用户。
+func (c *Client) getOrgUsersAndSubOrgs(ctx context.Context, orgID uint32) (*OrgUsersResult, *errs.Status) {
+	ret := &OrgUsersResult{}
+	return ret, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+		orgTree, err := getOrgTree(tx)
+		if err != nil {
+			return toErrStatus("iam_org_users_get", err.Error())
+		}
+		if orgID != 0 {
+			node := orgTree.GetOrg(orgID)
+			if node == nil {
+				return toErrStatus("iam_org_users_get", gorm.ErrRecordNotFound.Error())
+			}
+			var orgs []*model.Org
+			if err := sqlopt.WithParentID(orgID).Apply(tx).Order("id ASC").Find(&orgs).Error; err != nil {
+				return toErrStatus("iam_org_users_get", err.Error())
+			}
+			for _, o := range orgs {
+				ret.Orgs = append(ret.Orgs, IDNameWithAvatar{ID: o.ID, Name: o.Name, AvatarPath: o.AvatarPath})
+			}
+			if orgID != config.TopOrgID() {
+				var ous []*model.OrgUser
+				if err := sqlopt.WithOrgID(orgID).Apply(tx).Find(&ous).Error; err != nil {
+					return toErrStatus("iam_org_users_get", err.Error())
+				}
+				ids := make([]uint32, 0, len(ous))
+				for _, ou := range ous {
+					ids = append(ids, ou.UserID)
+				}
+				ret.Users, _ = c.SelectUsersByUserIDs(ctx, ids)
+			}
+		}
+		return nil
+	})
+}
+
+// queryOrgUsers 根据名称在全系统模糊搜索组织和用户，并组装用户所属组织路径。
+func (c *Client) queryOrgUsers(ctx context.Context, name string) (*OrgUsersResult, *errs.Status) {
+	ret := &OrgUsersResult{}
+	if name == "" {
+		return nil, toErrStatus("iam_org_users_search", "name is empty")
+	}
+	return ret, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
+		orgTree, err := getOrgTree(tx)
+		if err != nil {
+			return toErrStatus("iam_org_users_get", err.Error())
+		}
+		var orgs []*model.Org
+		if err := tx.Where("name LIKE ?", "%"+name+"%").Order("id ASC").Find(&orgs).Error; err != nil {
+			return toErrStatus("iam_org_users_search", err.Error())
+		}
+		for _, o := range orgs {
+			ret.SearchOrgs = append(ret.SearchOrgs, IDNameWithAvatar{ID: o.ID, Name: o.Name, AvatarPath: o.AvatarPath})
+		}
+		var ous []*model.OrgUser
+		if err := tx.Find(&ous).Error; err != nil {
+			return toErrStatus("iam_org_users_search", err.Error())
+		}
+		var users []*model.User
+		if err := tx.Where("name LIKE ?", "%"+name+"%").Find(&users).Error; err != nil {
+			return toErrStatus("iam_org_users_search", err.Error())
+		}
+		um := map[uint32]*model.User{}
+		for _, u := range users {
+			um[u.ID] = u
+		}
+		for _, ou := range ous {
+			u := um[ou.UserID]
+			if u == nil {
+				continue
+			}
+			n := orgTree.GetOrg(ou.OrgID)
+			if n == nil {
+				continue
+			}
+			var p []IDNameWithAvatar
+			for _, x := range append(orgTree.GetParentPath(ou.OrgID, true), n) {
+				p = append(p, IDNameWithAvatar{ID: x.GetOrgID(), Name: x.GetOrgName(x.GetOrgID()), AvatarPath: x.GetAvatarPath()})
+			}
+			ret.SearchUsers = append(ret.SearchUsers, OrgUserSearchItem{User: IDNameWithAvatar{ID: u.ID, Name: u.Name, AvatarPath: u.AvatarPath}, Orgs: p})
+		}
+		return nil
+	})
+}
+
 func (c *Client) GetOrgAndSubOrgSelectByUser(ctx context.Context, userID, orgID uint32) ([]IDNameWithAvatar, *errs.Status) {
 	var result []IDNameWithAvatar
 	return result, c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
@@ -795,7 +926,7 @@ func buildAdminOrgSubTree(orgTree *model.OrgNode, adminOrgIDs map[uint32]bool) [
 	}
 	// 添加管理员组织的所有祖先（不含根节点）
 	for orgID := range adminOrgIDs {
-		for _, ancestorID := range orgTree.GetAncestorIDs(orgID) {
+		for _, ancestorID := range orgTree.GetAncestorIDs(orgID, false) {
 			visibleIDs[ancestorID] = true
 		}
 	}

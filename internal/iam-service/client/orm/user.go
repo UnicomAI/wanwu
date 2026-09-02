@@ -1121,7 +1121,7 @@ func checkUserIsAdmin(tx *gorm.DB, userID uint32, org *model.Org) (bool, []*mode
 		return false, nil, err
 	}
 	checkOrgIDs := []uint32{org.ID}
-	checkOrgIDs = append(checkOrgIDs, orgTree.GetAncestorIDs(org.ID)...)
+	checkOrgIDs = append(checkOrgIDs, orgTree.GetAncestorIDs(org.ID, false)...)
 	for _, oid := range checkOrgIDs {
 		if orgUserStatusMap[oid] != sqlopt.OrgUserStatusDisabled && userAdminOrgMap[oid] {
 			return true, nil, nil

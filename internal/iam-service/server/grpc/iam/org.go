@@ -2,7 +2,6 @@ package iam
 
 import (
 	"context"
-	"strconv"
 
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	iam_service "github.com/UnicomAI/wanwu/api/proto/iam-service"
@@ -58,6 +57,55 @@ func (s *Service) GetOrgByOrgIDs(ctx context.Context, req *iam_service.GetOrgByO
 	}, nil
 }
 
+func (s *Service) GetOrgParentList(ctx context.Context, req *iam_service.GetOrgParentReq) (*iam_service.OrgSelectResp, error) {
+	orgs, err := s.cli.GetOrgParentPath(ctx, util.MustU32(req.OrgId))
+	if err != nil {
+		return nil, errStatus(errs.Code_IAMOrg, err)
+	}
+	return &iam_service.OrgSelectResp{
+		Selects: toProtoIDNameWithAvatars(orgs),
+	}, nil
+}
+
+func (s *Service) GetOrgParentIDList(ctx context.Context, req *iam_service.GetOrgParentReq) (*iam_service.GetAdminOrgIDsResp, error) {
+	orgs, err := s.cli.GetOrgParentPath(ctx, util.MustU32(req.OrgId))
+	if err != nil {
+		return nil, errStatus(errs.Code_IAMOrg, err)
+	}
+	resp := &iam_service.GetAdminOrgIDsResp{}
+	for _, org := range orgs {
+		resp.OrgIds = append(resp.OrgIds, util.Int2Str(int(org.ID)))
+	}
+	return resp, nil
+}
+
+func (s *Service) GetOrgUsersAndSubOrgs(ctx context.Context, req *iam_service.GetOrgUsersAndSubOrgsReq) (*iam_service.GetOrgUsersAndSubOrgsResp, error) {
+	var orgID uint32
+	if req.OrgId != "" {
+		orgID = util.MustU32(req.OrgId)
+	}
+	result, err := s.cli.GetOrgUsersAndSubOrgs(ctx, orgID)
+	if err != nil {
+		return nil, errStatus(errs.Code_IAMOrg, err)
+	}
+	return &iam_service.GetOrgUsersAndSubOrgsResp{Orgs: toProtoIDNameWithAvatars(result.Orgs), Users: toProtoIDNameWithAvatars(result.Users)}, nil
+}
+
+func (s *Service) SearchOrgAndUser(ctx context.Context, req *iam_service.SearchOrgAndUserReq) (*iam_service.SearchOrgAndUserResp, error) {
+	if req.Name == "" {
+		return nil, errStatus(errs.Code_IAMOrg, toErrStatus("iam_org_users_search", "name is empty"))
+	}
+	result, err := s.cli.SearchOrgAndUser(ctx, req.Name)
+	if err != nil {
+		return nil, errStatus(errs.Code_IAMOrg, err)
+	}
+	resp := &iam_service.SearchOrgAndUserResp{Orgs: toProtoIDNameWithAvatars(result.SearchOrgs)}
+	for _, item := range result.SearchUsers {
+		resp.Users = append(resp.Users, &iam_service.OrgUserSearchItem{User: &iam_service.IDNameWithAvatar{Id: util.Int2Str(int(item.User.ID)), Name: item.User.Name, AvatarPath: item.User.AvatarPath}, Orgs: toProtoIDNameWithAvatars(item.Orgs)})
+	}
+	return resp, nil
+}
+
 func (s *Service) GetOrgAndSubOrgSelectByUser(ctx context.Context, req *iam_service.GetOrgAndSubOrgSelectByUserReq) (*iam_service.GetOrgAndSubOrgSelectByUserResp, error) {
 	orgs, err := s.cli.GetOrgAndSubOrgSelectByUser(ctx, util.MustU32(req.UserId), util.MustU32(req.OrgId))
 	if err != nil {
@@ -105,7 +153,7 @@ func (s *Service) GetAdminOrgIDs(ctx context.Context, req *iam_service.GetAdminO
 	}
 	resp := &iam_service.GetAdminOrgIDsResp{}
 	for _, id := range orgIDs {
-		resp.OrgIds = append(resp.OrgIds, strconv.Itoa(int(id)))
+		resp.OrgIds = append(resp.OrgIds, util.Int2Str(int(id)))
 	}
 	return resp, nil
 }
@@ -122,7 +170,7 @@ func (s *Service) CreateOrg(ctx context.Context, req *iam_service.CreateOrgReq) 
 	if err != nil {
 		return nil, errStatus(errs.Code_IAMOrg, err)
 	}
-	return &iam_service.IDNameWithAvatar{Id: strconv.Itoa(int(orgID)), Name: req.Name, AvatarPath: req.AvatarPath}, nil
+	return &iam_service.IDNameWithAvatar{Id: util.Int2Str(int(orgID)), Name: req.Name, AvatarPath: req.AvatarPath}, nil
 }
 
 func (s *Service) UpdateOrg(ctx context.Context, req *iam_service.UpdateOrgReq) (*emptypb.Empty, error) {
@@ -238,7 +286,7 @@ func (s *Service) GetUserOrgMembership(ctx context.Context, req *iam_service.Get
 
 func toOrgInfo(org *orm.OrgInfo) *iam_service.OrgInfo {
 	return &iam_service.OrgInfo{
-		OrgId:      strconv.Itoa(int(org.ID)),
+		OrgId:      util.Int2Str(int(org.ID)),
 		Name:       org.Name,
 		Remark:     org.Remark,
 		Status:     org.Status,
@@ -263,7 +311,7 @@ func toAdminOrgTreeNodes(nodes []*orm.AdminOrgTreeNode) []*iam_service.AdminOrgT
 
 func toAdminOrgTreeNode(node *orm.AdminOrgTreeNode) *iam_service.AdminOrgTreeNode {
 	return &iam_service.AdminOrgTreeNode{
-		OrgId:      strconv.Itoa(int(node.ID)),
+		OrgId:      util.Int2Str(int(node.ID)),
 		Name:       node.Name,
 		AvatarPath: node.AvatarPath,
 		HasPerm:    node.HasPerm,

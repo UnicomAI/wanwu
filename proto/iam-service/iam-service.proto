@@ -43,6 +43,8 @@ service IAMService {
   rpc IsUserOrgAdmin(IsUserOrgAdminReq) returns (IsUserOrgAdminResp){}
   // 查询用户对指定组织是否拥有管理员权限（含祖先组织继承）
   rpc IsAdminInOrgs(IsAdminInOrgsReq) returns (IsAdminInOrgsResp){}
+  // 通过多个orgId获取用户列表（去重、不过滤禁用状态）
+  rpc GetUsersByOrgIDs(GetUsersByOrgIDsReq) returns (GetUsersByOrgIDsResp) {}
 
   // --- org ---
 
@@ -54,8 +56,14 @@ service IAMService {
   rpc GetOrgInfo(GetOrgInfoReq) returns (OrgInfo) {}
   // 通过orgIds获取组织信息
   rpc GetOrgByOrgIDs(GetOrgByOrgIDsReq) returns (GetOrgByOrgIDsResp) {}
-  // 通过多个orgId获取用户列表（去重、不过滤禁用状态）
-  rpc GetUsersByOrgIDs(GetUsersByOrgIDsReq) returns (GetUsersByOrgIDsResp) {}
+  // 通过orgId获取完整父级组织列表（包含内部顶级组织，不包含当前组织）
+  rpc GetOrgParentList(GetOrgParentReq) returns (OrgSelectResp) {}
+  // 通过orgId获取完整父级组织ID列表（包含内部顶级组织，不包含当前组织）
+  rpc GetOrgParentIDList(GetOrgParentReq) returns (GetAdminOrgIDsResp) {}
+  // 获取指定组织下级组织和用户，并支持全系统模糊搜索
+  rpc GetOrgUsersAndSubOrgs(GetOrgUsersAndSubOrgsReq) returns (GetOrgUsersAndSubOrgsResp) {}
+  // 全系统模糊搜索系统及用户
+  rpc SearchOrgAndUser(SearchOrgAndUserReq) returns (SearchOrgAndUserResp) {}
   // 校验用户-组织二元组有效性（去重 + 过滤禁用账号/禁用成员 + 数量上限）
   rpc ValidateUserOrgPairs(ValidateUserOrgPairsReq) returns (ValidateUserOrgPairsResp) {}
   // 查询单用户在指定组织的成员关系（加入时间 + 状态）
@@ -798,4 +806,30 @@ message UpdateOauthAppStatusReq{
 
 message GetOauthAppReq{
   string clientId = 1;
+}
+
+message GetOrgParentReq {
+  string orgId = 1;
+}
+
+message GetOrgUsersAndSubOrgsReq {
+  string orgId = 1;
+}
+
+message GetOrgUsersAndSubOrgsResp {
+  repeated IDNameWithAvatar orgs = 1;
+  repeated IDNameWithAvatar users = 2;
+}
+
+message SearchOrgAndUserReq {
+  string name = 1;
+}
+message SearchOrgAndUserResp {
+  repeated IDNameWithAvatar orgs = 1;
+  repeated OrgUserSearchItem users = 2;
+}
+
+message OrgUserSearchItem {
+  IDNameWithAvatar user = 1;
+  repeated IDNameWithAvatar orgs = 2;
 }
