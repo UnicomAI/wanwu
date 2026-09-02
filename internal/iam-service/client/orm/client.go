@@ -49,6 +49,17 @@ type IDNameWithAvatar struct {
 	NameStatus *err_code.Status
 }
 
+type OrgUserSearchItem struct {
+	User IDNameWithAvatar
+	Orgs []IDNameWithAvatar
+}
+type OrgUsersResult struct {
+	Orgs        []IDNameWithAvatar
+	Users       []IDNameWithAvatar
+	SearchOrgs  []IDNameWithAvatar
+	SearchUsers []OrgUserSearchItem
+}
+
 type IDFullName struct {
 	IDNameWithAvatar
 	FullName string

@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/UnicomAI/wanwu/pkg/util"
 )
@@ -154,18 +155,36 @@ func (n *OrgNode) GetFirstClassOrg() *OrgNode {
 	return curr
 }
 
-// GetAncestorIDs 返回从指定组织到根的所有祖先ID（不含自身，不含根节点）
-func (n *OrgNode) GetAncestorIDs(orgID uint32) []uint32 {
+// GetAncestorIDs 返回从指定组织到根的所有祖先ID（不含自身）。
+// includeTopOrg 为 true 时包含内部顶级组织。
+func (n *OrgNode) GetAncestorIDs(orgID uint32, includeTopOrg bool) []uint32 {
 	node := n.getOrg(orgID)
 	if node == nil {
 		return nil
 	}
 	var ancestors []uint32
-	for node.parent != nil && node.parent.parent != nil {
+	for node.parent != nil && (includeTopOrg || node.parent.parent != nil) {
 		ancestors = append(ancestors, node.parent.id)
 		node = node.parent
 	}
+	slices.Reverse(ancestors)
 	return ancestors
+}
+
+// GetParentPath 返回从顶级组织到指定组织直属父组织的完整父级路径，不包含指定组织。
+// includeTopOrg 为 false 时不包含内部顶级组织。
+func (n *OrgNode) GetParentPath(orgID uint32, includeTopOrg bool) []*OrgNode {
+	node := n.getOrg(orgID)
+	if node == nil {
+		return nil
+	}
+	var path []*OrgNode
+	for node.parent != nil && (includeTopOrg || node.parent.parent != nil) {
+		path = append(path, node.parent)
+		node = node.parent
+	}
+	slices.Reverse(path)
+	return path
 }
 
 // CollectDescendants 收集指定组织及其所有后代的ID列表
