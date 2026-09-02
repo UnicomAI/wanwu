@@ -9,11 +9,19 @@ import (
 
 const (
 	GeneralAgentChatApi          = "/v1/general/agent/conversation/chat"
+	KnowledgeDocImportApi        = "/v1/knowledge/doc/import"         //知识库文档导入：异步任务+RAG解析耗时长，trace_user 需长 TTL 才能让 OCR/ASR 回调统计命中
+	KnowledgeDocReImportApi      = "/v1/knowledge/doc/reimport"       //知识库文档重新解析
+	OpenapiKnowledgeDocImportApi = "/openapi/v1/knowledge/doc/import" //openapi 文档导入
 	TraceUserTimeout             = 30 * time.Minute
 	TraceUserGeneralAgentTimeout = 6 * time.Hour //6个小时，理论上可以涵盖所有通用智能体会话的超时，如果发现bad case 提高这个值
 )
 
-var longTimeoutPathMap = map[string]bool{GeneralAgentChatApi: true}
+var longTimeoutPathMap = map[string]bool{
+	GeneralAgentChatApi:          true,
+	KnowledgeDocImportApi:        true,
+	KnowledgeDocReImportApi:      true,
+	OpenapiKnowledgeDocImportApi: true,
+}
 
 // buildKeyTimeout 构造redis key 的过期时间
 func buildKeyTimeout(ctx *gin.Context) time.Duration {
