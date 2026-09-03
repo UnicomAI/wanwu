@@ -12,6 +12,7 @@ from model_manager.model_config import get_model_configure, OcrModelConfig
 hl2txt = html2text.HTML2Text()
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextvars import copy_context
 # from PyPDF2 import PdfReader, PdfWriter
 import time
 import fitz
@@ -211,7 +212,9 @@ def model_parser(add_file_path, ocr_model_id):
         num_pages = len(pdf_document)
 
         with ThreadPoolExecutor(max_workers=MODEL_PARSER_MAX_WORKERS) as executor:  # 调整max_workers以适应你的需求
-            futures = {executor.submit(get_page_data, page_num, add_file_path, ocr_model_id): page_num for page_num in
+            # copy_context().run：worker 线程不会继承当前线程的 contextvars（OTel span 存在其中），
+            # 不包裹的话出向 HTTP 不会注入 traceparent，导致 BFF 侧模型统计解析不到 trace 上下文而漏记
+            futures = {executor.submit(copy_context().run, get_page_data, page_num, add_file_path, ocr_model_id): page_num for page_num in
                        range(1, num_pages + 1)}
 
             for future in as_completed(futures):
@@ -260,7 +263,8 @@ def model_parser_file(add_file_path, ocr_model_id):
         num_pages = len(pdf_document)
 
         with ThreadPoolExecutor(max_workers=MODEL_PARSER_MAX_WORKERS) as executor:  # 调整max_workers以适应你的需求
-            futures = {executor.submit(get_page_data, page_num, add_file_path, ocr_model_id): page_num for page_num in
+            # copy_context().run：同 model_parser，保证 worker 线程内出向 HTTP 携带 traceparent
+            futures = {executor.submit(copy_context().run, get_page_data, page_num, add_file_path, ocr_model_id): page_num for page_num in
                        range(1, num_pages + 1)}
 
             for future in as_completed(futures):
