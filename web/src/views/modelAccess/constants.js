@@ -170,6 +170,7 @@ export const SHOW_VISION_LIST = [
   HUOSHAN,
   INFINI,
   OPENAI_API,
+  DEEPSEEK,
 ];
 
 export const CUSTOM_MODEL_ID = 'custom';
