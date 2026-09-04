@@ -177,6 +177,7 @@ export const SHOW_VISION_LIST = [
   INFINI,
   OPENAI_API,
   DEEPSEEK,
+  TENCENT,
 ];
 
 export const CUSTOM_MODEL_ID = 'custom';
