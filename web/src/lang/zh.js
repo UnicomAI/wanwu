@@ -725,6 +725,7 @@ export default {
       infini: '无问芯穹',
       qianfan: '百度千帆',
       zhipu: '智谱',
+      tencent: '腾讯',
     },
     table: {
       scopeType: '公开范围',
