@@ -68,7 +68,11 @@
             <span class="file-info">{{ currentFile.path }}</span>
           </div>
           <div class="viewer-pane">
+            <div v-if="isMarkdown" class="md-preview">
+              <MdRender :content="fileContent" disable-link />
+            </div>
             <MonacoEditor
+              v-else
               :language="currentLanguage"
               :readOnly="true"
               :value="fileContent"
@@ -99,10 +103,11 @@ import {
 import { getFileIcon as getFileIconByName } from '@/utils/fileIcons';
 import { getLanguageByPath } from '@/views/generalAgent/components/skills/workspaceConstants';
 import MonacoEditor from '@/components/MonacoEditor/index.vue';
+import MdRender from '@/components/mdRender.vue';
 
 export default {
   name: 'SkillContentWorkspace',
-  components: { MonacoEditor },
+  components: { MonacoEditor, MdRender },
   props: {
     customSkillId: {
       type: String,
@@ -127,6 +132,10 @@ export default {
       return this.currentFile
         ? getLanguageByPath(this.currentFile.path)
         : 'plaintext';
+    },
+    isMarkdown() {
+      if (!this.currentFile?.path) return false;
+      return getLanguageByPath(this.currentFile.path) === 'markdown';
     },
   },
   watch: {
@@ -386,6 +395,12 @@ export default {
     flex: 1;
     min-height: 0;
     overflow: hidden;
+
+    .md-preview {
+      height: 100%;
+      overflow-y: auto;
+      padding: 16px;
+    }
   }
 
   .viewer-placeholder {

@@ -37,6 +37,7 @@ export const DEEPSEEK = 'DeepSeek';
 export const QIANFAN = 'QianFan';
 export const JINA = 'Jina';
 export const ZHIPU = 'ZhiPu';
+export const TENCENT = 'Tencent';
 
 export const PROVIDER_OBJ = {
   [OPENAI_API]: 'OpenAI-API-compatible',
@@ -49,6 +50,7 @@ export const PROVIDER_OBJ = {
   [JINA]: 'Jina',
   [DEEPSEEK]: 'DeepSeek',
   [ZHIPU]: i18n.t('modelAccess.type.zhipu'),
+  // [TENCENT]: i18n.t('modelAccess.type.tencent'),
 };
 
 export const PROVIDER_IMG_OBJ = {
@@ -62,6 +64,7 @@ export const PROVIDER_IMG_OBJ = {
   [QIANFAN]: require('@/assets/imgs/qianfan.png'),
   [JINA]: require('@/assets/imgs/jina.png'),
   [ZHIPU]: require('@/assets/imgs/zhipuAi.png'),
+  [TENCENT]: require('@/assets/imgs/tencent.png'),
 };
 
 const COMMON_MODEL_KEY = [LLM, RERANK, EMBEDDING];
@@ -85,6 +88,7 @@ export const PROVIDER_MODEL_KEY = {
   [QIANFAN]: COMMON_MODEL_KEY,
   [JINA]: [RERANK, EMBEDDING, ...MULTIMODAL_KEY],
   [ZHIPU]: COMMON_MODEL_KEY,
+  [TENCENT]: OLL_MODEL_KEY,
 };
 
 export const PROVIDER_TYPE = Object.keys(PROVIDER_OBJ).map(key => {
@@ -125,6 +129,7 @@ export const TYPE_OBJ = {
     [QIANFAN]: 'bce-v3/ALTAK******82d1',
     [JINA]: 'jina_c08*********wMm',
     [ZHIPU]: 'ca7d6a3***************wg0Fxc',
+    [TENCENT]: 'sk-abc********************xyz',
   },
   inferUrl: {
     [`${RERANK}_${QWEN}`]: 'https://dashscope.aliyuncs.com/api/v1',
@@ -157,6 +162,7 @@ export const TYPE_OBJ = {
     [QIANFAN]: 'https://qianfan.baidubce.com/v2',
     [JINA]: 'https://api.jina.ai/v1',
     [ZHIPU]: 'https://open.bigmodel.cn/api/paas/v4',
+    [TENCENT]: 'https://tokenhub.tencentmaas.com/v1',
   },
 };
 
@@ -170,6 +176,8 @@ export const SHOW_VISION_LIST = [
   HUOSHAN,
   INFINI,
   OPENAI_API,
+  DEEPSEEK,
+  TENCENT,
 ];
 
 export const CUSTOM_MODEL_ID = 'custom';
