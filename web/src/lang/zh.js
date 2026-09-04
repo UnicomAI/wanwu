@@ -1282,9 +1282,13 @@ export default {
       optional: '（非必填）',
       selected: '已选解析模板',
       selectedTip: '仅展示已选模板，其余文件类型使用内置（默认）模板',
+      noTemplate: '未配置模板',
       noneSelected: '未选择解析模板，已启用内置（默认）模板',
-      audioAsrMissing:
-        '您所上传的文件中，音频类型文件解析模板未配置ASR模型，请配置后重试。或删除该类型文档。<a class="template-link">》点击配置模板</a>',
+      mediaTemplateMissingTitle: '请先绑定解析模板',
+      mediaTemplateMissingLead: '以下文件类型还没有可用的解析模板：',
+      mediaTemplateMissingHint: '可在下方选择或新建模板，也可以移除这些文件。',
+      templateRequired: '请选择解析模板',
+      asrRequired: '请选择ASR模型',
       useTemplate: '使用模板',
       useTemplateDesc:
         '使用创建知识库时选择的解析模板参数进行解析，未配置模板的文件类型需手动设置参数',
@@ -1292,6 +1296,8 @@ export default {
       customParseDesc:
         '不使用创建知识库时选择的解析模板参数进行解析，需手动设置参数',
       overrideKnowledge: '覆盖现有知识库解析模板',
+      overrideKnowledgeTip:
+        '勾选后，将用当前页面的模板配置覆盖该知识库已保存的解析模板',
       noBuiltIn: '（没有内置）',
       createTemplate: '+创建模板',
       templateName: '模板名称',

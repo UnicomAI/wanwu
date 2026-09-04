@@ -53,7 +53,7 @@
 <script>
 import FileIcon from '@/components/FileIcon.vue';
 import templateCard from './component/templateCard.vue';
-import { DOC_TYPE_LIST, getMediaType } from './config';
+import { DEFAULT_TEMPLATE_CONFIG, DOC_TYPE_LIST, getMediaType } from './config';
 import {
   getParseTemplateList,
   createParseTemplate,
@@ -74,6 +74,8 @@ export default {
         ? this.$route.query.docType
         : DOC_TYPE_LIST[0].docType,
       focusTemplateId: this.$route.query.templateId || '',
+      // 从下拉框「+创建模板」跳来时，列表加载完直接展开一张空白卡片
+      pendingCreate: this.$route.query.create === '1',
       templateList: [],
       loading: false,
     };
@@ -95,8 +97,14 @@ export default {
       getParseTemplateList({ docType: this.docType })
         .then(res => {
           if (res.code !== 0) return;
-          // 内置（默认）模板由后端保底落库，列表直接用返回值
-          this.templateList = res.data.list || [];
+          const list = res.data.list || [];
+          // 视频/音频/图片没有内置（默认）模板，只能用户自建
+          this.templateList =
+            this.mediaType === 'doc' ? list : list.filter(t => !t.builtIn);
+          if (this.pendingCreate) {
+            this.pendingCreate = false;
+            this.addTemplate();
+          }
         })
         .finally(() => {
           this.loading = false;
@@ -115,11 +123,10 @@ export default {
       this.docType = docType;
       this.getList();
     },
-    // 新建模板以内置（默认）模板的参数打底
+    // 新建模板以内置（默认）模板打底，媒体类型没有内置就用默认配置
     addTemplate() {
       const builtIn = this.templateList.find(item => item.builtIn);
-      if (!builtIn) return;
-      const template = structuredClone(builtIn);
+      const template = structuredClone(builtIn || DEFAULT_TEMPLATE_CONFIG);
       template.templateId = '';
       template.name = '';
       template.builtIn = false;

@@ -40,9 +40,10 @@
             :value="form"
             :multiModal="multiModal"
             :mediaTypes="mediaTypes"
+            :readonly="form.builtIn"
           />
         </el-form>
-        <div class="card-footer">
+        <div class="card-footer" v-if="!form.builtIn">
           <el-button size="mini" type="primary" @click="handleSave">
             {{ $t('knowledgeManage.parseTemplate.save') }}
           </el-button>

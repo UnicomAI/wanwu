@@ -123,7 +123,8 @@
           <el-form-item :label="$t('knowledgeManage.parseTemplate.title')">
             <parseTemplateSelect
               v-model="ruleForm.parseTemplate"
-              @create="handleClose"
+              :scope="localCategory === MULTIMODAL ? 'all' : 'doc'"
+              :autoBindMedia="!isEdit"
             />
           </el-form-item>
           <el-form-item

@@ -1279,10 +1279,16 @@ export default {
       selected: 'Selected Templates',
       selectedTip:
         'Only selected templates are listed; other file types use the built-in (default) template',
+      noTemplate: 'No template',
       noneSelected:
         'No template selected; the built-in (default) template is in use',
-      audioAsrMissing:
-        'The parsing template for audio files has no ASR model configured. Configure it and retry, or remove those files. <a class="template-link">Configure template</a>',
+      mediaTemplateMissingTitle: 'Bind a parsing template first',
+      mediaTemplateMissingLead:
+        'These file types have no parsing template yet:',
+      mediaTemplateMissingHint:
+        'Pick or create a template below, or remove those files.',
+      templateRequired: 'Select a parsing template',
+      asrRequired: 'Select an ASR model',
       useTemplate: 'Use Template',
       useTemplateDesc:
         'Parse with the template selected when the knowledge base was created; file types without a template need manual settings',
@@ -1290,6 +1296,8 @@ export default {
       customParseDesc:
         'Do not use the knowledge base template; set the parameters manually',
       overrideKnowledge: 'Override the knowledge base parsing template',
+      overrideKnowledgeTip:
+        'When checked, the template settings on this page replace the parsing templates saved on this knowledge base',
       noBuiltIn: '(No built-in)',
       createTemplate: '+Create Template',
       templateName: 'Template Name',

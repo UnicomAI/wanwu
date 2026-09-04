@@ -206,6 +206,7 @@
                           size="small"
                           color="#E6F0FF"
                           class="keyword-tag"
+                          disable-transitions
                         >
                           {{ item.text }}
                         </el-tag>
@@ -228,6 +229,7 @@
                         v-for="(item, index) in graphLlmModel.tags"
                         :key="index"
                         class="keyword-tag"
+                        disable-transitions
                         color="#E6F0FF"
                         size="small"
                       >
@@ -248,6 +250,7 @@
                         size="small"
                         color="#E6F0FF"
                         class="keyword-tag"
+                        disable-transitions
                       >
                         {{ item.name }} : {{ item.alias }}
                       </el-tag>
@@ -279,6 +282,7 @@
                         size="small"
                         color="#E6F0FF"
                         class="keyword-tag"
+                        disable-transitions
                       >
                         {{ item.docTypeName }}：{{ item.templateName }}
                       </el-tag>
@@ -288,15 +292,16 @@
                         @click="showEdit"
                       ></i>
                     </template>
-                    <span v-else>
-                      {{ $t('knowledgeManage.parseTemplate.noneSelected') }}
-                    </span>
-                    <i
-                      v-if="parseTemplateTags.length === 0"
-                      class="el-icon-edit-outline"
-                      style="cursor: pointer"
-                      @click="showEdit"
-                    ></i>
+                    <template v-else-if="templatesLoaded">
+                      <span>
+                        {{ $t('knowledgeManage.parseTemplate.noneSelected') }}
+                      </span>
+                      <i
+                        class="el-icon-edit-outline"
+                        style="cursor: pointer"
+                        @click="showEdit"
+                      ></i>
+                    </template>
                   </div>
                 </el-descriptions-item>
               </el-descriptions>
@@ -686,6 +691,7 @@ export default {
       graphLlmModel: null, // 知识图谱解析模型信息
       parseTemplateBind: [], // 知识库上各文档类型选定的解析模板 [{docType, templateId}]
       parseTemplateList: [],
+      templatesLoaded: false,
       loading: false,
       tableLoading: false,
       docQuery: {
@@ -758,22 +764,23 @@ export default {
   computed: {
     // 只展示选了自定义模板的文档类型，其余走内置（默认）
     parseTemplateTags() {
-      return this.parseTemplateBind
-        .filter(({ templateId }) => templateId)
-        .map(({ docType, templateId }) => {
-          const template = this.parseTemplateList.find(
-            item => item.templateId === templateId,
-          );
-          const docTypeItem = DOC_TYPE_LIST.find(
-            item => item.docType === docType,
-          );
-          return {
-            docType,
-            docTypeName: docTypeItem ? docTypeItem.name : docType,
-            templateName: template ? template.name : templateId,
-          };
-        })
-        .filter(item => item.templateName);
+      return this.parseTemplateBind.reduce((acc, { docType, templateId }) => {
+        if (!templateId) return acc;
+        const template = this.parseTemplateList.find(
+          item => item.templateId === templateId,
+        );
+        // 模板列表未返回时取不到名字，先不展示，避免闪出原始 templateId
+        if (!template || template.builtIn) return acc;
+        const docTypeItem = DOC_TYPE_LIST.find(
+          item => item.docType === docType,
+        );
+        acc.push({
+          docType,
+          docTypeName: docTypeItem ? docTypeItem.name : docType,
+          templateName: template.name,
+        });
+        return acc;
+      }, []);
     },
     hasManagePerm() {
       return (
@@ -803,7 +810,7 @@ export default {
     }
     this.docQuery.knowledgeId = this.effectiveKnowledgeId;
     this.getTableData(this.docQuery);
-      this.getKnowledgeDetail();
+    this.getKnowledgeDetail();
   },
   deactivated() {
     if (this.readonly) return;
@@ -850,10 +857,15 @@ export default {
     convertModelIcon(iconPath) {
       return iconPath ? avatarSrc(iconPath) : getModelDefaultIcon();
     },
+    // 模板名要等列表返回才有，加载期间先什么都不展示，别断言"未选择"
     getParseTemplates() {
-      if (this.parseTemplateBind.length === 0) return;
+      if (this.parseTemplateBind.length === 0) {
+        this.templatesLoaded = true;
+        return;
+      }
       getParseTemplateList().then(res => {
         if (res.code === 0) this.parseTemplateList = res.data.list || [];
+        this.templatesLoaded = true;
       });
     },
     resetDocQueryState() {

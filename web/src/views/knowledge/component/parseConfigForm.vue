@@ -270,22 +270,40 @@
         </el-checkbox>
       </el-checkbox-group>
     </el-form-item>
+    <!-- 多模态但还没传文件时，模型选择整片是空的，整项一起隐藏 -->
     <el-form-item
       :label="$t('knowledgeManage.parsingMethod')"
-      v-if="multiModal"
+      v-if="multiModal && hasAnyMedia"
     >
-      <div class="segmentList" v-if="hasMedia('video') || hasMedia('audio')">
-        <span style="display: inline-block; width: 100px">
-          <span class="red" v-if="hasMedia('audio')">*</span>
-          ASR
-        </span>
-        <modelSelect
-          v-model="form.asrModelId"
-          :options="asrOptions"
-          clearable
-          @change="onAsrChange"
-        />
-      </div>
+      <el-form-item
+        v-if="hasMedia('video') || hasMedia('audio')"
+        class="model-row"
+        prop="asrModelId"
+        :rules="
+          hasMedia('audio')
+            ? [
+                {
+                  required: true,
+                  message: $t('knowledgeManage.parseTemplate.asrRequired'),
+                  trigger: 'change',
+                },
+              ]
+            : []
+        "
+      >
+        <div class="segmentList">
+          <span style="display: inline-block; width: 100px">
+            <span class="red" v-if="hasMedia('audio')">*</span>
+            ASR
+          </span>
+          <modelSelect
+            v-model="form.asrModelId"
+            :options="asrOptions"
+            clearable
+            @change="onAsrChange"
+          />
+        </div>
+      </el-form-item>
       <div class="segmentList" v-if="hasMedia('video') || hasMedia('image')">
         <span style="display: inline-block; width: 100px">
           {{ $t('knowledgeManage.config.visionModal') }}
@@ -300,7 +318,7 @@
     <el-form-item
       :label="$t('knowledgeManage.parsingMethod')"
       prop="docAnalyzer"
-      v-else
+      v-else-if="!multiModal"
     >
       <el-checkbox-group
         v-model="form.docAnalyzer"
@@ -434,6 +452,11 @@ export default {
       placeholderText: this.$t('knowledgeManage.placeholderText'),
       titleText: this.$t('knowledgeManage.titleText'),
     };
+  },
+  computed: {
+    hasAnyMedia() {
+      return ['video', 'audio', 'image'].some(t => this.hasMedia(t));
+    },
   },
   watch: {
     value(val) {
@@ -631,6 +654,15 @@ export default {
 }
 
 .parse-config {
+  // 嵌套的 el-form-item 只为挂校验规则，不要它的标签宽度和外边距
+  .model-row {
+    margin-bottom: 0;
+
+    ::v-deep > .el-form-item__content {
+      margin-left: 0 !important;
+    }
+  }
+
   .commonSet {
     background: #f6f7fe;
     padding: 15px;

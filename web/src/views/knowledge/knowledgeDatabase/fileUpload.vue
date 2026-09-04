@@ -12,13 +12,14 @@
     <div class="table-box">
       <div class="fileUpload">
         <!-- 文件上传 -->
-        <div v-if="mode !== 'config'">
-          <div class="fileBtn">
-            <el-radio-group
-              v-if="category === 2"
-              v-model="fileType"
-              @change="fileTypeChange"
-            >
+        <div v-if="mode !== 'config'" class="upload-section">
+          <p class="section-title">
+            {{
+              $t('knowledgeManage.knowledgeDatabase.fileUpload.fileUpload')
+            }}：
+          </p>
+          <div class="fileBtn" v-if="category === 2">
+            <el-radio-group v-model="fileType" @change="fileTypeChange">
               <el-radio-button label="fileMultiModal" v-if="category === 2">
                 {{
                   $t(
@@ -223,6 +224,25 @@
           </transition>
         </div>
         <!-- 参数设置 -->
+        <p class="section-title" v-if="mode !== 'config'">
+          {{
+            $t('knowledgeManage.knowledgeDatabase.fileUpload.paramSetting')
+          }}：
+        </p>
+        <div class="parse-mode-list" v-if="mode !== 'config'">
+          <div
+            v-for="item in parseModeList"
+            :key="item.label"
+            :class="[
+              'parse-mode-item',
+              parseMode === item.label ? 'activeAnalyzer' : '',
+            ]"
+            @click="parseMode = item.label"
+          >
+            <p class="analyzerItem_text">{{ item.text }}</p>
+            <h3 class="analyzerItem_desc">{{ item.desc }}</h3>
+          </div>
+        </div>
         <div class="params_form">
           <el-form
             :model="ruleForm"
@@ -232,29 +252,18 @@
             @submit.native.prevent
             label-position="left"
           >
-            <el-form-item v-if="mode !== 'config'">
-              <div class="segmentList parse-mode-list">
-                <div
-                  v-for="item in parseModeList"
-                  :key="item.label"
-                  :class="[
-                    'segmentItem',
-                    parseMode === item.label ? 'activeAnalyzer' : '',
-                  ]"
-                  @click="parseMode = item.label"
-                >
-                  <div>
-                    <p class="analyzerItem_text">{{ item.text }}</p>
-                    <h3 class="analyzerItem_desc">{{ item.desc }}</h3>
-                  </div>
-                </div>
-              </div>
-            </el-form-item>
             <template v-if="parseMode === PARSE_MODE_TEMPLATE">
-              <el-form-item :label="$t('knowledgeManage.parseTemplate.title')">
+              <el-form-item
+                class="parse-template-item"
+                :label="$t('knowledgeManage.parseTemplate.title')"
+              >
                 <parseTemplateSelect
+                  ref="parseTemplateSelect"
                   v-model="ruleForm.parseTemplate"
+                  :scope="fileType === 'fileMultiModal' ? 'media' : 'doc'"
+                  :requiredDocTypes="missingDocTypes"
                   collapsible
+                  @unbound-change="unboundDocTypes = $event"
                 >
                   <template #footer>
                     <el-checkbox v-model="ruleForm.overrideKnowledgeTemplate">
@@ -262,6 +271,14 @@
                         $t('knowledgeManage.parseTemplate.overrideKnowledge')
                       }}
                     </el-checkbox>
+                    <el-tooltip
+                      :content="
+                        $t('knowledgeManage.parseTemplate.overrideKnowledgeTip')
+                      "
+                      placement="top"
+                    >
+                      <span class="el-icon-question question"></span>
+                    </el-tooltip>
                   </template>
                 </parseTemplateSelect>
               </el-form-item>
@@ -279,7 +296,7 @@
 
         <!-- 元数据管理：在参数设置框之外 -->
         <div class="meta-section" v-if="mode !== 'config'">
-          <p class="meta-label">
+          <p class="section-title meta-label">
             {{ $t('knowledgeManage.metadataManagement') }}
             <span class="optional-tip">
               {{ $t('knowledgeManage.parseTemplate.optional') }}
@@ -333,7 +350,13 @@ import {
 } from '@/api/knowledge';
 import { delfile } from '@/api/chunkFile';
 import { getParseTemplateList } from '@/api/parseTemplate';
-import { bindListToMap, bindMapToList } from '../parseTemplate/config';
+import {
+  DOC_TYPE_LIST,
+  bindListToMap,
+  bindMapToList,
+  getDocTypeByFileName,
+} from '../parseTemplate/config';
+import FileIcon from '@/components/FileIcon.vue';
 import { selectASRList } from '@/api/modelAccess';
 import LinkIcon from '@/components/linkIcon.vue';
 import parseConfigForm from '../component/parseConfigForm.vue';
@@ -401,9 +424,11 @@ export default {
         asrModelId: '',
         multimodalModelId: '',
         parseTemplate: {},
-        overrideKnowledgeTemplate: false,
+        overrideKnowledgeTemplate: true,
       },
       PARSE_MODE_TEMPLATE,
+      // 由解析模板组件播报：当前没有模板可用的文档类型
+      unboundDocTypes: [],
       // 修改已上传文档的解析配置时没有模板入口，只能走手动配置
       parseMode:
         this.$route.query.mode === 'config'
@@ -436,6 +461,10 @@ export default {
     'ruleForm.parseTemplate'() {
       this.refreshTemplateAudioLimit();
     },
+    // 刚缺模板就展开，别等点了确定才让用户找
+    missingDocTypes(val, old) {
+      if (val.length && !old.length) this.expandTemplates();
+    },
   },
   computed: {
     // 模板模式的音频大小上限来自 audio 模板里配的 ASR 模型
@@ -447,6 +476,18 @@ export default {
       return (
         this.asrOptions.find(item => item.modelId === template.asrModelId) ||
         null
+      );
+    },
+    // 传了文件又没模板可用的类型，标红引导用户补选
+    missingDocTypes() {
+      return this.unboundDocTypes.filter(d => this.uploadedDocTypes.has(d));
+    },
+    // 本次上传涉及的解析模板文档类型，和 fileFormatSet 只覆盖音视频图不同
+    uploadedDocTypes() {
+      return new Set(
+        this.fileList
+          .map(file => getDocTypeByFileName(file.name))
+          .filter(Boolean),
       );
     },
     fileFormatSet() {
@@ -727,7 +768,7 @@ export default {
     },
     // 使用模板：解析参数由后端按文档类型套用模板，前端不再下发分段/解析配置
     submitWithTemplate() {
-      if (!this.validateTemplateAsr() || !this.validateMetaData()) {
+      if (!this.validateTemplateBind() || !this.validateMetaData()) {
         return;
       }
       this.ruleForm.docMetaData.forEach(item => {
@@ -751,25 +792,58 @@ export default {
         }
       });
     },
-    // 音频必须有 ASR 模型：模板没选或模板里没配模型都拦下来，引导去配模板
-    validateTemplateAsr() {
-      if (!this.fileFormatSet.has('audio')) return true;
-      const templateId = this.ruleForm.parseTemplate.audio;
-      const template = this.audioTemplates.find(
-        item => item.templateId === templateId,
-      );
-      if (template && template.asrModelId) return true;
-      this.$confirm(this.$t('knowledgeManage.parseTemplate.audioAsrMissing'), {
-        confirmButtonText: this.$t('common.confirm.confirm'),
-        cancelButtonText: this.$t('common.confirm.cancel'),
-        dangerouslyUseHTMLString: true,
-        type: 'info',
+    // 内置模板也能被清空，凡是本次传了文件又没模板的类型都得先补上
+    validateTemplateBind() {
+      const missing = this.missingDocTypes;
+      if (!missing.length) return true;
+      this.$msgbox({
+        title: this.$t('knowledgeManage.parseTemplate.mediaTemplateMissingTitle'),
+        message: this.missingTemplateMessage(missing),
+        confirmButtonText: this.$t('common.button.confirm'),
+        customClass: 'media-template-box',
+        type: 'warning',
       })
-        .then(() => {
-          this.$router.push('/knowledge/parseTemplate');
-        })
-        .catch(() => {});
+        // 关掉弹窗就展开模板区，让标红的那几项直接落在视野里
+        .then(() => this.focusMissingTemplates())
+        .catch(() => this.focusMissingTemplates());
       return false;
+    },
+    // 类型名做成带文件图标的 chip，和下方网格用同一套图标，一眼对得上
+    missingTemplateMessage(missing) {
+      const h = this.$createElement;
+      const chips = missing.map(docType => {
+        const item = DOC_TYPE_LIST.find(d => d.docType === docType) || {};
+        return h('span', { class: 'type-chip', key: docType }, [
+          h(FileIcon, { props: { type: item.icon, size: '16px' } }),
+          h('span', { class: 'chip-name' }, item.name),
+        ]);
+      });
+      return h('div', { class: 'missing-body' }, [
+        h(
+          'p',
+          { class: 'missing-lead' },
+          this.$t('knowledgeManage.parseTemplate.mediaTemplateMissingLead'),
+        ),
+        h('div', { class: 'type-chips' }, chips),
+        h(
+          'p',
+          { class: 'missing-hint' },
+          this.$t('knowledgeManage.parseTemplate.mediaTemplateMissingHint'),
+        ),
+      ]);
+    },
+    expandTemplates() {
+      const select = this.$refs.parseTemplateSelect;
+      if (select) select.expand();
+    },
+    focusMissingTemplates() {
+      const select = this.$refs.parseTemplateSelect;
+      if (!select) return;
+      select.expand();
+      this.$nextTick(() => {
+        const el = select.$el.querySelector('.template-item.is-error');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
     },
     submitInfo() {
       if (this.mode !== 'config' && !this.validateFiles()) {
@@ -1138,13 +1212,32 @@ export default {
 
     .upload-box {
       height: auto;
-      min-height: 190px;
+      min-height: 280px;
       width: 100% !important;
+      display: flex;
+
+      // ElUpload 在 .upload-box 和 dragger 之间还有一层 .el-upload，
+      // 它不是 flex，dragger 撑不满就会贴顶
+      // 全局给这两层写了 height:100%，但父级是 min-height，百分比高度解析不了，
+      // 反而堵死 flex stretch；改回 auto 由 stretch 撑满，内容再上下居中
+      ::v-deep .el-upload {
+        display: flex;
+        width: 100%;
+        height: auto;
+      }
+
+      ::v-deep .el-upload-dragger {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+      }
 
       .upload-img {
         width: 56px;
         height: 56px;
-        margin-top: 30px;
       }
 
       .click-text {
@@ -1250,22 +1343,63 @@ export default {
 }
 
 .meta-section {
-  margin-top: 20px;
-
-  .meta-label {
-    margin: 0 0 12px;
-    font-size: 14px;
-    color: #333;
-  }
+  margin-top: 24px;
 }
 
 .optional-tip {
   color: #999;
-  font-weight: normal;
+  font-weight: 400;
+}
+
+.meta-label .question {
+  font-weight: 400;
 }
 
 .parse-mode-list {
-  margin-bottom: 10px;
+  display: flex;
+  gap: 16px;
+
+  .parse-mode-item {
+    flex: 1 1 0;
+    padding: 14px 20px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+
+    .analyzerItem_text {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.6;
+    }
+
+    .analyzerItem_desc {
+      margin: 4px 0 0;
+      font-size: 12px;
+      font-weight: unset;
+      line-height: 1.5;
+      color: #b4b3b3;
+    }
+  }
+}
+
+// 方案 A：这个框的标题拉开一档字重，和框内摘要形成主次
+.parse-template-item ::v-deep > .el-form-item__label {
+  font-weight: 500;
+  color: #303133;
+}
+
+.section-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #333;
+}
+
+.upload-section {
+  margin-bottom: 24px;
 }
 
 .params_form {
@@ -1275,7 +1409,12 @@ export default {
   border-radius: 6px;
 
   .el-form {
-    padding: 30px;
+    padding: 20px 24px;
+
+    // 收起态只有一行字，别让框空得太夸张
+    > .el-form-item:last-child {
+      margin-bottom: 0;
+    }
 
     .commonSet {
       background: #f6f7fe;
@@ -1392,17 +1531,19 @@ export default {
 }
 
 .file-list {
-  padding: 12px 0 0;
+  // 上间距由 .upload-section 的 24px 给；容器自带 4px 底部内边距，这里补到 24px
+  margin-bottom: 20px;
 
-  $file-item-height: 46px;
-  $file-item-gap: 10px;
+  $file-item-height: 40px;
+  $file-item-gap: 8px;
 
   // 一屏最多展示 10 个文档，超出滚动
   .document_lise {
     max-height: ($file-item-height + $file-item-gap) * 10;
     overflow-y: auto;
     margin: 0;
-    padding: 0 4px 0 0;
+    // overflow 容器永远裁切，右侧和底部各留一点给阴影
+    padding: 0 4px 4px 0;
   }
 
   .document_lise_item {
@@ -1412,11 +1553,15 @@ export default {
     padding: 5px 10px;
     list-style: none;
     background: #fff;
-    border-radius: 4px;
-    box-shadow: 1px 2px 2px #ddd;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     margin-bottom: $file-item-gap;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
 
     .lise_item_box {
       width: 100%;
@@ -1453,5 +1598,98 @@ export default {
 
 .table-opera-icon {
   font-size: 18px;
+}
+</style>
+
+<style lang="scss">
+// MessageBox 挂在 body 上，样式不能写在 scoped 块里
+.media-template-box {
+  width: 420px;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(31, 35, 41, 0.12);
+
+  .el-message-box__header {
+    padding: 20px 24px 0;
+  }
+
+  .el-message-box__title {
+    padding-left: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    color: #1f2329;
+  }
+
+  .el-message-box__headerbtn {
+    top: 18px;
+    right: 18px;
+    font-size: 15px;
+  }
+
+  // 图标提到标题行，-31px 是量出来的：内容区顶到标题中线的距离
+  .el-message-box__status {
+    top: -31px;
+    left: 0;
+    font-size: 20px !important;
+    transform: none;
+  }
+
+  .el-message-box__content {
+    padding: 8px 24px 0;
+  }
+
+  .el-message-box__message {
+    padding-left: 30px;
+    // 全局带 status 时给了 padding-right:12px，正文右边会比按钮短一截
+    padding-right: 0;
+    color: #5c6270;
+  }
+
+  .missing-lead {
+    margin: 0;
+    font-size: 14px;
+    line-height: 22px;
+  }
+
+  .type-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .type-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border: 1px solid #ebedf0;
+    border-radius: 6px;
+    background: #f7f8fa;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+    color: #1f2329;
+  }
+
+  // #8a9099 在 13px 上只有 3.2:1，不够 WCAG AA 的 4.5:1
+  .missing-hint {
+    margin: 0;
+    font-size: 13px;
+    line-height: 20px;
+    color: #6b7280;
+  }
+
+  // 全局给这个选择器加了 !important，只能同级压回去，否则按钮右边缘和正文差 9px
+  .el-message-box__btns {
+    padding: 18px 24px 16px !important;
+  }
+
+  .el-button--primary {
+    min-width: 76px;
+    padding: 9px 18px;
+    font-size: 14px;
+    letter-spacing: 0;
+  }
 }
 </style>
