@@ -50,7 +50,7 @@ export const PROVIDER_OBJ = {
   [JINA]: 'Jina',
   [DEEPSEEK]: 'DeepSeek',
   [ZHIPU]: i18n.t('modelAccess.type.zhipu'),
-  [TENCENT]: i18n.t('modelAccess.type.tencent'),
+  // [TENCENT]: i18n.t('modelAccess.type.tencent'),
 };
 
 export const PROVIDER_IMG_OBJ = {
