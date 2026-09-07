@@ -779,7 +779,7 @@ export default {
         docImportType: this.fileType === 'fileUrl' ? 2 : 0,
         docInfoList: this.docInfoList,
         docMetaData: this.ruleForm.docMetaData,
-        parseMode: PARSE_MODE_TEMPLATE,
+        useTemplate: true,
         parseTemplate: bindMapToList(this.ruleForm.parseTemplate),
         overrideTemplate: this.ruleForm.overrideTemplate,
       };
