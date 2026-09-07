@@ -235,7 +235,7 @@
             <div class="card-bottom">
               <el-tooltip
                 placement="top"
-                :content="providerObj[item.provider] || '--'"
+                :content="providerObj[item.provider] || item.provider || '--'"
               >
                 <div
                   :class="[
@@ -244,7 +244,7 @@
                   ]"
                 >
                   {{ $t('modelAccess.table.publisher') }}:
-                  {{ providerObj[item.provider] || '--' }}
+                  {{ providerObj[item.provider] || item.provider || '--' }}
                 </div>
               </el-tooltip>
               <div>
