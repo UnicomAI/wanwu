@@ -28,6 +28,7 @@ const (
 	ProviderDeepSeek         = "DeepSeek"
 	ProviderJina             = "Jina"
 	ProviderZhipu            = "ZhiPu"
+	ProviderTencent          = "Tencent"
 )
 
 const (
@@ -51,6 +52,7 @@ const (
 	PNameDeepSeek         = "DeepSeek"
 	PNameJina             = "Jina"
 	PNameZhipu            = "智谱"
+	PNameTencent          = "腾讯"
 )
 
 var (

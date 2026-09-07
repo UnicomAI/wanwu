@@ -14,6 +14,7 @@ import (
 	mp_openai_compatible "github.com/UnicomAI/wanwu/pkg/model-provider/mp-openai-compatible"
 	mp_qianfan "github.com/UnicomAI/wanwu/pkg/model-provider/mp-qianfan"
 	mp_qwen "github.com/UnicomAI/wanwu/pkg/model-provider/mp-qwen"
+	mp_tencent "github.com/UnicomAI/wanwu/pkg/model-provider/mp-tencent"
 	mp_yuanjing "github.com/UnicomAI/wanwu/pkg/model-provider/mp-yuanjing"
 	mp_zhipu "github.com/UnicomAI/wanwu/pkg/model-provider/mp-zhipu"
 	"github.com/gin-gonic/gin"
@@ -382,6 +383,23 @@ func ToModelTags(provider, modelType, cfg string) ([]mp_common.Tag, error) {
 		default:
 			return nil, fmt.Errorf("ToModelTags:invalid provider %v model type %v", provider, modelType)
 		}
+	case ProviderTencent:
+		switch modelType {
+		case ModelTypeLLM:
+			llm := &mp_tencent.LLM{}
+			if err := json.Unmarshal([]byte(cfg), llm); err != nil {
+				return nil, fmt.Errorf("unmarshal model config err: %v", err)
+			}
+			tags = llm.Tags()
+		case ModelTypeTextEmbedding:
+			embedding := &mp_tencent.Embedding{}
+			if err := json.Unmarshal([]byte(cfg), embedding); err != nil {
+				return nil, fmt.Errorf("unmarshal model config err: %v", err)
+			}
+			tags = embedding.Tags()
+		default:
+			return nil, fmt.Errorf("ToModelTags:invalid provider %v model type %v", provider, modelType)
+		}
 	default:
 		return nil, fmt.Errorf("ToModelTags:invalid provider: %v", provider)
 	}
@@ -579,6 +597,15 @@ func ToModelConfig(provider, modelType, cfg string) (interface{}, error) {
 		default:
 			return nil, fmt.Errorf("ToModelConfig:invalid provider %v model type %v", provider, modelType)
 		}
+	case ProviderTencent:
+		switch modelType {
+		case ModelTypeLLM:
+			ret = &mp_tencent.LLM{}
+		case ModelTypeTextEmbedding:
+			ret = &mp_tencent.Embedding{}
+		default:
+			return nil, fmt.Errorf("ToModelConfig:invalid provider %v model type %v", provider, modelType)
+		}
 	default:
 		return nil, fmt.Errorf("ToModelConfig:invalid provider: %v", provider)
 	}
@@ -599,6 +626,7 @@ type ProviderModelConfig struct {
 	ProviderQianFan          ProviderModelByQianFan          `json:"providerQianFan"`
 	ProviderDeepSeek         ProviderModelByDeepSeek         `json:"providerDeepSeek"`
 	ProviderZhipu            ProviderModelByZhipu            `json:"providerZhipu"`
+	ProviderTencent          ProviderModelByTencent          `json:"providerTencent"`
 }
 
 type ProviderModelByOpenAICompatible struct {
@@ -650,6 +678,11 @@ type ProviderModelByQianFan struct {
 
 type ProviderModelByDeepSeek struct {
 	Llm mp_deepseek.LLM `json:"llm"`
+}
+
+type ProviderModelByTencent struct {
+	Llm       mp_tencent.LLM       `json:"llm"`
+	Embedding mp_tencent.Embedding `json:"embedding"`
 }
 
 type ProviderModelByZhipu struct {

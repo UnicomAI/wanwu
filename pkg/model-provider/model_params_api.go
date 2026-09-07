@@ -155,6 +155,19 @@ func ToModelParams(provider, modelType, cfg string) (interface{}, map[string]int
 		default:
 			return nil, nil, fmt.Errorf("invalid model type: %v", modelType)
 		}
+	case ProviderTencent:
+		switch modelType {
+		case ModelTypeLLM:
+			llm := &mp_common.LLMParams{}
+			if err = json.Unmarshal([]byte(cfg), llm); err == nil {
+				ret = llm
+				params = llm.GetParams()
+			}
+		case ModelTypeTextRerank:
+		case ModelTypeTextEmbedding:
+		default:
+			return nil, nil, fmt.Errorf("invalid model type: %v", modelType)
+		}
 	default:
 		return nil, nil, fmt.Errorf("invalid provider: %v", modelType)
 	}
@@ -173,6 +186,7 @@ type AppModelParams struct {
 	ProviderInfini           AppModelParamsInfini           `json:"providerInfini"`
 	ProviderQianFan          AppModelParamsQianFan          `json:"providerQianFan"`
 	ProviderDeepSeek         AppModelParamsDeepSeek         `json:"providerDeepSeek"`
+	ProviderTencent          AppModelParamsTencent          `json:"providerTencent"`
 }
 
 type AppModelParamsOpenAICompatible struct {
@@ -204,5 +218,9 @@ type AppModelParamsQianFan struct {
 }
 
 type AppModelParamsDeepSeek struct {
+	LLM mp_common.LLMParams `json:"llm"` // 大语言模型配置
+}
+
+type AppModelParamsTencent struct {
 	LLM mp_common.LLMParams `json:"llm"` // 大语言模型配置
 }
