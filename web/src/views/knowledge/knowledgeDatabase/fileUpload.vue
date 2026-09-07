@@ -266,7 +266,7 @@
                   @unbound-change="unboundDocTypes = $event"
                 >
                   <template #footer>
-                    <el-checkbox v-model="ruleForm.overrideKnowledgeTemplate">
+                    <el-checkbox v-model="ruleForm.overrideTemplate">
                       {{
                         $t('knowledgeManage.parseTemplate.overrideKnowledge')
                       }}
@@ -424,7 +424,7 @@ export default {
         asrModelId: '',
         multimodalModelId: '',
         parseTemplate: {},
-        overrideKnowledgeTemplate: true,
+        overrideTemplate: true,
       },
       PARSE_MODE_TEMPLATE,
       // 由解析模板组件播报：当前没有模板可用的文档类型
@@ -781,7 +781,7 @@ export default {
         docMetaData: this.ruleForm.docMetaData,
         parseMode: PARSE_MODE_TEMPLATE,
         parseTemplate: bindMapToList(this.ruleForm.parseTemplate),
-        overrideKnowledgeTemplate: this.ruleForm.overrideKnowledgeTemplate,
+        overrideTemplate: this.ruleForm.overrideTemplate,
       };
       docImport(data).then(res => {
         if (res.code === 0) {
