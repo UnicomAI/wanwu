@@ -634,6 +634,7 @@ var (
 		mp.ProviderDeepSeek:         mp.PNameDeepSeek,
 		mp.ProviderJina:             mp.PNameJina,
 		mp.ProviderZhipu:            mp.PNameZhipu,
+		mp.ProviderTencent:          mp.PNameTencent,
 	}
 )
 

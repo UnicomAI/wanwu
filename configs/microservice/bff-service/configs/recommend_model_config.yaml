@@ -214,3 +214,17 @@ recommend_models:
     sync-asr:
       - model: "Qwen3-ASR-1.7B"
         display_name: "Qwen3-ASR-1.7B"
+
+  - provider: "Tencent"
+    llm:
+      - model: "hy4-preview"
+        display_name: "hy4-preview"
+        tags: [ "深度思考开关", "工具调用" ]
+      - model: "hy3"
+        display_name: "hy3"
+        tags: [ "深度思考开关", "工具调用" ]
+    embedding:
+      - model: "kinfra-text-embedding-0.6b"
+        display_name: "kinfra-text-embedding-0.6b"
+      - model: "kinfra-text-embedding-4b"
+        display_name: "kinfra-text-embedding-4b"
