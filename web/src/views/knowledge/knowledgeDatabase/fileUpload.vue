@@ -346,7 +346,7 @@ import {
   getDocConfig,
   getDocList,
   getDocLimit,
-  getKnowledgeDetail,
+  getDocDetail,
 } from '@/api/knowledge';
 import { delfile } from '@/api/chunkFile';
 import { getParseTemplateList } from '@/api/parseTemplate';
@@ -740,7 +740,7 @@ export default {
     },
     // 知识库上已选定的解析模板：有绑定则默认走「使用模板」
     async getKnowledgeParseTemplate() {
-      const res = await getKnowledgeDetail({
+      const res = await getDocDetail({
         knowledgeId: this.knowledgeId,
       }).catch(() => null);
       if (!res || res.code !== 0) return;

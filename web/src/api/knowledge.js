@@ -517,11 +517,3 @@ export const getDocByName = data => {
     params: data,
   });
 };
-
-export const getKnowledgeDetail = params => {
-  return service({
-    url: `${USER_API}/knowledge/detail`,
-    method: 'get',
-    params,
-  });
-};
