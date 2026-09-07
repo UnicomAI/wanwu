@@ -32,11 +32,3 @@ export const deleteParseTemplate = data => {
     data,
   });
 };
-
-export const updateKnowledgeParseTemplate = data => {
-  return service({
-    url: `${USER_API}/knowledge/parseTemplate/bind`,
-    method: 'put',
-    data,
-  });
-};
