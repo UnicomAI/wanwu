@@ -53,10 +53,14 @@ type OrgUserSearchItem struct {
 	User IDNameWithAvatar
 	Orgs []IDNameWithAvatar
 }
+type OrgSearchItem struct {
+	Org  IDNameWithAvatar
+	Orgs []IDNameWithAvatar
+}
 type OrgUsersResult struct {
 	Orgs        []IDNameWithAvatar
 	Users       []IDNameWithAvatar
-	SearchOrgs  []IDNameWithAvatar
+	SearchOrgs  []OrgSearchItem
 	SearchUsers []OrgUserSearchItem
 }
 
