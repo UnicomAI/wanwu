@@ -863,10 +863,13 @@ export default {
         this.templatesLoaded = true;
         return;
       }
-      getParseTemplateList().then(res => {
-        if (res.code === 0) this.parseTemplateList = res.data.list || [];
-        this.templatesLoaded = true;
-      });
+      getParseTemplateList()
+        .then(res => {
+          if (res.code === 0) this.parseTemplateList = res.data.list || [];
+        })
+        .finally(() => {
+          this.templatesLoaded = true;
+        });
     },
     resetDocQueryState() {
       this.docQuery.docName = '';

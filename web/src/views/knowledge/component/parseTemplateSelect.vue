@@ -250,16 +250,19 @@ export default {
       this.getList();
     },
     getList() {
-      getParseTemplateList().then(res => {
-        if (res.code !== 0) return;
-        this.grouped = (res.data.list || []).reduce((acc, template) => {
-          acc[template.docType] = acc[template.docType] || [];
-          acc[template.docType].push(template);
-          return acc;
-        }, {});
-        this.loaded = true;
-        this.bindDefaultMediaTemplates();
-      });
+      getParseTemplateList()
+        .then(res => {
+          if (res.code !== 0) return;
+          this.grouped = (res.data.list || []).reduce((acc, template) => {
+            acc[template.docType] = acc[template.docType] || [];
+            acc[template.docType].push(template);
+            return acc;
+          }, {});
+          this.bindDefaultMediaTemplates();
+        })
+        .finally(() => {
+          this.loaded = true;
+        });
     },
     // 媒体类型没有内置模板，未绑定就用不了；取列表第一个（接口按创建时间倒序）
     bindDefaultMediaTemplates() {
