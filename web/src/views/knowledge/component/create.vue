@@ -120,7 +120,10 @@
               warning
             />
           </el-form-item>
-          <el-form-item :label="$t('knowledgeManage.parseTemplate.title')">
+          <el-form-item
+            v-if="category !== QA"
+            :label="$t('knowledgeManage.parseTemplate.title')"
+          >
             <parseTemplateSelect
               v-model="ruleForm.parseTemplate"
               :scope="localCategory === MULTIMODAL ? 'all' : 'doc'"
