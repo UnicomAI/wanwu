@@ -202,7 +202,15 @@ func (c *Client) queryOrgUsers(ctx context.Context, name string) (*OrgUsersResul
 			return toErrStatus("iam_org_users_search", err.Error())
 		}
 		for _, o := range orgs {
-			ret.SearchOrgs = append(ret.SearchOrgs, IDNameWithAvatar{ID: o.ID, Name: o.Name, AvatarPath: o.AvatarPath})
+			n := orgTree.GetOrg(o.ID)
+			if n == nil {
+				continue
+			}
+			var p []IDNameWithAvatar
+			for _, x := range append(orgTree.GetParentPath(o.ID, true), n) {
+				p = append(p, IDNameWithAvatar{ID: x.GetOrgID(), Name: x.GetOrgName(x.GetOrgID()), AvatarPath: x.GetAvatarPath()})
+			}
+			ret.SearchOrgs = append(ret.SearchOrgs, OrgSearchItem{Org: IDNameWithAvatar{ID: o.ID, Name: o.Name, AvatarPath: o.AvatarPath}, Orgs: p})
 		}
 		var ous []*model.OrgUser
 		if err := tx.Find(&ous).Error; err != nil {

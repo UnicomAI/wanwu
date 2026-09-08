@@ -99,7 +99,10 @@ func (s *Service) SearchOrgAndUser(ctx context.Context, req *iam_service.SearchO
 	if err != nil {
 		return nil, errStatus(errs.Code_IAMOrg, err)
 	}
-	resp := &iam_service.SearchOrgAndUserResp{Orgs: toProtoIDNameWithAvatars(result.SearchOrgs)}
+	resp := &iam_service.SearchOrgAndUserResp{}
+	for _, item := range result.SearchOrgs {
+		resp.Orgs = append(resp.Orgs, &iam_service.OrgSearchItem{Org: &iam_service.IDNameWithAvatar{Id: util.Int2Str(int(item.Org.ID)), Name: item.Org.Name, AvatarPath: item.Org.AvatarPath}, Orgs: toProtoIDNameWithAvatars(item.Orgs)})
+	}
 	for _, item := range result.SearchUsers {
 		resp.Users = append(resp.Users, &iam_service.OrgUserSearchItem{User: &iam_service.IDNameWithAvatar{Id: util.Int2Str(int(item.User.ID)), Name: item.User.Name, AvatarPath: item.User.AvatarPath}, Orgs: toProtoIDNameWithAvatars(item.Orgs)})
 	}
