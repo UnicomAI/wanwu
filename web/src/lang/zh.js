@@ -1266,7 +1266,7 @@ export default {
       docTypeName: {
         pdf: 'PDF文档',
         word: 'WORD文档',
-        ppt: '演示文档',
+        ppt: 'PPT文档',
         excel: 'EXCEL文档',
         csv: 'CSV文档',
         txt: '纯文本',
@@ -3050,6 +3050,7 @@ export default {
             embeddingModel: 'Embedding',
             publishScope: '发布范围',
             keywords: '关键词配置',
+            parseTemplate: '解析模板',
             public: '公开',
             private: '私密',
           },

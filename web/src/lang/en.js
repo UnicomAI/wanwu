@@ -2766,6 +2766,7 @@ export default {
             embeddingModel: 'Embedding',
             publishScope: 'Publish Scope',
             keywords: 'Keywords',
+            parseTemplate: 'Parsing Template',
             public: 'Public',
             private: 'Private',
           },

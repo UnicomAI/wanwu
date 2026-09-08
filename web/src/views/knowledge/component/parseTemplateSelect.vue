@@ -49,7 +49,6 @@
             :value="selectValue(item.docType)"
             :disabled="disabled"
             :placeholder="$t('knowledgeManage.parseTemplate.noTemplate')"
-            clearable
             @change="handleChange(item.docType, $event)"
           >
             <el-option
@@ -198,7 +197,7 @@ export default {
     },
     // 只有从没配过的类型才回落内置；手动清空过的留空
     isConfigured(docType) {
-      return Object.prototype.hasOwnProperty.call(this.bind, docType);
+      return Object.hasOwn(this.bind, docType);
     },
     // 值必须在选项里存在，否则 el-select 会把原始 templateId 画出来
     selectValue(docType) {
@@ -254,7 +253,8 @@ export default {
       getParseTemplateList().then(res => {
         if (res.code !== 0) return;
         this.grouped = (res.data.list || []).reduce((acc, template) => {
-          (acc[template.docType] = acc[template.docType] || []).push(template);
+          acc[template.docType] = acc[template.docType] || [];
+          acc[template.docType].push(template);
           return acc;
         }, {});
         this.loaded = true;
