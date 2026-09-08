@@ -458,12 +458,13 @@ export default {
     parseMode() {
       this.refreshTemplateAudioLimit();
     },
-    'ruleForm.parseTemplate'() {
+    // 模板绑定变了、模板列表或 ASR 列表回来了，选中的 ASR 模型都会跟着变
+    templateAsrModel() {
       this.refreshTemplateAudioLimit();
     },
     // 刚缺模板就展开，别等点了确定才让用户找
     missingDocTypes(val, old) {
-      if (val.length && !old.length) this.expandTemplates();
+      if (val.length && !old.length) this.focusMissingTemplates();
     },
   },
   computed: {
@@ -752,11 +753,9 @@ export default {
       if (this.fileType !== 'fileMultiModal') return;
       getParseTemplateList({ docType: 'audio' }).then(res => {
         if (res.code === 0) this.audioTemplates = res.data.list || [];
-        this.refreshTemplateAudioLimit();
       });
       selectASRList().then(res => {
         if (res.code === 0) this.asrOptions = res.data.list || [];
-        this.refreshTemplateAudioLimit();
       });
     },
     // 模板模式没有 ASR 下拉，上限只能从绑定的模板反查，模板/文件变化时都要重算
@@ -797,15 +796,16 @@ export default {
       const missing = this.missingDocTypes;
       if (!missing.length) return true;
       this.$msgbox({
-        title: this.$t('knowledgeManage.parseTemplate.mediaTemplateMissingTitle'),
+        title: this.$t(
+          'knowledgeManage.parseTemplate.mediaTemplateMissingTitle',
+        ),
         message: this.missingTemplateMessage(missing),
         confirmButtonText: this.$t('common.button.confirm'),
         customClass: 'media-template-box',
         type: 'warning',
       })
         // 关掉弹窗就展开模板区，让标红的那几项直接落在视野里
-        .then(() => this.focusMissingTemplates())
-        .catch(() => this.focusMissingTemplates());
+        .finally(() => this.focusMissingTemplates());
       return false;
     },
     // 类型名做成带文件图标的 chip，和下方网格用同一套图标，一眼对得上
@@ -832,10 +832,7 @@ export default {
         ),
       ]);
     },
-    expandTemplates() {
-      const select = this.$refs.parseTemplateSelect;
-      if (select) select.expand();
-    },
+    // 展开模板区并把标红的那几项滚进视野
     focusMissingTemplates() {
       const select = this.$refs.parseTemplateSelect;
       if (!select) return;

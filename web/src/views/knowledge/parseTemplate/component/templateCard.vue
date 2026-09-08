@@ -63,6 +63,12 @@ export default {
     mediaType: { type: String, default: 'doc' },
     defaultExpanded: { type: Boolean, default: false },
   },
+  data() {
+    return {
+      expanded: this.defaultExpanded,
+      form: this.value,
+    };
+  },
   computed: {
     multiModal() {
       return this.mediaType !== 'doc';
@@ -76,12 +82,6 @@ export default {
         ? this.$t('knowledgeManage.parseTemplate.builtIn')
         : this.form.name;
     },
-  },
-  data() {
-    return {
-      expanded: this.defaultExpanded,
-      form: this.value,
-    };
   },
   watch: {
     value(val) {
