@@ -266,12 +266,16 @@
                   @unbound-change="unboundDocTypes = $event"
                 >
                   <template #footer>
-                    <el-checkbox v-model="ruleForm.overrideTemplate">
+                    <el-checkbox
+                      v-if="isSystemAdmin"
+                      v-model="ruleForm.overrideTemplate"
+                    >
                       {{
                         $t('knowledgeManage.parseTemplate.overrideKnowledge')
                       }}
                     </el-checkbox>
                     <el-tooltip
+                      v-if="isSystemAdmin"
                       :content="
                         $t('knowledgeManage.parseTemplate.overrideKnowledgeTip')
                       "
@@ -363,6 +367,7 @@ import parseConfigForm from '../component/parseConfigForm.vue';
 import parseTemplateSelect from '../component/parseTemplateSelect.vue';
 import mataData from '../component/metadata.vue';
 import { USER_API } from '@/utils/requestConstants';
+import { POWER_TYPE_SYSTEM_ADMIN } from '@/views/knowledge/constants';
 import {
   PARSE_MODE_CUSTOM,
   PARSE_MODE_LIST,
@@ -468,6 +473,11 @@ export default {
     },
   },
   computed: {
+    isSystemAdmin() {
+      return (
+        Number(this.$route.query.permissionType) === POWER_TYPE_SYSTEM_ADMIN
+      );
+    },
     // 模板模式的音频大小上限来自 audio 模板里配的 ASR 模型
     templateAsrModel() {
       const template = this.audioTemplates.find(
@@ -780,7 +790,7 @@ export default {
         docMetaData: this.ruleForm.docMetaData,
         useTemplate: true,
         parseTemplate: bindMapToList(this.ruleForm.parseTemplate),
-        overrideTemplate: this.ruleForm.overrideTemplate,
+        overrideTemplate: this.isSystemAdmin && this.ruleForm.overrideTemplate,
       };
       docImport(data).then(res => {
         if (res.code === 0) {

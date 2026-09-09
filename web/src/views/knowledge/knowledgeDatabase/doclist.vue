@@ -287,6 +287,9 @@
                         {{ item.docTypeName }}：{{ item.templateName }}
                       </el-tag>
                       <i
+                        v-if="
+                          [POWER_TYPE_SYSTEM_ADMIN].includes(permissionType)
+                        "
                         class="el-icon-edit-outline"
                         style="cursor: pointer"
                         @click="showEdit"
@@ -297,6 +300,9 @@
                         {{ $t('knowledgeManage.parseTemplate.noneSelected') }}
                       </span>
                       <i
+                        v-if="
+                          [POWER_TYPE_SYSTEM_ADMIN].includes(permissionType)
+                        "
                         class="el-icon-edit-outline"
                         style="cursor: pointer"
                         @click="showEdit"
@@ -1341,6 +1347,7 @@ export default {
           id: this.docQuery.knowledgeId,
           name: this.knowledgeName,
           category: this.category,
+          permissionType: this.permissionType,
         },
       });
     },
