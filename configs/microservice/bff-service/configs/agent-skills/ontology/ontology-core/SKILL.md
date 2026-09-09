@@ -2,9 +2,11 @@
 name: ontology-core
 description: >-
   操作 知识网络（BKN）— 构建知识网络、查询 Schema/实例、语义搜索、执行 Action。
+  操作指标（Metric）— 指标定义的 CRUD、搜索、校验、查询数据、试运行。
   操作数据源与数据视图 — 数据源连接与查询、原子/自定义视图浏览与 SQL 查询。
   操作 Vega 可观测平台 — 查询 Catalog/资源/连接器类型、健康巡检。
   当用户提到"知识网络"、"知识图谱"、"查询对象类"、"执行 Action"、
+  "指标管理"、"创建指标"、"查询指标"、"试运行指标"、"校验指标"、
   "数据源"、"数据视图"、"原子视图"、"Catalog"、"Vega"、
   "健康检查"、"巡检"等意图时自动使用。
 allowed-tools: Bash(ontology *)
@@ -88,6 +90,7 @@ ontology --user-id <accountId> <command> [options]
 | 命令组 | 说明 | 常用命令 | 详细参考 |
 |--------|------|---------|---------|
 | `bkn` | BKN 知识网络管理、Schema、查询、Action | `bkn list`、`bkn get <id>`、`bkn object-type`、`bkn validate`/`push`、`pull`、`create-from-ds`/`create-from-csv` 等 | `references/bkn.md` |
+| `metric` | 指标管理（CRUD、搜索、校验、查询数据、试运行） | `metric list <kn>`、`metric get <kn> <id>`、`metric create`、`metric query <kn> <id>`、`metric dry-run` | `references/metric.md` |
 | `ds` | 数据源管理 | `ds list`、`ds get <id>`、`ds tables <id>`、`ds connect ...` | `references/ds.md` |
 | `dataview` | 原子/自定义数据视图（mdl-data-model） | `dataview list`、`find --name`、`get`、`query`（SQL / mdl-uniquery）、`delete` | `references/dataview.md` |
 | `vega` | Vega 可观测平台 | `vega health`、`vega stats`、`vega catalog list`、`vega resource list`、`vega connector-type list` | `references/vega.md` |
@@ -100,7 +103,23 @@ ontology --user-id <accountId> <command> [options]
 |------|------|---------|
 | 从数据库/CSV 构建 KN | 连接数据源 → CSV 导入 → 创建 KN → 构建索引 → 查询验证 | [references/build-kn-from-db.md](references/build-kn-from-db.md) |
 | 列/查数据视图 | `list` 浏览；`find --name` 按名搜索（`--exact`/`--wait`）；`query` 对视图跑 SQL | [references/dataview.md](references/dataview.md) |
+| 指标管理 | `metric list <kn>` 列出指标；`metric get`/`create`/`update`/`delete`/`search`/`validate`/`query`/`dry-run` | [references/metric.md](references/metric.md) |
 | Vega 巡检 | `vega health` / `vega stats` / `vega catalog list` / `vega resource list` | [references/vega.md](references/vega.md) |
+
+## 指标（Metric）vs 逻辑属性（logic_properties）
+
+两类"指标"概念容易混淆，路由前必须区分：
+
+| 维度 | KN 级 Metric 定义 | 对象类 logic_properties |
+|------|-------------------|------------------------|
+| 命令组 | `ontology metric`（list/get/create/update/delete/search/validate/query/dry-run） | `ontology bkn object-type properties` |
+| 作用域 | 知识网络级别，独立保存为 Metric 资源 | 对象类级别，附加在对象类 schema 上 |
+| 查询方式 | `ontology metric query <kn> <metric_id> --body '<json>'` | `ontology bkn object-type properties <kn> <ot_id> '<json>'` |
+| 典型场景 | "列出这个知识网络下的指标"、"创建月销售额指标"、"试运行指标定义" | "查这个实例的逻辑属性值"、"结算 object-type 上的计算字段" |
+
+**路由规则**：
+- 用户要"列出/创建/更新/删除/搜索/校验/查询/试运行"**指标定义**（Metric）→ 走 `ontology metric` 命令组
+- 用户要"查实例的逻辑属性值"（即对象类上的 `logic_properties` 计算字段）→ 走 `ontology bkn object-type properties` 命令
 
 **按需阅读**：需要子命令完整参数或编排示例时，读取对应的 reference 文件。
 **遇到关于 agent / skill / toolbox / dataflow / context-loader 的请求**：先告知用户 ontology CLI 与本环境均未提供，不要尝试执行。

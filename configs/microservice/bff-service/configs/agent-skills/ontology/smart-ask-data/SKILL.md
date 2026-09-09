@@ -7,6 +7,8 @@ description: >-
   由编排层 LLM 生成 SQL，再由 ontology dataview query 执行取数；
   最后输出中文结论与口径说明。
   当用户需要指标、统计、趋势、SQL 取数或数据查询时使用。
+  指标管理（Metric）相关的 CRUD / 搜索 / 校验 / 查询数据 / 试运行由 smart-data-analysis 路由到 ontology-core 的 `metric` 命令组，
+  本 skill 不承担指标定义管理；若用户要管理 KN 级指标定义，应回到 smart-data-analysis 路由到 `ontology metric` 命令组。
 argument-hint: [中文问数问题；可选已有 kn_id 或候选 kn 列表]
 ---
 
@@ -67,6 +69,8 @@ ontology --user-id <accountId> <command> [options]
 | — | 端到端顺序示例 | [references/tool-examples.md](references/tool-examples.md) |
 
 ## 主流程（必须按序）
+
+> **指标管理（Metric）路由提示**：若用户要"列出/创建/更新/删除/搜索/校验/查询/试运行"**指标定义**（KN 级 Metric），应回到 [smart-data-analysis](../smart-data-analysis/SKILL.md) 路由到 `ontology metric` 命令组，**不走本 skill 的问数流程**。本 skill 仅处理"问数"（即取数、统计、SQL 查询）场景。
 
 复制进度：
 

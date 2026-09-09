@@ -9,6 +9,7 @@ description: >-
   问数分支的 SQL 生成；与 smart-search-tables / smart-ask-data / ontology-core 的交接。
   当用户提出任何数据类自然语言任务、或需在多条业务 KN 间切换时使用；
   所有 ontology CLI 执行均委托 ontology-core 完成，本 skill 不直接执行 CLI。
+  指标管理（Metric）相关的 CRUD / 搜索 / 校验 / 查询数据 / 试运行也由本 skill 路由到 ontology-core 的 `metric` 命令组。
 argument-hint: [自然语言指令或带 kn 上下文的任务描述]
 ---
 
@@ -151,6 +152,64 @@ KN id 在下表中直接声明，**由本 skill 路由时透传到下游**（sma
 | `duty_kn_id` | 职责 KN id（可选） | 从「知识网络声明」表"职责"行读取；留空则跳过职责检索并在总结中说明"未检索职责" |
 | `<ot-id>` | KN 内用于实例检索的对象类 id（一般两个 KN 各一个） | 不确定时先 `bkn object-type list <kn-id>` + LLM 选定 |
 | `search` | 提炼后的检索短语 | 必须由用户问题提炼，不得为代词或单字 |
+
+### 走「指标管理」分支（最终目标是管理 KN 级指标定义）
+
+触发词或场景示例：
+- **指标定义 CRUD**：列出指标、创建指标、更新指标、删除指标、搜索指标
+- **指标校验/试运行**：校验指标定义、试运行指标定义（不保存）
+- **指标数据查询**：查询已保存指标的数据（按 metric_id 查，不是按 object-type 的 logic_properties 查）
+
+**指标（Metric）vs 逻辑属性（logic_properties）判别**：
+- 用户提到"指标"时，先判断是 **KN 级 Metric 定义** 还是 **对象类 logic_properties**
+- KN 级 Metric：独立保存的指标资源，通过 `ontology metric` 命令组管理（list/get/create/update/delete/search/validate/query/dry-run）
+- 对象类 logic_properties：附加在对象类 schema 上的计算字段，通过 `ontology bkn object-type properties` 查询
+- **路由规则**：用户要"列出/创建/更新/删除/搜索/校验/查询/试运行"**指标定义** → 走 `ontology metric` 命令组；用户要"查实例的逻辑属性值" → 走 `ontology bkn object-type properties`
+
+**分支清单**
+
+```text
+指标管理进度：
+- [ ] 确认 `accountId`（缺失则向用户索取，不得编造）
+- [ ] 从「知识网络声明」表读取对应分支的 KN id 作为 `kn_id`；占位仍为 `<填入...>` → 告知用户并停止
+- [ ] 明确用户要做的指标操作（list/get/create/update/delete/search/validate/query/dry-run）
+- [ ] 委托 ontology-core 执行 `ontology metric <subcommand> <kn-id> [options]`
+- [ ] 输出：执行的命令（脱敏可，不可省）+ 关键结果数据 + 口径说明
+```
+
+**与 ontology-core 的交接契约**（指标管理分支）：
+
+| 字段 | 含义 | 缺失处理 |
+|------|------|----------|
+| `accountId` | 当前会话用户账户 id | 向用户索取；不得编造 |
+| `kn_id` | 目标知识网络 id | 从「知识网络声明」表对应行读取；占位未填 → 告知用户并停止 |
+| `metric_id` | 目标指标 id（get/update/delete/query 需要） | 从 `ontology metric list` 获取；缺失则先 list 再选定 |
+| `body` | 指标定义 JSON（create/update/search/validate/query/dry-run 需要） | 由用户提供或从已有指标导出后修改 |
+
+**指标管理常用命令**（委托 ontology-core 执行）：
+
+```bash
+# 列出指标
+ontology --user-id <accountId> metric list <kn-id>
+# 获取指标
+ontology --user-id <accountId> metric get <kn-id> <metric-id>
+# 创建指标
+ontology --user-id <accountId> metric create <kn-id> --body '<json>'
+# 更新指标
+ontology --user-id <accountId> metric update <kn-id> <metric-id> --body '<json>'
+# 删除指标
+ontology --user-id <accountId> metric delete <kn-id> <metric-id> -y
+# 搜索指标
+ontology --user-id <accountId> metric search <kn-id> --body '<json>'
+# 校验指标定义
+ontology --user-id <accountId> metric validate <kn-id> --body '<json>'
+# 查询已保存指标的数据
+ontology --user-id <accountId> metric query <kn-id> <metric-id> --body '<json>'
+# 试运行指标定义（不保存）
+ontology --user-id <accountId> metric dry-run <kn-id> --body '<json>'
+```
+
+> 详见 [ontology-core/references/metric.md](../ontology-core/references/metric.md)。
 
 ### 走「问数」分支（最终目标是拿到数据结果）
 
