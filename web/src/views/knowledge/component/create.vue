@@ -121,6 +121,16 @@
             />
           </el-form-item>
           <el-form-item
+            v-if="category !== QA"
+            :label="$t('knowledgeManage.parseTemplate.title')"
+          >
+            <parseTemplateSelect
+              v-model="ruleForm.parseTemplate"
+              :scope="localCategory === MULTIMODAL ? 'all' : 'doc'"
+              :autoBindMedia="!isEdit"
+            />
+          </el-form-item>
+          <el-form-item
             prop="knowledgeGraph.switch"
             v-if="category === KNOWLEDGE && localCategory === KNOWLEDGE"
           >
@@ -357,6 +367,8 @@ import { KNOWLEDGE_GRAPH_TIPS } from '../config';
 import uploadChunk from '@/mixins/uploadChunk';
 import { delfile } from '@/api/chunkFile';
 import modelSelect from '@/components/modelSelect.vue';
+import parseTemplateSelect from './parseTemplateSelect.vue';
+import { bindListToMap, bindMapToList } from '../parseTemplate/config';
 import {
   INTERNAL,
   EXTERNAL,
@@ -378,6 +390,7 @@ export default {
   components: {
     uploadAvatar,
     modelSelect,
+    parseTemplateSelect,
   },
   mixins: [uploadChunk],
   data() {
@@ -405,6 +418,7 @@ export default {
         externalSource: 'dify',
         externalApiId: '',
         externalKnowledgeId: '',
+        parseTemplate: {},
       },
       EmbeddingOptions: [],
       multiEmbeddingOptions: [],
@@ -637,6 +651,7 @@ export default {
         externalSource: 'dify',
         externalApiId: '',
         externalKnowledgeId: '',
+        parseTemplate: {},
       };
       this.fileList = [];
       this.cancelAllRequests();
@@ -799,7 +814,8 @@ export default {
           } else {
             this.createKnowledge();
           }
-          this.$parent?.clearIptValue();
+          // 该方法只在知识库列表页有，详情页打开时不存在
+          this.$parent?.clearIptValue?.();
         } else {
           return false;
         }
@@ -809,6 +825,7 @@ export default {
       const data = {
         ...this.ruleForm,
         category: this.localCategory,
+        parseTemplate: bindMapToList(this.ruleForm.parseTemplate),
       };
       const request =
         this.tabActive === EXTERNAL
@@ -828,6 +845,7 @@ export default {
       const data = {
         ...this.ruleForm,
         knowledgeId: this.knowledgeId,
+        parseTemplate: bindMapToList(this.ruleForm.parseTemplate),
       };
       const request =
         this.tabActive === EXTERNAL
@@ -866,6 +884,7 @@ export default {
           externalSource: 'dify',
           externalApiId: '',
           externalKnowledgeId: '',
+          parseTemplate: bindListToMap(row.parseTemplate),
         };
         if (row.external === EXTERNAL) {
           this.ruleForm.externalSource =
@@ -908,6 +927,7 @@ export default {
           externalSource: 'dify',
           externalApiId: '',
           externalKnowledgeId: '',
+          parseTemplate: {},
         };
       }
       this.getExternalAPIList();

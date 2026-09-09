@@ -206,6 +206,7 @@
                           size="small"
                           color="#E6F0FF"
                           class="keyword-tag"
+                          disable-transitions
                         >
                           {{ item.text }}
                         </el-tag>
@@ -228,6 +229,7 @@
                         v-for="(item, index) in graphLlmModel.tags"
                         :key="index"
                         class="keyword-tag"
+                        disable-transitions
                         color="#E6F0FF"
                         size="small"
                       >
@@ -248,6 +250,7 @@
                         size="small"
                         color="#E6F0FF"
                         class="keyword-tag"
+                        disable-transitions
                       >
                         {{ item.name }} : {{ item.alias }}
                       </el-tag>
@@ -258,6 +261,53 @@
                       style="cursor: pointer"
                       @click="$router.push(`/knowledge/keyword`)"
                     ></i>
+                  </div>
+                </el-descriptions-item>
+                <el-descriptions-item labelStyle="width: 120px">
+                  <template slot="label">
+                    {{ $t('knowledgeManage.parseTemplate.selected') }}
+                    <el-tooltip
+                      :content="$t('knowledgeManage.parseTemplate.selectedTip')"
+                      placement="top"
+                      popper-class="nowrap-tooltip"
+                    >
+                      <span class="el-icon-question question"></span>
+                    </el-tooltip>
+                  </template>
+                  <div class="keyword-tags">
+                    <template v-if="parseTemplateTags.length > 0">
+                      <el-tag
+                        v-for="item in parseTemplateTags"
+                        :key="item.docType"
+                        size="small"
+                        color="#E6F0FF"
+                        class="keyword-tag"
+                        disable-transitions
+                      >
+                        {{ item.docTypeName }}：{{ item.templateName }}
+                      </el-tag>
+                      <i
+                        v-if="
+                          [POWER_TYPE_SYSTEM_ADMIN].includes(permissionType)
+                        "
+                        class="el-icon-edit-outline"
+                        style="cursor: pointer"
+                        @click="showEdit"
+                      ></i>
+                    </template>
+                    <template v-else-if="templatesLoaded">
+                      <span>
+                        {{ $t('knowledgeManage.parseTemplate.noneSelected') }}
+                      </span>
+                      <i
+                        v-if="
+                          [POWER_TYPE_SYSTEM_ADMIN].includes(permissionType)
+                        "
+                        class="el-icon-edit-outline"
+                        style="cursor: pointer"
+                        @click="showEdit"
+                      ></i>
+                    </template>
                   </div>
                 </el-descriptions-item>
               </el-descriptions>
@@ -595,6 +645,8 @@ import exportRecord from '@/views/knowledge/qaDatabase/exportRecord.vue';
 import CopyIcon from '@/components/copyIcon.vue';
 import createKnowledge from '@/views/knowledge/component/create.vue';
 import { selectModelList } from '@/api/modelAccess';
+import { getParseTemplateList } from '@/api/parseTemplate';
+import { DOC_TYPE_LIST } from '@/views/knowledge/parseTemplate/config';
 import { avatarSrc, getModelDefaultIcon } from '@/utils/util';
 
 export default {
@@ -643,6 +695,9 @@ export default {
       keywords: [],
       llmModelId: '',
       graphLlmModel: null, // 知识图谱解析模型信息
+      parseTemplateBind: [], // 知识库上各文档类型选定的解析模板 [{docType, templateId}]
+      parseTemplateList: [],
+      templatesLoaded: false,
       loading: false,
       tableLoading: false,
       docQuery: {
@@ -713,6 +768,26 @@ export default {
     },
   },
   computed: {
+    // 只展示选了自定义模板的文档类型，其余走内置（默认）
+    parseTemplateTags() {
+      return this.parseTemplateBind.reduce((acc, { docType, templateId }) => {
+        if (!templateId) return acc;
+        const template = this.parseTemplateList.find(
+          item => item.templateId === templateId,
+        );
+        // 模板列表未返回时取不到名字，先不展示，避免闪出原始 templateId
+        if (!template || template.builtIn) return acc;
+        const docTypeItem = DOC_TYPE_LIST.find(
+          item => item.docType === docType,
+        );
+        acc.push({
+          docType,
+          docTypeName: docTypeItem ? docTypeItem.name : docType,
+          templateName: template.name,
+        });
+        return acc;
+      }, []);
+    },
     hasManagePerm() {
       return (
         !this.readonly &&
@@ -741,37 +816,7 @@ export default {
     }
     this.docQuery.knowledgeId = this.effectiveKnowledgeId;
     this.getTableData(this.docQuery);
-    getDocDetail({ knowledgeId: this.docQuery.knowledgeId }).then(res => {
-      if (res.code === 0) {
-        this.graphSwitch = res.data.graphSwitch === 1;
-        this.showGraphReport = res.data.showGraphReport;
-        this.avatar = res.data.avatar;
-        this.knowledgeName = res.data.knowledgeName;
-        this.description = res.data.description;
-        this.category = res.data.category;
-        this.embeddingModel = res.data.embeddingModel;
-        this.keywords = res.data.keywords;
-        this.llmModelId = res.data.llmModelId;
-        this.permissionType = res.data.permissionType;
-        // 如果开启了知识图谱且有大模型ID，则查询模型详情
-        if (this.graphSwitch && this.llmModelId) {
-          selectModelList().then(res => {
-            if (res.code === 0 && res.data.list) {
-              const model = res.data.list.find(
-                item => item.modelId === this.llmModelId,
-              );
-              this.graphLlmModel = model || null;
-            }
-          });
-        } else {
-          this.graphLlmModel = null;
-        }
-      } else {
-        this.graphSwitch = false;
-        this.showGraphReport = false;
-        this.graphLlmModel = null;
-      }
-    });
+    this.getKnowledgeDetail();
   },
   deactivated() {
     if (this.readonly) return;
@@ -779,8 +824,58 @@ export default {
     this.handleMetaCancel();
   },
   methods: {
+    // 知识库信息，编辑保存后需要重新拉取
+    getKnowledgeDetail() {
+      getDocDetail({ knowledgeId: this.docQuery.knowledgeId }).then(res => {
+        if (res.code === 0) {
+          this.graphSwitch = res.data.graphSwitch === 1;
+          this.showGraphReport = res.data.showGraphReport;
+          this.avatar = res.data.avatar;
+          this.knowledgeName = res.data.knowledgeName;
+          this.description = res.data.description;
+          this.category = res.data.category;
+          this.embeddingModel = res.data.embeddingModel;
+          this.keywords = res.data.keywords;
+          this.llmModelId = res.data.llmModelId;
+          this.permissionType = res.data.permissionType;
+          this.parseTemplateBind = res.data.parseTemplate || [];
+          this.getParseTemplates();
+          // 如果开启了知识图谱且有大模型ID，则查询模型详情
+          if (this.graphSwitch && this.llmModelId) {
+            selectModelList().then(res => {
+              if (res.code === 0 && res.data.list) {
+                const model = res.data.list.find(
+                  item => item.modelId === this.llmModelId,
+                );
+                this.graphLlmModel = model || null;
+              }
+            });
+          } else {
+            this.graphLlmModel = null;
+          }
+        } else {
+          this.graphSwitch = false;
+          this.showGraphReport = false;
+          this.graphLlmModel = null;
+        }
+      });
+    },
     convertModelIcon(iconPath) {
       return iconPath ? avatarSrc(iconPath) : getModelDefaultIcon();
+    },
+    // 模板名要等列表返回才有，加载期间先什么都不展示，别断言"未选择"
+    getParseTemplates() {
+      if (this.parseTemplateBind.length === 0) {
+        this.templatesLoaded = true;
+        return;
+      }
+      getParseTemplateList()
+        .then(res => {
+          if (res.code === 0) this.parseTemplateList = res.data.list || [];
+        })
+        .finally(() => {
+          this.templatesLoaded = true;
+        });
     },
     resetDocQueryState() {
       this.docQuery.docName = '';
@@ -808,6 +903,7 @@ export default {
         embeddingModelInfo: this.embeddingModel,
         llmModelId: this.llmModelId,
         graphSwitch: this.graphSwitch ? 1 : 0,
+        parseTemplate: this.parseTemplateBind,
       });
     },
     handleCommand(command) {
@@ -975,6 +1071,7 @@ export default {
     },
     reload() {
       this.getTableData(this.docQuery);
+      this.getKnowledgeDetail();
     },
     handleSearch(val) {
       this.docQuery.docName = val;
@@ -1250,6 +1347,7 @@ export default {
           id: this.docQuery.knowledgeId,
           name: this.knowledgeName,
           category: this.category,
+          permissionType: this.permissionType,
         },
       });
     },
@@ -1566,5 +1664,10 @@ export default {
 
 .custom-tooltip.el-tooltip__popper.is-light[x-placement^='top'] .popper__arrow {
   border-top-color: #ccc !important;
+}
+
+.nowrap-tooltip {
+  max-width: none !important;
+  white-space: nowrap;
 }
 </style>
