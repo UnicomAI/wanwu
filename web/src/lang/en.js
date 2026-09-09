@@ -765,7 +765,7 @@ export default {
     },
     hint: {
       urlError: 'URL格式不正确',
-      yuanjing: '可前往 https://maas.ai-yuanjing.com/ 申请API Key',
+      yuanjing: '可前往 https://www.yjmaas.10010.com/ 申请API Key',
       upload: '可上传 .png、jpg、jpeg 文件',
       minLimit: '最小值为1',
     },
