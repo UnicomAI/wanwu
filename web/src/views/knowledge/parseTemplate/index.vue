@@ -183,11 +183,12 @@ export default {
 </script>
 <style lang="scss" scoped>
 .crumb-link {
-  color: #666;
+  font-size: inherit;
   cursor: pointer;
 }
 .crumb-arrow {
   margin: 0 8px;
+  font-size: inherit;
   color: #999;
 }
 .page-desc {
