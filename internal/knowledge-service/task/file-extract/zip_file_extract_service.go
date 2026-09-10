@@ -74,7 +74,8 @@ func (t ZipFileExtractServiceService) ExtractFile(ctx context.Context, localFile
 		}
 		log.Infof("ExtractFile file path %s", destFilePath)
 		// 我们需要确保所有的文件夹都已经创建好
-		err = os.MkdirAll(filepath.Dir(destFilePath), f.Mode())
+		// f.Mode() 是压缩包内那个文件的权限(0644)，拿来建目录会缺执行位导致进不去
+		err = os.MkdirAll(filepath.Dir(destFilePath), 0755)
 		if err != nil {
 			return "", err
 		}
