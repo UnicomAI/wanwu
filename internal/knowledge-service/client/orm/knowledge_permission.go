@@ -309,3 +309,19 @@ func buildPermissionRecord(permission *model.KnowledgePermission, fromPermission
 		UpdatedAt:          milli,
 	}
 }
+
+// KnowledgeOwnerOf 知识库拥有者是持有系统管理授权权限的那个人，转让后会变，未必是创建者
+func KnowledgeOwnerOf(ctx context.Context, knowledgeId string) (userId string, orgId string) {
+	permissionList, err := SelectUserKnowledgePermissionList(ctx, knowledgeId, model.PermissionTypeSystem)
+	if err != nil || len(permissionList) == 0 {
+		return "", ""
+	}
+	//知识库的拥有者只能有一个
+	return permissionList[0].UserId, permissionList[0].OrgId
+}
+
+// IsKnowledgeOwner 只有拥有者能改知识库上的解析模板绑定，被分享的人一律只读
+func IsKnowledgeOwner(ctx context.Context, knowledgeId, userId, orgId string) bool {
+	ownerUserId, ownerOrgId := KnowledgeOwnerOf(ctx, knowledgeId)
+	return len(ownerUserId) > 0 && ownerUserId == userId && ownerOrgId == orgId
+}

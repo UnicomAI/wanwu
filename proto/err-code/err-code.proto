@@ -144,6 +144,15 @@ enum Code {
   KnowledgeExternalInfoSelectFailed = 149009; // 获取外部知识库详情失败，请稍后重试
   KnowledgeExternalListSelectFailed = 149010; // 获取外部知识库列表失败，请稍后重试
   KnowledgeExternalAPICheckFailed = 149011; // 校验外部知识库API失败，请稍后重试
+  KnowledgeParseTemplateCreateFailed = 149020; // 新建解析模板失败，请稍后重试
+  KnowledgeParseTemplateUpdateFailed = 149021; // 修改解析模板失败，请稍后重试
+  KnowledgeParseTemplateDeleteFailed = 149022; // 删除解析模板失败，请稍后重试
+  KnowledgeParseTemplateListFailed = 149023; // 查询解析模板列表失败，请稍后重试
+  KnowledgeParseTemplateDuplicateName = 149024; // 已存在同名解析模板
+  KnowledgeParseTemplateNotExist = 149025; // 解析模板不存在或无操作权限
+  KnowledgeParseTemplateAsrMissing = 149026; // 音频文件的解析模板未配置ASR模型，请先配置
+  KnowledgeParseTemplateMediaMissing = 149027; // 视频/音频/图片文件未选择解析模板，请先选择
+  KnowledgeParseTemplateOverrideDenied = 149028; // 只有知识库拥有者可以覆盖解析模板配置
 
 
 

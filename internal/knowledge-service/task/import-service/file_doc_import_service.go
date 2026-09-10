@@ -2,6 +2,7 @@ package import_service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -61,8 +62,10 @@ func (f FileDocImportService) CheckDoc(ctx context.Context, importTask *model.Kn
 		multimodal = knowledge.Category == model.CategoryMultimodal
 	}
 	fileTypeMap := BuildFileTypeMap(multimodal)
+	// 压缩包解压出的文件各是各的类型，先取出任务绑定的模板，校验时按各自类型判断解析参数是否齐全
+	_, templateOverrides := orm.BuildImportTaskTemplateOverrides(ctx, importTask)
 	for _, docInfo := range docList {
-		checkResult, checkMessage := checkOneFile(ctx, importTask, docInfo, fileTypeMap)
+		checkResult, checkMessage := checkOneFile(ctx, importTask, docInfo, fileTypeMap, templateOverrides)
 		var status = model.DocInit
 		if !checkResult {
 			status = model.DocFail
@@ -79,8 +82,13 @@ func (f FileDocImportService) CheckDoc(ctx context.Context, importTask *model.Kn
 func (f FileDocImportService) ImportDoc(ctx context.Context, importTask *model.KnowledgeImportTask, docList []*CheckFileResult) ([]*model.DocInfo, error) {
 	var result = false
 	var retList []*model.DocInfo
+	// 模板模式：任务绑定的解析模板按文档类型一次性解析（压缩包解压出多个不同类型文件时按各自类型套用）
+	// 非模板模式的解析模板绑定为空，overrides 为 nil，ApplyImportTaskTemplate 会原样返回任务配置
+	groupDocType, overrides := orm.BuildImportTaskTemplateOverrides(ctx, importTask)
 	for _, docInfo := range docList {
-		err := orm.CreateKnowledgeDoc(ctx, buildKnowledgeDoc(importTask, docInfo), importTask)
+		doc := buildKnowledgeDoc(importTask, docInfo)
+		taskForDoc := orm.ApplyImportTaskTemplate(importTask, doc, groupDocType, overrides)
+		err := orm.CreateKnowledgeDoc(ctx, doc, taskForDoc)
 		if err != nil {
 			log.Errorf("import doc fail %v", err)
 			continue
@@ -96,7 +104,7 @@ func (f FileDocImportService) ImportDoc(ctx context.Context, importTask *model.K
 }
 
 // checkOneFile 单个文件校验
-func checkOneFile(ctx context.Context, importTask *model.KnowledgeImportTask, doc *model.DocInfo, fileTypeMap map[string]bool) (bool, string) {
+func checkOneFile(ctx context.Context, importTask *model.KnowledgeImportTask, doc *model.DocInfo, fileTypeMap map[string]bool, templateOverrides map[string]*model.KnowledgeParseTemplate) (bool, string) {
 	//1.文件类型校验
 	if !fileTypeMap[doc.DocType] {
 		log.Errorf("文件%s格式%s不支持", doc.DocName, doc.DocType)
@@ -124,7 +132,27 @@ func checkOneFile(ctx context.Context, importTask *model.KnowledgeImportTask, do
 		log.Errorf("文件 '%s' 判断文档重名失败(%v)", doc.DocName, err)
 		return false, util.KnowledgeImportSameNameErr
 	}
+	//5.音频没有 ASR 模型转写不出内容，直传在导入入口已拦，这里兜的是压缩包解压出的音频
+	if model.DocTypeByExt(doc.DocType) == "audio" && !hasAsrModel(importTask, templateOverrides) {
+		log.Errorf("文件 '%s' 的解析配置未指定ASR模型", doc.DocName)
+		return false, util.KnowledgeImportAsrMissingErr
+	}
 	return true, ""
+}
+
+// hasAsrModel 判断音频最终生效的解析配置有没有 ASR 模型：绑了模板用模板的，没绑用任务自身的
+// 取值口径与 orm.ApplyImportTaskTemplate 一致
+func hasAsrModel(importTask *model.KnowledgeImportTask, templateOverrides map[string]*model.KnowledgeParseTemplate) bool {
+	docAnalyzer := importTask.DocAnalyzer
+	if template := templateOverrides["audio"]; template != nil {
+		docAnalyzer = template.DocAnalyzer
+	}
+	analyzer := &model.DocAnalyzer{}
+	if err := json.Unmarshal([]byte(docAnalyzer), analyzer); err != nil {
+		log.Errorf("doc analyzer unmarshal fail %v", err)
+		return false
+	}
+	return len(analyzer.AsrModelId) > 0
 }
 
 // 校验单个文件大小限制

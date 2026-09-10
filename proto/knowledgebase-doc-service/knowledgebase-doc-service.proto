@@ -105,6 +105,11 @@ message KeywordsInfo {
   string updatedAt = 6;
 }
 
+message ParseTemplateBind {
+  string docType = 1;  //文档类型 pdf/word/ppt/excel/csv/txt/html/markdown/wps/ofd/video/audio/image
+  string templateId = 2;
+}
+
 message ImportDocReq {
   string userId = 1;
   string orgId = 2;
@@ -118,6 +123,9 @@ message ImportDocReq {
   repeated DocMetaData docMetaDataList = 10; // 元数据列表
   string asrModelId = 11; // asr模型id
   string multimodalModelId = 12; // 多模态模型id
+  bool useTemplate = 13; //是否套用知识库解析模板，false 按手动配置处理
+  repeated ParseTemplateBind parseTemplate = 14; //各文档类型选定的解析模板
+  bool overrideTemplate = 15; //是否把本次选择的模板写回知识库
 }
 
 

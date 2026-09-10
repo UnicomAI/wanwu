@@ -2300,6 +2300,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/knowledge/parseTemplate": {
+            "get": {
+                "description": "查询解析模板列表openapi",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "openapi"
+                ],
+                "summary": "查询解析模板列表openapi",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "文档类型，为空则返回全部",
+                        "name": "docType",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ParseTemplateListResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/knowledge/select": {
             "post": {
                 "description": "查询知识库列表openapi",
@@ -4569,6 +4612,13 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "parseTemplate": {
+                    "description": "各文档类型选定的解析模板，若有自定义模板则传参，默认传空数组",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ParseTemplateBind"
+                    }
                 }
             }
         },
@@ -4678,9 +4728,7 @@ const docTemplate = `{
         "request.DocConfigUpdateReq": {
             "type": "object",
             "required": [
-                "docAnalyzer",
                 "docIdList",
-                "docSegment",
                 "knowledgeId"
             ],
             "properties": {
@@ -4721,7 +4769,7 @@ const docTemplate = `{
                     }
                 },
                 "docSegment": {
-                    "description": "文档分段配置",
+                    "description": "文档分段配置，useTemplate 为 true 时不填",
                     "allOf": [
                         {
                             "$ref": "#/definitions/request.DocSegment"
@@ -4736,18 +4784,31 @@ const docTemplate = `{
                     "description": "多模态模型id",
                     "type": "string"
                 },
+                "overrideTemplate": {
+                    "description": "是否把本次选择的模板写回知识库",
+                    "type": "boolean"
+                },
+                "parseTemplate": {
+                    "description": "各文档类型选定的解析模板，useTemplate 为 true 时使用",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ParseTemplateBind"
+                    }
+                },
                 "parserModelId": {
                     "description": "模型解析或ocr模型id",
                     "type": "string"
+                },
+                "useTemplate": {
+                    "description": "是否套用知识库解析模板，false 按手动配置处理",
+                    "type": "boolean"
                 }
             }
         },
         "request.DocImportReq": {
             "type": "object",
             "required": [
-                "docAnalyzer",
                 "docInfoList",
-                "docSegment",
                 "knowledgeId"
             ],
             "properties": {
@@ -4788,7 +4849,7 @@ const docTemplate = `{
                     }
                 },
                 "docSegment": {
-                    "description": "文档分段配置",
+                    "description": "文档分段配置，useTemplate 为 true 时不填",
                     "allOf": [
                         {
                             "$ref": "#/definitions/request.DocSegment"
@@ -4803,9 +4864,24 @@ const docTemplate = `{
                     "description": "多模态模型id",
                     "type": "string"
                 },
+                "overrideTemplate": {
+                    "description": "是否把本次选择的模板写回知识库",
+                    "type": "boolean"
+                },
+                "parseTemplate": {
+                    "description": "各文档类型选定的解析模板，useTemplate 为 true 时使用",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ParseTemplateBind"
+                    }
+                },
                 "parserModelId": {
                     "description": "模型解析或ocr模型id",
                     "type": "string"
+                },
+                "useTemplate": {
+                    "description": "是否套用知识库解析模板，false 按手动配置处理",
+                    "type": "boolean"
                 }
             }
         },
@@ -5887,6 +5963,21 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ParseTemplateBind": {
+            "type": "object",
+            "required": [
+                "docType",
+                "templateId"
+            ],
+            "properties": {
+                "docType": {
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.RecommendConfig": {
             "type": "object",
             "properties": {
@@ -6027,6 +6118,13 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "parseTemplate": {
+                    "description": "各文档类型选定的解析模板",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ParseTemplateBind"
+                    }
                 }
             }
         },
@@ -6770,6 +6868,45 @@ const docTemplate = `{
                 }
             }
         },
+        "response.DocSegmentParam": {
+            "type": "object",
+            "properties": {
+                "maxSplitter": {
+                    "description": "可分隔最大值（只有自定义分段必填）",
+                    "type": "integer"
+                },
+                "overlap": {
+                    "description": "可重叠值（只有自定义分段必填）",
+                    "type": "number"
+                },
+                "segmentMethod": {
+                    "description": "分段方法 0：通用分段；1：父子分段",
+                    "type": "string"
+                },
+                "segmentType": {
+                    "description": "分段方式 0：自动分段；1：自定义分段",
+                    "type": "string"
+                },
+                "splitter": {
+                    "description": "分隔符（只有自定义分段必填）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "subMaxSplitter": {
+                    "description": "可分隔最大值（只有父子分段必填）",
+                    "type": "integer"
+                },
+                "subSplitter": {
+                    "description": "分隔符（只有父子分段必填）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "response.DocSegmentResp": {
             "type": "object",
             "properties": {
@@ -7123,6 +7260,13 @@ const docTemplate = `{
                 "orgName": {
                     "description": "知识库所属名称",
                     "type": "string"
+                },
+                "parseTemplate": {
+                    "description": "各文档类型选定的解析模板",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ParseTemplateBind"
+                    }
                 },
                 "permissionType": {
                     "description": "权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限\u003e编辑权限\u003e查看权限",
@@ -7877,6 +8021,75 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "response.ParseTemplateBind": {
+            "type": "object",
+            "properties": {
+                "docType": {
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ParseTemplateInfo": {
+            "type": "object",
+            "properties": {
+                "asrModelId": {
+                    "type": "string"
+                },
+                "builtIn": {
+                    "type": "boolean"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "docAnalyzer": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "docPreprocess": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "docSegment": {
+                    "$ref": "#/definitions/response.DocSegmentParam"
+                },
+                "docType": {
+                    "type": "string"
+                },
+                "multimodalModelId": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parserModelId": {
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ParseTemplateListResp": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ParseTemplateInfo"
+                    }
                 }
             }
         },

@@ -277,6 +277,8 @@ func buildFileDirTypeValue(valueType string) int {
 }
 
 // CreateKnowledgeDoc 创建知识库文件
+// 注意：压缩包解压出的文件各是各的类型，调用方需先用 BuildImportTaskTemplateOverrides + ApplyImportTaskTemplate
+// 把 importTask 按该文件的类型套好解析模板再传入；此处不再逐文档查库套模板
 func CreateKnowledgeDoc(ctx context.Context, doc *model.KnowledgeDoc, importTask *model.KnowledgeImportTask) error {
 	knowledge, err := SelectKnowledgeById(ctx, doc.KnowledgeId, "", "")
 	if err != nil {
@@ -944,4 +946,57 @@ func GetDocByKnowledgeIdAndDocName(ctx context.Context, userId, orgId, knowledge
 		return nil, err
 	}
 	return &doc, nil
+}
+
+// BuildImportTaskTemplateOverrides 模板模式下把导入任务里绑定的解析模板一次性解析出来，
+// 供压缩包解压出的文档按自身类型套用，避免每个文档各查一次模板。
+// 返回任务自身的文档类型（该类型在任务创建时已套过模板，无需再套）与 docType→模板 的映射；
+// 非模板模式或任务里没有绑定信息时返回 ("", nil)，调用方按任务原配置建文档即可
+func BuildImportTaskTemplateOverrides(ctx context.Context, importTask *model.KnowledgeImportTask) (string, map[string]*model.KnowledgeParseTemplate) {
+	importInfo := &model.DocImportInfo{}
+	if err := json.Unmarshal([]byte(importTask.DocInfo), importInfo); err != nil {
+		log.Errorf("doc import info unmarshal fail %v", err)
+		return "", nil
+	}
+	if importInfo.ParseTemplate == nil {
+		return "", nil
+	}
+	groupDocType := ""
+	if len(importInfo.DocInfoList) > 0 {
+		groupDocType = model.DocTypeByExt(importInfo.DocInfoList[0].DocType)
+	}
+	overrides := make(map[string]*model.KnowledgeParseTemplate, len(importInfo.ParseTemplate))
+	for docType, templateId := range importInfo.ParseTemplate {
+		template, err := GetParseTemplate(ctx, importTask.UserId, importTask.OrgId, templateId)
+		if err != nil {
+			// 模板已删除等场景：原样沿用任务上的配置（与旧逻辑一致），只记日志
+			log.Errorf("get parse template(%v) fail %v", templateId, err)
+			continue
+		}
+		overrides[docType] = template
+	}
+	return groupDocType, overrides
+}
+
+// ApplyImportTaskTemplate 按文档自身类型套用模板，返回替换过解析配置的任务副本；
+// 不在模板模式、类型与任务自身一致（任务创建时已套过）或该类型没绑模板时原样返回
+func ApplyImportTaskTemplate(importTask *model.KnowledgeImportTask, doc *model.KnowledgeDoc, groupDocType string, overrides map[string]*model.KnowledgeParseTemplate) *model.KnowledgeImportTask {
+	if overrides == nil {
+		return importTask
+	}
+	docType := model.DocTypeByExt(doc.FileType)
+	// 归不了类的文件或任务本身就是按这个类型建的，配置已套过模板，不用再套
+	if len(docType) == 0 || docType == groupDocType {
+		return importTask
+	}
+	template := overrides[docType]
+	if template == nil {
+		return importTask
+	}
+	taskWithTemplate := *importTask
+	taskWithTemplate.SegmentConfig = template.SegmentConfig
+	taskWithTemplate.DocAnalyzer = template.DocAnalyzer
+	taskWithTemplate.DocPreProcess = template.DocPreProcess
+	taskWithTemplate.OcrModelId = template.OcrModelId
+	return &taskWithTemplate
 }

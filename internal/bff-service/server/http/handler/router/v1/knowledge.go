@@ -127,4 +127,9 @@ func registerKnowledge(apiV1 *gin.RouterGroup) {
 	// 根据知识库名称和文档名称获取文档信息
 	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/doc/by/name", http.MethodGet, v1.GetDocByKnowledgeNameAndDocName, "根据知识库名称和文档名称获取文档信息", middleware.AuthKnowledgeRagName("knowledgeName", middleware.KnowledgeView))
 
+	// 知识库模板
+	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/parseTemplate", http.MethodGet, v1.GetParseTemplateList, "查询解析模板列表")
+	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/parseTemplate", http.MethodPost, v1.CreateParseTemplate, "新建解析模板")
+	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/parseTemplate", http.MethodPut, v1.UpdateParseTemplate, "编辑解析模板")
+	mid.Sub("resource.knowledge").Reg(apiV1, "/knowledge/parseTemplate", http.MethodDelete, v1.DeleteParseTemplate, "删除解析模板")
 }

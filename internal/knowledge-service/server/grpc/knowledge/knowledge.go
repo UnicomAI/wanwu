@@ -14,6 +14,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/client/orm"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/db"
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/util"
+	"github.com/UnicomAI/wanwu/internal/knowledge-service/server/grpc/knowledge_parse_template"
 	knowledge_service "github.com/UnicomAI/wanwu/internal/knowledge-service/service"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
@@ -55,7 +56,7 @@ func (s *Service) SelectKnowledgeList(ctx context.Context, req *knowledgebase_se
 		relation := orm.SelectKnowledgeTagListWithRelation(ctx, req.UserId, req.OrgId, "", knowledgeIdList)
 		tagMap = buildKnowledgeTagMap(relation)
 	}
-	return buildKnowledgeListResp(list, tagMap, permissionMap), nil
+	return buildKnowledgeListResp(ctx, req.UserId, req.OrgId, list, tagMap, permissionMap), nil
 }
 
 func (s *Service) SelectKnowledgeListByUserList(ctx context.Context, req *knowledgebase_service.KnowledgeSelectUserListReq) (*knowledgebase_service.KnowledgeSelectListResp, error) {
@@ -64,7 +65,8 @@ func (s *Service) SelectKnowledgeListByUserList(ctx context.Context, req *knowle
 		log.Errorf(fmt.Sprintf("获取知识库列表失败(%v)  参数(%v)", err, req))
 		return nil, util.ErrCode(errs.Code_KnowledgeBaseSelectFailed)
 	}
-	return buildKnowledgeListResp(list, nil, permissionMap), nil
+	// 统计选择器跨用户查询，没有单一身份，不回填按人存的解析模板绑定
+	return buildKnowledgeListResp(ctx, "", "", list, nil, permissionMap), nil
 }
 
 func (s *Service) SelectKnowledgeListByIdList(ctx context.Context, req *knowledgebase_service.BatchKnowledgeSelectReq) (*knowledgebase_service.KnowledgeSelectListResp, error) {
@@ -73,7 +75,7 @@ func (s *Service) SelectKnowledgeListByIdList(ctx context.Context, req *knowledg
 		log.Errorf(fmt.Sprintf("获取知识库列表失败(%v)  参数(%v)", err, req))
 		return nil, util.ErrCode(errs.Code_KnowledgeBaseSelectFailed)
 	}
-	return buildKnowledgeListResp(list, nil, permissionMap), nil
+	return buildKnowledgeListResp(ctx, req.UserId, req.OrgId, list, nil, permissionMap), nil
 }
 
 // AdminKnowledgePageList 管理员中心知识库全局分页列表（跨用户，按系统权限过滤）
@@ -85,7 +87,7 @@ func (s *Service) AdminKnowledgePageList(ctx context.Context, req *knowledgebase
 	}
 	return &knowledgebase_service.AdminKnowledgePageListResp{
 		Total:         total,
-		KnowledgeList: buildKnowledgeOwnerInfoList(list),
+		KnowledgeList: buildKnowledgeOwnerInfoList(ctx, list),
 	}, nil
 }
 
@@ -95,7 +97,8 @@ func (s *Service) SelectKnowledgeDetailById(ctx context.Context, req *knowledgeb
 		log.Errorf(fmt.Sprintf("获取知识库详情(%v)  参数(%v)", err, req))
 		return nil, err
 	}
-	var knowledgeResult = buildKnowledgeInfo(knowledgeInfo)
+	templateUserId, templateOrgId := parseTemplateUserOf(ctx, req.KnowledgeId, req.UserId, req.OrgId)
+	var knowledgeResult = buildKnowledgeDetail(ctx, templateUserId, templateOrgId, knowledgeInfo)
 	if req.NeedOwner {
 		knowledgePermissionList, _ := orm.SelectUserKnowledgePermissionList(ctx, req.KnowledgeId, model.PermissionTypeSystem)
 		if len(knowledgePermissionList) > 0 {
@@ -126,7 +129,7 @@ func (s *Service) SelectKnowledgeDetailByName(ctx context.Context, req *knowledg
 		log.Errorf(fmt.Sprintf("根据名称获取知识库详情失败(%v)  参数(%v)", err, req))
 		return nil, err
 	}
-	return buildKnowledgeInfo(knowledgeInfo), nil
+	return buildKnowledgeDetail(ctx, req.UserId, req.OrgId, knowledgeInfo), nil
 }
 
 // SelectKnowledgeIdByRagName 根据ragName获取知识库ID
@@ -143,14 +146,14 @@ func (s *Service) SelectKnowledgeIdByRagName(ctx context.Context, req *knowledge
 
 func (s *Service) SelectKnowledgeDetailByIdList(ctx context.Context, req *knowledgebase_service.KnowledgeDetailSelectListReq) (*knowledgebase_service.KnowledgeDetailSelectListResp, error) {
 	if len(req.KnowledgeIds) == 0 {
-		return buildKnowledgeInfoList([]*model.KnowledgeBase{}), nil
+		return buildKnowledgeInfoList(ctx, req.UserId, req.OrgId, []*model.KnowledgeBase{}), nil
 	}
 	knowledgeInfoList, _, err := orm.SelectKnowledgeByIdList(ctx, req.KnowledgeIds, req.UserId, req.OrgId)
 	if err != nil {
 		log.Errorf(fmt.Sprintf("根据id列表获取知识库详情列表失败(%v)  参数(%v)", err, req))
 		return nil, err
 	}
-	return buildKnowledgeInfoList(knowledgeInfoList), nil
+	return buildKnowledgeInfoList(ctx, req.UserId, req.OrgId, knowledgeInfoList), nil
 }
 
 func (s *Service) CreateKnowledge(ctx context.Context, req *knowledgebase_service.CreateKnowledgeReq) (*knowledgebase_service.CreateKnowledgeResp, error) {
@@ -160,6 +163,15 @@ func (s *Service) CreateKnowledge(ctx context.Context, req *knowledgebase_servic
 		return nil, err
 	}
 	//2.创建知识库
+	// 问答库走问答对导入，用不上解析模板，绑定表一概不碰
+	useParseTemplate := req.Category != model.CategoryQA
+	var bindMap map[string]string
+	if useParseTemplate {
+		bindMap, err = validateParseTemplateBinds(ctx, req.UserId, req.OrgId, req.ParseTemplate)
+		if err != nil {
+			return nil, err
+		}
+	}
 	knowledgeModel, err := buildKnowledgeBaseModel(req)
 	if err != nil {
 		log.Errorf("buildKnowledgeBaseModel error %s", err)
@@ -170,7 +182,14 @@ func (s *Service) CreateKnowledge(ctx context.Context, req *knowledgebase_servic
 		log.Errorf("CreateKnowledge error %v params %v", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeBaseCreateFailed)
 	}
-	//3.异步存储知识图谱schema
+	//3.保存解析模板绑定
+	if useParseTemplate {
+		if err := orm.ReplaceKnowledgeParseTemplate(ctx, knowledgeModel.KnowledgeId, req.UserId, req.OrgId, buildParseTemplateBindModels(knowledgeModel.KnowledgeId, req.UserId, req.OrgId, bindMap)); err != nil {
+			log.Errorf("保存知识库解析模板绑定失败(%v) 参数(%v)", err, req)
+			return nil, util.ErrCode(errs.Code_KnowledgeBaseCreateFailed)
+		}
+	}
+	//4.异步存储知识图谱schema
 	storeKnowledgeStoreSchema(knowledgeModel.KnowledgeId, req.KnowledgeGraph)
 	//4.返回结果
 	return &knowledgebase_service.CreateKnowledgeResp{
@@ -191,6 +210,17 @@ func (s *Service) UpdateKnowledge(ctx context.Context, req *knowledgebase_servic
 		return nil, err
 	}
 	//3.更新知识库
+	// 问答库走问答对导入用不上解析模板；被分享的人只读，传了也忽略
+	if knowledge.Category != model.CategoryQA && orm.IsKnowledgeOwner(ctx, req.KnowledgeId, req.UserId, req.OrgId) {
+		bindMap, err := validateParseTemplateBinds(ctx, req.UserId, req.OrgId, req.ParseTemplate)
+		if err != nil {
+			return nil, err
+		}
+		if err := orm.ReplaceKnowledgeParseTemplate(ctx, req.KnowledgeId, req.UserId, req.OrgId, buildParseTemplateBindModels(req.KnowledgeId, req.UserId, req.OrgId, bindMap)); err != nil {
+			log.Errorf("更新知识库解析模板绑定失败(%v)  参数(%v)", err, req)
+			return nil, util.ErrCode(errs.Code_KnowledgeBaseUpdateFailed)
+		}
+	}
 	err = orm.UpdateKnowledge(ctx, req.Name, req.Description, req.AvatarPath, knowledge)
 	if err != nil {
 		log.Errorf("知识库更新失败(%v)  参数(%v)", err, req)
@@ -993,7 +1023,7 @@ func buildKnowledgeMetaSelectResp(metaList []*model.KnowledgeDocMeta) *knowledge
 }
 
 // buildKnowledgeListResp 构造知识库列表返回结果
-func buildKnowledgeListResp(knowledgeList []*model.KnowledgeBase, knowledgeTagMap map[string][]*orm.TagRelationDetail, permissionMap map[string]int) *knowledgebase_service.KnowledgeSelectListResp {
+func buildKnowledgeListResp(ctx context.Context, userId, orgId string, knowledgeList []*model.KnowledgeBase, knowledgeTagMap map[string][]*orm.TagRelationDetail, permissionMap map[string]int) *knowledgebase_service.KnowledgeSelectListResp {
 	if len(knowledgeList) == 0 {
 		return &knowledgebase_service.KnowledgeSelectListResp{}
 	}
@@ -1004,6 +1034,7 @@ func buildKnowledgeListResp(knowledgeList []*model.KnowledgeBase, knowledgeTagMa
 		knowledgeInfo.PermissionType = buildKnowledgePermission(knowledge.KnowledgeId, permissionMap)
 		retList = append(retList, knowledgeInfo)
 	}
+	fillParseTemplate(ctx, userId, orgId, retList)
 	return &knowledgebase_service.KnowledgeSelectListResp{
 		KnowledgeList: retList,
 	}
@@ -1102,13 +1133,21 @@ func buildKnowledgeInfo(knowledge *model.KnowledgeBase) *knowledgebase_service.K
 	}
 }
 
+// buildKnowledgeDetail 构造单条知识库详情
+func buildKnowledgeDetail(ctx context.Context, userId, orgId string, knowledge *model.KnowledgeBase) *knowledgebase_service.KnowledgeInfo {
+	info := buildKnowledgeInfo(knowledge)
+	fillParseTemplate(ctx, userId, orgId, []*knowledgebase_service.KnowledgeInfo{info})
+	return info
+}
+
 // buildKnowledgeInfoList 构造知识库信息列表
-func buildKnowledgeInfoList(knowledgeList []*model.KnowledgeBase) *knowledgebase_service.KnowledgeDetailSelectListResp {
+func buildKnowledgeInfoList(ctx context.Context, userId, orgId string, knowledgeList []*model.KnowledgeBase) *knowledgebase_service.KnowledgeDetailSelectListResp {
 	var retList []*knowledgebase_service.KnowledgeInfo
 	for _, v := range knowledgeList {
 		info := buildKnowledgeInfo(v)
 		retList = append(retList, info)
 	}
+	fillParseTemplate(ctx, userId, orgId, retList)
 	return &knowledgebase_service.KnowledgeDetailSelectListResp{
 		List:  retList,
 		Total: int32(len(retList)),
@@ -1116,7 +1155,7 @@ func buildKnowledgeInfoList(knowledgeList []*model.KnowledgeBase) *knowledgebase
 }
 
 // buildKnowledgeOwnerInfoList 构造带拥有者信息的知识库列表（管理员中心分页用）
-func buildKnowledgeOwnerInfoList(knowledgeList []*model.KnowledgeBaseOwner) []*knowledgebase_service.KnowledgeInfo {
+func buildKnowledgeOwnerInfoList(ctx context.Context, knowledgeList []*model.KnowledgeBaseOwner) []*knowledgebase_service.KnowledgeInfo {
 	var retList []*knowledgebase_service.KnowledgeInfo
 	for _, v := range knowledgeList {
 		info := buildKnowledgeInfo(&v.KnowledgeBase)
@@ -1124,7 +1163,97 @@ func buildKnowledgeOwnerInfoList(knowledgeList []*model.KnowledgeBaseOwner) []*k
 		info.OwnerOrgId = v.OwnerOrgId
 		retList = append(retList, info)
 	}
+	fillOwnerParseTemplate(ctx, retList)
 	return retList
+}
+
+// validateParseTemplateBinds 落库前校验绑定的文档类型与模板归属，返回去重且剔除内置模板后的绑定
+func validateParseTemplateBinds(ctx context.Context, userId, orgId string, binds []*knowledgebase_service.ParseTemplateBind) (map[string]string, error) {
+	bindMap := make(map[string]string, len(binds))
+	for _, bind := range binds {
+		bindMap[bind.DocType] = bind.TemplateId
+	}
+	validBinds, _, err := knowledge_parse_template.ValidateParseTemplateBinds(ctx, userId, orgId, bindMap)
+	return validBinds, err
+}
+
+// fillParseTemplate 批量回填某人在这批知识库上的解析模板绑定，绑定按人存
+// 没有调用者身份时不回填，否则会把别人的绑定也带出来
+func fillParseTemplate(ctx context.Context, userId, orgId string, infoList []*knowledgebase_service.KnowledgeInfo) {
+	if len(infoList) == 0 || len(userId) == 0 {
+		return
+	}
+	knowledgeIds := make([]string, 0, len(infoList))
+	for _, info := range infoList {
+		knowledgeIds = append(knowledgeIds, info.KnowledgeId)
+	}
+	bindMap, err := orm.GetKnowledgeParseTemplateMap(ctx, userId, orgId, knowledgeIds)
+	if err != nil {
+		log.Errorf("查询知识库解析模板绑定失败(%v) 参数(%v)", err, knowledgeIds)
+		return
+	}
+	for _, info := range infoList {
+		info.ParseTemplate = buildParseTemplateBinds(bindMap[info.KnowledgeId])
+	}
+}
+
+// fillOwnerParseTemplate 管理员中心跨用户看列表，绑定取各知识库拥有者的那份
+func fillOwnerParseTemplate(ctx context.Context, infoList []*knowledgebase_service.KnowledgeInfo) {
+	if len(infoList) == 0 {
+		return
+	}
+	knowledgeIds := make([]string, 0, len(infoList))
+	for _, info := range infoList {
+		knowledgeIds = append(knowledgeIds, info.KnowledgeId)
+	}
+	bindMap, err := orm.GetKnowledgeParseTemplateMap(ctx, "", "", knowledgeIds)
+	if err != nil {
+		log.Errorf("查询知识库解析模板绑定失败(%v) 参数(%v)", err, knowledgeIds)
+		return
+	}
+	for _, info := range infoList {
+		var ownerBinds []*model.KnowledgeParseTemplateBind
+		for _, bind := range bindMap[info.KnowledgeId] {
+			if bind.UserId == info.OwnerUserId && bind.OrgId == info.OwnerOrgId {
+				ownerBinds = append(ownerBinds, bind)
+			}
+		}
+		info.ParseTemplate = buildParseTemplateBinds(ownerBinds)
+	}
+}
+
+// parseTemplateUserOf 管理员中心不带调用者身份，这时取知识库拥有者的绑定
+func parseTemplateUserOf(ctx context.Context, knowledgeId, userId, orgId string) (string, string) {
+	if len(userId) > 0 {
+		return userId, orgId
+	}
+	return orm.KnowledgeOwnerOf(ctx, knowledgeId)
+}
+
+func buildParseTemplateBinds(binds []*model.KnowledgeParseTemplateBind) []*knowledgebase_service.ParseTemplateBind {
+	var result []*knowledgebase_service.ParseTemplateBind
+	for _, bind := range binds {
+		result = append(result, &knowledgebase_service.ParseTemplateBind{
+			DocType:    bind.DocType,
+			TemplateId: bind.TemplateId,
+		})
+	}
+	return result
+}
+
+// buildParseTemplateBindModels 请求里的绑定转成落库模型
+func buildParseTemplateBindModels(knowledgeId, userId, orgId string, bindMap map[string]string) []*model.KnowledgeParseTemplateBind {
+	result := make([]*model.KnowledgeParseTemplateBind, 0, len(bindMap))
+	for docType, templateId := range bindMap {
+		result = append(result, &model.KnowledgeParseTemplateBind{
+			KnowledgeId: knowledgeId,
+			DocType:     docType,
+			UserId:      userId,
+			OrgId:       orgId,
+			TemplateId:  templateId,
+		})
+	}
+	return result
 }
 
 // buildKnowledgeBaseModel 构造知识库模型

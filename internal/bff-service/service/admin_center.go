@@ -321,6 +321,7 @@ func buildAdminKnowledgeBase(ctx *gin.Context, docKnowledgeInfo *response.DocKno
 		Avatar:         docKnowledgeInfo.Avatar,
 		LlmModelId:     docKnowledgeInfo.LlmModelId,
 		GraphSwitch:    docKnowledgeInfo.GraphSwitch,
+		ParseTemplate:  docKnowledgeInfo.ParseTemplate,
 		AdminAppBaseInfo: response.AdminAppBaseInfo{
 			CreatedAt:   docKnowledgeInfo.CreatedAt,
 			UpdatedAt:   docKnowledgeInfo.UpdatedAt,

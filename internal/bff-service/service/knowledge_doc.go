@@ -151,26 +151,17 @@ func GetDocDetail(ctx *gin.Context, userId, orgId, docId string) (*response.List
 
 // ImportDoc 导入文档
 func ImportDoc(ctx *gin.Context, userId, orgId string, req *request.DocImportReq) error {
-	segment := req.DocSegment
 	docInfoList, err := buildDocInfoList(ctx, req.DocInfo)
 	if err != nil {
 		log.Errorf("上传失败(构建文档信息列表失败(%v) ", err)
 		return err
 	}
 	_, err = knowledgeBaseDoc.ImportDoc(ctx.Request.Context(), &knowledgebase_doc_service.ImportDocReq{
-		UserId:        userId,
-		OrgId:         orgId,
-		KnowledgeId:   req.KnowledgeId,
-		DocImportType: int32(req.DocImportType),
-		DocSegment: &knowledgebase_doc_service.DocSegment{
-			SegmentType:    segment.SegmentType,
-			Splitter:       segment.Splitter,
-			MaxSplitter:    int32(segment.MaxSplitter),
-			Overlap:        segment.Overlap,
-			SegmentMethod:  segment.SegmentMethod,
-			SubMaxSplitter: int32(segment.SubMaxSplitter),
-			SubSplitter:    segment.SubSplitter,
-		},
+		UserId:            userId,
+		OrgId:             orgId,
+		KnowledgeId:       req.KnowledgeId,
+		DocImportType:     int32(req.DocImportType),
+		DocSegment:        buildImportDocSegment(req.DocSegment),
 		DocAnalyzer:       req.DocAnalyzer,
 		DocInfoList:       docInfoList,
 		OcrModelId:        req.ParserModelId,
@@ -178,6 +169,9 @@ func ImportDoc(ctx *gin.Context, userId, orgId string, req *request.DocImportReq
 		MultimodalModelId: req.MultimodalModelId,
 		DocPreprocess:     req.DocPreprocess,
 		DocMetaDataList:   buildMetaInfoList(req),
+		UseTemplate:       req.UseTemplate,
+		ParseTemplate:     buildDocTemplateBinds(req.ParseTemplate),
+		OverrideTemplate:  req.OverrideTemplate,
 	})
 	if err != nil {
 		log.Errorf("上传失败(保存上传任务 失败(%v) ", err)
@@ -187,6 +181,22 @@ func ImportDoc(ctx *gin.Context, userId, orgId string, req *request.DocImportReq
 }
 
 // ImportDocOpenapi 导入文档
+// buildImportDocSegment 套用解析模板时前端不下发分段配置
+func buildImportDocSegment(segment *request.DocSegment) *knowledgebase_doc_service.DocSegment {
+	if segment == nil {
+		return nil
+	}
+	return &knowledgebase_doc_service.DocSegment{
+		SegmentType:    segment.SegmentType,
+		Splitter:       segment.Splitter,
+		MaxSplitter:    int32(segment.MaxSplitter),
+		Overlap:        segment.Overlap,
+		SegmentMethod:  segment.SegmentMethod,
+		SubMaxSplitter: int32(segment.SubMaxSplitter),
+		SubSplitter:    segment.SubSplitter,
+	}
+}
+
 func ImportDocOpenapi(ctx *gin.Context, userId, orgId string, req *request.DocImportReq) error {
 	if err := convertDocConfigModelUuid(ctx, &req.DocImportFileConfig); err != nil {
 		return err
@@ -211,6 +221,10 @@ func convertDocConfigModelUuid(ctx *gin.Context, cfg *request.DocImportFileConfi
 
 // UpdateDocConfig 更新文档配置
 func UpdateDocConfig(ctx *gin.Context, userId, orgId string, req *request.DocConfigUpdateReq) error {
+	// 更新文档配置只走手动解析参数，不支持套用解析模板；误传模板字段直接拒绝，避免被静默当作手动配置处理
+	if req.UseTemplate || len(req.ParseTemplate) > 0 || req.OverrideTemplate {
+		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, "更新文档配置不支持套用解析模板，请勿传 useTemplate/parseTemplate/overrideTemplate")
+	}
 	segment := req.DocSegment
 	_, err := knowledgeBaseDoc.UpdateDocImportConfig(ctx.Request.Context(), &knowledgebase_doc_service.UpdateDocImportConfigReq{
 		KnowledgeId: req.KnowledgeId,
@@ -409,6 +423,7 @@ func buildDocKnowledgeInfo(ctx *gin.Context, keyWords []*knowledgebase_keywords_
 		OwnerOrgId:      knowledgeInfo.OwnerOrgId,
 		CreatedAt:       knowledgeInfo.CreatedAt,
 		UpdatedAt:       knowledgeInfo.UpdatedAt,
+		ParseTemplate:   buildTemplateBindResp(knowledgeInfo.ParseTemplate),
 	}
 }
 

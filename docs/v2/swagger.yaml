@@ -11,6 +11,8 @@ definitions:
         $ref: '#/definitions/mp_huoshan.Embedding'
       llm:
         $ref: '#/definitions/mp_huoshan.LLM'
+      multiModalEmbedding:
+        $ref: '#/definitions/mp_huoshan.MultiModalEmbedding'
     type: object
   mp.ProviderModelByInfini:
     properties:
@@ -194,6 +196,25 @@ definitions:
         - noSupport
         - support
         type: string
+    type: object
+  mp_huoshan.MultiModalEmbedding:
+    properties:
+      apiKey:
+        type: string
+      contextSize:
+        type: integer
+      endpointUrl:
+        type: string
+      maxImageSize:
+        type: integer
+      maxTextLength:
+        type: integer
+      maxVideoClipSize:
+        type: integer
+      supportFileTypes:
+        items:
+          type: string
+        type: array
     type: object
   mp_infini.Embedding:
     properties:

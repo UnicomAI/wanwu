@@ -477,3 +477,39 @@ func WithExternalAPIIdList(ids []string) SQLOption {
 		return db
 	})
 }
+
+func WithTemplateId(id string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(id) > 0 {
+			return db.Where("template_id = ?", id)
+		}
+		return db
+	})
+}
+
+func WithoutTemplateId(id string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(id) > 0 {
+			return db.Where("template_id != ?", id)
+		}
+		return db
+	})
+}
+
+func WithTemplateIds(ids []string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(ids) > 0 {
+			return db.Where("template_id IN (?)", ids)
+		}
+		return db
+	})
+}
+
+func WithDocType(docType string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		if len(docType) > 0 {
+			return db.Where("doc_type = ?", docType)
+		}
+		return db
+	})
+}

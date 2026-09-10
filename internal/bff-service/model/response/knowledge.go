@@ -60,6 +60,7 @@ type KnowledgeInfo struct {
 	External              int32                  `json:"external"`              // 0: 内部知识库 1：外部知识库
 	ExternalKnowledgeInfo *KnowledgeExternalInfo `json:"externalKnowledgeInfo"` //外部知识库信息
 	Avatar                request.Avatar         `json:"avatar"`                // 头像
+	ParseTemplate         []*ParseTemplateBind   `json:"parseTemplate"`         // 各文档类型选定的解析模板
 }
 
 type KnowledgeExternalInfo struct {
