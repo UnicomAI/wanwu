@@ -59,6 +59,189 @@
                 }
             }
         },
+        "/admin/center/assistant/conversation/log/detail": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取会话日志详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.assistant"
+                ],
+                "summary": "获取会话日志详情",
+                "parameters": [
+                    {
+                        "description": "获取会话日志详情",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetConversationLogDetailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ConversationDetailInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/assistant/conversation/log/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取会话日志列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.assistant"
+                ],
+                "summary": "获取会话日志列表",
+                "parameters": [
+                    {
+                        "description": "获取会话日志列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetConversationLogListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ConversationLogInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/assistant/conversation/log/user/select": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取会话日志使用者列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.assistant"
+                ],
+                "summary": "获取会话日志使用者列表",
+                "parameters": [
+                    {
+                        "description": "会话日志使用者列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetConversationLogUserSelectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.Users"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/admin/center/assistant/detail": {
             "post": {
                 "security": [
@@ -1042,6 +1225,189 @@
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.AdminRagBase"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/rag/conversation/log/detail": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取会话日志详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.rag"
+                ],
+                "summary": "获取会话日志详情",
+                "parameters": [
+                    {
+                        "description": "获取会话日志详情",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetConversationLogDetailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.RagConversationDetailInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/rag/conversation/log/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取会话日志列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.rag"
+                ],
+                "summary": "获取会话日志列表",
+                "parameters": [
+                    {
+                        "description": "获取会话日志列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetConversationLogListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ConversationLogInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/center/rag/conversation/log/user/select": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取会话日志使用者列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin_center.rag"
+                ],
+                "summary": "获取会话日志使用者列表",
+                "parameters": [
+                    {
+                        "description": "会话日志使用者列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetConversationLogUserSelectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.Users"
                                         }
                                     }
                                 }
@@ -6484,6 +6850,57 @@
                 }
             }
         },
+        "/assistant/conversation/message/feedback": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "对智能体单条消息点赞或点踩",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "智能体消息点赞/点踩",
+                "parameters": [
+                    {
+                        "description": "消息反馈参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.MessageFeedbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.MessageFeedbackResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/assistant/copy": {
             "post": {
                 "security": [
@@ -6583,6 +7000,318 @@
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/assistant/draft/conversation/log/detail": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取会话日志详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "获取会话日志详情",
+                "parameters": [
+                    {
+                        "description": "会话日志详情",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetConversationLogDetailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ConversationDetailInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/assistant/draft/conversation/log/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取会话日志列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "获取会话日志列表",
+                "parameters": [
+                    {
+                        "description": "会话日志列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetConversationLogListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ConversationLogInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/assistant/draft/conversation/log/user/select": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取会话日志使用者列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "获取会话日志使用者列表",
+                "parameters": [
+                    {
+                        "description": "会话日志使用者列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetConversationLogUserSelectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.Users"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/assistant/draft/pending/conversation": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取智能体运行中会话",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "获取智能体运行中会话",
+                "parameters": [
+                    {
+                        "description": "获取智能体运行中会话请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.PendingConversionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PendingConversationResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/assistant/draft/stream/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "智能体流式问答手动停止",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "智能体流式问答手动停止",
+                "parameters": [
+                    {
+                        "description": "智能体流式问答手动停止参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ConversionStreamCancelRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/assistant/draft/stream/connect": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "草稿智能体流式问答断开后重连",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "草稿智能体流式问答断开后重连",
+                "parameters": [
+                    {
+                        "description": "智能体流式问答参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ConversionStreamConnectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -6737,57 +7466,6 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/assistant/pending/conversation": {
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "获取智能体运行中会话",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "agent"
-                ],
-                "summary": "获取智能体运行中会话",
-                "parameters": [
-                    {
-                        "description": "获取智能体运行中会话请求参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.PendingConversionRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/response.PendingConversationResp"
-                                        }
-                                    }
-                                }
-                            ]
                         }
                     }
                 }
@@ -7036,84 +7714,6 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/request.ConversionStreamRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/assistant/stream/cancel": {
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "智能体流式问答手动停止",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "agent"
-                ],
-                "summary": "智能体流式问答手动停止",
-                "parameters": [
-                    {
-                        "description": "智能体流式问答手动停止参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.ConversionStreamCancelRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/assistant/stream/connect": {
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "草稿智能体流式问答断开后重连",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "agent"
-                ],
-                "summary": "草稿智能体流式问答断开后重连",
-                "parameters": [
-                    {
-                        "description": "智能体流式问答参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.ConversionStreamConnectRequest"
                         }
                     }
                 ],
@@ -9289,6 +9889,218 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/conversation/log/export": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "对话日志导出（异步，立即返回）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "conversation.log"
+                ],
+                "summary": "对话日志导出",
+                "parameters": [
+                    {
+                        "description": "对话日志导出请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ConversationLogExportReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/conversation/log/export/record": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "删除对话日志导出记录",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "conversation.log"
+                ],
+                "summary": "删除对话日志导出记录",
+                "parameters": [
+                    {
+                        "description": "删除对话日志导出记录请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteConversationLogExportRecordReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/conversation/log/export/record/list": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取对话日志导出记录列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "conversation.log"
+                ],
+                "summary": "获取对话日志导出记录列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "业务id 智能体id、知识问答id",
+                        "name": "appId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "业务类型 智能体、知识问答",
+                        "name": "appType",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "截至日期",
+                        "name": "endDate",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "会话标题",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序字段 avgCosts avgFirstTokenLatency createAt updateAt",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序类型 asc des",
+                        "name": "orderType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageNo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "来源 web、openapi、webURL、draft",
+                        "name": "source",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "起始日期",
+                        "name": "startDate",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "用户id列表",
+                        "name": "userIds",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ConversationLogExportRecordResp"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -14450,6 +15262,153 @@
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/parseTemplate": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "查询解析模板列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge.parseTemplate"
+                ],
+                "summary": "查询解析模板列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "文档类型，为空则返回全部",
+                        "name": "docType",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ParseTemplateListResp"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "编辑解析模板",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge.parseTemplate"
+                ],
+                "summary": "编辑解析模板",
+                "parameters": [
+                    {
+                        "description": "编辑解析模板请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateParseTemplateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "新建解析模板",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge.parseTemplate"
+                ],
+                "summary": "新建解析模板",
+                "parameters": [
+                    {
+                        "description": "新建解析模板请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateParseTemplateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "删除解析模板",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge.parseTemplate"
+                ],
+                "summary": "删除解析模板",
+                "parameters": [
+                    {
+                        "description": "删除解析模板请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteParseTemplateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -20194,6 +21153,189 @@
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.RagMessageFeedbackResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/draft/conversation/log/detail": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取会话日志详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "获取会话日志详情",
+                "parameters": [
+                    {
+                        "description": "会话日志详情",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetConversationLogDetailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.RagConversationDetailInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/draft/conversation/log/list": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取会话日志列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "获取会话日志列表",
+                "parameters": [
+                    {
+                        "description": "会话日志列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetConversationLogListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ConversationLogInfo"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/rag/draft/conversation/log/user/select": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取会话日志使用者列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rag"
+                ],
+                "summary": "获取会话日志使用者列表",
+                "parameters": [
+                    {
+                        "description": "会话日志使用者列表",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetConversationLogUserSelectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.Users"
                                         }
                                     }
                                 }
@@ -27299,15 +28441,43 @@
         "request.ConversationIdRequest": {
             "type": "object",
             "required": [
+                "assistantId",
                 "conversationId"
             ],
             "properties": {
+                "assistantId": {
+                    "type": "string"
+                },
                 "conversationId": {
                     "type": "string"
                 },
                 "detailId": {
                     "description": "可选，传值则删除单条对话，不传则删除全部对话",
                     "type": "string"
+                }
+            }
+        },
+        "request.ConversationLogExportReq": {
+            "type": "object",
+            "required": [
+                "appId",
+                "appType"
+            ],
+            "properties": {
+                "appId": {
+                    "description": "应用id",
+                    "type": "string"
+                },
+                "appType": {
+                    "description": "应用类型",
+                    "type": "string"
+                },
+                "logIds": {
+                    "description": "对话日志id列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -27743,6 +28913,13 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "parseTemplate": {
+                    "description": "各文档类型选定的解析模板，若有自定义模板则传参，默认传空数组",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ParseTemplateBind"
+                    }
                 }
             }
         },
@@ -27786,6 +28963,56 @@
                     "type": "string"
                 },
                 "redirectUri": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateParseTemplateReq": {
+            "type": "object",
+            "required": [
+                "docSegment",
+                "docType",
+                "name"
+            ],
+            "properties": {
+                "asrModelId": {
+                    "description": "asr模型id",
+                    "type": "string"
+                },
+                "docAnalyzer": {
+                    "description": "文档解析类型 text / model",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "docPreprocess": {
+                    "description": "文本预处理规则 replaceSymbols / deleteLinks",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "docSegment": {
+                    "description": "文档分段配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.DocSegment"
+                        }
+                    ]
+                },
+                "docType": {
+                    "type": "string"
+                },
+                "multimodalModelId": {
+                    "description": "多模态模型id",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parserModelId": {
+                    "description": "模型解析或ocr模型id",
                     "type": "string"
                 }
             }
@@ -28189,6 +29416,21 @@
                 }
             }
         },
+        "request.DeleteConversationLogExportRecordReq": {
+            "type": "object",
+            "required": [
+                "exportRecordIds"
+            ],
+            "properties": {
+                "exportRecordIds": {
+                    "description": "导出记录id列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.DeleteCustomSkillReq": {
             "type": "object",
             "required": [
@@ -28427,6 +29669,17 @@
                 }
             }
         },
+        "request.DeleteParseTemplateReq": {
+            "type": "object",
+            "required": [
+                "templateId"
+            ],
+            "properties": {
+                "templateId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.DeleteSensitiveVocabularyReq": {
             "type": "object",
             "required": [
@@ -28495,9 +29748,7 @@
         "request.DocConfigUpdateReq": {
             "type": "object",
             "required": [
-                "docAnalyzer",
                 "docIdList",
-                "docSegment",
                 "knowledgeId"
             ],
             "properties": {
@@ -28538,7 +29789,7 @@
                     }
                 },
                 "docSegment": {
-                    "description": "文档分段配置",
+                    "description": "文档分段配置，useTemplate 为 true 时不填",
                     "allOf": [
                         {
                             "$ref": "#/definitions/request.DocSegment"
@@ -28553,18 +29804,31 @@
                     "description": "多模态模型id",
                     "type": "string"
                 },
+                "overrideTemplate": {
+                    "description": "是否把本次选择的模板写回知识库",
+                    "type": "boolean"
+                },
+                "parseTemplate": {
+                    "description": "各文档类型选定的解析模板，useTemplate 为 true 时使用",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ParseTemplateBind"
+                    }
+                },
                 "parserModelId": {
                     "description": "模型解析或ocr模型id",
                     "type": "string"
+                },
+                "useTemplate": {
+                    "description": "是否套用知识库解析模板，false 按手动配置处理",
+                    "type": "boolean"
                 }
             }
         },
         "request.DocImportReq": {
             "type": "object",
             "required": [
-                "docAnalyzer",
                 "docInfoList",
-                "docSegment",
                 "knowledgeId"
             ],
             "properties": {
@@ -28605,7 +29869,7 @@
                     }
                 },
                 "docSegment": {
-                    "description": "文档分段配置",
+                    "description": "文档分段配置，useTemplate 为 true 时不填",
                     "allOf": [
                         {
                             "$ref": "#/definitions/request.DocSegment"
@@ -28620,9 +29884,24 @@
                     "description": "多模态模型id",
                     "type": "string"
                 },
+                "overrideTemplate": {
+                    "description": "是否把本次选择的模板写回知识库",
+                    "type": "boolean"
+                },
+                "parseTemplate": {
+                    "description": "各文档类型选定的解析模板，useTemplate 为 true 时使用",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ParseTemplateBind"
+                    }
+                },
                 "parserModelId": {
                     "description": "模型解析或ocr模型id",
                     "type": "string"
+                },
+                "useTemplate": {
+                    "description": "是否套用知识库解析模板，false 按手动配置处理",
+                    "type": "boolean"
                 }
             }
         },
@@ -29061,6 +30340,105 @@
                 },
                 "threadId": {
                     "description": "对话ID",
+                    "type": "string"
+                }
+            }
+        },
+        "request.GetConversationLogDetailRequest": {
+            "type": "object",
+            "required": [
+                "pageSize"
+            ],
+            "properties": {
+                "appId": {
+                    "description": "业务id 智能体id、知识问答id",
+                    "type": "string"
+                },
+                "appType": {
+                    "description": "业务类型 智能体、知识问答",
+                    "type": "string"
+                },
+                "conversationId": {
+                    "description": "会话id",
+                    "type": "string"
+                },
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.GetConversationLogListRequest": {
+            "type": "object",
+            "required": [
+                "appId",
+                "appType",
+                "endDate",
+                "pageSize",
+                "startDate"
+            ],
+            "properties": {
+                "appId": {
+                    "description": "业务id 智能体id、知识问答id",
+                    "type": "string"
+                },
+                "appType": {
+                    "description": "业务类型 智能体、知识问答",
+                    "type": "string"
+                },
+                "endDate": {
+                    "description": "截至日期",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "会话标题",
+                    "type": "string"
+                },
+                "orderBy": {
+                    "description": "排序字段 avgCosts avgFirstTokenLatency createAt updateAt",
+                    "type": "string"
+                },
+                "orderType": {
+                    "description": "排序类型 asc des",
+                    "type": "string"
+                },
+                "pageNo": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "source": {
+                    "description": "来源 web、openapi、webURL、draft",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "startDate": {
+                    "description": "起始日期",
+                    "type": "string"
+                },
+                "userIds": {
+                    "description": "用户id列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "request.GetConversationLogUserSelectRequest": {
+            "type": "object",
+            "properties": {
+                "appId": {
+                    "description": "业务id 智能体id、知识问答id",
+                    "type": "string"
+                },
+                "appType": {
+                    "description": "业务类型 智能体、知识问答",
                     "type": "string"
                 }
             }
@@ -30075,6 +31453,34 @@
                 }
             }
         },
+        "request.MessageFeedbackRequest": {
+            "type": "object",
+            "required": [
+                "assistantId",
+                "conversationId",
+                "detailId"
+            ],
+            "properties": {
+                "assistantId": {
+                    "type": "string"
+                },
+                "conversationId": {
+                    "type": "string"
+                },
+                "detailId": {
+                    "description": "消息详情ID",
+                    "type": "string"
+                },
+                "feedbackContent": {
+                    "description": "反馈文本内容",
+                    "type": "string"
+                },
+                "feedbackType": {
+                    "description": "反馈类型: 1=点赞 2=点踩",
+                    "type": "integer"
+                }
+            }
+        },
         "request.MetaDataFilterParams": {
             "type": "object",
             "properties": {
@@ -30469,6 +31875,21 @@
                 },
                 "userId": {
                     "description": "用户ID",
+                    "type": "string"
+                }
+            }
+        },
+        "request.ParseTemplateBind": {
+            "type": "object",
+            "required": [
+                "docType",
+                "templateId"
+            ],
+            "properties": {
+                "docType": {
+                    "type": "string"
+                },
+                "templateId": {
                     "type": "string"
                 }
             }
@@ -31742,6 +33163,13 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "parseTemplate": {
+                    "description": "各文档类型选定的解析模板",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ParseTemplateBind"
+                    }
                 }
             }
         },
@@ -31840,6 +33268,56 @@
                 "status": {
                     "description": "启停状态",
                     "type": "boolean"
+                }
+            }
+        },
+        "request.UpdateParseTemplateReq": {
+            "type": "object",
+            "required": [
+                "docSegment",
+                "name",
+                "templateId"
+            ],
+            "properties": {
+                "asrModelId": {
+                    "description": "asr模型id",
+                    "type": "string"
+                },
+                "docAnalyzer": {
+                    "description": "文档解析类型 text / model",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "docPreprocess": {
+                    "description": "文本预处理规则 replaceSymbols / deleteLinks",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "docSegment": {
+                    "description": "文档分段配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.DocSegment"
+                        }
+                    ]
+                },
+                "multimodalModelId": {
+                    "description": "多模态模型id",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parserModelId": {
+                    "description": "模型解析或ocr模型id",
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
                 }
             }
         },
@@ -32258,6 +33736,9 @@
                     "$ref": "#/definitions/request.Avatar"
                 },
                 "createdAt": {
+                    "type": "string"
+                },
+                "customSkillId": {
                     "type": "string"
                 },
                 "desc": {
@@ -32832,6 +34313,13 @@
                 "ownerUserName": {
                     "description": "拥有者用户名称（知识库可转让，未必是创建者）",
                     "type": "string"
+                },
+                "parseTemplate": {
+                    "description": "各文档类型选定的解析模板",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ParseTemplateBind"
+                    }
                 },
                 "publishScope": {
                     "description": "private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布",
@@ -34930,6 +36418,14 @@
                 "createdBy": {
                     "type": "string"
                 },
+                "feedback": {
+                    "description": "当前反馈状态: 0=无 1=点赞 2=点踩",
+                    "type": "integer"
+                },
+                "feedbackContent": {
+                    "description": "反馈文本内容",
+                    "type": "string"
+                },
                 "fileName": {
                     "type": "string"
                 },
@@ -34997,6 +36493,104 @@
                     "type": "string"
                 },
                 "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ConversationLogExportRecordResp": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "description": "导出人",
+                    "type": "string"
+                },
+                "errorMsg": {
+                    "description": "导出状态错误信息",
+                    "type": "string"
+                },
+                "exportRecordId": {
+                    "description": "导出记录id",
+                    "type": "string"
+                },
+                "exportTime": {
+                    "description": "导出时间",
+                    "type": "string"
+                },
+                "fileName": {
+                    "description": "导出文件名",
+                    "type": "string"
+                },
+                "filePath": {
+                    "description": "导出文件下载路径",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ConversationLogInfo": {
+            "type": "object",
+            "properties": {
+                "avgCosts": {
+                    "description": "平均耗时",
+                    "type": "number"
+                },
+                "avgFirstTokenLatency": {
+                    "description": "平均首token时延",
+                    "type": "number"
+                },
+                "conversationId": {
+                    "description": "会话ID",
+                    "type": "string"
+                },
+                "createAt": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "dislikeCount": {
+                    "description": "点踩数量",
+                    "type": "integer"
+                },
+                "errorCount": {
+                    "description": "错误数量",
+                    "type": "integer"
+                },
+                "likeCount": {
+                    "description": "点赞数量",
+                    "type": "integer"
+                },
+                "logId": {
+                    "description": "日志Id",
+                    "type": "string"
+                },
+                "messageCount": {
+                    "description": "消息数量",
+                    "type": "integer"
+                },
+                "source": {
+                    "description": "来源",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "会话标题",
+                    "type": "string"
+                },
+                "updateAt": {
+                    "description": "最后对话时间",
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "使用者ID",
+                    "type": "string"
+                },
+                "userName": {
+                    "description": "使用者名称",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "版本",
                     "type": "string"
                 }
             }
@@ -35977,6 +37571,13 @@
                     "description": "知识库拥有者的userID，因为知识库可以转让，所以拥有者未必是创建者",
                     "type": "string"
                 },
+                "parseTemplate": {
+                    "description": "各文档类型选定的解析模板",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ParseTemplateBind"
+                    }
+                },
                 "permissionType": {
                     "description": "当前用户对该知识库的权限类型 -1:无权限 0:查看 10:编辑 20:授权 30:系统管理授权",
                     "type": "integer"
@@ -36096,6 +37697,45 @@
                 },
                 "segmentType": {
                     "description": "分段方式，只有通用分段必填 0：自动分段；1：自定义分段",
+                    "type": "string"
+                },
+                "splitter": {
+                    "description": "分隔符（只有自定义分段必填）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "subMaxSplitter": {
+                    "description": "可分隔最大值（只有父子分段必填）",
+                    "type": "integer"
+                },
+                "subSplitter": {
+                    "description": "分隔符（只有父子分段必填）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.DocSegmentParam": {
+            "type": "object",
+            "properties": {
+                "maxSplitter": {
+                    "description": "可分隔最大值（只有自定义分段必填）",
+                    "type": "integer"
+                },
+                "overlap": {
+                    "description": "可重叠值（只有自定义分段必填）",
+                    "type": "number"
+                },
+                "segmentMethod": {
+                    "description": "分段方法 0：通用分段；1：父子分段",
+                    "type": "string"
+                },
+                "segmentType": {
+                    "description": "分段方式 0：自动分段；1：自定义分段",
                     "type": "string"
                 },
                 "splitter": {
@@ -37333,6 +38973,13 @@
                     "description": "知识库所属名称",
                     "type": "string"
                 },
+                "parseTemplate": {
+                    "description": "各文档类型选定的解析模板",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ParseTemplateBind"
+                    }
+                },
                 "permissionType": {
                     "description": "权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限\u003e编辑权限\u003e查看权限",
                     "type": "integer"
@@ -38454,6 +40101,15 @@
                 }
             }
         },
+        "response.MessageFeedbackResp": {
+            "type": "object",
+            "properties": {
+                "feedbackType": {
+                    "description": "当前反馈状态: 0=无 1=点赞 2=点踩",
+                    "type": "integer"
+                }
+            }
+        },
         "response.ModelExperienceDialogRecord": {
             "type": "object",
             "properties": {
@@ -38814,6 +40470,75 @@
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "response.ParseTemplateBind": {
+            "type": "object",
+            "properties": {
+                "docType": {
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ParseTemplateInfo": {
+            "type": "object",
+            "properties": {
+                "asrModelId": {
+                    "type": "string"
+                },
+                "builtIn": {
+                    "type": "boolean"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "docAnalyzer": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "docPreprocess": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "docSegment": {
+                    "$ref": "#/definitions/response.DocSegmentParam"
+                },
+                "docType": {
+                    "type": "string"
+                },
+                "multimodalModelId": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parserModelId": {
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ParseTemplateListResp": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ParseTemplateInfo"
+                    }
                 }
             }
         },

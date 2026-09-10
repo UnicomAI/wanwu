@@ -11,6 +11,7 @@ const (
 	KnowledgeImportSameNameErr      = "know_same_name_validation_fail"
 	KnowledgeImportInvalidNameErr   = "know_doc_invalid_file_name"
 	KnowledgeImportNameTooLongErr   = "know_doc_file_name_too_long"
+	KnowledgeImportAsrMissingErr    = "know_doc_asr_model_missing"
 	KnowledgeDocLastFailureErr      = "know_doc_last_failure_info"
 	KnowledgeDocParsingServiceErr   = "know_doc_parsing_service_error"
 	KnowledgeDocVectorDuplicateErr  = "know_doc_vector_duplicate_error"
@@ -28,7 +29,7 @@ func IsPreImportCheckFailErr(errMsg string) bool {
 	switch errMsg {
 	case KnowledgeImportFileFormatErr, KnowledgeImportFileSizeErr,
 		KnowledgeImportSameNameErr, KnowledgeImportInvalidNameErr,
-		KnowledgeImportNameTooLongErr:
+		KnowledgeImportNameTooLongErr, KnowledgeImportAsrMissingErr:
 		return true
 	default:
 		return false

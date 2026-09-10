@@ -87,6 +87,26 @@ func GetKnowledgeSelect(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
+// GetParseTemplateList
+//
+//	@Tags			openapi
+//	@Summary		查询解析模板列表openapi
+//	@Description	查询解析模板列表openapi
+//	@Accept			json
+//	@Param			data	query	request.ParseTemplateListReq	true	"解析模板列表查询请求参数"
+//	@Produce		json
+//	@Success		200	{object}	response.Response{data=response.ParseTemplateListResp}
+//	@Router			/knowledge/parseTemplate [get]
+func GetParseTemplateList(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.ParseTemplateListReq
+	if !gin_util.BindQuery(ctx, &req) {
+		return
+	}
+	resp, err := service.GetParseTemplateList(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
 // DirectUploadFiles
 //
 //	@Tags			openapi

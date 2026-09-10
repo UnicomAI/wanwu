@@ -43,19 +43,21 @@ type KnowledgeBatchSelectReq struct {
 }
 
 type CreateKnowledgeReq struct {
-	Avatar         Avatar          `json:"avatar"` // 图标
-	Name           string          `json:"name"  validate:"required"`
-	Description    string          `json:"description"`
-	EmbeddingModel *EmbeddingModel `json:"embeddingModelInfo" validate:"required"`
-	KnowledgeGraph *KnowledgeGraph `json:"knowledgeGraph"`
-	Category       int32           `json:"category" form:"category"` // 0:知识库，1:问答库,2:多模态知识库
+	Avatar         Avatar               `json:"avatar"` // 图标
+	Name           string               `json:"name"  validate:"required"`
+	Description    string               `json:"description"`
+	EmbeddingModel *EmbeddingModel      `json:"embeddingModelInfo" validate:"required"`
+	KnowledgeGraph *KnowledgeGraph      `json:"knowledgeGraph"`
+	Category       int32                `json:"category" form:"category"` // 0:知识库，1:问答库,2:多模态知识库
+	ParseTemplate  []*ParseTemplateBind `json:"parseTemplate"`            // 各文档类型选定的解析模板，若有自定义模板则传参，默认传空数组
 }
 
 type UpdateKnowledgeReq struct {
-	KnowledgeId string `json:"knowledgeId"   validate:"required"`
-	Name        string `json:"name"   validate:"required"`
-	Description string `json:"description"`
-	Avatar      Avatar `json:"avatar"` // 图标
+	KnowledgeId   string               `json:"knowledgeId"   validate:"required"`
+	Name          string               `json:"name"   validate:"required"`
+	Description   string               `json:"description"`
+	Avatar        Avatar               `json:"avatar"`        // 图标
+	ParseTemplate []*ParseTemplateBind `json:"parseTemplate"` // 各文档类型选定的解析模板
 	CommonCheck
 }
 
