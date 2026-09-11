@@ -18,14 +18,6 @@ import (
 )
 
 func DeleteAppSpaceApp(ctx *gin.Context, userId, orgId, appId, appType string) error {
-	if appType == constant.AppTypeRag {
-		if _, err := rag.GetRagDetail(ctx.Request.Context(), &rag_service.RagDetailReq{
-			RagId:    appId,
-			Identity: &rag_service.Identity{UserId: userId, OrgId: orgId},
-		}); err != nil {
-			return err
-		}
-	}
 	// 消息中心：删除前把发布范围与名称快照下来——DeleteApp 之后记录已消失，事后查不到
 	oldPublishType := appPublishTypeOf(ctx, appId, appType)
 	appName, nameErr := resolveNoticeAppName(ctx, userId, orgId, appId, appType)
