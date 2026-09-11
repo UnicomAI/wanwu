@@ -36,8 +36,10 @@ import {
   getAdminKnowledgeFileList,
   getAdminKnowledgeQaPairList,
 } from '@/api/adminCenter';
+import { getParseTemplateList } from '@/api/parseTemplate';
 import { avatarSrc } from '@/utils/util';
 import { KNOWLEDGE, QA, MULTIMODAL } from '@/views/knowledge/constants';
+import { DOC_TYPE_LIST } from '@/views/knowledge/parseTemplate/config';
 import DetailLayout from '../components/DetailLayout.vue';
 import DetailHeader from '../components/DetailHeader.vue';
 import DetailCard from '../components/DetailCard.vue';
@@ -59,6 +61,7 @@ export default {
   data() {
     return {
       base: {},
+      parseTemplateList: [],
       getAdminKnowledgeFileList,
       getAdminKnowledgeQaPairList,
       QA,
@@ -104,6 +107,23 @@ export default {
         text: `${k.name} : ${k.alias}`,
       }));
     },
+    parseTemplateTags() {
+      const bind = this.base.parseTemplate || [];
+      return bind.reduce((acc, { docType, templateId }) => {
+        if (!templateId) return acc;
+        const template = this.parseTemplateList.find(
+          item => item.templateId === templateId,
+        );
+        if (!template || template.builtIn) return acc;
+        const docTypeItem = DOC_TYPE_LIST.find(
+          item => item.docType === docType,
+        );
+        acc.push({
+          text: `${docTypeItem ? docTypeItem.name : docType}：${template.name}`,
+        });
+        return acc;
+      }, []);
+    },
     basicItems() {
       const b = this.base;
       return [
@@ -118,6 +138,12 @@ export default {
             'adminCenter.pageModules.resourcePool.knowledge.detail.keywords',
           ),
           tags: this.keywordTags,
+        },
+        {
+          label: this.$t(
+            'adminCenter.pageModules.resourcePool.knowledge.detail.parseTemplate',
+          ),
+          tags: this.parseTemplateTags,
         },
         {
           label: this.$t('adminCenter.common.creator'),
@@ -140,6 +166,14 @@ export default {
       if (!knowledgeId) return;
       getAdminKnowledgeBase({ knowledgeId }).then(res => {
         this.base = res?.data ?? {};
+        this.fetchParseTemplates();
+      });
+    },
+    fetchParseTemplates() {
+      const bind = this.base.parseTemplate || [];
+      if (!bind.length) return;
+      getParseTemplateList().then(res => {
+        if (res.code === 0) this.parseTemplateList = res.data.list || [];
       });
     },
   },

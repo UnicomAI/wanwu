@@ -271,6 +271,12 @@ const constantRoutes = [
         meta: { perm: [PERMS.KNOWLEDGE] },
       },
       {
+        path: '/knowledge/parseTemplate',
+        component: resolve =>
+          require(['@/views/knowledge/parseTemplate'], resolve),
+        meta: { perm: [PERMS.KNOWLEDGE] },
+      },
+      {
         path: '/knowledge/keyword',
         component: resolve => require(['@/views/knowledge/keyword'], resolve),
         meta: { perm: [PERMS.KNOWLEDGE] },

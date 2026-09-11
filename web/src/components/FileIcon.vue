@@ -9,6 +9,7 @@
 export const SUPPORTED_TYPES = [
   // 基础与文件夹
   'md', // Markdown 文件
+  'markdown', // Markdown 文件（自绘）
   'unknown', // 未知文件类型
   'dir', // 文件夹 (关闭)
   'diropen', // 文件夹 (打开)

@@ -72,6 +72,14 @@
           <el-button
             size="mini"
             type="primary"
+            @click="$router.push('/knowledge/parseTemplate')"
+            v-if="category === KNOWLEDGE"
+          >
+            {{ $t('knowledgeManage.parseTemplate.title') }}
+          </el-button>
+          <el-button
+            size="mini"
+            type="primary"
             @click="$router.push('/knowledge/keyword')"
             v-if="category === KNOWLEDGE"
           >
