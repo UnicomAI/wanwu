@@ -540,6 +540,26 @@ services:
       - DB_USER=${WANWU_MYSQL_USER}
       - DB_PASSWORD=${WANWU_MYSQL_PASSWORD}
       - DB_NAME=${ONTOLOGY_DB_NAME:-kweaver}
+      # 定时任务结果邮件通知 SMTP 配置
+      - DH_SMTP_HOST=${DH_SMTP_HOST:-}
+      - DH_SMTP_PORT=${DH_SMTP_PORT:-465}
+      - DH_SMTP_USER=${DH_SMTP_USER:-}
+      - DH_SMTP_PASS=${DH_SMTP_PASS:-}
+      - DH_SMTP_FROM_NAME=${DH_SMTP_FROM_NAME:-数字员工}
+      - DH_SMTP_USE_SSL=${DH_SMTP_USE_SSL:-auto}
+      - DH_SMTP_TIMEOUT=${DH_SMTP_TIMEOUT:-15}
+      # 定时任务大文件对象存储配置（MinIO/S3 兼容，复用 infra 的 WANWU_MINIO_*）
+      - WANWU_MINIO_HOST=${WANWU_MINIO_HOST:-minio-wanwu}
+      - WANWU_MINIO_PORT=${WANWU_MINIO_PORT:-9000}
+      - WANWU_MINIO_ENDPOINT=${WANWU_MINIO_ENDPOINT:-}
+      - WANWU_MINIO_USER=${WANWU_MINIO_USER:-root}
+      - WANWU_MINIO_PASSWORD=${WANWU_MINIO_PASSWORD:-}
+      - DH_OSS_BUCKET=${DH_OSS_BUCKET:-dh-attachments}
+      - DH_OSS_SECURE=${DH_OSS_SECURE:-false}
+      - DH_OSS_LINK_TTL_DAYS=${DH_OSS_LINK_TTL_DAYS:-7}
+      - DH_WS_ATTACH_THRESHOLD_MB=${DH_WS_ATTACH_THRESHOLD_MB:-25}
+      - DH_WS_MAX_FILE_SIZE_MB=${DH_WS_MAX_FILE_SIZE_MB:-200}
+      - REPLACE_MINIO_DOWNLOAD_URL=${WANWU_WEB_BASE_URL}/minio/download/api/
     depends_on:
       mysql-setup-ontology:
         condition: service_completed_successfully
