@@ -25201,6 +25201,9 @@ const docTemplate = `{
                 "providerQwen": {
                     "$ref": "#/definitions/mp.AppModelParamsQwen"
                 },
+                "providerTencent": {
+                    "$ref": "#/definitions/mp.AppModelParamsTencent"
+                },
                 "providerYuanjing": {
                     "description": "YuanJing模型配置",
                     "allOf": [
@@ -25290,6 +25293,19 @@ const docTemplate = `{
             }
         },
         "mp.AppModelParamsQwen": {
+            "type": "object",
+            "properties": {
+                "llm": {
+                    "description": "大语言模型配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/mp_common.LLMParams"
+                        }
+                    ]
+                }
+            }
+        },
+        "mp.AppModelParamsTencent": {
             "type": "object",
             "properties": {
                 "llm": {
@@ -25413,6 +25429,17 @@ const docTemplate = `{
                 }
             }
         },
+        "mp.ProviderModelByTencent": {
+            "type": "object",
+            "properties": {
+                "embedding": {
+                    "$ref": "#/definitions/mp_tencent.Embedding"
+                },
+                "llm": {
+                    "$ref": "#/definitions/mp_tencent.LLM"
+                }
+            }
+        },
         "mp.ProviderModelByYuanjing": {
             "type": "object",
             "properties": {
@@ -25473,6 +25500,9 @@ const docTemplate = `{
                 },
                 "providerQwen": {
                     "$ref": "#/definitions/mp.ProviderModelByQwen"
+                },
+                "providerTencent": {
+                    "$ref": "#/definitions/mp.ProviderModelByTencent"
                 },
                 "providerYuanJing": {
                     "$ref": "#/definitions/mp.ProviderModelByYuanjing"
@@ -26151,6 +26181,72 @@ const docTemplate = `{
                 "endpointUrl": {
                     "description": "推理url",
                     "type": "string"
+                }
+            }
+        },
+        "mp_tencent.Embedding": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                }
+            }
+        },
+        "mp_tencent.LLM": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "description": "ApiKey",
+                    "type": "string"
+                },
+                "contextSize": {
+                    "description": "上下文长度",
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "description": "推理url",
+                    "type": "string"
+                },
+                "functionCalling": {
+                    "description": "函数调用是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "toolCall"
+                    ]
+                },
+                "maxImageSize": {
+                    "description": "最大图片大小限制",
+                    "type": "integer"
+                },
+                "maxTokens": {
+                    "description": "模型回答最大tokens",
+                    "type": "integer"
+                },
+                "thinkingSupport": {
+                    "description": "深度思考是否支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
+                },
+                "visionSupport": {
+                    "description": "视觉支持",
+                    "type": "string",
+                    "enum": [
+                        "noSupport",
+                        "support"
+                    ]
                 }
             }
         },

@@ -4004,6 +4004,9 @@ const docTemplate = `{
                 "providerQwen": {
                     "$ref": "#/definitions/mp.AppModelParamsQwen"
                 },
+                "providerTencent": {
+                    "$ref": "#/definitions/mp.AppModelParamsTencent"
+                },
                 "providerYuanjing": {
                     "description": "YuanJing模型配置",
                     "allOf": [
@@ -4093,6 +4096,19 @@ const docTemplate = `{
             }
         },
         "mp.AppModelParamsQwen": {
+            "type": "object",
+            "properties": {
+                "llm": {
+                    "description": "大语言模型配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/mp_common.LLMParams"
+                        }
+                    ]
+                }
+            }
+        },
+        "mp.AppModelParamsTencent": {
             "type": "object",
             "properties": {
                 "llm": {

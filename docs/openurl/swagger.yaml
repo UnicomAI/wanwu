@@ -18,6 +18,8 @@ definitions:
         $ref: '#/definitions/mp.AppModelParamsQianFan'
       providerQwen:
         $ref: '#/definitions/mp.AppModelParamsQwen'
+      providerTencent:
+        $ref: '#/definitions/mp.AppModelParamsTencent'
       providerYuanjing:
         allOf:
         - $ref: '#/definitions/mp.AppModelParamsYuanjing'
@@ -66,6 +68,13 @@ definitions:
         description: 大语言模型配置
     type: object
   mp.AppModelParamsQwen:
+    properties:
+      llm:
+        allOf:
+        - $ref: '#/definitions/mp_common.LLMParams'
+        description: 大语言模型配置
+    type: object
+  mp.AppModelParamsTencent:
     properties:
       llm:
         allOf:
@@ -142,6 +151,13 @@ definitions:
       rerank:
         $ref: '#/definitions/mp_qwen.Rerank'
     type: object
+  mp.ProviderModelByTencent:
+    properties:
+      embedding:
+        $ref: '#/definitions/mp_tencent.Embedding'
+      llm:
+        $ref: '#/definitions/mp_tencent.LLM'
+    type: object
   mp.ProviderModelByYuanjing:
     properties:
       embedding:
@@ -182,6 +198,8 @@ definitions:
         $ref: '#/definitions/mp.ProviderModelByQianFan'
       providerQwen:
         $ref: '#/definitions/mp.ProviderModelByQwen'
+      providerTencent:
+        $ref: '#/definitions/mp.ProviderModelByTencent'
       providerYuanJing:
         $ref: '#/definitions/mp.ProviderModelByYuanjing'
       providerZhipu:
@@ -665,6 +683,54 @@ definitions:
         type: integer
       endpointUrl:
         description: 推理url
+        type: string
+    type: object
+  mp_tencent.Embedding:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+    type: object
+  mp_tencent.LLM:
+    properties:
+      apiKey:
+        description: ApiKey
+        type: string
+      contextSize:
+        description: 上下文长度
+        type: integer
+      endpointUrl:
+        description: 推理url
+        type: string
+      functionCalling:
+        description: 函数调用是否支持
+        enum:
+        - noSupport
+        - toolCall
+        type: string
+      maxImageSize:
+        description: 最大图片大小限制
+        type: integer
+      maxTokens:
+        description: 模型回答最大tokens
+        type: integer
+      thinkingSupport:
+        description: 深度思考是否支持
+        enum:
+        - noSupport
+        - support
+        type: string
+      visionSupport:
+        description: 视觉支持
+        enum:
+        - noSupport
+        - support
         type: string
     type: object
   mp_yuanjing.Embedding:
