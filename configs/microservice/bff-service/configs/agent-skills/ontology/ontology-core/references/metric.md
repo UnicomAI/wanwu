@@ -151,14 +151,70 @@ ontology --user-id <accountId> metric delete <kn_id> <metric_id> [-y] [--branch 
 ontology --user-id <accountId> metric search <kn_id> --body '<json>' [--branch <b>] [-bd value] [--pretty]
 ```
 
-**示例**：
+`--body` 传一个 **ConceptsQuery JSON 对象**，通过 `condition` 字段指定过滤条件。
+
+### condition 字段结构
+
+```json
+{
+  "condition": {
+    "field": "<字段名>",
+    "operation": "<操作符>",
+    "value": <值>
+  },
+  "limit": 10
+}
+```
+
+### 支持的操作符
+
+| operation | 含义 | value 类型 |
+|-----------|------|-----------|
+| `==` | 精确匹配 | string |
+| `!=` | 不等 | string |
+| `like` | 模糊匹配（`%` = 多字符通配，`_` = 单字符通配） | string |
+| `not_like` | 不模糊匹配 | string |
+| `in` | 集合包含 | array |
+| `not_in` | 集合排除 | array |
+| `match` | 全文检索（单字段） | string |
+| `multi_match` | 多字段全文检索 | string |
+| `regex` | 正则表达式 | string |
+
+### 示例
 
 ```bash
+# 精确匹配指标名
 ontology --user-id <accountId> metric search d4rt3135s3q8va76m8fd --body '{
-  "query": "仓库 物品种类",
+  "condition": {
+    "field": "name",
+    "operation": "==",
+    "value": "各仓库物品平均单价"
+  },
+  "limit": 10
+}'
+
+# 模糊匹配指标名（%单价% 匹配包含"单价"的名称）
+ontology --user-id <accountId> metric search d4rt3135s3q8va76m8fd --body '{
+  "condition": {
+    "field": "name",
+    "operation": "like",
+    "value": "%单价%"
+  },
+  "limit": 10
+}'
+
+# 全文检索（所有文本字段）
+ontology --user-id <accountId> metric search d4rt3135s3q8va76m8fd --body '{
+  "condition": {
+    "operation": "multi_match",
+    "fields": ["*"],
+    "value": "仓库 物品种类"
+  },
   "limit": 10
 }'
 ```
+
+> **注意**：不要使用 `query` 字段，服务端不识别该字段，会导致搜索条件被静默忽略。
 
 ## validate — 校验指标定义
 
