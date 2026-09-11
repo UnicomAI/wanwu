@@ -44,14 +44,32 @@ type DocListReq struct {
 }
 
 type DocImportFileConfig struct {
-	DocImportType     int            `json:"docImportType"`                   //文档导入类型，0：文件上传，1：单条url上传，2.文件url上传
-	DocSegment        *DocSegment    `json:"docSegment" validate:"required"`  //文档分段配置
-	DocAnalyzer       []string       `json:"docAnalyzer" validate:"required"` //文档解析类型 text / ocr  / model / asr / multimodal
-	ParserModelId     string         `json:"parserModelId"`                   //模型解析或ocr模型id
-	AsrModelId        string         `json:"asrModelId"`                      //asr模型id
-	MultimodalModelId string         `json:"multimodalModelId"`               //多模态模型id
-	DocPreprocess     []string       `json:"docPreprocess"`                   //文本预处理规则 replaceSymbols / deleteLinks
-	DocMetaData       []*DocMetaData `json:"docMetaData"`                     //元数据
+	DocImportType     int                  `json:"docImportType"`     //文档导入类型，0：文件上传，1：单条url上传，2.文件url上传
+	DocSegment        *DocSegment          `json:"docSegment"`        //文档分段配置，useTemplate 为 true 时不填
+	DocAnalyzer       []string             `json:"docAnalyzer"`       //文档解析类型 text / ocr  / model / asr / multimodal
+	ParserModelId     string               `json:"parserModelId"`     //模型解析或ocr模型id
+	AsrModelId        string               `json:"asrModelId"`        //asr模型id
+	MultimodalModelId string               `json:"multimodalModelId"` //多模态模型id
+	DocPreprocess     []string             `json:"docPreprocess"`     //文本预处理规则 replaceSymbols / deleteLinks
+	DocMetaData       []*DocMetaData       `json:"docMetaData"`       //元数据
+	UseTemplate       bool                 `json:"useTemplate"`       //是否套用知识库解析模板，false 按手动配置处理
+	ParseTemplate     []*ParseTemplateBind `json:"parseTemplate"`     //各文档类型选定的解析模板，useTemplate 为 true 时使用
+	OverrideTemplate  bool                 `json:"overrideTemplate"`  //是否把本次选择的模板写回知识库
+}
+
+// checkParseTemplate 模板模式下的模板入参校验
+func (c *DocImportFileConfig) checkParseTemplate() error {
+	docTypes := make(map[string]struct{}, len(c.ParseTemplate))
+	for _, bind := range c.ParseTemplate {
+		if len(bind.DocType) == 0 || len(bind.TemplateId) == 0 {
+			return errors.New("parseTemplate docType and templateId can not be empty")
+		}
+		if _, ok := docTypes[bind.DocType]; ok {
+			return errors.New("parseTemplate duplicated docType: " + bind.DocType)
+		}
+		docTypes[bind.DocType] = struct{}{}
+	}
+	return nil
 }
 
 type DocImportReq struct {
@@ -257,7 +275,18 @@ func (c *DocImportReq) Check() error {
 			}
 		}
 	}
-	if c.DocSegment != nil {
+	if c.UseTemplate {
+		// 模板模式下分段与解析参数一律取自模板，只校验模板入参；归属和权限要查库，放在 knowledge-service
+		return c.checkParseTemplate()
+	}
+	// 非模板模式带模板参数说明调用方用错了，静默忽略会让人以为生效了
+	if len(c.ParseTemplate) > 0 || c.OverrideTemplate {
+		return errors.New("parseTemplate and overrideTemplate only work with useTemplate")
+	}
+	if c.DocSegment == nil {
+		return errors.New("docSegment empty")
+	}
+	{
 		if c.DocSegment.SegmentMethod != CommonSplitMethod && c.DocSegment.SegmentMethod != ParentSplitMethod {
 			return errors.New("segmentMethod error")
 		}

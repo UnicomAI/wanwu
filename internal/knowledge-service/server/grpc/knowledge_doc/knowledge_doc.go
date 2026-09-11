@@ -122,6 +122,17 @@ func (s *Service) GetDocDetail(ctx context.Context, req *knowledgebase_doc_servi
 }
 
 func (s *Service) ImportDoc(ctx context.Context, req *knowledgebase_doc_service.ImportDocReq) (*emptypb.Empty, error) {
+	// 使用解析模板导入，按文档类型拆分成多个导入任务
+	if req.UseTemplate {
+		if err := importDocByTemplate(ctx, req); err != nil {
+			return nil, err
+		}
+		return &emptypb.Empty{}, nil
+	}
+	// 手动配置导入：音频没有 ASR 模型转写不出内容，直传的先在这里拦，压缩包里的解压后逐个校验
+	if err := checkAudioAsrModel(req); err != nil {
+		return nil, err
+	}
 	task, err := buildImportTask(req)
 	if err != nil {
 		return nil, err
@@ -868,6 +879,20 @@ func removeDuplicateMeta(metaDataList []*knowledgebase_doc_service.MetaData) []*
 }
 
 // buildImportTask 构造导入任务
+// checkAudioAsrModel 本次直传的文件里有音频就必须配 ASR 模型，压缩包归不了类不受此限
+func checkAudioAsrModel(req *knowledgebase_doc_service.ImportDocReq) error {
+	if len(req.AsrModelId) > 0 {
+		return nil
+	}
+	for _, docInfo := range req.DocInfoList {
+		if model.DocTypeByExt(docInfo.DocType) == "audio" {
+			log.Errorf("音频文件(%v)未配置ASR模型", docInfo.DocName)
+			return util.ErrCode(errs.Code_KnowledgeParseTemplateAsrMissing)
+		}
+	}
+	return nil
+}
+
 func buildImportTask(req *knowledgebase_doc_service.ImportDocReq) (*model.KnowledgeImportTask, error) {
 	//是否是自动分段类型
 	if autoSegmentType(req.DocSegment.SegmentType, req.DocSegment.SegmentMethod) {
@@ -897,7 +922,8 @@ func buildImportTask(req *knowledgebase_doc_service.ImportDocReq) (*model.Knowle
 		})
 	}
 	docImportInfo, err := json.Marshal(&model.DocImportInfo{
-		DocInfoList: docList,
+		DocInfoList:   docList,
+		ParseTemplate: buildTemplateBindMap(req.ParseTemplate),
 	})
 	if err != nil {
 		return nil, err

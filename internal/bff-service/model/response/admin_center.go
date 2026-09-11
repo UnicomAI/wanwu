@@ -67,15 +67,16 @@ type AdminKnowledge struct {
 }
 
 type AdminKnowledgeBase struct {
-	KnowledgeId    string          `json:"knowledgeId"`
-	Name           string          `json:"name"`
-	GraphSwitch    int32           `json:"graphSwitch"`
-	Description    string          `json:"description"`
-	Keywords       []*KeywordsInfo `json:"keywords"`
-	EmbeddingModel *ModelInfo      `json:"embeddingModel"`
-	LlmModelId     string          `json:"llmModelId"`
-	Category       int32           `json:"category"` // 0: 知识库 1: 问答库 2: 多模态知识库
-	Avatar         request.Avatar  `json:"avatar"`   // 头像
+	KnowledgeId    string               `json:"knowledgeId"`
+	Name           string               `json:"name"`
+	GraphSwitch    int32                `json:"graphSwitch"`
+	Description    string               `json:"description"`
+	Keywords       []*KeywordsInfo      `json:"keywords"`
+	EmbeddingModel *ModelInfo           `json:"embeddingModel"`
+	LlmModelId     string               `json:"llmModelId"`
+	Category       int32                `json:"category"`      // 0: 知识库 1: 问答库 2: 多模态知识库
+	Avatar         request.Avatar       `json:"avatar"`        // 头像
+	ParseTemplate  []*ParseTemplateBind `json:"parseTemplate"` // 各文档类型选定的解析模板
 	AdminAppBaseInfo
 }
 

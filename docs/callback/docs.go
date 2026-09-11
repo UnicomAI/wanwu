@@ -1835,6 +1835,9 @@ const docTemplate = `{
                 },
                 "llm": {
                     "$ref": "#/definitions/mp_huoshan.LLM"
+                },
+                "multiModalEmbedding": {
+                    "$ref": "#/definitions/mp_huoshan.MultiModalEmbedding"
                 }
             }
         },
@@ -3367,6 +3370,35 @@ const docTemplate = `{
                         "noSupport",
                         "support"
                     ]
+                }
+            }
+        },
+        "mp_huoshan.MultiModalEmbedding": {
+            "type": "object",
+            "properties": {
+                "apiKey": {
+                    "type": "string"
+                },
+                "contextSize": {
+                    "type": "integer"
+                },
+                "endpointUrl": {
+                    "type": "string"
+                },
+                "maxImageSize": {
+                    "type": "integer"
+                },
+                "maxTextLength": {
+                    "type": "integer"
+                },
+                "maxVideoClipSize": {
+                    "type": "integer"
+                },
+                "supportFileTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

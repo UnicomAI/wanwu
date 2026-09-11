@@ -181,6 +181,11 @@ func deleteKnowledgeByKnowledgeId(ctx context.Context, taskCtx string) Result {
 		if err != nil {
 			return err
 		}
+		// 删除知识库的解析模板绑定
+		err = orm.DeleteTemplateBindByKnowledgeId(tx, knowledge.KnowledgeId)
+		if err != nil {
+			return err
+		}
 		//删除相关权限
 		err1 := orm.AsyncDeletePermissionByKnowledgeId(knowledge.KnowledgeId)
 		if err1 != nil {

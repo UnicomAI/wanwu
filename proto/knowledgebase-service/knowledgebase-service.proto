@@ -77,6 +77,11 @@ message DeleteKnowledgeReq{
   string orgId = 3;
 }
 
+message ParseTemplateBind {
+  string docType = 1;  //文档类型 pdf/word/ppt/excel/csv/txt/html/markdown/wps/ofd/video/audio/image
+  string templateId = 2;
+}
+
 message UpdateKnowledgeReq{
   string knowledgeId = 1;
   string name = 2;
@@ -84,6 +89,7 @@ message UpdateKnowledgeReq{
   string userId = 4;
   string orgId = 5;
   string avatarPath = 6;
+  repeated ParseTemplateBind parseTemplate = 7; //各文档类型选定的解析模板
 }
 
 message UpdateKnowledgeStatusReq{
@@ -148,6 +154,7 @@ message CreateKnowledgeReq{
   KnowledgeGraph knowledgeGraph = 6; //知识图谱配置
   int32 category = 7; //分类信息，0:知识库，1：问答库，2：多模态知识库
   string avatarPath = 8; // 头像路径
+  repeated ParseTemplateBind parseTemplate = 9; //各文档类型选定的解析模板
 }
 
 message EmbeddingModelInfo{
@@ -249,6 +256,7 @@ message KnowledgeInfo {
   string ownerUserId = 20;// 知识库拥有者的userID，因为知识库可以转让，所以拥有者未必是创建者
   string ownerOrgId = 21;// 知识库拥有者组织id
   bool showGraphReport = 22; //是否展示知识图谱和社区报告
+  repeated ParseTemplateBind parseTemplate = 23; //各文档类型选定的解析模板
 }
 
 message KnowledgeTagInfo {

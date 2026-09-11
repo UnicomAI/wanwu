@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package knowledgebase_template_service;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "gitlab.ai-yuanjing.cn/ai-platform-private/backend-used-bff/common-api/api/proto/knowledgebase-template-service";
+
+service KnowledgeBaseTemplateService {
+  // 查询解析模板列表
+  rpc GetParseTemplateList(GetParseTemplateListReq) returns (GetParseTemplateListResp) {}
+  // 新增解析模板
+  rpc CreateParseTemplate(CreateParseTemplateReq) returns (google.protobuf.Empty) {}
+  // 编辑解析模板
+  rpc UpdateParseTemplate(UpdateParseTemplateReq) returns (google.protobuf.Empty) {}
+  // 删除解析模板
+  rpc DeleteParseTemplate(DeleteParseTemplateReq) returns (google.protobuf.Empty) {}
+}
+
+message Identity {
+  string userId = 1;
+  string orgId = 2;
+}
+
+message ParseTemplateSegment {
+  string segmentType = 1;  //分段方式 0：自动分段；1：自定义分段
+  repeated string splitter = 2;  //分隔符（只有自定义分段必填）
+  int32 maxSplitter = 3;  //可分隔最大值（只有自定义分段必填）
+  float overlap = 4;  //可重叠值（只有自定义分段必填）
+  string segmentMethod = 5;  //分段方法 0：通用分段；1：父子分段
+  repeated string subSplitter = 6;  //分隔符（只有父子分段必填）
+  int32 subMaxSplitter = 7;  //可分隔最大值（只有父子分段必填）
+}
+
+message ParseTemplateConfig {
+  ParseTemplateSegment docSegment = 1;  //分段信息配置
+  repeated string docAnalyzer = 2;  //文档解析类型
+  string ocrModelId = 3;  //ocr模型id
+  repeated string docPreprocess = 4;  //文本预处理规则
+  string asrModelId = 5;  //asr模型id
+  string multimodalModelId = 6;  //多模态模型id
+}
+
+message ParseTemplateInfo {
+  string templateId = 1;
+  string name = 2;
+  string docType = 3;  //文档类型 pdf/word/ppt/excel/csv/txt/html/markdown/wps/ofd/video/audio/image
+  ParseTemplateConfig config = 4;
+  string updatedAt = 5;
+  bool builtIn = 6;  //是否为内置（默认）模板，每种文档类型至多一个
+  string createdAt = 7;
+}
+
+message GetParseTemplateListReq {
+  string docType = 1;
+  Identity identity = 2;
+}
+
+message GetParseTemplateListResp {
+  repeated ParseTemplateInfo templates = 1;
+}
+
+message CreateParseTemplateReq {
+  string name = 1;
+  string docType = 2;
+  ParseTemplateConfig config = 3;
+  Identity identity = 4;
+}
+
+message UpdateParseTemplateReq {
+  string templateId = 1;
+  string name = 2;
+  ParseTemplateConfig config = 3;
+  Identity identity = 4;
+}
+
+message DeleteParseTemplateReq {
+  string templateId = 1;
+  Identity identity = 2;
+}
+
+message ParseTemplateBind {
+  string docType = 1;  //文档类型 pdf/word/ppt/excel/csv/txt/html/markdown/wps/ofd/video/audio/image
+  string templateId = 2;
+}

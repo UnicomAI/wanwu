@@ -15,6 +15,7 @@ import (
 	knowledgebase_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-service"
 	knowledgebase_splitter_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-splitter-service"
 	knowledgebase_tag_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-tag-service"
+	knowledgebase_template_service "github.com/UnicomAI/wanwu/api/proto/knowledgebase-template-service"
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 	operate_service "github.com/UnicomAI/wanwu/api/proto/operate-service"
@@ -42,6 +43,7 @@ var (
 	knowledgeBaseKeywords   knowledgebase_keywords_service.KnowledgeBaseKeywordsServiceClient
 	knowledgeBaseReport     knowledgebase_report_service.KnowledgeBaseReportServiceClient
 	knowledgeBaseQA         knowledgebase_qa_service.KnowledgeBaseQAServiceClient
+	knowledgeBaseTemplate   knowledgebase_template_service.KnowledgeBaseTemplateServiceClient
 	app                     app_service.AppServiceClient
 	rag                     rag_service.RagServiceClient
 	assistant               assistant_service.AssistantServiceClient
@@ -105,6 +107,7 @@ func Init() error {
 	knowledgeBasePermission = knowledgebase_permission_service.NewKnowledgeBasePermissionServiceClient(knowledgeBaseConn)
 	knowledgeBaseReport = knowledgebase_report_service.NewKnowledgeBaseReportServiceClient(knowledgeBaseConn)
 	knowledgeBaseQA = knowledgebase_qa_service.NewKnowledgeBaseQAServiceClient(knowledgeBaseConn)
+	knowledgeBaseTemplate = knowledgebase_template_service.NewKnowledgeBaseTemplateServiceClient(knowledgeBaseConn)
 	rag = rag_service.NewRagServiceClient(ragConn)
 	assistant = assistant_service.NewAssistantServiceClient(assistantConn)
 	safety = safety_service.NewSafetyServiceClient(appConn)

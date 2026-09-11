@@ -43,6 +43,8 @@ type DocKnowledgeInfo struct {
 	OwnerOrgId      string          `json:"ownerOrgId"`     // 知识库拥有者的orgID，因为知识库可以转让，所以拥有者未必是创建者
 	CreatedAt       string          `json:"createdAt"`      // 创建时间
 	UpdatedAt       string          `json:"updatedAt"`      // 更新时间
+
+	ParseTemplate []*ParseTemplateBind `json:"parseTemplate"` // 各文档类型选定的解析模板
 }
 
 type ListDocResp struct {

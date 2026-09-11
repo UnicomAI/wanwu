@@ -36,6 +36,8 @@ type DocPreProcess struct {
 
 type DocImportInfo struct {
 	DocInfoList []*DocInfo `json:"docInfoList"`
+	// 压缩包解压后才知道内含哪些类型，逐个文档按类型查这里的绑定；非模板模式为空
+	ParseTemplate map[string]string `json:"parseTemplate,omitempty"`
 }
 
 type DocInfo struct {

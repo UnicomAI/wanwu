@@ -102,6 +102,10 @@ func (s *Service) TransferKnowledgeAdminUser(ctx context.Context, req *knowledge
 				return err
 			}
 		}
+		// 解析模板绑定只有拥有者能改，转让后原拥有者改不动自己那份，留着只会把他锁在旧配置上
+		if err := orm.DeleteTemplateBindExceptUser(tx, req.KnowledgeId, req.KnowledgeUser.UserId, req.KnowledgeUser.OrgId); err != nil {
+			return err
+		}
 		return nil
 	})
 	if err != nil {

@@ -414,6 +414,11 @@ definitions:
         $ref: '#/definitions/request.KnowledgeGraph'
       name:
         type: string
+      parseTemplate:
+        description: 各文档类型选定的解析模板，若有自定义模板则传参，默认传空数组
+        items:
+          $ref: '#/definitions/request.ParseTemplateBind'
+        type: array
     required:
     - embeddingModelInfo
     - name
@@ -520,20 +525,29 @@ definitions:
       docSegment:
         allOf:
         - $ref: '#/definitions/request.DocSegment'
-        description: 文档分段配置
+        description: 文档分段配置，useTemplate 为 true 时不填
       knowledgeId:
         description: 知识库id
         type: string
       multimodalModelId:
         description: 多模态模型id
         type: string
+      overrideTemplate:
+        description: 是否把本次选择的模板写回知识库
+        type: boolean
+      parseTemplate:
+        description: 各文档类型选定的解析模板，useTemplate 为 true 时使用
+        items:
+          $ref: '#/definitions/request.ParseTemplateBind'
+        type: array
       parserModelId:
         description: 模型解析或ocr模型id
         type: string
+      useTemplate:
+        description: 是否套用知识库解析模板，false 按手动配置处理
+        type: boolean
     required:
-    - docAnalyzer
     - docIdList
-    - docSegment
     - knowledgeId
     type: object
   request.DocImportReq:
@@ -567,20 +581,29 @@ definitions:
       docSegment:
         allOf:
         - $ref: '#/definitions/request.DocSegment'
-        description: 文档分段配置
+        description: 文档分段配置，useTemplate 为 true 时不填
       knowledgeId:
         description: 知识库id
         type: string
       multimodalModelId:
         description: 多模态模型id
         type: string
+      overrideTemplate:
+        description: 是否把本次选择的模板写回知识库
+        type: boolean
+      parseTemplate:
+        description: 各文档类型选定的解析模板，useTemplate 为 true 时使用
+        items:
+          $ref: '#/definitions/request.ParseTemplateBind'
+        type: array
       parserModelId:
         description: 模型解析或ocr模型id
         type: string
+      useTemplate:
+        description: 是否套用知识库解析模板，false 按手动配置处理
+        type: boolean
     required:
-    - docAnalyzer
     - docInfoList
-    - docSegment
     - knowledgeId
     type: object
   request.DocInfo:
@@ -1314,6 +1337,16 @@ definitions:
     required:
     - uuid
     type: object
+  request.ParseTemplateBind:
+    properties:
+      docType:
+        type: string
+      templateId:
+        type: string
+    required:
+    - docType
+    - templateId
+    type: object
   request.RecommendConfig:
     properties:
       maxHistory:
@@ -1405,6 +1438,11 @@ definitions:
         type: string
       name:
         type: string
+      parseTemplate:
+        description: 各文档类型选定的解析模板
+        items:
+          $ref: '#/definitions/request.ParseTemplateBind'
+        type: array
     required:
     - knowledgeId
     - name
@@ -1900,6 +1938,34 @@ definitions:
     required:
     - segmentMethod
     type: object
+  response.DocSegmentParam:
+    properties:
+      maxSplitter:
+        description: 可分隔最大值（只有自定义分段必填）
+        type: integer
+      overlap:
+        description: 可重叠值（只有自定义分段必填）
+        type: number
+      segmentMethod:
+        description: 分段方法 0：通用分段；1：父子分段
+        type: string
+      segmentType:
+        description: 分段方式 0：自动分段；1：自定义分段
+        type: string
+      splitter:
+        description: 分隔符（只有自定义分段必填）
+        items:
+          type: string
+        type: array
+      subMaxSplitter:
+        description: 可分隔最大值（只有父子分段必填）
+        type: integer
+      subSplitter:
+        description: 分隔符（只有父子分段必填）
+        items:
+          type: string
+        type: array
+    type: object
   response.DocSegmentResp:
     properties:
       canPreview:
@@ -2144,6 +2210,11 @@ definitions:
       orgName:
         description: 知识库所属名称
         type: string
+      parseTemplate:
+        description: 各文档类型选定的解析模板
+        items:
+          $ref: '#/definitions/response.ParseTemplateBind'
+        type: array
       permissionType:
         description: '权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限'
         type: integer
@@ -2656,6 +2727,51 @@ definitions:
         type: integer
       total:
         type: integer
+    type: object
+  response.ParseTemplateBind:
+    properties:
+      docType:
+        type: string
+      templateId:
+        type: string
+    type: object
+  response.ParseTemplateInfo:
+    properties:
+      asrModelId:
+        type: string
+      builtIn:
+        type: boolean
+      createdAt:
+        type: string
+      docAnalyzer:
+        items:
+          type: string
+        type: array
+      docPreprocess:
+        items:
+          type: string
+        type: array
+      docSegment:
+        $ref: '#/definitions/response.DocSegmentParam'
+      docType:
+        type: string
+      multimodalModelId:
+        type: string
+      name:
+        type: string
+      parserModelId:
+        type: string
+      templateId:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  response.ParseTemplateListResp:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/response.ParseTemplateInfo'
+        type: array
     type: object
   response.RagConversationDetailInfo:
     properties:
@@ -4320,6 +4436,31 @@ paths:
       security:
       - JWT: []
       summary: 定义知识库元数据key
+      tags:
+      - openapi
+  /knowledge/parseTemplate:
+    get:
+      consumes:
+      - application/json
+      description: 查询解析模板列表openapi
+      parameters:
+      - description: 文档类型，为空则返回全部
+        in: query
+        name: docType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ParseTemplateListResp'
+              type: object
+      summary: 查询解析模板列表openapi
       tags:
       - openapi
   /knowledge/select:

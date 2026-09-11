@@ -173,6 +173,7 @@ func CreateKnowledge(ctx *gin.Context, userId, orgId string, r *request.CreateKn
 		KnowledgeGraph: knowledgeGraph,
 		Category:       r.Category,
 		AvatarPath:     r.Avatar.Key,
+		ParseTemplate:  buildKnowledgeBinds(r.ParseTemplate),
 	})
 	if err != nil {
 		return nil, err
@@ -235,12 +236,13 @@ func UpdateKnowledge(ctx *gin.Context, userId, orgId string, r *request.UpdateKn
 		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
 	}
 	_, err = knowledgeBase.UpdateKnowledge(ctx.Request.Context(), &knowledgebase_service.UpdateKnowledgeReq{
-		KnowledgeId: r.KnowledgeId,
-		Name:        r.Name,
-		Description: r.Description,
-		UserId:      userId,
-		OrgId:       orgId,
-		AvatarPath:  r.Avatar.Key,
+		KnowledgeId:   r.KnowledgeId,
+		Name:          r.Name,
+		Description:   r.Description,
+		UserId:        userId,
+		OrgId:         orgId,
+		AvatarPath:    r.Avatar.Key,
+		ParseTemplate: buildKnowledgeBinds(r.ParseTemplate),
 	})
 	return err
 }
@@ -565,7 +567,8 @@ func buildKnowledgeInfoList(ctx *gin.Context, knowledgeListResp *knowledgebase_s
 				ExternalApiId:         knowledge.KnowledgeExternalInfo.ExternalAPIId,
 				ExternalApiName:       knowledge.KnowledgeExternalInfo.ExternalAPIName,
 			},
-			Avatar: avatar,
+			Avatar:        avatar,
+			ParseTemplate: buildTemplateBindResp(knowledge.ParseTemplate),
 		})
 	}
 	return &response.KnowledgeListResp{KnowledgeList: list}

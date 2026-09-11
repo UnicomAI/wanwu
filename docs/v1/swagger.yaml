@@ -2319,13 +2319,33 @@ definitions:
     type: object
   request.ConversationIdRequest:
     properties:
+      assistantId:
+        type: string
       conversationId:
         type: string
       detailId:
         description: 可选，传值则删除单条对话，不传则删除全部对话
         type: string
     required:
+    - assistantId
     - conversationId
+    type: object
+  request.ConversationLogExportReq:
+    properties:
+      appId:
+        description: 应用id
+        type: string
+      appType:
+        description: 应用类型
+        type: string
+      logIds:
+        description: 对话日志id列表
+        items:
+          type: string
+        type: array
+    required:
+    - appId
+    - appType
     type: object
   request.ConversionStreamCancelRequest:
     properties:
@@ -2618,6 +2638,11 @@ definitions:
         $ref: '#/definitions/request.KnowledgeGraph'
       name:
         type: string
+      parseTemplate:
+        description: 各文档类型选定的解析模板，若有自定义模板则传参，默认传空数组
+        items:
+          $ref: '#/definitions/request.ParseTemplateBind'
+        type: array
     required:
     - embeddingModelInfo
     - name
@@ -2650,6 +2675,40 @@ definitions:
     required:
     - name
     - redirectUri
+    type: object
+  request.CreateParseTemplateReq:
+    properties:
+      asrModelId:
+        description: asr模型id
+        type: string
+      docAnalyzer:
+        description: 文档解析类型 text / model
+        items:
+          type: string
+        type: array
+      docPreprocess:
+        description: 文本预处理规则 replaceSymbols / deleteLinks
+        items:
+          type: string
+        type: array
+      docSegment:
+        allOf:
+        - $ref: '#/definitions/request.DocSegment'
+        description: 文档分段配置
+      docType:
+        type: string
+      multimodalModelId:
+        description: 多模态模型id
+        type: string
+      name:
+        type: string
+      parserModelId:
+        description: 模型解析或ocr模型id
+        type: string
+    required:
+    - docSegment
+    - docType
+    - name
     type: object
   request.CreatePromptByTemplateReq:
     properties:
@@ -2910,6 +2969,16 @@ definitions:
     - appId
     - appType
     type: object
+  request.DeleteConversationLogExportRecordReq:
+    properties:
+      exportRecordIds:
+        description: 导出记录id列表
+        items:
+          type: string
+        type: array
+    required:
+    - exportRecordIds
+    type: object
   request.DeleteCustomSkillReq:
     properties:
       skillId:
@@ -3070,6 +3139,13 @@ definitions:
     required:
     - clientId
     type: object
+  request.DeleteParseTemplateReq:
+    properties:
+      templateId:
+        type: string
+    required:
+    - templateId
+    type: object
   request.DeleteSensitiveVocabularyReq:
     properties:
       tableId:
@@ -3146,20 +3222,29 @@ definitions:
       docSegment:
         allOf:
         - $ref: '#/definitions/request.DocSegment'
-        description: 文档分段配置
+        description: 文档分段配置，useTemplate 为 true 时不填
       knowledgeId:
         description: 知识库id
         type: string
       multimodalModelId:
         description: 多模态模型id
         type: string
+      overrideTemplate:
+        description: 是否把本次选择的模板写回知识库
+        type: boolean
+      parseTemplate:
+        description: 各文档类型选定的解析模板，useTemplate 为 true 时使用
+        items:
+          $ref: '#/definitions/request.ParseTemplateBind'
+        type: array
       parserModelId:
         description: 模型解析或ocr模型id
         type: string
+      useTemplate:
+        description: 是否套用知识库解析模板，false 按手动配置处理
+        type: boolean
     required:
-    - docAnalyzer
     - docIdList
-    - docSegment
     - knowledgeId
     type: object
   request.DocImportReq:
@@ -3193,20 +3278,29 @@ definitions:
       docSegment:
         allOf:
         - $ref: '#/definitions/request.DocSegment'
-        description: 文档分段配置
+        description: 文档分段配置，useTemplate 为 true 时不填
       knowledgeId:
         description: 知识库id
         type: string
       multimodalModelId:
         description: 多模态模型id
         type: string
+      overrideTemplate:
+        description: 是否把本次选择的模板写回知识库
+        type: boolean
+      parseTemplate:
+        description: 各文档类型选定的解析模板，useTemplate 为 true 时使用
+        items:
+          $ref: '#/definitions/request.ParseTemplateBind'
+        type: array
       parserModelId:
         description: 模型解析或ocr模型id
         type: string
+      useTemplate:
+        description: 是否套用知识库解析模板，false 按手动配置处理
+        type: boolean
     required:
-    - docAnalyzer
     - docInfoList
-    - docSegment
     - knowledgeId
     type: object
   request.DocInfo:
@@ -3514,6 +3608,77 @@ definitions:
         type: string
       threadId:
         description: 对话ID
+        type: string
+    type: object
+  request.GetConversationLogDetailRequest:
+    properties:
+      appId:
+        description: 业务id 智能体id、知识问答id
+        type: string
+      appType:
+        description: 业务类型 智能体、知识问答
+        type: string
+      conversationId:
+        description: 会话id
+        type: string
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+    required:
+    - pageSize
+    type: object
+  request.GetConversationLogListRequest:
+    properties:
+      appId:
+        description: 业务id 智能体id、知识问答id
+        type: string
+      appType:
+        description: 业务类型 智能体、知识问答
+        type: string
+      endDate:
+        description: 截至日期
+        type: string
+      name:
+        description: 会话标题
+        type: string
+      orderBy:
+        description: 排序字段 avgCosts avgFirstTokenLatency createAt updateAt
+        type: string
+      orderType:
+        description: 排序类型 asc des
+        type: string
+      pageNo:
+        type: integer
+      pageSize:
+        type: integer
+      source:
+        description: 来源 web、openapi、webURL、draft
+        items:
+          type: string
+        type: array
+      startDate:
+        description: 起始日期
+        type: string
+      userIds:
+        description: 用户id列表
+        items:
+          type: string
+        type: array
+    required:
+    - appId
+    - appType
+    - endDate
+    - pageSize
+    - startDate
+    type: object
+  request.GetConversationLogUserSelectRequest:
+    properties:
+      appId:
+        description: 业务id 智能体id、知识问答id
+        type: string
+      appType:
+        description: 业务类型 智能体、知识问答
         type: string
     type: object
   request.GetModelRequest:
@@ -4206,6 +4371,26 @@ definitions:
     - chunkName
     - fileName
     type: object
+  request.MessageFeedbackRequest:
+    properties:
+      assistantId:
+        type: string
+      conversationId:
+        type: string
+      detailId:
+        description: 消息详情ID
+        type: string
+      feedbackContent:
+        description: 反馈文本内容
+        type: string
+      feedbackType:
+        description: '反馈类型: 1=点赞 2=点踩'
+        type: integer
+    required:
+    - assistantId
+    - conversationId
+    - detailId
+    type: object
   request.MetaDataFilterParams:
     properties:
       filterEnable:
@@ -4481,6 +4666,16 @@ definitions:
     required:
     - orgId
     - userId
+    type: object
+  request.ParseTemplateBind:
+    properties:
+      docType:
+        type: string
+      templateId:
+        type: string
+    required:
+    - docType
+    - templateId
     type: object
   request.PendingConversionRequest:
     properties:
@@ -5342,6 +5537,11 @@ definitions:
         type: string
       name:
         type: string
+      parseTemplate:
+        description: 各文档类型选定的解析模板
+        items:
+          $ref: '#/definitions/request.ParseTemplateBind'
+        type: array
     required:
     - knowledgeId
     - name
@@ -5411,6 +5611,40 @@ definitions:
         type: boolean
     required:
     - clientId
+    type: object
+  request.UpdateParseTemplateReq:
+    properties:
+      asrModelId:
+        description: asr模型id
+        type: string
+      docAnalyzer:
+        description: 文档解析类型 text / model
+        items:
+          type: string
+        type: array
+      docPreprocess:
+        description: 文本预处理规则 replaceSymbols / deleteLinks
+        items:
+          type: string
+        type: array
+      docSegment:
+        allOf:
+        - $ref: '#/definitions/request.DocSegment'
+        description: 文档分段配置
+      multimodalModelId:
+        description: 多模态模型id
+        type: string
+      name:
+        type: string
+      parserModelId:
+        description: 模型解析或ocr模型id
+        type: string
+      templateId:
+        type: string
+    required:
+    - docSegment
+    - name
+    - templateId
     type: object
   request.UpdateSensitiveWordTableReplyReq:
     properties:
@@ -5708,6 +5942,8 @@ definitions:
       avatar:
         $ref: '#/definitions/request.Avatar'
       createdAt:
+        type: string
+      customSkillId:
         type: string
       desc:
         type: string
@@ -6098,6 +6334,11 @@ definitions:
       ownerUserName:
         description: 拥有者用户名称（知识库可转让，未必是创建者）
         type: string
+      parseTemplate:
+        description: 各文档类型选定的解析模板
+        items:
+          $ref: '#/definitions/response.ParseTemplateBind'
+        type: array
       publishScope:
         description: private：私密发布，organization:组织内发布，authorized_personnel:指定人员发布 public：公开发布
         type: string
@@ -7502,6 +7743,12 @@ definitions:
         type: integer
       createdBy:
         type: string
+      feedback:
+        description: '当前反馈状态: 0=无 1=点赞 2=点踩'
+        type: integer
+      feedbackContent:
+        description: 反馈文本内容
+        type: string
       fileName:
         type: string
       fileSize:
@@ -7547,6 +7794,78 @@ definitions:
       title:
         type: string
       updatedAt:
+        type: string
+    type: object
+  response.ConversationLogExportRecordResp:
+    properties:
+      author:
+        description: 导出人
+        type: string
+      errorMsg:
+        description: 导出状态错误信息
+        type: string
+      exportRecordId:
+        description: 导出记录id
+        type: string
+      exportTime:
+        description: 导出时间
+        type: string
+      fileName:
+        description: 导出文件名
+        type: string
+      filePath:
+        description: 导出文件下载路径
+        type: string
+      status:
+        description: 状态
+        type: integer
+    type: object
+  response.ConversationLogInfo:
+    properties:
+      avgCosts:
+        description: 平均耗时
+        type: number
+      avgFirstTokenLatency:
+        description: 平均首token时延
+        type: number
+      conversationId:
+        description: 会话ID
+        type: string
+      createAt:
+        description: 创建时间
+        type: string
+      dislikeCount:
+        description: 点踩数量
+        type: integer
+      errorCount:
+        description: 错误数量
+        type: integer
+      likeCount:
+        description: 点赞数量
+        type: integer
+      logId:
+        description: 日志Id
+        type: string
+      messageCount:
+        description: 消息数量
+        type: integer
+      source:
+        description: 来源
+        type: string
+      title:
+        description: 会话标题
+        type: string
+      updateAt:
+        description: 最后对话时间
+        type: string
+      userId:
+        description: 使用者ID
+        type: string
+      userName:
+        description: 使用者名称
+        type: string
+      version:
+        description: 版本
         type: string
     type: object
   response.ConversationResponse:
@@ -8184,6 +8503,11 @@ definitions:
       ownerUserId:
         description: 知识库拥有者的userID，因为知识库可以转让，所以拥有者未必是创建者
         type: string
+      parseTemplate:
+        description: 各文档类型选定的解析模板
+        items:
+          $ref: '#/definitions/response.ParseTemplateBind'
+        type: array
       permissionType:
         description: 当前用户对该知识库的权限类型 -1:无权限 0:查看 10:编辑 20:授权 30:系统管理授权
         type: integer
@@ -8283,6 +8607,34 @@ definitions:
         type: array
     required:
     - segmentMethod
+    type: object
+  response.DocSegmentParam:
+    properties:
+      maxSplitter:
+        description: 可分隔最大值（只有自定义分段必填）
+        type: integer
+      overlap:
+        description: 可重叠值（只有自定义分段必填）
+        type: number
+      segmentMethod:
+        description: 分段方法 0：通用分段；1：父子分段
+        type: string
+      segmentType:
+        description: 分段方式 0：自动分段；1：自定义分段
+        type: string
+      splitter:
+        description: 分隔符（只有自定义分段必填）
+        items:
+          type: string
+        type: array
+      subMaxSplitter:
+        description: 可分隔最大值（只有父子分段必填）
+        type: integer
+      subSplitter:
+        description: 分隔符（只有父子分段必填）
+        items:
+          type: string
+        type: array
     type: object
   response.DocSegmentResp:
     properties:
@@ -9105,6 +9457,11 @@ definitions:
       orgName:
         description: 知识库所属名称
         type: string
+      parseTemplate:
+        description: 各文档类型选定的解析模板
+        items:
+          $ref: '#/definitions/response.ParseTemplateBind'
+        type: array
       permissionType:
         description: '权限类型:0: 查看权限; 10: 编辑权限; 20: 授权权限,数值不连续的原因防止后续有中间权限，目前逻辑 授权权限>编辑权限>查看权限'
         type: integer
@@ -9864,6 +10221,12 @@ definitions:
         description: 原始文件名
         type: string
     type: object
+  response.MessageFeedbackResp:
+    properties:
+      feedbackType:
+        description: '当前反馈状态: 0=无 1=点赞 2=点踩'
+        type: integer
+    type: object
   response.ModelExperienceDialogRecord:
     properties:
       modelExperienceId:
@@ -10112,6 +10475,51 @@ definitions:
         type: integer
       total:
         type: integer
+    type: object
+  response.ParseTemplateBind:
+    properties:
+      docType:
+        type: string
+      templateId:
+        type: string
+    type: object
+  response.ParseTemplateInfo:
+    properties:
+      asrModelId:
+        type: string
+      builtIn:
+        type: boolean
+      createdAt:
+        type: string
+      docAnalyzer:
+        items:
+          type: string
+        type: array
+      docPreprocess:
+        items:
+          type: string
+        type: array
+      docSegment:
+        $ref: '#/definitions/response.DocSegmentParam'
+      docType:
+        type: string
+      multimodalModelId:
+        type: string
+      name:
+        type: string
+      parserModelId:
+        type: string
+      templateId:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  response.ParseTemplateListResp:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/response.ParseTemplateInfo'
+        type: array
     type: object
   response.PendingConversationResp:
     properties:
@@ -11721,6 +12129,107 @@ paths:
       summary: 管理员中心智能体基础信息
       tags:
       - admin_center.assistant
+  /admin/center/assistant/conversation/log/detail:
+    post:
+      consumes:
+      - application/json
+      description: 获取会话日志详情
+      parameters:
+      - description: 获取会话日志详情
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetConversationLogDetailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ConversationDetailInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取会话日志详情
+      tags:
+      - admin_center.assistant
+  /admin/center/assistant/conversation/log/list:
+    post:
+      consumes:
+      - application/json
+      description: 获取会话日志列表
+      parameters:
+      - description: 获取会话日志列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetConversationLogListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ConversationLogInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取会话日志列表
+      tags:
+      - admin_center.assistant
+  /admin/center/assistant/conversation/log/user/select:
+    post:
+      consumes:
+      - application/json
+      description: 获取会话日志使用者列表
+      parameters:
+      - description: 会话日志使用者列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetConversationLogUserSelectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.Users'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取会话日志使用者列表
+      tags:
+      - admin_center.assistant
   /admin/center/assistant/detail:
     post:
       consumes:
@@ -12286,6 +12795,107 @@ paths:
       security:
       - JWT: []
       summary: 管理员中心知识问答基础信息
+      tags:
+      - admin_center.rag
+  /admin/center/rag/conversation/log/detail:
+    post:
+      consumes:
+      - application/json
+      description: 获取会话日志详情
+      parameters:
+      - description: 获取会话日志详情
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetConversationLogDetailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.RagConversationDetailInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取会话日志详情
+      tags:
+      - admin_center.rag
+  /admin/center/rag/conversation/log/list:
+    post:
+      consumes:
+      - application/json
+      description: 获取会话日志列表
+      parameters:
+      - description: 获取会话日志列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetConversationLogListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ConversationLogInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取会话日志列表
+      tags:
+      - admin_center.rag
+  /admin/center/rag/conversation/log/user/select:
+    post:
+      consumes:
+      - application/json
+      description: 获取会话日志使用者列表
+      parameters:
+      - description: 会话日志使用者列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetConversationLogUserSelectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.Users'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取会话日志使用者列表
       tags:
       - admin_center.rag
   /admin/center/rag/detail:
@@ -15466,6 +16076,35 @@ paths:
       summary: 智能体对话列表
       tags:
       - agent
+  /assistant/conversation/message/feedback:
+    post:
+      consumes:
+      - application/json
+      description: 对智能体单条消息点赞或点踩
+      parameters:
+      - description: 消息反馈参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.MessageFeedbackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.MessageFeedbackResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 智能体消息点赞/点踩
+      tags:
+      - agent
   /assistant/copy:
     post:
       consumes:
@@ -15523,6 +16162,184 @@ paths:
       security:
       - JWT: []
       summary: 查看草稿智能体详情
+      tags:
+      - agent
+  /assistant/draft/conversation/log/detail:
+    post:
+      consumes:
+      - application/json
+      description: 获取会话日志详情
+      parameters:
+      - description: 会话日志详情
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetConversationLogDetailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ConversationDetailInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取会话日志详情
+      tags:
+      - agent
+  /assistant/draft/conversation/log/list:
+    post:
+      consumes:
+      - application/json
+      description: 获取会话日志列表
+      parameters:
+      - description: 会话日志列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetConversationLogListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ConversationLogInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取会话日志列表
+      tags:
+      - agent
+  /assistant/draft/conversation/log/user/select:
+    post:
+      consumes:
+      - application/json
+      description: 获取会话日志使用者列表
+      parameters:
+      - description: 会话日志使用者列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetConversationLogUserSelectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.Users'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取会话日志使用者列表
+      tags:
+      - agent
+  /assistant/draft/pending/conversation:
+    post:
+      consumes:
+      - application/json
+      description: 获取智能体运行中会话
+      parameters:
+      - description: 获取智能体运行中会话请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.PendingConversionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PendingConversationResp'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取智能体运行中会话
+      tags:
+      - agent
+  /assistant/draft/stream/cancel:
+    post:
+      consumes:
+      - application/json
+      description: 智能体流式问答手动停止
+      parameters:
+      - description: 智能体流式问答手动停止参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ConversionStreamCancelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 智能体流式问答手动停止
+      tags:
+      - agent
+  /assistant/draft/stream/connect:
+    post:
+      consumes:
+      - application/json
+      description: 草稿智能体流式问答断开后重连
+      parameters:
+      - description: 智能体流式问答参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ConversionStreamConnectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 草稿智能体流式问答断开后重连
       tags:
       - agent
   /assistant/multi-agent:
@@ -15618,35 +16435,6 @@ paths:
       security:
       - JWT: []
       summary: 启用/停用多智能体配置
-      tags:
-      - agent
-  /assistant/pending/conversation:
-    post:
-      consumes:
-      - application/json
-      description: 获取智能体运行中会话
-      parameters:
-      - description: 获取智能体运行中会话请求参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/request.PendingConversionRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/response.PendingConversationResp'
-              type: object
-      security:
-      - JWT: []
-      summary: 获取智能体运行中会话
       tags:
       - agent
   /assistant/question/recommend:
@@ -15800,54 +16588,6 @@ paths:
       security:
       - JWT: []
       summary: 已发布智能体流式问答
-      tags:
-      - agent
-  /assistant/stream/cancel:
-    post:
-      consumes:
-      - application/json
-      description: 智能体流式问答手动停止
-      parameters:
-      - description: 智能体流式问答手动停止参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/request.ConversionStreamCancelRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - JWT: []
-      summary: 智能体流式问答手动停止
-      tags:
-      - agent
-  /assistant/stream/connect:
-    post:
-      consumes:
-      - application/json
-      description: 草稿智能体流式问答断开后重连
-      parameters:
-      - description: 智能体流式问答参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/request.ConversionStreamConnectRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - JWT: []
-      summary: 草稿智能体流式问答断开后重连
       tags:
       - agent
   /assistant/stream/draft:
@@ -17122,6 +17862,137 @@ paths:
       summary: 删除对话流会话
       tags:
       - chatflow
+  /conversation/log/export:
+    post:
+      consumes:
+      - application/json
+      description: 对话日志导出（异步，立即返回）
+      parameters:
+      - description: 对话日志导出请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ConversationLogExportReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 对话日志导出
+      tags:
+      - conversation.log
+  /conversation/log/export/record:
+    delete:
+      consumes:
+      - application/json
+      description: 删除对话日志导出记录
+      parameters:
+      - description: 删除对话日志导出记录请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteConversationLogExportRecordReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 删除对话日志导出记录
+      tags:
+      - conversation.log
+  /conversation/log/export/record/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取对话日志导出记录列表
+      parameters:
+      - description: 业务id 智能体id、知识问答id
+        in: query
+        name: appId
+        required: true
+        type: string
+      - description: 业务类型 智能体、知识问答
+        in: query
+        name: appType
+        required: true
+        type: string
+      - description: 截至日期
+        in: query
+        name: endDate
+        required: true
+        type: string
+      - description: 会话标题
+        in: query
+        name: name
+        type: string
+      - description: 排序字段 avgCosts avgFirstTokenLatency createAt updateAt
+        in: query
+        name: orderBy
+        type: string
+      - description: 排序类型 asc des
+        in: query
+        name: orderType
+        type: string
+      - in: query
+        name: pageNo
+        type: integer
+      - in: query
+        name: pageSize
+        required: true
+        type: integer
+      - collectionFormat: csv
+        description: 来源 web、openapi、webURL、draft
+        in: query
+        items:
+          type: string
+        name: source
+        type: array
+      - description: 起始日期
+        in: query
+        name: startDate
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: 用户id列表
+        in: query
+        items:
+          type: string
+        name: userIds
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ConversationLogExportRecordResp'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取对话日志导出记录列表
+      tags:
+      - conversation.log
   /custom/about:
     get:
       consumes:
@@ -20149,6 +21020,97 @@ paths:
       summary: 知识库组织列表
       tags:
       - knowledge.permission
+  /knowledge/parseTemplate:
+    delete:
+      consumes:
+      - application/json
+      description: 删除解析模板
+      parameters:
+      - description: 删除解析模板请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteParseTemplateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 删除解析模板
+      tags:
+      - knowledge.parseTemplate
+    get:
+      consumes:
+      - application/json
+      description: 查询解析模板列表
+      parameters:
+      - description: 文档类型，为空则返回全部
+        in: query
+        name: docType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ParseTemplateListResp'
+      security:
+      - JWT: []
+      summary: 查询解析模板列表
+      tags:
+      - knowledge.parseTemplate
+    post:
+      consumes:
+      - application/json
+      description: 新建解析模板
+      parameters:
+      - description: 新建解析模板请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateParseTemplateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 新建解析模板
+      tags:
+      - knowledge.parseTemplate
+    put:
+      consumes:
+      - application/json
+      description: 编辑解析模板
+      parameters:
+      - description: 编辑解析模板请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateParseTemplateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 编辑解析模板
+      tags:
+      - knowledge.parseTemplate
   /knowledge/qa/export:
     get:
       consumes:
@@ -23508,6 +24470,107 @@ paths:
       security:
       - JWT: []
       summary: 知识问答对话点赞/点踩
+      tags:
+      - rag
+  /rag/draft/conversation/log/detail:
+    post:
+      consumes:
+      - application/json
+      description: 获取会话日志详情
+      parameters:
+      - description: 会话日志详情
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetConversationLogDetailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.RagConversationDetailInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取会话日志详情
+      tags:
+      - rag
+  /rag/draft/conversation/log/list:
+    post:
+      consumes:
+      - application/json
+      description: 获取会话日志列表
+      parameters:
+      - description: 会话日志列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetConversationLogListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ConversationLogInfo'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 获取会话日志列表
+      tags:
+      - rag
+  /rag/draft/conversation/log/user/select:
+    post:
+      consumes:
+      - application/json
+      description: 获取会话日志使用者列表
+      parameters:
+      - description: 会话日志使用者列表
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetConversationLogUserSelectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.Users'
+              type: object
+      security:
+      - JWT: []
+      summary: 获取会话日志使用者列表
       tags:
       - rag
   /rag/pending/conversation:
