@@ -26,7 +26,10 @@ export default {
   name: 'Tool',
   data() {
     return {
-      tabActive: MCP,
+      // 初始值取当前路由的 routeType，避免首屏先渲染 mcp tab（发出 mcp/list 请求）再切走
+      tabActive: [MCP, TOOL, PROMPT].includes(this.$route.meta?.routeType)
+        ? this.$route.meta.routeType
+        : MCP,
       mcp: MCP,
       tool: TOOL,
       prompt: PROMPT,
