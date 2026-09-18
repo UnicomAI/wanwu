@@ -9,9 +9,9 @@ export const PERMS = {
   WGA_WANWU_BOT: 'wga.wanwu_bot', // 通用智能体-WanwuBot
   WGA_OPENCLAW: 'wga.openclaw', // 通用智能体-OpenClaw
 
-  ONTOLOGY: 'ontology', // 本体智能体
-  ONTOLOGY_KNOWLEDGE_NETWORK: 'ontology.knowledge_network', // 本体智能体-知识网络
-  ONTOLOGY_DATA_SOURCE: 'ontology.data_source', // 本体智能体-数据连接
+  ONTOLOGY: 'ontology', // 决策智能体
+  ONTOLOGY_KNOWLEDGE_NETWORK: 'ontology.knowledge_network', // 决策智能体-知识网络
+  ONTOLOGY_DATA_SOURCE: 'ontology.data_source', // 决策智能体-数据连接
 
   MODEL_SERVICE: 'model', // 模型服务
   MODEL_MANAGE: 'model.model_management', // 模型服务-模型管理

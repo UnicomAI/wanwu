@@ -860,6 +860,10 @@ export default {
         this.submitWithTemplate();
         return;
       }
+      // 模板字段只在模板模式提交，手动配置入口剥掉；payload 在副本上组装，不污染表单状态
+      const data = { ...this.ruleForm };
+      delete data.parseTemplate;
+      delete data.overrideTemplate;
       if (this.ruleForm.docSegment.segmentType === '1')
         this.ruleForm.docSegment.segmentMethod = '0';
       const { segmentMethod, segmentType, splitter, subSplitter } =
@@ -890,28 +894,24 @@ export default {
         });
 
         if (this.fileType === 'file' || this.fileType === 'fileMultiModal') {
-          this.ruleForm.docImportType = 0;
+          data.docImportType = 0;
         } else if (this.fileType === 'fileUrl') {
-          this.ruleForm.docImportType = 2;
+          data.docImportType = 2;
         } else {
-          this.ruleForm.docImportType = 1;
+          data.docImportType = 1;
         }
 
-        this.ruleForm.docInfoList = this.docInfoList;
-        if (this.ruleForm.asrModelId) this.ruleForm.docAnalyzer.push('asr');
+        data.docInfoList = this.docInfoList;
+        if (this.ruleForm.asrModelId) data.docAnalyzer.push('asr');
         if (this.ruleForm.multimodalModelId)
-          this.ruleForm.docAnalyzer.push('multimodal');
-        let data = null;
+          data.docAnalyzer.push('multimodal');
         if (
           this.ruleForm.docSegment.segmentType === '0' &&
           this.ruleForm.docSegment.segmentMethod !== '1'
         ) {
-          data = this.ruleForm;
           delete data.docSegment.splitter;
           delete data.docSegment.maxSplitter;
           delete data.docSegment.overlap;
-        } else {
-          data = this.ruleForm;
         }
 
         if (this.mode === 'config') {
