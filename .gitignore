@@ -52,3 +52,7 @@ project
 
 # Claude Code
 .claude/
+
+
+**/node_modules/
+**/dist/
