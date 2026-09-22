@@ -1,20 +1,18 @@
 <template>
   <div class="parse-template-select">
-    <!-- 收起态：只列已选模板，未选则提示走内置默认 -->
+    <!-- 收起态：列出范围内全部类型及其生效模板 -->
     <div v-if="!isOpen" key="summary" class="template-summary">
       <el-tag
-        v-for="tag in customTags"
+        v-for="tag in summaryTags"
         :key="tag.docType"
         size="small"
-        color="#E6F0FF"
+        :type="tag.unbound ? 'info' : ''"
+        :color="tag.unbound ? undefined : '#E6F0FF'"
         class="summary-tag"
         disable-transitions
       >
         {{ tag.docTypeName }}：{{ tag.templateName }}
       </el-tag>
-      <span v-if="loaded && !customTags.length" class="summary-empty">
-        {{ $t('knowledgeManage.parseTemplate.noneSelected') }}
-      </span>
       <i
         v-if="!disabled"
         class="el-icon-edit-outline summary-edit"
@@ -54,11 +52,7 @@
             <el-option
               v-for="template in optionTemplates(item.docType)"
               :key="template.templateId"
-              :label="
-                template.builtIn
-                  ? $t('knowledgeManage.parseTemplate.builtIn')
-                  : template.name
-              "
+              :label="templateLabel(template)"
               :value="template.templateId"
             ></el-option>
             <el-option
@@ -144,23 +138,20 @@ export default {
         .filter(item => !this.selectValue(item.docType))
         .map(item => item.docType);
     },
-    // 收起时只展示偏离内置（默认）的那几项
-    customTags() {
-      return this.visibleDocTypes.reduce((acc, item) => {
-        const templateId = this.bind[item.docType];
-        if (!templateId) return acc;
-        const template = (this.grouped[item.docType] || []).find(
-          t => t.templateId === templateId,
-        );
-        // 列表未返回时取不到模板，先不展示，避免闪出原始 id
-        if (!template || template.builtIn) return acc;
-        acc.push({
+    // 列表未返回前不展示，否则会全部闪成「未配置模板」
+    summaryTags() {
+      if (!this.loaded) return [];
+      return this.visibleDocTypes.map(item => {
+        const template = this.currentTemplate(item.docType);
+        return {
           docType: item.docType,
           docTypeName: item.name,
-          templateName: template.name,
-        });
-        return acc;
-      }, []);
+          templateName: template
+            ? this.templateLabel(template)
+            : this.$t('knowledgeManage.parseTemplate.noTemplate'),
+          unbound: !template,
+        };
+      });
     },
   },
   watch: {
@@ -221,6 +212,11 @@ export default {
     optionTemplates(docType) {
       const list = this.grouped[docType] || [];
       return this.isMedia(docType) ? list.filter(t => !t.builtIn) : list;
+    },
+    templateLabel(template) {
+      return template.builtIn
+        ? this.$t('knowledgeManage.parseTemplate.builtIn')
+        : template.name;
     },
     currentTemplate(docType) {
       const templateId = this.selectValue(docType);
@@ -302,11 +298,6 @@ export default {
 
   .summary-tag {
     border-color: transparent;
-  }
-
-  .summary-empty {
-    font-size: 12px;
-    color: #606266;
   }
 
   .summary-edit {
