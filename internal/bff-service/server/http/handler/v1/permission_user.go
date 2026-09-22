@@ -172,7 +172,7 @@ func AdminChangeUserPassword(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	if req.OrgID != config.TopOrgID || req.UserID == config.SystemAdminUserID {
+	if getUserID(ctx) != config.SystemAdminUserID {
 		gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_user_cannot_reset_password"))
 		return
 	}
