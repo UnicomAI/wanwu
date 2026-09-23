@@ -97,7 +97,7 @@ export default {
     },
     // 新建多模态知识库时，替用户选上已有的第一个媒体模板
     autoBindMedia: { type: Boolean, default: false },
-    // 上传文件场景下十三项太占版面，默认折叠
+    // 上传文件场景下十三项选择器太占版面，默认折叠成标签
     collapsible: { type: Boolean, default: false },
     // 校验未通过时由父级传入，标红引导用户补选
     requiredDocTypes: { type: Array, default: () => [] },
