@@ -229,8 +229,13 @@ func processCsvFileLine(ctx context.Context, csvUrl string,
 		}
 	}()
 
-	// 创建CSV读取器
-	reader := csv.NewReader(object)
+	data, err := io.ReadAll(object)
+	if err != nil {
+		log.Errorf("read file err: %s", err)
+		return 0, err
+	}
+	// Office Excel 编辑保存的 csv 默认是 GBK 编码
+	reader := csv.NewReader(strings.NewReader(util.DecodeGBKToUTF8(string(data))))
 
 	// 根据需要配置CSV读取器
 	reader.Comma = ','          // 设置分隔符，默认为逗号
