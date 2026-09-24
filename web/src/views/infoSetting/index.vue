@@ -166,15 +166,6 @@
           </el-upload>
         </el-form-item>
         <el-form-item
-          :label="$t('infoSetting.form.logoWelcome')"
-          prop="loginWelcomeText"
-        >
-          <el-input v-model="loginForm.loginWelcomeText" style="width: 300px" />
-          <div style="font-size: 11px; color: #aaa; margin-top: -9px">
-            {{ $t('infoSetting.hint.logoWelcome') }}
-          </div>
-        </el-form-item>
-        <el-form-item
           :label="$t('infoSetting.form.loginButtonColor')"
           prop="loginButtonColor"
         >
@@ -425,7 +416,6 @@ export default {
         loginBg: {},
         loginLogo: {},
         loginButtonColor: '',
-        loginWelcomeText: '',
       },
       generalAgentForm: {
         generalAgentIcon: {},
@@ -496,13 +486,6 @@ export default {
             required: true,
             message: this.$t('common.select.placeholder'),
             trigger: 'change',
-          },
-        ],
-        loginWelcomeText: [
-          {
-            required: true,
-            message: this.$t('common.input.placeholder'),
-            trigger: 'blur',
           },
         ],
       },
@@ -583,7 +566,6 @@ export default {
 
         this.loginForm.loginBg = login.background || {};
         this.loginForm.loginLogo = login.logo || {};
-        this.loginForm.loginWelcomeText = login.welcomeText || '';
         this.loginForm.loginButtonColor = login.loginButtonColor || '';
 
         this.generalAgentForm.generalAgentIcon = generalAgent.logo || {};
