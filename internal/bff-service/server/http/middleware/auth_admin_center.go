@@ -27,6 +27,14 @@ type AdminCenterBiz struct {
 	BizTypeField string
 }
 
+func (a *AdminCenterBiz) Copy() *AdminCenterBiz {
+	return &AdminCenterBiz{
+		BizId:        a.BizId,
+		BizType:      a.BizType,
+		BizTypeField: a.BizTypeField,
+	}
+}
+
 // AuthAdminCenter 管理员中心权限校验
 func AuthAdminCenter(checkType AdminCheckType, adminCenterBiz *AdminCenterBiz) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -79,7 +87,7 @@ func authAdminCenterBiz(ctx *gin.Context, checkType AdminCheckType, adminCenterB
 	case AdminOrgCheck:
 		return authAdminBizOrgID(ctx, userId, orgId)
 	case AdminBizCheck:
-		return authAdminBiz(ctx, adminCenterBiz, userId, orgId)
+		return authAdminBiz(ctx, adminCenterBiz.Copy(), userId, orgId)
 	}
 	return nil
 }
