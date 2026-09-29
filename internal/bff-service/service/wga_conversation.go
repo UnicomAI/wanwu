@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
@@ -676,6 +675,15 @@ func GeneralAgentSkillConversationChat(ctx *gin.Context, userId, orgId, clientId
 		WorkspaceStore:       workspaceStore,
 		WorkspaceReadOnly:    mode == generalAgentSkillChatModePreview,
 		EnableHumanInTheLoop: true,
+		// WGA run 完成后回调：提交 workspace + 更新 skill 元数据（name/desc）
+		// preview 模式跳过，保持与原 goroutine 守卫一致的语义
+		OnRunFinished: func(ctx context.Context) {
+			if mode == generalAgentSkillChatModePreview {
+				return
+			}
+			commitSkillWorkspaceIfFirstCommit(req.CustomSkillID, "skill create")
+			updateCustomSkillMetaFromWorkspace(ctx, req.CustomSkillID)
+		},
 	}); err != nil {
 		return err
 	}
@@ -684,17 +692,6 @@ func GeneralAgentSkillConversationChat(ctx *gin.Context, userId, orgId, clientId
 			log.Errorf("[wga-skill] customSkillID %v normalize nested skill workspace err: %v", req.CustomSkillID, err)
 			return grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("normalize nested skill workspace failed: %v", err))
 		}
-	}
-	if mode != generalAgentSkillChatModePreview {
-		detachedCtx := trace_util.DetachContext(ctx.Request.Context())
-		go func() {
-			defer util.PrintPanicStack()
-			ctx, cancel := context.WithTimeout(detachedCtx, 30*time.Second)
-			defer cancel()
-			// 首次 chat 产物自动提交（从未提交时，须在嵌套目录归并之后）
-			commitSkillWorkspaceIfFirstCommit(req.CustomSkillID, "skill create")
-			updateCustomSkillMetaFromWorkspace(ctx, req.CustomSkillID)
-		}()
 	}
 	return nil
 }
