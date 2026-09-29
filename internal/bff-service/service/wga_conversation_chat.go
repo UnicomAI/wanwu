@@ -20,6 +20,7 @@ import (
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	safe_go_util "github.com/UnicomAI/wanwu/pkg/safe-go-util"
 	sse_connector "github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector"
 	sse_model "github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector/model"
 	"github.com/UnicomAI/wanwu/pkg/sse-util/sse-connector/store"
@@ -79,6 +80,12 @@ type WgaChatParams struct {
 	// - false: 不发送 workspace activity event（默认）
 	// - 仅当 WorkspaceStore 不为 nil 时生效
 	SendWorkspaceEvent bool
+
+	// OnRunFinished - WGA run 完成后的回调（在 processedEventCh 关闭后触发）
+	// 回调在独立 goroutine 中执行，使用带 30s 超时的 detached context，
+	// 不会阻塞 SSE 流关闭，也不随客户端断连取消。
+	// 典型用途：Skill 场景在 WGA run 生成 SKILL.md 后更新 skill 元数据。
+	OnRunFinished func(ctx context.Context)
 
 	// EnableHumanInTheLoop - 是否启用人机交互（HITL）
 	// - true: 启用（默认）
@@ -323,6 +330,14 @@ func WgaConversationChat(ctx *gin.Context, params *WgaChatParams) (err error) {
 					// SSE 输出 channel 已满（客户端断连或处理慢），丢弃事件（store 已保存，可重连恢复）
 				}
 			}
+		}
+
+		if params.OnRunFinished != nil {
+			safe_go_util.SafeGo(func() {
+				ctx, cancel := context.WithTimeout(trace_util.DetachContext(bgCtx), 30*time.Second)
+				defer cancel()
+				params.OnRunFinished(ctx)
+			})
 		}
 	}()
 
@@ -585,7 +600,8 @@ func buildWgaRunOptions(ctx *gin.Context, params *WgaChatParams, runID string, u
 	}
 
 	// 校验并构建Skills配置选项（追加@提及的Skills；DIP Agent 数字员工场景绕开，技能由外部详情注入）
-	if useUserWgaConfig {
+	// Skill Preview Agent 跳过：预览只应使用工作区内唯一 Skill，不加载用户配置的其他 skill
+	if useUserWgaConfig && agentID != generalAgentSkillChatPreviewAgentID {
 		skillList := append([]*assistant_service.WgaConfigSkill{}, wgaConfig.SkillList...)
 		skillList = append(skillList, mentionResources.SkillList...)
 		if len(skillList) > 0 {
