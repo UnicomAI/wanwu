@@ -33,10 +33,16 @@ func WeekStartTime(t time.Time, week int) time.Time {
 }
 
 func Time2Str(millSec int64) string {
+	if millSec == 0 {
+		return ""
+	}
 	return time.UnixMilli(millSec).In(UTC8).Format(timeFormat)
 }
 
 func Time2MsStr(millSec int64) string {
+	if millSec == 0 {
+		return ""
+	}
 	return time.UnixMilli(millSec).In(UTC8).Format(timeMsFormat)
 }
 
