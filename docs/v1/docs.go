@@ -24504,6 +24504,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/workflow/auth": {
+            "get": {
+                "description": "校验平台 JWT + 用户有效性 + 组织归属；通过则以响应头回传已认证身份，由 nginx 覆写到转发给 workflow 的请求上。仅从 Authorization 取身份，不读入站 X-User-Id/X-Org-Id",
+                "tags": [
+                    "guest"
+                ],
+                "summary": "工作流边界鉴权（供 nginx auth_request 调用）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer \u003c平台用户 JWT\u003e",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "当前组织",
+                        "name": "X-Org-Id",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "原始请求 URI（含查询串）",
+                        "name": "X-Original-URI",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "认证通过（响应头携带 X-Auth-User-Id / X-Auth-Org-Id，启用内部鉴权时另附 X-Auth-Sign / X-Auth-Ts）"
+                    },
+                    "401": {
+                        "description": "未认证"
+                    },
+                    "403": {
+                        "description": "组织越权"
+                    }
+                }
+            }
+        },
         "/workflow/run": {
             "post": {
                 "security": [

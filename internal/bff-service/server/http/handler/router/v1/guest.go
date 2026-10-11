@@ -37,4 +37,7 @@ func registerGuest(apiV1 *gin.RouterGroup) {
 	mid.Sub("guest").Reg(apiV1, "/workflow/template/recommend", http.MethodGet, v1.GetWorkflowTemplateRecommend, "获取工作流模板推荐")
 	mid.Sub("guest").Reg(apiV1, "/workflow/template/download", http.MethodGet, v1.DownloadWorkflowTemplate, "下载工作流模板")
 
+	mid.Sub("guest").Reg(apiV1, "/workflow/auth", http.MethodGet, v1.WorkflowAuth, "工作流边界鉴权（nginx auth_request）")
+	mid.Sub("guest").Reg(apiV1, "/workflow/auth", http.MethodHead, v1.WorkflowAuth, "工作流边界鉴权（HEAD）")
+
 }

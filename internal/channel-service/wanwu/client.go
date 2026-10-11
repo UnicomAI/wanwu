@@ -9,12 +9,15 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/UnicomAI/wanwu/internal/channel-service/client"
 	clientconv "github.com/UnicomAI/wanwu/internal/channel-service/client/model"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	svc_auth "github.com/UnicomAI/wanwu/pkg/svc-auth"
 )
 
 // Client 万悟平台代理客户端
@@ -356,6 +359,11 @@ func (c *Client) GetChatflowInputs(ctx context.Context, workflowEndpoint, uuid, 
 	httpReq.Header.Set("X-Org-Id", orgID)
 	httpReq.Header.Set("X-User-Id", userID)
 	httpReq.Header.Set("Content-Type", "application/json")
+	if secret := os.Getenv("WANWU_INTERNAL_AUTH_SECRET"); secret != "" {
+		ts := time.Now().Unix()
+		httpReq.Header.Set(svc_auth.HeaderTS, strconv.Itoa(int(ts)))
+		httpReq.Header.Set(svc_auth.HeaderSign, svc_auth.Sign(secret, userID, orgID, ts))
+	}
 
 	resp, err := c.httpClient.Do(httpReq)
 	if err != nil {
