@@ -41,6 +41,10 @@ log/
 # Backup files (except template files)
 *.bak
 
+# AI
+.claude/
+.omo
+
 *_test.go
 bin/amd64/*
 bin/arm64/*
@@ -49,10 +53,6 @@ cmd/*-client
 configs/microservice/bff-service/configs/wanwu-i18n.xlsx
 frontend
 project
-
-# Claude Code
-.claude/
-
 
 **/node_modules/
 **/dist/

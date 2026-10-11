@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 	net_url "net/url"
+	"os"
 	"sort"
+	"strconv"
 	"time"
 
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
@@ -22,6 +24,7 @@ import (
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	mp_common "github.com/UnicomAI/wanwu/pkg/model-provider/mp-common"
 	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
+	svc_auth "github.com/UnicomAI/wanwu/pkg/svc-auth"
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -815,12 +818,19 @@ func workflowHttpReqHeader(ctx *gin.Context) map[string]string {
 	if orgID == "" {
 		orgID = ctx.GetHeader(gin_util.X_ORG_ID)
 	}
-	return map[string]string{
+	userID := ctx.GetString(gin_util.USER_ID)
+	header := map[string]string{
 		"Authorization": ctx.GetHeader("Authorization"),
 		"X-Org-Id":      orgID,
-		"X-User-Id":     ctx.GetString(gin_util.USER_ID),
+		"X-User-Id":     userID,
 		"Content-Type":  "application/json",
 	}
+	if secret := os.Getenv("WANWU_INTERNAL_AUTH_SECRET"); secret != "" && userID != "" {
+		ts := time.Now().Unix()
+		header[svc_auth.HeaderTS] = strconv.Itoa(int(ts))
+		header[svc_auth.HeaderSign] = svc_auth.Sign(secret, userID, orgID, ts)
+	}
+	return header
 }
 
 func cozeWorkflowInfo2Model(workflowInfo *response.CozeWorkflowListDataWorkflow) response.AppBriefInfo {
