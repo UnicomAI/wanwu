@@ -345,7 +345,10 @@ def get_index_update_actions(index_name, kb_name, file_name, update_data, index_
     """
     # 根据索引类型确定查询字段和ID字段
     if index_type == IndexType.SNIPPET:
-        file_field = "title"
+        # title 未在 snippet_mappings 中定义，属动态映射出的分词 text 字段；
+        # term 精确匹配必须使用 keyword 子字段（与 es_util 中 title.keyword 既有用法一致），
+        # 否则该过滤条件永远 0 命中，meta 更新会对 snippet 索引静默失效
+        file_field = "title.keyword"
         id_field = "chunk_id"
     elif index_type == IndexType.CONTENT_CONTROL:
         file_field = "file_name"

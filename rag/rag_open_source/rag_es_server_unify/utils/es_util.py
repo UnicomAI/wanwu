@@ -1317,6 +1317,12 @@ def update_index_data(index_actions: dict, mapping_update_func=None):
 
     try:
         for index_name, action in index_actions.items():
+            if not action:
+                # 元数据/标签等更新操作中，某索引匹配到 0 条文档时不再静默成功，
+                # 便于暴露 kb_name / 文件过滤字段（如 title.keyword）不命中的问题
+                logger.warning(
+                    f"update_index_data: index '{index_name}' has 0 update actions, "
+                    f"no document matched the filter, check kb_name / file filter field")
             actions.extend(action)
             index_names.append(index_name)
             # 如果提供了mapping更新函数，则执行
