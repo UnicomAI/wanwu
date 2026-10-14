@@ -91,8 +91,8 @@ def get_page_data(page_num, add_file_path, ocr_model_id):
         }
 
         data = {
-            "extract_image": 1,
-            "extract_image_content": 1,
+            "extract_image": "1",
+            "extract_image_content": "1",
             "url": minio_url,
             "fileName": full_file_name,
         }
@@ -335,8 +335,8 @@ def model_parser_image(image_file_path, ocr_model_id):
         "Content-Type": "application/json"
     }
     data = {
-        "extract_image": 1,
-        "extract_image_content": 1,
+        "extract_image": "1",
+        "extract_image_content": "1",
         "url": minio_url,
         "fileName": file_name,
     }
