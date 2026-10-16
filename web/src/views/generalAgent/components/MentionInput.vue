@@ -501,7 +501,9 @@ export default {
     },
   },
   mounted() {
-    this.fetchConfigData();
+    if (!this.disableMention) {
+      this.fetchConfigData();
+    }
     this.initSender();
   },
   beforeDestroy() {
