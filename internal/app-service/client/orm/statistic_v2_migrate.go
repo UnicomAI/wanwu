@@ -107,8 +107,10 @@ func migrateStatisticV2FromLegacy(ctx context.Context, db *gorm.DB) error {
 		if err != nil {
 			return err
 		}
+		// 注意：Metadata.MetaKey 映射到 MySQL 保留字列 `key`，必须用结构体条件让 GORM
+		// 加反引号；裸字符串 "key = ?" 会生成未转义的 key，在 MySQL 下是语法错误。
 		res := db.Model(&Metadata{}).
-			Where("meta_key = ? AND value = ?", statisticV2LegacyMigratedFlagKey, meta.MetaValue).
+			Where(&Metadata{MetaKey: statisticV2LegacyMigratedFlagKey, MetaValue: meta.MetaValue}).
 			Update("value", raw)
 		if res.Error != nil {
 			return fmt.Errorf("claim migrate progress failed: %w", res.Error)
