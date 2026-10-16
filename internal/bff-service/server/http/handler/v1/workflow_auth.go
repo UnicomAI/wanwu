@@ -113,6 +113,10 @@ var workflowSelfAuthPaths = map[string]bool{
 	"/v1/bot/get_online_info":          true,
 	"/v1/workflows/chat":               true,
 	"/v1/datasets":                     true,
+	// 例外：工作流编辑器「试运行」表单的文件直传（ImageX apply_upload_action 领取上传凭证 + 文件写入
+	// /api/common/upload/<tos_uri>）由浏览器裸 XHR 发起、不携带平台 JWT，无法通过边界 JWT 校验；
+	// 此处显式放行，交 workflow 侧处理（workflow 的 upload 路径本就不在 needAuthPath 内）。
+	"/api/common/upload/apply_upload_action": true,
 }
 
 var workflowSelfAuthPathRegex = []*regexp.Regexp{
@@ -124,6 +128,7 @@ var workflowSelfAuthPathRegex = []*regexp.Regexp{
 	regexp.MustCompile(`^/v1/datasets/[0-9]+$`),
 	regexp.MustCompile(`^/v1/datasets/[0-9]+/images$`),
 	regexp.MustCompile(`^/v1/datasets/[0-9]+/process$`),
+	regexp.MustCompile(`^/api/common/upload/`),
 }
 
 func isWorkflowSelfAuthPath(path string) bool {
