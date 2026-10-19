@@ -11,7 +11,9 @@ function resolve(dir) {
 const CompressionWebpackPlugin = require('compression-webpack-plugin');
 const isProdOrTest = process.env.NODE_ENV !== 'development';
 
-const proxyUrl = 'http://192.168.0.21:8081';
+// 本地开发直接指向后端网关（bff-service），绕过 nginx
+// 使用 127.0.0.1 强制 IPv4，避免 Windows localhost 解析到 IPv6 ::1
+const proxyUrl = 'http://127.0.0.1:6668';
 
 module.exports = {
   // 基础配置 详情看文档
@@ -74,6 +76,9 @@ module.exports = {
     });
   },
   devServer: {
+    // 强制使用 IPv4 127.0.0.1，避免 Windows 上 localhost 解析为 IPv6 ::1
+    // 后端网关监听在 127.0.0.1:6668（仅 IPv4），IPv6 连接会被拒绝
+    host: '127.0.0.1',
     port: 8080,
     open: false,
     hot: true,
@@ -97,6 +102,76 @@ module.exports = {
       'Access-Control-Allow-Origin': '*',
     },
     proxy: {
+      // nginx 配置: location ^~ /user/api/ { proxy_pass http://bff-service:6668/; }
+      // 即 nginx 会剥离 /user/api 前缀，将 /user/api/v1/base/captcha 转发为 /v1/base/captcha
+      // 本地 devServer 需要添加 pathRewrite 模拟此行为
+      '/user/api': {
+        target: proxyUrl,
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/user/api': '' },
+      },
+      '/use/model/api': {
+        target: proxyUrl,
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/use/model/api': '' },
+      },
+      '/service/api': {
+        target: proxyUrl,
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/service/api': '' },
+      },
+      '/service/url': {
+        target: proxyUrl,
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/service/url': '' },
+      },
+      '/training/api': {
+        target: proxyUrl,
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/training/api': '' },
+      },
+      '/resource/api': {
+        target: proxyUrl,
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/resource/api': '' },
+      },
+      '/datacenter/api': {
+        target: proxyUrl,
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/datacenter/api': '' },
+      },
+      '/modelprocess/api': {
+        target: proxyUrl,
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/modelprocess/api': '' },
+      },
+      '/expand/api': {
+        target: proxyUrl,
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/expand/api': '' },
+      },
+      '/record/api': {
+        target: proxyUrl,
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/record/api': '' },
+      },
+      '/prompt/api': {
+        target: proxyUrl,
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/prompt/api': '' },
+      },
+      // workflow 相关：nginx 代理到 workflow-wanwu:8999，本地开发无法使用，保留原路径
       '/openAi': {
         target: proxyUrl,
         changeOrigin: true,
@@ -112,51 +187,6 @@ module.exports = {
         changeOrigin: true,
         secure: false,
       },
-      '/user/api': {
-        target: proxyUrl,
-        changeOrigin: true,
-        secure: false,
-      },
-      '/service/url/openurl/v1': {
-        target: proxyUrl,
-        changeOrigin: true,
-        secure: false,
-      },
-      '/service/api': {
-        target: proxyUrl,
-        changeOrigin: true,
-        secure: false,
-      },
-      '/training/api': {
-        target: proxyUrl,
-        changeOrigin: true,
-        secure: false,
-      },
-      '/resource/api': {
-        target: proxyUrl,
-        changeOrigin: true,
-        secure: false,
-      },
-      '/datacenter/api': {
-        target: proxyUrl,
-        changeOrigin: true,
-        secure: false,
-      },
-      '/modelprocess/api': {
-        target: proxyUrl,
-        changeOrigin: true,
-        secure: false,
-      },
-      '/expand/api': {
-        target: proxyUrl,
-        changeOrigin: true,
-        secure: false,
-      },
-      '/record/api': {
-        target: proxyUrl,
-        changeOrigin: true,
-        secure: false,
-      },
       '/img': {
         target: proxyUrl,
         changeOrigin: true,
@@ -168,16 +198,6 @@ module.exports = {
         secure: false,
       },
       '/proxyupload': {
-        target: proxyUrl,
-        changeOrigin: true,
-        secure: false,
-      },
-      '/use/model/api': {
-        target: proxyUrl,
-        changeOrigin: true,
-        secure: false,
-      },
-      '/prompt/api': {
         target: proxyUrl,
         changeOrigin: true,
         secure: false,
