@@ -163,7 +163,11 @@ UniClaw download: https://maas.ai-yuanjing.com/app/uniclaw/uniclaw-official.html
 
 ▸ Integrates **multi-modal retrieval**, **cascading segmentation** and **adaptive segmentation**, significantly improves the accuracy of Q&A
 
-#### **6. General Agent & Skills Orchestration Framework** 
+▸ **File parsing & OCR service deployment**: Supports document parsing service with flexible combination of PaddleOCR or MinerU; suitable for various complex deployment scenarios such as deploying OCR modules on GPU/NPU compute, deploying Wanwu and document parsing on CPU servers, and network unidirectional restrictions (only the Wanwu platform is allowed to access OCR models). Deployment details: [wanwu-file-parser](https://github.com/zj-unicom-ai/wanwu-file-parser.git).
+
+---
+
+#### **6. General Agent & Skills Orchestration Framework**
 
 ▸ **Dual-Engine Mode**: Breaks the limitation of traditional agents "having a brain but no hands," upgrading to a "General Agent + Vertical Scenario Skills" dual-engine platform to create an enterprise-level super agent that is both "knowledgeable" and "professional" 
 
@@ -392,6 +396,60 @@ The platform has been successfully applied in multiple industries such as **fina
 
 ------
 
+### 📄 Document Parsing & OCR Service Deployment (wanwu-file-parser)
+
+The Wanwu File Parser module (`wanwu-file-parser`) is an independent document parsing service. Supports document parsing service with flexible combination of PaddleOCR or MinerU; suitable for various complex deployment scenarios such as deploying OCR modules on GPU/NPU compute, deploying Wanwu and document parsing on CPU servers, and network unidirectional restrictions (only the Wanwu platform is allowed to access OCR models).
+
+> 🚀 **Repository**: [https://github.com/zj-unicom-ai/wanwu-file-parser.git](https://github.com/zj-unicom-ai/wanwu-file-parser.git)
+
+#### Deployment Architecture
+
+```
+ ┌─── CPU Server ───────────────────────────────────────┐
+ │                                                      │
+ │  ┌─────────────┐    ┌──────────────────────────┐    │
+ │  │ Wanwu Main  │───▶│  Document Parsing (:8083) │    │
+ │  │  Platform   │    │  Task Receiving · Aggregation│ │
+ │  └─────────────┘    └────────────┬─────────────┘    │
+ └──────────────────────────────────┼──────────────────┘
+                                    │ Network (HTTP)
+                                    │
+ ┌─── GPU Server ───────────────────▼──────────────────┐
+ │                                                      │
+ │  ┌──────────────┐  ┌──────────────┐  ┌──────────┐  │
+ │  │ GPU/NPU OCR  │  │ GPU/NPU OCR  │  │ MinerU   │  │
+ │  │  Instance 1  │  │  Instance 2  │  │ Engine   │  │
+ │  └──────────────┘  └──────────────┘  └──────────┘  │
+ │     (independent)    (independent)    (independent) │
+ │      Compose          Compose           Compose     │
+ └──────────────────────────────────────────────────────┘
+```
+
+#### Key Features
+
+▸ **Document parsing service**: Serves as a unified parsing entry point, exposing standardized file parsing APIs externally while routing parsing tasks to different engines internally — "integrate once, access all engines"
+
+▸ **Decoupled from OCR models, cross-server deployment**: Fully decouples the CPU-side document parsing service from the GPU/NPU-side OCR inference service. **The OCR inference service can be deployed on a GPU server, while the Wanwu main platform and document parsing service run on a CPU server** — the two communicate over the network. This architecture dedicates GPU compute to model inference and CPU servers to business processing, avoiding resource contention while supporting independent scaling
+
+▸ **Docker deployment (recommended)**: Provides an out-of-the-box Docker Compose deployment solution, supporting one-click startup of the complete parsing service stack, greatly lowering the barrier to private deployment
+
+▸ **CPU document parsing service (:8083) and GPU/NPU OCR inference service, each with independent Compose**: The CPU document parsing service listens on port 8083, handling file reception, task queuing, and result aggregation; the GPU/NPU inference service handles actual OCR model inference. Each is independently orchestrated via its own `docker-compose`, and can be deployed on the same node or across separate servers as needed
+
+▸ **OCR model setup**: Model Management → Add Provider → Yuanjing → OCR Model
+
+#### Advantages Summary
+
+| Advantage | Description |
+| :--- | :--- |
+| **OCR & parsing decoupled, cross-server deployment** | OCR inference runs on GPU servers; Wanwu main platform and document parsing service run on CPU servers — compute resources each serve their purpose |
+| Out-of-the-box | Docker Compose one-click deployment for rapid integration |
+| Unified multi-format parsing | Unified entry for PDF / Word / Excel / PPT / images |
+| Flexible multi-engine switching | PaddleOCR and MinerU dual engines, flexibly switchable by scenario |
+| High performance & scalability | Batch processing, horizontal scaling |
+| Private deployment friendly | Full private deployment support, data stays on-premise |
+
+------
+
 ### &#x1F4D1; Using Wanwu
 To help you quickly get started with this project, we strongly recommend that you first check out the [ Documentation Operation Manual](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual). We provide users with interactive and structured operation guides, where you can directly view operation instructions, interface documents, etc., greatly reducing the threshold for learning and use. The detailed function list is as follows:
 
@@ -400,7 +458,7 @@ To help you quickly get started with this project, we strongly recommend that yo
 | [General Agent](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/8.%e9%80%9a%e7%94%a8%e6%99%ba%e8%83%bd%e4%bd%93) | The platform deeply integrates advanced capabilities such as deep research and data analysis, achieving a comprehensive leap from simple Q&A to complex business processing, creating your all-around AI digital assistant. |
 | [Ontology Agent](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/10.%E6%9C%AC%E4%BD%93%E6%99%BA%E8%83%BD%E4%BD%93/%E6%95%B0%E6%8D%AE%E8%BF%9E%E6%8E%A5/%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86.md) | Automatically constructs business knowledge networks from enterprise data and documents, empowering AI with deep reasoning and closed-loop action capabilities to truly understand business and make decisions. |
 | [Model Management](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/1.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86.md) | Supports users to import LLM, Embedding, and Rerank models from various model providers, including Unicom Yuanjing, OpenAI-API-compatible, Ollama, Tongyi Qianwen, and Volcano Engine. [Model Import Methods - Detailed Version](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/%E6%A8%A1%E5%9E%8B%E5%AF%BC%E5%85%A5%E6%96%B9%E5%BC%8F-%E8%AF%A6%E7%BB%86%E7%89%88.md) |
-| [Knowledge Base](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93) | In terms of document parsing capabilities: supports uploading of 12 file types and URL parsing; Supports private deployment and integration for document parsing via two methods: OCR and [a proprietary MinerU model (for scenarios like titles, tables, and formulas)](https://github.com/UnicomAI/DocParserServer/tree/main) ; document segmentation settings support both general segmentation and parent-child segmentation. In terms of optimization capabilities: supports metadata management 、Graph RAG and metadata filtering queries, supports adding, deleting, and modifying segmented content, supports setting keyword tags for segments to improve recall performance, supports segment enable/disable operations, and supports hit testing. In terms of retrieval capabilities: supports multiple retrieval modes including vector search, full-text search, and hybrid search. In terms of Q&A capabilities: supports automatic citation of sources and generating answers with both text and images.<br |
+| [Knowledge Base](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93) | In terms of document parsing capabilities: supports uploading of 12 file types and URL parsing; Supports private deployment and integration for document parsing via two methods: [OCR](https://github.com/zj-unicom-ai/wanwu-file-parser.git) and [a proprietary MinerU model (for scenarios like titles, tables, and formulas)](https://github.com/UnicomAI/DocParserServer/tree/main) ; document segmentation settings support both general segmentation and parent-child segmentation. In terms of optimization capabilities: supports metadata management 、Graph RAG and metadata filtering queries, supports adding, deleting, and modifying segmented content, supports setting keyword tags for segments to improve recall performance, supports segment enable/disable operations, and supports hit testing. In terms of retrieval capabilities: supports multiple retrieval modes including vector search, full-text search, and hybrid search. In terms of Q&A capabilities: supports automatic citation of sources and generating answers with both text and images.<br |
 | [Resource Library](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/3.%E5%B7%A5%E5%85%B7%E5%B9%BF%E5%9C%BA.md) | Supports importing your own MCP services or custom tools or skills for use in workflows and agents. |
 | [Safety Guardrails](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/4.%E5%AE%89%E5%85%A8%E6%8A%A4%E6%A0%8F.md) | Users can create sensitive word lists to control the safety of the model's output. |
 | [Text Q&A](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/5.%E6%96%87%E6%9C%AC%E9%97%AE%E7%AD%94.md) | A dedicated knowledge advisor based on a private knowledge base. It supports features like knowledge base management, Q&A, knowledge summarization, personalized parameter configuration, safety guardrails, and retrieval configuration to improve the efficiency of knowledge management and learning. Supports publishing text Q&A applications publicly or privately, and can be published as an API. |

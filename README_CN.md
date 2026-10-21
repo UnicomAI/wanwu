@@ -149,9 +149,18 @@ UniClaw下载地址：https://maas.ai-yuanjing.com/app/uniclaw/uniclaw-official.
 
 ▸ 集成 **多模态检索** 、**级联切分** 与 **自适应切分**，显著提升问答准确率
 
+<details>
+<summary>▸ 文档解析方式支持 OCR 与 MinerU 模型解析的私有化部署及接入</summary>
+
 ▸ 文档解析方式支持OCR和[ MinerU模型解析(标题/表格/公式等场景)](https://github.com/UnicomAI/DocParserServer/tree/main)的私有化部署及接入
 
-#### **6. 通用智能体与Skills编排框架** 
+</details>
+
+▸ **文件解析与OCR服务部署**：支持文档解析服务，支持与 PaddleOCR 或 MinerU 灵活组合；适用于 GPU/NPU 算力部署 OCR 模块、万悟与文档解析部署在 CPU 服务器、网络单向限制（仅允许万悟平台访问OCR模型）等多种复杂部署场景。部署详见 [wanwu-file-parser](https://github.com/zj-unicom-ai/wanwu-file-parser.git)。
+
+---
+
+#### **6. 通用智能体与Skills编排框架**
 
 ▸ **双引擎模式**：打破传统智能体“有脑无手”的局限，跃升为“通用智能体+垂直场景Skills”双引擎平台，打造既“博学”又“专业”的企业级超级智能体
 
@@ -392,6 +401,59 @@ UniClaw下载地址：https://maas.ai-yuanjing.com/app/uniclaw/uniclaw-official.
 
 ------
 
+### 📄 文档解析与OCR服务部署（wanwu-file-parser）
+
+万悟文件解析模块（`wanwu-file-parser`）是独立的文件解析服务。支持文档解析服务，支持与 PaddleOCR 或 MinerU 灵活组合；适用于 GPU/NPU 算力部署 OCR 模块、万悟与文档解析部署在 CPU 服务器、网络单向限制（仅允许万悟平台访问OCR模型）等多种复杂部署场景。
+
+> 🚀 **独立仓库地址**：[https://github.com/zj-unicom-ai/wanwu-file-parser.git](https://github.com/zj-unicom-ai/wanwu-file-parser.git)
+
+#### 部署架构
+
+```
+ ┌─── CPU 服务器 ───────────────────────────────────────┐
+ │                                                      │
+ │  ┌─────────────┐    ┌──────────────────────────┐    │
+ │  │  万悟主平台  │───▶│  文档解析服务 (:8083)     │    │
+ │  └─────────────┘    │  任务接收 · 结果聚合       │    │
+ │                     └────────────┬─────────────┘    │
+ └──────────────────────────────────┼──────────────────┘
+                                    │ 网络 (HTTP)
+                                    │
+ ┌─── GPU 服务器 ───────────────────▼──────────────────┐
+ │                                                      │
+ │  ┌──────────────┐  ┌──────────────┐  ┌──────────┐  │
+ │  │ GPU/NPU OCR  │  │ GPU/NPU OCR  │  │ MinerU   │  │
+ │  │  推理实例 1   │  │  推理实例 2   │  │ 引擎     │  │
+ │  └──────────────┘  └──────────────┘  └──────────┘  │
+ │     (独立 Compose)   (独立 Compose)   (独立 Compose) │
+ └──────────────────────────────────────────────────────┘
+```
+
+#### 核心特色
+
+▸ **文档解析服务**：作为统一的解析入口，对外提供标准化的文件解析接口，支持将解析任务路由到不同的解析引擎，实现「一次接入，多引擎可用」
+
+▸ **与 OCR 模型解耦，跨服务器分离部署**：将 CPU 侧的文档解析服务与 GPU/NPU 侧的 OCR 推理服务完全解耦。**OCR 推理服务可部署在 GPU 服务器上，而万悟主平台与文档解析服务部署在 CPU 服务器上**，两者通过网络通信协同工作。这种架构让 GPU 算力专用于模型推理，CPU 服务器专注于业务处理，避免资源争抢，同时支持独立扩缩容
+
+▸ **Docker 部署（推荐）**：提供开箱即用的 Docker Compose 部署方案，支持一键拉起完整的解析服务栈，极大降低私有化部署门槛
+
+▸ **CPU 文档解析服务（:8083）与 GPU/NPU OCR 推理服务各自独立 Compose**：CPU 文档解析服务监听 8083 端口，负责接收文件、任务排队与结果聚合；GPU/NPU 推理服务负责实际的 OCR 模型推理。两者通过各自的 `docker-compose` 独立编排，可按需部署在同一节点或跨服务器不同节点
+
+▸ **OCR 模型添加方式**：模型管理 → 添加供应商 → 元景 → OCR 模型
+
+#### 优势总结
+
+| 优势 | 说明 |
+| :--- | :--- |
+| **OCR 与文档解析解耦，跨服务器部署** | OCR 推理跑在 GPU 服务器，万悟主平台与文档解析服务跑在 CPU 服务器，算力各司其职 |
+| 开箱即用 | Docker Compose 一键部署，支持快速集成与二次开发 |
+| 多格式统一解析 | 统一封装 PDF / Word / Excel / PPT / 图片等格式 |
+| 多引擎灵活切换 | PaddleOCR 与 MinerU 双引擎，可根据场景灵活切换 |
+| 高性能与可扩展 | 批量处理、水平扩展 |
+| 私有化友好 | 完整支持私有化部署，数据不出域 |
+
+------
+
 ### &#x1F4D1; 使用万悟
 
 为了帮助您快速上手本项目，我们强烈推荐先查看[ 文档操作手册](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual)。我们为用户提供了交互式、结构化的操作指南，您可以直接在其中查看操作说明、接口文档等，极大地降低了学习和使用的门槛。详细功能清单如下：
@@ -401,7 +463,7 @@ UniClaw下载地址：https://maas.ai-yuanjing.com/app/uniclaw/uniclaw-official.
 | [通用智能体](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/8.%e9%80%9a%e7%94%a8%e6%99%ba%e8%83%bd%e4%bd%93) | 平台深度整合了深度研究与数据分析等高级能力，实现从简单问答到复杂业务处理的全面跨越，打造你的全能AI数字助理。 |
 | [本体智能体](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/10.%E6%9C%AC%E4%BD%93%E6%99%BA%E8%83%BD%E4%BD%93/%E6%95%B0%E6%8D%AE%E8%BF%9E%E6%8E%A5/%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86.md) | 基于企业数据与文档自动构建业务知识网络，赋予AI深度推理与闭环行动能力，让大模型真正懂业务、会决策。 |
 | [模型管理](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/1.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86.md) | 支持用户导入包括联通元景、OpenAI-API-compatible、Ollama、通义千问、火山引擎等模型供应商的LLM、Embedding、Rerank模型。[ 模型导入方式-详细版](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/%E6%A8%A1%E5%9E%8B%E5%AF%BC%E5%85%A5%E6%96%B9%E5%BC%8F-%E8%AF%A6%E7%BB%86%E7%89%88.md) |
-| [知识库](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93) | 在文档解析能力方面:支持12种文件类型的上传，支持url解析;文档解析方式支持OCR和[ MinerU模型解析(标题/表格/公式等场景)](https://github.com/UnicomAI/DocParserServer/tree/main)的私有化部署及接入，文档分段设置支持通用分段和父子分段。在调优能力方面:支持知识图谱、元数据管理及元数据过滤查询，支持分段内容增删改，支持对分段设置关键词标签提升召回效果，支持分段启停操作，支持命中测试等功能。在检索能力方面:支持向量检索、全文检索、混合检索多种检索模式;在问答能力方面:支持自动引用出处，支持图文并茂的生成答案。 |
+| [知识库](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93) | 在文档解析能力方面:支持12种文件类型的上传，支持url解析;文档解析方式支持[OCR](https://github.com/zj-unicom-ai/wanwu-file-parser.git)和[ MinerU模型解析(标题/表格/公式等场景)](https://github.com/UnicomAI/DocParserServer/tree/main)的私有化部署及接入，文档分段设置支持通用分段和父子分段。在调优能力方面:支持知识图谱、元数据管理及元数据过滤查询，支持分段内容增删改，支持对分段设置关键词标签提升召回效果，支持分段启停操作，支持命中测试等功能。在检索能力方面:支持向量检索、全文检索、混合检索多种检索模式;在问答能力方面:支持自动引用出处，支持图文并茂的生成答案。 |
 | [资源库](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/3.%E5%B7%A5%E5%85%B7%E5%B9%BF%E5%9C%BA.md) | 同时支持导入自己的MCP服务或自定义工具或提示词，并在工作流和智能体中使用；支持用户创建MCP Server |
 | [安全护栏](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/4.%E5%AE%89%E5%85%A8%E6%8A%A4%E6%A0%8F.md) |        用户可以创建敏感词表，控制模型反馈结果的安全性        |
 | [知识问答](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/5.%E6%96%87%E6%9C%AC%E9%97%AE%E7%AD%94.md) | 基于私人知识库的专属知识顾问，支持知识库管理、知识问答、知识总结、个性参数配置、安全护栏、检索配置等功能，提高知识管理与学习的效率。支持公开或私密发布文本问答应用，支持发布为API |
