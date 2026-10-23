@@ -19,6 +19,7 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
 )
@@ -340,6 +341,13 @@ func createMCPServerTool(ctx *gin.Context, userID, orgID, mcpServerID string, bu
 	schema, auth, err := builder.GetOpenapiSchema(ctx)
 	if err != nil {
 		return grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error())
+	}
+	// 只有用户直接提交的 OpenAPI schema 需要带 DNS 的 SSRF 校验；
+	// 自定义工具/内置工具的 schema 来自已校验过的存量数据。
+	if builder.MCPServerToolType() == constant.MCPServerToolTypeOpenAPI {
+		if err := openapi3_util.ValidateSchemaWithURLSecurity(ctx.Request.Context(), []byte(schema)); err != nil {
+			return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
+		}
 	}
 
 	tools, err := mcp_util.CreateMcpTools(ctx.Request.Context(), schema, auth, operationIDs)

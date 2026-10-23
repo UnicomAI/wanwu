@@ -48,7 +48,7 @@ func (*ToolBiz) SearchConversationLog(ctx *gin.Context, bizId, sourceFrom string
 	return nil, nil
 }
 func CreateCustomTool(ctx *gin.Context, userID, orgID string, req request.CustomToolCreate) error {
-	if err := openapi3_util.ValidateSchema(ctx.Request.Context(), []byte(req.Schema)); err != nil {
+	if err := openapi3_util.ValidateSchemaWithURLSecurity(ctx.Request.Context(), []byte(req.Schema)); err != nil {
 		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, err.Error())
 	}
 	_, err := mcp.CreateCustomTool(ctx.Request.Context(), &mcp_service.CreateCustomToolReq{
@@ -128,7 +128,7 @@ func DeleteCustomTool(ctx *gin.Context, userID, orgID string, req request.Custom
 }
 
 func UpdateCustomTool(ctx *gin.Context, userID, orgID string, req request.CustomToolUpdateReq) error {
-	if err := openapi3_util.ValidateSchema(ctx.Request.Context(), []byte(req.Schema)); err != nil {
+	if err := openapi3_util.ValidateSchemaWithURLSecurity(ctx.Request.Context(), []byte(req.Schema)); err != nil {
 		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, err.Error())
 	}
 	existingTool, err := mcp.GetCustomToolInfo(ctx.Request.Context(), &mcp_service.GetCustomToolInfoReq{

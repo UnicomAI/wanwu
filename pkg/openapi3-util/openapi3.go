@@ -36,6 +36,27 @@ func ValidateSchema(ctx context.Context, data []byte) error {
 	return nil
 }
 
+// ValidateSchemaWithURLSecurity 校验用户上传等不可信来源的 OpenAPI schema。
+// 在 ValidateSchema 的基础上额外对 servers[].url 做 DNS 解析，
+// 拦截解析到回环/链路本地地址的域名（SSRF）。
+// 内部可信 schema（内置工具、启动期加载的配置）请用 ValidateSchema：
+// 启动期依赖 DNS 会导致服务在目标主机未就绪时起不来。
+func ValidateSchemaWithURLSecurity(ctx context.Context, data []byte) error {
+	doc, err := LoadFromData(ctx, data)
+	if err != nil {
+		return err
+	}
+	for _, server := range doc.Servers {
+		if server.URL == "" {
+			continue
+		}
+		if err := url_util.ValidateURL(server.URL); err != nil {
+			return fmt.Errorf("invalid server URL %q: %w", server.URL, err)
+		}
+	}
+	return nil
+}
+
 func ValidateDoc(ctx context.Context, doc *openapi3.T) error {
 	if doc == nil {
 		return errors.New("schema nil")
@@ -59,7 +80,7 @@ func ValidateDoc(ctx context.Context, doc *openapi3.T) error {
 	// validate server URLs for SSRF protection
 	for _, server := range doc.Servers {
 		if server.URL != "" {
-			if err := url_util.ValidateURL(server.URL); err != nil {
+			if err := url_util.ValidateURLSyntax(server.URL); err != nil {
 				return fmt.Errorf("invalid server URL %q: %w", server.URL, err)
 			}
 		}
