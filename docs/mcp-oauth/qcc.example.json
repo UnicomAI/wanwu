@@ -1,0 +1,23 @@
+{
+  "storeDirectory": "/var/lib/wanwu/mcp-oauth",
+  "relayUrl": "https://wanwu.example/service/callback/v1/mcp/oauth/relay",
+  "providers": [
+    {
+      "id": "qcc",
+      "name": "企查查 MCP",
+      "resource": "https://agent.qcc.com/mcp/company/stream",
+      "resourceMetadataUrl": "https://agent.qcc.com/mcp/.well-known/oauth-protected-resource/company/stream",
+      "issuer": "https://agent.qcc.com",
+      "clientId": "",
+      "redirectUri": "https://wanwu.example/aibase/oauth/mcp/callback",
+      "scope": "mcp:tools",
+      "targets": [
+        { "name": "企查查 · 企业数据", "resource": "https://agent.qcc.com/mcp/company/stream" },
+        { "name": "企查查 · 风险数据", "resource": "https://agent.qcc.com/mcp/risk/stream" },
+        { "name": "企查查 · 知识产权", "resource": "https://agent.qcc.com/mcp/ipr/stream" },
+        { "name": "企查查 · 经营信息", "resource": "https://agent.qcc.com/mcp/operation/stream" },
+        { "name": "企查查 · 董监高信息", "resource": "https://agent.qcc.com/mcp/executive/stream" }
+      ]
+    }
+  ]
+}

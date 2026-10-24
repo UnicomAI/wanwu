@@ -53,3 +53,12 @@ test('callback waits for same-browser login and submits code through authenticat
   options.mounted.call(instance); assert.equal(sent, undefined);
   await instance.finish(); assert.equal(sent.action, 'complete'); assert.equal(sent.code, 'mock-code'); assert.equal(instance.done, true); assert.equal(instance.code, '');
 });
+
+test('QCC marketplace card enables OAuth only when the provider is configured', async () => {
+  const { instance, options } = component('components/QccMcpCard.vue', { getOAuthProviders: async () => ({ data: [{ id: 'qcc' }] }) }, { McpOAuthPanel: {} });
+  await options.mounted.call(instance); assert.equal(instance.configured, true);
+});
+test('QCC marketplace card explains setup instead of falling back to an API key', async () => {
+  const { instance, options } = component('components/QccMcpCard.vue', { getOAuthProviders: async () => ({ data: [] }) }, { McpOAuthPanel: {} });
+  await options.mounted.call(instance); assert.equal(instance.configured, false);
+});
