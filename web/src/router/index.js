@@ -23,6 +23,7 @@ try {
 }
 
 const constantRoutes = [
+  { path: '/oauth/mcp/callback', component: () => import('@/views/mcpOAuth/callback.vue') },
   {
     path: '/',
   },

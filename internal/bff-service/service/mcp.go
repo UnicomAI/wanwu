@@ -1,6 +1,9 @@
 package service
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/ThinkInAIXYZ/go-mcp/protocol"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	"github.com/UnicomAI/wanwu/api/proto/common"
@@ -11,7 +14,9 @@ import (
 	mcp_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/mcp-util"
 	bff_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/util"
 	"github.com/UnicomAI/wanwu/pkg/constant"
+	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	grpc_util "github.com/UnicomAI/wanwu/pkg/grpc-util"
+	mcpoauth "github.com/UnicomAI/wanwu/pkg/mcp-oauth"
 	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
 	pkg_util "github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
@@ -82,6 +87,10 @@ func GetMCPSquareList(ctx *gin.Context, userID, orgID, category, name string) (*
 }
 
 func CreateMCP(ctx *gin.Context, userID, orgID string, req request.MCPCreate) error {
+	if reservedOAuthAuth(req.ApiAuth, req.Headers) {
+		return fmt.Errorf("reserved OAuth credential header")
+	}
+
 	if req.MCPSquareID != "" {
 		req.Transport = constant.MCPTransportSSE
 		req.ApiAuth = &pkg_util.ApiAuthWebRequest{
@@ -106,9 +115,16 @@ func CreateMCP(ctx *gin.Context, userID, orgID string, req request.MCPCreate) er
 }
 
 func UpdateMCP(ctx *gin.Context, userID, orgID string, req request.MCPUpdate) error {
+	if reservedOAuthAuth(req.ApiAuth, req.Headers) {
+		return fmt.Errorf("reserved OAuth credential header")
+	}
+
 	existingMCP, err := mcp.GetCustomMCP(ctx.Request.Context(), &mcp_service.GetCustomMCPReq{McpId: req.MCPID})
 	if err != nil {
 		return err
+	}
+	if existingMCP.GetApiAuth().GetApiKeyHeader() == mcpoauth.RelayHeader {
+		return fmt.Errorf("manage this connection in the OAuth panel")
 	}
 	if err := pkg_util.ValidateBriefUpdateAllowSpace(&req.Name, existingMCP.Info.Name, &req.Desc, existingMCP.Info.Desc, pkg_util.SubjectMCP); err != nil {
 		return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
@@ -141,6 +157,14 @@ func GetMCP(ctx *gin.Context, mcpID string) (*response.MCPDetail, error) {
 }
 
 func DeleteMCP(ctx *gin.Context, userID, orgID, mcpID string) error {
+	detail, e := mcp.GetCustomMCP(ctx.Request.Context(), &mcp_service.GetCustomMCPReq{McpId: mcpID})
+	if e != nil {
+		return e
+	}
+	if e = disconnectManagedMCP(ctx, mcpoauth.Owner{Organization: orgID, User: userID}, detail.GetApiAuth()); e != nil {
+		return e
+	}
+
 	// 删除智能体表AssistantMCP相关记录
 	_, err := assistant.AssistantMCPDeleteByMCPId(ctx.Request.Context(), &assistant_service.AssistantMCPDeleteByMCPIdReq{
 		McpId:   mcpID,
@@ -253,6 +277,10 @@ func GetMCPSelect(ctx *gin.Context, userID, orgID string, name string) (*respons
 }
 
 func GetMCPToolList(ctx *gin.Context, req request.MCPToolListReq) (*response.MCPToolList, error) {
+	if req.MCPID == "" && reservedOAuthAuth(req.ApiAuth, req.Headers) {
+		return nil, fmt.Errorf("reserved OAuth credential header")
+	}
+
 	transportType := constant.MCPTransportSSE // 默认使用 sse
 	serverUrl := req.ServerURL
 	auth := req.ApiAuth
@@ -265,6 +293,9 @@ func GetMCPToolList(ctx *gin.Context, req request.MCPToolListReq) (*response.MCP
 			})
 			if err != nil {
 				return nil, err
+			}
+			if e := checkManagedOwner(mcpDetail.GetApiAuth(), mcpDetail.GetOwner(), ctx.GetString(gin_util.USER_ID), ctx.GetHeader(gin_util.X_ORG_ID)); e != nil {
+				return nil, e
 			}
 			// 根据 transport 字段选择 URL
 			switch mcpDetail.Transport {
@@ -279,8 +310,7 @@ func GetMCPToolList(ctx *gin.Context, req request.MCPToolListReq) (*response.MCP
 			}
 			// 获取鉴权信息和自定义请求头
 			if mcpDetail.GetApiAuth() != nil {
-				authResp := toApiAuthResponse(mcpDetail.GetApiAuth())
-				auth = &authResp
+				auth = toApiAuthPtr(mcpDetail.GetApiAuth())
 			}
 			headers = mcpDetail.GetHeaders()
 		case constant.MCPTypeMCPServer:
@@ -456,6 +486,12 @@ func toApiAuthProto(auth *pkg_util.ApiAuthWebRequest) *common.ApiAuthWebRequest 
 }
 
 func toApiAuthResponse(auth *common.ApiAuthWebRequest) pkg_util.ApiAuthWebRequest {
+	if auth.GetApiKeyHeader() == mcpoauth.RelayHeader {
+		return pkg_util.ApiAuthWebRequest{AuthType: "oauth"}
+	}
+	return toApiAuthInternal(auth)
+}
+func toApiAuthInternal(auth *common.ApiAuthWebRequest) pkg_util.ApiAuthWebRequest {
 	if auth == nil {
 		return pkg_util.ApiAuthWebRequest{}
 	}
@@ -473,6 +509,39 @@ func toApiAuthPtr(auth *common.ApiAuthWebRequest) *pkg_util.ApiAuthWebRequest {
 	if auth == nil {
 		return nil
 	}
-	ret := toApiAuthResponse(auth)
+	ret := toApiAuthInternal(auth)
 	return &ret
+}
+
+func reservedOAuthAuth(auth *pkg_util.ApiAuthWebRequest, headers map[string]string) bool {
+	if auth != nil && strings.EqualFold(auth.ApiKeyHeader, mcpoauth.RelayHeader) {
+		return true
+	}
+	for key := range headers {
+		if strings.EqualFold(key, mcpoauth.RelayHeader) {
+			return true
+		}
+	}
+	return false
+}
+
+// GetMCPForRuntime is only for the isolated internal callback listener. Never
+// register it as a browser/user API: its result includes a relay capability.
+func GetMCPForRuntime(ctx *gin.Context, mcpID string) (*response.MCPDetail, error) {
+	detail, e := mcp.GetCustomMCP(ctx.Request.Context(), &mcp_service.GetCustomMCPReq{McpId: mcpID})
+	if e != nil {
+		return nil, e
+	}
+	result := toMCPCustomDetail(ctx, detail)
+	result.ApiAuth = toApiAuthInternal(detail.GetApiAuth())
+	return result, nil
+}
+func checkManagedOwner(auth *common.ApiAuthWebRequest, owner *mcp_service.Identity, userID, orgID string) error {
+	if auth.GetApiKeyHeader() != mcpoauth.RelayHeader {
+		return nil
+	}
+	if owner == nil || owner.UserId != userID || owner.OrgId != orgID {
+		return mcpoauth.ErrUnauthorized
+	}
+	return nil
 }

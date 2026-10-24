@@ -11,6 +11,9 @@ import (
 )
 
 func registerTool(apiV1 *gin.RouterGroup) {
+	mid.Sub("resource.mcp").Reg(apiV1, "/mcp/oauth/providers", http.MethodGet, v1.MCPOAuthProviders, "MCP OAuth 服务列表")
+	mid.Sub("resource.mcp").Reg(apiV1, "/mcp/oauth/:action", http.MethodPost, v1.MCPOAuthAction, "MCP OAuth 授权管理")
+
 	// 自定义工具
 	mid.Sub("resource.tool").Reg(apiV1, "/tool/custom", http.MethodPost, v1.CreateCustomTool, "创建自定义工具")
 	mid.Sub("resource.tool").Reg(apiV1, "/tool/custom", http.MethodGet, v1.GetCustomTool, "获取自定义工具详情")
