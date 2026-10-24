@@ -17,6 +17,7 @@ type Target struct {
 	Resource string `json:"resource"`
 }
 type Provider struct {
+	OnDemand            bool     `json:"onDemand,omitempty"`
 	Targets             []Target `json:"targets,omitempty"`
 	ID                  string   `json:"id"`
 	Name                string   `json:"name"`

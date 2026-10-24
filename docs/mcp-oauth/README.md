@@ -132,3 +132,12 @@ Core OAuth tests run natively; BFF/agent/sandbox compile validation targets Linu
 The added GitHub Actions job runs the BFF ownership/redaction and sandbox config
 tests on Linux. Real-provider login and full deployed multi-service acceptance
 remain separate release checks; mock protocol tests are not evidence of those.
+
+## 可选按需发现
+
+管理员可为 provider 设置 `onDemand: true`。该模式将托管连接的模型侧目录替换为
+搜索、单项定义读取、调用三个工具，远端完整目录保留在服务端。支持 cursor 分页、
+按当前授权目录校验工具名称，每次上游请求重新校验授权；不缓存跨账号工具目录。
+默认关闭，其他 remote OAuth 连接器维持透明转发。该模式创建独立上游会话，
+适用于不依赖跨调用 MCP 会话状态的工具；不暴露远端 resources/prompts/subscriptions。
+检索采用名称/描述关键词匹配，每页返回 10 条摘要；每次操作最多 60 秒、100 页目录、5000 个工具，超限报错。工具数量不硬编码。

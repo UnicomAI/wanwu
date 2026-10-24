@@ -54,9 +54,10 @@ func (c *Codec) ReadReference(raw string) (Reference, error) {
 // Only Streamable HTTP is supported: legacy SSE endpoint-event rewriting is not
 // silently attempted. Provider URLs come exclusively from administrator profiles.
 type Relay struct {
-	Manager *Manager
-	Codec   *Codec
-	Allowed func(string, string) bool
+	Manager  *Manager
+	Codec    *Codec
+	Allowed  func(string, string) bool
+	OnDemand func(string, string) bool
 }
 
 func (r *Relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -99,6 +100,10 @@ func (r *Relay) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	})
 	if e != nil {
 		http.Error(w, "MCP authorization required", 401)
+		return
+	}
+	if r.OnDemand != nil && r.OnDemand(ref.Resource, ref.Target) {
+		r.serveOnDemand(w, req, ref)
 		return
 	}
 	target, e := http.NewRequestWithContext(req.Context(), req.Method, ref.Target, http.MaxBytesReader(w, req.Body, 8<<20))
