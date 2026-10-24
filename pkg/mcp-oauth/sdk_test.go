@@ -19,6 +19,19 @@ import (
 // Exercise both SDKs used in Wanwu, against an OAuth-protected mock resource.
 // This is protocol integration, not a claim of real QCC account acceptance.
 func TestBothMCPClientsThroughOAuthRelay(t *testing.T) {
+	t.Run("transparent", func(t *testing.T) { testBothMCPClients(t, false) })
+	t.Run("on-demand", func(t *testing.T) { testBothMCPClients(t, true) })
+}
+func testBothMCPClients(t *testing.T, onDemand bool) {
+	expectedTools := 1
+	callName := "company"
+	args := map[string]interface{}{}
+	if onDemand {
+		expectedTools = 3
+		callName = "mcp_call_tool"
+		args = map[string]interface{}{"name": "company", "arguments": map[string]interface{}{}}
+	}
+
 	var called atomic.Int32
 	upstream := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") != "Bearer access" {
@@ -69,7 +82,7 @@ func TestBothMCPClientsThroughOAuthRelay(t *testing.T) {
 	}); e != nil {
 		t.Fatal(e)
 	}
-	relay := httptest.NewServer(&Relay{Manager: &Manager{Store: store, Client: upstream.Client()}, Codec: store.codec, Allowed: func(resource, target string) bool { return resource == p.Resource && target == p.Resource }})
+	relay := httptest.NewServer(&Relay{Manager: &Manager{Store: store, Client: upstream.Client()}, Codec: store.codec, OnDemand: func(string, string) bool { return onDemand }, Allowed: func(resource, target string) bool { return resource == p.Resource && target == p.Resource }})
 	defer relay.Close()
 	reference, _ := store.codec.Reference(owner, p.Resource)
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -90,10 +103,10 @@ func TestBothMCPClientsThroughOAuthRelay(t *testing.T) {
 		}
 		defer c.Close()
 		list, e := c.ListTools(ctx)
-		if e != nil || len(list.Tools) != 1 {
+		if e != nil || len(list.Tools) != expectedTools {
 			t.Fatal("list", e)
 		}
-		result, e := c.CallTool(ctx, tp.NewCallToolRequest("company", map[string]interface{}{}))
+		result, e := c.CallTool(ctx, tp.NewCallToolRequest(callName, args))
 		if e != nil || len(result.Content) != 1 {
 			t.Fatal("call", e)
 		}
@@ -114,11 +127,12 @@ func TestBothMCPClientsThroughOAuthRelay(t *testing.T) {
 			t.Fatal(e)
 		}
 		list, e := c.ListTools(ctx, mp.ListToolsRequest{})
-		if e != nil || len(list.Tools) != 1 {
+		if e != nil || len(list.Tools) != expectedTools {
 			t.Fatal("list", e)
 		}
 		call := mp.CallToolRequest{}
-		call.Params.Name = "company"
+		call.Params.Name = callName
+		call.Params.Arguments = args
 		result, e := c.CallTool(ctx, call)
 		if e != nil || len(result.Content) != 1 {
 			t.Fatal("call", e)
