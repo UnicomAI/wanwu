@@ -227,7 +227,14 @@ func MCPRelayOAuth(ctx *gin.Context) {
 		http.Error(ctx.Writer, "MCP OAuth unavailable", 503)
 		return
 	}
-	relay := mcpoauth.Relay{Manager: s.manager, Codec: s.codec, Allowed: func(resource, target string) bool {
+	relay := mcpoauth.Relay{Manager: s.manager, Codec: s.codec, OnDemand: func(resource, target string) bool {
+		for _, p := range s.config.Providers {
+			if p.Resource == resource {
+				return p.OnDemand
+			}
+		}
+		return false
+	}, Allowed: func(resource, target string) bool {
 		for _, p := range s.config.Providers {
 			if p.Resource == resource {
 				if target == resource {
