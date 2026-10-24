@@ -1,7 +1,7 @@
 <template>
   <section class="qcc-oauth-card" aria-label="企查查 MCP OAuth">
     <h3>企查查 MCP <el-tag size="small">OAuth</el-tag></h3>
-    <p>登录企查查并授权，一次连接企业、风险、知识产权、经营及董监高 5 类数据服务。查询范围以账号权限为准。</p>
+    <p>登录企查查并授权，通过一个统一入口按需发现、读取定义并调用企业及历史等跨模块工具。工具数量与查询范围以服务端目录及账号权限为准。</p>
     <p>无需查找或粘贴 API Key。请使用系统浏览器完成授权。</p>
     <McpOAuthPanel v-if="configured" :provider-ids="['qcc']" @connected="$emit('connected')" />
     <el-alert v-else :closable="false" type="info" title="请管理员启用企查查 OAuth 配置，设置本部署的 HTTPS 回调与加密凭据存储。启用后此卡片显示授权入口。" />

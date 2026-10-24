@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func TestQCCPresetBundle(t *testing.T) {
+func TestQCCUnifiedPreset(t *testing.T) {
 	b, e := os.ReadFile("../../docs/mcp-oauth/qcc.example.json")
 	if e != nil {
 		t.Fatal(e)
@@ -29,17 +29,15 @@ func TestQCCPresetBundle(t *testing.T) {
 		t.Fatal("expected one shared grant")
 	}
 	p := cfg.Providers[0]
-	if p.ID != "qcc" || p.Scope != "mcp:tools" || p.Resource != "https://agent.qcc.com/mcp/company/stream" || len(p.Targets) != 5 {
+	if p.ID != "qcc" || p.Scope != "mcp:tools" || p.Resource != "https://agent.qcc.com/mcp/company/stream" || len(p.Targets) != 1 {
 		t.Fatal("invalid QCC profile")
 	}
-	names := []string{"company", "risk", "ipr", "operation", "executive"}
-	for i, name := range names {
-		if p.Targets[i].Resource != "https://agent.qcc.com/mcp/"+name+"/stream" {
-			t.Fatal("unexpected resource", p.Targets[i])
-		}
+	if !p.OnDemand || p.Targets[0].Resource != p.Resource {
+		t.Fatal("expected on-demand unified entry")
 	}
+
 }
-func TestFiveTargetsShareRefreshAndRevocation(t *testing.T) {
+func TestLegacyMultipleTargetsShareRefreshAndRevocation(t *testing.T) {
 	var refresh, calls atomic.Int32
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/token" {
