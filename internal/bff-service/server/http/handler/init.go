@@ -50,6 +50,8 @@ func Start(ctx context.Context) {
 	openapi.Register(r.Group("/openapi/v1"))
 	// openurl v1
 	openurl.Register(r.Group("/openurl/v1"))
+	// OAuth relay authenticates its own encrypted resource-scoped capability.
+	rcb.Any("/callback/v1/mcp/oauth/relay", service.MCPRelayOAuth)
 	// callback v1
 	callback.Register(rcb.Group("/callback/v1"))
 
