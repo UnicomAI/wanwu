@@ -575,6 +575,16 @@ func (r *Runner) deleteSession(ctx context.Context) {
 // SSE 连接
 // ============================================================================
 
+// globalEventURL 构造 opencode 全局事件流 URL。
+// 必须带上 directory 查询参数，与 createSession / deleteSession / sendPromptAsync
+// 一致；否则 handleEvent 的 directory 过滤会丢弃本沙箱的流式事件。
+func globalEventURL(endpoint, workDir string) string {
+	if workDir == "" {
+		return endpoint + "/global/event"
+	}
+	return endpoint + "/global/event?directory=" + url.QueryEscape(workDir)
+}
+
 // connectSSE 连接到 opencode 全局事件流。
 func (r *Runner) connectSSE(ctx context.Context) (<-chan string, error) {
 	sseCh := make(chan string, 1024)
@@ -593,7 +603,7 @@ func (r *Runner) connectSSE(ctx context.Context) (<-chan string, error) {
 			SetContext(ctx).
 			SetHeader("Accept", "text/event-stream").
 			SetDoNotParseResponse(true).
-			Get(r.opt.Sandbox.OpencodeEndpoint() + "/global/event")
+			Get(globalEventURL(r.opt.Sandbox.OpencodeEndpoint(), r.sb.WorkDir()))
 		if err != nil {
 			errCh <- fmt.Errorf("SSE connect failed: %w", err)
 			return
