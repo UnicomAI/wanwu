@@ -156,10 +156,16 @@ func RefreshGeneralAgentSkillConversation(ctx *gin.Context, userId, orgId string
 
 func DeleteGeneralAgentConversation(ctx *gin.Context, userId, orgId string, req request.DeleteGeneralAgentConversationReq) error {
 	threadID := strings.TrimSpace(req.ThreadID)
+	if threadID == "" {
+		return grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, "threadId is required")
+	}
+
 	binding, err := getCustomSkillThreadBinding(ctx, userId, orgId, threadID)
 	if err != nil {
 		return err
 	}
+
+	// skill 对话：workspace 属于 skill 资源，解绑并删除会话历史即可，不删 workspace。
 	if binding != nil {
 		if err := clearCustomSkillThreadBinding(ctx, binding); err != nil {
 			return err
@@ -167,8 +173,31 @@ func DeleteGeneralAgentConversation(ctx *gin.Context, userId, orgId string, req 
 		if err := deleteWgaConversationHistory(ctx, userId, orgId, binding.previewThreadID); err != nil {
 			return err
 		}
+		return deleteGeneralAgentConversationCore(ctx, userId, orgId, threadID, "")
 	}
-	return deleteGeneralAgentConversationCore(ctx, userId, orgId, threadID, "")
+
+	// 普通对话：仅当会话属于当前用户时才清理 workspace，避免凭 threadID 删除他人目录。
+	exist, err := assistant.WgaConversationExists(ctx.Request.Context(), &assistant_service.WgaConversationExistsReq{
+		ThreadId: threadID,
+		Identity: &assistant_service.Identity{UserId: userId, OrgId: orgId},
+	})
+	if err != nil {
+		return err
+	}
+
+	if err := deleteGeneralAgentConversationCore(ctx, userId, orgId, threadID, ""); err != nil {
+		return err
+	}
+
+	if exist.Exists && config.WgaCfg().Persistent.Enabled {
+		store, err := NewGeneralAgentWorkspaceStore(threadID)
+		if err != nil {
+			log.Errorf("[wga] thread %s create workspace store for cleanup failed: %v", threadID, err)
+		} else if err := CleanupWgaWorkspace(store); err != nil {
+			log.Errorf("[wga] thread %s cleanup workspace failed: %v", threadID, err)
+		}
+	}
+	return nil
 }
 
 func deleteGeneralAgentConversationForSkillDelete(ctx *gin.Context, userId, orgId string, req request.DeleteGeneralAgentConversationReq) error {
