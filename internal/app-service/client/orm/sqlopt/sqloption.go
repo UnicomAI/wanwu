@@ -2,6 +2,7 @@ package sqlopt
 
 import (
 	"github.com/UnicomAI/wanwu/pkg/constant"
+	"github.com/UnicomAI/wanwu/pkg/statistic"
 	"gorm.io/gorm"
 )
 
@@ -426,17 +427,11 @@ func WithModelCreatorUserIDs(userIDs []string) SQLOption {
 // - 其它指定 module：要求 app_id 非空
 func WithStatisticAppIDFilter(module string) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
-		if constant.StatisticModuleAllowsEmptyAppID(module) {
+		if statistic.StatisticModuleAllowsEmptyAppID(module) {
 			return db
 		}
 		if module == "" {
-			return db.Where("(app_id != '' AND app_id IS NOT NULL) OR module IN ?", []string{
-				constant.BizModuleWGA,
-				constant.BizModuleModel,
-				constant.BizModuleResourceSkill,
-				constant.BizModuleResourceKnowledge,
-				constant.BizModuleResourcePrompt,
-			})
+			return db.Where("(app_id != '' AND app_id IS NOT NULL) OR module IN ?", statistic.StatisticModulesAllowingEmptyAppID())
 		}
 		return db.Where("app_id != '' AND app_id IS NOT NULL")
 	})

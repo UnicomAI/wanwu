@@ -9,9 +9,9 @@ import (
 
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	"github.com/UnicomAI/wanwu/internal/app-service/client/model"
-	"github.com/UnicomAI/wanwu/pkg/constant"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/redis"
+	"github.com/UnicomAI/wanwu/pkg/statistic"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -90,7 +90,7 @@ func (c *Client) RecordAppStatisticV2(ctx context.Context, req *RecordAppStatist
 	if req == nil {
 		return toErrStatus("app_statistic_v2_record", "invalid request")
 	}
-	if !constant.StatisticModuleAllowsEmptyAppID(req.Module) && req.AppID == "" {
+	if !statistic.StatisticModuleAllowsEmptyAppID(req.Module) && req.AppID == "" {
 		return toErrStatus("app_statistic_v2_record", "invalid request: appId required")
 	}
 	if err := recordAppStatisticV2ToRedis(ctx, req); err != nil {
