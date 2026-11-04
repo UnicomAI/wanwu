@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 
 	oauth2_util "github.com/UnicomAI/wanwu/internal/bff-service/pkg/oauth2-util"
 	"github.com/UnicomAI/wanwu/pkg/i18n"
@@ -175,8 +176,10 @@ type WgaSandboxSandboxConfig struct {
 
 type OntologyServiceConfig struct {
 	Enable                         int                            `json:"enable" mapstructure:"enable"`
-	Endpoint                       string                         `json:"endpoint" mapstructure:"endpoint"`
-	KnowledgeNetworkListUri        string                         `json:"knowledge_network_list_uri" mapstructure:"knowledge_network_list_uri"`
+	Endpoint                       string                         `json:"endpoint" mapstructure:"endpoint"`                                     // vega-web 网关（数字员工版本详情等 JWT 来源流程出站）
+	AgentEndpoint                  string                         `json:"agent_endpoint" mapstructure:"agent_endpoint"`                         // vega-agent 直连（数字员工接口与发布状态回调后端）；enable=1 时必填
+	BknBackendEndpoint             string                         `json:"bkn_backend_endpoint" mapstructure:"bkn_backend_endpoint"`             // vega-bkn-backend 直连（知识网络接口后端）；enable=1 时必填
+	KnowledgeNetworkListUri        string                         `json:"knowledge_network_list_uri" mapstructure:"knowledge_network_list_uri"` // 知识网络直连路径
 	DigitalEmployeeListUri         string                         `json:"digital_employee_list_uri" mapstructure:"digital_employee_list_uri"`
 	DigitalEmployeeInfoUri         string                         `json:"digital_employee_info_uri" mapstructure:"digital_employee_info_uri"`                 // 通用智能体 @数字员工 详情（非版本，占位 {digitalEmployeeId}）
 	DigitalEmployeeInfoVersionUri  string                         `json:"digital_employee_info_version_uri" mapstructure:"digital_employee_info_version_uri"` // 数字员工发布（DE）版本最新详情（占位 {dh_id}，/versions/latest）
@@ -408,10 +411,46 @@ type DefaultIconConfig struct {
 	AdminIcon        string `json:"admin" mapstructure:"admin"`
 }
 
+// validateOntologyConfig 校验 ontology 配置完整性（fail-fast，LoadConfig 期间执行）。
+// agent/bkn 直连端点承载 OpenAPI 来源的出站调用（绕过 vega-web 网关 auth_request 的
+// token 校验，见 service/wga_ontology.go 注释）；缺失时相关请求会隐晦失败（相对 URL 请求
+// 错误、网关 401 等），启动期直接拒绝优于运行期静默降级。enable=0 时跳过（功能整体关闭）。
+func validateOntologyConfig(c *Config) error {
+	if c.Ontology.Enable == 0 {
+		return nil
+	}
+	missing := make([]string, 0)
+	if c.Ontology.Endpoint == "" {
+		missing = append(missing, "ontology.endpoint（vega-web 网关）")
+	}
+	if c.Ontology.AgentEndpoint == "" {
+		missing = append(missing, "ontology.agent_endpoint（vega-agent 直连）")
+	}
+	if c.Ontology.BknBackendEndpoint == "" {
+		missing = append(missing, "ontology.bkn_backend_endpoint（vega-bkn-backend 直连）")
+	}
+	if c.Ontology.KnowledgeNetworkListUri == "" {
+		missing = append(missing, "ontology.knowledge_network_list_uri（直连路径）")
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("ontology enabled but missing required config: %s", strings.Join(missing, ", "))
+	}
+	// 防呆：knowledge_network_list_uri 为 bkn-backend 直连方言（无 /vega 前缀，对应 nginx 网关
+	// $proxy_path_novega 转发规则）。误配成网关方言（带 /vega 前缀）时直连必然 404 且难排查，启动期拦截。
+	if strings.HasPrefix(c.Ontology.KnowledgeNetworkListUri, "/vega") {
+		return fmt.Errorf("ontology.knowledge_network_list_uri must be the direct path without /vega prefix (bkn-backend dialect), got: %s", c.Ontology.KnowledgeNetworkListUri)
+	}
+	return nil
+}
+
 func LoadConfig(in string) error {
 	_c = &Config{}
 	if err := util.LoadConfig(in, _c); err != nil {
 		return err
+	}
+	// ontology 配置校验（fail-fast：直连端点必填 + URI 方言防呆，详见 validateOntologyConfig 注释）
+	if err := validateOntologyConfig(_c); err != nil {
+		return fmt.Errorf("validate ontology config err: %w", err)
 	}
 	_c.DocCenter.docs = make(map[string]string)
 	for _, link := range _c.DocCenter.Links {

@@ -419,8 +419,16 @@ wga-sandbox:
 
 ontology:
   enable: 0
+  # endpoint：vega-web 网关，仅供数字员工版本详情（versions/latest）等 JWT 来源流程出站；
+  # 定时任务等 OpenAPI 来源的出站必须走下方直连端点（网关 auth_request 会把 OpenAPI Key
+  # 送 wanwu 权限接口校验而被 401 拒绝，见 wga_ontology.go 注释）。
   endpoint: http://vega-web:3010
-  knowledge_network_list_uri: /vega/api/ontology-manager/v1/knowledge-networks
+  # agent_endpoint：vega-agent 直连（数字员工接口 + 发布状态回调），enable=1 时必填，
+  agent_endpoint: http://vega-agent:5000
+  # bkn_backend_endpoint：vega-bkn-backend 直连（知识网络接口），enable=1 时必填（启动校验）。
+  bkn_backend_endpoint: http://vega-bkn-backend:13014
+  # 知识网络直连路径（无 /vega 前缀）
+  knowledge_network_list_uri: /api/ontology-manager/v1/knowledge-networks
   digital_employee_list_uri: /vega/api/digital-humans
   digital_employee_info_uri: /vega/api/digital-humans/{digitalEmployeeId}
   digital_employee_info_version_uri: /vega/api/digital-humans/{dh_id}/versions/latest
