@@ -94,6 +94,9 @@ func CreateGeneralAgentSkillConversation(ctx *gin.Context, userId, orgId string,
 }
 
 func RefreshGeneralAgentSkillConversation(ctx *gin.Context, userId, orgId string, req request.RefreshGeneralAgentSkillConversationReq) (*response.RefreshGeneralAgentSkillConversationResp, error) {
+	if err := CheckCustomSkillOwner(ctx, req.SkillID, userId, orgId); err != nil {
+		return nil, err
+	}
 	publish, err := mcp.CustomSkillGet(ctx.Request.Context(), &mcp_service.CustomSkillGetReq{
 		SkillId: req.SkillID,
 	})
@@ -644,6 +647,9 @@ func GeneralAgentConversationChat(ctx *gin.Context, userId, orgId, clientId stri
 // GeneralAgentSkillConversationChat Skill对话接口
 // 根据 mode 选择对应 Skill Agent，workspace 使用 overwrite 模式
 func GeneralAgentSkillConversationChat(ctx *gin.Context, userId, orgId, clientId string, req request.GeneralAgentSkillConversationChatReq) error {
+	if err := CheckCustomSkillOwner(ctx, req.CustomSkillID, userId, orgId); err != nil {
+		return err
+	}
 	mode := strings.TrimSpace(strings.ToLower(req.Mode))
 	chatThreadID := req.ThreadID
 	if mode == generalAgentSkillChatModePreview {
