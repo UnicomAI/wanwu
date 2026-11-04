@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"slices"
 	"sort"
 
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
@@ -39,8 +38,8 @@ func FilterOwnerUser(ctx *gin.Context, userId, orgId, appId, appType string, fil
 	}
 
 	// 普通使用者
-	//userIds = append(userIds, userId)
-	//orgIds = append(orgIds, orgId)
+	userIds = append(userIds, userId)
+	orgIds = append(orgIds, orgId)
 	return false, userIds, orgIds, nil
 }
 
@@ -124,7 +123,7 @@ func buildConversationLogUserNameMap(ctx *gin.Context, items []*common.Conversat
 
 // GetAssistantConversationLogDetail 获取会话日志详情
 func GetAssistantConversationLogDetail(ctx *gin.Context, userId, orgId string, req request.GetConversationLogDetailRequest) (response.PageResult, error) {
-	isOwner, userIds, orgIds, err := FilterOwnerUser(ctx, userId, orgId, req.AppId, req.AppType, nil)
+	isOwner, _, _, err := FilterOwnerUser(ctx, userId, orgId, req.AppId, req.AppType, nil)
 	if err != nil {
 		return response.PageResult{}, err
 	}
@@ -132,7 +131,7 @@ func GetAssistantConversationLogDetail(ctx *gin.Context, userId, orgId string, r
 	if err != nil {
 		return response.PageResult{}, err
 	}
-	if !isOwner && !slices.Contains(userIds, conversationLog.UserId) && !slices.Contains(orgIds, conversationLog.OrgId) {
+	if !isOwner && (conversationLog.UserId != userId || conversationLog.OrgId != orgId) {
 		return response.PageResult{}, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, fmt.Errorf("user org permit valid fail").Error())
 	}
 	req.ConversationId = resolveLegacyConversationId(conversationLog)
