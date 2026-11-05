@@ -644,8 +644,8 @@ func (s *Service) AdminAssistantPageList(ctx context.Context, req *assistant_ser
 	var total int64
 	var status *errs.Status
 
-	if req.PublishStatus == nil {
-		// 查询所有智能体
+	if req.PageSize <= 0 || req.PublishStatus == nil {
+		// PageSize<=0 表示不分页：发布状态过滤需要基于全量数据，由 BFF 过滤后自行内存分页
 		items, total, status = s.cli.AdminGetAssistantListAll(ctx, req.UserId, req.OrgId, req.Name, req.Category)
 	} else {
 		// 分页查询
