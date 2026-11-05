@@ -1048,8 +1048,15 @@ func AdminPromptBase(ctx *gin.Context, req request.AdminPromptBaseReq) (*respons
 func AdminPromptDetail(ctx *gin.Context, req request.AdminPromptDetailReq) (*response.CustomPrompt, error) {
 	return GetCustomPrompt(ctx, "", "", req.CustomPromptId)
 }
+
+// AdminAssistantPageList 管理员中心智能体全局列表。
 func AdminAssistantPageList(ctx *gin.Context, req *request.AdminAssistantPageListReq) (*response.PageResult, error) {
 	pageNo, pageSize := normalizePage(req.PageNo, req.PageSize)
+	// queryPageSize<=0 表示不分页、取全量
+	queryPageSize := pageSize
+	if len(req.PublishStatus) > 0 || len(req.PublishScope) > 0 {
+		queryPageSize = 0
+	}
 	resp, err := assistant.AdminAssistantPageList(ctx.Request.Context(), &assistant_service.AdminAssistantPageListReq{
 		Name:          req.Name,
 		UserId:        req.UserIdList,
@@ -1058,7 +1065,7 @@ func AdminAssistantPageList(ctx *gin.Context, req *request.AdminAssistantPageLis
 		PublishStatus: req.PublishStatus,
 		PublishScope:  req.PublishScope,
 		PageNum:       int32(pageNo),
-		PageSize:      int32(req.PageSize),
+		PageSize:      int32(queryPageSize),
 	})
 	if err != nil {
 		return nil, err
