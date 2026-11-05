@@ -34,6 +34,22 @@ func CheckConversationOwner(ctx *gin.Context, conversationId, assistantId, userI
 	return nil
 }
 
+// CheckAgentConversationAccess 校验 conversationId 属于当前用户及其组织。
+// 仅按会话归属校验，不绑定具体 app：会话属主 userId/orgId 与调用者一致即放行。
+// 任一条件不符（会话不存在、属于其他用户/组织）即返回错误。
+func CheckAgentConversationAccess(ctx *gin.Context, conversationId, userId, orgId string) error {
+	resp, err := assistant.GetConversationOwner(ctx.Request.Context(), &assistant_service.GetConversationOwnerReq{
+		ConversationId: conversationId,
+	})
+	if err != nil {
+		return err
+	}
+	if resp.GetUserId() != userId || resp.GetOrgId() != orgId {
+		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_conversation_no_permission", "conversation not belong to current user")
+	}
+	return nil
+}
+
 // CheckConversationLogOwner 校验 logIds 列表均属于指定 appId + appType 且属于当前用户。
 // appId / appType 始终校验；若当前请求者为应用 owner，则不校验日志 userId/orgId，否则需校验日志属主与请求者一致。
 // logIds 为空表示全量导出：跳过逐条日志归属校验，仅校验当前用户对该 appId + appType 的访问权限。

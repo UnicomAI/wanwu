@@ -93,6 +93,11 @@ func ListAgentConversations(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
+	// OpenAPI 检查用户是否有 app 权限
+	if err := service.CheckOpenAPIAccess(ctx, req.UUID, constant.AppTypeAgent, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
 	resp, err := service.GetConversationList(ctx, userID, orgID, request.ConversationGetListRequest{
 		AssistantId: req.UUID,
 		PageNo:      req.PageNo,
@@ -124,6 +129,10 @@ func GetAgentConversationDetail(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
+	if err := service.CheckAgentConversationAccess(ctx, req.ConversationID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
 	resp, err := service.GetConversationDetailList(ctx, userID, orgID, request.ConversationGetDetailListRequest{
 		ConversationId: req.ConversationID,
 		PageNo:         req.PageNo,
@@ -153,6 +162,10 @@ func DeleteAgentConversation(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
+	if err := service.CheckAgentConversationAccess(ctx, req.ConversationID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
 	_, err := service.ConversationDelete(ctx, userID, orgID, request.ConversationIdRequest{
 		ConversationId: req.ConversationID,
 	})
@@ -176,6 +189,10 @@ func ClearAgentConversation(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
+	if err := service.CheckAgentConversationAccess(ctx, req.ConversationID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
 	_, err := service.ClearPublishedConversationES(ctx, userID, orgID, request.ConversationIdRequest{
 		ConversationId: req.ConversationID,
 		DetailId:       req.DetailID,
