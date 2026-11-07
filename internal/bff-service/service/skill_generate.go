@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	mcpoauth "github.com/UnicomAI/wanwu/pkg/mcp-oauth"
 
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
@@ -44,6 +45,9 @@ func GenerateSkillFromMCP(ctx *gin.Context, mcpID, outputDir string) error {
 		return fmt.Errorf("failed to get MCP detail: %w", err)
 	}
 
+	if mcpDetail.GetApiAuth().GetApiKeyHeader() == mcpoauth.RelayHeader {
+		return fmt.Errorf("managed OAuth connections cannot be exported as standalone skills; use the MCP connector directly")
+	}
 	transport := mcpDetail.Transport
 	if transport == "" {
 		transport = "streamable"

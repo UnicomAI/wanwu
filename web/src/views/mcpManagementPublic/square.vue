@@ -5,6 +5,7 @@
         <img class="page-title-img" src="@/assets/imgs/mcp_menu.svg" alt="" />
         <span class="page-title-name">{{ $t('menu.mcp') }}</span>
       </div>-->
+      <QccMcpCard />
       <div class="mcp-content-box mcp-third">
         <div class="mcp-main">
           <div class="mcp-content">
@@ -79,12 +80,13 @@
 </template>
 
 <script>
+import QccMcpCard from '@/components/QccMcpCard.vue';
 import { getPublicMcpList } from '@/api/mcp';
 import SearchInput from '@/components/searchInput.vue';
 import { avatarSrc } from '@/utils/util';
 export default {
   name: 'McpSquare',
-  components: { SearchInput },
+  components: { QccMcpCard, SearchInput },
   data() {
     return {
       defaultAvatar: require('@/assets/imgs/mcp_active.svg'),

@@ -17,7 +17,7 @@ import (
 //	@Success		200		{object}	response.Response{data=response.MCPDetail}
 //	@Router			/callback/mcp [get]
 func GetMCP(ctx *gin.Context) {
-	resp, err := service.GetMCP(ctx, ctx.Query("mcpId"))
+	resp, err := service.GetMCPForRuntime(ctx, ctx.Query("mcpId"))
 	gin_util.Response(ctx, resp, err)
 }
 
