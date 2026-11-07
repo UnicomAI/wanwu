@@ -3,11 +3,13 @@ package agent_tool
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/UnicomAI/wanwu/internal/agent-service/model/response"
 	agent_config "github.com/UnicomAI/wanwu/internal/agent-service/pkg/config"
 	"github.com/UnicomAI/wanwu/internal/agent-service/pkg/http"
+	tool_recovery "github.com/UnicomAI/wanwu/internal/agent-service/service/agent-tool/tool-recovery"
 	service_model "github.com/UnicomAI/wanwu/internal/agent-service/service/service-model"
 	tokenizer_service "github.com/UnicomAI/wanwu/internal/agent-service/service/tokenizer-service"
 	http_client "github.com/UnicomAI/wanwu/pkg/http-client"
@@ -36,9 +38,16 @@ func (t *chatDocTool) Info(ctx context.Context) (*schema.ToolInfo, error) {
 
 // InvokableRun 执行工具
 func (t *chatDocTool) InvokableRun(ctx context.Context, argumentsInJSON string, opts ...tool.Option) (string, error) {
-	doc, err := searchChatDoc(ctx, buildChatDocParams(argumentsInJSON, t.chatInfo))
+	params, err := buildChatDocParams(argumentsInJSON, t.chatInfo)
+	if err != nil {
+		return "", err
+	}
+	doc, err := searchChatDoc(ctx, params)
 	if err != nil {
 		log.Errorf("chat doc request error,params %s, err: %v", argumentsInJSON, err)
+		if tool_recovery.ShouldPropagate(ctx, err) {
+			return "", err
+		}
 		return response.ToolErrResp(err)
 	}
 	return doc, nil
@@ -76,11 +85,13 @@ func buildChatDocToolInfo() *schema.ToolInfo {
 }
 
 // buildChatDocParams 构造chatDoc请求参数
-func buildChatDocParams(argumentsInJSON string, chatInfo *service_model.AgentChatInfo) *ChatDocParams {
+func buildChatDocParams(argumentsInJSON string, chatInfo *service_model.AgentChatInfo) (*ChatDocParams, error) {
 	var chatDocParams = &ChatDocParams{}
-	_ = json.Unmarshal([]byte(argumentsInJSON), chatDocParams)
+	if err := json.Unmarshal([]byte(argumentsInJSON), chatDocParams); err != nil {
+		return nil, fmt.Errorf("invalid chatdoc arguments: %w", err)
+	}
 	chatDocParams.MaxToken = tokenizer_service.TokenLimit(chatInfo)
-	return chatDocParams
+	return chatDocParams, nil
 }
 
 // searchChatDoc 查询chatDoc

@@ -16,6 +16,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/agent-service/model/response"
 	agent_http_client "github.com/UnicomAI/wanwu/internal/agent-service/pkg/http"
 	"github.com/UnicomAI/wanwu/internal/agent-service/pkg/util"
+	tool_recovery "github.com/UnicomAI/wanwu/internal/agent-service/service/agent-tool/tool-recovery"
 	http_client "github.com/UnicomAI/wanwu/pkg/http-client"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	openapi3_util "github.com/UnicomAI/wanwu/pkg/openapi3-util"
@@ -292,6 +293,9 @@ func createHTTPHandler(serverURL, path, method string, auth *openapi3_util.Auth,
 		respBody, err := buildResult(resp, err)
 		http_client.LogHttpRequest(ctx, "request_tool_call_"+toolName, method, requestURL, arguments, respBody, err, start)
 		if err != nil {
+			if tool_recovery.ShouldPropagate(ctx, err) {
+				return "", err
+			}
 			return response.ToolErrResp(err)
 		}
 
