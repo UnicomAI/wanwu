@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	mcpoauth "github.com/UnicomAI/wanwu/pkg/mcp-oauth"
 	"net/http"
 	"time"
 
@@ -39,7 +40,7 @@ func newHTTPClientWithHeaders(headers map[string]string) *http.Client {
 		Transport: &headerTransport{
 			base: &http.Transport{
 				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true,
+					InsecureSkipVerify: headers[mcpoauth.RelayHeader] == "",
 				},
 			},
 			headers: headers,
