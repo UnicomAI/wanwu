@@ -137,7 +137,7 @@ type QuestionPart = questionPart
 // ============================================================================
 // SSE 事件类型（内部使用）
 //
-// 基于 opencode >= v1.4.11 的 SSE 事件格式实现，兼容 v1.14.51、v1.15.13、v1.16.2。
+// 基于 opencode >= v1.4.11 的 SSE 事件格式实现，兼容 v1.14.51、v1.15.13、v1.16.2、v1.19.5。
 //
 // 版本基线说明：
 //   v1.1.65 仅支持 BusEvent 单格式 SSE（src/server/routes/global.ts 仅使用
@@ -150,11 +150,13 @@ type QuestionPart = questionPart
 //     通过 legacy Bus/SyncEvent 间接输出，线上格式不变
 //   - v1.16.2：EventV2Bridge 直接输出至 GlobalBus，session.next.* 事件默认开启，
 //     线上 BusEvent/SyncEvent 格式仍不变
+//   - v1.19.5：事件定义迁至 @opencode-ai/schema 的 EventManifest，EventV2Bridge 改用
+//     event.durable 判定持久化事件，线上 BusEvent/SyncEvent 格式仍不变
 //
 // opencode 通过 /global/event 端点推送两类事件：
 //
 // 1. BusEvent（实时事件）- 对应 opencode/src/bus/bus-event.ts (v1.4.11+) /
-//    EventV2Bridge (v1.16.2)
+//    EventV2Bridge (v1.16.2+)
 //    格式: { "directory": "...", "payload": { "type": "event-type", "properties": { ... } } }
 //          ^-- BusEvent 包含 id 字段（v1.14.51+ 新增上升标识符，v1.4.11 无此字段），
 //              本结构体未声明，Go json.Unmarshal 会跳过未声明的字段，不会报错。
@@ -170,8 +172,9 @@ type QuestionPart = questionPart
 //    - session.compacted: 会话压缩完成（v1.4.11+，当前未处理）
 //
 // 2. SyncEvent（持久化事件）- 对应 opencode/src/sync/index.ts (v1.4.11+) /
-//    EventV2 + EventV2Bridge (v1.16.2)
+//    EventV2 + EventV2Bridge (v1.16.2+)
 //    格式: { "payload": { "type": "sync", "syncEvent": { "type": "event-type.version", "data": { ... } } } }
+//    durable version 始终保持为 1，故线上类型后缀始终为 .1。
 //    事件类型:
 //    - message.updated.1: 消息创建/更新（v1.4.11+）
 //    - message.part.updated.1: Part 状态更新（v1.4.11+）
@@ -186,11 +189,13 @@ type QuestionPart = questionPart
 //    - server.instance.disposed: 实例销毁通知（v1.4.11+ BusEvent，v1.16.2 改为 EventV2，
 //      线上格式不变，当前未处理）
 //
-// v1.16.2 架构变化说明：
+// 架构变化说明：
 //   v1.16.2 将内部事件系统从 Bus（BusEvent + SyncEvent.Service）迁移至
 //   EventV2（@opencode-ai/core/event）。EventV2Bridge 作为适配层，在内部
 //   消费 EventV2 事件后，通过 GlobalBus 仍然输出与 v1.15.13 完全相同的
 //   BusEvent 和 SyncEvent 格式。因此本文件的 SSE 类型定义无需修改。
+//   v1.19.5 将事件定义迁至 @opencode-ai/schema 的 EventManifest，EventV2Bridge
+//   改用 event.durable 判定持久化事件，线上 BusEvent/SyncEvent 格式仍不变。
 //   未来版本若移除 EventV2Bridge 兼容层，需适配 EventV2 直出格式。
 // ============================================================================
 
