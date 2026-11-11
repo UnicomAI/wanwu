@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -144,12 +145,10 @@ func unzipFromReader(reader io.Reader, destDir string) error {
 		}
 
 		// 安全检查：防止路径遍历
-		if err := ValidateArchivePath(decodeFileName); err != nil {
-			log.Errorf("skip unsafe zip entry: %s, error: %v", decodeFileName, err)
-			continue
+		targetPath, err := ArchiveEntryPath(destDir, decodeFileName)
+		if err != nil {
+			return fmt.Errorf("malicious zip entry %q: %w", decodeFileName, err)
 		}
-
-		targetPath := filepath.Join(destDir, filepath.Clean(decodeFileName))
 
 		if f.FileInfo().IsDir() {
 			if err := os.MkdirAll(targetPath, 0755); err != nil {
@@ -212,12 +211,10 @@ func untar(reader io.Reader, destDir string) error {
 		}
 
 		// 安全检查：防止路径遍历
-		if err := ValidateArchivePath(header.Name); err != nil {
-			log.Errorf("skip unsafe tar entry: %s, error: %v", header.Name, err)
-			continue
+		targetPath, err := ArchiveEntryPath(destDir, header.Name)
+		if err != nil {
+			return fmt.Errorf("malicious tar entry %q: %w", header.Name, err)
 		}
-
-		targetPath := filepath.Join(destDir, filepath.Clean(header.Name))
 
 		switch header.Typeflag {
 		case tar.TypeDir:
@@ -264,15 +261,27 @@ func ungz(reader io.Reader, destDir string, originalFilename string) error {
 		}
 	}()
 
-	// 从 gzip header 中获取原始文件名，如果没有则去除 .gz 后缀
-	outputName := gzReader.Name
-	if outputName == "" {
-		outputName = strings.TrimSuffix(filepath.Base(originalFilename), ".gz")
-		if outputName == "" {
+	// 从 gzip header 中获取原始文件名，如果没有则去除 .gz 后缀。
+	// gzip 的 FNAME 字段完全由压缩包作者控制，可能包含 "../"、绝对路径等，
+	// 必须按不可信输入处理：统一分隔符后只取 basename，
+	// 否则 os.Create(filepath.Join(destDir, outputName)) 会写出解压目录之外
+	// （任意文件写 -> 覆盖可执行文件 -> 命令执行）。
+	// 注意：gzip 只是单文件容器，FNAME 按规范是文件名而非路径，取 basename 不损失语义。
+	if gzReader.Name != "" {
+		if _, err := CleanArchiveEntryName(gzReader.Name); err != nil {
+			return fmt.Errorf("malicious gzip filename %q: %w", gzReader.Name, err)
+		}
+	}
+	outputName := path.Base(strings.ReplaceAll(gzReader.Name, "\\", "/"))
+	if isBlankOrDirName(outputName) {
+		outputName = strings.TrimSuffix(path.Base(strings.ReplaceAll(originalFilename, "\\", "/")), ".gz")
+		if isBlankOrDirName(outputName) {
 			outputName = "decompressed_file"
 		}
 	}
-
+	if _, err := CleanArchiveEntryName(outputName); err != nil {
+		return fmt.Errorf("invalid gzip filename %q: %w", gzReader.Name, err)
+	}
 	// 如果去除 .gz 后缀后文件名以 .tar 结尾，直接走 tar 解压
 	if strings.HasSuffix(strings.ToLower(outputName), ".tar") {
 		return untar(gzReader, destDir)
@@ -293,12 +302,15 @@ func ungz(reader io.Reader, destDir string, originalFilename string) error {
 	}
 
 	// 非 tar 的普通 gz 文件：将偷窥的数据和剩余流拼接后写入磁盘
-	outputPath := filepath.Join(destDir, outputName)
+	outputPath, err := ArchiveEntryPath(destDir, outputName)
+	if err != nil {
+		return fmt.Errorf("invalid gzip output name %q: %w", outputName, err)
+	}
 	if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
 		return fmt.Errorf("create parent directory error: %w", err)
 	}
 
-	outFile, err := os.Create(outputPath)
+	outFile, err := os.OpenFile(outputPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return fmt.Errorf("create output file %s error: %w", outputPath, err)
 	}
@@ -316,22 +328,71 @@ func ungz(reader io.Reader, destDir string, originalFilename string) error {
 	return nil
 }
 
-// ValidateArchivePath 验证压缩包内的路径是否安全（防止路径遍历攻击）
-func ValidateArchivePath(name string) error {
+// isBlankOrDirName 判断已 basename 化的输出名是否为空、当前目录或父目录标记。
+// gzip FNAME 在这些取值下无法落盘为有效文件名，需要回退到 originalFilename。
+func isBlankOrDirName(name string) bool {
+	return name == "" || name == "." || name == "/" || name == ".."
+}
+
+// CleanArchiveEntryName 规范化压缩包内条目名（gzip FNAME、tar header、zip entry），
+// 统一为 "/" 分隔的相对路径，并拒绝绝对路径、盘符、NUL 与任何 ".." 路径段。
+//
+// 压缩包条目名完全由压缩包作者控制，属于不可信输入：任何直接参与
+// filepath.Join 的条目名都必须先经过本函数，否则 ".." 会让落盘路径逃出解压目录
+// （任意文件写，可进一步覆盖可执行文件形成命令执行）。
+//
+// 仅做字符串层面的校验，不访问文件系统。
+func CleanArchiveEntryName(name string) (string, error) {
 	if name == "" {
-		return fmt.Errorf("empty path")
+		return "", fmt.Errorf("empty path")
 	}
-	// 清理路径
-	cleaned := filepath.Clean(name)
-	// 不允许绝对路径
-	if filepath.IsAbs(cleaned) {
-		return fmt.Errorf("absolute path not allowed: %s", name)
+	if strings.ContainsRune(name, 0) {
+		return "", fmt.Errorf("path contains null byte")
 	}
-	// 不允许路径遍历
-	if strings.Contains(cleaned, "..") {
-		return fmt.Errorf("path traversal not allowed: %s", name)
+	// 先统一 Windows 风格分隔符，再做后续判断
+	normalized := strings.ReplaceAll(name, "\\", "/")
+	if strings.HasPrefix(normalized, "/") {
+		return "", fmt.Errorf("absolute path not allowed: %s", name)
 	}
-	return nil
+	// Windows 盘符（C:/x、C:x）在跨平台落盘时可能被解释为绝对路径
+	if len(normalized) >= 2 && normalized[1] == ':' &&
+		((normalized[0] >= 'a' && normalized[0] <= 'z') || (normalized[0] >= 'A' && normalized[0] <= 'Z')) {
+		return "", fmt.Errorf("drive path not allowed: %s", name)
+	}
+	// 逐段拒绝 ".."：path.Clean("a/../b") 会得到 "b"，
+	// 但来源路径本身含 ".." 说明压缩包试图越界，不应放行。
+	for _, part := range strings.Split(normalized, "/") {
+		if part == ".." {
+			return "", fmt.Errorf("path traversal not allowed: %s", name)
+		}
+	}
+	cleaned := path.Clean(normalized)
+	if cleaned == "." || cleaned == ".." || strings.HasPrefix(cleaned, "../") {
+		return "", fmt.Errorf("invalid path: %s", name)
+	}
+	return cleaned, nil
+}
+
+// ArchiveEntryPath 把不可信的压缩包条目名解析为 destDir 下的绝对路径，
+// 并再次校验结果确实落在 destDir 内（字符串校验之外的第二道保险）。
+func ArchiveEntryPath(destDir, name string) (string, error) {
+	cleanName, err := CleanArchiveEntryName(name)
+	if err != nil {
+		return "", err
+	}
+	absDest, err := filepath.Abs(destDir)
+	if err != nil {
+		return "", err
+	}
+	target := filepath.Join(absDest, filepath.FromSlash(cleanName))
+	rel, err := filepath.Rel(absDest, target)
+	if err != nil {
+		return "", err
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || filepath.IsAbs(rel) {
+		return "", fmt.Errorf("archive entry escapes destination: %s", name)
+	}
+	return target, nil
 }
 
 // IsHiddenEntry 判断文件或目录名是否为应跳过的隐藏/系统条目

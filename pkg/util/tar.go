@@ -223,6 +223,13 @@ func Untar(tarData []byte, destDir string) error {
 			}
 			_ = file.Close()
 		case tar.TypeSymlink:
+			// 符号链接的 Linkname 不可信：绝对路径或 "../../etc" 这类相对路径
+			// 会让后续条目通过符号链接写出 destDir 之外（任意文件写）。
+			// 用 ArchiveEntryPath 把 Linkname 解析到 destDir 内并校验落点，
+			// 解析失败（绝对/盘符/含 ".."）一律拒绝。
+			if _, err := ArchiveEntryPath(destDir, header.Linkname); err != nil {
+				return fmt.Errorf("unsafe symlink %s -> %s: %w", header.Name, header.Linkname, err)
+			}
 			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
 				return fmt.Errorf("create parent directory failed: %w", err)
 			}
