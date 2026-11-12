@@ -45,7 +45,7 @@ func StartMCPServer(ctx context.Context) error {
 		var mcpTools []*mcp_util.McpTool
 		var hasErr bool
 		for _, tool := range mcpServerToolList.List {
-			tools, err := mcp_util.CreateMcpTools(ctx, tool.Schema, util.ConvertApiAuthProto(tool.ApiAuth), []string{tool.Name})
+			tools, err := mcp_util.CreateMcpTools(ctx, tool.Schema, util.ConvertApiAuthProto(tool.ApiAuth), []string{tool.Name}, isUserDefinedMCPToolType(tool.Type))
 			if err != nil {
 				hasErr = true
 				log.Errorf("start mcp server(%v) create mcp tool(%v) err: %v", mcpServerInfo.McpServerId, tool.Name, err)
@@ -225,7 +225,7 @@ func UpdateMCPServerTool(ctx *gin.Context, req request.MCPServerToolUpdateReq) e
 		return nil
 	}
 
-	mcpTool, err := mcp_util.CreateMcpTool(ctx.Request.Context(), tool.Schema, util.ConvertApiAuthProto(tool.ApiAuth), tool.Name)
+	mcpTool, err := mcp_util.CreateMcpTool(ctx.Request.Context(), tool.Schema, util.ConvertApiAuthProto(tool.ApiAuth), tool.Name, isUserDefinedMCPToolType(tool.Type))
 	if err != nil {
 		return err
 	}
@@ -342,15 +342,14 @@ func createMCPServerTool(ctx *gin.Context, userID, orgID, mcpServerID string, bu
 	if err != nil {
 		return grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error())
 	}
-	// 只有用户直接提交的 OpenAPI schema 需要带 DNS 的 SSRF 校验；
-	// 自定义工具/内置工具的 schema 来自已校验过的存量数据。
-	if builder.MCPServerToolType() == constant.MCPServerToolTypeOpenAPI {
-		if err := openapi3_util.ValidateSchemaWithURLSecurity(ctx.Request.Context(), []byte(schema)); err != nil {
+	toolType := builder.MCPServerToolType()
+	if isUserDefinedMCPToolType(toolType) {
+		if err := openapi3_util.ValidateSchemaWithStrictURLSecurity(ctx.Request.Context(), []byte(schema)); err != nil {
 			return grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, err.Error())
 		}
 	}
 
-	tools, err := mcp_util.CreateMcpTools(ctx.Request.Context(), schema, auth, operationIDs)
+	tools, err := mcp_util.CreateMcpTools(ctx.Request.Context(), schema, auth, operationIDs, toolType != constant.MCPServerToolTypeBuiltInTool)
 	if err != nil {
 		return grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error())
 	}
@@ -388,6 +387,10 @@ func createMCPServerTool(ctx *gin.Context, userID, orgID, mcpServerID string, bu
 		return grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_mcp_server_register_tool_err", err.Error())
 	}
 	return err
+}
+
+func isUserDefinedMCPToolType(toolType string) bool {
+	return toolType == constant.MCPServerToolTypeOpenAPI || toolType == constant.MCPServerToolTypeCustomTool
 }
 
 func toMCPServerInfo(ctx *gin.Context, mcpServerInfo *mcp_service.MCPServerInfo) response.MCPServerInfo {

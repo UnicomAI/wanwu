@@ -257,6 +257,7 @@ func GetMCPToolList(ctx *gin.Context, req request.MCPToolListReq) (*response.MCP
 	serverUrl := req.ServerURL
 	auth := req.ApiAuth
 	headers := req.Headers
+	strict := req.ServerURL != ""
 	if req.MCPID != "" {
 		switch req.Type {
 		case constant.MCPTypeMCP, "":
@@ -266,6 +267,7 @@ func GetMCPToolList(ctx *gin.Context, req request.MCPToolListReq) (*response.MCP
 			if err != nil {
 				return nil, err
 			}
+			strict = true
 			// 根据 transport 字段选择 URL
 			switch mcpDetail.Transport {
 			case constant.MCPTransportStreamable:
@@ -290,6 +292,7 @@ func GetMCPToolList(ctx *gin.Context, req request.MCPToolListReq) (*response.MCP
 			if err != nil {
 				return nil, err
 			}
+			strict = false
 			// 根据 transport 字段选择 URL
 			switch mcpServerDetail.Transport {
 			case constant.MCPTransportStreamable:
@@ -310,7 +313,7 @@ func GetMCPToolList(ctx *gin.Context, req request.MCPToolListReq) (*response.MCP
 		return nil, grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, "url empty")
 	}
 
-	tools, err := mcp_util.ListToolsWithAuth(ctx.Request.Context(), serverUrl, transportType, auth, headers)
+	tools, err := mcp_util.ListToolsWithAuth(ctx.Request.Context(), serverUrl, transportType, auth, headers, strict)
 	if err != nil {
 		return nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error())
 	}

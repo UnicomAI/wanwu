@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/ThinkInAIXYZ/go-mcp/client"
 	"github.com/ThinkInAIXYZ/go-mcp/protocol"
 	"github.com/ThinkInAIXYZ/go-mcp/transport"
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 )
 
 // MCPConfig represents the JSON input configuration for converting an MCP server to a skill.
@@ -53,6 +55,8 @@ type MCPConfig struct {
 	ApiAuth *APIAuthConfig `json:"apiAuth,omitempty"`
 	// Headers are optional custom HTTP headers to include in requests.
 	Headers map[string]string `json:"headers,omitempty"`
+	// StrictSSRF restricts outbound connections to public addresses.
+	StrictSSRF bool `json:"-"`
 }
 
 // ConvertFromConfig reads a JSON config file, connects to the MCP server,
@@ -109,6 +113,7 @@ func ConvertFromMCPConfig(ctx context.Context, cfg *MCPConfig, outputDir string)
 		URL:           connURL,
 		TransportType: transportType,
 		Headers:       connHeaders,
+		StrictSSRF:    cfg.StrictSSRF,
 	}
 
 	// Derive skill name.
@@ -202,20 +207,29 @@ func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 // newHTTPClientWithHeaders creates an http.Client with custom headers injected.
-func newHTTPClientWithHeaders(headers map[string]string) *http.Client {
-	if len(headers) == 0 {
+func newHTTPClientWithHeaders(headers map[string]string, strict bool) *http.Client {
+	if len(headers) == 0 && !strict {
 		return insecureHTTPClient
 	}
-	return &http.Client{
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+	client := &http.Client{
 		Transport: &headerTransport{
-			base: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true,
-				},
-			},
+			base:    transport,
 			headers: headers,
 		},
 	}
+	if strict {
+		transport.DialContext = url_util.SafeDialContext(&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		})
+		client.CheckRedirect = url_util.CheckRedirectPublic
+	}
+	return client
 }
 
 func listToolsFromServer(ctx context.Context, config MCPServerConfig) ([]*protocol.Tool, error) {
@@ -223,7 +237,7 @@ func listToolsFromServer(ctx context.Context, config MCPServerConfig) ([]*protoc
 		return nil, fmt.Errorf("MCP server URL is required")
 	}
 
-	httpClient := newHTTPClientWithHeaders(config.Headers)
+	httpClient := newHTTPClientWithHeaders(config.Headers, config.StrictSSRF)
 
 	var transportClient transport.ClientTransport
 	var err error

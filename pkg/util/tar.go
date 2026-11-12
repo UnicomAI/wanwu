@@ -205,10 +205,16 @@ func Untar(tarData []byte, destDir string) error {
 
 		switch header.Typeflag {
 		case tar.TypeDir:
+			if err := ensureRealParent(destDir, target); err != nil {
+				return err
+			}
 			if err := os.MkdirAll(target, os.FileMode(header.Mode)); err != nil {
 				return fmt.Errorf("create directory failed: %w", err)
 			}
 		case tar.TypeReg:
+			if err := ensureRealParent(destDir, target); err != nil {
+				return err
+			}
 			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
 				return fmt.Errorf("create parent directory failed: %w", err)
 			}
@@ -223,11 +229,7 @@ func Untar(tarData []byte, destDir string) error {
 			}
 			_ = file.Close()
 		case tar.TypeSymlink:
-			// 符号链接的 Linkname 不可信：绝对路径或 "../../etc" 这类相对路径
-			// 会让后续条目通过符号链接写出 destDir 之外（任意文件写）。
-			// 用 ArchiveEntryPath 把 Linkname 解析到 destDir 内并校验落点，
-			// 解析失败（绝对/盘符/含 ".."）一律拒绝。
-			if _, err := ArchiveEntryPath(destDir, header.Linkname); err != nil {
+			if err := validateSymlinkTarget(destDir, target, header.Linkname); err != nil {
 				return fmt.Errorf("unsafe symlink %s -> %s: %w", header.Name, header.Linkname, err)
 			}
 			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
@@ -240,5 +242,102 @@ func Untar(tarData []byte, destDir string) error {
 		}
 	}
 
+	return nil
+}
+
+// ensureRealParent 确保 target 的父目录链上没有符号链接。
+// 否则 MkdirAll/OpenFile/Symlink 会跟随已有符号链接，把落点带到 destDir 之外。
+func ensureRealParent(destDir, target string) error {
+	absDest, err := filepath.Abs(destDir)
+	if err != nil {
+		return err
+	}
+	absTarget, err := filepath.Abs(target)
+	if err != nil {
+		return err
+	}
+	if absTarget == absDest {
+		return nil
+	}
+	rel, err := filepath.Rel(absDest, filepath.Dir(absTarget))
+	if err != nil {
+		return err
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || filepath.IsAbs(rel) {
+		return fmt.Errorf("target parent escapes destination: %s", target)
+	}
+
+	cur := absDest
+	for _, comp := range strings.Split(rel, string(filepath.Separator)) {
+		if comp == "" || comp == "." {
+			continue
+		}
+		cur = filepath.Join(cur, comp)
+		fi, err := os.Lstat(cur)
+		if os.IsNotExist(err) {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if fi.Mode()&os.ModeSymlink != 0 {
+			return fmt.Errorf("target parent is a symlink: %s", cur)
+		}
+	}
+	return nil
+}
+
+// validateSymlinkTarget 按符号链接所在目录解析 Linkname，并确保最终落点仍在 destDir 内。
+// 允许前导 ".."（如 "../lib/foo"），但拒绝普通路径段之后的 ".."（如 "x/.."）：
+// x 可能是符号链接，字面 Clean 结果与实际解析结果会不一致。
+func validateSymlinkTarget(destDir, symlinkPath, linkname string) error {
+	if linkname == "" {
+		return fmt.Errorf("empty symlink target")
+	}
+	if strings.ContainsRune(linkname, 0) {
+		return fmt.Errorf("symlink target contains null byte")
+	}
+	normalized := strings.ReplaceAll(linkname, "\\", "/")
+	if strings.HasPrefix(normalized, "/") {
+		return fmt.Errorf("absolute symlink target not allowed: %s", linkname)
+	}
+	if len(normalized) >= 2 && normalized[1] == ':' &&
+		((normalized[0] >= 'a' && normalized[0] <= 'z') || (normalized[0] >= 'A' && normalized[0] <= 'Z')) {
+		return fmt.Errorf("drive symlink target not allowed: %s", linkname)
+	}
+
+	seenNonParent := false
+	for _, part := range strings.Split(normalized, "/") {
+		if part == "" || part == "." {
+			continue
+		}
+		if part == ".." {
+			if seenNonParent {
+				return fmt.Errorf("non-leading '..' not allowed in symlink target: %s", linkname)
+			}
+			continue
+		}
+		seenNonParent = true
+	}
+
+	if err := ensureRealParent(destDir, symlinkPath); err != nil {
+		return err
+	}
+	resolved := filepath.Clean(filepath.Join(filepath.Dir(symlinkPath), filepath.FromSlash(normalized)))
+	absDest, err := filepath.Abs(destDir)
+	if err != nil {
+		return err
+	}
+	absResolved, err := filepath.Abs(resolved)
+	if err != nil {
+		return err
+	}
+	rel, err := filepath.Rel(absDest, absResolved)
+	if err != nil {
+		return err
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || filepath.IsAbs(rel) {
+		return fmt.Errorf("symlink target escapes destination: %s", linkname)
+	}
 	return nil
 }
