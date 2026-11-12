@@ -12,6 +12,7 @@ import (
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/client/model"
 	"github.com/UnicomAI/wanwu/internal/mcp-service/config"
+	"github.com/UnicomAI/wanwu/pkg/util"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -41,6 +42,11 @@ func (s *Service) GetSquareTool(ctx context.Context, req *mcp_service.GetSquareT
 			apiKeyValue = apiAuth.ApiKeyValue
 		}
 		apiAuth = toBuiltinToolApiAuth(toolCfg, apiKeyValue)
+	} else {
+		apiAuth = toBuiltinToolApiAuth(toolCfg, "")
+		if apiAuth.AuthType == "" {
+			apiAuth.AuthType = util.AuthTypeNone
+		}
 	}
 	return buildSquareToolDetail(toolCfg, apiAuth), nil
 }
