@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/UnicomAI/wanwu/pkg/constant"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	mcp_util "github.com/UnicomAI/wanwu/pkg/mcp-util"
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
@@ -34,21 +36,31 @@ func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 // newHTTPClientWithHeaders 创建带有header息的 HTTP 客户端
-func newHTTPClientWithHeaders(headers map[string]string) *http.Client {
-	return &http.Client{
+func newHTTPClientWithHeaders(headers map[string]string, strict bool) *http.Client {
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+	clientWithAuth := &http.Client{
 		Transport: &headerTransport{
-			base: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true,
-				},
-			},
+			base:    transport,
 			headers: headers,
 		},
 	}
+	if strict {
+		transport.DialContext = url_util.SafeDialContext(&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		})
+		clientWithAuth.CheckRedirect = url_util.CheckRedirectPublic
+	}
+	return clientWithAuth
 }
 
-// ListToolsWithAuth 根据transport类型获取MCP工具列表，支持鉴权和自定义请求头
-func ListToolsWithAuth(ctx context.Context, url string, transportType string, auth *util.ApiAuthWebRequest, headers map[string]string) ([]*protocol.Tool, error) {
+// ListToolsWithAuth 根据transport类型获取MCP工具列表，支持鉴权和自定义请求头。
+// strict=true 时只允许访问公网地址，用于用户自定义 MCP。
+func ListToolsWithAuth(ctx context.Context, url string, transportType string, auth *util.ApiAuthWebRequest, headers map[string]string, strict bool) ([]*protocol.Tool, error) {
 	var transportClient transport.ClientTransport
 	var err error
 	if transportType == "" || url == "" {
@@ -61,7 +73,7 @@ func ListToolsWithAuth(ctx context.Context, url string, transportType string, au
 	}
 
 	// 构建带鉴权的 HTTP 客户端
-	clientWithAuth := newHTTPClientWithHeaders(mergedHeaders)
+	clientWithAuth := newHTTPClientWithHeaders(mergedHeaders, strict)
 
 	switch transportType {
 	case constant.MCPTransportStreamable:

@@ -325,6 +325,11 @@ func UnarchiveFile(ctx *gin.Context, r *request.UnarchiveFileReq) (*response.Una
 
 	// 从 URL 中获取原始文件名
 	_, _, originalFileName := minio_util.SplitMinioPath(r.FileUrl)
+	// URL 路径由调用方控制，fileName 可能是 "..%2F..%2Fetc%2Fcron.d%2Fx.gz" 之类，
+	// 直接 Join/WriteFile 会把压缩包写出临时目录（任意文件写）。只接受 basename。
+	if err := path_util.ValidateBasename(originalFileName); err != nil {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_unarchive_format", fmt.Sprintf("invalid archive file name %q: %v", originalFileName, err))
+	}
 
 	// 检查是否为支持的压缩格式
 	if !util.IsSupportedArchive(originalFileName) {

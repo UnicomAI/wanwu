@@ -5,6 +5,7 @@ type MCPServerConfig struct {
 	URL           string            // MCP server URL
 	TransportType string            // "sse" or "streamable"
 	Headers       map[string]string // HTTP headers to include in requests
+	StrictSSRF    bool              // 只允许访问公网地址（用户自定义 MCP）
 }
 
 // ConvertOptions configures the conversion process.

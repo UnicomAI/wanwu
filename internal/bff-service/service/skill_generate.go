@@ -57,6 +57,7 @@ func GenerateSkillFromMCP(ctx *gin.Context, mcpID, outputDir string) error {
 		Transport:     transport,
 		ApiAuth:       toMCP2SkillAuth(toApiAuthPtr(mcpDetail.GetApiAuth())),
 		Headers:       mcpDetail.GetHeaders(),
+		StrictSSRF:    true,
 	}
 
 	return mcp2skill.ConvertFromMCPConfig(ctx.Request.Context(), cfg, outputDir)
