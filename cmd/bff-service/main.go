@@ -24,6 +24,7 @@ import (
 	mp "github.com/UnicomAI/wanwu/pkg/model-provider"
 	"github.com/UnicomAI/wanwu/pkg/redis"
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/UnicomAI/wanwu/pkg/wga"
 )
@@ -61,6 +62,9 @@ func main() {
 	if err := config.LoadWgaConfig(wgaConfigFile); err != nil {
 		log.Fatalf("init wga cfg err: %v", err)
 	}
+
+	// init url-util
+	url_util.SetAllowPrivate(config.Cfg().Security.AllowPrivate)
 
 	// init log
 	if err := log.InitLog(config.Cfg().Log.Std, config.Cfg().Log.Level, config.Cfg().Log.Logs...); err != nil {

@@ -21,6 +21,8 @@ var (
 
 type Config struct {
 	Server            ServerConfig               `json:"server" mapstructure:"server"`
+	Security          SecurityConfig             `json:"security" mapstructure:"security"`
+	Statistic         StatisticConfig            `json:"statistic" mapstructure:"statistic"`
 	Log               LogConfig                  `json:"log" mapstructure:"log"`
 	JWT               JWTConfig                  `json:"jwt" mapstructure:"jwt"`
 	OAuth             OAuthConfig                `json:"oauth" mapstructure:"oauth"`
@@ -60,7 +62,10 @@ type Config struct {
 	Workflow            WorkflowServiceConfig `json:"workflow" mapstructure:"workflow"`
 	WgaSandbox          WgaSandboxConfig      `json:"wga-sandbox" mapstructure:"wga-sandbox"`
 	Ontology            OntologyServiceConfig `json:"ontology" mapstructure:"ontology"`
-	Statistic           StatisticConfig       `json:"statistic" mapstructure:"statistic"`
+}
+
+type SecurityConfig struct {
+	AllowPrivate bool `json:"allow_private" mapstructure:"allow_private"`
 }
 
 type ServerConfig struct {
