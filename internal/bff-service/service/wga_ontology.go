@@ -44,13 +44,35 @@ type ontologyDigitalEmployeeBrief struct {
 	Status      int    `json:"status"`
 }
 
+// ontologyDigitalEmployeeEndpoint 数字员工接口出站端点：agent_endpoint（vega-agent 直连，必填）。
+// 直连跳过 vega-web nginx 的 auth_request 用户 token 校验（该校验将入站 Authorization 原样
+// 送 wanwu 权限接口验证，OpenAPI Key 非 JWT 会被 401 拒绝，导致定时任务等 OpenAPI 发起的
+// 数字员工注入失败）。bff 侧已完成调用方鉴权并以 X-User-Id/X-Org-Id 传递身份，
+// vega-agent 按 creator_id/org_id 做数据隔离，语义与经网关一致。
+// agent_endpoint 缺失时启动即失败（见 config.validateOntologyConfig），不做运行期回退。
+func ontologyDigitalEmployeeEndpoint() string {
+	return config.Cfg().Ontology.AgentEndpoint
+}
+
+// ontologyKnowledgeNetworkEndpoint 知识网络接口出站端点：bkn_backend_endpoint（vega-bkn-backend 直连，必填）。
+// 直连 bkn-backend 同样绕过网关 token 校验，规避 OpenAPI Key
+// 来源请求被 401 拒绝的问题（原因见 ontologyDigitalEmployeeEndpoint 注释）；bff 出站已携带
+// X-Account-Id/X-User-Id 头，bkn-backend 依赖其做数据隔离，直连语义与经网关一致。
+// 知识网络为 bkn-backend 直连方言（knowledge_network_list_uri 无 /vega 前缀，对应 nginx 网关
+// $proxy_path_novega 转发规则），与数字员工路由（vega-agent 保留 /vega 前缀）方言不同，
+// 因此不能复用 agent_endpoint。bkn_backend_endpoint 缺失时启动即失败（见 config.validateOntologyConfig），
+// 不做运行期回退。
+func ontologyKnowledgeNetworkEndpoint() string {
+	return config.Cfg().Ontology.BknBackendEndpoint
+}
+
 func GetGeneralAgentOntologyEmployeeSelect(ctx *gin.Context, userId, orgId, name string) ([]*response.GeneralAgentOntologyEmployee, error) {
 	if config.Cfg().Ontology.Enable == 0 {
 		return nil, nil
 	}
 
 	// 构建URL
-	endpoint := config.Cfg().Ontology.Endpoint
+	endpoint := ontologyDigitalEmployeeEndpoint()
 	listUri := config.Cfg().Ontology.DigitalEmployeeListUri
 	requestUrl, err := url.JoinPath(endpoint, listUri)
 	if err != nil {
@@ -137,7 +159,7 @@ func GetGeneralAgentOntologyEmployeeInfo(ctx *gin.Context, userId, orgId, digita
 		return nil, nil
 	}
 
-	endpoint := config.Cfg().Ontology.Endpoint
+	endpoint := ontologyDigitalEmployeeEndpoint()
 	infoUri := config.Cfg().Ontology.DigitalEmployeeInfoUri // 含 {digitalEmployeeId} 占位，只能字符串拼接，不能 url.JoinPath
 	requestUrl := endpoint + infoUri
 
@@ -193,8 +215,8 @@ func getOntologyKnowledgeSelect(ctx *gin.Context, userId, orgId, name string) ([
 	if config.Cfg().Ontology.Enable == 0 {
 		return nil, nil
 	}
-	// 构建URL
-	endpoint := config.Cfg().Ontology.Endpoint
+	// 构建URL：直连 vega-bkn-backend，endpoint 与 URI 均为直连方言（见 ontologyKnowledgeNetworkEndpoint 注释）
+	endpoint := ontologyKnowledgeNetworkEndpoint()
 	listUri := config.Cfg().Ontology.KnowledgeNetworkListUri
 	requestUrl, err := url.JoinPath(endpoint, listUri)
 	if err != nil {

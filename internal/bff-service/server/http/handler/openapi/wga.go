@@ -120,7 +120,13 @@ func DeleteWGAConversation(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.DeleteGeneralAgentConversation(ctx, getUserID(ctx), getOrgID(ctx), req)
+	req.ThreadID = strings.TrimSpace(req.ThreadID)
+	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckWgaConversationOwner(ctx, req.ThreadID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	err := service.DeleteGeneralAgentConversation(ctx, userID, orgID, req)
 	gin_util.Response(ctx, nil, err)
 }
 
@@ -160,7 +166,13 @@ func GetWGAConversationDetail(ctx *gin.Context) {
 	if !gin_util.BindQuery(ctx, &req) {
 		return
 	}
-	resp, err := service.GetGeneralAgentConversationDetail(ctx, getUserID(ctx), getOrgID(ctx), req.ThreadID)
+	req.ThreadID = strings.TrimSpace(req.ThreadID)
+	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckWgaConversationOwner(ctx, req.ThreadID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp, err := service.GetGeneralAgentConversationDetail(ctx, userID, orgID, req.ThreadID)
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -180,6 +192,12 @@ func WGAConversationChat(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
+	req.ThreadID = strings.TrimSpace(req.ThreadID)
+	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckWgaConversationOwner(ctx, req.ThreadID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
 
 	// 校验 agentId 是否合法（空 = Supervisor，或配置中定义的子智能体；Skill 类不开放）
 	if !isAllowedAgentId(req.AgentID) {
@@ -193,7 +211,7 @@ func WGAConversationChat(ctx *gin.Context) {
 		gin_util.Response(ctx, nil, err)
 		return
 	}
-	if err := service.UpdateGeneralAgentConversationConfig(ctx, getUserID(ctx), getOrgID(ctx),
+	if err := service.UpdateGeneralAgentConversationConfig(ctx, userID, orgID,
 		request.UpdateGeneralAgentConversationConfigReq{
 			ThreadID:    req.ThreadID,
 			ModelConfig: modelConfig,
@@ -208,7 +226,7 @@ func WGAConversationChat(ctx *gin.Context) {
 		ThreadID: req.ThreadID,
 		Messages: req.Messages,
 	}
-	err = service.GeneralAgentConversationChat(ctx, getUserID(ctx), getOrgID(ctx), "", chatReq, false)
+	err = service.GeneralAgentConversationChat(ctx, userID, orgID, "", chatReq, false)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 	}
@@ -271,7 +289,13 @@ func GetWGAWorkspace(ctx *gin.Context) {
 	if !gin_util.BindQuery(ctx, &req) {
 		return
 	}
-	resp, err := service.GeneralAgentWorkspaceInfo(ctx, getUserID(ctx), getOrgID(ctx), req)
+	req.ThreadID = strings.TrimSpace(req.ThreadID)
+	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckWgaConversationOwner(ctx, req.ThreadID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp, err := service.GeneralAgentWorkspaceInfo(ctx, userID, orgID, req)
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -293,7 +317,13 @@ func WGAWorkspaceDownload(ctx *gin.Context) {
 	if !gin_util.BindQuery(ctx, &req) {
 		return
 	}
-	fileName, data, err := service.GeneralAgentWorkspaceDownload(ctx, getUserID(ctx), getOrgID(ctx), req)
+	req.ThreadID = strings.TrimSpace(req.ThreadID)
+	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckWgaConversationOwner(ctx, req.ThreadID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	fileName, data, err := service.GeneralAgentWorkspaceDownload(ctx, userID, orgID, req)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return

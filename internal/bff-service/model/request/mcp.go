@@ -30,15 +30,11 @@ func (req *MCPCreate) Check() error {
 	if err := util.ValidateNameAllowSpace(&req.Name, util.SubjectMCP); err != nil {
 		return err
 	}
-	if req.SSEURL != "" {
-		if err := url_util.ValidateURL(req.SSEURL); err != nil {
-			return err
-		}
+	if err := validateMCPURL(req.SSEURL); err != nil {
+		return err
 	}
-	if req.StreamableURL != "" {
-		if err := url_util.ValidateURL(req.StreamableURL); err != nil {
-			return err
-		}
+	if err := validateMCPURL(req.StreamableURL); err != nil {
+		return err
 	}
 	return util.ValidateDesc(&req.Desc, util.SubjectMCP)
 }
@@ -57,15 +53,11 @@ type MCPUpdate struct {
 }
 
 func (req *MCPUpdate) Check() error {
-	if req.SSEURL != "" {
-		if err := url_util.ValidateURL(req.SSEURL); err != nil {
-			return err
-		}
+	if err := validateMCPURL(req.SSEURL); err != nil {
+		return err
 	}
-	if req.StreamableURL != "" {
-		if err := url_util.ValidateURL(req.StreamableURL); err != nil {
-			return err
-		}
+	if err := validateMCPURL(req.StreamableURL); err != nil {
+		return err
 	}
 	return nil
 }
@@ -99,10 +91,12 @@ type MCPToolListReq struct {
 }
 
 func (req *MCPToolListReq) Check() error {
-	if req.ServerURL != "" {
-		if err := url_util.ValidateURL(req.ServerURL); err != nil {
-			return err
-		}
+	return validateMCPURL(req.ServerURL)
+}
+
+func validateMCPURL(rawURL string) error {
+	if rawURL == "" {
+		return nil
 	}
-	return nil
+	return url_util.ValidatePublicURL(rawURL)
 }

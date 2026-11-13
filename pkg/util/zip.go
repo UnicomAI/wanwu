@@ -64,11 +64,13 @@ func UnzipDir(ctx context.Context, localFilePath string, destDir string) (extrac
 		if f.Flags&ZipEFSFlag == 0 {
 			decodeFileName = DecodeGBKToUTF8(decodeFileName)
 		}
-		if err := ValidateArchivePath(decodeFileName); err != nil {
+		// 把不可信条目名解析为 destDir 下的绝对路径，
+		// 字符串级 CleanArchiveEntryName + 文件系统级 filepath.Rel 双重校验。
+		destFilePath, err := ArchiveEntryPath(destDir, decodeFileName)
+		if err != nil {
 			log.Errorf("UnzipDir skip unsafe entry: %s, error: %v", decodeFileName, err)
 			continue
 		}
-		destFilePath := filepath.Join(destDir, decodeFileName)
 		if f.FileInfo().IsDir() {
 			if err := os.MkdirAll(destFilePath, f.Mode()); err != nil {
 				log.Errorf("UnzipDir create directory (%s) error: %v", destFilePath, err)

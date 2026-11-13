@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	v1 "github.com/UnicomAI/wanwu/internal/bff-service/server/http/handler/v1"
+	"github.com/UnicomAI/wanwu/internal/bff-service/server/http/middleware"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	mid "github.com/UnicomAI/wanwu/pkg/gin-util/mid-wrap"
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +16,7 @@ func registerWorkflow(apiV1 *gin.RouterGroup) {
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow/convert", http.MethodPost, v1.WorkflowConvert, "workflow转为chatflow")
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow/copy/draft", http.MethodPost, v1.CopyWorkflowDraft, "拷贝workflow草稿")
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow/model/select/llm", http.MethodGet, v1.ListLlmModelsByWorkflow, "llm模型列表（用于workflow）")
-	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow/export", http.MethodGet, v1.ExportWorkflow, "导出workflow")
+	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow/export", http.MethodGet, v1.ExportWorkflow, "导出workflow", middleware.AuthAppPublish("workflow_id", constant.AppTypeWorkflow))
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow/export/draft", http.MethodGet, v1.ExportWorkflowDraft, "导出workflow草稿")
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/workflow/import", http.MethodPost, v1.ImportWorkflow, "导入workflow")
 
@@ -29,7 +31,7 @@ func registerWorkflow(apiV1 *gin.RouterGroup) {
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/chatflow/convert", http.MethodPost, v1.ChatflowConvert, "chatflow转为workflow")
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/chatflow/copy/draft", http.MethodPost, v1.CopyChatflowDraft, "拷贝chatflow草稿")
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/chatflow/import", http.MethodPost, v1.ImportChatflow, "导入chatflow")
-	mid.Sub("app.workflow").Reg(apiV1, "/appspace/chatflow/export", http.MethodGet, v1.ExportChatflow, "导出chatflow")
+	mid.Sub("app.workflow").Reg(apiV1, "/appspace/chatflow/export", http.MethodGet, v1.ExportChatflow, "导出chatflow", middleware.AuthAppPublish("workflow_id", constant.AppTypeChatflow))
 	mid.Sub("app.workflow").Reg(apiV1, "/appspace/chatflow/export/draft", http.MethodGet, v1.ExportChatflowDraft, "导出chatflow草稿")
 
 }

@@ -28,7 +28,7 @@ type KnowledgeDoc struct {
 	Id           uint32      `json:"id" gorm:"primary_key;type:bigint(20) auto_increment;not null;comment:'id';"` // Primary Key
 	DocId        string      `gorm:"uniqueIndex:idx_unique_doc_id;column:doc_id;type:varchar(64)" json:"docId"`   // Business Primary Key
 	ImportTaskId string      `gorm:"column:batch_id;type:varchar(64);not null;default:'';comment:'导入的任务id'" json:"importTaskId"`
-	KnowledgeId  string      `gorm:"column:knowledge_id;index:idx_user_id_knowledge_id_name,priority:2;index:idx_user_id_knowledge_id_tag,priority:2;type:varchar(64);not null;default:''" json:"knowledgeId"`
+	KnowledgeId  string      `gorm:"column:knowledge_id;index:idx_user_id_knowledge_id_name,priority:2;type:varchar(64);not null;default:''" json:"knowledgeId"`
 	FilePathMd5  string      `gorm:"column:file_path_md5;type:varchar(64);not null;default:'';comment:'文件的md5值'" json:"filePathMd5"`
 	FilePath     string      `gorm:"column:file_path;type:text;not null" json:"filePath"`
 	DirFilePath  string      `gorm:"column:dir_file_path;type:text;not null;comment:'文件在文件夹中的相对目录'" json:"dirFilePath"`
@@ -40,7 +40,7 @@ type KnowledgeDoc struct {
 	ErrorMsg     string      `gorm:"column:error_msg;type:longtext;not null;comment:'解析的错误信息'" json:"errorMsg"`
 	CreatedAt    int64       `gorm:"column:create_at;type:bigint(20);autoCreateTime:milli;not null;" json:"createAt"` // Create Time
 	UpdatedAt    int64       `gorm:"column:update_at;type:bigint(20);autoUpdateTime:milli;not null;" json:"updateAt"` // Update Time
-	UserId       string      `gorm:"column:user_id;index:idx_user_id_knowledge_id_name,priority:1;index:idx_user_id_knowledge_id_tag,priority:1;type:varchar(64);not null;default:'';" json:"userId"`
+	UserId       string      `gorm:"column:user_id;index:idx_user_id_knowledge_id_name,priority:1;type:varchar(64);not null;default:'';" json:"userId"`
 	OrgId        string      `gorm:"column:org_id;type:varchar(64);not null;default:''" json:"orgId"`
 	Deleted      int         `gorm:"column:deleted;type:tinyint(1);not null;default:0;comment:'是否逻辑删除';" json:"deleted"`
 }

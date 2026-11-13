@@ -375,6 +375,12 @@ func ChatflowApplicationInfo(ctx *gin.Context, userId, orgId string, req request
 	if err != nil {
 		return nil, err
 	}
+	if resp.GetWorkflowId() == "" {
+		return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_app_publish_no_permission")
+	}
+	if err := CheckAppPublishAccess(ctx, resp.GetWorkflowId(), constant.AppTypeChatflow, userId, orgId); err != nil {
+		return nil, err
+	}
 	// 再去workflow接口获取draft intelligence info
 	url, _ := url.JoinPath(config.Cfg().Workflow.Endpoint, config.Cfg().Workflow.GetDraftIntelligenceInfoUri)
 	// 构造请求
@@ -428,6 +434,24 @@ func DeleteChatflowConversation(ctx *gin.Context, orgId, projectId, uniqueId str
 		return nil
 	}
 	return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_delete_chatflow_conversation", "delete chatflow conversation failed")
+}
+
+func DeleteChatflowConversationForUser(ctx *gin.Context, userId, orgId, projectId, uniqueId string) error {
+	appInfo, err := app.GetChatflowByApplicationID(ctx.Request.Context(), &app_service.GetChatflowByApplicationIDReq{
+		OrgId:         orgId,
+		UserId:        userId,
+		ApplicationId: projectId,
+	})
+	if err != nil {
+		return err
+	}
+	if appInfo.GetWorkflowId() == "" {
+		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_app_publish_no_permission")
+	}
+	if err := CheckAppPublishAccess(ctx, appInfo.GetWorkflowId(), constant.AppTypeChatflow, userId, orgId); err != nil {
+		return err
+	}
+	return DeleteChatflowConversation(ctx, orgId, projectId, uniqueId)
 }
 
 func DeleteChatflowConversationByConversationId(ctx *gin.Context, userId, orgId, workflowId, conversationId string) error {

@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	url_util "github.com/UnicomAI/wanwu/pkg/url-util"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
@@ -40,19 +41,37 @@ func NewClient(ctx context.Context, schema []byte) (*Client, error) {
 }
 
 func NewClientByDoc(doc *openapi3.T) *Client {
+	return newClientByDoc(doc, false)
+}
+
+// NewStrictClientByDoc 创建只允许访问公网地址的客户端，用于用户提交的
+// 自定义工具/自定义 MCP。拨号前复核 DNS 解析结果并固定 IP，重定向时
+// 重新校验，防止 DNS rebinding 和 302 跳转到内网。
+func NewStrictClientByDoc(doc *openapi3.T) *Client {
+	return newClientByDoc(doc, true)
+}
+
+func newClientByDoc(doc *openapi3.T, strict bool) *Client {
+	dialer := &net.Dialer{
+		Timeout:   time.Minute, // 连接超时时间
+		KeepAlive: time.Minute, // 连接保持活跃的时间
+	}
+	transport := &http.Transport{
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+		DialContext:           dialer.DialContext,
+		ResponseHeaderTimeout: time.Minute,
+	}
+	httpClient := &http.Client{
+		Transport: transport,
+		Timeout:   time.Minute,
+	}
+	if strict {
+		transport.DialContext = url_util.SafeDialContext(dialer)
+		httpClient.CheckRedirect = url_util.CheckRedirectPublic
+	}
 	return &Client{
-		httpClient: &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-				DialContext: (&net.Dialer{
-					Timeout:   time.Minute, // 连接超时时间
-					KeepAlive: time.Minute, // 连接保持活跃的时间
-				}).DialContext,
-				ResponseHeaderTimeout: time.Minute,
-			},
-			Timeout: time.Minute,
-		},
-		doc: doc,
+		httpClient: httpClient,
+		doc:        doc,
 	}
 }
 

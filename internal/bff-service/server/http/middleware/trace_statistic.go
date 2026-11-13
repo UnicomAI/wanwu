@@ -139,6 +139,20 @@ func WithAppResource(appType, resourceField string) TraceStatisticOption {
 	}
 }
 
+// WithAppResourceIfExists 读取 appId 并尝试查询应用创建人。
+// 已发布应用：moduleCreator = 应用 owner；草稿/未发布应用没有 apps 行时回退为当前调用人。
+func WithAppResourceIfExists(appType, resourceField string) TraceStatisticOption {
+	return func(ctx *gin.Context) {
+		appID := getFieldValue(ctx, resourceField)
+		if appID == "" {
+			abortTraceStatistic(ctx, "app resource id is required")
+			return
+		}
+		setModuleResource(ctx, appID, appType)
+		setModuleCreatorFromAppOrCaller(ctx, appID, appType)
+	}
+}
+
 // WithKnowledgeResource 根据 knowledgeId 写入统计维度：AppID=knowledgeId，moduleCreator=知识库创建人。
 func WithKnowledgeResource(knowledgeIDField string) TraceStatisticOption {
 	return func(ctx *gin.Context) {
@@ -291,6 +305,23 @@ func TraceAPIKeyPlain() gin.HandlerFunc {
 			ctx.Set(traceStatisticAPIKeyKey, key)
 		}
 	}
+}
+
+// setModuleCreatorFromAppOrCaller 优先使用应用 owner 作为 moduleCreator；
+// 未发布草稿在 app 表无记录时回退当前调用人，避免 draft 场景 owner 查询失败阻塞请求。
+func setModuleCreatorFromAppOrCaller(ctx *gin.Context, appID, appType string) {
+	userID, orgID, err := service.LookupAppCreator(ctx.Request.Context(), appID, appType)
+	if err == nil {
+		setModuleCreator(ctx, userID, orgID)
+		return
+	}
+	log.Warnf("trace app resource %q type %q creator lookup failed, fallback to caller: %v", appID, appType, err)
+	userID, orgID, err = getUserInfo(ctx)
+	if err != nil {
+		abortTraceStatistic(ctx, err.Error())
+		return
+	}
+	setModuleCreator(ctx, userID, orgID)
 }
 
 func setModuleCreator(ctx *gin.Context, userID, orgID string) {

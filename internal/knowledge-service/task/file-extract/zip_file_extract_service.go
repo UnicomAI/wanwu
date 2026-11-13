@@ -57,13 +57,14 @@ func (t ZipFileExtractServiceService) ExtractFile(ctx context.Context, localFile
 		} else {
 			decodeFileName = f.Name
 		}
-		// 安全检查：拒绝含路径遍历的条目，防止 Zip Slip 写出 destDir 之外
-		if err := util.ValidateArchivePath(decodeFileName); err != nil {
+		// 安全检查：把不可信条目名解析为 destDir 下的绝对路径，
+		// 字符串级 CleanArchiveEntryName + 文件系统级 filepath.Rel 双重校验，
+		// 与 unarchive.go 的 ArchiveEntryPath 标准对齐。
+		destFilePath, err := util.ArchiveEntryPath(destDir, decodeFileName)
+		if err != nil {
 			log.Errorf("skip unsafe zip entry: %s, error: %v", decodeFileName, err)
 			continue
 		}
-		// 构建完整的文件路径
-		destFilePath := filepath.Join(destDir, decodeFileName)
 		// 检查是否为目录
 		if f.FileInfo().IsDir() {
 			// 创建目录

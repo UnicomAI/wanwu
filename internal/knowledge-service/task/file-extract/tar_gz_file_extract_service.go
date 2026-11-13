@@ -68,13 +68,14 @@ func (t TarGzFileExtractServiceService) ExtractFile(ctx context.Context, localFi
 			log.Errorf("error tar reader: %v", err)
 			return "", err
 		}
-		// 安全检查：拒绝含路径遍历的条目，防止 Tar Slip 写出 destDir 之外
-		if err := util.ValidateArchivePath(header.Name); err != nil {
+		// 安全检查：把不可信条目名解析为 destDir 下的绝对路径，
+		// 字符串级 CleanArchiveEntryName + 文件系统级 filepath.Rel 双重校验，
+		// 与 unarchive.go 的 ArchiveEntryPath 标准对齐。
+		path, err := util.ArchiveEntryPath(destDir, header.Name)
+		if err != nil {
 			log.Errorf("skip unsafe tar entry: %s, error: %v", header.Name, err)
 			continue
 		}
-		// 获取文件的路径
-		path := filepath.Join(destDir, header.Name)
 		// 根据文件类型创建文件夹或者写文件
 		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 			log.Errorf("error make dir: %v", err)

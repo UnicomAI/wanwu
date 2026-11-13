@@ -271,14 +271,14 @@ func getAppUrlInfoAndCheck(ctx *gin.Context, suffix string) (*app_service.AppUrl
 	return appUrlInfo, nil
 }
 
-// checkUrlConversationOwner 校验 conversationId 属于当前 X-Client-ID 用户且属于 suffix 对应的智能体。
-// openurl 为匿名访问，用户身份为 X-Client-ID（xCId），assistantId 来自 suffix 反查的 appUrlInfo.AppId。
+// checkUrlConversationOwner 校验 conversationId 属于当前 X-Client-ID 用户。
+// openurl 为匿名访问，用户身份为 X-Client-ID（xCId），组织取自 suffix 反查的 appUrlInfo.OrgId。
 // conversationId 为空时跳过校验（首次对话等场景由后端创建）。
 func checkUrlConversationOwner(ctx *gin.Context, conversationId, xCId string, appUrlInfo *app_service.AppUrlInfo) error {
 	if conversationId == "" {
 		return nil
 	}
-	return CheckConversationOwner(ctx, conversationId, appUrlInfo.AppId, xCId, appUrlInfo.OrgId)
+	return CheckAgentConversationAccess(ctx, conversationId, xCId, appUrlInfo.OrgId)
 }
 
 func AppUrlQuestionRecommend(ctx *gin.Context, req request.UrlQuestionRecommendRequest, xCid, suffix string) error {

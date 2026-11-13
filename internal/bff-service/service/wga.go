@@ -431,6 +431,14 @@ func GeneralAgentWorkspaceInfo(ctx *gin.Context, userId, orgId string, req reque
 	}, nil
 }
 
+// newGeneralAgentWorkspaceStoreByThreadID 按业务 threadID 解析对应的 workspace Store。
+//
+// 注意：这是“按 skill 绑定关系解析”的读取入口，不是删除入口：
+//   - 普通对话返回 NewGeneralAgentWorkspaceStore(threadID)（BaseDir）
+//   - skill 绑定的对话返回 NewGeneralAgentSkillWorkspaceStore(skillID)（SkillBaseDir）
+//
+// 删除对话 workspace 时必须使用 NewGeneralAgentWorkspaceStore(threadID)，
+// 不能调用本方法，否则会把 skill 对话解析成 skill 的共享工作区并误删。
 func newGeneralAgentWorkspaceStoreByThreadID(ctx *gin.Context, userId, orgId, threadID string) (*wga_persistent.Store, error) {
 	if !config.WgaCfg().Persistent.Enabled {
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, "persistent not enabled")

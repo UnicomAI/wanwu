@@ -34,7 +34,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOOS=linux GOARCH=$WANWU_ARCH go build -ldflags="-s -w" -o openapi2skill ./pkg/openapi2skill/cmd
 
-FROM crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/wga-sandbox-base:1.0.0.152-opencode1.16.2
+FROM crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/wga-sandbox-base:1.0.0.152-opencode1.19.5
 
 USER root
 

@@ -285,6 +285,7 @@ func GetMCPToolList(ctx *gin.Context, req request.MCPToolListReq) (*response.MCP
 	serverUrl := req.ServerURL
 	auth := req.ApiAuth
 	headers := req.Headers
+	strict := req.ServerURL != ""
 	if req.MCPID != "" {
 		switch req.Type {
 		case constant.MCPTypeMCP, "":
@@ -296,6 +297,17 @@ func GetMCPToolList(ctx *gin.Context, req request.MCPToolListReq) (*response.MCP
 			}
 			if e := checkManagedOwner(mcpDetail.GetApiAuth(), mcpDetail.GetOwner(), ctx.GetString(gin_util.USER_ID), ctx.GetHeader(gin_util.X_ORG_ID)); e != nil {
 				return nil, e
+			}
+			strict = true
+			if mcpDetail.GetApiAuth().GetApiKeyHeader() == mcpoauth.RelayHeader {
+				runtime, e := oauthService()
+				if e != nil {
+					return nil, e
+				}
+				if mcpDetail.GetStreamableUrl() != runtime.config.RelayURL {
+					return nil, mcpoauth.ErrUnauthorized
+				}
+				strict = false // Only the administrator-configured, owner-checked relay.
 			}
 			// 根据 transport 字段选择 URL
 			switch mcpDetail.Transport {
@@ -320,6 +332,7 @@ func GetMCPToolList(ctx *gin.Context, req request.MCPToolListReq) (*response.MCP
 			if err != nil {
 				return nil, err
 			}
+			strict = false
 			// 根据 transport 字段选择 URL
 			switch mcpServerDetail.Transport {
 			case constant.MCPTransportStreamable:
@@ -340,7 +353,7 @@ func GetMCPToolList(ctx *gin.Context, req request.MCPToolListReq) (*response.MCP
 		return nil, grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, "url empty")
 	}
 
-	tools, err := mcp_util.ListToolsWithAuth(ctx.Request.Context(), serverUrl, transportType, auth, headers)
+	tools, err := mcp_util.ListToolsWithAuth(ctx.Request.Context(), serverUrl, transportType, auth, headers, strict)
 	if err != nil {
 		return nil, grpc_util.ErrorStatus(err_code.Code_BFFGeneral, err.Error())
 	}

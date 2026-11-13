@@ -116,16 +116,6 @@ const (
 	BizModuleAppDigitalEmployee = "digitalemployee" // 数字员工
 )
 
-// StatisticModuleAllowsEmptyAppID 应用统计 V2 写入/查询：这些板块允许 appId 为空（板块级维度）。
-func StatisticModuleAllowsEmptyAppID(module string) bool {
-	switch module {
-	case BizModuleWGA, BizModuleModel, BizModuleResourceSkill, BizModuleResourceKnowledge, BizModuleResourcePrompt:
-		return true
-	default:
-		return false
-	}
-}
-
 // BizModuleName 返回业务板块中文展示名；未知 code 原样返回。
 func BizModuleName(module string) string {
 	switch module {

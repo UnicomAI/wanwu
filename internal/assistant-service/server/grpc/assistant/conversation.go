@@ -509,13 +509,16 @@ func buildAgentSendRequest(req *assistant_service.AssistantConversionStreamReq) 
 		}
 		params := &http_client.HttpRequestParams{
 			Body:       paramsBytes,
-			Timeout:    15 * time.Minute,
+			Timeout:    30 * time.Minute,
 			Url:        assistantConfig.NewSseUrl,
 			MonitorKey: monitorKey,
 			LogLevel:   http_client.LogAll,
 		}
 		ctx, cancelFunction := context.WithTimeout(ctx, params.Timeout)
-		result, err := http_client.Default().PostJsonOriResp(ctx, params)
+		baseClient := http_client.Default().Client
+		streamClient := *baseClient
+		streamClient.Timeout = 0
+		result, err := http_client.Create(&streamClient).PostJsonOriResp(ctx, params)
 		if err == nil {
 			err = readHttpErr(result)
 		}
