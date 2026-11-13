@@ -102,6 +102,10 @@ func GetRagConversationDetail(ctx *gin.Context) {
 		return
 	}
 	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckRagConversationAccess(ctx, req.ConversationID, req.UUID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
 	resp, err := service.RagConversationDetailList(ctx, userID, orgID, request.RagConversationDetailListReq{
 		RagID:          req.UUID,
 		ConversationID: req.ConversationID,
@@ -127,6 +131,10 @@ func DeleteRagConversation(ctx *gin.Context) {
 		return
 	}
 	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckRagConversationAccess(ctx, req.ConversationID, req.UUID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
 	_, err := service.RagConversationDelete(ctx, userID, orgID, request.RagConversationIDReq{
 		RagID:          req.UUID,
 		ConversationID: req.ConversationID,
@@ -151,6 +159,10 @@ func ClearRagConversation(ctx *gin.Context) {
 		return
 	}
 	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckRagConversationAccess(ctx, req.ConversationID, req.UUID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
 	_, err := service.RagConversationClear(ctx, userID, orgID, request.RagConversationIDReq{
 		RagID:          req.UUID,
 		ConversationID: req.ConversationID,

@@ -521,17 +521,20 @@ func assistantMCPConvert(ctx *gin.Context, assistantMCPInfos []*assistant_servic
 		McpIdList:       MCPCustomIds,
 		McpServerIdList: MCPServerIds,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	// 构建MCP详情映射
 	mcpDetailMap := make(map[string]*mcp_service.CustomMCPInfo)
-	if err == nil && mcpResp != nil { // 仅当查询成功且响应有效时才构建映射
+	if mcpResp != nil {
 		for _, item := range mcpResp.Infos {
 			mcpDetailMap[item.McpId] = item
 		}
 	}
 	// 构建MCPServer详情映射
 	mcpserverDetailMap := make(map[string]*mcp_service.MCPServerInfo)
-	if err == nil && mcpResp != nil { // 仅当查询成功且响应有效时才构建映射
+	if mcpResp != nil {
 		for _, item := range mcpResp.Servers {
 			mcpserverDetailMap[item.McpServerId] = item
 		}
@@ -602,16 +605,19 @@ func assistantToolsConvert(ctx *gin.Context, assistantToolInfos []*assistant_ser
 		BuiltInToolIdList: builtinToolIds,
 		CustomToolIdList:  customToolIds,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	// 构建ID到工具信息的映射
 	customToolMap := make(map[string]*mcp_service.GetCustomToolItem)
-	if err == nil && toolInfoResp != nil { // 仅当查询成功且响应有效时才构建映射
+	if toolInfoResp != nil {
 		for _, item := range toolInfoResp.List {
 			customToolMap[item.CustomToolId] = item
 		}
 	}
 	builtinToolMap := make(map[string]*mcp_service.ToolSquareInfo)
-	if err == nil && toolInfoResp != nil { // 仅当查询成功且响应有效时才构建映射
+	if toolInfoResp != nil {
 		for _, item := range toolInfoResp.ToolSquareInfoList {
 			builtinToolMap[item.ToolSquareId] = item
 		}
@@ -692,8 +698,7 @@ func assistantSkillConvert(ctx *gin.Context, assistantSkillInfos []*assistant_se
 		var err error
 		customSkillMap, err = getCustomSkillPublishMap(ctx, customSkillIds)
 		if err != nil {
-			log.Warnf("获取自定义 skill 详情失败，err: %v", err)
-			customSkillMap = make(map[string]*mcp_service.PublishCustomSkill)
+			return nil, err
 		}
 	}
 
@@ -702,8 +707,7 @@ func assistantSkillConvert(ctx *gin.Context, assistantSkillInfos []*assistant_se
 		var err error
 		acquiredSkillMap, err = getAcquiredSkillByIDMap(ctx, acquiredSkillIds)
 		if err != nil {
-			log.Warnf("获取我添加的 skill 详情失败，err: %v", err)
-			acquiredSkillMap = make(map[string]*mcp_service.AcquiredSkill)
+			return nil, err
 		}
 	}
 
@@ -722,8 +726,7 @@ func assistantSkillConvert(ctx *gin.Context, assistantSkillInfos []*assistant_se
 		var err error
 		acquiredAppInfoMap, err = getSourceSkillAppInfoMap(ctx, sourceSkillIds)
 		if err != nil {
-			log.Warnf("获取我添加的 skill 源发布信息失败，err: %v", err)
-			acquiredAppInfoMap = make(map[string][]*app_service.AppInfo)
+			return nil, err
 		}
 	}
 

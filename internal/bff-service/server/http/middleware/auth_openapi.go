@@ -40,6 +40,11 @@ func AuthOpenAPIKey() func(*gin.Context) {
 		ctx.Set(gin_util.USER_ID, apiKey.UserId)
 		ctx.Set(gin_util.X_ORG_ID, apiKey.OrgId)
 		ctx.Set(gin_util.API_KEY_ID, apiKey.KeyId)
+
+		// OpenAPI 的身份组织必须来自 API Key 本身。
+		// middleware.getOrgID 优先读取请求头 X-Org-Id；若不覆盖该请求头，
+		// 调用方可以伪造 X-Org-Id 绕过 AuthKnowledge 等基于组织的数据权限校验。
+		ctx.Request.Header.Set(gin_util.X_ORG_ID, apiKey.OrgId)
 	}
 }
 

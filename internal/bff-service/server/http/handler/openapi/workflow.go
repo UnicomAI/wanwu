@@ -67,6 +67,11 @@ func CreateChatflowConversation(ctx *gin.Context) {
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
 
+	if err := service.CheckOpenAPIAccess(ctx, req.UUID, constant.AppTypeChatflow, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+
 	resp, err := service.CreateChatflowConversation(ctx, userID, orgID, req.UUID, req.ConversationName)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
@@ -92,6 +97,15 @@ func GetConversationMessageList(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
+
+	if err := service.CheckOpenAPIAccess(ctx, req.UUID, constant.AppTypeChatflow, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	if err := service.CheckChatflowConversationAccess(ctx, req.ConversationId, req.UUID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
 
 	resp, err := service.GetConversationMessageList(ctx, userID, orgID, req.UUID, req.ConversationId, req.Limit)
 	if err != nil {
@@ -119,6 +133,15 @@ func DeleteChatflowConversation(ctx *gin.Context) {
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
 
+	if err := service.CheckOpenAPIAccess(ctx, req.UUID, constant.AppTypeChatflow, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	if err := service.CheckChatflowConversationAccess(ctx, req.ConversationId, req.UUID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+
 	err := service.DeleteChatflowConversationByConversationId(ctx, userID, orgID, req.UUID, req.ConversationId)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
@@ -144,6 +167,11 @@ func GetChatflowConversationList(ctx *gin.Context) {
 	}
 	userID := getUserID(ctx)
 	orgID := getOrgID(ctx)
+
+	if err := service.CheckOpenAPIAccess(ctx, req.UUID, constant.AppTypeChatflow, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
 
 	resp, err := service.GetChatflowConversationList(ctx, userID, orgID, req.UUID)
 	if err != nil {
@@ -173,6 +201,10 @@ func ChatflowChat(ctx *gin.Context) {
 
 	// OpenAPI 权限检查：仅允许调用自己创建的已发布应用
 	if err := service.CheckOpenAPIAccess(ctx, req.UUID, constant.AppTypeChatflow, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	if err := service.CheckChatflowConversationAccess(ctx, req.ConversationId, req.UUID, userID, orgID); err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
 	}

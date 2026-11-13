@@ -549,6 +549,7 @@ services:
       - DH_SMTP_PASS=${DH_SMTP_PASS:-}
       - DH_SMTP_FROM_NAME=${DH_SMTP_FROM_NAME:-数字员工}
       - DH_SMTP_USE_SSL=${DH_SMTP_USE_SSL:-auto}
+      - DH_SMTP_SSL_VERIFY=${DH_SMTP_SSL_VERIFY:-peer}
       - DH_SMTP_TIMEOUT=${DH_SMTP_TIMEOUT:-15}
       # 定时任务大文件对象存储配置（MinIO/S3 兼容，复用 infra 的 WANWU_MINIO_*）
       - WANWU_MINIO_HOST=${WANWU_MINIO_HOST:-minio-wanwu}
@@ -561,6 +562,7 @@ services:
       - DH_OSS_LINK_TTL_DAYS=${DH_OSS_LINK_TTL_DAYS:-7}
       - DH_WS_ATTACH_THRESHOLD_MB=${DH_WS_ATTACH_THRESHOLD_MB:-25}
       - DH_WS_MAX_FILE_SIZE_MB=${DH_WS_MAX_FILE_SIZE_MB:-200}
+      - DH_SCHEDULE_QUESTION_MAX_LENGTH=${DH_SCHEDULE_QUESTION_MAX_LENGTH:-2000}
       - REPLACE_MINIO_DOWNLOAD_URL=${WANWU_WEB_BASE_URL}/minio/download/api/
     depends_on:
       mysql-setup-ontology:

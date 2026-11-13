@@ -17,6 +17,7 @@ type McpTool struct {
 	auth    *openapi3_util.Auth
 	tool    *protocol.Tool
 	handler server.ToolHandlerFunc
+	strict  bool
 }
 
 func (tool *McpTool) Name() string { return tool.tool.Name }
@@ -65,11 +66,12 @@ func (tool *McpTool) Update(ctx context.Context, name, desc string) (*McpTool, e
 		schema:  string(b),
 		tool:    newTool,
 		auth:    tool.auth,
-		handler: genMcpToolHandler(doc, tool.auth, name),
+		handler: genMcpToolHandler(doc, tool.auth, name, tool.strict),
+		strict:  tool.strict,
 	}, nil
 }
 
-func CreateMcpTool(ctx context.Context, schema string, auth *openapi3_util.Auth, operationID string) (*McpTool, error) {
+func CreateMcpTool(ctx context.Context, schema string, auth *openapi3_util.Auth, operationID string, strict bool) (*McpTool, error) {
 	doc, err := openapi3_util.LoadFromData(ctx, []byte(schema))
 	if err != nil {
 		return nil, err
@@ -86,14 +88,15 @@ func CreateMcpTool(ctx context.Context, schema string, auth *openapi3_util.Auth,
 		schema:  string(b),
 		tool:    tool,
 		auth:    auth,
-		handler: genMcpToolHandler(doc, auth, operationID),
+		handler: genMcpToolHandler(doc, auth, operationID, strict),
+		strict:  strict,
 	}, nil
 }
 
-func CreateMcpTools(ctx context.Context, schema string, auth *openapi3_util.Auth, operationIDs []string) ([]*McpTool, error) {
+func CreateMcpTools(ctx context.Context, schema string, auth *openapi3_util.Auth, operationIDs []string, strict bool) ([]*McpTool, error) {
 	var mcpTools []*McpTool
 	for _, operationID := range operationIDs {
-		mcpTool, err := CreateMcpTool(ctx, schema, auth, operationID)
+		mcpTool, err := CreateMcpTool(ctx, schema, auth, operationID, strict)
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +105,7 @@ func CreateMcpTools(ctx context.Context, schema string, auth *openapi3_util.Auth
 	return mcpTools, nil
 }
 
-func genMcpToolHandler(doc *openapi3.T, auth *openapi3_util.Auth, operationID string) server.ToolHandlerFunc {
+func genMcpToolHandler(doc *openapi3.T, auth *openapi3_util.Auth, operationID string, strict bool) server.ToolHandlerFunc {
 	return func(ctx context.Context, req *protocol.CallToolRequest) (*protocol.CallToolResult, error) {
 
 		// operation
@@ -166,6 +169,9 @@ func genMcpToolHandler(doc *openapi3.T, auth *openapi3_util.Auth, operationID st
 
 		// http client
 		client := openapi3_util.NewClientByDoc(doc)
+		if strict {
+			client = openapi3_util.NewStrictClientByDoc(doc)
+		}
 
 		// do request
 		resp, err := client.DoRequestByOperationID(ctx, operationID, &openapi3_util.RequestParams{

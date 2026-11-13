@@ -689,8 +689,8 @@
 {"code":300013,"key":"api_key_get_by_key","langs":{"zh":"获取ApiKey信息错误:%v"}}
 {"code":0,"key":"app_statistic_model_call_trend","langs":{"zh":"模型调用趋势表"}}
 {"code":0,"key":"app_statistic_call_count_total","langs":{"zh":"调用总数"}}
-{"code":0,"key":"app_statistic_call_success","langs":{"zh":"模型调用成功数"}}
-{"code":0,"key":"app_statistic_call_failure","langs":{"zh":"模型调用失败数"}}
+{"code":0,"key":"app_statistic_call_success","langs":{"zh":"调用成功数"}}
+{"code":0,"key":"app_statistic_call_failure","langs":{"zh":"调用失败数"}}
 {"code":0,"key":"app_statistic_model_tokens_usage_trend","langs":{"zh":"模型调用Token统计表"}}
 {"code":0,"key":"app_statistic_total_tokens","langs":{"zh":"模型调用总Token"}}
 {"code":0,"key":"app_statistic_completion_tokens","langs":{"zh":"模型调用输出Token"}}

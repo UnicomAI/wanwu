@@ -218,5 +218,5 @@ func DeleteChatflowConversation(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	gin_util.Response(ctx, nil, service.DeleteChatflowConversation(ctx, getOrgID(ctx), req.ProjectId, req.UniqueId))
+	gin_util.Response(ctx, nil, service.DeleteChatflowConversationForUser(ctx, getUserID(ctx), getOrgID(ctx), req.ProjectId, req.UniqueId))
 }

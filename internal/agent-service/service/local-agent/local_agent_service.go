@@ -2,6 +2,7 @@ package local_agent
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/UnicomAI/wanwu/internal/agent-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/agent-service/pkg/config"
@@ -36,6 +37,16 @@ func CreateLocalAgentService(ctx context.Context, req *request.AgentChatParams, 
 	return &ChatAgent{ChatContext: chatContext}
 }
 
+func chatModelHTTPClient() *http.Client {
+	base := agent_http_client.GetClient().Client
+	if base == nil {
+		return &http.Client{Timeout: 0}
+	}
+	client := *base
+	client.Timeout = 0
+	return &client
+}
+
 func CreateChatModel(ctx context.Context, agentChatInfo *service_model.AgentChatInfo, req *request.AgentChatParams) (model.ToolCallingChatModel, error) {
 	modelInfo := agentChatInfo.ModelInfo
 	modelConfig := modelInfo.Config
@@ -52,7 +63,7 @@ func CreateChatModel(ctx context.Context, agentChatInfo *service_model.AgentChat
 
 	if config.GetToolTemplateConfig().DeepSeekReasoning(modelInfo.Provider, modelInfo.Model) {
 		return deepseek.NewChatModel(ctx, &deepseek.ChatModelConfig{
-			HTTPClient:       agent_http_client.GetClient().Client,
+			HTTPClient:       chatModelHTTPClient(),
 			APIKey:           modelConfig.ApiKey,
 			BaseURL:          modelConfig.EndpointUrl,
 			Model:            modelInfo.Model,
@@ -65,7 +76,7 @@ func CreateChatModel(ctx context.Context, agentChatInfo *service_model.AgentChat
 		})
 	}
 	return openai.NewChatModel(ctx, &openai.ChatModelConfig{
-		HTTPClient:          agent_http_client.GetClient().Client,
+		HTTPClient:          chatModelHTTPClient(),
 		APIKey:              modelConfig.ApiKey,
 		BaseURL:             modelConfig.EndpointUrl,
 		Model:               modelInfo.Model,

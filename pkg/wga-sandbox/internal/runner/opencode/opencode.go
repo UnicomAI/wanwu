@@ -1,6 +1,6 @@
 // Package opencode 提供 opencode 智能体的运行器实现（基于 HTTP API）。
 //
-// 基于 opencode >= v1.4.11 的 SSE 事件格式实现，兼容 v1.14.51、v1.15.13、v1.16.2。
+// 基于 opencode >= v1.4.11 的 SSE 事件格式实现，兼容 v1.14.51、v1.15.13、v1.16.2、v1.19.5。
 //
 // 版本基线说明：
 //
@@ -14,6 +14,8 @@
 //	  通过 legacy Bus/SyncEvent 间接输出，线上格式不变
 //	- v1.16.2：EventV2Bridge 直接输出至 GlobalBus，session.next.* 事件默认开启，
 //	  线上 BusEvent/SyncEvent 格式仍不变
+//	- v1.19.5：事件定义迁至 @opencode-ai/schema 的 EventManifest，EventV2Bridge 改用
+//	  event.durable 判定持久化事件，线上 BusEvent/SyncEvent 格式仍不变
 //
 // 通过 SSE 连接接收 opencode 事件流，转换为统一的 JSON 格式输出。
 //
@@ -29,6 +31,19 @@
 //     自动忽略，无需代码修改。
 //   - 新增 session.next.* 系列细粒度事件（SyncEvent），当前未处理，不影响现有逻辑。
 //   - 注意：未来版本可能移除 BusEvent 兼容层，届时需适配 EventV2 直出格式。
+//
+// v1.19.5 兼容性说明：
+//   - 事件定义由 @opencode-ai/schema 的 EventManifest 统一登记，EventV2Bridge 依据
+//     event.durable 判定是否补发 SyncEvent（v1.16.2 为 EventV2.registry 查表），
+//     线上 BusEvent/SyncEvent 形状完全一致。
+//   - message.updated / message.part.updated 的 durable version 仍为 1，线上类型后缀仍为 .1。
+//   - session.idle 仍随 session.status(idle) 一并发送（仍标记 deprecated）。
+//   - serve 运行时仍走 legacy session/tool 路径，发出 question.asked（QuestionV1）；
+//     packages/core 的 question.v2.* 事件未被 serve 使用。
+//   - message.part.updated 的 ToolState completed 新增 title/metadata/time/attachments 字段，
+//     被 Go json.Unmarshal 自动忽略。
+//   - 行为变化（非 wire）：provider 的 headerTimeout/chunkTimeout 默认 300000ms，
+//     subagent_depth 默认 1；如需保持旧行为需在 opencode.json 中显式配置。
 package opencode
 
 import (

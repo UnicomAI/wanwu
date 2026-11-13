@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"strings"
+
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
@@ -343,7 +345,13 @@ func DeleteGeneralAgentConversation(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.DeleteGeneralAgentConversation(ctx, getUserID(ctx), getOrgID(ctx), req)
+	req.ThreadID = strings.TrimSpace(req.ThreadID)
+	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckWgaConversationOwner(ctx, req.ThreadID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	err := service.DeleteGeneralAgentConversation(ctx, userID, orgID, req)
 	gin_util.Response(ctx, nil, err)
 }
 
@@ -384,7 +392,13 @@ func GetGeneralAgentConversationDetail(ctx *gin.Context) {
 	if !gin_util.BindQuery(ctx, &req) {
 		return
 	}
-	resp, err := service.GetGeneralAgentConversationDetail(ctx, getUserID(ctx), getOrgID(ctx), req.ThreadID)
+	req.ThreadID = strings.TrimSpace(req.ThreadID)
+	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckWgaConversationOwner(ctx, req.ThreadID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp, err := service.GetGeneralAgentConversationDetail(ctx, userID, orgID, req.ThreadID)
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -423,7 +437,13 @@ func GetGeneralAgentConversationConfig(ctx *gin.Context) {
 	if !gin_util.BindQuery(ctx, &req) {
 		return
 	}
-	resp, err := service.GetGeneralAgentConversationConfig(ctx, getUserID(ctx), getOrgID(ctx), req)
+	req.ThreadID = strings.TrimSpace(req.ThreadID)
+	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckWgaConversationOwner(ctx, req.ThreadID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	resp, err := service.GetGeneralAgentConversationConfig(ctx, userID, orgID, req)
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -443,7 +463,13 @@ func UpdateGeneralAgentConversationConfig(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.UpdateGeneralAgentConversationConfig(ctx, getUserID(ctx), getOrgID(ctx), req)
+	req.ThreadID = strings.TrimSpace(req.ThreadID)
+	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckWgaConversationOwner(ctx, req.ThreadID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	err := service.UpdateGeneralAgentConversationConfig(ctx, userID, orgID, req)
 	gin_util.Response(ctx, nil, err)
 }
 
@@ -551,7 +577,13 @@ func GeneralAgentConversationChat(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	err := service.GeneralAgentConversationChat(ctx, getUserID(ctx), getOrgID(ctx), getClientID(ctx), req, true)
+	req.ThreadID = strings.TrimSpace(req.ThreadID)
+	userID, orgID := getUserID(ctx), getOrgID(ctx)
+	if err := service.CheckWgaConversationOwner(ctx, req.ThreadID, userID, orgID); err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	err := service.GeneralAgentConversationChat(ctx, userID, orgID, getClientID(ctx), req, true)
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 	}
