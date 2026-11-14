@@ -230,6 +230,16 @@ func AssistantWorkFlowEnableSwitch(ctx *gin.Context, userId, orgId string, req r
 }
 
 func AssistantMCPCreate(ctx *gin.Context, userId, orgId string, req request.AssistantMCPToolAddRequest) error {
+	if req.MCPType == constant.MCPTypeMCP {
+		detail, e := mcp.GetCustomMCP(ctx.Request.Context(), &mcp_service.GetCustomMCPReq{McpId: req.MCPId})
+		if e != nil {
+			return e
+		}
+		if e = checkManagedOwner(detail.GetApiAuth(), detail.GetOwner(), userId, orgId); e != nil {
+			return e
+		}
+	}
+
 	_, err := assistant.AssistantMCPCreate(ctx.Request.Context(), &assistant_service.AssistantMCPCreateReq{
 		AssistantId: req.AssistantId,
 		McpId:       req.MCPId,

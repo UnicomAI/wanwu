@@ -1,0 +1,16 @@
+{
+  "storeDirectory": "/var/lib/wanwu/mcp-oauth",
+  "relayUrl": "https://wanwu.example/service/callback/v1/mcp/oauth/relay",
+  "providers": [
+    {
+      "id": "example",
+      "name": "Example MCP OAuth",
+      "resource": "https://mcp.example/stream",
+      "resourceMetadataUrl": "https://mcp.example/.well-known/oauth-protected-resource/stream",
+      "issuer": "https://auth.example",
+      "clientId": "",
+      "redirectUri": "https://wanwu.example/aibase/oauth/mcp/callback",
+      "scope": "mcp:tools"
+    }
+  ]
+}

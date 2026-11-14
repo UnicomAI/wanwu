@@ -1,6 +1,7 @@
 <template>
   <div class="mcp-content-box customize">
     <div class="mcp-content">
+      <McpOAuthPanel @connected="fetchList" />
       <div class="card-search card-search-cust">
         <div>
           <p class="card-search-des" style="display: flex; align-items: center">
@@ -102,6 +103,7 @@
   </div>
 </template>
 <script>
+import McpOAuthPanel from '@/components/McpOAuthPanel.vue';
 import addDialog from './addDialog.vue';
 import SearchInput from '@/components/searchInput.vue';
 import ConvertSkillDialog from '@/components/skills/convertSkillDialog.vue';
@@ -110,7 +112,7 @@ import LinkIcon from '@/components/linkIcon.vue';
 import { avatarSrc } from '@/utils/util';
 export default {
   name: 'McpIntegrate',
-  components: { LinkIcon, SearchInput, addDialog, ConvertSkillDialog },
+  components: { McpOAuthPanel, LinkIcon, SearchInput, addDialog, ConvertSkillDialog },
   data() {
     return {
       defaultAvatar: require('@/assets/imgs/mcp_active.svg'),
@@ -163,6 +165,7 @@ export default {
       return Object.entries(headers).map(([name, value]) => ({ name, value }));
     },
     handleEdit(item) {
+      if (item.apiAuth && item.apiAuth.authType === 'oauth') { this.$message.info('请在上方 OAuth 授权区域管理此连接'); return; }
       this.addOpen = true;
       this.addTitle = this.$t('tool.integrate.editTitle');
       this.dialogParams = {
@@ -191,7 +194,7 @@ export default {
     },
     handleDelete(item) {
       this.$confirm(
-        this.$t('tool.integrate.deleteHint'),
+        item.apiAuth && item.apiAuth.authType === 'oauth' ? '删除此连接也会解绑其 OAuth 授权，并停用共享该授权的其他连接。是否继续？' : this.$t('tool.integrate.deleteHint'),
         this.$t('common.confirm.title'),
         {
           confirmButtonText: this.$t('common.confirm.confirm'),
@@ -215,6 +218,7 @@ export default {
     },
     // 转化为 Skill
     handleConvertToSkill(item) {
+      if (item.apiAuth && item.apiAuth.authType === 'oauth') { this.$message.info('OAuth 连接请直接作为 MCP 使用，不导出授权凭据到 Skill'); return; }
       this.$refs.convertSkillDialog.open({
         id: item.mcpId,
         type: 'mcp',

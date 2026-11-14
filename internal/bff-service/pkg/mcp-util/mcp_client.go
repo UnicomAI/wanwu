@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	mcpoauth "github.com/UnicomAI/wanwu/pkg/mcp-oauth"
 	"net"
 	"net/http"
 	"time"
@@ -39,7 +40,7 @@ func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 func newHTTPClientWithHeaders(headers map[string]string, strict bool) *http.Client {
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: headers[mcpoauth.RelayHeader] == "",
 		},
 	}
 	clientWithAuth := &http.Client{
