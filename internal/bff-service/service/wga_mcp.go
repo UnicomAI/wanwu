@@ -78,6 +78,9 @@ func buildWgaMCPOptions(ctx *gin.Context, userId, orgId string, mcpList []*assis
 
 	var opts []wga_option.Option
 	for _, item := range mcpResp.Infos {
+		if e := checkManagedOwner(item.GetApiAuth(), item.GetOwner(), userId, orgId); e != nil {
+			return nil, e
+		}
 		opts = append(opts, wga_option.WithMCP(wga_option.MCP{
 			Name:        item.Info.GetName(),
 			URL:         util.IfElse(item.Transport == constant.MCPTransportStreamable, item.StreamableUrl, item.SseUrl),

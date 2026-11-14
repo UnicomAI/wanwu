@@ -1,0 +1,23 @@
+{
+  "storeDirectory": "/var/lib/wanwu/mcp-oauth",
+  "relayUrl": "https://wanwu.example/service/callback/v1/mcp/oauth/relay",
+  "providers": [
+    {
+      "id": "qcc",
+      "name": "企查查 MCP",
+      "resource": "https://agent.qcc.com/mcp/company/stream",
+      "resourceMetadataUrl": "https://agent.qcc.com/mcp/.well-known/oauth-protected-resource/company/stream",
+      "issuer": "https://agent.qcc.com",
+      "clientId": "",
+      "redirectUri": "https://wanwu.example/aibase/oauth/mcp/callback",
+      "scope": "mcp:tools",
+      "targets": [
+        {
+          "name": "企查查 · 统一入口",
+          "resource": "https://agent.qcc.com/mcp/company/stream"
+        }
+      ],
+      "onDemand": true
+    }
+  ]
+}
