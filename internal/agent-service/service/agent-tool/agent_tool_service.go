@@ -48,7 +48,8 @@ func BuildAgentToolsConfig(ctx *gin.Context, req *request.AgentChatParams, chatI
 	totalToolIDNameMap := buildAllToolIDMap(mcpToolIDNameMap, pluginToolIDNameMap, skillToolIDNameMap)
 	return adk.ToolsConfig{
 		ToolsNodeConfig: compose.ToolsNodeConfig{
-			Tools: toolList,
+			Tools:               toolList,
+			ToolCallMiddlewares: []compose.ToolMiddleware{newToolErrorRecoveryMiddleware(skillToolList)},
 		},
 	}, totalToolIDNameMap, nil
 }

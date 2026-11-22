@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/agent-service/model/response"
 	agent_config "github.com/UnicomAI/wanwu/internal/agent-service/pkg/config"
 	agent_util "github.com/UnicomAI/wanwu/internal/agent-service/pkg/util"
+	tool_recovery "github.com/UnicomAI/wanwu/internal/agent-service/service/agent-tool/tool-recovery"
 	minio_service "github.com/UnicomAI/wanwu/internal/agent-service/service/minio-service"
 	service_model "github.com/UnicomAI/wanwu/internal/agent-service/service/service-model"
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
@@ -177,7 +179,10 @@ func createExecutor(ctx context.Context, skill *skillTool) *SkillExecutor {
 
 func (s *SkillExecutor) initEnv(argumentsInJSON string) *SkillExecutor {
 	params := &SkillParams{}
-	_ = json.Unmarshal([]byte(argumentsInJSON), params)
+	if err := json.Unmarshal([]byte(argumentsInJSON), params); err != nil {
+		s.err = fmt.Errorf("invalid skill arguments: %w", err)
+		return s
+	}
 	//初始化skill运行环境
 	skill := s.skill.Skill
 	var runId = util.MD5([]byte(skill.Name)) + "-" + uuid.New().String()
@@ -248,6 +253,12 @@ func (s *SkillExecutor) runStream(runnerType wga_sandbox_option.RunnerType) (*sc
 	var errResp string
 	if err != nil {
 		log.Errorf("skillTool strem run error: %v", err)
+		if tool_recovery.ShouldPropagate(s.ctx, err) {
+			sw.Close()
+			sr.Close()
+			s.clearEnv()
+			return nil, err
+		}
 		errResp, err = response.ToolErrResp(err)
 		if err != nil {
 			return nil, errors.New(agent_util.WgaErr)

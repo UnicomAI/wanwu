@@ -3,9 +3,9 @@ package mcp_client
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
-	"github.com/UnicomAI/wanwu/internal/agent-service/model/response"
 	"github.com/UnicomAI/wanwu/pkg/log"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/mark3labs/mcp-go/client"
@@ -28,8 +28,13 @@ type Retry struct {
 	Times    int           // 重试次数
 }
 
+type retryClient interface {
+	client.MCPClient
+	Start(context.Context) error
+}
+
 type RetryMcpClient struct {
-	client *client.Client
+	client retryClient
 	retry  *Retry
 	log    bool
 }
@@ -167,36 +172,35 @@ func (r *RetryMcpClient) CallTool(
 	ctx context.Context,
 	request mcp.CallToolRequest,
 ) (*mcp.CallToolResult, error) {
+	retries := 0
 	if r.retry != nil {
-		for i := 0; i < r.retry.Times; i++ {
-			result, err := callTool(r.client, ctx, request, r.log, i)
-			if err == nil && !result.IsError {
-				return result, nil
-			}
-			var duration = r.retry.Span
-			if r.retry.StepSpan {
-				duration = r.retry.Span * time.Duration(i+1)
-			}
-			time.Sleep(duration)
-		}
+		retries = r.retry.Times
 	}
-	result, err := callTool(r.client, ctx, request, r.log, 0)
-	if err != nil {
-		resp, err1 := response.ToolErrResp(err)
-		if err1 != nil {
+	for attempt := 0; ; attempt++ {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		result, err := callTool(r.client, ctx, request, r.log, attempt)
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+		// IsError is a completed tool call. Let the model correct its input
+		// instead of executing the same failing business operation again.
+		if err == nil || attempt >= retries {
 			return result, err
 		}
-		return &mcp.CallToolResult{
-			IsError: false,
-			Content: []mcp.Content{
-				&mcp.TextContent{
-					Type: "text",
-					Text: resp,
-				},
-			},
-		}, nil
+		duration := r.retry.Span
+		if r.retry.StepSpan {
+			duration *= time.Duration(attempt + 1)
+		}
+		timer := time.NewTimer(duration)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return nil, ctx.Err()
+		case <-timer.C:
+		}
 	}
-	return result, nil
 }
 
 // SetLevel sets the logging level for the server
@@ -226,6 +230,9 @@ func (r *RetryMcpClient) OnNotification(handler func(notification mcp.JSONRPCNot
 func callTool(client client.MCPClient, ctx context.Context,
 	request mcp.CallToolRequest, logFlag bool, retryTimes int) (*mcp.CallToolResult, error) {
 	result, err := client.CallTool(ctx, request)
+	if result == nil && err == nil {
+		err = fmt.Errorf("MCP server returned an empty tool result")
+	}
 	if logFlag {
 		defer util.PrintPanicStack()
 		params, _ := json.Marshal(request)
