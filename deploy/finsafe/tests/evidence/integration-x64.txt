@@ -1,0 +1,64 @@
+SeaBIOS (version 1.16.3-debian-1.16.3-2)
+Booting from ROM...
+Linux (none) 6.12.117+deb13-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.12.117-1 (2026-11-12) x86_64 x86_64 x86_64 GNU/Linux
+PRETTY_NAME="Ubuntu 24.04.5 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+finsafe 0.11.19
+1.19.5
+host: linux x86_64
+schema_version: 3
+wrapper_policy_launch_compiler_version: 2 (finsafe-policy wrapper launch compiler)
+bubblewrap:
+  bwrap:              yes (/usr/bin/bwrap)
+  helper:             yes (/opt/finsafe/finsafe-helper)
+  supervisor:         yes (/opt/finsafe/finsafe-supervisor)
+  overlay_functional: no
+  cgroup_functional:  no
+  ready:              yes
+  bwrap_version:      0.9.0 (meets minimum)
+  bwrap_version_required: 0.5.0
+  landlock:           yes (ABI v6)
+  seccomp_functional: no
+  in_container:       yes
+  container_markers:  dockerenv_file
+START_BASELINE
+START OpenCode compatibility {'confined': False}
+PASS health {'healthy': True, 'version': '1.19.5'}
+PASS actual OpenCode Bash tool wrote and read its workspace
+PASS baseline can write the same out-of-scope directory
+PASS legitimate tool execution still works after denial
+PASS SSE delivered the actual tool output
+{"result": "PASS", "confined": false, "opencode": "1.19.5"}
+Shut down
+START_CONFINED
+START OpenCode compatibility {'confined': True}
+PASS health {'healthy': True, 'version': '1.19.5'}
+PASS actual OpenCode Bash tool wrote and read its workspace
+PASS actual OpenCode tool out-of-scope write denied
+PASS legitimate tool execution still works after denial
+PASS SSE delivered the actual tool output
+PASS Supervisor's actual OpenCode PID has FinSafe cgroup/seccomp/NoNewPrivs
+{"result": "PASS", "confined": true, "opencode": "1.19.5"}
+WANWU_COMPATIBILITY_X64=PASS
+START_WANWU_INTEGRATION
+{"level":"INFO","ts":"2026-11-23T10:01:33.956Z","caller":"wga-sandbox/api.go:42","msg":"[wga-sandbox][finsafe-integration-1795428093885145251] Execute the requested test command. WANWU_TEST_COMMAND:Y2F0IGlucHV0LnR4dCA+IGludGVncmF0aW9uLnR4dDsgaWYgcHJpbnRmIGZvcmJpZGRlbiA+IC92YXIvbGliL2ZpbnNhZmUtaW50ZWdyYXRpb24tMTc5NTQyODA5Mzg4NTE0NTI1MS1mb3JiaWRkZW47IHRoZW4gcHJpbnRmIFVORVhQRUNURUQgPiBkZW5pYWwudHh0OyBlbHNlIHByaW50ZiBERU5JRUQgPiBkZW5pYWwudHh0OyBmaTsgY2F0IGludGVncmF0aW9uLnR4dCBkZW5pYWwudHh0"}
+{"level":"INFO","ts":"2026-11-23T10:01:33.959Z","caller":"wga-sandbox/api.go:52","msg":"[wga-sandbox][finsafe-integration-1795428093885145251] using runner: opencode (pkg/wga-sandbox/internal/runner/opencode)"}
+{"level":"INFO","ts":"2026-11-23T10:01:33.960Z","caller":"wga-sandbox/api.go:68","msg":"[wga-sandbox][finsafe-integration-1795428093885145251] preparing..."}
+{"level":"INFO","ts":"2026-11-23T10:01:34.421Z","caller":"wga-sandbox/api.go:75","msg":"[wga-sandbox][finsafe-integration-1795428093885145251] running..."}
+{"level":"INFO","ts":"2026-11-23T10:01:45.601Z","caller":"wga-sandbox/api.go:95","msg":"[wga-sandbox][finsafe-integration-1795428093885145251] finishing..."}
+{"level":"INFO","ts":"2026-11-23T10:01:45.846Z","caller":"wga-sandbox/api.go:104","msg":"[wga-sandbox][finsafe-integration-1795428093885145251] output saved to: /tmp/finsafe-integration-1795428093885145251-output"}
+{"artifact_download":true,"driver":"actual Wanwu pkg/wga-sandbox.Run","events":{"step_finish":2,"step_start":2,"text":1,"tool_use":1},"input_upload":true,"model":"deterministic local OpenAI-compatible fixture","out_of_scope_write_denied":true,"result":"PASS"}
+WANWU_INTEGRATION_X64=PASS
+WANWU_VM_EXIT=0
+[   71.154856] reboot: Power down

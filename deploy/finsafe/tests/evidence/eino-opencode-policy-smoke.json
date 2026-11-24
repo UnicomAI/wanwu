@@ -1,0 +1,16 @@
+{
+  "result": "PASS",
+  "exit_code": 0,
+  "checks": [
+    "PASS OpenCode HTTP health {'healthy': True, 'version': '1.19.5'}",
+    "PASS Eino HTTP health",
+    "PASS OpenCode and Eino cgroup, seccomp and NoNewPrivs; PIDs: {'/root/.opencode/bin/opencode': ['88'], '/usr/local/bin/eino-agent': ['89']}",
+    "finsafe: self-confine applied profile=linux-desktop-isolated digest=1a0a52bff29d1deb6e46b0888b331b7bb5f57c41e87fa23f0654c5daa6c0425e; execing broker",
+    "DIAGNOSTIC synthetic read denied; sensitive-read coverage requires separate validation",
+    "PASS child-process write, workspace .env and denied out-of-scope writes",
+    "finsafe: self-confine applied profile=linux-desktop-isolated digest=65bdb4b6ce47cd6deb0c5c50943ddedd5ddede3970a92a6217ebb7237fbf66dd; execing broker",
+    "DIAGNOSTIC synthetic read denied; sensitive-read coverage requires separate validation",
+    "PASS child-process write, workspace .env and denied out-of-scope writes",
+    "PASS direct process-boundary checks; network egress and remote services are not restricted"
+  ]
+}

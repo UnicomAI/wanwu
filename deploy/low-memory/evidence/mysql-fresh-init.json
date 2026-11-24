@@ -1,0 +1,23 @@
+{
+  "result": "PASS",
+  "mode": "fresh-mysql-initialization",
+  "same_image_as_platform": true,
+  "image_id": "sha256:830f6090b4e40313c42cc3d0eb73cff755a2632113694583f7741dd0850770cb",
+  "memory_limit_bytes": 268435456,
+  "peak_bytes": 268435456,
+  "swap_bytes": 0,
+  "events": {
+    "low": 0,
+    "high": 0,
+    "max": 23,
+    "oom": 0,
+    "oom_kill": 0,
+    "oom_group_kill": 0,
+    "sock_throttled": 0
+  },
+  "schema_and_settings": [
+    "14",
+    "innodb_buffer_pool_size\t67108864",
+    "performance_schema\tOFF"
+  ]
+}

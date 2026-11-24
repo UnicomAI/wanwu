@@ -1,0 +1,488 @@
+{
+  "result": "PASS",
+  "timestamp": "2026-11-24T01:47:31.401608+00:00",
+  "verified_main_services": [
+    "agent-service",
+    "app-service",
+    "assistant-service",
+    "bff-service",
+    "callback",
+    "channel-service",
+    "es",
+    "iam-service",
+    "kafka",
+    "knowledge-service",
+    "mcp-service",
+    "minio",
+    "model-service",
+    "mysql",
+    "nginx",
+    "operate-service",
+    "rag",
+    "rag-service",
+    "redis",
+    "wga-sandbox",
+    "workflow"
+  ],
+  "host_docker_memory_bytes": 8319504384,
+  "host_docker_peak_observed_bytes": 6603117942,
+  "container_peaks_bytes": {
+    "agent-service": 18570280,
+    "app-service": 11785994,
+    "assistant-service": 26791116,
+    "bff-service": 139146035,
+    "callback-wanwu": 114819072,
+    "channel-service": 23666360,
+    "elastic-wanwu": 890975027,
+    "iam-service": 42918215,
+    "kafka-wanwu": 425197568,
+    "knowledge-service": 23613931,
+    "mcp-service": 39678115,
+    "minio-wanwu": 125933977,
+    "model-service": 22817013,
+    "mysql-wanwu": 160851558,
+    "nginx-wanwu": 12121538,
+    "operate-service": 20468203,
+    "rag-service": 13442744,
+    "rag-wanwu": 1721208143,
+    "redis-wanwu": 10611589,
+    "wanwu-wga-finsafe-full-x64": 2820719771,
+    "wga-sandbox-wanwu": 52711915,
+    "workflow-wanwu": 18318622
+  },
+  "final_states": {
+    "agent-service": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "app-service": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "assistant-service": {
+      "restarts": 4,
+      "health": "healthy"
+    },
+    "bff-service": {
+      "restarts": 3,
+      "health": "healthy"
+    },
+    "callback-wanwu": {
+      "restarts": 0,
+      "health": "not-configured"
+    },
+    "channel-service": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "elastic-wanwu": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "iam-service": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "kafka-wanwu": {
+      "restarts": 1,
+      "health": "healthy"
+    },
+    "knowledge-service": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "mcp-service": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "minio-wanwu": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "model-service": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "mysql-wanwu": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "nginx-wanwu": {
+      "restarts": 6,
+      "health": "healthy"
+    },
+    "operate-service": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "rag-service": {
+      "restarts": 4,
+      "health": "healthy"
+    },
+    "rag-wanwu": {
+      "restarts": 0,
+      "health": "not-configured"
+    },
+    "redis-wanwu": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "wanwu-wga-finsafe-full-x64": {
+      "restarts": 0,
+      "health": "not-configured"
+    },
+    "wga-sandbox-wanwu": {
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "workflow-wanwu": {
+      "restarts": 0,
+      "health": "not-configured"
+    }
+  },
+  "samples": [
+    {
+      "elapsed_s": 2.3,
+      "host_docker_bytes": 6602036861,
+      "shared_sandbox": {
+        "current": 1585549312,
+        "peak": 1610616832,
+        "limit": 1610612736,
+        "events": {
+          "low": 0,
+          "high": 0,
+          "max": 136,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "container_cgroup": "0::/finsafe-wanwu/49d40fefd87f986d2081bf7f6e9d94e5e8a433daf34a2d09fe1ac0c72e09e756"
+      }
+    },
+    {
+      "elapsed_s": 36.7,
+      "host_docker_bytes": 6603117942,
+      "shared_sandbox": {
+        "current": 1557393408,
+        "peak": 1610616832,
+        "limit": 1610612736,
+        "events": {
+          "low": 0,
+          "high": 0,
+          "max": 176,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "container_cgroup": "0::/finsafe-wanwu/49d40fefd87f986d2081bf7f6e9d94e5e8a433daf34a2d09fe1ac0c72e09e756"
+      }
+    },
+    {
+      "elapsed_s": 87.2,
+      "host_docker_bytes": 6535215308,
+      "shared_sandbox": {
+        "current": 1387810816,
+        "peak": 1610616832,
+        "limit": 1610612736,
+        "events": {
+          "low": 0,
+          "high": 0,
+          "max": 176,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "container_cgroup": "0::/finsafe-wanwu/49d40fefd87f986d2081bf7f6e9d94e5e8a433daf34a2d09fe1ac0c72e09e756"
+      }
+    }
+  ],
+  "cgroup_checks": {
+    "agent-service": {
+      "current_bytes": 34484224,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "app-service": {
+      "current_bytes": 61222912,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "assistant-service": {
+      "current_bytes": 61116416,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "bff-service": {
+      "current_bytes": 187068416,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "callback-wanwu": {
+      "current_bytes": 132591616,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 189,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "channel-service": {
+      "current_bytes": 53334016,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "elastic-wanwu": {
+      "current_bytes": 905224192,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "iam-service": {
+      "current_bytes": 63516672,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "kafka-wanwu": {
+      "current_bytes": 450293760,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "knowledge-service": {
+      "current_bytes": 54284288,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "mcp-service": {
+      "current_bytes": 62017536,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "minio-wanwu": {
+      "current_bytes": 169955328,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "model-service": {
+      "current_bytes": 49115136,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "mysql-wanwu": {
+      "current_bytes": 195944448,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "nginx-wanwu": {
+      "current_bytes": 19001344,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "operate-service": {
+      "current_bytes": 51941376,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "rag-service": {
+      "current_bytes": 50282496,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "rag-wanwu": {
+      "current_bytes": 1729093632,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 4,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "redis-wanwu": {
+      "current_bytes": 25600000,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "wanwu-wga-finsafe-full-x64": {
+      "current_bytes": 2864402432,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "wga-sandbox-wanwu": {
+      "current_bytes": 45723648,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 112,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    },
+    "workflow-wanwu": {
+      "current_bytes": 70565888,
+      "swap_bytes": 0,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0,
+        "sock_throttled": 0
+      }
+    }
+  },
+  "note": "Observed interval only; includes QEMU overhead when supplied in --extra. Not a capacity benchmark."
+}

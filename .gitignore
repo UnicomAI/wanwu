@@ -36,6 +36,9 @@ log/
 # Environment
 .env
 .env.ontology
+.env.finsafe
+.env.low-memory
+.env.low-memory.new
 *.env.local
 
 # Backup files (except template files)

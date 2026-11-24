@@ -1,0 +1,56 @@
+schema_version: 1
+kind: local-wrapper
+# A persistent HTTP server; no per-invocation wall-clock timeout.
+program_mode: interactive
+degrade:
+  allow_fallback: false
+audit:
+  require_policy_digest: true
+  require_resolved_posture: true
+stdio:
+  mode: inherit
+# Preserve Wanwu's model/MCP connectivity and incoming HTTP on 4096.
+# This policy does not restrict network egress.
+network: host
+resources:
+  memory_max: "4G"
+  pids_max: "512"
+  cpu_max: "200000 100000"
+filesystem:
+  read_only_paths:
+    - /usr
+    - /bin
+    - /sbin
+    - /lib
+    - /lib64
+    - /etc
+    - /proc
+    - /sys/fs/cgroup
+    - /opt/finsafe
+    - /root/.opencode
+    - /root/.dotnet
+    - /root/.local/bin
+    - /home/root/.claude/skills
+  read_write_paths:
+    - /home/root/workspace
+    - /home/root/.config/opencode
+    - /home/root/.cache/opencode
+    - /home/root/.local/share/opencode
+    - /home/root/.local/state/opencode
+    - /home/root/.npm
+    - /tmp
+  # Ancestor read grants can include HOME. Keep credentials explicitly denied.
+  deny_read_paths:
+    - /home/root/.ssh
+    - /home/root/.aws
+    - /home/root/.azure
+    - /home/root/.kube
+    - /root/.ssh
+    - /root/.aws
+    - /root/.azure
+    - /root/.kube
+    - /etc/shadow
+    - /etc/gshadow
+    - /var/run/docker.sock
+  # Wanwu generates task-local credentials/environment files. Keep these usable.
+  skip_default_deny_read: true

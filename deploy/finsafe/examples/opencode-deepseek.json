@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "deepseek/deepseek-flash",
+  "provider": {
+    "deepseek": {
+      "options": {
+        "baseURL": "https://api.deepseek.com/v1",
+        "apiKey": "{env:DEEPSEEK_API_KEY}"
+      },
+      "models": {
+        "deepseek-flash": {
+          "name": "DeepSeek Flash"
+        }
+      }
+    }
+  }
+}

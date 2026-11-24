@@ -1,0 +1,55 @@
+SeaBIOS (version 1.16.3-debian-1.16.3-2)
+Booting from ROM...
+Linux (none) 6.12.117+deb13-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.12.117-1 (2026-11-12) x86_64 x86_64 x86_64 GNU/Linux
+PRETTY_NAME="Ubuntu 24.04.5 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+finsafe 0.11.19
+1.19.5
+host: linux x86_64
+schema_version: 3
+wrapper_policy_launch_compiler_version: 2 (finsafe-policy wrapper launch compiler)
+bubblewrap:
+  bwrap:              yes (/usr/bin/bwrap)
+  helper:             yes (/opt/finsafe/finsafe-helper)
+  supervisor:         yes (/opt/finsafe/finsafe-supervisor)
+  overlay_functional: no
+  cgroup_functional:  no
+  ready:              yes
+  bwrap_version:      0.9.0 (meets minimum)
+  bwrap_version_required: 0.5.0
+  landlock:           yes (ABI v6)
+  seccomp_functional: no
+  in_container:       yes
+  container_markers:  dockerenv_file
+START_BASELINE
+START OpenCode compatibility {'confined': False}
+PASS health {'healthy': True, 'version': '1.19.5'}
+PASS actual OpenCode Bash tool wrote and read its workspace
+PASS baseline can write the same out-of-scope directory
+PASS legitimate tool execution still works after denial
+PASS SSE delivered the actual tool output
+{"result": "PASS", "confined": false, "opencode": "1.19.5"}
+Shut down
+START_CONFINED
+START OpenCode compatibility {'confined': True}
+PASS health {'healthy': True, 'version': '1.19.5'}
+PASS actual OpenCode Bash tool wrote and read its workspace
+PASS actual OpenCode tool out-of-scope write denied
+PASS legitimate tool execution still works after denial
+PASS SSE delivered the actual tool output
+PASS Supervisor's actual OpenCode PID has FinSafe cgroup/seccomp/NoNewPrivs
+{"result": "PASS", "confined": true, "opencode": "1.19.5"}
+WANWU_COMPATIBILITY_X64=PASS
+WANWU_VM_EXIT=0
+[   54.517619] reboot: Power down

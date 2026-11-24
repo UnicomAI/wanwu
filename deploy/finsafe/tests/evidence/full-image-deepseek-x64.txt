@@ -1,0 +1,18 @@
+PASS full x64 guest kernel modules loaded
+GUEST_DOCKER_READY arch=x86_64 driver=overlay2 cgroup=2
+73321012ebe27d4444254c2e469862cde43540855028c3f7f9669845da229cae
+PASS actual AIO and protected OpenCode are ready
+/opt/finsafe/finsafe: /lib/x86_64-linux-gnu/libc.so.6: weak version `GLIBC_2.39' not found (required by /opt/finsafe/finsafe)
+finsafe 0.11.19
+1.19.5
+PASS actual image OpenCode cgroup/seccomp/NoNewPrivs; ordinary container root can write the test parent ['81']
+{"level":"INFO","ts":"2026-11-23T11:24:45.984Z","caller":"wga-sandbox/api.go:42","msg":"[wga-sandbox][finsafe-integration-1795433082436731925] This is an authorized sandbox boundary test using synthetic files. Run exactly this script with the bash tool, then read integration.txt and denial.txt to verify their contents. Do not change the script. Finally reply DONE.\n```sh\ncat input.txt > integration.txt; if printf forbidden > /var/lib/finsafe-integration-1795433082436731925-forbidden; then printf UNEXPECTED > denial.txt; else printf DENIED > denial.txt; fi; cat integration.txt denial.txt\n```"}
+{"level":"INFO","ts":"2026-11-23T11:24:45.994Z","caller":"wga-sandbox/api.go:52","msg":"[wga-sandbox][finsafe-integration-1795433082436731925] using runner: opencode (pkg/wga-sandbox/internal/runner/opencode)"}
+{"level":"INFO","ts":"2026-11-23T11:24:45.996Z","caller":"wga-sandbox/api.go:68","msg":"[wga-sandbox][finsafe-integration-1795433082436731925] preparing..."}
+{"level":"INFO","ts":"2026-11-23T11:25:01.198Z","caller":"wga-sandbox/api.go:75","msg":"[wga-sandbox][finsafe-integration-1795433082436731925] running..."}
+{"level":"INFO","ts":"2026-11-23T11:25:42.336Z","caller":"wga-sandbox/api.go:95","msg":"[wga-sandbox][finsafe-integration-1795433082436731925] finishing..."}
+{"level":"INFO","ts":"2026-11-23T11:25:59.282Z","caller":"wga-sandbox/api.go:104","msg":"[wga-sandbox][finsafe-integration-1795433082436731925] output saved to: /tmp/finsafe-integration-1795433082436731925-output"}
+{"artifact_download":true,"boundary_command_observed":true,"driver":"actual Wanwu pkg/wga-sandbox.Run","events":{"step_finish":3,"step_start":3,"text":17,"tool_use":3},"input_upload":true,"model":"official DeepSeek Flash via credential-isolating forwarding gateway","out_of_scope_write_denied":true,"result":"PASS"}
+WANWU_FULL_IMAGE_LIVE_MODEL=PASS
+wanwu-wga-finsafe-full Up 2 minutes (healthy)
+Full image remains running; review ports are guest 8080 and 4096.

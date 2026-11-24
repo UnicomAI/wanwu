@@ -1,0 +1,15 @@
+{
+  "total": 53,
+  "valid_after_denial": true,
+  "boundary": "WRITTEN",
+  "result": "PASS",
+  "mode": "baseline",
+  "actual_eino_server": true,
+  "real_model": false,
+  "tool_names": [
+    "bash"
+  ],
+  "event_count": 3,
+  "bash_command_observed": true,
+  "original_script_unchanged": true
+}

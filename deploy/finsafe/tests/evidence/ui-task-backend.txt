@@ -1,0 +1,6 @@
+{"level":"INFO","ts":"2026-11-23T11:54:59.175Z","caller":"wga-sandbox/api.go:42","msg":"[wga-sandbox][505ba10a-ad73-47fa-9000-c6d4a20813bd][General Agent] For context: [Supervisor Agent] `transfer_to_agent` tool returned result: successfully transferred to agent [General Agent]."}
+{"level":"INFO","ts":"2026-11-23T11:54:59.179Z","caller":"wga-sandbox/api.go:52","msg":"[wga-sandbox][505ba10a-ad73-47fa-9000-c6d4a20813bd][General Agent] using runner: opencode (pkg/wga-sandbox/internal/runner/opencode)"}
+{"level":"INFO","ts":"2026-11-23T11:54:59.180Z","caller":"wga-sandbox/api.go:68","msg":"[wga-sandbox][505ba10a-ad73-47fa-9000-c6d4a20813bd][General Agent] preparing..."}
+{"level":"INFO","ts":"2026-11-23T11:55:08.128Z","caller":"wga-sandbox/api.go:75","msg":"[wga-sandbox][505ba10a-ad73-47fa-9000-c6d4a20813bd][General Agent] running..."}
+{"level":"INFO","ts":"2026-11-23T11:59:18.737Z","caller":"wga-sandbox/api.go:95","msg":"[wga-sandbox][505ba10a-ad73-47fa-9000-c6d4a20813bd][General Agent] finishing..."}
+{"level":"INFO","ts":"2026-11-23T11:59:49.234Z","caller":"wga-sandbox/api.go:104","msg":"[wga-sandbox][505ba10a-ad73-47fa-9000-c6d4a20813bd][General Agent] output saved to: /shared/data/wga/bff/versioned/thread-versioned_1ef07500-6bf9-4275-b5bf-59b23c586af8/run-1795434893443_505ba10a-ad73-47fa-9000-c6d4a20813bd"}

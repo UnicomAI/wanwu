@@ -1,0 +1,53 @@
+schema_version: 1
+kind: local-wrapper
+program_mode: interactive
+degrade:
+  allow_fallback: false
+audit:
+  require_policy_digest: true
+  require_resolved_posture: true
+stdio:
+  mode: inherit
+# Container network namespace; incoming 4097 and model callbacks stay usable.
+# This does not restrict outbound requests or remote tool execution.
+network: host
+resources:
+  memory_max: "4G"
+  pids_max: "512"
+  cpu_max: "200000 100000"
+filesystem:
+  read_only_paths:
+    - /usr
+    - /bin
+    - /sbin
+    - /lib
+    - /lib64
+    - /etc
+    - /proc
+    - /sys/fs/cgroup
+    - /opt/finsafe
+    - /root/.opencode
+    - /root/.dotnet
+    - /root/.local/bin
+    - /home/root/.config
+    - /home/root/.claude/skills
+  read_write_paths:
+    - /home/root/workspace
+    - /home/root/.cache
+    - /home/root/.npm
+    - /tmp
+  # Declared intent only: deny-read semantics are not claimed by this integration.
+  deny_read_paths:
+    - /home/root/.ssh
+    - /home/root/.aws
+    - /home/root/.azure
+    - /home/root/.kube
+    - /root/.ssh
+    - /root/.aws
+    - /root/.azure
+    - /root/.kube
+    - /etc/shadow
+    - /etc/gshadow
+    - /var/run/docker.sock
+  # Eino reads per-task .env and Skill variables from its workspace.
+  skip_default_deny_read: true

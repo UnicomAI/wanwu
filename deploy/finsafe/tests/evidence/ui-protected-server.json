@@ -1,0 +1,11 @@
+{
+  "result": "PASS",
+  "protected_servers": [
+    {
+      "pid": "81",
+      "NoNewPrivs": 1,
+      "Seccomp": 2,
+      "cgroup": "0::/finsafe-wanwu/finsafe.slice/wrapper-self-confine-81-1795435899637877625.scope"
+    }
+  ]
+}

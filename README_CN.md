@@ -219,6 +219,10 @@ UniClaw下载地址：https://maas.ai-yuanjing.com/app/uniclaw/uniclaw-official.
 
 ### 🚀 快速开始
 
+可选：通过 [FinSafe 部署覆盖配置](deploy/finsafe/README.md) 约束 OpenCode、Eino 执行服务及其工具子进程，无需修改业务源码。
+
+低并发调试可使用 [8GB 主平台配置](deploy/low-memory/README.md)，保留主平台并默认关闭本体扩展。
+
 - 元景万悟智能体平台的工作流模块使用的是以下项目，可到其仓库查看详情。
   - v0.1.8及以前：wanwu-agentscope 项目
   - v0.2.0开始：[wanwu-workflow](https://github.com/UnicomAI/wanwu-workflow/tree/dev/wanwu-backend) 项目

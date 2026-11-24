@@ -1,0 +1,51 @@
+{
+  "result": "PASS",
+  "date": "2026-11-23",
+  "timezone": "Asia/Shanghai",
+  "ui": "WanwuBot",
+  "provider": "DeepSeek",
+  "model": "deepseek-flash",
+  "official_base_url": "https://api.deepseek.com/v1",
+  "real_model": true,
+  "runner": "opencode",
+  "sandbox_image": "wanwu-wga-finsafe:0.11.19",
+  "finsafe_version": "0.11.19",
+  "opencode_version": "1.19.5",
+  "run_id": "505ba10a-ad73-47fa-9000-c6d4a20813bd",
+  "ui_task_started": "19:54:53",
+  "sandbox_output_saved": "19:59:49",
+  "actual_ui_downloads": true,
+  "csv_rows": 6,
+  "total_revenue": 39200,
+  "city_revenues": {
+    "上海": 14100,
+    "深圳": 13500,
+    "北京": 11600
+  },
+  "report_verified": true,
+  "files": [
+    {
+      "file": "summary.csv",
+      "bytes": 56,
+      "sha256": "ec33328439f00aee87f6e632326c2c72fe3068a9d7311af3b3cb02a4393dcd5b"
+    },
+    {
+      "file": "sales.csv",
+      "bytes": 166,
+      "sha256": "ef1bac81d226143c3b3733175fe4a9457ee439619c3a7292ad1c413b4b8cc839"
+    },
+    {
+      "file": "report.md",
+      "bytes": 580,
+      "sha256": "83933366a06e37b346e92e887aa8ca6b5a94d30ac2712e94517e90034c257976"
+    },
+    {
+      "file": "analyze.py",
+      "bytes": 2097,
+      "sha256": "99b03198f749a7cc51c2224357790e941ee4830b4603a73597aa7c17fb25fbf6"
+    }
+  ],
+  "known_issue": "Historical task-card bulk download did not trigger a download; workspace individual downloads and report preview passed.",
+  "post_recovery_protected_server_check": "PASS",
+  "post_recovery_platform_health_check": "PASS"
+}

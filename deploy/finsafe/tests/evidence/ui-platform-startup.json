@@ -1,0 +1,151 @@
+{
+  "date": "2026-11-23",
+  "timezone": "Asia/Shanghai",
+  "ontology_enabled": false,
+  "services": [
+    {
+      "service": "agent-service",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "app-service",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "assistant-service",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "bff-service",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "callback",
+      "state": "running",
+      "health": "",
+      "exit_code": 0
+    },
+    {
+      "service": "channel-service",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "es",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "es-setup",
+      "state": "exited",
+      "health": "",
+      "exit_code": 0
+    },
+    {
+      "service": "iam-service",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "kafka",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "knowledge-service",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "mcp-service",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "minio",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "model-service",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "mysql",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "mysql-setup",
+      "state": "exited",
+      "health": "",
+      "exit_code": 0
+    },
+    {
+      "service": "nginx",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "operate-service",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "rag-service",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "rag",
+      "state": "running",
+      "health": "",
+      "exit_code": 0
+    },
+    {
+      "service": "redis",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "wga-sandbox",
+      "state": "running",
+      "health": "healthy",
+      "exit_code": 0
+    },
+    {
+      "service": "workflow",
+      "state": "running",
+      "health": "",
+      "exit_code": 0
+    }
+  ],
+  "ui_http": 200,
+  "ui_login": "PASS",
+  "model_configured": true,
+  "ui_real_task": "PASS",
+  "pending": null,
+  "post_recovery_health_checked": true
+}

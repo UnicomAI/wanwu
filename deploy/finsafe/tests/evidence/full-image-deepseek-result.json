@@ -1,0 +1,15 @@
+{
+  "artifact_download": true,
+  "boundary_command_observed": true,
+  "driver": "actual Wanwu pkg/wga-sandbox.Run",
+  "events": {
+    "step_finish": 3,
+    "step_start": 3,
+    "text": 17,
+    "tool_use": 3
+  },
+  "input_upload": true,
+  "model": "official DeepSeek Flash via credential-isolating forwarding gateway",
+  "out_of_scope_write_denied": true,
+  "result": "PASS"
+}

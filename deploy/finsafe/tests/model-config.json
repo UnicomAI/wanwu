@@ -1,0 +1,12 @@
+{
+  "model": "fixture/fixture",
+  "enabled_providers": ["fixture"],
+  "provider": {
+    "fixture": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Local deterministic fixture",
+      "options": {"baseURL": "http://127.0.0.1:8000/v1", "apiKey": "fixture-only"},
+      "models": {"fixture": {"name": "Fixture"}}
+    }
+  }
+}

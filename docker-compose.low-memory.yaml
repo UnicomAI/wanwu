@@ -1,0 +1,155 @@
+# Main platform for an 8 GiB Linux x64 host, external models, light concurrency.
+# Apply after docker-compose.finsafe.yaml. Ontology is explicitly opt-in.
+x-small-go: &small-go
+  mem_limit: 96m
+  memswap_limit: 96m
+  environment: &small-go-env
+    GOMEMLIMIT: 72MiB
+    GOGC: "50"
+
+services:
+  mysql:
+    mem_limit: 256m
+    memswap_limit: 256m
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_bin
+      - --innodb-buffer-pool-size=67108864
+      - --max-connections=50
+      - --table-open-cache=256
+      # Optional SQL instrumentation; application tables and queries are retained.
+      - --performance-schema=OFF
+  mysql-setup:
+    mem_limit: 128m
+    memswap_limit: 128m
+  redis:
+    mem_limit: 96m
+    memswap_limit: 96m
+  minio:
+    mem_limit: 192m
+    memswap_limit: 192m
+  kafka:
+    mem_limit: 512m
+    memswap_limit: 512m
+    environment:
+      # KAFKA_CFG_HEAP_OPTS alone does not configure this image's JVM heap.
+      KAFKA_HEAP_OPTS: -Xms128m -Xmx256m
+      KAFKA_CFG_HEAP_OPTS: -Xms128m -Xmx256m
+  es:
+    mem_limit: 1024m
+    memswap_limit: 1024m
+    environment:
+      ES_JAVA_OPTS: -Xms384m -Xmx384m
+      bootstrap.memory_lock: "false"
+  es-setup:
+    mem_limit: 512m
+    memswap_limit: 512m
+  bff-service:
+    mem_limit: 192m
+    memswap_limit: 192m
+    environment:
+      GOMEMLIMIT: 144MiB
+      GOGC: "50"
+  agent-service:
+    mem_limit: 192m
+    memswap_limit: 192m
+    environment:
+      GOMEMLIMIT: 144MiB
+      GOGC: "50"
+  iam-service:
+    <<: *small-go
+  model-service:
+    <<: *small-go
+  mcp-service:
+    <<: *small-go
+  knowledge-service:
+    <<: *small-go
+  rag-service:
+    <<: *small-go
+  assistant-service:
+    <<: *small-go
+  operate-service:
+    <<: *small-go
+  app-service:
+    <<: *small-go
+  channel-service:
+    <<: *small-go
+  callback:
+    mem_limit: 192m
+    memswap_limit: 192m
+    environment:
+      GUNICORN_WORKERS: "1"
+      GUNICORN_THREADS: "2"
+      MALLOC_ARENA_MAX: "2"
+  workflow:
+    mem_limit: 128m
+    memswap_limit: 128m
+    environment:
+      GOMEMLIMIT: 96MiB
+      GOGC: "50"
+  rag:
+    mem_limit: 2048m
+    # Equal combined RAM+swap allowance disables swap for this heavy service.
+    memswap_limit: 2048m
+    environment:
+      WANWU_RAG_WORKERS: "1"
+      WANWU_RAG_INGEST_WORKERS: "1"
+      MALLOC_ARENA_MAX: "2"
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+    volumes:
+      - ./deploy/low-memory/rag-worker.sh:/model_extend/rag_core/start_run.sh:ro
+      - ./deploy/low-memory/rag-worker.sh:/model_extend/rag_core/start_sse.sh:ro
+      - ./deploy/low-memory/rag-worker.sh:/model_extend/rag_core/start_asyn_add.sh:ro
+      - ./deploy/low-memory/rag-worker.sh:/model_extend/rag_core/graph/start_server.sh:ro
+      - ./deploy/low-memory/rag-worker.sh:/model_extend/rag_es_server_unify/start_es_server.sh:ro
+  wga-sandbox:
+    # Docker and FinSafe must share the 1536 MiB parent prepared on the host.
+    # A container-only limit misses processes moved to FinSafe's sibling scopes.
+    cgroup_parent: ${FINSAFE_CGROUP_PARENT:?Run deploy/low-memory/prepare-cgroup.sh first}
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    volumes:
+      - type: bind
+        source: ${FINSAFE_CGROUP_BUDGET_ROOT:?Run deploy/low-memory/prepare-cgroup.sh first}
+        target: /run/finsafe-budget
+        read_only: true
+        bind:
+          create_host_path: false
+  nginx:
+    mem_limit: 64m
+    memswap_limit: 64m
+
+  # The included ontology stack is outside the 8 GiB main-platform budget.
+  mysql-setup-ontology:
+    profiles: [ontology]
+  data-connection:
+    profiles: [ontology]
+  vega-gateway:
+    profiles: [ontology]
+  vega-gateway-pro:
+    profiles: [ontology]
+  vega-calculate-coordinator:
+    profiles: [ontology]
+  vega-backend:
+    profiles: [ontology]
+  mdl-data-model:
+    profiles: [ontology]
+  mdl-uniquery:
+    profiles: [ontology]
+  bkn-backend:
+    profiles: [ontology]
+  ontology-query:
+    profiles: [ontology]
+  bkn-mcp:
+    profiles: [ontology]
+  agent-operator-integration:
+    profiles: [ontology]
+  wga-sandbox-adapter:
+    profiles: [ontology]
+  web:
+    profiles: [ontology]
+  agent:
+    profiles: [ontology]
+  wga-sandbox-ontology:
+    profiles: [ontology]

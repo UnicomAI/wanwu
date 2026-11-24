@@ -1,0 +1,10 @@
+{
+  "model": "deepseek/deepseek-flash",
+  "enabled_providers": ["deepseek"],
+  "provider": {
+    "deepseek": {
+      "options": {"baseURL": "http://10.0.2.2:8000/v1", "apiKey": "local-test-gateway"},
+      "models": {"deepseek-flash": {"name": "DeepSeek Flash"}}
+    }
+  }
+}

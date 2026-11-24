@@ -1,0 +1,33 @@
+{
+  "total": 53,
+  "valid_after_denial": true,
+  "boundary": "DENIED",
+  "result": "PASS",
+  "mode": "confined",
+  "actual_eino_server": true,
+  "real_model": false,
+  "tool_names": [
+    "bash"
+  ],
+  "event_count": 3,
+  "bash_command_observed": true,
+  "bash_commands": [
+    "python3 tmp/check.py"
+  ],
+  "original_script_unchanged": true,
+  "posture": {
+    "/root/.opencode/bin/opencode": {
+      "pid": "88",
+      "NoNewPrivs": 1,
+      "Seccomp": 2,
+      "cgroup": "0::/finsafe-wanwu/finsafe.slice/wrapper-self-confine-88-1795481456493509721.scope"
+    },
+    "/usr/local/bin/eino-agent": {
+      "pid": "89",
+      "NoNewPrivs": 1,
+      "Seccomp": 2,
+      "cgroup": "0::/finsafe-wanwu/finsafe.slice/wrapper-self-confine-89-1795481456477419013.scope",
+      "guards_enabled": true
+    }
+  }
+}

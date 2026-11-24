@@ -1,0 +1,23 @@
+{
+  "result": "PASS",
+  "mode": "opencode-regression",
+  "model_calls": 0,
+  "workspace_write_read": true,
+  "out_of_scope_write_denied": true,
+  "valid_after_denial": true,
+  "posture": {
+    "/root/.opencode/bin/opencode": {
+      "pid": "88",
+      "NoNewPrivs": 1,
+      "Seccomp": 2,
+      "cgroup": "0::/finsafe-wanwu/finsafe.slice/wrapper-self-confine-88-1795481456493509721.scope"
+    },
+    "/usr/local/bin/eino-agent": {
+      "pid": "89",
+      "NoNewPrivs": 1,
+      "Seccomp": 2,
+      "cgroup": "0::/finsafe-wanwu/finsafe.slice/wrapper-self-confine-89-1795481456477419013.scope",
+      "guards_enabled": true
+    }
+  }
+}

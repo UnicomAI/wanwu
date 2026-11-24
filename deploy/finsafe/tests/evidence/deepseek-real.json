@@ -1,0 +1,22 @@
+{
+  "result": "PASS",
+  "model": "deepseek/deepseek-flash",
+  "opencode": "1.19.5",
+  "real_provider": true,
+  "tool_names": [
+    "write",
+    "read"
+  ],
+  "artifact_content_verified": true,
+  "tokens": {
+    "total": 8108,
+    "input": 163,
+    "output": 9,
+    "reasoning": 0,
+    "cache": {
+      "write": 0,
+      "read": 7936
+    }
+  },
+  "phase": "real-provider configuration check before full-image run"
+}
