@@ -1,0 +1,36 @@
+# Opt in with: -f docker-compose.yaml -f docker-compose.finsafe.yaml
+x-finsafe-opencode: &finsafe-opencode
+  image: ${WANWU_WGA_FINSAFE_IMAGE:-wanwu-wga-finsafe:0.11.19}
+  platform: linux/amd64
+  build:
+    context: ./deploy/finsafe
+    args:
+      WANWU_WGA_SANDBOX_IMAGE: ${WANWU_WGA_SANDBOX_IMAGE:?Set WANWU_WGA_SANDBOX_IMAGE}
+  # Only the delegated subtree is writable. No privileged container or Docker socket.
+  cgroup: host
+  volumes:
+    - type: bind
+      source: ${FINSAFE_CGROUP_ROOT:?Set FINSAFE_CGROUP_ROOT to a delegated cgroup v2 directory}
+      target: /sys/fs/cgroup
+      bind:
+        create_host_path: false
+    - type: bind
+      source: ./deploy/finsafe/opencode.yaml
+      target: /etc/finsafe/opencode.yaml
+      read_only: true
+    - type: bind
+      source: ./deploy/finsafe/eino-agent.yaml
+      target: /etc/finsafe/eino-agent.yaml
+      read_only: true
+  healthcheck:
+    test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4096/global/health >/dev/null && curl -fsS http://127.0.0.1:4097/health >/dev/null && nc -z localhost 8080"]
+    interval: 15s
+    timeout: 5s
+    retries: 3
+    start_period: 60s
+
+services:
+  wga-sandbox:
+    <<: *finsafe-opencode
+  wga-sandbox-ontology:
+    <<: *finsafe-opencode
