@@ -1,3 +1,1 @@
 *.vue linguist-language=golang
-# Preserve downloaded CSV evidence byte-for-byte, including its recorded CRLF.
-deploy/finsafe/tests/evidence/ui-task-artifacts/*.csv -text whitespace=cr-at-eol

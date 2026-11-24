@@ -1,9 +1,0 @@
-{
-  "previous_outer_memory_bytes": 3758096384,
-  "previous_state": {
-    "oom_killed": true,
-    "exit_code": 137,
-    "finished_at_utc": "2026-11-23T12:04:13.211912841Z"
-  },
-  "action": "Limit TCG translation cache to 128 MiB and raise outer test-container allowance to 4 GiB; keep guest memory and FinSafe policy unchanged."
-}

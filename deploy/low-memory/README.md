@@ -33,9 +33,9 @@ Go 的 `GOMEMLIMIT` 是 GC 目标，Docker/cgroup 硬上限负责限制整个进
 
 ## 在 Linux 主机启用
 
-沿用已有 `.env`、`.env.ontology`、`.env.finsafe`，后者可由
-`.env.finsafe.example` 复制。按照上一级 FinSafe 文档准备 Linux x64、cgroup v2、
-Landlock 和 seccomp；使用现有镜像 `wanwu-wga-finsafe:0.11.19`，本配置无需重建镜像。
+沿用已有 `.env`、`.env.ontology`；首次将 `.env.finsafe.example` 复制为
+`.env.finsafe`，已有配置则继续复用。按照上一级 FinSafe 文档准备 Linux x64、cgroup v2、
+Landlock 和 seccomp；派生镜像名为 `wanwu-wga-finsafe:0.11.19`；首次部署需构建，已有同版本镜像可复用。
 RAG 启动器通过只读挂载调整 worker 数，不改变业务 Python/Go 源码。
 
 在 **Docker daemon 所在的 Linux 主机**运行一次：
@@ -57,10 +57,14 @@ cgroupfs 使用 `/finsafe-wanwu`；systemd 使用专用 slice 管理总额度，
 docker compose --env-file .env.image.amd64 --env-file .env --env-file .env.ontology \
   --env-file .env.finsafe --env-file .env.low-memory \
   -f docker-compose.yaml -f docker-compose.finsafe.yaml -f docker-compose.low-memory.yaml \
+  build wga-sandbox
+
+docker compose --env-file .env.image.amd64 --env-file .env --env-file .env.ontology \
+  --env-file .env.finsafe --env-file .env.low-memory \
+  -f docker-compose.yaml -f docker-compose.finsafe.yaml -f docker-compose.low-memory.yaml \
   up -d
 ```
 
-需要构建镜像时，用相同参数运行 `build wga-sandbox`。
 启动后检查 `ps`、两个 Agent 健康接口、实际任务和 cgroup OOM 计数。
 不要加 `--profile ontology`；该扩展不计入本次预算。
 后续管理也应带上同一组覆盖文件，以免还原 worker 数和资源设置。
@@ -86,21 +90,13 @@ cgroup 驱动和父组语法参考 [Docker 文档](https://docs.docker.com/refer
 委派原则参考 [systemd 文档](https://systemd.io/CGROUP_DELEGATION/)。
 本机实测驱动为 cgroupfs；systemd 路径须在目标服务器完成验收。
 
-## 验证记录
+## 验证摘要
 
-见 [VALIDATION.md](VALIDATION.md)。Mac ARM 测试需额外使用完整 x64 内核模拟，
-不能把这部分 QEMU 宿主开销当作原生 Linux 部署的必需项。
-`measure.py` 可以在另一客户端执行真实任务时采样内存、健康、重启和 OOM 计数；
-需要从运行脚本的位置访问实际 AIO，不记录模型 key 或完整 Docker 配置：
-
-```bash
-python3 deploy/low-memory/measure.py --project wanwu-finsafe-ui \
-  --extra wanwu-wga-finsafe-full-x64 --aio-url http://127.0.0.1:18080 \
-  --seconds 120 --evidence /tmp/wanwu-low-memory.json
-```
-
-上面的项目名、额外 VM 和 URL 是本机测试设置。原生 Linux 不加 `--extra`，
-使用自己的 Compose 项目名及可访问的 AIO URL，不应为采样而公开 AIO 到局域网。
+全部 21 个主平台服务已在本机启动并完成真实 DeepSeek Skill/Python 任务和
+OpenCode 读写、越界拒绝检查。短时采样峰值约 6.15GiB，包含 Mac ARM 上额外的
+完整 x64 QEMU 模拟开销；最终 swap、oom_kill 为 0。MySQL 同镜像的空库初始化
+在 256MiB、无 swap 下通过。这些是轻任务结果，未做多人压力测试，也不替代
+原生目标 Linux 服务器验收。测试工具、日志和截图不属于部署所需文件。
 
 ## 回退
 

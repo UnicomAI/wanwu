@@ -1,4 +1,0 @@
-LIVE_DEEPSEEK_GATEWAY_READY
-{"live_request": 1, "upstream_status": 200, "model": "deepseek-flash"}
-{"live_request": 2, "upstream_status": 200, "model": "deepseek-flash"}
-{"live_request": 3, "upstream_status": 200, "model": "deepseek-flash"}
