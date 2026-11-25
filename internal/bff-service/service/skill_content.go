@@ -1,6 +1,8 @@
 package service
 
 import (
+	"strings"
+
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
@@ -16,6 +18,7 @@ type skillContentSource struct {
 	source   string // response.SkillContentSourcePublished | SkillContentSourceDraft
 	version  string // published 时的版本号（同时也是 git tag 名）
 	skillDir string // published 时的 git 仓库根目录
+	markdown string // 最新发布记录里的 SKILL.md；工作区为空时用来合成文件树
 }
 
 func (s *skillContentSource) isPublished() bool {
@@ -41,6 +44,9 @@ func resolveSkillContentSource(ctx *gin.Context, customSkillID string) (*skillCo
 		return nil, err
 	}
 	version := publish.GetVersion()
+	markdown := publish.GetMarkdown()
+	draft.version = version
+	draft.markdown = markdown
 	if version == "" {
 		return draft, nil // 从未发布
 	}
@@ -87,6 +93,11 @@ func GetSkillContentFiles(ctx *gin.Context, userId, orgId string, req request.Ge
 		if err != nil {
 			return nil, err
 		}
+		if len(draftResp.Files) == 0 {
+			if published := markdownOnlySkillContent(src); published != nil {
+				return &response.SkillContentFilesResp{SkillContentMeta: published.meta(), Files: published.files()}, nil
+			}
+		}
 		return &response.SkillContentFilesResp{SkillContentMeta: src.meta(), Files: draftResp.Files}, nil
 	}
 
@@ -116,6 +127,15 @@ func GetSkillContentFile(ctx *gin.Context, userId, orgId string, req request.Get
 		return nil, err
 	}
 	if !src.isPublished() {
+		if markdownOnlySkillContent(src) != nil && (req.Path == "" || req.Path == "SKILL.md") {
+			draftResp, err := GetSkillWorkspaceFiles(ctx, userId, orgId, request.GetSkillWorkspaceFilesReq{CustomSkillID: req.CustomSkillID})
+			if err != nil {
+				return nil, err
+			}
+			if len(draftResp.Files) == 0 {
+				return markdownOnlySkillContent(src).file(), nil
+			}
+		}
 		draftResp, err := GetSkillWorkspaceFile(ctx, userId, orgId, request.GetSkillWorkspaceFileReq(req))
 		if err != nil {
 			return nil, err
@@ -149,6 +169,43 @@ func GetSkillContentFile(ctx *gin.Context, userId, orgId string, req request.Get
 			ModTime: commitTimeMs,
 		},
 	}, nil
+}
+
+// markdownOnlySkillContent 在已发布但本地没有文件树时，用发布记录里的 Markdown 合成 SKILL.md。
+// Hub 安装的技能只落了发布记录、没有工作区和 git tag，详情页据此与广场展示对齐。
+func markdownOnlySkillContent(src *skillContentSource) *markdownOnlyContent {
+	if src == nil || src.version == "" || strings.TrimSpace(src.markdown) == "" {
+		return nil
+	}
+	return &markdownOnlyContent{version: src.version, markdown: src.markdown}
+}
+
+type markdownOnlyContent struct {
+	version  string
+	markdown string
+}
+
+func (m *markdownOnlyContent) meta() response.SkillContentMeta {
+	return response.SkillContentMeta{Source: response.SkillContentSourcePublished, Version: m.version}
+}
+
+func (m *markdownOnlyContent) files() []*response.FileNode {
+	return []*response.FileNode{{
+		Name:  "SKILL.md",
+		Path:  "SKILL.md",
+		IsDir: false,
+		Size:  int64(len(m.markdown)),
+	}}
+}
+
+func (m *markdownOnlyContent) file() *response.SkillContentFileResp {
+	return &response.SkillContentFileResp{
+		SkillContentMeta: m.meta(),
+		SkillWorkspaceFileResp: response.SkillWorkspaceFileResp{
+			Content: m.markdown,
+			Size:    int64(len(m.markdown)),
+		},
+	}
 }
 
 func hubSkillContentFiles(ctx *gin.Context, skillID string) (*response.SkillContentFilesResp, error) {
