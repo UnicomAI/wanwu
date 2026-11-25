@@ -108,7 +108,7 @@ func CheckUserPerm(ctx *gin.Context) {
 			return
 		}
 		ctx.Set(gin_util.IS_ADMIN, true)
-		ctx.Set(gin_util.IS_SYSTEM, orgID == config.TopOrgID)
+		ctx.Set(gin_util.IS_SYSTEM, orgID == config.TopOrgID())
 		return
 	}
 	// check

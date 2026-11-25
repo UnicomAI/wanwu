@@ -199,7 +199,7 @@ func TransferKnowledgeAdminUser(ctx *gin.Context, userId, orgId string, req *req
 func buildKnowOrgInfo(orgInfo *iam_service.GetFirstClassOrgAndSubsResp) *response.KnowOrgInfoResp {
 	var retList []*response.KnowOrgInfo
 	for _, org := range orgInfo.Orgs {
-		if org.Id == config.TopOrgID {
+		if org.Id == config.TopOrgID() {
 			continue
 		}
 		retList = append(retList, &response.KnowOrgInfo{

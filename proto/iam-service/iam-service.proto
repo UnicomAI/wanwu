@@ -161,6 +161,11 @@ service IAMService {
   rpc UpdateOauthAppStatus(UpdateOauthAppStatusReq) returns (google.protobuf.Empty);
   // 根据clientID获取oauth app信息
   rpc GetOauthApp(GetOauthAppReq) returns (OauthApp);
+
+  // --- system ---
+
+  // 获取系统内置标识（顶级组织、管理员用户、管理员角色）
+  rpc GetSystemIdentity(GetSystemIdentityReq) returns (SystemIdentity) {}
 }
 
 message Perm {
@@ -837,4 +842,14 @@ message OrgSearchItem {
 message OrgUserSearchItem {
   IDNameWithAvatar user = 1;
   repeated IDNameWithAvatar orgs = 2;
+}
+
+// --- system ---
+
+message GetSystemIdentityReq {}
+
+message SystemIdentity {
+  string topOrgId = 1;
+  string adminUserId = 2;
+  string adminRoleId = 3;
 }

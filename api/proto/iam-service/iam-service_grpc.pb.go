@@ -87,6 +87,7 @@ const (
 	IAMService_GetOauthAppList_FullMethodName             = "/iam_service.IAMService/GetOauthAppList"
 	IAMService_UpdateOauthAppStatus_FullMethodName        = "/iam_service.IAMService/UpdateOauthAppStatus"
 	IAMService_GetOauthApp_FullMethodName                 = "/iam_service.IAMService/GetOauthApp"
+	IAMService_GetSystemIdentity_FullMethodName           = "/iam_service.IAMService/GetSystemIdentity"
 )
 
 // IAMServiceClient is the client API for IAMService service.
@@ -230,6 +231,8 @@ type IAMServiceClient interface {
 	UpdateOauthAppStatus(ctx context.Context, in *UpdateOauthAppStatusReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 根据clientID获取oauth app信息
 	GetOauthApp(ctx context.Context, in *GetOauthAppReq, opts ...grpc.CallOption) (*OauthApp, error)
+	// 获取系统内置标识（顶级组织、管理员用户、管理员角色）
+	GetSystemIdentity(ctx context.Context, in *GetSystemIdentityReq, opts ...grpc.CallOption) (*SystemIdentity, error)
 }
 
 type iAMServiceClient struct {
@@ -910,6 +913,16 @@ func (c *iAMServiceClient) GetOauthApp(ctx context.Context, in *GetOauthAppReq, 
 	return out, nil
 }
 
+func (c *iAMServiceClient) GetSystemIdentity(ctx context.Context, in *GetSystemIdentityReq, opts ...grpc.CallOption) (*SystemIdentity, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SystemIdentity)
+	err := c.cc.Invoke(ctx, IAMService_GetSystemIdentity_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IAMServiceServer is the server API for IAMService service.
 // All implementations must embed UnimplementedIAMServiceServer
 // for forward compatibility.
@@ -1051,6 +1064,8 @@ type IAMServiceServer interface {
 	UpdateOauthAppStatus(context.Context, *UpdateOauthAppStatusReq) (*emptypb.Empty, error)
 	// 根据clientID获取oauth app信息
 	GetOauthApp(context.Context, *GetOauthAppReq) (*OauthApp, error)
+	// 获取系统内置标识（顶级组织、管理员用户、管理员角色）
+	GetSystemIdentity(context.Context, *GetSystemIdentityReq) (*SystemIdentity, error)
 	mustEmbedUnimplementedIAMServiceServer()
 }
 
@@ -1261,6 +1276,9 @@ func (UnimplementedIAMServiceServer) UpdateOauthAppStatus(context.Context, *Upda
 }
 func (UnimplementedIAMServiceServer) GetOauthApp(context.Context, *GetOauthAppReq) (*OauthApp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOauthApp not implemented")
+}
+func (UnimplementedIAMServiceServer) GetSystemIdentity(context.Context, *GetSystemIdentityReq) (*SystemIdentity, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSystemIdentity not implemented")
 }
 func (UnimplementedIAMServiceServer) mustEmbedUnimplementedIAMServiceServer() {}
 func (UnimplementedIAMServiceServer) testEmbeddedByValue()                    {}
@@ -2489,6 +2507,24 @@ func _IAMService_GetOauthApp_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_GetSystemIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSystemIdentityReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetSystemIdentity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetSystemIdentity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetSystemIdentity(ctx, req.(*GetSystemIdentityReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // IAMService_ServiceDesc is the grpc.ServiceDesc for IAMService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2763,6 +2799,10 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOauthApp",
 			Handler:    _IAMService_GetOauthApp_Handler,
+		},
+		{
+			MethodName: "GetSystemIdentity",
+			Handler:    _IAMService_GetSystemIdentity_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -113,7 +113,7 @@ func GetAdminOrgSelect(ctx *gin.Context, userID string) (*response.Select, error
 func toOrgIDNamesWithAvatar(ctx *gin.Context, orgs []*iam_service.IDNameWithAvatar, isSystemAdmin bool) []response.IDNameWithAvatar {
 	var ret []response.IDNameWithAvatar
 	for _, org := range orgs {
-		if len(orgs) > 1 && org.Id == config.TopOrgID && !isSystemAdmin {
+		if len(orgs) > 1 && org.Id == config.TopOrgID() && !isSystemAdmin {
 			continue
 		}
 		ret = append(ret, toOrgIDNameWithAvatar(ctx, org))
@@ -131,7 +131,7 @@ func toAdminOrgTreeNodes(nodes []*iam_service.AdminOrgTreeNode) []*response.Admi
 			OrgID:    node.OrgId,
 			Name:     node.Name,
 			HasPerm:  node.HasPerm,
-			IsSystem: node.OrgId == config.TopOrgID,
+			IsSystem: node.OrgId == config.TopOrgID(),
 			Avatar:   cacheOrgAvatar(node.AvatarPath),
 			Children: toAdminOrgTreeNodes(node.Children),
 		})

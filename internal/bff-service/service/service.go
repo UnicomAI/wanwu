@@ -1,7 +1,9 @@
 package service
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
@@ -25,6 +27,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
+	"github.com/UnicomAI/wanwu/pkg/log"
 	trace_util "github.com/UnicomAI/wanwu/pkg/trace-util"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
@@ -118,6 +121,22 @@ func Init() error {
 	return nil
 }
 
+func InitSystemIdentity(ctx context.Context) error {
+	rpcCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	identity, err := iam.GetSystemIdentity(rpcCtx, &iam_service.GetSystemIdentityReq{})
+	if err != nil {
+		return fmt.Errorf("get system identity err: %v", err)
+	}
+	if identity.TopOrgId == "" || identity.AdminUserId == "" {
+		return fmt.Errorf("get system identity err: empty top org or admin user")
+	}
+	config.InitTopOrgID(identity.TopOrgId)
+	config.InitSystemAdminUserID(identity.AdminUserId)
+	log.Infof("system top org: %v, admin user: %v", identity.TopOrgId, identity.AdminUserId)
+	return nil
+}
+
 // --- internal ---
 
 func newConn(host string) (*grpc.ClientConn, error) {
@@ -141,7 +160,7 @@ func toUsersIDNameWithAvatar(idNames []*iam_service.IDNameWithAvatar) []response
 }
 
 func toOrgIDNameWithAvatar(ctx *gin.Context, org *iam_service.IDNameWithAvatar) response.IDNameWithAvatar {
-	if org.Id == config.TopOrgID {
+	if org.Id == config.TopOrgID() {
 		org.Name = gin_util.I18nKey(ctx, "bff_top_org_name")
 	}
 	return response.IDNameWithAvatar{

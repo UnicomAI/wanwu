@@ -294,7 +294,7 @@ func ListModelIdsByUuids(ctx *gin.Context, uuids []string) ([]string, error) {
 
 func parseImportAndUpdateClientReq(userId, orgId string, req *request.ImportOrUpdateModelRequest) (*model_service.ModelInfo, error) {
 	if req.ScopeType == config.ModelScopeTypePublic {
-		if userId != config.SystemAdminUserID || orgId != config.TopOrgID {
+		if userId != config.SystemAdminUserID() || orgId != config.TopOrgID() {
 			return nil, grpc_util.ErrorStatus(err_code.Code_BFFInvalidArg, "Only system administrators can make the model public")
 		}
 	}
@@ -440,7 +440,7 @@ func checkAllowEdit(modelInfo *model_service.ModelInfo, option *ModelInfoOptions
 		return modelInfo.OrgId == option.OrgId
 	case config.ModelScopeTypePublic:
 		// 公开模型：创建者 + 必须在顶层组织操作
-		return option.OrgId == config.TopOrgID
+		return option.OrgId == config.TopOrgID()
 	case config.ModelScopeTypeOrg:
 		// 组织模型：创建者 + 组织匹配
 		return modelInfo.OrgId == option.OrgId

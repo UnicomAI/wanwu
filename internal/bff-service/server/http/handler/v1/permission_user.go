@@ -69,7 +69,7 @@ func DeleteUser(ctx *gin.Context) {
 		return
 	}
 	// delete
-	if req.OrgID == config.TopOrgID {
+	if req.OrgID == config.TopOrgID() {
 		if !isAdmin(ctx) {
 			gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_user_cannot_delete"))
 			return
@@ -172,7 +172,7 @@ func AdminChangeUserPassword(ctx *gin.Context) {
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	if getUserID(ctx) != config.SystemAdminUserID {
+	if getUserID(ctx) != config.SystemAdminUserID() {
 		gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_user_cannot_reset_password"))
 		return
 	}
@@ -288,7 +288,7 @@ func BatchDeleteUser(ctx *gin.Context) {
 		return
 	}
 	// 系统视角：批量删除用户
-	if req.OrgID == config.TopOrgID {
+	if req.OrgID == config.TopOrgID() {
 		if !isAdmin(ctx) {
 			gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_user_cannot_delete"))
 			return

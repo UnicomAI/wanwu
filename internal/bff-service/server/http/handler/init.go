@@ -58,6 +58,11 @@ func Start(ctx context.Context) {
 		log.Fatalf("init service err: %v", err)
 	}
 
+	// system identity
+	if err := service.InitSystemIdentity(ctx); err != nil {
+		log.Fatalf("init system identity err: %v", err)
+	}
+
 	// doc-center
 	if err := service.InitDocCenter(); err != nil {
 		log.Fatalf("init doc-center err: %v", err)

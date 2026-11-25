@@ -13,6 +13,7 @@ import (
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
 	model_service "github.com/UnicomAI/wanwu/api/proto/model-service"
 	rag_service "github.com/UnicomAI/wanwu/api/proto/rag-service"
+	"github.com/UnicomAI/wanwu/internal/bff-service/config"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/request"
 	"github.com/UnicomAI/wanwu/internal/bff-service/model/response"
 	"github.com/gin-gonic/gin"
@@ -492,11 +493,11 @@ func buildAdminModelList(ctx *gin.Context, models []*model_service.ModelInfo) ([
 // modelScopeToPublishScope 将模型 scopeType(1私有/2公开/3组织) 映射为发布范围字符串
 func modelScopeToPublishScope(scopeType string) string {
 	switch scopeType {
-	case "1":
+	case config.ModelScopeTypePrivate:
 		return constant.AppPublishPrivate
-	case "2":
+	case config.ModelScopeTypePublic:
 		return constant.AppPublishPublic
-	case "3":
+	case config.ModelScopeTypeOrg:
 		return constant.AppPublishOrganization
 	default:
 		return ""

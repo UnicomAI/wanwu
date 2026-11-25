@@ -43,7 +43,7 @@ func CreateRole(ctx *gin.Context) {
 		return
 	}
 	// 全局角色只能由系统管理员创建
-	if req.IsGlobal && req.OrgID != config.TopOrgID {
+	if req.IsGlobal && req.OrgID != config.TopOrgID() {
 		gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_global_role_cannot_operate"))
 		return
 	}
@@ -68,7 +68,7 @@ func ChangeRole(ctx *gin.Context) {
 		return
 	}
 	// 全局角色只能由系统管理员编辑
-	if req.IsGlobal && req.OrgID != config.TopOrgID {
+	if req.IsGlobal && req.OrgID != config.TopOrgID() {
 		gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_global_role_cannot_operate"))
 		return
 	}
@@ -211,7 +211,7 @@ func checkGlobalRolePermission(ctx *gin.Context, roleID string, orgID string) bo
 		gin_util.Response(ctx, nil, err)
 		return false
 	}
-	if isGlobal && orgID != config.TopOrgID {
+	if isGlobal && orgID != config.TopOrgID() {
 		gin_util.Response(ctx, nil, grpc_util.ErrorStatusWithKey(err_code.Code_BFFGeneral, "bff_global_role_cannot_operate"))
 		return false
 	}

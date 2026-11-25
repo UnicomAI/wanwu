@@ -242,6 +242,8 @@ services:
     depends_on:
       minio:
         condition: service_healthy
+      iam-service:
+        condition: service_healthy
     restart: always
     image: ${WANWU_BACKEND_IMAGE}
     container_name: bff-service
