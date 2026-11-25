@@ -1,6 +1,8 @@
 package service
 
 import (
+	"strings"
+
 	app_service "github.com/UnicomAI/wanwu/api/proto/app-service"
 	errs "github.com/UnicomAI/wanwu/api/proto/err-code"
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
@@ -78,9 +80,14 @@ func isAcquiredSkillAccessible(ctx *gin.Context, skill *mcp_service.AcquiredSkil
 	}
 
 	// 获取源 Skill ID
-	sourceSkillId := skill.GetSkill().GetSkill().GetSkillId()
+	source := skill.GetSkill().GetSkill()
+	sourceSkillId := source.GetSkillId()
 	if sourceSkillId == "" {
 		return false
+	}
+	// skillhub 导入的源 skill 归属于目录账号，添加者可以使用自己的副本。
+	if source.GetUserId() == finSkillsHubOwnerUser || strings.HasPrefix(source.GetWgaThreadId(), "finskills-hub:") {
+		return true
 	}
 
 	// 获取源 Skill 的发布信息列表
@@ -98,9 +105,14 @@ func checkAcquiredSkillAccess(ctx *gin.Context, skill *mcp_service.AcquiredSkill
 	if skill == nil {
 		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_acquired_not_found", "acquired skill not found")
 	}
-	sourceSkillId := skill.GetSkill().GetSkill().GetSkillId()
+	source := skill.GetSkill().GetSkill()
+	sourceSkillId := source.GetSkillId()
 	if sourceSkillId == "" {
 		return grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_skill_acquired_source_id_empty", "acquired skill source custom skill id is empty")
+	}
+	// skillhub 导入的源 skill 归属于目录账号，添加者可以下载自己的副本。
+	if source.GetUserId() == finSkillsHubOwnerUser || strings.HasPrefix(source.GetWgaThreadId(), "finskills-hub:") {
+		return nil
 	}
 	// 获取源 Skill 的发布信息
 	appInfoMap, err := getSourceSkillAppInfoMap(ctx, []string{sourceSkillId})

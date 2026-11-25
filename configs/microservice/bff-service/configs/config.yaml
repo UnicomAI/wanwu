@@ -424,6 +424,10 @@ wga-sandbox:
     host: wga-sandbox-ontology-wanwu
     image-name: ""
 
+# 技能广场「共享」额外目录。留空则只展示万悟本地共享。
+finskills-hub:
+  base_url: https://skillhub.finogeeks.club
+
 ontology:
   enable: 0
   # endpoint：vega-web 网关，仅供数字员工版本详情（versions/latest）等 JWT 来源流程出站；

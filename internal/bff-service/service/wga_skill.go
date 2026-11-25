@@ -194,8 +194,19 @@ func buildAcquiredSkillOptions(ctx *gin.Context, userId, orgId, threadId, runId 
 
 // downloadAndUnzipSkill 从 minio 下载技能包并解压到临时目录
 func downloadAndUnzipSkill(ctx *gin.Context, skillId, objectPath, threadId, runId string) (string, error) {
-	skillUrl, _ := url.JoinPath("http://", config.Cfg().Minio.Endpoint, objectPath)
-	b, skillZipName, err := minio_util.DownloadFile(ctx.Request.Context(), skillUrl)
+	skillUrl := objectPath
+	if !strings.HasPrefix(objectPath, "http://") && !strings.HasPrefix(objectPath, "https://") {
+		skillUrl, _ = url.JoinPath("http://", config.Cfg().Minio.Endpoint, objectPath)
+	}
+	var b []byte
+	var skillZipName string
+	var err error
+	if strings.HasPrefix(objectPath, "http://") || strings.HasPrefix(objectPath, "https://") {
+		b, err = minio_util.DownloadFileDirect(ctx.Request.Context(), skillUrl)
+		skillZipName = skillId + ".zip"
+	} else {
+		b, skillZipName, err = minio_util.DownloadFile(ctx.Request.Context(), skillUrl)
+	}
 	if err != nil {
 		return "", grpc_util.ErrorStatus(errs.Code_BFFGeneral, fmt.Sprintf("failed to download skill file from %s: %v", skillUrl, err))
 	}

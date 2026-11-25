@@ -75,6 +75,9 @@ func resolveSkillContentSource(ctx *gin.Context, customSkillID string) (*skillCo
 
 // GetSkillContentFiles 获取 Skill 内容文件树：已发布返回最新发布版本，未发布返回草稿工作区。
 func GetSkillContentFiles(ctx *gin.Context, userId, orgId string, req request.GetSkillContentFilesReq) (*response.SkillContentFilesResp, error) {
+	if !isLocalSquareSkillID(req.CustomSkillID) {
+		return hubSkillContentFiles(ctx, req.CustomSkillID)
+	}
 	src, err := resolveSkillContentSource(ctx, req.CustomSkillID)
 	if err != nil {
 		return nil, err
@@ -105,6 +108,9 @@ func GetSkillContentFiles(ctx *gin.Context, userId, orgId string, req request.Ge
 
 // GetSkillContentFile 读取 Skill 内容中的单个文件。
 func GetSkillContentFile(ctx *gin.Context, userId, orgId string, req request.GetSkillContentFileReq) (*response.SkillContentFileResp, error) {
+	if !isLocalSquareSkillID(req.CustomSkillID) {
+		return hubSkillContentFile(ctx, req.CustomSkillID, req.Path)
+	}
 	src, err := resolveSkillContentSource(ctx, req.CustomSkillID)
 	if err != nil {
 		return nil, err
@@ -141,6 +147,48 @@ func GetSkillContentFile(ctx *gin.Context, userId, orgId string, req request.Get
 			Content: string(blob.Content),
 			Size:    blob.Size,
 			ModTime: commitTimeMs,
+		},
+	}, nil
+}
+
+func hubSkillContentFiles(ctx *gin.Context, skillID string) (*response.SkillContentFilesResp, error) {
+	skill, err := getHubCatalogSkill(ctx.Request.Context(), skillID)
+	if err != nil {
+		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error())
+	}
+	content := skill.Content
+	version := skill.Version
+	if version == "" {
+		version = "1.0.0"
+	}
+	return &response.SkillContentFilesResp{
+		SkillContentMeta: response.SkillContentMeta{Source: response.SkillContentSourcePublished, Version: version},
+		Files: []*response.FileNode{{
+			Name:  "SKILL.md",
+			Path:  "SKILL.md",
+			IsDir: false,
+			Size:  int64(len(content)),
+		}},
+	}, nil
+}
+
+func hubSkillContentFile(ctx *gin.Context, skillID, path string) (*response.SkillContentFileResp, error) {
+	if path != "" && path != "SKILL.md" {
+		return nil, grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, "file not found")
+	}
+	skill, err := getHubCatalogSkill(ctx.Request.Context(), skillID)
+	if err != nil {
+		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error())
+	}
+	version := skill.Version
+	if version == "" {
+		version = "1.0.0"
+	}
+	return &response.SkillContentFileResp{
+		SkillContentMeta: response.SkillContentMeta{Source: response.SkillContentSourcePublished, Version: version},
+		SkillWorkspaceFileResp: response.SkillWorkspaceFileResp{
+			Content: skill.Content,
+			Size:    int64(len(skill.Content)),
 		},
 	}, nil
 }

@@ -107,7 +107,16 @@ func buildPackageSkillDir(skill *request.SkillToolInfo) (string, error) {
 func downloadAndUnzipSkill(skillTempDir, skillUrl string) (string, error) {
 	//其实这个minio-wanwu的前缀没有实际作用只是为了保持一个http链接格式
 	var localFilePath = skillTempDir + "/" + filepath.Base(skillUrl)
-	err := minio_service.DownloadFileToLocal(context.Background(), "http://minio-wanwu:9000/"+skillUrl, localFilePath)
+	downloadURL := skillUrl
+	var err error
+	if strings.HasPrefix(skillUrl, "http://") || strings.HasPrefix(skillUrl, "https://") {
+		if !strings.HasSuffix(strings.ToLower(filepath.Base(localFilePath)), ".zip") {
+			localFilePath = skillTempDir + "/skill.zip"
+		}
+		err = minio_service.DownloadFileToLocalDirect(context.Background(), downloadURL, localFilePath)
+	} else {
+		err = minio_service.DownloadFileToLocal(context.Background(), "http://minio-wanwu:9000/"+skillUrl, localFilePath)
+	}
 	if err != nil {
 		return "", err
 	}

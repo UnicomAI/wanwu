@@ -95,9 +95,12 @@ export default {
     visibleHistory() {
       return ['shared', 'mine'].includes(this.skillType);
     },
-    // shared/mine 类型展示只读工作区替代 markdown 概览
+    // 本地 shared/mine 展示只读工作区。远端目录 id 不是纯数字，改走 markdown。
     showWorkspace() {
-      return ['shared', 'mine'].includes(this.skillType);
+      return (
+        ['shared', 'mine'].includes(this.skillType) &&
+        /^\d+$/.test(this.skillId || '')
+      );
     },
     customSkillId() {
       return this.detail?.skillId || this.skillId || '';

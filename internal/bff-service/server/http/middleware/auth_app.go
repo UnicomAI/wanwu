@@ -3,8 +3,10 @@ package middleware
 import (
 	"errors"
 	"net/http"
+	"unicode"
 
 	"github.com/UnicomAI/wanwu/internal/bff-service/service"
+	"github.com/UnicomAI/wanwu/pkg/constant"
 	gin_util "github.com/UnicomAI/wanwu/pkg/gin-util"
 	"github.com/UnicomAI/wanwu/pkg/util"
 	"github.com/gin-gonic/gin"
@@ -25,6 +27,12 @@ func AuthAppPublish(appIdField, appType string) func(ctx *gin.Context) {
 			return
 		}
 		appId := appIds[0]
+
+		// finskills-hub 目录 skill 不是本地已发布应用，跳过发布范围校验。
+		if appType == constant.AppTypeSkill && !isLocalNumericSkillID(appId) {
+			ctx.Next()
+			return
+		}
 
 		// 2. 取请求者 userId / orgId
 		userId, err := getUserID(ctx)
@@ -48,4 +56,16 @@ func AuthAppPublish(appIdField, appType string) func(ctx *gin.Context) {
 		}
 		ctx.Next()
 	}
+}
+
+func isLocalNumericSkillID(skillID string) bool {
+	if skillID == "" {
+		return false
+	}
+	for _, r := range skillID {
+		if !unicode.IsDigit(r) {
+			return false
+		}
+	}
+	return true
 }

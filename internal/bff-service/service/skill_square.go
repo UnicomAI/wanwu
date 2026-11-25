@@ -60,7 +60,8 @@ func GetSquareBuiltinSkillDetail(ctx *gin.Context, skillId string) (*response.Bu
 }
 
 func GetSquareShareSkillList(ctx *gin.Context, userId, orgId, name string) (*response.ListResult, error) {
-	// 获取 skill 列表
+	list := make([]*response.SharedSkillInfo, 0)
+	// 本地共享失败或为空时仍继续拉远端目录。
 	appResp, err := app.GetExplorationAppList(ctx.Request.Context(), &app_service.GetExplorationAppListReq{
 		Name:       name,
 		AppType:    constant.AppTypeSkill,
@@ -69,7 +70,7 @@ func GetSquareShareSkillList(ctx *gin.Context, userId, orgId, name string) (*res
 		OrgId:      orgId,
 	})
 	if err != nil {
-		return nil, err
+		log.Warnf("square share local list failed: %v", err)
 	}
 	var skillIds []string
 	for _, appInfo := range appResp.GetInfos() {
@@ -77,11 +78,28 @@ func GetSquareShareSkillList(ctx *gin.Context, userId, orgId, name string) (*res
 			skillIds = append(skillIds, appInfo.GetAppId())
 		}
 	}
-	if len(skillIds) == 0 {
-		return &response.ListResult{List: []*response.SharedSkillInfo{}, Total: 0}, nil
+	if len(skillIds) > 0 {
+		local, err := listLocalSharedSkills(ctx, userId, orgId, name, skillIds)
+		if err != nil {
+			log.Warnf("square share local detail failed: %v", err)
+		} else {
+			list = local
+		}
 	}
+	if name != "" {
+		list = filterSharedSkillsByName(list, name)
+	}
+	list = appendHubShareSkills(ctx, userId, orgId, name, list)
+	if name != "" {
+		list = filterSharedSkillsByName(list, name)
+	}
+	return &response.ListResult{
+		List:  list,
+		Total: int64(len(list)),
+	}, nil
+}
 
-	// 获取 skill 详情
+func listLocalSharedSkills(ctx *gin.Context, userId, orgId, name string, skillIds []string) ([]*response.SharedSkillInfo, error) {
 	detailResp, err := mcp.GetCustomSkillDetailByIdList(ctx.Request.Context(), &mcp_service.CustomSkillDetailByIdListReq{
 		SkillIds: skillIds,
 	})
@@ -117,13 +135,13 @@ func GetSquareShareSkillList(ctx *gin.Context, userId, orgId, name string) (*res
 		}
 		list = append(list, toSharedSkillInfo(ctx, skill, acquiredMap[skillId]))
 	}
-	return &response.ListResult{
-		List:  list,
-		Total: int64(len(list)),
-	}, nil
+	return list, nil
 }
 
 func ShareSquareSkill(ctx *gin.Context, userId, orgId, skillId string) error {
+	if !isLocalSquareSkillID(skillId) {
+		return shareHubSkill(ctx, userId, orgId, skillId)
+	}
 	_, err := mcp.AcquiredSkillCreate(ctx.Request.Context(), &mcp_service.AcquiredSkillCreateReq{
 		Identity:      &mcp_service.Identity{UserId: userId, OrgId: orgId},
 		CustomSkillId: skillId,
@@ -140,6 +158,9 @@ func GetSquareShareSkillDetail(ctx *gin.Context, userId, orgId, skillId string) 
 	// 获取最新版本的 skill markdown
 	if skillId == "" {
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, "skillId is required")
+	}
+	if !isLocalSquareSkillID(skillId) {
+		return hubSkillDetail(ctx, userId, orgId, skillId)
 	}
 	publish, err := mcp.GetPublishCustomSkillByLatest(ctx.Request.Context(), &mcp_service.GetPublishCustomSkillByLatestReq{
 		SkillId: skillId,
@@ -172,6 +193,9 @@ func DownloadSquareShareSkill(ctx *gin.Context, skillId string) ([]byte, error) 
 	if skillId == "" {
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, "skillId is required")
 	}
+	if !isLocalSquareSkillID(skillId) {
+		return downloadHubSkill(ctx.Request.Context(), skillId)
+	}
 	publish, err := mcp.GetPublishCustomSkillByLatest(ctx.Request.Context(), &mcp_service.GetPublishCustomSkillByLatestReq{SkillId: skillId})
 	if err != nil {
 		return nil, err
@@ -189,7 +213,38 @@ func GetSquareShareSkillVersionList(ctx *gin.Context, skillId string) (*response
 	if skillId == "" {
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, "skillId is required")
 	}
+	if !isLocalSquareSkillID(skillId) {
+		skill, err := getHubCatalogSkill(ctx.Request.Context(), skillId)
+		if err != nil {
+			return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error())
+		}
+		version := skill.Version
+		if version == "" {
+			version = "1.0.0"
+		}
+		return &response.ListResult{
+			List: []*response.SkillVersionInfo{{
+				Version:   version,
+				Desc:      skill.Description,
+				UpdatedAt: skill.UpdatedAt,
+			}},
+			Total: 1,
+		}, nil
+	}
 	return GetSkillVersionList(ctx, skillId, "", "")
+}
+
+func filterSharedSkillsByName(list []*response.SharedSkillInfo, name string) []*response.SharedSkillInfo {
+	if name == "" {
+		return list
+	}
+	filtered := make([]*response.SharedSkillInfo, 0, len(list))
+	for _, item := range list {
+		if item != nil && strings.Contains(item.Name, name) {
+			filtered = append(filtered, item)
+		}
+	}
+	return filtered
 }
 
 // GetSquareCreatedSkillList 获取我发布的skill列表（当前用户、当前组织下所有已发布 skill，含私密/组织内/全局）

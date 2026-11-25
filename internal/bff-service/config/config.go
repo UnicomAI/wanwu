@@ -62,6 +62,12 @@ type Config struct {
 	Workflow            WorkflowServiceConfig `json:"workflow" mapstructure:"workflow"`
 	WgaSandbox          WgaSandboxConfig      `json:"wga-sandbox" mapstructure:"wga-sandbox"`
 	Ontology            OntologyServiceConfig `json:"ontology" mapstructure:"ontology"`
+	FinSkillsHub        FinSkillsHubConfig    `json:"finskills-hub" mapstructure:"finskills-hub"`
+}
+
+// FinSkillsHubConfig 技能广场「共享」的额外目录源。为空时只走万悟本地共享。
+type FinSkillsHubConfig struct {
+	BaseURL string `json:"base_url" mapstructure:"base_url"`
 }
 
 type SecurityConfig struct {
