@@ -97,6 +97,17 @@ func UpdateKnowledgeKeywords(ctx *gin.Context, userId, orgId string, r *request.
 }
 
 func DeleteDocCategoryKeywords(ctx *gin.Context, userId, orgId string, r *request.DeleteKeywordsReq) error {
+	// 删除前校验关键词归属：detail 接口已按 (org,user) 鉴权，非本租户的关键词会返回错误，
+	// 以此拦截跨租户删除（DeleteKnowledgeKeywords 请求自身不携带调用方身份）。
+	if _, err := knowledgeBaseKeywords.GetKnowledgeKeywordsDetail(ctx.Request.Context(), &knowledgebase_keywords_service.GetKnowledgeKeywordsDetailReq{
+		Id: r.Id,
+		Identity: &knowledgebase_keywords_service.Identity{
+			UserId: userId,
+			OrgId:  orgId,
+		},
+	}); err != nil {
+		return err
+	}
 	_, err := knowledgeBaseKeywords.DeleteKnowledgeKeywords(ctx.Request.Context(), &knowledgebase_keywords_service.DeleteKnowledgeKeywordsReq{
 		Id: r.Id,
 	})
