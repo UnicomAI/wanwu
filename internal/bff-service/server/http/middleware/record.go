@@ -14,6 +14,12 @@ import (
 )
 
 func Record(ctx *gin.Context) {
+	// Never record OAuth codes, states, authorization URLs or relay capabilities.
+	if strings.Contains(ctx.Request.URL.Path, "/mcp/oauth/") || ctx.Request.URL.Path == "/callback/v1/mcp" {
+		ctx.Next()
+		return
+	}
+
 	var req string
 	var err error
 	traceID := trace_util.GetTraceID(ctx)

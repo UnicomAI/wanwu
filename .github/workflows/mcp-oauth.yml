@@ -1,0 +1,39 @@
+name: MCP OAuth
+on:
+  push:
+    branches: ['feat/mcp-oauth', 'feat/qcc-mcp-card']
+  pull_request:
+    paths:
+      - 'pkg/mcp-oauth/**'
+      - 'internal/bff-service/**'
+      - 'pkg/wga-sandbox/**'
+      - 'web/src/components/McpOAuthPanel.vue'
+      - 'web/src/views/mcpOAuth/**'
+      - 'web/src/components/QccMcpCard.vue'
+      - 'web/tests/mcp-oauth.test.cjs'
+      - 'docs/mcp-oauth/**'
+      - '.github/workflows/mcp-oauth.yml'
+permissions:
+  contents: read
+jobs:
+  oauth-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.13'
+          cache: true
+      - run: go test -race ./pkg/mcp-oauth ./internal/bff-service/service ./pkg/wga-sandbox/internal/runner/opencode
+      - run: go build ./internal/bff-service/server/http/handler ./internal/agent-service/service/agent-tool ./internal/assistant-service/service/params-process
+
+  oauth-ui-controller-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # Isolated template parser: does not alter the application's lockfile.
+      - run: npm install --prefix "$RUNNER_TEMP/oauth-ui" --ignore-scripts --no-audit vue-template-compiler@2.7.16
+      - run: NODE_PATH="$RUNNER_TEMP/oauth-ui/node_modules" node --test web/tests/mcp-oauth.test.cjs

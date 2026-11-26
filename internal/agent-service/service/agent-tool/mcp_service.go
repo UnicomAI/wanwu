@@ -106,11 +106,11 @@ func GetToolsFromMCPServers(ctx context.Context, toolParamsList []*request.MCPTo
 	var toolMap = make(map[string]*request.ToolConfig)
 
 	for _, serverInfo := range toolParamsList {
-		log.Infof("Connecting to MCP server: %v", serverInfo)
+		log.Infof("Connecting to MCP server: %v", serverInfo.URL)
 
 		mcpClient, err := createMCPClient(ctx, serverInfo)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to create MCP client for %v: %v", serverInfo, err)
+			return nil, nil, fmt.Errorf("failed to create MCP client for %v: %v", serverInfo.URL, err)
 		}
 		// 注意:不要在这里关闭客户端,因为工具在后续使用时还需要这个连接
 		// defer mcpClient.Close()
@@ -120,10 +120,10 @@ func GetToolsFromMCPServers(ctx context.Context, toolParamsList []*request.MCPTo
 			ToolNameList: serverInfo.ToolNameList,
 		})
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get mcp tools from %v: %v", serverInfo, err)
+			return nil, nil, fmt.Errorf("failed to get mcp tools from %v: %v", serverInfo.URL, err)
 		}
 
-		log.Infof("Loaded %d tools from %v", len(tools), serverInfo)
+		log.Infof("Loaded %d tools from %v", len(tools), serverInfo.URL)
 		if len(serverInfo.ToolNameList) > 0 {
 			//mcp 的方法名先不做替换，因为mcp的函数名基本都是符合规则一般不会有特殊字符
 			for _, toolName := range serverInfo.ToolNameList {

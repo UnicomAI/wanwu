@@ -219,3 +219,6 @@ export const changeApiKey = data => {
     data,
   });
 };
+
+export const getOAuthProviders = () => request({ url: `${USER_API}/mcp/oauth/providers`, method: 'get' });
+export const mcpOAuthAction = (action, data) => request({ url: `${USER_API}/mcp/oauth/${action}`, method: 'post', data });
