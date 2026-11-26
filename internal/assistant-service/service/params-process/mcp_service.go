@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	mcpoauth "github.com/UnicomAI/wanwu/pkg/mcp-oauth"
 
 	assistant_service "github.com/UnicomAI/wanwu/api/proto/assistant-service"
 	mcp_service "github.com/UnicomAI/wanwu/api/proto/mcp-service"
@@ -52,6 +53,14 @@ func (k *McpProcess) Prepare(agent *AgentInfo, prepareParams *AgentPrepareParams
 	})
 	if err1 != nil {
 		return fmt.Errorf("MCP服务获取MCP信息失败，assistantId: %d, error: %v", agent.Assistant.ID, err1)
+	}
+	for _, item := range mcpListResp.Infos {
+		if item.GetApiAuth().GetApiKeyHeader() == mcpoauth.RelayHeader {
+			owner := item.GetOwner()
+			if owner == nil || owner.UserId != agent.Assistant.UserId || owner.OrgId != agent.Assistant.OrgId {
+				return mcpoauth.ErrUnauthorized
+			}
+		}
 	}
 	prepareParams.CustomMcpList = mcpListResp.Infos
 	prepareParams.McpServerList = mcpListResp.Servers
